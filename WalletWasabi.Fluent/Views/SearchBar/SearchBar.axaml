@@ -80,8 +80,14 @@
   <StackPanel Margin="300 0" VerticalAlignment="Top">
     <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
              Text="{Binding SearchText, Mode=TwoWay}" MaxWidth="300" VerticalAlignment="Top" />
-    <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400"
-                         MaxHeight="500" />
+
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="BottomEdgeAlignedRight" IsOpen="False" ShowMode="TransientWithDismissOnPointerMoveAway">
+        <s:SearchBarDropdown x:Name="SearchBarDropdown" IsVisible="False" HorizontalAlignment="Left" MinWidth="400"
+                             MaxHeight="500" />
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
+
   </StackPanel>
 
 </UserControl>
