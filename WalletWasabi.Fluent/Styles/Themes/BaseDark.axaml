@@ -59,7 +59,7 @@
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
 
     <Color x:Key="TileRegionColor">#09ffffff</Color>
-    <Color x:Key="TileBorderColor">#09ffffff</Color>
+    <Color x:Key="TileBorderColor">#66757575</Color>
     <Color x:Key="AcrylicTrimForeground">White</Color>
     <Color x:Key="AcrylicTrimBackground">#232A33</Color>
 
