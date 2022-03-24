@@ -1,11 +1,23 @@
 # Wasabi Coding Conventions
 
-## CodeMaid
+## Automatic code clean up
+
+**Visual Studio IDE:**
 
 **DO** use [CodeMaid](http://www.codemaid.net/), a Visual Studio extension to automatically clean up your code on saving the file.
 CodeMaid is a non-intrusive code cleanup tool.
 
 Wasabi's CodeMaid settings [can be found in the root of the repository](https://github.com/zkSNACKs/WalletWasabi/blob/master/CodeMaid.config). They are automatically picked up by Visual Studio when you open the project, assuming the CodeMaid extension is installed. Unfortunately CodeMaid has no Visual Studio Code extension yet. You can check out the progress on this [under this GitHub issue](https://github.com/codecadwallader/codemaid/issues/273).
+
+**Rider IDE:**
+
+In Rider you can achive a similar functionaltiy by going to `Settings -> Tools -> Action on Save` and enabling `Reformat and Cleanup Code` section. Don't forget to change the `Profile` to `Reformat Code`.
+
+And also enable the `Enable EditorConfig support` in `Settings -> Editor -> Code Style`.
+
+![image](https://user-images.githubusercontent.com/16364053/159900227-627f4b67-e793-421b-836a-09660971c807.png)
+![image](https://user-images.githubusercontent.com/16364053/159900956-539868b7-9fd2-44ed-9ec6-d58569bd9dbb.png)
+
 
 ## .editorconfig
 
