@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class SearchBarBehavior : AttachedToVisualTreeBehavior<UserControl>
 {
+	private TopLevel? _topLevel;
+
 	public static readonly StyledProperty<TextBox?> SearchBoxProperty =
 		AvaloniaProperty.Register<SearchBarBehavior, TextBox?>(nameof(SearchBox));
 
@@ -32,27 +34,74 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<UserControl>
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
 	{
+		if (AssociatedObject is null)
+		{
+			return;
+		}
+
 		if (AssociatedObject.GetVisualRoot() is TopLevel topLevel)
 		{
-			topLevel.AddHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel);
+			_topLevel = topLevel;
 
-			disposables.Add(Disposable.Create(()=>topLevel.RemoveHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed)));
+			topLevel.AddHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel);
 		}
 
 		if (SearchBox is { } && SearchPanel is { })
 		{
-			disposables.Add(Observable.FromEventPattern(SearchBox, nameof(SearchBox.GotFocus)).Subscribe(x =>
+			SearchBox.GotFocus += SearchBoxOnGotFocus;
+			AssociatedObject.LostFocus += AssociatedObjectOnLostFocus;
+		}
+	}
+
+	private void SearchBoxOnGotFocus(object? sender, GotFocusEventArgs e)
+	{
+		if (SearchPanel is { })
+		{
+			SearchPanel.IsVisible = true;
+		}
+	}
+
+	private void AssociatedObjectOnLostFocus(object? sender, RoutedEventArgs e)
+	{
+		if (AssociatedObject is { } && SearchPanel is { })
+		{
+			if (!AssociatedObject.IsKeyboardFocusWithin)
 			{
-				SearchPanel.IsVisible = true;
-			}));
+				SearchPanel.IsVisible = false;
+			}
 		}
 	}
 
 	private void OnTopLevelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-		if (!AssociatedObject.IsPointerOver)
+		if(AssociatedObject is { } && !AssociatedObject.IsPointerOver)
 		{
-			SearchPanel.IsVisible = false;
+			if (ReferenceEquals(FocusManager.Instance?.Current, SearchBox))
+			{
+				FocusManager.Instance?.Focus(null);
+			}
+		}
+	}
+
+	protected override void OnDetaching()
+	{
+		base.OnDetaching();
+
+		if (_topLevel is { })
+		{
+			_topLevel.RemoveHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed);
+
+			_topLevel = null;
+		}
+
+		if (SearchBox is { })
+		{
+			SearchBox.GotFocus -= SearchBoxOnGotFocus;
+		}
+
+		if (AssociatedObject is { })
+		{
+			AssociatedObject.LostFocus -= AssociatedObjectOnLostFocus;
 		}
 	}
 }
