@@ -86,14 +86,6 @@
     <TextBox.InnerRightContent>
       <PathIcon Data="{StaticResource search_regular}" Margin="10 0" />
     </TextBox.InnerRightContent>
-    <i:Interaction.Behaviors>
-      <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" RoutingStrategies="Tunnel">
-        <ia:InvokeCommandAction Command="{Binding ShowListCommand}" />
-      </RoutedEventTriggerBehavior>
-      <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.GotFocusEvent}">
-        <ia:InvokeCommandAction Command="{Binding ShowListCommand}" />
-      </RoutedEventTriggerBehavior>
-    </i:Interaction.Behaviors>
   </TextBox>
 
   <FlyoutBase.AttachedFlyout>
@@ -104,7 +96,7 @@
   </FlyoutBase.AttachedFlyout>
 
   <i:Interaction.Behaviors>
-    <behaviors:ShowAssociatedFlyoutBehavior IsSearchPanelOpen="{Binding IsSearchListVisible, Mode=TwoWay}"/>
+    <behaviors:SearchBarBehavior SearchBox="SearchBox" SearchPanel="SearchBarDropdown" IsSearchPanelOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
   </i:Interaction.Behaviors>
 
 </UserControl>
