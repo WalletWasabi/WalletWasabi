@@ -32,9 +32,9 @@ public class SearchBarDesignViewModel : ReactiveObject
 		.GroupBy(r => r.Category)
 		.Select(g =>
 		{
-			var sourceCache = new SourceCache<SearchItem, ComposedKey>(r => r.Key);
+			var sourceCache = new SourceCache<SearchItemViewModel, ComposedKey>(r => r.Key);
 			var observable = g.ToObservable();
-			sourceCache.PopulateFrom(observable);
+			sourceCache.PopulateFrom(observable.Select(item => new SearchItemViewModel(item, () => { })));
 			return new SearchItemGroup(g.Key, sourceCache);
 		})));
 

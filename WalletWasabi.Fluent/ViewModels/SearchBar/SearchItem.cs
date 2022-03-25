@@ -1,18 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public class SearchItem
 {
-	public ICommand Command { get; }
+	public Func<Task> OnExecution { get; }
 
-	public SearchItem(string name, string description, ICommand command, string category, IEnumerable<string>? keywords = null)
+	public SearchItem(string name, string description, Func<Task> onExecution, string category,
+		IEnumerable<string>? keywords = null)
 	{
 		Name = name;
 		Description = description;
-		Command = command;
+		OnExecution = onExecution;
 		Category = category;
 		Keywords = keywords ?? Enumerable.Empty<string>();
 	}

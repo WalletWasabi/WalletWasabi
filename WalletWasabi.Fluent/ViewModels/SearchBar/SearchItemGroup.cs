@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public class SearchItemGroup
 {
-	private readonly ReadOnlyObservableCollection<SearchItem> _items;
+	private readonly ReadOnlyObservableCollection<SearchItemViewModel> _items;
 
-	public SearchItemGroup(string title, IObservableCache<SearchItem, ComposedKey> groupCache)
+	public SearchItemGroup(string title, IObservableCache<SearchItemViewModel, ComposedKey> groupCache)
 	{
 		Title = title;
 		groupCache.Connect()
@@ -21,5 +21,5 @@ public class SearchItemGroup
 
 	public string Title { get; }
 
-	public ReadOnlyObservableCollection<SearchItem> Items => _items;
+	public ReadOnlyObservableCollection<SearchItemViewModel> Items => _items;
 }
