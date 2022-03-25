@@ -35,7 +35,10 @@
           TextBlock.FontFamily="{StaticResource MonospacedFont}"
           BoxShadow="0 0 5 0 #7F000000"
           CornerRadius="4 4 0 0">
-    <Border ClipToBounds="True" CornerRadius="4 4 0 0">
+    <Border ClipToBounds="True"
+            CornerRadius="4 4 0 0"
+            BorderBrush="{DynamicResource TileBorderColor}"
+            BorderThickness="1">
       <Panel DataContext="{Binding CurrentWallet.CoinJoinStateViewModel}">
         <controls:BlurBehind BlurRadius="10,10" />
         <Panel Background="{DynamicResource AcrylicTrimBackground}" Opacity="0.5" />
