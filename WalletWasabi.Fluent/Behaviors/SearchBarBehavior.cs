@@ -8,13 +8,13 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class SearchBarBehavior : AttachedToVisualTreeBehavior<UserControl>
+public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	public static readonly StyledProperty<TextBox?> SearchBoxProperty =
-		AvaloniaProperty.Register<SearchBarBehavior, TextBox?>(nameof(SearchBox));
+	public static readonly StyledProperty<Control?> SearchBoxProperty =
+		AvaloniaProperty.Register<SearchBarBehavior, Control?>(nameof(SearchBox));
 
-	public static readonly StyledProperty<UserControl?> SearchPanelProperty =
-		AvaloniaProperty.Register<SearchBarBehavior, UserControl?>(nameof(SearchPanel));
+	public static readonly StyledProperty<Control?> SearchPanelProperty =
+		AvaloniaProperty.Register<SearchBarBehavior, Control?>(nameof(SearchPanel));
 
 	public static readonly StyledProperty<bool> IsSearchPanelOpenProperty =
 		AvaloniaProperty.Register<SearchBarBehavior, bool>(nameof(SearchBox));
@@ -22,14 +22,14 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<UserControl>
 	private TopLevel? _topLevel;
 
 	[ResolveByName]
-	public TextBox? SearchBox
+	public Control? SearchBox
 	{
 		get => GetValue(SearchBoxProperty);
 		set => SetValue(SearchBoxProperty, value);
 	}
 
 	[ResolveByName]
-	public UserControl? SearchPanel
+	public Control? SearchPanel
 	{
 		get => GetValue(SearchPanelProperty);
 		set => SetValue(SearchPanelProperty, value);
