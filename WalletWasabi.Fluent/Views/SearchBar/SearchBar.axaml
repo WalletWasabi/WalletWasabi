@@ -85,6 +85,9 @@
       <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerPressedEvent}" RoutingStrategies="Tunnel">
         <ia:InvokeCommandAction Command="{Binding ShowListCommand}" />
       </RoutedEventTriggerBehavior>
+      <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.GotFocusEvent}">
+        <ia:InvokeCommandAction Command="{Binding ShowListCommand}" />
+      </RoutedEventTriggerBehavior>
     </i:Interaction.Behaviors>
   </TextBox>
 
