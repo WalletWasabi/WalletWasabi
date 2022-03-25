@@ -45,7 +45,7 @@
 
           <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
 
-          <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" CornerRadius="10 0 0 0" ClipToBounds="True">
+          <Border Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0" Grid.ColumnSpan="2" CornerRadius="10 0 0 0" ClipToBounds="True">
             <Panel>
               <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True" IsHitTestVisible="False" />
               <Panel VerticalAlignment="Bottom"
