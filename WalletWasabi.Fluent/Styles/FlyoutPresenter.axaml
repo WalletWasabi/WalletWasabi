@@ -3,7 +3,14 @@
         xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <Border Padding="20">
-      <!-- Add Controls for Previewer Here -->
+      <FlyoutPresenter>
+        <StackPanel>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+        </StackPanel>
+      </FlyoutPresenter>
     </Border>
   </Design.PreviewWith>
 
