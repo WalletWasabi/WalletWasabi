@@ -18,8 +18,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	Caption = "Create, recover or import wallet",
 	Order = 2,
 	Category = "General",
-	Keywords = new[] { "Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
-	IconName = "nav_add_circle_regular",
+	Keywords = new[]
+		{"Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger"},
+	IconName = "add_regular",
 	NavigationTarget = NavigationTarget.DialogScreen,
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
