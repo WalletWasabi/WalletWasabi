@@ -17,7 +17,6 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-
 public class CoinJoinManager : BackgroundService
 {
 	private record CoinJoinCommand(Wallet Wallet);
@@ -38,12 +37,15 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
+
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
+
 	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
 
 	private readonly Channel<CoinJoinCommand> _channel = Channel.CreateUnbounded<CoinJoinCommand>();
 
 	#region Public API (Start | Stop | StartAutomatically)
+
 	public async Task StartAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		await _channel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, false), cancellationToken).ConfigureAwait(false);
@@ -64,8 +66,7 @@ public class CoinJoinManager : BackgroundService
 		await _channel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
-	#endregion
-
+	#endregion Public API (Start | Stop | StartAutomatically)
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -75,7 +76,7 @@ public class CoinJoinManager : BackgroundService
 			return;
 		}
 
-		// Detects and notify about wallets that can participate in coinjoin.
+		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = MonitorWalletsAsync(stoppingToken);
 
 		// Coinjoin handling Start / Stop and finallization.
@@ -94,7 +95,7 @@ public class CoinJoinManager : BackgroundService
 					? GetMixableWallets()
 					: ImmutableDictionary<string, Wallet>.Empty;
 
-				// Nofify when a wallet meets the criteria for participating in a coinjoin.
+				// Notifies when a wallet meets the criteria for participating in a coinjoin.
 				var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
@@ -102,7 +103,7 @@ public class CoinJoinManager : BackgroundService
 					NotifyMixableWalletLoaded(openedWallet);
 				}
 
-				// Nofitify when a wallet is no longer meet the criteria for participating in a coinjoin.
+				// Notifies when a wallet no longer meets the criteria for participating in a coinjoin.
 				var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 				foreach (var closedWallet in closedWallets.Select(x => x.Value))
 				{
