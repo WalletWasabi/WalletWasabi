@@ -84,7 +84,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		}
 		else if (Wallet.KeyManager.IsHardwareWallet)
 		{
-			IconName = "General";
+			IconName = "nav_generic_hww_regular";
 		}
 		else
 		{
