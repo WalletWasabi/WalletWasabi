@@ -92,7 +92,6 @@
     <Flyout Placement="Bottom" ShowMode="Transient" FlyoutPresenterClasses="search">
       <s:SearchBarDropdown x:Name="SearchBarDropdown" />
     </Flyout>
-    
   </FlyoutBase.AttachedFlyout>
 
   <i:Interaction.Behaviors>

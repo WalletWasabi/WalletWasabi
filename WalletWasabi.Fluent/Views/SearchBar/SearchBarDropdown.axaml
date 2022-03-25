@@ -32,6 +32,11 @@
       </Setter>
     </Style>
 
+    <!-- TODO: Investigate why this is needed. Removing it will render monospaced font in Flyout -->
+    <Style Selector="TextBlock">
+      <Setter Property="FontFamily" Value="Arial" />
+    </Style>
+
   </UserControl.Styles>
 
   <UserControl.DataTemplates>
