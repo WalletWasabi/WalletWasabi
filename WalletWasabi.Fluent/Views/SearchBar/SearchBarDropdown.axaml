@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
-             x:CompileBindings="True"
+             x:CompileBindings="False"
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar">
@@ -44,8 +44,8 @@
             <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
             <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
           </Panel>
-          <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
-          <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}"
+          <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
+          <TextBlock Opacity="0.5" VerticalAlignment="Center" Text="{Binding Description}"
                      TextTrimming="CharacterEllipsis" />
         </DockPanel>
 
@@ -56,7 +56,7 @@
   <ItemsControl Items="{Binding Groups}" Margin="10">
     <ItemsControl.ItemTemplate>
       <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-        <DockPanel Margin="10 ">
+        <DockPanel >
           <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
           <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
         </DockPanel>
