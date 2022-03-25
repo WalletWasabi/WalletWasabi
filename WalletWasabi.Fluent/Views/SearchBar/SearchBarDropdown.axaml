@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
-             x:CompileBindings="False"
+             x:CompileBindings="True"
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar">
@@ -39,11 +39,11 @@
       <Button Command="{Binding Command}" Background="Transparent" HorizontalAlignment="Stretch" Padding="0">
 
         <DockPanel Background="Transparent" Margin="10">
-          <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
-            <PathIcon.Data>
-              <Binding Path="Icon" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-            </PathIcon.Data>
-          </PathIcon>
+          <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+            <!--TODO: Remove this workaround. We must leave the PathIcon only-->
+            <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+            <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+          </Panel>
           <TextBlock Margin="10 0" VerticalAlignment="Center" DockPanel.Dock="Left" Text="{Binding Name}" />
           <TextBlock FontWeight="ExtraLight" VerticalAlignment="Center" Text="{Binding Description}"
                      TextTrimming="CharacterEllipsis" />
