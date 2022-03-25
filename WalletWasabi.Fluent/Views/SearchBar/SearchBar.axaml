@@ -71,6 +71,11 @@
       <Setter Property="BorderBrush" Value="White" />
       <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
+
+    <Style Selector="FlyoutPresenter.search">
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
   </UserControl.Styles>
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"

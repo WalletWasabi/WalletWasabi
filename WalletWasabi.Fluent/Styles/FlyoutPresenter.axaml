@@ -38,8 +38,7 @@
               </ExperimentalAcrylicBorder.Material>
             </ExperimentalAcrylicBorder>
 
-            <!-- Set to "Disabled", due to the inability to set the attached property ScrollViewer.HorizontalScrollBarVisibility for Flyout-->
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+            <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
                           VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
               <ContentPresenter Content="{TemplateBinding Content}"
                                 ContentTemplate="{TemplateBinding ContentTemplate}"
