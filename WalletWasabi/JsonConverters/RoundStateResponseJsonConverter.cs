@@ -4,7 +4,7 @@ using WalletWasabi.CoinJoin.Common.Models;
 
 namespace WalletWasabi.JsonConverters;
 
-public class RoundStateResponseJsonConverter : JsonConverter
+public class RoundStateResponseJsonConverter : JsonConverter<RoundStateResponseBase>
 {
 	public RoundStateResponseJsonConverter(ushort protocolVersion)
 	{
@@ -15,9 +15,8 @@ public class RoundStateResponseJsonConverter : JsonConverter
 
 	public ushort ProtocolVersion { get; }
 
-	public override bool CanConvert(Type objectType) => typeof(RoundStateResponseBase) == objectType;
-
-	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	/// <inheritdoc />
+	public override RoundStateResponseBase? ReadJson(JsonReader reader, Type objectType, RoundStateResponseBase? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		if (reader.TokenType == JsonToken.Null)
 		{
@@ -36,10 +35,11 @@ public class RoundStateResponseJsonConverter : JsonConverter
 		{
 			throw new JsonSerializationException("Could not determine object type.");
 		}
-		return jobject.ToObject(type, serializer);
+		return (RoundStateResponseBase?)jobject.ToObject(type, serializer);
 	}
 
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, RoundStateResponseBase? value, JsonSerializer serializer)
 	{
 		throw new NotImplementedException();
 	}
