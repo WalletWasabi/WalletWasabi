@@ -41,15 +41,8 @@ public class Global
 	public TorSettings TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
 
-	/// <summary>
-	/// HTTP client factory for communicating with the Wasabi backend.
-	/// </summary>
-	public HttpClientFactory BackendHttpClientFactory { get; }
-
-	/// <summary>
-	/// HTTP client factory for communicating with external third parties.
-	/// </summary>
-	public HttpClientFactory ExternalHttpClientFactory { get; }
+	/// <summary>HTTP client factory for sending HTTP requests.</summary>
+	public HttpClientFactory HttpClientFactory { get; }
 
 	public LegalChecker LegalChecker { get; private set; }
 	public Config Config { get; }
@@ -95,18 +88,16 @@ public class Global
 
 			if (Config.UseTor)
 			{
-				BackendHttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () => Config.GetCurrentBackendUri());
-				ExternalHttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: null);
+				HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () => Config.GetCurrentBackendUri());
 			}
 			else
 			{
-				BackendHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-				ExternalHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: null);
+				HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 			}
 
-			Synchronizer = new WasabiSynchronizer(BitcoinStore, BackendHttpClientFactory);
+			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
-			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, BackendHttpClientFactory, WalletManager);
+			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
 			RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -198,7 +189,7 @@ public class Global
 
 				var blockProvider = new CachedBlockProvider(
 					new SmartBlockProvider(
-						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, BackendHttpClientFactory, Config.ServiceConfiguration, Network),
+						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, HttpClientFactory, Config.ServiceConfiguration, Network),
 						Cache),
 					BitcoinStore.BlockRepository);
 
@@ -241,8 +232,7 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
 		}
 	}
 
@@ -291,16 +281,16 @@ public class Global
 
 	private void RegisterFeeRateProviders()
 	{
-		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
+		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, HttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
 		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 	}
 
 	private void RegisterCoinJoinComponents()
 	{
-		Tor.Http.IHttpClient roundStateUpdaterHttpClient = BackendHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
+		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), BackendHttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
@@ -369,16 +359,10 @@ public class Global
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				if (ExternalHttpClientFactory is { } externalHttpClientFactory)
+				if (HttpClientFactory is { } httpClientFactory)
 				{
-					externalHttpClientFactory.Dispose();
-					Logger.LogInfo($"{nameof(ExternalHttpClientFactory)} is disposed.");
-				}
-
-				if (BackendHttpClientFactory is { } backendHttpClientFactory)
-				{
-					backendHttpClientFactory.Dispose();
-					Logger.LogInfo($"{nameof(BackendHttpClientFactory)} is disposed.");
+					httpClientFactory.Dispose();
+					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
 				}
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
