@@ -133,6 +133,12 @@
       </Setter>
       <Setter Property="AreaStroke" Value="{DynamicResource LineChartLineColor}" />
     </Style>
+    <!-- Current Value-->
+    <Style Selector="TextBlock.currentValue">
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                  Caption="Use the slider to choose your preference for how fast the transaction will be processed"
@@ -147,6 +153,10 @@
         <GridLength x:Key="SliderPreContentMargin">0</GridLength>
         <GridLength x:Key="SliderPostContentMargin">0</GridLength>
       </DockPanel.Resources>
+      <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 10 0 0">
+        <TextBlock Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" Classes="currentValue" />
+        <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: ~\{0\}'}" Classes="currentValue" />
+      </StackPanel>
       <Slider x:Name="CursorValue2"
               Margin="38,0,18,0"
               KeyboardNavigation.IsTabStop="False"
@@ -158,26 +168,9 @@
               Minimum="{Binding SliderMinimum}"
               Maximum="{Binding SliderMaximum}"
               Value="{Binding SliderValue}">
-        <Slider.Styles>
-          <Style Selector="Slider /template/ Thumb">
-            <Setter Property="ToolTip.Tip">
-              <Template>
-                <ToolTip>
-                  <StackPanel Spacing="10" x:CompileBindings="False">
-                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
-                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: \{0\}'}" />
-                  </StackPanel>
-                </ToolTip>
-              </Template>
-            </Setter>
-            <Setter Property="ToolTip.Placement" Value="Bottom" />
-            <Setter Property="ToolTip.VerticalOffset" Value="10" />
-            <Setter Property="ToolTip.HorizontalOffset" Value="-30" />
-          </Style>
-        </Slider.Styles>
         <i:Interaction.Behaviors>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel"/>
-          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}"  IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel"/>
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}"  IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
         </i:Interaction.Behaviors>
       </Slider>
       <c:LineChart Classes="cursor border xAxis yAxis xAxisLabels yAxisLabels xAxisTitle yAxisTitle area"
