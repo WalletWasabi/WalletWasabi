@@ -8,10 +8,13 @@ public class OutPointJsonConverter : JsonConverter<OutPoint>
 	/// <inheritdoc />
 	public override OutPoint? ReadJson(JsonReader reader, Type objectType, OutPoint? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		var value = (string?)reader.Value;
-		var op = new OutPoint();
-		op.FromHex(value);
-		return op;
+		if (reader.Value is string serialized)
+		{
+			var op = new OutPoint();
+			op.FromHex(serialized);
+			return op;
+		}
+		throw new ArgumentException($"No valid serialized {nameof(OutPoint)} passed.");
 	}
 
 	/// <inheritdoc />

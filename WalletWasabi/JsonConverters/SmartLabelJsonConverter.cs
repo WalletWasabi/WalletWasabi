@@ -8,8 +8,11 @@ public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
 	/// <inheritdoc />
 	public override SmartLabel? ReadJson(JsonReader reader, Type objectType, SmartLabel? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		var s = reader.Value as string;
-		return new SmartLabel(s);
+		if (reader.Value is string serialized)
+		{
+			return new SmartLabel(serialized);
+		}
+		throw new ArgumentException($"No valid serialized {nameof(SmartLabel)} passed.");
 	}
 
 	/// <inheritdoc />
