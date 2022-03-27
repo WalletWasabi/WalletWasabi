@@ -61,7 +61,7 @@
   <ItemsControl Items="{Binding Groups}" Margin="10">
     <ItemsControl.ItemTemplate>
       <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-        <DockPanel >
+        <DockPanel  Margin="0 6">
           <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
           <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
         </DockPanel>
