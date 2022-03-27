@@ -7,14 +7,14 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public static class SearchItemProvider
 {
-	public static IObservable<SearchItem> GetSearchItems()
+	public static IObservable<ISearchItem> GetSearchItems()
 	{
 		var data = NavigationManager.MetaData
 			.Where(m => m.Searchable)
 			.Select(m =>
 			{
 				var func = CreateFunc(m);
-				var searchItem = new SearchItem(m.Title, m.Caption, func, m.Category ?? "No category", m.Keywords)
+				var searchItem = new ActionableItem(m.Title, m.Caption, func, m.Category ?? "No category", m.Keywords)
 				{
 					Icon = m.IconName
 				};

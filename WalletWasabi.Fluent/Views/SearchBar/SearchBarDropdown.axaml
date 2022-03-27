@@ -40,7 +40,7 @@
   </UserControl.Styles>
 
   <UserControl.DataTemplates>
-    <DataTemplate x:DataType="sb:SearchItemViewModel">
+    <DataTemplate x:DataType="sb:AutocloseActionableItem">
       <Button Command="{Binding Command}" Background="Transparent" HorizontalAlignment="Stretch" Padding="0">
 
         <DockPanel Background="Transparent" Margin="10">

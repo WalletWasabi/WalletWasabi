@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public class SearchItem
+public class ActionableItem : IActionableItem
 {
 	public Func<Task> OnExecution { get; }
 
-	public SearchItem(string name, string description, Func<Task> onExecution, string category,
+	public ActionableItem(string name, string description, Func<Task> onExecution, string category,
 		IEnumerable<string>? keywords = null)
 	{
 		Name = name;
