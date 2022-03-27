@@ -9,7 +9,7 @@ public static class SearchItemProvider
 {
 	public static IObservable<ISearchItem> GetSearchItems()
 	{
-		var data = NavigationManager.MetaData
+		var items = NavigationManager.MetaData
 			.Where(m => m.Searchable)
 			.Select(m =>
 			{
@@ -21,9 +21,14 @@ public static class SearchItemProvider
 				return searchItem;
 			});
 
-		var items = data.ToObservable();
-
-		return items;
+		return items
+			.Concat(new ISearchItem[]
+			{
+				new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance",
+					new[] {"Dark", "Light", "Theme", "Appearance", "Colors"},
+					null)
+			})
+			.ToObservable();
 	}
 
 	private static Func<Task> CreateFunc(NavigationMetaData navigationMetaData)
@@ -48,7 +53,7 @@ public static class SearchItemProvider
 			NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
 			NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
 			NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
-			_ => throw new NotSupportedException(),
+			_ => throw new NotSupportedException()
 		};
 	}
 }

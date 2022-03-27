@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -8,11 +9,11 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public class SearchBarDesignViewModel : ReactiveObject
 {
-	private readonly ActionableItem[] _items;
+	private readonly IEnumerable<ISearchItem> _items;
 
 	public SearchBarDesignViewModel()
 	{
-		_items = new[]
+		var actionable = new IActionableItem[]
 		{
 			new ActionableItem("Test 1: Short", "Description short", null, "Settings")
 				{Icon = "settings_bitcoin_regular"},
@@ -28,7 +29,14 @@ public class SearchBarDesignViewModel : ReactiveObject
 					"Help")
 				{Icon = "settings_bitcoin_regular"},
 			new ActionableItem("Test 3", "Another", null, "Help") {Icon = "settings_bitcoin_regular"}
+		}.Select(item => (ISearchItem) new AutocloseActionableItem(item, () => { }));
+
+		var nonActionable = new ISearchItem[]
+		{
+			new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance", new List<string>(), null)
 		};
+
+		_items = actionable.Concat(nonActionable).ToList();
 	}
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => new(new ObservableCollection<SearchItemGroup>(_items

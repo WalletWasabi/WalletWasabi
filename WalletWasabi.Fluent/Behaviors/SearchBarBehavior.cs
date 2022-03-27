@@ -107,7 +107,11 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 
 	private void ShowFlyout()
 	{
-		FlyoutBase.ShowAttachedFlyout(AssociatedObject);
+		if (AssociatedObject != null)
+		{
+			FlyoutBase.ShowAttachedFlyout(AssociatedObject);
+		}
+
 		IsSearchPanelOpen = true;
 	}
 
@@ -124,7 +128,7 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 
 	private void HideFlyout()
 	{
-		FlyoutBase.GetAttachedFlyout(AssociatedObject).Hide();
+		FlyoutBase.GetAttachedFlyout(AssociatedObject)?.Hide();
 		IsSearchPanelOpen = false;
 	}
 

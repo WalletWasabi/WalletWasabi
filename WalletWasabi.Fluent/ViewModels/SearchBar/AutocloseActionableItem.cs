@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public class AutocloseActionableItem : IActionableItem
 {
-	private readonly ActionableItem _item;
+	private readonly IActionableItem _item;
 
-	public AutocloseActionableItem(ActionableItem item, Action collapseParent)
+	public AutocloseActionableItem(IActionableItem item, Action collapseParent)
 	{
 		_item = item;
 		Command = ReactiveCommand.CreateFromTask(async () =>

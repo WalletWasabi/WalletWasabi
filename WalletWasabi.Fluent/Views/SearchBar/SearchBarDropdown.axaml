@@ -7,7 +7,8 @@
              x:CompileBindings="False"
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar">
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
   </Design.DataContext>
@@ -40,7 +41,26 @@
   </UserControl.Styles>
 
   <UserControl.DataTemplates>
-    <DataTemplate x:DataType="sb:AutocloseActionableItem">
+
+    <DataTemplate DataType="sb:NonActionableSearchItem">
+      <DockPanel Background="Transparent" Margin="10">
+        <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+          <!--TODO: Remove this workaround. We must leave the PathIcon only-->
+          <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+          <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+        </Panel>
+        <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
+        <ContentControl HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        Content="{Binding Content}" />
+      </DockPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="sb:DarkThemeSelector">
+      <ToggleSwitch HorizontalAlignment="Right" IsChecked="{Binding IsDarkThemeEnabled, Mode=TwoWay}" />
+    </DataTemplate>
+
+    <DataTemplate DataType="sb:AutocloseActionableItem">
       <Button Command="{Binding Command}" Background="Transparent" HorizontalAlignment="Stretch" Padding="0">
 
         <DockPanel Background="Transparent" Margin="10">
