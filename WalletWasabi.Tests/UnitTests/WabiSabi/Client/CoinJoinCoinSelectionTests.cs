@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class CoinJoinCoinSelectionTests
 {
 	[Fact]
-	public void EmptySetOfCoins()
+	public void SelectNothingFromEmptySetOfCoins()
 	{
 		// This test is to make sure no coins are selected when there are no coins.
 		var coins = CoinJoinClient.SelectCoinsForRound(
@@ -30,7 +30,7 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void FullyPrivateSetOfCoins()
+	public void SelectNothingFromFullyPrivateSetOfCoins()
 	{
 		// This test is to make sure no coins are selected when all coins are private.
 		const int MinAnonimitySet = 10;
@@ -51,7 +51,7 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void OnlyOneNonPrivateCoinInBigSetOfCoinsConsolidationMode()
+	public void SelectNonPrivateCoinFromOneNonPrivateCoinInBigSetOfCoinsConsolidationMode()
 	{
 		// This test is to make sure that we select the non-private coin in the set.
 		const int MinAnonimitySet = 10;
@@ -75,7 +75,7 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void OnlyOneNonPrivateCoin()
+	public void SelectNonPrivateCoinFromOneCoinSetOfCoins()
 	{
 		// This test is to make sure that we select the only non-private coin when it is the only coin in the wallet.
 		const int MinAnonimitySet = 10;
@@ -96,7 +96,7 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void OnlyTwoNonPrivateCoins()
+	public void SelectOneNonPrivateCoinFromTwoCoinsSetOfCoins()
 	{
 		// This test is to make sure that we select only one non-private coin.
 		const int MinAnonimitySet = 10;
@@ -118,7 +118,7 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void OnlyTwoNonPrivateCoinsConsolidationMode()
+	public void SelectTwoNonPrivateCoinsFromTwoCoinsSetOfCoinsConsolidationMode()
 	{
 		// This test is to make sure that we select more than one non-private coin.
 		const int MinAnonimitySet = 10;
