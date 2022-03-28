@@ -9,6 +9,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -268,19 +269,19 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
-		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
+		StatusChanged.SafeInvoke(this, new StartedEventArgs(openedWallet, registrationTimeout));
 
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
-		SafeRaiseEvent(StatusChanged, new StartErrorEventArgs(openedWallet, error));
+		StatusChanged.SafeInvoke(this, new StartErrorEventArgs(openedWallet, error));
 
 	private void NotifyMixableWalletUnloaded(Wallet closedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
+		StatusChanged.SafeInvoke(this, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
 
 	private void NotifyMixableWalletLoaded(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new LoadedEventArgs(openedWallet));
+		StatusChanged.SafeInvoke(this, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
-		SafeRaiseEvent(StatusChanged, new CompletedEventArgs(
+		StatusChanged.SafeInvoke(this, new CompletedEventArgs(
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
@@ -296,18 +297,6 @@ public class CoinJoinManager : BackgroundService
 					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
 					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
-
-	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
-	{
-		try
-		{
-			evnt?.Invoke(this, args);
-		}
-		catch (Exception e)
-		{
-			Logger.LogError(e);
-		}
-	}
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
