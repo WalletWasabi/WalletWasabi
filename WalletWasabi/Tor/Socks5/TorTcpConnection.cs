@@ -110,13 +110,24 @@ public class TorTcpConnection : IDisposable
 		}
 	}
 
+	/// <param name="force">
+	/// <c>true</c> if we know that we have just finished using the TCP connection.
+	/// <c>false</c> if we got an external piece of information that the TCP connection should be closed.
+	/// </param>
 	/// <remarks>Connection transporting an HTTP request that was canceled or otherwise failed must be torn down.</remarks>
-	public void MarkAsToDispose()
+	public void MarkAsToDispose(bool force = true)
 	{
 		lock (StateLock)
 		{
-			Debug.Assert(State == TcpConnectionState.InUse, $"Unexpected state: '{State}'.");
-			State = TcpConnectionState.ToDispose;
+			if (force)
+			{
+				Debug.Assert(State == TcpConnectionState.InUse, $"Unexpected state: '{State}'.");
+				State = TcpConnectionState.ToDispose;
+			}
+			else if (State == TcpConnectionState.FreeToUse)
+			{
+				State = TcpConnectionState.ToDispose;
+			}
 		}
 	}
 

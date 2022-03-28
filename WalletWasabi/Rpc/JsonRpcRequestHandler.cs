@@ -42,7 +42,7 @@ public class JsonRpcRequestHandler<TService>
 	/// <summary>
 	/// Parses the request and dispatches it to the correct service's method.
 	/// </summary>
-	/// <param name="body">The raw rpc request.</param>
+	/// <param name="body">The raw RPC request.</param>
 	/// <param name="cancellationToken">The cancellation token that will be past to the service handler in case it expects/accepts one.</param>
 	/// <returns>The response that, after serialization, is returned as response.</returns>
 	public async Task<string> HandleAsync(string body, CancellationToken cancellationToken)
@@ -55,7 +55,7 @@ public class JsonRpcRequestHandler<TService>
 		foreach (var jsonRpcRequest in jsonRpcRequests)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken));
+			results.Add(await HandleRequestAsync(jsonRpcRequest, cancellationToken).ConfigureAwait(false));
 		}
 		return isBatch ? $"[{string.Join(",", results)}]" : results[0];
 	}
