@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -9,7 +10,24 @@ public static class SearchItemProvider
 {
 	public static IObservable<ISearchItem> GetSearchItems()
 	{
-		var items = NavigationManager.MetaData
+		return GetItemsFromMetadata()
+			//.Concat(GetAdditionalItems())
+			.ToObservable();
+	}
+
+	private static IEnumerable<ISearchItem> GetAdditionalItems()
+	{
+		return new ISearchItem[]
+		{
+			new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance",
+				new[] {"Dark", "Light", "Theme", "Appearance", "Colors"},
+				null)
+		};
+	}
+
+	private static IEnumerable<ActionableItem> GetItemsFromMetadata()
+	{
+		return NavigationManager.MetaData
 			.Where(m => m.Searchable)
 			.Select(m =>
 			{
@@ -20,15 +38,6 @@ public static class SearchItemProvider
 				};
 				return searchItem;
 			});
-
-		return items
-			.Concat(new ISearchItem[]
-			{
-				new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance",
-					new[] {"Dark", "Light", "Theme", "Appearance", "Colors"},
-					null)
-			})
-			.ToObservable();
 	}
 
 	private static Func<Task> CreateFunc(NavigationMetaData navigationMetaData)
