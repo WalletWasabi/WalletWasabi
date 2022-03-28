@@ -54,6 +54,7 @@ public class CoinJoinClient
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 
+	public EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 	private SecureRandom SecureRandom { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
