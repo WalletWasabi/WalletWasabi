@@ -28,9 +28,9 @@ public class IndexStore : IAsyncDisposable
 		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 		var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
-		MatureIndexFileManager = new DigestableSafeIoManager(indexFilePath, digestRandomIndex: -1);
+		MatureIndexFileManager = new DigestableSafeIoManager(indexFilePath, useLastCharacterDigest: true);
 		var immatureIndexFilePath = Path.Combine(WorkFolderPath, "ImmatureIndex.dat");
-		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, digestRandomIndex: -1);
+		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, useLastCharacterDigest: true);
 
 		Network = network;
 		StartingFilter = StartingFilters.GetStartingFilter(Network);
