@@ -207,8 +207,6 @@ public class CoinJoinClient
 
 		try
 		{
-			Synchronizer.BlockRequests();
-
 			Interlocked.Exchange(ref _statusProcessing, 1);
 			using (await MixLock.LockAsync().ConfigureAwait(false))
 			{
@@ -292,7 +290,6 @@ public class CoinJoinClient
 		finally
 		{
 			Interlocked.Exchange(ref _statusProcessing, 0);
-			Synchronizer.EnableRequests();
 		}
 	}
 

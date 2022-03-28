@@ -39,11 +39,10 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private long _running;
 
-	private long _blockRequests; // There are priority requests in queue.
 	private CoinJoinManager? _coinJoinManager;
 
 	/// <param name="httpClientFactory">The class takes ownership of the instance.</param>
-	public WasabiSynchronizer(BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, HostedServices hostedServices)
+	public WasabiSynchronizer(BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, HostedServices? hostedServices = null)
 	{
 		LastResponse = null;
 		_running = StateNotStarted;
@@ -69,7 +68,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
 	public HttpClientFactory HttpClientFactory { get; }
 
-	private HostedServices HostedServices { get; }
+	private HostedServices? HostedServices { get; }
 	public WasabiClient WasabiClient { get; }
 
 	private CoinJoinManager? CoinJoinManager
@@ -78,7 +77,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 		{
 			if (_coinJoinManager is null)
 			{
-				var coinJoinManager = HostedServices.GetOrDefault<CoinJoinManager>();
+				var coinJoinManager = HostedServices?.GetOrDefault<CoinJoinManager>();
 				if (coinJoinManager is null)
 				{
 					return null;
