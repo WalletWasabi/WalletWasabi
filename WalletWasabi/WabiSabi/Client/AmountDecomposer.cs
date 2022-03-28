@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -10,16 +11,17 @@ namespace WalletWasabi.WabiSabi.Client;
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
-	/// <param name="minAllowedOutputAmount">Minimum output amount that's allowed to be registered.</param>
+	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="outputSize">Size of an output.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, int outputSize, int availableVsize)
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int availableVsize)
 	{
 		FeeRate = feeRate;
 		OutputSize = outputSize;
 		AvailableVsize = availableVsize;
 
-		MinAllowedOutputAmountPlusFee = minAllowedOutputAmount + OutputFee;
+		MinAllowedOutputAmountPlusFee = allowedOutputAmount.Min + OutputFee;
+		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
 		// Create many standard denominations.
 		DenominationsPlusFees = CreateDenominationsPlusFees();
@@ -28,13 +30,15 @@ public class AmountDecomposer
 	public FeeRate FeeRate { get; }
 	public int AvailableVsize { get; }
 	public Money MinAllowedOutputAmountPlusFee { get; }
+	public Money MaxAllowedOutputAmount { get; }
+
 	public Money OutputFee => FeeRate.GetFee(OutputSize);
 	public int OutputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
 
 	private IOrderedEnumerable<ulong> CreateDenominationsPlusFees()
 	{
-		ulong maxSatoshis = ProtocolConstants.MaxAmountPerAlice;
+		ulong maxSatoshis = (ulong)MaxAllowedOutputAmount.Satoshi;
 		ulong minSatoshis = MinAllowedOutputAmountPlusFee;
 		var denominations = new HashSet<ulong>();
 
