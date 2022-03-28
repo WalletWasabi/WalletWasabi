@@ -76,7 +76,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
 
-	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non private balance to coinjoin" };
+	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private balance to coinjoin" };
 
 	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
