@@ -74,6 +74,7 @@ public partial class WalletViewModel : WalletViewModelBase
 				args switch {
 					StartedEventArgs _ => true,
 					StoppedEventArgs _ => false,
+					CompletedEventArgs => false,
 					_ => null
 				};
 
