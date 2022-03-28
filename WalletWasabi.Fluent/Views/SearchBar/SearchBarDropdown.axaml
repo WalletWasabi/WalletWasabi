@@ -78,10 +78,10 @@
     </DataTemplate>
   </UserControl.DataTemplates>
 
-  <ItemsControl Items="{Binding Groups}" Margin="10">
+  <ItemsControl Items="{Binding Groups}">
     <ItemsControl.ItemTemplate>
       <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-        <DockPanel  Margin="0 6">
+        <DockPanel Margin="0 0 0 10">
           <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
           <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
         </DockPanel>
