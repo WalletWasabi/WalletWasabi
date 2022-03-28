@@ -42,13 +42,13 @@ public class CoinJoinManager : BackgroundService
 
 	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
 
-	private readonly Channel<CoinJoinCommand> _channel = Channel.CreateUnbounded<CoinJoinCommand>();
+	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
 	#region Public API (Start | Stop | StartAutomatically)
 
 	public async Task StartAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		await _channel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, false), cancellationToken).ConfigureAwait(false);
+		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, false), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task StartAutomaticallyAsync(Wallet wallet, CancellationToken cancellationToken)
@@ -58,12 +58,12 @@ public class CoinJoinManager : BackgroundService
 			NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
 			await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
 		}
-		await _channel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, true), cancellationToken).ConfigureAwait(false);
+		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, true), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task StopAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		await _channel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
+		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
 	#endregion Public API (Start | Stop | StartAutomatically)
@@ -134,7 +134,7 @@ public class CoinJoinManager : BackgroundService
 
 			while (!stoppingToken.IsCancellationRequested)
 			{
-				var command = await _channel.Reader.ReadAsync().ConfigureAwait(false);
+				var command = await CommandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
