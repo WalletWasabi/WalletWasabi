@@ -25,6 +25,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasBalance;
 	[AutoNotify] private double _percentPrivate;
 
 	public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
@@ -51,17 +52,21 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 	private void UpdateBalance()
 	{
-		BalanceBtc = $"{_wallet.Coins.TotalAmount().ToFormattedString()} ₿";
+		var totalAmount = _wallet.Coins.TotalAmount();
+
+		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
 		BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
-		var privateThreshold = _wallet.ServiceConfiguration.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 
 		var privateDecimalAmount = privateCoins.TotalAmount();
 		var totalDecimalAmount = _wallet.Coins.TotalAmount();
+
+		HasBalance = totalAmount > Money.Zero;
 
 		BalancePrivateBtc = privateDecimalAmount
 			.FormattedBtc() + " BTC";

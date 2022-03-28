@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -18,6 +19,9 @@ public class PreviewItem : ContentControl
 
 	public static readonly StyledProperty<double> IconSizeProperty =
 		AvaloniaProperty.Register<PreviewItem, double>(nameof(IconSize), 24);
+
+	public static readonly StyledProperty<bool> IsIconVisibleProperty =
+		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
 
 	public static readonly StyledProperty<object?> CopyParameterProperty =
 		AvaloniaProperty.Register<PreviewItem, object?>(nameof(CopyParameter));
@@ -48,12 +52,15 @@ public class PreviewItem : ContentControl
 			}
 		});
 
+		this.WhenAnyValue(x => x.Icon)
+			.Subscribe(x => IsIconVisible = x is not null);
+
 		this.WhenAnyValue(
 				x => x.CopyParameter,
 				x => x.IsPointerOver,
 				x => x.PrivacyModeEnabled,
 				(copyParameter, isPointerOver, privacyModeEnabled) => !string.IsNullOrEmpty(copyParameter?.ToString()) && isPointerOver && !privacyModeEnabled)
-			.Subscribe(async value =>
+			.SubscribeAsync(async value =>
 			{
 				if (_copyButtonPressedStopwatch is { } sw)
 				{
@@ -89,6 +96,12 @@ public class PreviewItem : ContentControl
 	{
 		get => GetValue(IconSizeProperty);
 		set => SetValue(IconSizeProperty, value);
+	}
+
+	public bool IsIconVisible
+	{
+		get => GetValue(IsIconVisibleProperty);
+		set => SetValue(IsIconVisibleProperty, value);
 	}
 
 	public object? CopyParameter

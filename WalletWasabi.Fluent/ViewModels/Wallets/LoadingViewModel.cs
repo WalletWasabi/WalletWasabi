@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -31,10 +32,10 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
-			.Subscribe(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
+			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-			.Subscribe(async _ =>
+			.SubscribeAsync(async _ =>
 			{
 				if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
 				{

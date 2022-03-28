@@ -18,7 +18,7 @@ public class KeyChain : IKeyChain
 		Kitchen = kitchen;
 	}
 
-	private KeyManager KeyManager { get; }
+	public KeyManager KeyManager { get; }
 	private Kitchen Kitchen { get; }
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)

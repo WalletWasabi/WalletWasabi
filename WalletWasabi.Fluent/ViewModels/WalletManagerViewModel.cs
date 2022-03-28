@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -88,12 +89,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 		Observable
 			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(async arg =>
+			.SubscribeAsync(async arg =>
 			{
 				var (sender, e) = arg;
 
 				if (Services.UiConfig.PrivacyMode ||
-					!e.IsNews ||
+					!e!.IsNews ||
 					sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 				{
 					return;
@@ -101,7 +102,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 				if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 				{
-					if (!e.IsLikelyOwnCoinJoin)
+					if (!e.IsOwnCoinJoin)
 					{
 						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 					}

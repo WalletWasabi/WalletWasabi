@@ -30,7 +30,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="6.0.0" />
-		<PackageReference Include="NBitcoin" Version="6.0.8" />
+		<PackageReference Include="NBitcoin" Version="6.0.19" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="1.0.10" />
 	</ItemGroup>
 
@@ -70,12 +70,6 @@
 		</None>
 		<None Update="Tor\Geoip\geoip6">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Tor\OnionSeeds\MainOnionSeeds.txt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Tor\OnionSeeds\TestNetOnionSeeds.txt">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 

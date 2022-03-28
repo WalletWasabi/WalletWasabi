@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -70,7 +71,8 @@ public class StepOutputRegistrationTests
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
-			OutputRegistrationTimeout = TimeSpan.Zero
+			OutputRegistrationTimeout = TimeSpan.Zero,
+			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -93,8 +95,8 @@ public class StepOutputRegistrationTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(2, tx.Inputs.Count);
-		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
-		Assert.Contains(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
+		Assert.Equal(2, tx.Outputs.Count);
+		Assert.Contains(round.CoordinatorScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -107,6 +109,7 @@ public class StepOutputRegistrationTests
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
 			OutputRegistrationTimeout = TimeSpan.Zero,
+			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -144,8 +147,8 @@ public class StepOutputRegistrationTests
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(3, tx.Inputs.Count);
-		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 for the coordinator fee
-		Assert.DoesNotContain(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
+		Assert.Equal(2, tx.Outputs.Count);
+		Assert.DoesNotContain(round.CoordinatorScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 		await arena.StopAsync(CancellationToken.None);
 	}

@@ -21,7 +21,6 @@
     <Style Selector="c|ContentArea">
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-        <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         <Setter Property="IsHitTestVisible" Value="{Binding IsActive}" />
         <Setter Property="Template">
             <ControlTemplate>
@@ -41,7 +40,7 @@
                                         IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </i:Interaction.Behaviors>
                             </Button>
-                            <StackPanel Orientation="Horizontal" Spacing="30" Margin="0 10" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" Spacing="30" HorizontalAlignment="Right">
                                 <Button Name="PART_SkipButton"
                                         IsVisible="{TemplateBinding EnableSkip}"
                                         Content="{TemplateBinding SkipContent}"
@@ -78,6 +77,7 @@
                                     <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
                                 </DockPanel>
                                 <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+                                <Panel Height="6" IsVisible="{Binding !EnableBack}"/>
                             </StackPanel>
                         </Panel>
 

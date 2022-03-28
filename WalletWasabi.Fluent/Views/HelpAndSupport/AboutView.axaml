@@ -22,17 +22,20 @@
     </Style>
   </UserControl.Styles>
   <Panel>
-    <controls:ContentArea EnableNext="True" NextContent="Close">
+    <controls:ContentArea EnableNext="{Binding !EnableBack}"
+                          NextContent="Close"
+                          EnableBack="{Binding EnableBack}">
       <DockPanel LastChildFill="True">
         <Viewbox DockPanel.Dock="Top" Margin="25,25,25,50" Width="112" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
           <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
         </Viewbox>
-        <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" Margin="0,0,0,50" VerticalAlignment="Center"
+        <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
           <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </Viewbox>
+        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50" Opacity="0.5" />
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
@@ -41,7 +44,7 @@
                           HorizontalAlignment="Stretch">
               <i:Interaction.Behaviors>
                 <ir:AdaptiveBehavior>
-                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow"/>
+                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="500" ClassName="narrow" />
                 </ir:AdaptiveBehavior>
               </i:Interaction.Behaviors>
               <ItemsControl.Styles>
@@ -79,7 +82,7 @@
                     Command="{Binding AboutAdvancedInfoDialogCommand}">
               <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
                 <PathIcon Data="{StaticResource info_regular}" />
-                <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
+                <TextBlock Text="Advanced Information" Classes="Hyperlink" />
               </StackPanel>
             </Button>
             <!-- License -->

@@ -70,9 +70,7 @@ public class Wallet : BackgroundService
 			StateChanged?.Invoke(this, _state);
 		}
 	}
-
-	public TimeSpan ElapsedTimeSinceStartup => DateTimeOffset.UtcNow - StartupTime;
-	public DateTimeOffset StartupTime { get; private set; }
+	
 	public BitcoinStore BitcoinStore { get; private set; }
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
@@ -97,6 +95,7 @@ public class Wallet : BackgroundService
 	public bool AllowManualCoinJoin { get; set; }
 
 	public Kitchen Kitchen { get; } = new();
+	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.MinAnonScoreTarget));
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
@@ -141,7 +140,7 @@ public class Wallet : BackgroundService
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.MinAnonScoreTarget);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, KeyManager.MinAnonScoreTarget);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -192,7 +191,6 @@ public class Wallet : BackgroundService
 			await base.StartAsync(cancel).ConfigureAwait(false);
 
 			State = WalletState.Started;
-			StartupTime = DateTimeOffset.UtcNow;
 		}
 		catch
 		{

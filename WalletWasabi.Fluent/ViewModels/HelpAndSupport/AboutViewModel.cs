@@ -17,15 +17,18 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	Category = "Help & Support",
 	Keywords = new[]
 	{
-			"About", "Software", "Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug",
-			"Report", "FAQ", "Questions,", "Docs", "Documentation", "Link", "Links", "Help"
+			"About", "Software", "Version", "Source", "Code", "Github", "Website", "Coordinator", "Status", "Stats", "Tor", "Onion",
+			"User", "Support", "Bug", "Report", "FAQ", "Questions,", "Docs", "Documentation", "License", "Advanced", "Information",
+			"Hardware", "Wallet"
 	},
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AboutViewModel : RoutableViewModel
 {
-	public AboutViewModel()
+	public AboutViewModel(bool navigateBack = false)
 	{
+		EnableBack = navigateBack;
+
 		Links = new List<ViewModelBase>()
 			{
 				new LinkViewModel()
@@ -38,7 +41,7 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel()
 				{
 					Link = SourceCodeLink,
-					Description = "Source Code (Github)",
+					Description = "Source Code (GitHub)",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
@@ -73,14 +76,14 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel()
 				{
 					Link = BugReportLink,
-					Description = "Bug Reporting",
+					Description = "Bug Report",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel()
 				{
 					Link = FAQLink,
-					Description = "FAQs",
+					Description = "FAQ",
 					IsClickable = true
 				},
 			};

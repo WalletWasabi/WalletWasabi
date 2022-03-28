@@ -21,6 +21,12 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using System.Reactive;
+using System.Collections.ObjectModel;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -35,6 +41,7 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
+	private readonly CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -45,15 +52,18 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool _parsingUrl;
 
-	public SendViewModel(Wallet wallet)
+	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo();
+		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
+		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+
+		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -106,12 +116,23 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.Create(() =>
+		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var address = BitcoinAddress.Create(To, wallet.Network);
+
+			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address));
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+			if (result.Result is not { } label)
+			{
+				return;
+			}
+
+			_transactionInfo.UserLabels = label;
+
+			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 	}
 
@@ -124,6 +145,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
+
+	public WalletBalanceTileViewModel Balance { get; }
 
 	private async Task OnAutoPasteAsync()
 	{
@@ -173,8 +196,7 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
-			IHttpClient httpClient =
-				Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
+			IHttpClient httpClient = Services.HttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 
@@ -199,8 +221,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(To) &&
-		    !AddressStringParser.TryParse(To, _wallet.Network, out _))
+		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _wallet.Network, out _)))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
@@ -222,26 +243,28 @@ public partial class SendViewModel : RoutableViewModel
 		Dispatcher.UIThread.Post(() =>
 		{
 			TryParseUrl(s);
-
 			_parsingUrl = false;
 		});
 	}
 
-	private bool TryParseUrl(string text)
+	private bool TryParseUrl(string? text)
 	{
+		if (text is null || text.IsTrimmable())
+		{
+			return false;
+		}
+
 		bool result = false;
 
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
 			result = true;
-			SmartLabel label = url.Label;
-
-			if (!label.IsEmpty)
+			if (url.Label is { } label)
 			{
-				_transactionInfo.UserLabels = new SmartLabel(label.Labels);
+				_transactionInfo.UserLabels = new SmartLabel(label);
 			}
 
-			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
 			{
 				PayJoinEndPoint = endPoint;
 			}
@@ -281,6 +304,11 @@ public partial class SendViewModel : RoutableViewModel
 			To = "";
 			AmountBtc = 0;
 			ClearValidations();
+
+			if (_coinJoinManager is { } coinJoinManager)
+			{
+				coinJoinManager.IsUserInSendWorkflow = true;
+			}
 		}
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
@@ -290,6 +318,18 @@ public partial class SendViewModel : RoutableViewModel
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
+		Balance.Activate(disposables);
+
 		base.OnNavigatedTo(inHistory, disposables);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+
+		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
+		{
+			coinJoinManager.IsUserInSendWorkflow = false;
+		}
 	}
 }

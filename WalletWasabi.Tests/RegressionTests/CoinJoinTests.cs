@@ -1302,7 +1302,7 @@ public class CoinJoinTests
 			Assert.Equal(2, (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 			Assert.True(smartCoin1.CoinJoinInProgress);
 			Assert.True(smartCoin2.CoinJoinInProgress);
-			Assert.Equal(1, (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
+			Assert.Single((await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)));
 
 			Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
 			while ((await rpc.GetRawMempoolAsync()).Length == 0)

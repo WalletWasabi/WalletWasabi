@@ -1,27 +1,29 @@
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.Views.Dialogs;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Camera")]
 public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 {
-	[AutoNotify] private WriteableBitmap? _qrImage;
+	[AutoNotify] private Bitmap? _qrImage;
 	[AutoNotify] private string _message = "";
 
+	private CancellationTokenSource CancellationTokenSource { get; } = new();
 	private WebcamQrReader _qrReader;
 
 	public ShowQrCameraDialogViewModel(Network network)
 	{
 		_qrReader = new(network);
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
@@ -29,18 +31,11 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		Observable.FromEventPattern<WriteableBitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
+		Observable.FromEventPattern<Bitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(args =>
 			{
-				if (QrImage == null)
-				{
-					QrImage = args.EventArgs;
-				}
-				else
-				{
-					ShowQrCameraDialogView.QrImage?.InvalidateVisual();
-				}
+				QrImage = args.EventArgs;
 			})
 			.DisposeWith(disposables);
 
@@ -56,7 +51,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccurred))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(async args =>
+			.SubscribeAsync(async args =>
 			{
 				Close();
 				await ShowErrorAsync(
@@ -66,8 +61,8 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			})
 			.DisposeWith(disposables);
 
-		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopScanningAsync())));
+		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None))));
 
-		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartScanningAsync());
+		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
 	}
 }

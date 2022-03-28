@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -14,6 +16,9 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.WabiSabi.Client;
+using Avalonia;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -34,10 +39,23 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
+	[AutoNotify] private bool _isCoinJoinActive;
+	[AutoNotify] private double _windowWidth;
+	[AutoNotify] private double _windowHeight;
+	[AutoNotify] private PixelPoint? _windowPosition;
 
 	public MainViewModel()
 	{
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
+		_windowHeight = Services.UiConfig.WindowHeight ?? 960;
+
+		var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
+		if (x != null && y != null)
+		{
+			_windowPosition = new PixelPoint(x.Value, y.Value);
+		}
+
 		_dialogScreen = new DialogScreenViewModel();
 
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -62,6 +80,8 @@ public partial class MainViewModel : ViewModelBase
 		_searchPage = new SearchPageViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
 
+		MusicControls = new MusicControlsViewModel();
+
 		NavigationManager.RegisterType(_navBar);
 
 		RegisterCategories(_searchPage);
@@ -71,10 +91,24 @@ public partial class MainViewModel : ViewModelBase
 
 		_searchPage.Initialise();
 
-		this.WhenAnyValue(x => x.WindowState)
-			.Where(x => x != WindowState.Minimized)
+		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
+			.Where(x => x.Item1 != WindowState.Minimized)
+			.Where(x => x.Item2 != new PixelPoint(-32000, -32000)) // value when minimized
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
+			.Subscribe(t =>
+			{
+				var (state, position, width, height) = t;
+
+				Services.UiConfig.WindowState = state.ToString();
+				if (position is { })
+				{
+					Services.UiConfig.WindowX = position.Value.X;
+					Services.UiConfig.WindowY = position.Value.Y;
+				}
+
+				Services.UiConfig.WindowWidth = width;
+				Services.UiConfig.WindowHeight = height;
+			});
 
 		this.WhenAnyValue(
 				x => x.DialogScreen!.IsDialogOpen,
@@ -149,6 +183,8 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
+	public MusicControlsViewModel MusicControls { get; }
+
 	public static MainViewModel Instance { get; } = new();
 
 	public void ClearStacks()
@@ -157,6 +193,12 @@ public partial class MainViewModel : ViewModelBase
 		DialogScreen.Clear();
 		FullScreen.Clear();
 		CompactDialogScreen.Clear();
+	}
+
+	public void InvalidateIsCoinJoinActive()
+	{
+		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
+			.Any(x => x.IsCoinJoining);
 	}
 
 	public void Initialize()
@@ -183,24 +225,17 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
-		PrivacySettingsTabViewModel.RegisterLazy(
+		TorSettingsTabViewModel.RegisterLazy(
 			() =>
 			{
 				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
-		NetworkSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 2;
-				return _settingsPage;
-			});
-
 		BitcoinTabSettingsViewModel.RegisterLazy(
 			() =>
 			{
-				_settingsPage.SelectedTab = 3;
+				_settingsPage.SelectedTab = 2;
 				return _settingsPage;
 			});
 

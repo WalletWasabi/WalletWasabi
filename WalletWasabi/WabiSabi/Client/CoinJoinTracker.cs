@@ -14,11 +14,13 @@ public class CoinJoinTracker : IDisposable
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
 		IEnumerable<SmartCoin> coinCandidates,
+		bool restartAutomatically,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
 		CoinJoinClient = coinJoinClient;
 		CoinCandidates = coinCandidates;
+		RestartAutomatically = restartAutomatically;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
@@ -27,8 +29,10 @@ public class CoinJoinTracker : IDisposable
 	private CancellationTokenSource CancellationTokenSource { get; }
 
 	public Wallet Wallet { get; }
-	public Task<bool> CoinJoinTask { get; }
+	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public IEnumerable<SmartCoin> CoinCandidates { get; }
+	public bool RestartAutomatically { get; }
+
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;
 

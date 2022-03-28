@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -22,15 +23,17 @@ public class CoinJoinTrackerFactory
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 
-	public CoinJoinTracker CreateAndStart(Wallet wallet, IEnumerable<SmartCoin> coinCandidates)
+	public CoinJoinTracker CreateAndStart(Wallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically)
 	{
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			new KeyChain(wallet.KeyManager, wallet.Kitchen),
 			new InternalDestinationProvider(wallet.KeyManager),
 			RoundStatusUpdater,
-			wallet.ServiceConfiguration.MinAnonScoreTarget);
+			wallet.KeyManager.MinAnonScoreTarget,
+			feeRateMedianTimeFrame: TimeSpan.FromHours(wallet.KeyManager.FeeRateMedianTimeFrameHours),
+			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
-		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, CancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, restartAutomatically, CancellationToken);
 	}
 }

@@ -98,7 +98,7 @@ public class P2pTests
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
-		ServiceConfiguration serviceConfig = new(5, 10, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		CachedBlockProvider blockProvider = new(
 			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
 			bitcoinStore.BlockRepository);
@@ -109,7 +109,7 @@ public class P2pTests
 			keyManager,
 			synchronizer,
 			dataDir,
-			new ServiceConfiguration(5, 10, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
+			new ServiceConfiguration(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 			feeProvider,
 			blockProvider);
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));

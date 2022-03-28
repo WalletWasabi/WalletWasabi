@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -49,7 +50,7 @@ public class AliceClient
 	public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 	private long MaxVsizeAllocationPerAlice { get; }
 	private TimeSpan ConfirmationTimeout { get; }
-	private bool IsPayingZeroCoordinationFee { get; }
+	public bool IsPayingZeroCoordinationFee { get; }
 
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
@@ -65,7 +66,7 @@ public class AliceClient
 			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, cancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
-			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
+			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
 		catch (OperationCanceledException)
 		{
@@ -80,7 +81,7 @@ public class AliceClient
 		return aliceClient;
 	}
 
-		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken)
+	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
 		AliceClient? aliceClient;
 		try
@@ -143,7 +144,7 @@ public class AliceClient
 				await roundStatusUpdater
 					.CreateRoundAwaiter(
 						RoundId,
-						roundState => roundState.Phase == Phase.ConnectionConfirmation,
+						Phase.ConnectionConfirmation,
 						cts.Token)
 					.ConfigureAwait(false);
 			}
@@ -179,8 +180,6 @@ public class AliceClient
 		IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
 		var isConfirmed = response.Value;
-
-		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Connection confirmed.");
 		return isConfirmed;
 	}
 
@@ -228,7 +227,7 @@ public class AliceClient
 
 	public async Task SignTransactionAsync(Transaction unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
-			await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 	}

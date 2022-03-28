@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	Caption = "Displays terms and conditions",
 	Order = 3,
 	Category = "General",
-	Keywords = new[] { "View", "Legal", "Docs", "Documentation", "Terms", "Conditions", "Help" },
+	Keywords = new[] { "View", "Legal", "Document", "Terms", "Conditions", "Privacy", "Policy", "Statement" },
 	IconName = "info_regular",
 	Searchable = true,
 	NavigationTarget = NavigationTarget.DialogScreen)]

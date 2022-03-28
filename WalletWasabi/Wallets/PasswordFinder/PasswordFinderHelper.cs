@@ -36,16 +36,12 @@ public static class PasswordFinderHelper
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			try
+			if (encryptedSecret.TryGetKey(pwd, out _))
 			{
-				encryptedSecret.GetKey(pwd);
 				foundPassword = pwd;
 				return true;
 			}
-			catch (SecurityException)
-			{
-			}
-
+			
 			attempts++;
 			var percentage = (double)attempts / maxNumberAttempts * 100;
 			var remainingMilliseconds = sw.Elapsed.TotalMilliseconds / percentage * (100 - percentage);

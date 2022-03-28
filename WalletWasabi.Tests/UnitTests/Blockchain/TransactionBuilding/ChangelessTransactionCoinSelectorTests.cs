@@ -4,6 +4,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -27,13 +28,44 @@ public class ChangelessTransactionCoinSelectorTests
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
 		var target = Money.Satoshis(150_000);
+		var feeRate = new FeeRate(Money.Satoshis(2));
+		var txOut = new TxOut(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out IEnumerable<SmartCoin>? selectedCoins);
+		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+
+		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		var strategy = new MoreSelectionStrategy(target, inputEffectiveValues.Values.ToArray(), inputCosts);
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
 		Assert.Equal(new long[] { 100_000, 50_000, 6_025 }, solution);
 		Assert.Equal(Money.Satoshis(6025), solution.Sum() - target); // ~4% more for the privacy.
+	}
+
+	[Fact]
+	public void Good_LesserSuggestion()
+	{
+		using Key key = new();
+
+		List<SmartCoin> coins = GenerateDummySmartCoins(key, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+		var target = Money.Satoshis(65_000);
+		var feeRate = new FeeRate(Money.Satoshis(2));
+
+		var txOut = new TxOut(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
+
+		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+
+		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+
+		var strategy = new LessSelectionStrategy(target, inputEffectiveValues.Values.ToArray(), inputCosts);
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
+		Assert.True(found);
+
+		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
+		Assert.Equal(new long[] { 50_000, 8_192, 6_561 }, solution);
 	}
 
 	/// <summary>
@@ -46,8 +78,16 @@ public class ChangelessTransactionCoinSelectorTests
 
 		List<SmartCoin> coins = GenerateDummySmartCoins(key, 150_000);
 		var target = Money.Satoshis(100_000);
+		var feeRate = new FeeRate(Money.Satoshis(2));
+		var txOut = new TxOut(target, BitcoinFactory.CreateBitcoinAddress(Network.TestNet, key));
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(coins, new FeeRate(satoshiPerByte: 4), target, out IEnumerable<SmartCoin>? selectedCoins);
+		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
+
+		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+
+		var strategy = new LessSelectionStrategy(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
+
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
 		Assert.False(found);
 	}
 
@@ -72,6 +112,6 @@ public class ChangelessTransactionCoinSelectorTests
 			result.Add(new SmartCoin(stx, i, hdPubKey));
 		}
 
-		return result;
+		return result.OrderByDescending(x => x.Amount.Satoshi).ToList();
 	}
 }
