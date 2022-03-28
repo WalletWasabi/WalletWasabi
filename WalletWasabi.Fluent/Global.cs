@@ -95,7 +95,7 @@ public class Global
 				HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 			}
 
-			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
+			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory, HostedServices);
 			LegalChecker = new(DataDir);
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 
