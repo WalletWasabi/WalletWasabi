@@ -1,11 +1,8 @@
-using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -35,49 +32,9 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
 
-	private Stopwatch? _copyButtonPressedStopwatch;
-
 	public PreviewItem()
 	{
-		CopyCommand = ReactiveCommand.CreateFromTask<object>(async obj =>
-		{
-			if (obj.ToString() is { } text)
-			{
-				_copyButtonPressedStopwatch = Stopwatch.StartNew();
-
-				if (Application.Current is { Clipboard: { } clipboard })
-				{
-					await clipboard.SetTextAsync(text);
-				}
-			}
-		});
-
-		this.WhenAnyValue(x => x.Icon)
-			.Subscribe(x => IsIconVisible = x is not null);
-
-		this.WhenAnyValue(
-				x => x.CopyParameter,
-				x => x.IsPointerOver,
-				x => x.PrivacyModeEnabled,
-				(copyParameter, isPointerOver, privacyModeEnabled) => !string.IsNullOrEmpty(copyParameter?.ToString()) && isPointerOver && !privacyModeEnabled)
-			.SubscribeAsync(async value =>
-			{
-				if (_copyButtonPressedStopwatch is { } sw)
-				{
-					var elapsedMilliseconds = sw.ElapsedMilliseconds;
-
-					var millisecondsToWait = 1050 - (int)elapsedMilliseconds;
-
-					if (millisecondsToWait > 0)
-					{
-						await Task.Delay(millisecondsToWait);
-					}
-
-					_copyButtonPressedStopwatch = null;
-				}
-
-				CopyButtonVisibility = value;
-			});
+		this.Bind(CopyButtonVisibilityProperty, this.WhenAnyValue(item => item.IsPointerOver));
 	}
 
 	public string Text

@@ -2,6 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
+  <Design.PreviewWith>
+    <c:PreviewItem Text="Text to preview"></c:PreviewItem>
+  </Design.PreviewWith>
+
     <Style Selector="c|PreviewItem">
         <Setter Property="Template">
             <ControlTemplate>
@@ -14,17 +18,8 @@
                     <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
                         <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />
                         <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-                            <Panel DockPanel.Dock="Right"
-                                   Width="30">
-                                <c:AnimatedButton Command="{TemplateBinding CopyCommand}"
-                                                  CommandParameter="{TemplateBinding CopyParameter}"
-                                                  ToolTip.Tip="Copy"
-                                                  NormalIcon="{StaticResource copy_regular}"
-                                                  ClickIcon="{StaticResource copy_confirmed}"
-                                                  InitialOpacity="0.6"
-                                                  IsVisible="{TemplateBinding CopyButtonVisibility}" />
-                            </Panel>
-                            <Panel>
+                          <c:ClipboardCopyButton DockPanel.Dock="Right"  Width="30" Text="{TemplateBinding Text}" IsVisible="{TemplateBinding CopyButtonVisibility}" />
+                          <Panel>
                               <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
                                                 ContentTemplate="{TemplateBinding ContentTemplate}"
                                                 HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
