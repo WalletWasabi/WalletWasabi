@@ -75,7 +75,7 @@
 
   <Style Selector="c|NavBarItem /template/ Border#SelectionIndicator">
     <Setter Property="Opacity" Value="0"/>
-    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
   <Style Selector="c|NavBarItem /template/ Border#SelectionBackground">
