@@ -261,7 +261,7 @@ public class AmountDecomposer
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
 				target: (long)myInputSum,
 				tolerance: (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee),
-				maxCount: Math.Min(maxNumberOfOutputsAllowed, Math.Max(5, naiveSet.Count)),
+				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8),
 				stdDenoms: stdDenoms))
 			{
 				var currentSet = Decomposer.ToRealValuesArray(
