@@ -74,6 +74,7 @@
     <Color x:Key="TileBorderColor">#66757575</Color>
     <Color x:Key="AcrylicTrimForeground">White</Color>
     <Color x:Key="AcrylicTrimBackground">#232A33</Color>
+    <Color x:Key="AcrylicTrimOverlayBackground">Transparent</Color>
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>

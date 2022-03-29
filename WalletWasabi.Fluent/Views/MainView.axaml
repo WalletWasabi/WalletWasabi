@@ -28,6 +28,7 @@
                                          MaterialOpacity="0.9" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
+        <Panel IsHitTestVisible="False" Background="{DynamicResource AcrylicTrimOverlayBackground}"/>
 
         <Grid ColumnDefinitions="68, *, 150" RowDefinitions="48, *">
 
