@@ -187,10 +187,9 @@ public class AmountDecomposer
 		var remainingVsize = AvailableVsize;
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Money> Decomp, Money Cost)>();
-		var random = new Random();
 
 		// How many times can we participate with the same denomination.
-		var maxDenomUsage = random.Next(2, 8);
+		var maxDenomUsage = Random.Shared.Next(2, 8);
 
 		// Create the most naive decomposition for starter.
 		List<Money> naiveSet = new();
@@ -290,7 +289,7 @@ public class AmountDecomposer
 		var finalCandidate = orderedCandidates.First().Decomp;
 		foreach (var candidate in orderedCandidates)
 		{
-			if (random.NextDouble() < 0.5)
+			if (Random.Shared.NextDouble() < 0.5)
 			{
 				finalCandidate = candidate.Decomp;
 				break;

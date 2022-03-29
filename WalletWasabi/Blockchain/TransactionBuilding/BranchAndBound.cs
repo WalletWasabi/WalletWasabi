@@ -8,8 +8,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 /// <seealso href="https://murch.one/wp-content/uploads/2016/11/erhardt2016coinselection.pdf">Section "5.3 Branch and Bound".</seealso>
 public class BranchAndBound
 {
-	private readonly Random _random = new();
-
 	/// <summary>
 	/// Attempts to find a set of values that sum up to the target value.
 	/// </summary>
@@ -114,7 +112,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next() > (int.MaxValue / 2) ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return Random.Shared.Next() > (int.MaxValue / 2) ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private static NextAction GetNextStep(NextAction action)

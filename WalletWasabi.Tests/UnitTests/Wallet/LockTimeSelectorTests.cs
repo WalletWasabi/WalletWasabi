@@ -9,7 +9,7 @@ public class LockTimeSelectorTests
 	[Fact]
 	public void GetLockTimeBasedOnDistributionTest()
 	{
-		var lockTimeSelector = new LockTimeSelector(new Random());
+		var lockTimeSelector = new LockTimeSelector(Random.Shared);
 
 		uint tipHeight = 600_000;
 		LockTime lockTime = lockTimeSelector.GetLockTimeBasedOnDistribution(tipHeight);
