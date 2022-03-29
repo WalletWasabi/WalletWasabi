@@ -65,13 +65,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isBalanceDisplayed;
 
-	private readonly MusicStatusMessageViewModel _countDownMessage = new()
-	{ Message = "Waiting to auto-start coinjoin" };
+	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
 
-	private readonly MusicStatusMessageViewModel _pauseMessage = new()
-	{ Message = "Coinjoin is paused" };
+	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 
@@ -117,8 +115,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			initialState = State.Disabled;
 		}
 
-		_stateMachine =
-			new StateMachine<State, Trigger>(initialState);
+		_stateMachine = new StateMachine<State, Trigger>(initialState);
 
 		ConfigureStateMachine(coinJoinManager);
 
