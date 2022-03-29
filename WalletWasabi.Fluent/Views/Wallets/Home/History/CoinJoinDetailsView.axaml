@@ -17,7 +17,7 @@
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Label="Date"
-                     Value="{Binding Date}">
+                     TextValue="{Binding Date}">
         <TextBlock Text="{Binding Date}" />
       </c:PreviewItem>
 
@@ -29,24 +29,11 @@
           <ItemsRepeater Items="{Binding TransactionIds}">
             <ItemsRepeater.ItemTemplate>
               <DataTemplate>
-                <c:AdorningContentControl ClipToBounds="False" HorizontalAlignment="Left">
-                  <c:AdorningContentControl.Adornment>
-                    <c:AnimatedButton ToolTip.Tip="Copy"
-                                      x:CompileBindings="False"
-                                      Command="{Binding #CoinJoinDetails.DataContext.CopyCommand}"
-                                      CommandParameter="{Binding .}"
-                                      NormalIcon="{StaticResource copy_regular}"
-                                      ClickIcon="{StaticResource copy_confirmed}"
-                                      InitialOpacity="0.6"
-                                      HorizontalAlignment="Right"
-                                      Margin="0 0 -30 0" />
-                  </c:AdorningContentControl.Adornment>
-
+                <c:PreviewItem Icon="{StaticResource transaction_id}" TextValue="{Binding }">
                   <c:PrivacyContentControl NumberOfPrivacyChars="48">
-                    <TextBlock Classes="monoSpaced" Text="{Binding .}" />
+                    <TextBlock Text="{Binding }" Classes="monoSpaced"/>
                   </c:PrivacyContentControl>
-
-                </c:AdorningContentControl>
+                </c:PreviewItem>
               </DataTemplate>
             </ItemsRepeater.ItemTemplate>
             <ItemsRepeater.Layout>
@@ -68,7 +55,7 @@
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Coinjoin fee:"
-                     Value="{Binding CoinJoinFee}">
+                     TextValue="{Binding CoinJoinFee}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
 

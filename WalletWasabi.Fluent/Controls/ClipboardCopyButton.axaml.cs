@@ -47,17 +47,15 @@ public class ClipboardCopyButton : TemplatedControl
 
 	public ClipboardCopyButton()
 	{
-		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboard,
-			this.WhenAnyValue(c => c.Text, selector: s => s is not null));
-		var obs = CopyCommand.Select(unit => true)
-			.Merge(CopyCommand.Delay(TimeSpan.FromSeconds(2)).Select(_ => false));
+		var canCopy = this.WhenAnyValue(c => c.Text, selector: s => s is not null);
+		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboard, canCopy);
 
-		var o = CopyCommand
+		var isPopupOpen = CopyCommand
 			.Select(unit =>
 				Observable.Return(true).Concat(Observable.Timer(HidePopupTime).Select(l => false)))
 			.Switch();
 
-		this.Bind(IsPopupOpenProperty, o);
+		this.Bind(IsPopupOpenProperty, isPopupOpen);
 	}
 
 	public TimeSpan HidePopupTime { get; set; } = TimeSpan.FromSeconds(2);

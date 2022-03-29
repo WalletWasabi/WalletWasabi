@@ -3,7 +3,11 @@
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
   <Design.PreviewWith>
-    <c:PreviewItem Label="Text to preview"></c:PreviewItem>
+    <Border Height="100" Width="400">
+      <c:PreviewItem Label="Transaction ID"
+                     TextValue="Text to copy">
+      </c:PreviewItem>
+    </Border>
   </Design.PreviewWith>
 
     <Style Selector="c|PreviewItem">
@@ -18,7 +22,7 @@
                     <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
                         <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />
                         <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-                          <c:ClipboardCopyButton ToolTip.Tip="Copy" ToolTip.Placement="Bottom" DockPanel.Dock="Right" Width="30" Text="{TemplateBinding Value}" IsVisible="{TemplateBinding CopyButtonVisibility}" />
+                          <c:ClipboardCopyButton ToolTip.Tip="Copy" ToolTip.Placement="Bottom" DockPanel.Dock="Right" Width="30" Text="{TemplateBinding TextValue}" IsVisible="{TemplateBinding IsCopyButtonVisible}" />
                           <Panel>
                               <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
                                                 ContentTemplate="{TemplateBinding ContentTemplate}"

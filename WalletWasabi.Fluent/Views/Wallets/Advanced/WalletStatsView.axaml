@@ -13,24 +13,24 @@
                  EnableNext="True" NextContent="Done">
     <StackPanel Spacing="10" Margin="0 20 20 0">
       <c:PreviewItem Label="Number of coins (UTXOs)"
-                     Value="{Binding CoinCount}">
+                     TextValue="{Binding CoinCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  NumberOfPrivacyChars="8"
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Unconfirmed balance"
-                     Value="{Binding UnconfirmedBalance}">
+                     TextValue="{Binding UnconfirmedBalance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding UnconfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Confirmed balance"
-                     Value="{Binding ConfirmedBalance}">
+                     TextValue="{Binding ConfirmedBalance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Total balance"
-                     Value="{Binding Balance}">
+                     TextValue="{Binding Balance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
     </StackPanel>

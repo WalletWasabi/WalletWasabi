@@ -20,21 +20,23 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> IsIconVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
 
-	public static readonly StyledProperty<string> ValueProperty =
-		AvaloniaProperty.Register<PreviewItem, string>(nameof(Value));
+	public static readonly StyledProperty<string> TextValueProperty =
+		AvaloniaProperty.Register<PreviewItem, string>(nameof(TextValue));
 
 	public static readonly StyledProperty<ICommand> CopyCommandProperty =
 		AvaloniaProperty.Register<PreviewItem, ICommand>(nameof(CopyCommand));
 
-	public static readonly StyledProperty<bool> CopyButtonVisibilityProperty =
-		AvaloniaProperty.Register<PreviewItem, bool>(nameof(CopyButtonVisibility));
+	public static readonly StyledProperty<bool> IsCopyButtonVisibleProperty =
+		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsCopyButtonVisible));
 
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
 
 	public PreviewItem()
 	{
-		this.Bind(CopyButtonVisibilityProperty, this.WhenAnyValue(item => item.IsPointerOver));
+		var isCopyButtonVisible = this.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue,
+			(a, b) => a && !string.IsNullOrWhiteSpace(b));
+		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 	}
 
 	public string Label
@@ -61,10 +63,10 @@ public class PreviewItem : ContentControl
 		set => SetValue(IsIconVisibleProperty, value);
 	}
 
-	public string Value
+	public string TextValue
 	{
-		get => GetValue(ValueProperty);
-		set => SetValue(ValueProperty, value);
+		get => GetValue(TextValueProperty);
+		set => SetValue(TextValueProperty, value);
 	}
 
 	public ICommand CopyCommand
@@ -73,10 +75,10 @@ public class PreviewItem : ContentControl
 		set => SetValue(CopyCommandProperty, value);
 	}
 
-	public bool CopyButtonVisibility
+	public bool IsCopyButtonVisible
 	{
-		get => GetValue(CopyButtonVisibilityProperty);
-		set => SetValue(CopyButtonVisibilityProperty, value);
+		get => GetValue(IsCopyButtonVisibleProperty);
+		set => SetValue(IsCopyButtonVisibleProperty, value);
 	}
 
 	public bool PrivacyModeEnabled
