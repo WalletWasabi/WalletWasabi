@@ -100,17 +100,6 @@
 
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
-
-    <LinearGradientBrush x:Key="LogoBaseColor" StartPoint="707.09,132.13998" EndPoint="347.36,632.93994">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Offset="0" Color="#FF004178" />
-        <GradientStop Offset="0.38" Color="#FF00325E" />
-        <GradientStop Offset="0.73" Color="#FF00294D" />
-        <GradientStop Offset="0.99" Color="#FF002647" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
-
-    <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml" />
 
