@@ -29,7 +29,7 @@
           <ItemsRepeater Items="{Binding TransactionIds}">
             <ItemsRepeater.ItemTemplate>
               <DataTemplate>
-                <c:PreviewItem Icon="{StaticResource transaction_id}" TextValue="{Binding }">
+                <c:PreviewItem TextValue="{Binding }">
                   <c:PrivacyContentControl NumberOfPrivacyChars="48">
                     <TextBlock Text="{Binding }" Classes="monoSpaced"/>
                   </c:PrivacyContentControl>
