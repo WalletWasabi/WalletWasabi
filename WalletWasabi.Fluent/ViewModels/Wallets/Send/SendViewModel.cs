@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -11,22 +13,19 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using System.Reactive;
-using System.Collections.ObjectModel;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -51,6 +50,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _conversionReversed;
 
 	private bool _parsingUrl;
+	private readonly ObservableAsPropertyHelper<bool> _hasBtcAddressInClipboard;
 
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -137,10 +137,31 @@ public partial class SendViewModel : RoutableViewModel
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 
-		this.WhenAnyValue(x => x.ConversionReversed)
-			.Skip(1)
-			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+		
+        this.WhenAnyValue(x => x.ConversionReversed)
+            .Skip(1)
+            .Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+
+		_hasBtcAddressInClipboard = Observable
+			.Interval(TimeSpan.FromMilliseconds(500))
+			.SelectMany(_ => GetClipboardContents())
+			.Select(IsBtcAddress)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, nameof(HasBtcAddressInClipboard));
+
+    }
+
+	private static async Task<string> GetClipboardContents()
+	{
+		return Application.Current is {Clipboard: { } clipboard} ? await clipboard.GetTextAsync() : "";
 	}
+
+	private bool IsBtcAddress(string text)
+	{
+		return AddressStringParser.TryParse(text, Services.WalletManager.Network, out _);
+	}
+
+	public bool HasBtcAddressInClipboard => _hasBtcAddressInClipboard.Value;
 
 	public bool IsQrButtonVisible { get; }
 

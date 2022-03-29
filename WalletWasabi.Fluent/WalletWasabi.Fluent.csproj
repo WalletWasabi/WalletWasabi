@@ -25,7 +25,7 @@
 		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="0.10.10-cibuild0018875-beta" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.13.1" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.13.2" />
 		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />

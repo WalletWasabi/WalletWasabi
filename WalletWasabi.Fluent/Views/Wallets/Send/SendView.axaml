@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
@@ -69,14 +71,20 @@
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-              <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+              <c:AnimatedButton x:Name="PasteButton"
+                KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
                                 Command="{Binding PasteCommand}"
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}">
                 <i:Interaction.Behaviors>
-                  <behaviors:PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
+                  <ia:DataTriggerBehavior Binding="{Binding HasBtcAddressInClipboard}" ComparisonCondition="Equal" Value="True">
+                    <iac:AddClassAction StyledElement="PasteButton" ClassName="flash" RemoveIfExists="True" />
+                  </ia:DataTriggerBehavior>
+                  <ia:DataTriggerBehavior Binding="{Binding HasBtcAddressInClipboard}" ComparisonCondition="Equal" Value="False">
+                    <iac:RemoveClassAction StyledElement="PasteButton" ClassName="flash" />
+                  </ia:DataTriggerBehavior>
                 </i:Interaction.Behaviors>
               </c:AnimatedButton>
               <c:AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
