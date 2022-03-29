@@ -38,11 +38,25 @@
       <Setter Property="FontFamily" Value="Arial" />
     </Style>
 
+    <Style Selector="Button.searchItem /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="Background">
+        <Setter.Value>
+          <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
   </UserControl.Styles>
 
   <UserControl.DataTemplates>
 
     <DataTemplate DataType="sb:NonActionableSearchItem">
+
       <DockPanel Background="Transparent" Margin="10">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
           <!--TODO: Remove this workaround. We must leave the PathIcon only-->
@@ -61,12 +75,13 @@
     </DataTemplate>
 
     <DataTemplate DataType="sb:AutocloseActionableItem">
-      <Button Command="{Binding Command}" Background="Transparent" HorizontalAlignment="Stretch" Padding="0">
+
+        <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0">
 
         <DockPanel Background="Transparent" Margin="10">
           <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
             <!--TODO: Remove this workaround. We must leave the PathIcon only-->
-            <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+            <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
             <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
           </Panel>
           <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />

@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
+
   <Design.PreviewWith>
     <Border Padding="20">
       <FlyoutPresenter>
@@ -14,7 +15,7 @@
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="FlyoutPresenter.search">
+  <Style Selector="FlyoutPresenter">
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
@@ -26,6 +27,7 @@
     <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
     <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     <Setter Property="CornerRadius" Value="8 8 8 8" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -41,7 +43,7 @@
                   CornerRadius="{TemplateBinding CornerRadius}" ClipToBounds="True">
             <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
               <Panel>
-                <controls:BlurBehind BlurRadius="10,10" />
+                 <controls:BlurBehind BlurRadius="10,10" /> 
                 <Panel Background="{DynamicResource AcrylicTrimBackground}" Opacity="0.5" />
 
                 <ScrollViewer Margin="{TemplateBinding Padding}"

@@ -22,12 +22,17 @@
 
     <Style Selector="TextBox#SearchBox">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="BorderThickness" Value="1 1 1 1" />
       <Setter Property="Margin" Value="0" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="Padding" Value="6 3" />
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
@@ -50,18 +55,22 @@
 
     <Style
       Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
-      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
+      <Setter Property="Foreground">
+        <SolidColorBrush Opacity="0.7" Color="{DynamicResource AcrylicTrimForeground}" />
+      </Setter>
     </Style>
 
     <!-- Focused State -->
     <Style Selector="TextBox:focus">
-      <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Cursor" Value="Arrow" />
     </Style>
 
     <Style
       Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
-      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
+      <Setter Property="Foreground">
+        <SolidColorBrush Opacity="0.5" Color="{DynamicResource AcrylicTrimForeground}" />
+      </Setter>
     </Style>
 
     <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
@@ -70,7 +79,7 @@
       <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
 
-    <Style Selector="FlyoutPresenter.search">
+    <Style Selector="FlyoutPresenter">
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
 
@@ -79,15 +88,15 @@
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
            Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
     <TextBox.InnerLeftContent>
-      <PathIcon Data="{StaticResource action_center_regular}" Margin="10 0" />
+      <PathIcon Data="{DynamicResource action_center_regular}" Margin="10 0" />
     </TextBox.InnerLeftContent>
     <TextBox.InnerRightContent>
-      <PathIcon Data="{StaticResource search_regular}" Margin="10 0" />
+      <PathIcon Data="{DynamicResource search_regular}" Margin="10 0" />
     </TextBox.InnerRightContent>
   </TextBox>
 
   <FlyoutBase.AttachedFlyout>
-    <Flyout Placement="Bottom" ShowMode="Transient" FlyoutPresenterClasses="search">
+    <Flyout Placement="Bottom" ShowMode="Transient">
       <s:SearchBarDropdown Width="400" x:Name="SearchBarDropdown" />
     </Flyout>
   </FlyoutBase.AttachedFlyout>
