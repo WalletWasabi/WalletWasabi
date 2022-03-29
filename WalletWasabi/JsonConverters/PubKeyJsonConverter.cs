@@ -8,7 +8,14 @@ public class PubKeyJsonConverter : JsonConverter<PubKey>
 	/// <inheritdoc />
 	public override PubKey? ReadJson(JsonReader reader, Type objectType, PubKey? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return new PubKey(((string?)reader.Value)?.Trim());
+		string? hex = ((string?)reader.Value)?.Trim();
+
+		if (hex is null)
+		{
+			throw new ArgumentNullException(nameof(hex));
+		}
+
+		return new PubKey(hex);
 	}
 
 	/// <inheritdoc />

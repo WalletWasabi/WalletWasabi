@@ -12,6 +12,7 @@ public class SmartLabelJsonConverter : JsonConverter<SmartLabel>
 		{
 			return new SmartLabel(serialized);
 		}
+
 		throw new ArgumentException($"No valid serialized {nameof(SmartLabel)} passed.");
 	}
 

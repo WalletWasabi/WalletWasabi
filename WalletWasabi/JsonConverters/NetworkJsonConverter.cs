@@ -14,6 +14,12 @@ public class NetworkJsonConverter : JsonConverter<Network>
 	{
 		// check additional strings that are not checked by GetNetwork
 		var networkString = ((string?)reader.Value)?.Trim();
+
+		if (networkString is null)
+		{
+			throw new ArgumentNullException(nameof(networkString));
+		}
+
 		if ("regression".Equals(networkString, StringComparison.OrdinalIgnoreCase))
 		{
 			return Network.RegTest;

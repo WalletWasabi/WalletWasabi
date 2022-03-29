@@ -23,7 +23,7 @@ public class UnblindedSignatureJsonConverter : JsonConverter<UnblindedSignature>
 		return sig;
 	}
 
-	private BigInteger StringToBigInteger(string num)
+	private BigInteger StringToBigInteger(string? num)
 	{
 		if (string.IsNullOrWhiteSpace(num) || num.Length > 78)
 		{

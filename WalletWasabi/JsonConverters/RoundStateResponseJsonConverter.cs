@@ -23,19 +23,14 @@ public class RoundStateResponseJsonConverter : JsonConverter<RoundStateResponseB
 			return null;
 		}
 
-		var jobject = JObject.Load(reader);
+		JObject jobject = JObject.Load(reader);
 
-		var type = ProtocolVersion switch
+		if (ProtocolVersion != 4)
 		{
-			4 => typeof(RoundStateResponse4),
-			_ => throw new InvalidOperationException($"Cannot deserialize message for unknown protocol version: {ProtocolVersion}")
-		};
-
-		if (type is null)
-		{
-			throw new JsonSerializationException("Could not determine object type.");
+			throw new InvalidOperationException($"Cannot deserialize message for unknown protocol version: {ProtocolVersion}");
 		}
-		return (RoundStateResponseBase?)jobject.ToObject(type, serializer);
+
+		return jobject.ToObject<RoundStateResponse4>(serializer);
 	}
 
 	/// <inheritdoc />

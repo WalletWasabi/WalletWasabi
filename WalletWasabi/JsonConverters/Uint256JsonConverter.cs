@@ -9,9 +9,8 @@ public class Uint256JsonConverter : JsonConverter<uint256>
 	/// <inheritdoc />
 	public override uint256? ReadJson(JsonReader reader, Type objectType, uint256? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		var value = Guard.Correct((string?)reader.Value);
-
-		return string.IsNullOrWhiteSpace(value) ? default : new uint256(value);
+		string? value = (string?)reader.Value;
+		return value is null ? default : new uint256(value);
 	}
 
 	/// <inheritdoc />

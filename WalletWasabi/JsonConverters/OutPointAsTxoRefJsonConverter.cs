@@ -11,9 +11,20 @@ public class OutPointAsTxoRefJsonConverter : JsonConverter<OutPoint>
 	{
 		JObject item = JObject.Load(reader);
 
-		var hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase).Value<string>();
-		var n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase).Value<uint>();
-		return new OutPoint(uint256.Parse(hash), n);
+		string? hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase)?.Value<string>();
+		uint? n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase)?.Value<uint>();
+
+		if (hash is null)
+		{
+			throw new ArgumentNullException(nameof(hash));
+		}
+
+		if (n is null)
+		{
+			throw new ArgumentNullException(nameof(n));
+		}
+
+		return new OutPoint(uint256.Parse(hash), n.Value);
 	}
 
 	/// <inheritdoc />
