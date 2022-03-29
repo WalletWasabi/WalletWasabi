@@ -4,7 +4,7 @@ public class InsecureRandom : WasabiRandom
 {
 	public InsecureRandom()
 	{
-		Random = new Random();
+		Random = Random.Shared;
 	}
 
 	private Random Random { get; }
