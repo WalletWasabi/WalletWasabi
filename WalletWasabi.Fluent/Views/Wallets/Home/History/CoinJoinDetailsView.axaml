@@ -16,8 +16,8 @@
 
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
-                     Text="Date"
-                     CopyParameter="{Binding Date}">
+                     Label="Date"
+                     Value="{Binding Date}">
         <TextBlock Text="{Binding Date}" />
       </c:PreviewItem>
 
@@ -25,7 +25,7 @@
 
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Text="Transaction ID">
+                     Label="Transaction ID">
           <ItemsRepeater Items="{Binding TransactionIds}">
             <ItemsRepeater.ItemTemplate>
               <DataTemplate>
@@ -59,7 +59,7 @@
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource status_regular}"
-                     Text="Status">
+                     Label="Status">
         <TextBlock Text="{Binding Status}" />
       </c:PreviewItem>
 
@@ -67,8 +67,8 @@
 
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Coinjoin fee:"
-                     CopyParameter="{Binding CoinJoinFee}">
+                     Label="Coinjoin fee:"
+                     Value="{Binding CoinJoinFee}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
 

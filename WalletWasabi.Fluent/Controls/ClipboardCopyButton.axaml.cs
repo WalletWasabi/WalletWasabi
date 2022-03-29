@@ -47,7 +47,8 @@ public class ClipboardCopyButton : TemplatedControl
 
 	public ClipboardCopyButton()
 	{
-		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboard);
+		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboard,
+			this.WhenAnyValue(c => c.Text, selector: s => s is not null));
 		var obs = CopyCommand.Select(unit => true)
 			.Merge(CopyCommand.Delay(TimeSpan.FromSeconds(2)).Select(_ => false));
 

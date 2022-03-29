@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class PreviewItem : ContentControl
 {
-	public static readonly StyledProperty<string> TextProperty =
-		AvaloniaProperty.Register<PreviewItem, string>(nameof(Text));
+	public static readonly StyledProperty<string> LabelProperty =
+		AvaloniaProperty.Register<PreviewItem, string>(nameof(Label));
 
 	public static readonly StyledProperty<Geometry> IconProperty =
 		AvaloniaProperty.Register<PreviewItem, Geometry>(nameof(Icon));
@@ -20,8 +20,8 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> IsIconVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsIconVisible));
 
-	public static readonly StyledProperty<object?> CopyParameterProperty =
-		AvaloniaProperty.Register<PreviewItem, object?>(nameof(CopyParameter));
+	public static readonly StyledProperty<string> ValueProperty =
+		AvaloniaProperty.Register<PreviewItem, string>(nameof(Value));
 
 	public static readonly StyledProperty<ICommand> CopyCommandProperty =
 		AvaloniaProperty.Register<PreviewItem, ICommand>(nameof(CopyCommand));
@@ -37,10 +37,10 @@ public class PreviewItem : ContentControl
 		this.Bind(CopyButtonVisibilityProperty, this.WhenAnyValue(item => item.IsPointerOver));
 	}
 
-	public string Text
+	public string Label
 	{
-		get => GetValue(TextProperty);
-		set => SetValue(TextProperty, value);
+		get => GetValue(LabelProperty);
+		set => SetValue(LabelProperty, value);
 	}
 
 	public Geometry Icon
@@ -61,10 +61,10 @@ public class PreviewItem : ContentControl
 		set => SetValue(IsIconVisibleProperty, value);
 	}
 
-	public object? CopyParameter
+	public string Value
 	{
-		get => GetValue(CopyParameterProperty);
-		set => SetValue(CopyParameterProperty, value);
+		get => GetValue(ValueProperty);
+		set => SetValue(ValueProperty, value);
 	}
 
 	public ICommand CopyCommand

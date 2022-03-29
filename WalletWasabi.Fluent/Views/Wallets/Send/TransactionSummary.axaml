@@ -10,14 +10,14 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
   <StackPanel Spacing="15">
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="a total of">
+                     Label="a total of">
         <TextBlock Text="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
       </c:PreviewItem>
 
       <Separator />
 
       <c:PreviewItem Icon="{StaticResource transceive_regular}"
-                     Text="will be sent to the Bitcoin address">
+                     Label="will be sent to the Bitcoin address">
         <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
       </c:PreviewItem>
 
@@ -45,12 +45,12 @@
 
         <StackPanel Spacing="10">
           <c:PreviewItem Icon="{StaticResource timer_regular}"
-                         Text="your transaction should be confirmed within"
+                         Label="your transaction should be confirmed within"
                          IsVisible="{Binding !IsCustomFeeUsed}">
             <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
           </c:PreviewItem>
           <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                         Text="there will be an additional transaction fee of">
+                         Label="there will be an additional transaction fee of">
             <TextBlock Text="{Binding FeeText, FallbackValue=0.00000235 bitcoin (≈55.34 USD)}" />
           </c:PreviewItem>
         </StackPanel>
