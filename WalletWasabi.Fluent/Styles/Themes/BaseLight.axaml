@@ -53,15 +53,26 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
+    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+
+    <StaticResource x:Key="TextControlBackground" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="SystemChromeMediumColor" />
+
+    <StaticResource x:Key="ComboBoxItemBackground" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="ComboBoxItemBackgroundPressed" ResourceKey="SystemChromeHighColor" />
+    <StaticResource x:Key="ComboBoxItemBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+
+    <StaticResource x:Key="ComboBoxBackground" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="SystemChromeHighColor" />
+    <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
+
     <Color x:Key="TileRegionColor">White</Color>
     <Color x:Key="TileBorderColor">#EDF0F3</Color>
     <Color x:Key="AcrylicTrimForeground">#FCFCFC</Color>
     <Color x:Key="AcrylicTrimBackground">#285687</Color>
-
-    <StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />
-    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
-    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
-    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
 
     <Color x:Key="WelcomeScreenButtonBackground">#DADFE7</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#C1CBD7</Color>
