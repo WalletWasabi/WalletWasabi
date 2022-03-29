@@ -187,7 +187,7 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		try
 		{
-			var closestValue = SatoshiPerByteValues.Last(x => (decimal)x <= feeRate.SatoshiPerByte);
+			var closestValue = SatoshiPerByteValues.Last(x => new FeeRate((decimal)x) <= feeRate);
 			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
 			target = ConfirmationTargetValues[indexOfClosestValue];
