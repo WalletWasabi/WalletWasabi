@@ -105,6 +105,7 @@
 
     <Style Selector=":is(Panel).NavBarItemPanel.utilities  DockPanel TextBlock" x:DataType="vm:NavBarItemViewModel">
       <Setter Property="Text" Value="{Binding Title}" />
+      <Setter Property="Margin" Value="-2 6 "></Setter>
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel.wallets" x:DataType="vmw:WalletViewModelBase">
