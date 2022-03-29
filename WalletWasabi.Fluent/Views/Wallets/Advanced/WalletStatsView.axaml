@@ -12,24 +12,24 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done">
     <StackPanel Spacing="10" Margin="0 20 20 0">
-      <c:PreviewItem Text="Number of Coins"
+      <c:PreviewItem Text="Number of coins (UTXOs)"
                      CopyParameter="{Binding CoinCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  NumberOfPrivacyChars="8"
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Text="Unconfirmed Balance"
+      <c:PreviewItem Text="Unconfirmed balance"
                      CopyParameter="{Binding UnconfirmedBalance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding UnconfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Text="Confirmed Balance"
+      <c:PreviewItem Text="Confirmed balance"
                      CopyParameter="{Binding ConfirmedBalance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Text="Total Balance"
+      <c:PreviewItem Text="Total balance"
                      CopyParameter="{Binding Balance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>

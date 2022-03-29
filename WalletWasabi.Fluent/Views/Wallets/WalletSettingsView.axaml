@@ -20,14 +20,20 @@
         </DockPanel>
 
         <DockPanel IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Automatic Coinjoin" />
+          <TextBlock Text="Automatic coinjoin" />
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
+
+        <StackPanel Spacing="10"
+            ToolTip.Tip="No automatic coinjoin if the non-private wallet balance is less than this.">
+          <TextBlock Text= "Automatic coinjoin threshold (BTC)" />
+          <TextBox Text="{Binding PlebStopThreshold}" />
+        </StackPanel>
 
         <Separator />
 
         <StackPanel Spacing="10">
-          <TextBlock Text="Privacy Threshold" />
+          <TextBlock Text="Privacy threshold" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                       Data="{StaticResource privacy_minimal}" />
@@ -36,7 +42,7 @@
           </DockPanel>
         </StackPanel>
         <StackPanel Spacing="10">
-          <TextBlock Text="Privacy Sanity Check" />
+          <TextBlock Text="Privacy sanity check" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
                       Data="{StaticResource privacy_medium}" />

@@ -19,16 +19,6 @@ public class LoadedEventArgs : StatusChangedEventArgs
 	}
 }
 
-public class StartingEventArgs : StatusChangedEventArgs
-{
-	public StartingEventArgs(Wallet wallet, TimeSpan startingIn)
-		: base(wallet)
-	{
-		StartingIn = startingIn;
-	}
-	public TimeSpan StartingIn { get; }
-}
-
 public class StartedEventArgs : StatusChangedEventArgs
 {
 	public StartedEventArgs(Wallet wallet, TimeSpan registrationTimeout)
@@ -40,9 +30,9 @@ public class StartedEventArgs : StatusChangedEventArgs
 	public TimeSpan RegistrationTimeout { get; }
 }
 
-public class CoinJoinCompletedEventArgs : StatusChangedEventArgs
+public class CompletedEventArgs : StatusChangedEventArgs
 {
-	public CoinJoinCompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
+	public CompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
 		: base(wallet)
 	{
 		CompletionStatus = completionStatus;

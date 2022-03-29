@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -183,6 +183,6 @@ public class RoundStateUpdaterTests
 		roundStatusUpdater.TriggerRound();
 
 		// We are expecting output registration phase but the round unexpectedly ends.
-		await Assert.ThrowsAsync<InvalidOperationException>(async () => await roundORTask);
+		await Assert.ThrowsAsync<UnexpectedRoundPhaseException>(async () => await roundORTask);
 	}
 }

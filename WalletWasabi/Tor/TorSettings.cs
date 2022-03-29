@@ -11,6 +11,9 @@ namespace WalletWasabi.Tor;
 /// </summary>
 public class TorSettings
 {
+	/// <summary>Tor binary file name without extension.</summary>
+	public const string TorBinaryFileName = "tor";
+
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
 	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
@@ -67,7 +70,7 @@ public class TorSettings
 	{
 		platform ??= MicroserviceHelpers.GetCurrentPlatform();
 
-		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", "tor"), platform);
+		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
 		return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
 	}
 
@@ -76,7 +79,8 @@ public class TorSettings
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
 		{
-			$"--SOCKSPort {SocksEndpoint}",
+			$"--LogTimeGranularity 1",
+			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors\"",
 			$"--CookieAuthentication 1",
 			$"--ControlPort {ControlEndpoint.Port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",

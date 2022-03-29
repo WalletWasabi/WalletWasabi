@@ -1,8 +1,6 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Wallets;
 
@@ -16,11 +14,13 @@ public class CoinJoinTracker : IDisposable
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
 		IEnumerable<SmartCoin> coinCandidates,
+		bool restartAutomatically,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
 		CoinJoinClient = coinJoinClient;
 		CoinCandidates = coinCandidates;
+		RestartAutomatically = restartAutomatically;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
@@ -29,9 +29,10 @@ public class CoinJoinTracker : IDisposable
 	private CancellationTokenSource CancellationTokenSource { get; }
 
 	public Wallet Wallet { get; }
-	public Task<bool> CoinJoinTask { get; }
+	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public IEnumerable<SmartCoin> CoinCandidates { get; }
-	public IEnumerable<IDestination> Destinations => CoinJoinClient.Destinations;
+	public bool RestartAutomatically { get; }
+
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;
 

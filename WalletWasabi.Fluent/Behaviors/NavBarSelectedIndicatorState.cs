@@ -154,7 +154,7 @@ public class NavBarSelectedIndicatorState : IDisposable
 		_previousAnimationOngoing = false;
 
 		prevIndicator.Opacity = 0;
-		nextIndicator.Opacity = 1;
+		nextIndicator.Opacity = Equals(_activeIndicator, nextIndicator) ? 1 : 0;
 	}
 
 	public void SetActive(Rectangle initial)
