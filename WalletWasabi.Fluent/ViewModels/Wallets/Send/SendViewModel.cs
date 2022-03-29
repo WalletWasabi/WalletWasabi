@@ -144,16 +144,16 @@ public partial class SendViewModel : RoutableViewModel
 
 		_hasBtcAddressInClipboard = Observable
 			.Interval(TimeSpan.FromMilliseconds(500))
-			.SelectMany(_ => GetClipboardContents())
+			.SelectMany(_ => GetClipboardContentAsync())
 			.Select(IsBtcAddress)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, nameof(HasBtcAddressInClipboard));
 
     }
 
-	private static async Task<string> GetClipboardContents()
+	private static async Task<string> GetClipboardContentAsync()
 	{
-		return Application.Current is {Clipboard: { } clipboard} ? await clipboard.GetTextAsync() : "";
+		return Application.Current is { Clipboard: { } clipboard } ? await clipboard.GetTextAsync() : "";
 	}
 
 	private bool IsBtcAddress(string text)
@@ -205,7 +205,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
