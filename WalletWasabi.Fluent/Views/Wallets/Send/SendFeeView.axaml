@@ -155,7 +155,7 @@
       </DockPanel.Resources>
       <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 10 0 0">
         <TextBlock Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" Classes="currentValue" />
-        <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: ~\{0\}'}" Classes="currentValue" />
+        <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: \{0\}'}" Classes="currentValue" />
       </StackPanel>
       <Slider x:Name="CursorValue2"
               Margin="38,0,18,0"
