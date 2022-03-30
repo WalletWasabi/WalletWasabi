@@ -154,7 +154,10 @@ public class CoinJoinManager : BackgroundService
 									}
 								}, stoppingToken);
 
-								trackedAutoStarts.TryAdd(walletToStart, restartTask);
+								if (!trackedAutoStarts.TryAdd(walletToStart, restartTask))
+								{
+									Logger.LogInfo($"AutoCoinJoin task was already added for wallet: '{walletToStart.WalletName}'.");
+								}
 								NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 							}
 
