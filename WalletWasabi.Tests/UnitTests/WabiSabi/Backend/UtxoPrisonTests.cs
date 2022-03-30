@@ -48,7 +48,7 @@ public class UtxoPrisonTests
 		Assert.NotEqual(currentChangeId, p.ChangeId);
 		currentChangeId = p.ChangeId;
 
-		p.ReleaseEligibleInmates(TimeSpan.FromMilliseconds(1));
+		p.ReleaseEligibleInmates(normalBanPeriod: TimeSpan.FromMilliseconds(1), longBanPeriod: TimeSpan.FromSeconds(1));
 		Assert.NotEqual(currentChangeId, p.ChangeId);
 	}
 
@@ -94,5 +94,22 @@ public class UtxoPrisonTests
 		Assert.True(p.TryGet(utxo, out var inmate));
 		Assert.Equal(id2, inmate!.LastDisruptedRoundId);
 		Assert.True(p.TryRelease(utxo, out _));
+	}
+
+	[Fact]
+	public void CanReleaseAfterLongBan()
+	{
+		var p = new Prison();
+		var id1 = BitcoinFactory.CreateUint256();
+		var utxo = BitcoinFactory.CreateOutPoint();
+		var past = DateTimeOffset.UtcNow - TimeSpan.FromDays(40);
+
+		p.Punish(new Inmate(utxo, Punishment.Banned, past, id1, IsLongBan: true));
+
+		Assert.Single(p.GetInmates());
+
+		p.ReleaseEligibleInmates(normalBanPeriod: TimeSpan.FromSeconds(1), longBanPeriod: TimeSpan.FromDays(31));
+
+		Assert.Empty(p.GetInmates());
 	}
 }
