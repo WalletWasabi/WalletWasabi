@@ -92,7 +92,7 @@ public class Prison
 		}
 	}
 
-	public IEnumerable<Inmate> ReleaseEligibleInmates(TimeSpan normalBanTime, TimeSpan longBanTime)
+	public IEnumerable<Inmate> ReleaseEligibleInmates(TimeSpan normalBanPeriod, TimeSpan longBanPeriod)
 	{
 		lock (Lock)
 		{
@@ -100,8 +100,8 @@ public class Prison
 
 			foreach (var inmate in Inmates.Values.ToList())
 			{
-				var time = inmate.IsLongBan ? longBanTime : normalBanTime;
-				if (inmate.TimeSpent > time)
+				var banPeriod = inmate.IsLongBan ? longBanPeriod : normalBanPeriod;
+				if (inmate.TimeSpent > banPeriod)
 				{
 					Inmates.Remove(inmate.Utxo);
 					released.Add(inmate);
