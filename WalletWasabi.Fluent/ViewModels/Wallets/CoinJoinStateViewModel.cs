@@ -46,6 +46,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlebStop,
 		RoundStartFailed,
 		RoundStart,
+		RoundFinished,
 		BalanceChanged,
 		Timer
 	}
@@ -182,7 +183,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.RoundFinished, async () =>
+			{
+				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
+			});
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
@@ -264,7 +269,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoPlaying)
-			.SubstateOf(State.AutoCoinJoin)
+			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
+			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
@@ -276,7 +282,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 				_autoStartTime = TimeSpan.Zero;
 				_countDownStarted = DateTimeOffset.Now;
-				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
@@ -349,6 +355,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		switch (e)
 		{
+			case CompletedEventArgs:
+				_stateMachine.Fire(Trigger.RoundFinished);
+				break;
+
 			case StartedEventArgs:
 				_stateMachine.Fire(Trigger.RoundStart);
 				break;
