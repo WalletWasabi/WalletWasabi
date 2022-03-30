@@ -174,10 +174,10 @@ public class ParserTests
 			Assert.False(AddressStringParser.TryParseBitcoinAddress(null!, test.network, out _));
 
 			Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder? result));
-			Assert.Equal(test.address, result!.Address?.ToString());
+			Assert.Equal(test.address, result!.Address!.ToString());
 
 			Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(0, "   "), test.network, out result));
-			Assert.Equal(test.address.Trim(), result!.Address?.ToString());
+			Assert.Equal(test.address.Trim(), result!.Address!.ToString());
 		}
 	}
 
@@ -205,10 +205,10 @@ public class ParserTests
 			Assert.False(AddressStringParser.TryParseBitcoinUrl(null!, test.network, out _));
 
 			Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url, test.network, out BitcoinUrlBuilder? result));
-			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address?.ToString());
+			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address!.ToString());
 
 			Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(0, "   "), test.network, out result));
-			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address?.ToString());
+			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address!.ToString());
 			Assert.Equal("Luke-Jr", result.Label);
 			Assert.Equal(Money.Coins(50m), result.Amount);
 		}
