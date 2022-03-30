@@ -283,7 +283,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_autoStartTime = TimeSpan.Zero;
 				_countDownStarted = DateTimeOffset.Now;
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
