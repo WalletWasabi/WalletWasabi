@@ -148,8 +148,10 @@ public class CoinJoinManager : BackgroundService
 								var restartTask = Task.Run(async () =>
 								{
 									await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
-									trackedAutoStarts.TryRemove(walletToStart, out _);
-									await StartAutomaticallyAsync(walletToStart, stoppingToken).ConfigureAwait(false);
+									if (trackedAutoStarts.TryRemove(walletToStart, out _))
+									{
+										await StartAutomaticallyAsync(walletToStart, stoppingToken).ConfigureAwait(false);
+									}
 								}, stoppingToken);
 
 								trackedAutoStarts.TryAdd(walletToStart, restartTask);
