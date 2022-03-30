@@ -139,39 +139,26 @@ public class CoinJoinManager : BackgroundService
 						continue;
 					}
 
+					// Only take PlebStop into account when AutoCoinJoin.
 					if (startCommand.RestartAutomatically && walletToStart.NonPrivateCoins.TotalAmount() <= walletToStart.KeyManager.PlebStopThreshold)
 					{
-						if (!trackedAutoStarts.ContainsKey(walletToStart))
-						{
-							var restartTask = Task.Run(async () =>
-							{
-								await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
-								if (trackedAutoStarts.TryRemove(walletToStart, out _))
-								{
-									await StartAutomaticallyAsync(walletToStart, stoppingToken).ConfigureAwait(false);
-								}
-							}, stoppingToken);
-
-							if (!trackedAutoStarts.TryAdd(walletToStart, restartTask))
-							{
-								Logger.LogInfo($"AutoCoinJoin task was already added for wallet: '{walletToStart.WalletName}'.");
-							}
-							NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
-						}
-
+						ScheduleRestartAutomatically(trackedAutoStarts, walletToStart, stoppingToken);
+						NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 						continue;
 					}
 
 					var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
 					if (coinCandidates.Length == 0)
 					{
+						if (startCommand.RestartAutomatically)
+						{
+							ScheduleRestartAutomatically(trackedAutoStarts, walletToStart, stoppingToken);
+						}
 						NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
 						continue;
 					}
 
-					var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically);
-
-					trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
+					trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically), (_, cjt) => cjt);
 					var registrationTimeout = TimeSpan.MaxValue;
 					NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 					break;
@@ -184,6 +171,28 @@ public class CoinJoinManager : BackgroundService
 					}
 					break;
 			}
+		}
+	}
+
+	private void ScheduleRestartAutomatically(ConcurrentDictionary<Wallet, Task> trackedAutoStarts, Wallet walletToStart, CancellationToken stoppingToken)
+	{
+		if (trackedAutoStarts.ContainsKey(walletToStart))
+		{
+			return;
+		}
+
+		var restartTask = Task.Run(async () =>
+		{
+			await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+			if (trackedAutoStarts.TryRemove(walletToStart, out _))
+			{
+				await StartAutomaticallyAsync(walletToStart, stoppingToken).ConfigureAwait(false);
+			}
+		}, stoppingToken);
+
+		if (!trackedAutoStarts.TryAdd(walletToStart, restartTask))
+		{
+			Logger.LogInfo($"AutoCoinJoin task was already added for wallet: '{walletToStart.WalletName}'.");
 		}
 	}
 
