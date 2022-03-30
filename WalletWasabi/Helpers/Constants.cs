@@ -57,7 +57,7 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-	public static readonly Version ClientVersion = new(1, 1, 13, 0);
+	public static readonly Version ClientVersion = new(1, 98, 1, 0);
 	public static readonly Version HwiVersion = new("2.0.2");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
 	public static readonly Version LegalDocumentsVersion = new(2, 0);
@@ -80,10 +80,12 @@ public static class Constants
 	};
 
 	public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
-	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
+	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC");
 
 	public static readonly string[] UserAgents = new[]
 	{
+			"/Satoshi:0.22.0/",
+			"/Satoshi:0.21.1/",
 			"/Satoshi:0.21.0/",
 			"/Satoshi:0.20.1/",
 			"/Satoshi:0.20.0/",

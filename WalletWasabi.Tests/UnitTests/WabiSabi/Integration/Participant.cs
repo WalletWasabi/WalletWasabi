@@ -8,16 +8,16 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
-internal class Participant: IDisposable
+internal class Participant
 {
-	private bool _disposedValue;
-
 	public Participant(string name, IRPCClient rpc, IWasabiHttpClientFactory httpClientFactory)
 	{
 		HttpClientFactory = httpClientFactory;
@@ -31,13 +31,11 @@ internal class Participant: IDisposable
 
 	public async Task GenerateSourceCoinAsync(CancellationToken cancellationToken)
 	{
-		ThrowIfDisposed();
 		await Wallet.GenerateAsync(1, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task GenerateCoinsAsync(int numberOfCoins, int seed, CancellationToken cancellationToken)
 	{
-		ThrowIfDisposed();
 		var feeRate = new FeeRate(4.0m);
 		var (splitTx, spendingCoin) = Wallet.CreateTemplateTransaction();
 		var availableAmount = spendingCoin.EffectiveValue(feeRate, CoordinationFeeRate.Zero);
@@ -57,70 +55,44 @@ internal class Participant: IDisposable
 			.Select(x => x * availableAmount.Satoshi)
 			.Select(x => Money.Satoshis((long)x));
 
-		var scriptPubKey = Wallet.ScriptPubKey;
 		foreach (var amount in amounts)
 		{
-			var effectiveOutputValue = amount - feeRate.GetFee(scriptPubKey.EstimateOutputVsize());
-			splitTx.Outputs.Add(new TxOut(effectiveOutputValue, scriptPubKey));
+			var outputAddress = Wallet.CreateNewAddress();
+			var effectiveOutputValue = amount - feeRate.GetFee(outputAddress.ScriptPubKey.EstimateOutputVsize());
+			splitTx.Outputs.Add(new TxOut(effectiveOutputValue, Wallet.CreateNewAddress()));
 		}
-
 		await Wallet.SendRawTransactionAsync(Wallet.SignTransaction(splitTx), cancellationToken).ConfigureAwait(false);
 		SplitTransaction = new SmartTransaction(splitTx, new Height(1));
 	}
 
 	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
 	{
-		ThrowIfDisposed();
-		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithDefaultCircuit());
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
-		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
-
-		var coinJoinClient = new CoinJoinClient(
-			HttpClientFactory,
-			Wallet,
-			Wallet,
-			roundStateUpdater,
-			consolidationMode: true);
-
-		// Run the coinjoin client task.
-		var walletHdPubKey = new HdPubKey(Wallet.PubKey, KeyPath.Parse("m/84'/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
-		walletHdPubKey.SetAnonymitySet(1); // bug if not settled
-
 		if (SplitTransaction is null)
 		{
 			throw new InvalidOperationException($"{nameof(GenerateCoinsAsync)} has to be called first.");
 		}
 
+		var apiClient = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithDefaultCircuit());
+		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
+		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
+
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater);
+
+		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
+		{
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, KeyPath.Parse($"m/84'/0/0/0/{extPubKey.Child}"), SmartLabel.Empty, KeyState.Clean);
+			hdPubKey.SetAnonymitySet(1); // bug if not settled
+			return hdPubKey;
+		}
+
 		var smartCoins = SplitTransaction.Transaction.Outputs.AsIndexedOutputs()
-			.Select(x => new SmartCoin(SplitTransaction, x.N, walletHdPubKey))
+		 	.Select(x => (IndexedTxOut: x, HdPubKey: Wallet.GetExtPubKey(x.TxOut.ScriptPubKey)))
+			.Select(x => new SmartCoin(SplitTransaction, x.IndexedTxOut.N, CreateHdPubKey(x.HdPubKey)))
 			.ToList();
 
 		// Run the coinjoin client task.
 		await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
 
 		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
-	}
-
-	private void ThrowIfDisposed()
-	{
-		if (_disposedValue)
-		{
-			throw new ObjectDisposedException(nameof(TestWallet));
-		}
-	}
-
-	protected virtual void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			Wallet.Dispose();
-			_disposedValue = true;
-		}
-	}
-
-	public void Dispose()
-	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
 	}
 }

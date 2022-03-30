@@ -4,6 +4,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -15,8 +17,6 @@ public enum ReplacementMode
 
 public class PrivacyContentControl : ContentControl
 {
-	private const char PrivacyChar = '#';
-
 	private CompositeDisposable? _disposable;
 
 	public static readonly StyledProperty<bool> IsPrivacyContentVisibleProperty =
@@ -97,7 +97,7 @@ public class PrivacyContentControl : ContentControl
 			})
 			.DisposeWith(_disposable);
 
-		PrivacyText = new string(Enumerable.Repeat(PrivacyChar, (int)NumberOfPrivacyChars).ToArray());
+		PrivacyText = TextHelpers.GetPrivacyMask((int)NumberOfPrivacyChars);
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

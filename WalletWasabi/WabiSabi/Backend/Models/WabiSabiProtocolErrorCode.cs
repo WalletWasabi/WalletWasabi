@@ -33,7 +33,8 @@ public enum WabiSabiProtocolErrorCode
 	WrongNumberOfCreds,
 	CryptoException,
 	AliceAlreadySignalled,
-	AliceAlreadyConfirmedConnection
+	AliceAlreadyConfirmedConnection,
+	AlreadyRegisteredScript
 }
 
 public static class WabiSabiProtocolErrorCodeExtension

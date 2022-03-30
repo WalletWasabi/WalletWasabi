@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
-[NavigationMetaData(Title = "CoinJoin Details")]
+[NavigationMetaData(Title = "Coinjoin Details")]
 public partial class CoinJoinDetailsViewModel : RoutableViewModel
 {
 	private readonly CoinJoinsHistoryItemViewModel _coinJoinGroup;
@@ -20,7 +20,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
 	[AutoNotify] private Money? _coinJoinFee;
-	[AutoNotify] private string _coinJoinFeeString;
+	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 
 	public CoinJoinDetailsViewModel(CoinJoinsHistoryItemViewModel coinJoinGroup)
@@ -59,7 +59,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		Date = _coinJoinGroup.DateString;
 		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
 		CoinJoinFee = _coinJoinGroup.OutgoingAmount;
-		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayFormatString() ?? "Unknown";
+		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
 
 		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.TransactionId));
 	}

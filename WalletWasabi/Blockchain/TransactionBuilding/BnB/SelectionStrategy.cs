@@ -1,19 +1,28 @@
+using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
-/// <summary>
-/// Strategy that searches search-space and caches every found selection that minimizes
-/// waste of user's fund by looking for a selection that minimizes inputs' spending costs
-/// and extra cost of paying more than specified target.
-/// </summary>
 public abstract class SelectionStrategy
 {
-	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts)
+	/// <param name="target">Value in satoshis.</param>
+	/// <param name="inputValues">Values in satoshis of the coins the user has (in descending order).</param>
+	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
+	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts, CoinSelection bestSelection)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
 		Target = target;
+		BestSelection = bestSelection;
+
+		RemainingAmounts = new long[inputValues.Length];
+		long accumulator = InputValues.Sum();
+
+		for (int i = 0; i < inputValues.Length; i++)
+		{
+			accumulator -= inputValues[i];
+			RemainingAmounts[i] = accumulator;
+		}
 	}
 
 	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
@@ -25,17 +34,18 @@ public abstract class SelectionStrategy
 	/// <summary>Input values sorted in descending orders.</summary>
 	public long[] InputValues { get; }
 
-	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
-	public long[]? GetBestSelectionFound() => BestSelectionSoFar?.Where(x => x > 0).ToArray();
+	/// <summary>Holds best coin selection found so far with some metadata to improve performance.</summary>
+	protected CoinSelection BestSelection { get; }
+
+	/// <summary>Gets best found selection as an array of effective values, or <c>null</c> if none was found.</summary>
+	public long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
 
 	/// <summary>Input cost(s) of the current selection.</summary>
 	protected long CurrentInputCosts { get; set; } = 0;
 
-	/// <summary>Sum of the best found selection.</summary>
-	protected long BestTargetSoFar { get; set; }
-
-	/// <summary>Best coin selection so far.</summary>
-	protected long[]? BestSelectionSoFar { get; set; }
+	/// <summary>Sums of the remaining coins.</summary>
+	/// <remarks>i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
+	protected long[] RemainingAmounts { get; set; }
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.

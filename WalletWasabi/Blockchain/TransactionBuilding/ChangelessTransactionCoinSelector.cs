@@ -13,12 +13,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public static class ChangelessTransactionCoinSelector
 {
-	/// <summary>Payments are capped to be at most 25% higher than the original target.</summary>
-	public const double MaxExtraPayment = 1.25;
-
-	/// <summary>Payments are capped to be at most 25% lower than the original target.</summary>
-	public const double MinPaymentThreshold = 0.75;
-
 	public static async IAsyncEnumerable<IEnumerable<SmartCoin>> GetAllStrategyResultsAsync(
 		IEnumerable<SmartCoin> availableCoins,
 		FeeRate feeRate,
@@ -96,12 +90,6 @@ public static class ChangelessTransactionCoinSelector
 
 		if (solution is not null)
 		{
-			// Sanity check: do not return solution that is much higher or much lower than the target.
-			if (solution.Sum() > target * MaxExtraPayment || solution.Sum() < target * MinPaymentThreshold)
-			{
-				return false;
-			}
-
 			List<SmartCoin> resultCoins = new();
 			int i = 0;
 

@@ -9,9 +9,11 @@
         x:Class="WalletWasabi.Fluent.Views.MainWindow"
         x:Name="MainWindow"
         MinWidth="640" MinHeight="480"
-        WindowStartupLocation="CenterScreen"
+        Width="{Binding WindowWidth, Mode=TwoWay}"
+        Height="{Binding WindowHeight, Mode=TwoWay}"
+        WindowStartupLocation="Manual"
         Background="{x:Null}"
-        TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="Mica"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
         Title="Wasabi Wallet"
@@ -20,6 +22,7 @@
     <behaviors:RegisterNotificationHostBehavior />
     <behaviors:HideShowBehavior />
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Key1="LeftCtrl" Key2="D" Key3="C" />
+    <behaviors:MainWindowBindPositionBehavior/>
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

@@ -14,25 +14,25 @@ public static class TransactionSummaryExtension
 		return confirmations > 0;
 	}
 
-	public static MoneyUnit ToMoneyUnit(this FeeDisplayFormat feeDisplayFormat) =>
-		feeDisplayFormat switch
+	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
+		feeDisplayUnit switch
 		{
-			FeeDisplayFormat.BTC => MoneyUnit.BTC,
-			FeeDisplayFormat.Satoshis => MoneyUnit.Satoshi,
-			_ => throw new InvalidOperationException($"Invalid Fee Display Format value: {feeDisplayFormat}")
+			FeeDisplayUnit.BTC => MoneyUnit.BTC,
+			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
+			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
 		};
 
-	public static string? ToFeeDisplayFormatString(this Money? fee)
+	public static string? ToFeeDisplayUnitString(this Money? fee)
 	{
 		if (fee == null)
 		{
 			return null;
 		}
 
-		var displayFormat = Services.UiConfig.FeeDisplayFormat.GetEnumValueOrDefault(FeeDisplayFormat.BTC);
-		var moneyUnit = displayFormat.ToMoneyUnit();
+		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
+		var moneyUnit = displayUnit.ToMoneyUnit();
 		
-		var feeText = $"{fee.ToDecimal(moneyUnit)} {displayFormat.FriendlyName() } ";
+		var feeText = $"{fee.ToDecimal(moneyUnit)} {displayUnit.FriendlyName() } ";
 
 		return feeText;
 	}

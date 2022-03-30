@@ -15,10 +15,12 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
+    <Color x:Key="SystemAccentColor">#FF78A827</Color>
+    <Color x:Key="SystemAccentNeutralColor">#FF7FAF2E</Color>
+
     <Color x:Key="NavBarTintColor">#134074</Color>
     <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
     <Color x:Key="OrangeCoinColor">#F2994A</Color>
-
     <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{DynamicResource SystemBaseHighColor}" />
@@ -46,8 +48,8 @@
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
-    <SolidColorBrush x:Key="NavBarAccentColor">#97D234</SolidColorBrush>
-    <SolidColorBrush x:Key="NavBarAccentColorPressed">#719B2A</SolidColorBrush>
+    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentNeutralColor}"/>
+    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentNeutralColor}"/>
     <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>

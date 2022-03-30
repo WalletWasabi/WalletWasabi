@@ -9,13 +9,18 @@ public static class TimeSpanExtensions
 	public static ImmutableList<DateTimeOffset> SamplePoisson(this TimeSpan timeFrame, int numberOfEvents)
 	{
 		var startTime = DateTimeOffset.UtcNow;
+		return timeFrame.SamplePoissonDelays(numberOfEvents).Select(delay => startTime + delay).ToImmutableList();
+	}
+
+	public static ImmutableList<TimeSpan> SamplePoissonDelays(this TimeSpan timeFrame, int numberOfEvents)
+	{
 		using var random = new SecureRandom();
 		TimeSpan Sample(int milliseconds) =>
 			milliseconds <= 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(random.GetInt(0, milliseconds));
 
 		return Enumerable
 			.Range(0, numberOfEvents)
-			.Select(_ => startTime + (0.8 * Sample((int)timeFrame.TotalMilliseconds)))
+			.Select(_ => 0.8 * Sample((int)timeFrame.TotalMilliseconds))
 			.OrderBy(t => t)
 			.ToImmutableList();
 	}

@@ -1,7 +1,5 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
@@ -21,11 +19,6 @@ public class BranchAndBound
 	public bool TryGetMatch(SelectionStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
 	{
 		selectedValues = null;
-
-		if (searchStrategy.InputValues.Sum() < searchStrategy.Target)
-		{
-			return false;
-		}
 
 		if (TryFindSolution(searchStrategy, out long[]? solution, cancellationToken))
 		{
@@ -121,7 +114,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return _random.Next() > (int.MaxValue / 2) ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private static NextAction GetNextStep(NextAction action)

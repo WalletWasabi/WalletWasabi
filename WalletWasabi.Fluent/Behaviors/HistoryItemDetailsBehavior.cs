@@ -2,110 +2,94 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Threading;
-using DataBox;
+using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class HistoryItemDetailsBehavior : DisposingBehavior<DataBoxRow>
+public class HistoryItemDetailsBehavior : DisposingBehavior<TreeDataGridRow>
 {
-	private DataBoxItemDetailsAdorner? _itemDetailsAdorner;
-	private IDisposable? _currentAdornerEvents;
-
-	protected override void OnAttached(CompositeDisposable disposables)
-	{
-		if (AssociatedObject is not null)
-		{
-			Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.DetachedFromVisualTree))
-				.Subscribe(x => Remove())
-				.DisposeWith(disposables);
-
-			AssociatedObject
-				.GetObservable(InputElement.IsPointerOverProperty)
-				.Subscribe(x =>
-				{
-					if (AssociatedObject.IsPointerOver)
-					{
-						AddAdorner(AssociatedObject);
-					}
-					else
-					{
-						CheckIfShouldRemove();
-					}
-				})
-				.DisposeWith(disposables);
-		}
-	}
-
-	private void CheckIfShouldRemove()
-	{
-		Dispatcher.UIThread.Post(() =>
-		{
-			if (AssociatedObject is not null && _itemDetailsAdorner is not null && !AssociatedObject.IsPointerOver && !_itemDetailsAdorner.IsPointerOver)
-			{
-				RemoveAdorner(AssociatedObject);
-			}
-		});
-	}
-
-	private void Remove()
-	{
-		if (AssociatedObject is not null)
-		{
-			RemoveAdorner(AssociatedObject);
-		}
-
-		_currentAdornerEvents?.Dispose();
-		_currentAdornerEvents = null;
-	}
+	private TreeDataGridItemDetailsAdorner _adorner;
 
 	protected override void OnDetaching()
 	{
-		Remove();
-
 		base.OnDetaching();
+		RemoveAdorner();
 	}
 
-	private void AddAdorner(DataBoxRow dataBoxRow)
+	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		_currentAdornerEvents?.Dispose();
-		_currentAdornerEvents = null;
+		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.Initialized))
+			.Subscribe(_ => AssociatedObjectOnInitialized())
+			.DisposeWith(disposables);
+	}
 
-		var layer = AdornerCanvas.GetAdornerLayer(dataBoxRow);
-		if (layer is null || _itemDetailsAdorner is not null)
+	private static IObservable<bool> GetIsAdornerVisible(InputElement associatedObject, InputElement adorner)
+	{
+		var isPointerOverAdorner = adorner.GetObservable(InputElement.IsPointerOverProperty);
+		var isPointerOverAssociatedObject = associatedObject.GetObservable(InputElement.IsPointerOverProperty);
+
+		var delay = TimeSpan.FromSeconds(0.05);
+
+		var overAssociated = isPointerOverAssociatedObject.DelayFalse(delay);
+		var overAdorner = isPointerOverAdorner.DelayFalse(delay);
+
+		return overAssociated
+			.CombineLatest(overAdorner, (isOverAssociated, isOverAdorner) => isOverAssociated || isOverAdorner)
+			.DistinctUntilChanged();
+	}
+
+	private void AssociatedObjectOnInitialized()
+	{
+		var adorner = AddAdorner(AssociatedObject);
+		_adorner = adorner;
+
+		var isAdornerVisible = GetIsAdornerVisible(AssociatedObject, adorner);
+
+		isAdornerVisible
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(isVisible => _adorner.IsVisible = isVisible);
+	}
+
+	private AdornerCanvas? GetAdornerLayer()
+	{
+		if (AssociatedObject is null)
+		{
+			return null;
+		}
+
+		return AdornerCanvas.GetAdornerLayer(AssociatedObject);
+	}
+
+	private void RemoveAdorner()
+	{
+		var layer = GetAdornerLayer();
+
+		if (layer is null)
 		{
 			return;
 		}
 
-		_itemDetailsAdorner = new DataBoxItemDetailsAdorner
+		layer.Children.Remove(_adorner);
+	}
+
+	private TreeDataGridItemDetailsAdorner AddAdorner(TreeDataGridRow? to)
+	{
+		var layer = GetAdornerLayer();
+
+		var adorner = new TreeDataGridItemDetailsAdorner
 		{
-			[AdornerCanvas.AdornedElementProperty] = dataBoxRow,
+			[AdornerCanvas.AdornedElementProperty] = to,
 			[AdornerCanvas.IsClipEnabledProperty] = false,
-			Row = dataBoxRow
+			Row = to
 		};
 
-		_currentAdornerEvents = _itemDetailsAdorner.GetObservable(InputElement.IsPointerOverProperty)
-			.Subscribe(_ => CheckIfShouldRemove());
-
-		((ISetLogicalParent)_itemDetailsAdorner).SetParent(dataBoxRow);
-		layer.Children.Add(_itemDetailsAdorner);
-	}
-
-	private void RemoveAdorner(DataBoxRow dataBoxRow)
-	{
-		_currentAdornerEvents?.Dispose();
-		_currentAdornerEvents = null;
-
-		var layer = AdornerCanvas.GetAdornerLayer(dataBoxRow);
-		if (layer is null || _itemDetailsAdorner is null)
-		{
-			return;
-		}
-
-		layer.Children.Remove(_itemDetailsAdorner);
-		((ISetLogicalParent)_itemDetailsAdorner).SetParent(null);
-		_itemDetailsAdorner = null;
+		var setLogicalParent = (ISetLogicalParent) adorner;
+		setLogicalParent.SetParent(to);
+		layer.Children.Add(adorner);
+		return adorner;
 	}
 }
