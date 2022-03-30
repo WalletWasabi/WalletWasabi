@@ -37,6 +37,7 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
+	private CancellationTokenSource AbortCancellationTokenSource { get; } = new ();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -53,12 +54,15 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task StartAutomaticallyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		while (!cancellationToken.IsCancellationRequested && wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
+		using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken,AbortCancellationTokenSource.Token);
+		var combinedToken = combinedTokenSource.Token;
+
+		while (!combinedToken.IsCancellationRequested && wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
 		{
 			NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
-			await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+			await Task.Delay(TimeSpan.FromSeconds(5), combinedToken).ConfigureAwait(false);
 		}
-		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, true), cancellationToken).ConfigureAwait(false);
+		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, true), combinedToken).ConfigureAwait(false);
 	}
 
 	public async Task StopAsync(Wallet wallet, CancellationToken cancellationToken)
@@ -333,5 +337,17 @@ public class CoinJoinManager : BackgroundService
 
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
+	}
+
+	public override Task StopAsync(CancellationToken cancellationToken)
+	{
+		AbortCancellationTokenSource.Cancel();
+		return base.StopAsync(cancellationToken);
+	}
+
+	public override void Dispose()
+	{
+		AbortCancellationTokenSource.Dispose();
+		base.Dispose();
 	}
 }
