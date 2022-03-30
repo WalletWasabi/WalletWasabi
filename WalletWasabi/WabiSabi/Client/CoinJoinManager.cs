@@ -133,34 +133,10 @@ public class CoinJoinManager : BackgroundService
 			switch (command)
 			{
 				case StartCoinJoinCommand startCommand:
-					var walletToStart = startCommand.Wallet;
-					if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
+					if (HandleStartCoinJoinCommand(startCommand, trackedCoinJoins, coinJoinTrackerFactory))
 					{
-						continue;
+						ScheduleRestartAutomatically(trackedAutoStarts, startCommand.Wallet, stoppingToken);
 					}
-
-					// Only take PlebStop into account when AutoCoinJoin.
-					if (startCommand.RestartAutomatically && walletToStart.NonPrivateCoins.TotalAmount() <= walletToStart.KeyManager.PlebStopThreshold)
-					{
-						ScheduleRestartAutomatically(trackedAutoStarts, walletToStart, stoppingToken);
-						NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
-						continue;
-					}
-
-					var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
-					if (coinCandidates.Length == 0)
-					{
-						if (startCommand.RestartAutomatically)
-						{
-							ScheduleRestartAutomatically(trackedAutoStarts, walletToStart, stoppingToken);
-						}
-						NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
-						continue;
-					}
-
-					trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically), (_, cjt) => cjt);
-					var registrationTimeout = TimeSpan.MaxValue;
-					NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 					break;
 
 				case StopCoinJoinCommand stopCommand:
@@ -172,6 +148,40 @@ public class CoinJoinManager : BackgroundService
 					break;
 			}
 		}
+	}
+
+	/// <returns>If restart should be scheduled or not.</returns>
+	private bool HandleStartCoinJoinCommand(
+		StartCoinJoinCommand startCommand,
+		ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins,
+		CoinJoinTrackerFactory coinJoinTrackerFactory)
+	{
+		var walletToStart = startCommand.Wallet;
+		var restartAutomatically = startCommand.RestartAutomatically;
+
+		if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
+		{
+			return false;
+		}
+
+		// Only take PlebStop into account when AutoCoinJoin.
+		if (restartAutomatically && walletToStart.NonPrivateCoins.TotalAmount() <= walletToStart.KeyManager.PlebStopThreshold)
+		{
+			NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
+			return restartAutomatically;
+		}
+
+		var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
+		if (coinCandidates.Length == 0)
+		{
+			NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
+			return restartAutomatically;
+		}
+
+		trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically), (_, cjt) => cjt);
+		var registrationTimeout = TimeSpan.MaxValue;
+		NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+		return false;
 	}
 
 	private void ScheduleRestartAutomatically(ConcurrentDictionary<Wallet, Task> trackedAutoStarts, Wallet walletToStart, CancellationToken stoppingToken)
