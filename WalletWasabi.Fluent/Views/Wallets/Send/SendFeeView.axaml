@@ -135,7 +135,7 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Use the slider to choose your preference for how fast the transaction should be confirmed"
+                 Caption="Set your preference for how fast the transaction should be confirmed"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="true"
