@@ -73,7 +73,8 @@ public class Warden : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var count = Prison.ReleaseEligibleInmates(Config.ReleaseUtxoFromPrisonAfter).Count();
+		var count = Prison.ReleaseEligibleInmates(Config.ReleaseUtxoFromPrisonAfter, Config.ReleaseUtxoFromPrisonAfterLongBan).Count();
+
 		if (count > 0)
 		{
 			Logger.LogInfo($"{count} UTXOs are released from prison.");

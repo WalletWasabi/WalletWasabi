@@ -9,7 +9,8 @@ public record Inmate(
 	OutPoint Utxo,
 	Punishment Punishment,
 	DateTimeOffset Started,
-	uint256 LastDisruptedRoundId)
+	uint256 LastDisruptedRoundId,
+	bool IsLongBan = false)
 {
 	public TimeSpan TimeSpent => DateTimeOffset.UtcNow - Started;
 

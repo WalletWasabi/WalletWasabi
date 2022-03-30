@@ -1,3 +1,5 @@
+using WalletWasabi.Fluent.Helpers;
+
 namespace WalletWasabi.Fluent.Extensions;
 
 public static class TimeSpanMixin
@@ -11,7 +13,7 @@ public static class TimeSpanMixin
 
 		if (input.Hours > 0)
 		{
-			return ReduceToHours(input);
+			return ReduceToHoursAndMinutes(input);
 		}
 
 		return ReduceToMinutes(input);
@@ -27,19 +29,9 @@ public static class TimeSpanMixin
 		return TimeSpan.FromDays(input.Days);
 	}
 
-	private static TimeSpan ReduceToHours(TimeSpan input)
+	private static TimeSpan ReduceToHoursAndMinutes(TimeSpan input)
 	{
-		if (input.Hours >= 12)
-		{
-			return TimeSpan.FromDays(input.Days + 1);
-		}
-
-		if (input.Minutes >= 30)
-		{
-			return TimeSpan.FromHours(input.Hours + 1);
-		}
-
-		return TimeSpan.FromHours(input.Hours);
+		return TimeSpan.FromHours(input.Hours).Add(TimeSpan.FromMinutes(MathUtils.Round(input.Minutes, 30)));
 	}
 
 	private static TimeSpan ReduceToMinutes(TimeSpan input)
