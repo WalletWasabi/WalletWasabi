@@ -272,6 +272,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoPlaying)
+			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
+			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.Paused)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
