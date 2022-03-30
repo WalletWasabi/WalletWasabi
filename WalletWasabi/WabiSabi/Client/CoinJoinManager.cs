@@ -150,7 +150,7 @@ public class CoinJoinManager : BackgroundService
 									await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
 									trackedAutoStarts.TryRemove(walletToStart, out _);
 									await StartAutomaticallyAsync(walletToStart, stoppingToken).ConfigureAwait(false);
-								});
+								}, stoppingToken);
 
 								trackedAutoStarts.TryAdd(walletToStart, restartTask);
 								NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
