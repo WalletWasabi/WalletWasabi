@@ -43,7 +43,15 @@
                   CornerRadius="{TemplateBinding CornerRadius}" ClipToBounds="True">
             <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
               <Panel>
-                 <controls:BlurBehind BlurRadius="10,10" /> 
+                <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                  <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                                 TintColor="{DynamicResource AcrylicTrimBackground}"
+                                                 TintOpacity="1"
+                                                 FallbackColor="{DynamicResource AcrylicTrimBackground}"
+                                                 MaterialOpacity="0.9" />
+                  </ExperimentalAcrylicBorder.Material>
+                </ExperimentalAcrylicBorder>
                 <Panel Background="{DynamicResource AcrylicTrimBackground}" Opacity="0.5" />
 
                 <ScrollViewer Margin="{TemplateBinding Padding}"
