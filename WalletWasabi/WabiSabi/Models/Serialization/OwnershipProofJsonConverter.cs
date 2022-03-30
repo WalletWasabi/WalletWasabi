@@ -4,22 +4,22 @@ using WalletWasabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Models.Serialization;
 
-public class OwnershipProofJsonConverter : JsonConverter<OwnershipProof>
+public class OwnershipProofJsonConverter : JsonConverter
 {
-	/// <inheritdoc />
-	public override OwnershipProof? ReadJson(JsonReader reader, Type objectType, OwnershipProof? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
 	{
-		if (reader.Value is string serialized)
-		{
-			return OwnershipProof.FromBytes(ByteHelpers.FromHex(serialized));
-		}
-		throw new ArgumentException($"No valid serialized {nameof(OwnershipProof)} passed.");
+		return objectType == typeof(OwnershipProof);
 	}
 
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, OwnershipProof? value, JsonSerializer serializer)
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 	{
-		var bytes = value.ToBytes();
+		var value = (string)reader.Value;
+		return OwnershipProof.FromBytes(ByteHelpers.FromHex(value));
+	}
+
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		var bytes = ((OwnershipProof)value).ToBytes();
 		writer.WriteValue(ByteHelpers.ToHex(bytes));
 	}
 }

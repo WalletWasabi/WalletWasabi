@@ -3,10 +3,16 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.Fluent.Converters;
 
-public class WindowStateAfterStartJsonConverter : JsonConverter<string>
+public class WindowStateAfterStartJsonConverter : JsonConverter
 {
 	/// <inheritdoc />
-	public override string? ReadJson(JsonReader reader, Type objectType, string? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
+	{
+		return objectType == typeof(string);
+	}
+
+	/// <inheritdoc />
+	public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
 	{
 		try
 		{
@@ -27,7 +33,7 @@ public class WindowStateAfterStartJsonConverter : JsonConverter<string>
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, string? value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 	{
 		writer.WriteValue(value);
 	}

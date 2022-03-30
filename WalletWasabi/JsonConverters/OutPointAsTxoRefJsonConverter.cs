@@ -4,38 +4,28 @@ using Newtonsoft.Json.Linq;
 
 namespace WalletWasabi.JsonConverters;
 
-public class OutPointAsTxoRefJsonConverter : JsonConverter<OutPoint>
+public class OutPointAsTxoRefJsonConverter : JsonConverter
 {
 	/// <inheritdoc />
-	public override OutPoint? ReadJson(JsonReader reader, Type objectType, OutPoint? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
 	{
-		JObject item = JObject.Load(reader);
-
-		string? hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase)?.Value<string>();
-		uint? n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase)?.Value<uint>();
-
-		if (hash is null)
-		{
-			throw new ArgumentNullException(nameof(hash));
-		}
-
-		if (n is null)
-		{
-			throw new ArgumentNullException(nameof(n));
-		}
-
-		return new OutPoint(uint256.Parse(hash), n.Value);
+		return objectType == typeof(OutPoint);
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, OutPoint? value, JsonSerializer serializer)
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 	{
-		if (value is null)
-		{
-			throw new ArgumentNullException(nameof(value));
-		}
+		JObject item = JObject.Load(reader);
 
-		var outpoint = value;
+		var hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase).Value<string>();
+		var n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase).Value<uint>();
+		return new OutPoint(uint256.Parse(hash), n);
+	}
+
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		var outpoint = value as OutPoint;
 		writer.WriteStartObject();
 		writer.WritePropertyName("TransactionId");
 		writer.WriteValue(outpoint.Hash.ToString());
