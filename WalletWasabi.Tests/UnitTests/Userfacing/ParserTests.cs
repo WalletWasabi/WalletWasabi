@@ -5,7 +5,7 @@ using System.Net;
 using WalletWasabi.Userfacing;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Userfacing;
 
 public class ParserTests
 {
@@ -142,7 +142,7 @@ public class ParserTests
 	{
 		Assert.True(endPoint.TryGetHostAndPort(out string? actualHost, out int? actualPort));
 
-		expectedHost = (expectedHost == "localhost") ? "127.0.0.1" : expectedHost;
+		expectedHost = expectedHost == "localhost" ? "127.0.0.1" : expectedHost;
 
 		Assert.Equal(expectedHost, actualHost);
 		Assert.Equal(expectedPort, actualPort);
