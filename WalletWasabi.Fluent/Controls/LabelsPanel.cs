@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -26,6 +27,8 @@ public class LabelsPanel : VirtualizingStackPanel
 		get => _visibleItemsCount;
 		private set => SetAndRaise(VisibleItemsCountProperty, ref _visibleItemsCount, value);
 	}
+
+	public List<string>? FilteredItems { get; set; }
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{

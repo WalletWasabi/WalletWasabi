@@ -25,10 +25,10 @@
                       HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Disabled"
                       AllowAutoHide="False">
-          <ItemsPresenter Name="PART_ItemsPresenter"
-                          Items="{TemplateBinding Items}"
-                          Margin="0"
-                          VirtualizationMode="Simple">
+          <c:LabelsItemsPresenter Name="PART_ItemsPresenter"
+                                  Items="{TemplateBinding Items}"
+                                  Margin="0"
+                                  VirtualizationMode="Simple">
             <ItemsPresenter.ItemsPanel>
               <ItemsPanelTemplate>
                 <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
@@ -39,14 +39,14 @@
                       <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                           <c:TagsBox IsReadOnly="True"
-                                     Items="{Binding FilteredLabel}" />
+                                     Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
                         </Flyout>
                       </Button.Flyout>
                       <ToolTip.Tip>
                         <Panel>
                           <c:TagsBox IsReadOnly="True"
                                      Margin="4,6,0,0"
-                                     Items="{Binding FilteredLabel}" />
+                                     Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
                         </Panel>
                       </ToolTip.Tip>
                     </Button>
@@ -54,7 +54,7 @@
                 </c:LabelsPanel>
               </ItemsPanelTemplate>
             </ItemsPresenter.ItemsPanel>
-          </ItemsPresenter>
+          </c:LabelsItemsPresenter>
         </ScrollViewer>
       </ControlTemplate>
     </Setter>
