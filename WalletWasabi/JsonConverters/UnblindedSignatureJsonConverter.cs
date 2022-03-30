@@ -6,10 +6,16 @@ using WalletWasabi.Crypto;
 
 namespace WalletWasabi.JsonConverters;
 
-public class UnblindedSignatureJsonConverter : JsonConverter<UnblindedSignature>
+public class UnblindedSignatureJsonConverter : JsonConverter
 {
 	/// <inheritdoc />
-	public override UnblindedSignature? ReadJson(JsonReader reader, Type objectType, UnblindedSignature? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
+	{
+		return objectType == typeof(UnblindedSignature);
+	}
+
+	/// <inheritdoc />
+	public override object ReadJson(JsonReader reader, Type? objectType, object? existingValue, JsonSerializer? serializer)
 	{
 		JArray arr = JArray.Load(reader);
 
@@ -23,7 +29,7 @@ public class UnblindedSignatureJsonConverter : JsonConverter<UnblindedSignature>
 		return sig;
 	}
 
-	private BigInteger StringToBigInteger(string? num)
+	private BigInteger StringToBigInteger(string num)
 	{
 		if (string.IsNullOrWhiteSpace(num) || num.Length > 78)
 		{
@@ -38,9 +44,9 @@ public class UnblindedSignatureJsonConverter : JsonConverter<UnblindedSignature>
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, UnblindedSignature? value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer? serializer)
 	{
-		var signature = value ?? throw new ArgumentNullException(nameof(value));
+		var signature = (UnblindedSignature)value;
 		var c = new BigInteger(signature.C.ToBytes(), isUnsigned: true, isBigEndian: true);
 		var s = new BigInteger(signature.S.ToBytes(), isUnsigned: true, isBigEndian: true);
 		writer.WriteStartArray();

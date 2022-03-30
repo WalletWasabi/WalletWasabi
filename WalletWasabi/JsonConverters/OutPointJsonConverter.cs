@@ -3,24 +3,27 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters;
 
-public class OutPointJsonConverter : JsonConverter<OutPoint>
+public class OutPointJsonConverter : JsonConverter
 {
 	/// <inheritdoc />
-	public override OutPoint? ReadJson(JsonReader reader, Type objectType, OutPoint? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
 	{
-		if (reader.Value is string serialized)
-		{
-			var op = new OutPoint();
-			op.FromHex(serialized);
-			return op;
-		}
-		throw new ArgumentException($"No valid serialized {nameof(OutPoint)} passed.");
+		return objectType == typeof(OutPoint);
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, OutPoint? value, JsonSerializer serializer)
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 	{
-		string opHex = value?.ToHex() ?? throw new ArgumentNullException(nameof(value));
+		var value = (string)reader.Value;
+		var op = new OutPoint();
+		op.FromHex(value);
+		return op;
+	}
+
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		string opHex = ((OutPoint)value).ToHex();
 		writer.WriteValue(opHex);
 	}
 }

@@ -3,22 +3,22 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.WabiSabi.Models.Serialization;
 
-public class WitScriptJsonConverter : JsonConverter<WitScript>
+public class WitScriptJsonConverter : JsonConverter
 {
-	/// <inheritdoc />
-	public override WitScript? ReadJson(JsonReader reader, Type objectType, WitScript? existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
 	{
-		if (reader.Value is string serialized)
-		{
-			return new WitScript(ByteHelpers.FromHex(serialized));
-		}
-		throw new ArgumentException($"No valid serialized {nameof(WitScript)} passed.");
+		return objectType == typeof(WitScript);
 	}
 
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, WitScript? value, JsonSerializer serializer)
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 	{
-		var bytes = value?.ToBytes() ?? throw new ArgumentNullException(nameof(value));
+		var value = (string)reader.Value;
+		return new WitScript(ByteHelpers.FromHex(value));
+	}
+
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	{
+		var bytes = ((WitScript)value).ToBytes();
 		writer.WriteValue(ByteHelpers.ToHex(bytes));
 	}
 }

@@ -3,10 +3,14 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
 
-public class ScalarJsonConverter : JsonConverter<Scalar>
+public class ScalarJsonConverter : JsonConverter
 {
-	/// <inheritdoc />
-	public override Scalar ReadJson(JsonReader reader, Type objectType, Scalar existingValue, bool hasExistingValue, JsonSerializer serializer)
+	public override bool CanConvert(Type objectType)
+	{
+		return objectType == typeof(Scalar);
+	}
+
+	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 	{
 		if (reader.Value is string serialized)
 		{
@@ -15,8 +19,7 @@ public class ScalarJsonConverter : JsonConverter<Scalar>
 		throw new ArgumentException($"No valid serialized {nameof(Scalar)} passed.");
 	}
 
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, Scalar value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 	{
 		if (value is Scalar scalar)
 		{
