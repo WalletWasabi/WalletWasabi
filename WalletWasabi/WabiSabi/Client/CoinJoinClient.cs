@@ -510,7 +510,7 @@ public class CoinJoinClient
 		var constructionState = roundState.Assert<ConstructionState>();
 
 		AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts, Constants.P2wpkhOutputSizeInBytes, (int)availableVsize);
-		var theirCoins = constructionState.Inputs.Except(registeredCoins);
+		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundState.FeeRate, roundState.CoordinationFeeRate));
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
