@@ -77,7 +77,15 @@
                 </DataTemplate>
               </ItemsControl.DataTemplates>
             </ItemsControl>
-            <!-- Advanced -->
+          </StackPanel>
+          <!-- License -->
+            <WrapPanel HorizontalAlignment="Center">
+              <TextBlock Margin=" 0 0 0 -0.5"
+                         VerticalAlignment="Center"
+                         Text="This open source software is licensed with " />
+              <ContentControl Content="{Binding License}" />
+            </WrapPanel>
+           <!-- Advanced -->
             <Button HorizontalAlignment="Center" Classes="plain obscured"
                     Command="{Binding AboutAdvancedInfoDialogCommand}">
               <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -85,14 +93,6 @@
                 <TextBlock Text="Advanced Information" Classes="Hyperlink" />
               </StackPanel>
             </Button>
-            <!-- License -->
-            <WrapPanel HorizontalAlignment="Center">
-              <TextBlock Margin=" 0 0 0 -0.5"
-                         VerticalAlignment="Center"
-                         Text="This open source software is licensed with " />
-              <ContentControl Content="{Binding License}" />
-            </WrapPanel>
-          </StackPanel>
         </DockPanel>
       </DockPanel>
     </controls:ContentArea>
