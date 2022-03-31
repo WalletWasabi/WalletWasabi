@@ -85,19 +85,17 @@
             <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
                           Title="Update available"
                           StatusText="{Binding VersionText}" />
-            <Button Classes="plain" Command="{Binding UpdateCommand}">
+            <Button Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
-                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
-                          Foreground="{StaticResource StatusForegroundColor}" />
-                <TextBlock Text="Update now" Foreground="{StaticResource StatusForegroundColor}" />
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"/>
+                <AccessText Text="Update now" />
               </StackPanel>
             </Button>
 
-            <Button Classes="plain" Command="{Binding AskMeLaterCommand}"
-                    IsVisible="{Binding !CriticalUpdateAvailable}">
+            <Button Classes="activeHyperLink" Command="{Binding AskMeLaterCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
-                <PathIcon Data="{StaticResource clock_regular}" Height="13" />
-                <TextBlock Text="Ask me later" />
+                <PathIcon Data="{StaticResource clock_regular}" Height="13"/>
+                <AccessText Text="Ask me later" />
               </StackPanel>
             </Button>
           </StackPanel>
