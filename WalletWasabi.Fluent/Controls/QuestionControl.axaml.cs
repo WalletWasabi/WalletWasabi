@@ -9,8 +9,7 @@ public enum HighlightedButton
 {
 	None,
 	YesButton,
-	NoButton,
-	Both
+	NoButton
 }
 
 public class QuestionControl : ContentControl
@@ -58,5 +57,26 @@ public class QuestionControl : ContentControl
 	{
 		get => GetValue(HighlightButtonProperty);
 		set => SetValue(HighlightButtonProperty, value);
+	}
+
+	public QuestionControl()
+	{
+		UpdatePseudoClasses(HighlightButton);
+	}
+
+	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == HighlightButtonProperty)
+		{
+			UpdatePseudoClasses(change.NewValue.GetValueOrDefault<HighlightedButton>());
+		}
+	}
+
+	private void UpdatePseudoClasses(HighlightedButton highlightedButton)
+	{
+		PseudoClasses.Set(":yes", highlightedButton == HighlightedButton.YesButton);
+		PseudoClasses.Set(":no", highlightedButton == HighlightedButton.NoButton);
 	}
 }
