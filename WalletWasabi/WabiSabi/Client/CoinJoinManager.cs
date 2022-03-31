@@ -37,7 +37,7 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
-	private CancellationTokenSource AbortCancellationTokenSource { get; } = new();
+	private CancellationTokenSource AbortCancellationTokenSource { get; } = new ();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -54,7 +54,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task StartAutomaticallyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, AbortCancellationTokenSource.Token);
+		using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken,AbortCancellationTokenSource.Token);
 		var combinedToken = combinedTokenSource.Token;
 
 		while (!combinedToken.IsCancellationRequested && wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
