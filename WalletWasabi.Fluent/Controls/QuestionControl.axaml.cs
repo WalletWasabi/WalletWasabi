@@ -29,6 +29,12 @@ public class QuestionControl : ContentControl
 	public static readonly StyledProperty<HighlightedButton> HighlightButtonProperty =
 		AvaloniaProperty.Register<QuestionControl, HighlightedButton>(nameof(HighlightButton));
 
+	public static readonly StyledProperty<bool> IsYesButtonProperty =
+		AvaloniaProperty.Register<QuestionControl, bool>(nameof(IsYesButton));
+
+	public static readonly StyledProperty<bool> IsNoButtonProperty =
+		AvaloniaProperty.Register<QuestionControl, bool>(nameof(IsNoButton));
+
 	public ICommand YesCommand
 	{
 		get => GetValue(YesCommandProperty);
@@ -47,6 +53,18 @@ public class QuestionControl : ContentControl
 		set => SetValue(ImageIconProperty, value);
 	}
 
+	public bool IsYesButton
+	{
+		get => GetValue(IsYesButtonProperty);
+		set => SetValue(IsYesButtonProperty, value);
+	}
+
+	public bool IsNoButton
+	{
+		get => GetValue(IsNoButtonProperty);
+		set => SetValue(IsNoButtonProperty, value);
+	}
+
 	public object? IconContent
 	{
 		get => GetValue(IconContentProperty);
@@ -61,7 +79,7 @@ public class QuestionControl : ContentControl
 
 	public QuestionControl()
 	{
-		UpdatePseudoClasses(HighlightButton);
+		UpdateHighlightedButton(HighlightButton);
 	}
 
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
@@ -70,13 +88,13 @@ public class QuestionControl : ContentControl
 
 		if (change.Property == HighlightButtonProperty)
 		{
-			UpdatePseudoClasses(change.NewValue.GetValueOrDefault<HighlightedButton>());
+			UpdateHighlightedButton(change.NewValue.GetValueOrDefault<HighlightedButton>());
 		}
 	}
 
-	private void UpdatePseudoClasses(HighlightedButton highlightedButton)
+	private void UpdateHighlightedButton(HighlightedButton highlightedButton)
 	{
-		PseudoClasses.Set(":yes", highlightedButton == HighlightedButton.YesButton);
-		PseudoClasses.Set(":no", highlightedButton == HighlightedButton.NoButton);
+		IsYesButton = highlightedButton == HighlightedButton.YesButton;
+		IsNoButton = highlightedButton == HighlightedButton.NoButton;
 	}
 }
