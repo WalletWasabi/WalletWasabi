@@ -22,6 +22,7 @@ public class CoinJoinTracker : IDisposable
 		CoinCandidates = coinCandidates;
 		RestartAutomatically = restartAutomatically;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		CoinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
 
@@ -34,7 +35,7 @@ public class CoinJoinTracker : IDisposable
 	public bool RestartAutomatically { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
-	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;
+	public bool InCriticalCoinJoinState { get; private set; }
 
 	public void Cancel()
 	{
@@ -48,6 +49,7 @@ public class CoinJoinTracker : IDisposable
 			if (disposing)
 			{
 				CancellationTokenSource.Dispose();
+				CoinJoinClient.CoinJoinClientProgress -= CoinJoinClient_CoinJoinClientProgress;
 			}
 
 			_disposedValue = true;
@@ -59,4 +61,12 @@ public class CoinJoinTracker : IDisposable
 		Dispose(disposing: true);
 		GC.SuppressFinalize(this);
 	}
+
+	private void CoinJoinClient_CoinJoinClientProgress(object? sender, CoinJoinProgressEventArgs e) =>
+		InCriticalCoinJoinState = e switch
+		{
+			CoinJoinEnteringInCriticalPhaseEventArgs => true,
+			CoinJoinLeavingCriticalPhaseEventArgs => false,
+			_ => InCriticalCoinJoinState
+		};
 }

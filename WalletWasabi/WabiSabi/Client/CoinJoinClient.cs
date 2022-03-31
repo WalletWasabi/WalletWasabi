@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -22,7 +23,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(1);
 
@@ -62,12 +62,6 @@ public class CoinJoinClient
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-
-	public bool InCriticalCoinJoinState
-	{
-		get => _inCriticalCoinJoinState;
-		private set => _inCriticalCoinJoinState = value;
-	}
 
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -164,7 +158,7 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			InCriticalCoinJoinState = true;
+			NotifyEnteringInCriticalPhase();
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
@@ -192,7 +186,7 @@ public class CoinJoinClient
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
-			InCriticalCoinJoinState = false;
+			NotifyLeavingCriticalPhase();
 		}
 	}
 
@@ -322,6 +316,12 @@ public class CoinJoinClient
 	{
 		return GetScheduledDates(howMany, endTime, TimeSpan.MaxValue);
 	}
+
+	private void NotifyEnteringInCriticalPhase() =>
+		CoinJoinClientProgress.SafeInvoke(this, new CoinJoinEnteringInCriticalPhaseEventArgs());
+
+	private void NotifyLeavingCriticalPhase() =>
+		CoinJoinClientProgress.SafeInvoke(this, new CoinJoinLeavingCriticalPhaseEventArgs());
 
 	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
