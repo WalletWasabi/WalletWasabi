@@ -80,7 +80,7 @@
                 <i:Interaction.Behaviors>
                   <ia:DataTriggerBehavior Binding="{Binding CanPasteFromClipboard}" ComparisonCondition="Equal" Value="True">
                     <iac:AddClassAction StyledElement="PasteButton" ClassName="flash" RemoveIfExists="True" />
-                    <iac:ChangeAvaloniaPropertyAction TargetObject="PasteButton" TargetProperty="{x:Static ToolTip.TipProperty}" Value="{Binding ClipboardText}" />
+                    <iac:ChangeAvaloniaPropertyAction TargetObject="PasteButton" TargetProperty="{x:Static ToolTip.TipProperty}" Value="{Binding ClipboardText, StringFormat='Paste BTC address:&#x0d;&#x0a;{0}'}" />
                   </ia:DataTriggerBehavior>
                   <ia:DataTriggerBehavior Binding="{Binding CanPasteFromClipboard}" ComparisonCondition="Equal" Value="False">
                     <iac:RemoveClassAction StyledElement="PasteButton" ClassName="flash" />

@@ -143,25 +143,10 @@ public partial class SendViewModel : RoutableViewModel
             .Skip(1)
             .Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
+		var pasteMonitor = new ClipboardPasteMonitor(this.WhenAnyValue(model => model.To), IsBtcAddress);
 
-		var clipboardTextChanged = Observable
-			.Timer(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-			.Repeat()
-			.SelectMany(_ => GetClipboardTextAsync())
-			.DistinctUntilChanged();
-
-		_clipboardText = clipboardTextChanged
-			.ToProperty(this, nameof(ClipboardText));
-
-		var to = this.WhenAnyValue(model => model.To);
-
-		var canPasteChanged = Observable
-			.CombineLatest(
-				MainWindowEvents.IsActiveChanged,
-				clipboardTextChanged, to, (isActive, cpText, curAddr) =>
-					isActive && IsBtcAddress(cpText) && !string.Equals(cpText, curAddr));
-
-		_canPasteFromClipboard = canPasteChanged.ToProperty(this, nameof(CanPasteFromClipboard));
+		_clipboardText = pasteMonitor.ClipboardText.ToProperty(this, nameof(ClipboardText));
+		_canPasteFromClipboard = pasteMonitor.CanPaste.ToProperty(this, nameof(CanPasteFromClipboard));
 	}
 
 	public string ClipboardText => _clipboardText.Value;
@@ -188,16 +173,6 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			await OnPasteAsync(pasteIfInvalid: false);
 		}
-	}
-
-	private static async Task<string> GetClipboardTextAsync()
-	{
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			return (string?) await clipboard.GetTextAsync() ?? "";
-		}
-
-		return "";
 	}
 
 	private bool IsBtcAddress(string text)

@@ -11,21 +11,21 @@ public static class MainWindowEvents
 
 	private static IObservable<bool> GetIsActiveObs()
 	{
-		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime app)
-		{
-			var isActive = Observable
-				.FromEventPattern(app.MainWindow, nameof(Window.Activated))
-				.Select(_ => true);
-
-			var isInactive = Observable
-				.FromEventPattern(app.MainWindow, nameof(Window.Deactivated))
-				.Select(_ => false);
-
-			return isActive.Merge(isInactive);
-		}
-		else
+		if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime app)
 		{
 			return Observable.Return(true);
 		}
+
+		var isActive = Observable
+			.FromEventPattern(app.MainWindow, nameof(Window.Activated))
+			.Select(_ => true);
+
+		var isInactive = Observable
+			.FromEventPattern(app.MainWindow, nameof(Window.Deactivated))
+			.Select(_ => false);
+
+		return isActive
+			.Merge(isInactive)
+			.StartWith(app.MainWindow.IsActive);
 	}
 }
