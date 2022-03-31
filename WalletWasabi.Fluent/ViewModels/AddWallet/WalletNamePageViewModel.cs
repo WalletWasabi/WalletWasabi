@@ -95,7 +95,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 						Services.WalletManager.WalletDirectories.WalletsDir,
 						Services.WalletManager.Network)
 					{
-						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
+						TipHeight = Services.BitcoinStore.SmartHeaderChain.ServerTipHeight
 					};
 					return walletGenerator.GenerateWallet(walletName, password);
 				});
