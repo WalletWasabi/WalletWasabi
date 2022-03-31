@@ -62,7 +62,7 @@
                   <Setter Property="VerticalAlignment" Value="Center" />
                 </Style>
                 <Style Selector="ItemsControl /template/ #PART_ItemsPresenter > WrapPanel">
-                  <Setter Property="HorizontalAlignment" Value="Stretch" />
+                  <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style>
                 <Style Selector="ItemsControl.narrow /template/ #PART_ItemsPresenter > WrapPanel">
                   <Setter Property="HorizontalAlignment" Value="Center" />
