@@ -50,7 +50,8 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _conversionReversed;
 
 	private bool _parsingUrl;
-	private readonly ObservableAsPropertyHelper<bool> _hasBtcAddressInClipboard;
+	private readonly ObservableAsPropertyHelper<bool> _canPasteFromClipboard;
+	private readonly ObservableAsPropertyHelper<string> _clipboardText;
 
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -137,31 +138,29 @@ public partial class SendViewModel : RoutableViewModel
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 
-		
         this.WhenAnyValue(x => x.ConversionReversed)
             .Skip(1)
             .Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		_hasBtcAddressInClipboard = Observable
-			.Interval(TimeSpan.FromMilliseconds(500))
-			.SelectMany(_ => GetClipboardContentAsync())
-			.Select(IsBtcAddress)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, nameof(HasBtcAddressInClipboard));
 
-    }
+		var clipboardTextChanged = Observable
+			.Timer(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
+			.SelectMany(_ => GetClipboardTextAsync())
+			.DistinctUntilChanged()
+			.Repeat();
 
-	private static async Task<string> GetClipboardContentAsync()
-	{
-		return Application.Current is { Clipboard: { } clipboard } ? await clipboard.GetTextAsync() : "";
+		_clipboardText = clipboardTextChanged
+			.ToProperty(this, nameof(ClipboardText));
+
+		_canPasteFromClipboard = clipboardTextChanged
+			.WithLatestFrom(this.WhenAnyValue(model => model.To),
+				(fromClipboard, to) => IsBtcAddress(fromClipboard) && !string.Equals(fromClipboard, to))
+			.ToProperty(this, nameof(CanPasteFromClipboard));
 	}
 
-	private bool IsBtcAddress(string text)
-	{
-		return AddressStringParser.TryParse(text, Services.WalletManager.Network, out _);
-	}
+	public string ClipboardText => _clipboardText.Value;
 
-	public bool HasBtcAddressInClipboard => _hasBtcAddressInClipboard.Value;
+	public bool CanPasteFromClipboard => _canPasteFromClipboard.Value;
 
 	public bool IsQrButtonVisible { get; }
 
@@ -185,6 +184,21 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
+	private static async Task<string> GetClipboardTextAsync()
+	{
+		if (Application.Current is { Clipboard: { } clipboard })
+		{
+			return (string?) await clipboard.GetTextAsync() ?? "";
+		}
+
+		return "";
+	}
+
+	private bool IsBtcAddress(string text)
+	{
+		return AddressStringParser.TryParse(text, Services.WalletManager.Network, out _);
+	}
+
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
@@ -205,7 +219,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)

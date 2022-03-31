@@ -75,15 +75,16 @@
                 KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
                                 Command="{Binding PasteCommand}"
-                                ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}">
                 <i:Interaction.Behaviors>
-                  <ia:DataTriggerBehavior Binding="{Binding HasBtcAddressInClipboard}" ComparisonCondition="Equal" Value="True">
+                  <ia:DataTriggerBehavior Binding="{Binding CanPasteFromClipboard}" ComparisonCondition="Equal" Value="True">
                     <iac:AddClassAction StyledElement="PasteButton" ClassName="flash" RemoveIfExists="True" />
+                    <iac:ChangeAvaloniaPropertyAction TargetObject="PasteButton" TargetProperty="{x:Static ToolTip.TipProperty}" Value="{Binding ClipboardText}" />
                   </ia:DataTriggerBehavior>
-                  <ia:DataTriggerBehavior Binding="{Binding HasBtcAddressInClipboard}" ComparisonCondition="Equal" Value="False">
+                  <ia:DataTriggerBehavior Binding="{Binding CanPasteFromClipboard}" ComparisonCondition="Equal" Value="False">
                     <iac:RemoveClassAction StyledElement="PasteButton" ClassName="flash" />
+                    <iac:ChangeAvaloniaPropertyAction TargetObject="PasteButton" TargetProperty="{x:Static ToolTip.TipProperty}" Value="Paste" />
                   </ia:DataTriggerBehavior>
                 </i:Interaction.Behaviors>
               </c:AnimatedButton>
