@@ -85,10 +85,10 @@
     <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
     <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#2FFFFFFF" />
 
-    <Color x:Key="LineChartAreaGradientStartStopColor">#FF7FAF2E</Color>
-    <Color x:Key="LineChartAreaGradientEndStopColor">#007FAF2E</Color>
-    <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F07FAF2E</Color>
-    <Color x:Key="LineChartLineColor">#7FAF2E</Color>
+    <Color x:Key="LineChartAreaGradientStartStopColor">#FF5E96ED</Color>
+    <Color x:Key="LineChartAreaGradientEndStopColor">#005E96ED</Color>
+    <Color x:Key="LineChartAreaGradientCursorStrokeColor">#F05E96ED</Color>
+    <Color x:Key="LineChartLineColor">#5E96ED</Color>
 
     <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#1B273D</SolidColorBrush>
 
