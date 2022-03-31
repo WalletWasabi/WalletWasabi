@@ -79,15 +79,18 @@
             </ItemsControl>
           </StackPanel>
           <!-- License -->
-            <WrapPanel HorizontalAlignment="Center">
+          <DockPanel HorizontalAlignment="Center" DockPanel.Dock="Top">
               <TextBlock Margin=" 0 0 0 -0.5"
                          VerticalAlignment="Center"
                          Text="This open source software is licensed with " />
               <ContentControl Content="{Binding License}" />
-            </WrapPanel>
-           <!-- Advanced -->
-            <Button HorizontalAlignment="Center" Classes="plain obscured"
-                    Command="{Binding AboutAdvancedInfoDialogCommand}">
+          </DockPanel>
+          <!-- Advanced -->
+          <Button DockPanel.Dock="Bottom"
+                  HorizontalAlignment="Center" 
+                  VerticalAlignment="Bottom"
+                  Classes="plain obscured"
+                  Command="{Binding AboutAdvancedInfoDialogCommand}">
               <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
                 <PathIcon Data="{StaticResource info_regular}" />
                 <TextBlock Text="Advanced Information" Classes="Hyperlink" />
