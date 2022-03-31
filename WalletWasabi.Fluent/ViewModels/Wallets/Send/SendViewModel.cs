@@ -11,6 +11,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -145,17 +146,22 @@ public partial class SendViewModel : RoutableViewModel
 
 		var clipboardTextChanged = Observable
 			.Timer(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
+			.Repeat()
 			.SelectMany(_ => GetClipboardTextAsync())
-			.DistinctUntilChanged()
-			.Repeat();
+			.DistinctUntilChanged();
 
 		_clipboardText = clipboardTextChanged
 			.ToProperty(this, nameof(ClipboardText));
 
-		_canPasteFromClipboard = clipboardTextChanged
-			.WithLatestFrom(this.WhenAnyValue(model => model.To),
-				(fromClipboard, to) => IsBtcAddress(fromClipboard) && !string.Equals(fromClipboard, to))
-			.ToProperty(this, nameof(CanPasteFromClipboard));
+		var to = this.WhenAnyValue(model => model.To);
+
+		var canPasteChanged = Observable
+			.CombineLatest(
+				MainWindowEvents.IsActiveChanged,
+				clipboardTextChanged, to, (isActive, cpText, curAddr) =>
+					isActive && IsBtcAddress(cpText) && !string.Equals(cpText, curAddr));
+
+		_canPasteFromClipboard = canPasteChanged.ToProperty(this, nameof(CanPasteFromClipboard));
 	}
 
 	public string ClipboardText => _clipboardText.Value;
