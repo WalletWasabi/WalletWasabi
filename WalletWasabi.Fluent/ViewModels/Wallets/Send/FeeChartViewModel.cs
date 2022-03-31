@@ -32,7 +32,6 @@ public partial class FeeChartViewModel : ViewModelBase
 	{
 		_sliderMinimum = 0;
 		_sliderMaximum = 9;
-		_currentConfirmationTarget = Services.UiConfig.FeeTarget;
 		_currentConfirmationTargetString = "";
 
 		this.WhenAnyValue(x => x.CurrentConfirmationTarget)
@@ -251,7 +250,8 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		SliderMinimum = 0;
 		SliderMaximum = confirmationTargetValues.Length - 1;
-		CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
+		var confirmationTargetCandidate = ConfirmationTargetValues.LastOrDefault(x => Services.UiConfig.FeeTarget <= x);
+		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
