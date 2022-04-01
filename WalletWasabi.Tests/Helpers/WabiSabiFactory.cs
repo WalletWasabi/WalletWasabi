@@ -37,6 +37,18 @@ public static class WabiSabiFactory
 		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
 	}
 
+	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null)
+	{
+		key = key ?? new();
+		var coin = WabiSabiFactory.CreateCoin(key, amount);
+		roundId ??= uint256.One;
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
+		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
+	}
+
+	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
+		=> new CoinJoinInputCommitmentData("wasabiwallet.io", RoundId ?? uint256.One);
+
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
@@ -112,7 +124,7 @@ public static class WabiSabiFactory
 		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
-		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
+		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key, round.Id), round);
 
 	public static Alice CreateAlice(Money amount, Round round)
 	{

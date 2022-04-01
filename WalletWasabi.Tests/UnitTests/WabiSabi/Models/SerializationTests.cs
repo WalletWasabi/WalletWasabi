@@ -139,8 +139,9 @@ public class SerializationTests
 		AssertSerialization(RoundState.FromRound(round));
 
 		var state = round.Assert<ConstructionState>();
-		state = state.AddInput(WabiSabiFactory.CreateCoin());
-		round.CoinjoinState = new SigningState(round.Parameters, state.Events);
+		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
+		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));
 	}
 
