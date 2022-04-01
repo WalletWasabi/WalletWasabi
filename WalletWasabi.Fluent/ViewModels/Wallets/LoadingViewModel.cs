@@ -50,7 +50,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-	private bool IsNewlyGeneratedWallet => _filtersToProcessCount <= 1; // 1 -> the wallet was created approximately 10 minutes ago
+	private bool IsUpToDateWallet => _filtersToProcessCount <= 1; // 1 -> the wallet was synchronized approximately 10 minutes ago
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
@@ -100,7 +100,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !IsNewlyGeneratedWallet)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !IsUpToDateWallet)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
