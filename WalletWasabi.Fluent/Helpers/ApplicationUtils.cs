@@ -1,15 +1,16 @@
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public static class MainWindowEvents
+public static class ApplicationUtils
 {
-	public static IObservable<bool> IsActiveChanged => GetIsActiveObs();
+	public static IObservable<bool> IsMainWindowActive => GetIsMainWindowActive();
 
-	private static IObservable<bool> GetIsActiveObs()
+	private static IObservable<bool> GetIsMainWindowActive()
 	{
 		if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime app)
 		{
@@ -27,5 +28,15 @@ public static class MainWindowEvents
 		return isActive
 			.Merge(isInactive)
 			.StartWith(app.MainWindow.IsActive);
+	}
+
+	public static async Task<string> GetClipboardTextAsync()
+	{
+		if (Application.Current is {Clipboard: { } clipboard})
+		{
+			return (string?) await clipboard.GetTextAsync() ?? "";
+		}
+
+		return "";
 	}
 }

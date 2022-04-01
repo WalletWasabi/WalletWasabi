@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
@@ -53,6 +53,7 @@ public partial class SendViewModel : RoutableViewModel
 	private bool _parsingUrl;
 	private readonly ObservableAsPropertyHelper<bool> _canPasteFromClipboard;
 	private readonly ObservableAsPropertyHelper<string> _toolTip;
+	private readonly Subject<Unit> _navigatedTo = new();
 
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -94,8 +95,7 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			});
 
-		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
@@ -145,11 +145,20 @@ public partial class SendViewModel : RoutableViewModel
 
         var pasteMonitor = new ClipboardPasteMonitor(this.WhenAnyValue(model => model.To, selector: s => s.Trim()), IsBtcAddress);
 
+		_navigatedTo
+			.SelectMany(_ => ApplicationUtils.GetClipboardTextAsync())
+			.Where(ShouldAutoPaste)
+			.Select(_ => Unit.Default)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.InvokeCommand(PasteCommand);
+
 		_canPasteFromClipboard = pasteMonitor.CanPaste.ToProperty(this, nameof(CanPasteFromClipboard));
 		_toolTip = pasteMonitor.ClipboardText
 			.Select(t => IsBtcAddress(t) ? $"Paste BTC Address:\r\n{t}" : "Paste")
 			.ToProperty(this, nameof(ToolTip));
 	}
+
+	public ReactiveCommand<Unit, Unit> PasteCommand { get; }
 
 	public string ToolTip => _toolTip.Value;
 
@@ -157,47 +166,33 @@ public partial class SendViewModel : RoutableViewModel
 
 	public bool IsQrButtonVisible { get; }
 
-	public ICommand PasteCommand { get; }
-
-	public ICommand AutoPasteCommand { get; }
-
 	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 
-	private async Task OnAutoPasteAsync()
-	{
-		var isAutoPasteEnabled = Services.UiConfig.AutoPaste;
-
-		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
-		{
-			await OnPasteAsync(pasteIfInvalid: false);
-		}
-	}
-
 	private bool IsBtcAddress(string text)
 	{
 		return AddressStringParser.TryParse(text.Trim(), Services.WalletManager.Network, out _);
 	}
 
-	private async Task OnPasteAsync(bool pasteIfInvalid = true)
+	private bool ShouldAutoPaste(string text)
 	{
-		if (Application.Current is { Clipboard: { } clipboard })
+		return Services.UiConfig.AutoPaste && string.IsNullOrEmpty(To) && IsBtcAddress(text);
+	}
+
+	private async Task OnPasteAsync()
+	{
+		var rawText = await ApplicationUtils.GetClipboardTextAsync();
+		var text = rawText.Trim();
+
+		_parsingUrl = true;
+		if (!TryParseUrl(text))
 		{
-			var rawText = await clipboard.GetTextAsync();
-			var text = rawText.Trim();
-
-			_parsingUrl = true;
-
-			if (!TryParseUrl(text) && pasteIfInvalid)
-			{
-				To = text;
-			}
-
-			_parsingUrl = false;
+			To = text;
 		}
+		_parsingUrl = false;
 	}
 
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
@@ -341,9 +336,8 @@ public partial class SendViewModel : RoutableViewModel
 			.Subscribe(x => ExchangeRate = x)
 			.DisposeWith(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
-
 		Balance.Activate(disposables);
+		_navigatedTo.OnNext(Unit.Default);
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}

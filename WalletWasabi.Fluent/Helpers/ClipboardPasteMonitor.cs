@@ -12,11 +12,11 @@ internal class ClipboardPasteMonitor : ReactiveObject
 		ClipboardText = Observable
 			.Timer(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
 			.Repeat()
-			.SelectMany(_ => GetClipboardTextAsync())
+			.SelectMany(_ => ApplicationUtils.GetClipboardTextAsync())
 			.Select(x => x.Trim())
 			.DistinctUntilChanged();
 
-		CanPaste = MainWindowEvents.IsActiveChanged
+		CanPaste = ApplicationUtils.IsMainWindowActive
 			.CombineLatest(ClipboardText, currentTextChanged, (isActive, cpText, curAddr) =>
 				isActive && isValid(cpText) && !string.Equals(cpText, curAddr));
 	}
@@ -24,14 +24,4 @@ internal class ClipboardPasteMonitor : ReactiveObject
 	public IObservable<string> ClipboardText { get; }
 
 	public IObservable<bool> CanPaste { get; }
-
-	private static async Task<string> GetClipboardTextAsync()
-	{
-		if (Application.Current is {Clipboard: { } clipboard})
-		{
-			return (string?) await clipboard.GetTextAsync() ?? "";
-		}
-
-		return "";
-	}
 }

@@ -66,7 +66,6 @@
                  Watermark="(e.g. Bitcoin address or payjoin URL)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
-            <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
             <behaviors:FocusNextWhenValid />
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
