@@ -29,6 +29,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	private readonly int _smallLayoutIndex;
 	private readonly int _normalLayoutIndex;
 	private readonly int _wideLayoutIndex;
+	private readonly Interaction<Unit, bool> _authorizationInteraction = new();
 	[AutoNotify] private IList<TileViewModel> _tiles;
 	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 	[AutoNotify] private int _layoutIndex;
@@ -43,6 +44,8 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
+		_authorizationInteraction.RegisterHandler(HandleAuthorizationInteractionAsync);
+
 		Disposables = Disposables is null
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -130,20 +133,11 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
-			{
-				var pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
-				var res = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+			var authorized = await _authorizationInteraction.Handle(Unit.Default);
 
-				if (!res.Result && res.Kind == DialogResultKind.Normal)
-				{
-					await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
-					return;
-				}
-				else if (res.Kind is DialogResultKind.Back or DialogResultKind.Cancel)
-				{
-					return;
-				}
+			if (!authorized)
+			{
+				return;
 			}
 
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
@@ -181,6 +175,41 @@ public partial class WalletViewModel : WalletViewModelBase
 	public HistoryViewModel History { get; }
 
 	public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
+
+	private async Task HandleAuthorizationInteractionAsync(InteractionContext<Unit, bool> interaction)
+	{
+		bool authorized = false;
+		if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+		{
+			bool retry;
+			do
+			{
+				var dialog = new PasswordAuthDialogViewModel(wallet);
+				var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
+
+				if (dialogResult.Result && dialogResult.Kind == DialogResultKind.Normal)
+				{
+					retry = false;
+					authorized = true;
+				}
+				else if (dialogResult.Kind == DialogResultKind.Normal)
+				{
+					await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
+					retry = true;
+				}
+				else
+				{
+					retry = false;
+				}
+			} while (retry);
+
+			interaction.SetOutput(authorized);
+		}
+		else
+		{
+			interaction.SetOutput(true);
+		}
+	}
 
 	private void LayoutSelector(double width, double height)
 	{
