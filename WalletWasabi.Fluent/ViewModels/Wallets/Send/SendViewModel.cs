@@ -147,6 +147,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		_canPasteFromClipboard = pasteMonitor.CanPaste.ToProperty(this, nameof(CanPasteFromClipboard));
 		_toolTip = pasteMonitor.ClipboardText
+			.Select(s => s.Trim())
 			.Select(t => IsBtcAddress(t) ? $"Paste BTC Address:\r\n{t}" : "Paste")
 			.ToProperty(this, nameof(ToolTip));
 	}
@@ -179,14 +180,15 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool IsBtcAddress(string text)
 	{
-		return AddressStringParser.TryParse(text, Services.WalletManager.Network, out _);
+		return AddressStringParser.TryParse(text.Trim(), Services.WalletManager.Network, out _);
 	}
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			var text = await clipboard.GetTextAsync();
+			var rawText = await clipboard.GetTextAsync();
+			var text = rawText.Trim();
 
 			_parsingUrl = true;
 
