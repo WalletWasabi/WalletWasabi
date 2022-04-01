@@ -41,8 +41,6 @@ public class CredentialDependencyTests
 		// And all sent requests, for testing purposes.
 		var sent = new HashSet<RequestNode>();
 
-		var rng = new Random();
-
 		// Simulate sending a request. Instead of actual Credential objects,
 		// credentials are just represented as longs.
 		async Task<ImmutableSortedDictionary<CredentialType, IEnumerable<long>>> SimulateRequest(
@@ -59,7 +57,7 @@ public class CredentialDependencyTests
 			Assert.DoesNotContain(node, sent);
 			sent.Add(node);
 
-			await Task.Delay(1 + rng.Next(10));
+			await Task.Delay(1 + Random.Shared.Next(10));
 
 			return requested;
 		}

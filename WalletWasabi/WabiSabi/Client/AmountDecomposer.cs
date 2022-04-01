@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -10,16 +11,17 @@ namespace WalletWasabi.WabiSabi.Client;
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
-	/// <param name="minAllowedOutputAmount">Minimum output amount that's allowed to be registered.</param>
+	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="outputSize">Size of an output.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	public AmountDecomposer(FeeRate feeRate, Money minAllowedOutputAmount, int outputSize, int availableVsize)
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int availableVsize)
 	{
 		FeeRate = feeRate;
 		OutputSize = outputSize;
 		AvailableVsize = availableVsize;
 
-		MinAllowedOutputAmountPlusFee = minAllowedOutputAmount + OutputFee;
+		MinAllowedOutputAmountPlusFee = allowedOutputAmount.Min + OutputFee;
+		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
 		// Create many standard denominations.
 		DenominationsPlusFees = CreateDenominationsPlusFees();
@@ -28,13 +30,15 @@ public class AmountDecomposer
 	public FeeRate FeeRate { get; }
 	public int AvailableVsize { get; }
 	public Money MinAllowedOutputAmountPlusFee { get; }
+	public Money MaxAllowedOutputAmount { get; }
+
 	public Money OutputFee => FeeRate.GetFee(OutputSize);
 	public int OutputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
 
 	private IOrderedEnumerable<ulong> CreateDenominationsPlusFees()
 	{
-		ulong maxSatoshis = ProtocolConstants.MaxAmountPerAlice;
+		ulong maxSatoshis = (ulong)MaxAllowedOutputAmount.Satoshi;
 		ulong minSatoshis = MinAllowedOutputAmountPlusFee;
 		var denominations = new HashSet<ulong>();
 
@@ -183,10 +187,9 @@ public class AmountDecomposer
 		var remainingVsize = AvailableVsize;
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Money> Decomp, Money Cost)>();
-		var random = new Random();
 
 		// How many times can we participate with the same denomination.
-		var maxDenomUsage = random.Next(2, 8);
+		var maxDenomUsage = Random.Shared.Next(2, 8);
 
 		// Create the most naive decomposition for starter.
 		List<Money> naiveSet = new();
@@ -250,20 +253,28 @@ public class AmountDecomposer
 			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
 
 		// Create many decompositions for optimization.
-		Decomposer.StdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
-		foreach (var (sum, count, decomp) in Decomposer.Decompose((long)myInputSum, (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee), Math.Min(8, Math.Max(5, naiveSet.Count))))
+		var stdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
+		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / OutputSize, 8);
+		if (maxNumberOfOutputsAllowed > 1)
 		{
-			var currentSet = Decomposer.ToRealValuesArray(
-				decomp,
-				count,
-				Decomposer.StdDenoms).Select(Money.Satoshis).ToList();
-
-			hash = new();
-			foreach (var item in currentSet.OrderBy(x => x))
+			foreach (var (sum, count, decomp) in Decomposer.Decompose(
+				target: (long)myInputSum,
+				tolerance: (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee),
+				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8),
+				stdDenoms: stdDenoms))
 			{
-				hash.Add(item);
+				var currentSet = Decomposer.ToRealValuesArray(
+					decomp,
+					count,
+					stdDenoms).Select(Money.Satoshis).ToList();
+
+				hash = new();
+				foreach (var item in currentSet.OrderBy(x => x))
+				{
+					hash.Add(item);
+				}
+				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
 			}
-			setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
 		}
 
 		var denomHashSet = preFilteredDenoms.ToHashSet();
@@ -278,7 +289,7 @@ public class AmountDecomposer
 		var finalCandidate = orderedCandidates.First().Decomp;
 		foreach (var candidate in orderedCandidates)
 		{
-			if (random.NextDouble() < 0.5)
+			if (Random.Shared.NextDouble() < 0.5)
 			{
 				finalCandidate = candidate.Decomp;
 				break;

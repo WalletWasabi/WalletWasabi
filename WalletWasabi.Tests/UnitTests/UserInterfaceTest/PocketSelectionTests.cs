@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -103,7 +104,7 @@ internal class TestCoinsView : ICoinsView
 		throw new NotImplementedException();
 	}
 
-	public bool TryGetByOutPoint(OutPoint outpoint, out SmartCoin? coin)
+	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
 	{
 		throw new NotImplementedException();
 	}

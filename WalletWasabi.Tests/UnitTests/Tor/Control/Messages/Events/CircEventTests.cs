@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Messages.CircuitStatus;
-using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+using WalletWasabi.Tor.Control.Messages.Events;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control.Messages.Events;

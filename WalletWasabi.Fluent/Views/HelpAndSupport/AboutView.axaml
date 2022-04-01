@@ -24,10 +24,9 @@
           <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </Viewbox>
-        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50"
-                   Opacity="0.5" />
+        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50" Opacity="0.5" />
         <DockPanel>
-          <StackPanel Spacing="10" DockPanel.Dock="Bottom" Orientation="Vertical">
+          <StackPanel Spacing="10" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
             <ItemsControl Items="{Binding Links}"
                           Margin="0 0 0 25"
@@ -52,7 +51,7 @@
                   <Setter Property="VerticalAlignment" Value="Center" />
                 </Style>
                 <Style Selector="ItemsControl /template/ #PART_ItemsPresenter > WrapPanel">
-                  <Setter Property="HorizontalAlignment" Value="Stretch" />
+                  <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style>
                 <Style Selector="ItemsControl.narrow /template/ #PART_ItemsPresenter > WrapPanel">
                   <Setter Property="HorizontalAlignment" Value="Center" />
@@ -68,20 +67,25 @@
                 </DataTemplate>
               </ItemsControl.DataTemplates>
             </ItemsControl>
-            <!-- Advanced -->
-            <StackPanel Spacing="5" Orientation="Horizontal" HorizontalAlignment="Center">
-              <PathIcon Data="{StaticResource info_regular}" />
-              <Button Classes="activeHyperLink" Content="Advanced Information"
-                      Command="{Binding AboutAdvancedInfoDialogCommand}" />
-            </StackPanel>
-            <!-- License -->
-            <WrapPanel HorizontalAlignment="Center">
+          </StackPanel>
+          <!-- License -->
+          <DockPanel HorizontalAlignment="Center" DockPanel.Dock="Top">
               <TextBlock Margin=" 0 0 0 -0.5"
                          VerticalAlignment="Center"
                          Text="This open source software is licensed with " />
               <ContentControl Content="{Binding License}" />
-            </WrapPanel>
-          </StackPanel>
+          </DockPanel>
+          <!-- Advanced -->
+          <Button DockPanel.Dock="Bottom"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Bottom"
+                  Classes="plain obscured"
+                  Command="{Binding AboutAdvancedInfoDialogCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
+                <PathIcon Data="{StaticResource info_regular}" />
+                <TextBlock Text="Advanced Information" Classes="Hyperlink" />
+              </StackPanel>
+            </Button>
         </DockPanel>
       </DockPanel>
     </controls:ContentArea>
