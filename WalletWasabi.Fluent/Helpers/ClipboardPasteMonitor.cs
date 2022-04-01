@@ -13,7 +13,8 @@ internal class ClipboardPasteMonitor : ReactiveObject
 			.Timer(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
 			.Repeat()
 			.SelectMany(_ => GetClipboardTextAsync())
-			.DistinctUntilChanged();
+			.DistinctUntilChanged()
+			;
 
 		CanPaste = MainWindowEvents.IsActiveChanged
 			.CombineLatest(ClipboardText, currentTextChanged, (isActive, cpText, curAddr) =>

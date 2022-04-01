@@ -52,7 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool _parsingUrl;
 	private readonly ObservableAsPropertyHelper<bool> _canPasteFromClipboard;
-	private readonly ObservableAsPropertyHelper<string> _clipboardText;
+	private readonly ObservableAsPropertyHelper<string> _toolTip;
 
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -145,11 +145,13 @@ public partial class SendViewModel : RoutableViewModel
 
 		var pasteMonitor = new ClipboardPasteMonitor(this.WhenAnyValue(model => model.To), IsBtcAddress);
 
-		_clipboardText = pasteMonitor.ClipboardText.ToProperty(this, nameof(ClipboardText));
 		_canPasteFromClipboard = pasteMonitor.CanPaste.ToProperty(this, nameof(CanPasteFromClipboard));
+		_toolTip = pasteMonitor.ClipboardText
+			.Select(t => IsBtcAddress(t) ? $"Paste BTC Address:\r\n{t}" : "Paste")
+			.ToProperty(this, nameof(ToolTip));
 	}
 
-	public string ClipboardText => _clipboardText.Value;
+	public string ToolTip => _toolTip.Value;
 
 	public bool CanPasteFromClipboard => _canPasteFromClipboard.Value;
 
