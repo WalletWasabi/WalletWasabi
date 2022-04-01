@@ -10,7 +10,6 @@ public class MainWindow : Window
 	public MainWindow()
 	{
 		InitializeComponent();
-		ExtendClientAreaChromeHints |= ExtendClientAreaChromeHints.OSXThickTitleBar;
 	}
 
 	private void InitializeComponent()
