@@ -29,7 +29,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	private readonly int _smallLayoutIndex;
 	private readonly int _normalLayoutIndex;
 	private readonly int _wideLayoutIndex;
-	private readonly Interaction<Unit, bool> _authorizationInteraction = new();
+	private readonly Interaction<Wallet, bool> _authorizationInteraction = new();
 	[AutoNotify] private IList<TileViewModel> _tiles;
 	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 	[AutoNotify] private int _layoutIndex;
@@ -133,7 +133,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var authorized = await _authorizationInteraction.Handle(Unit.Default);
+			var authorized = await _authorizationInteraction.Handle(wallet);
 
 			if (!authorized)
 			{
@@ -176,15 +176,15 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
 
-	private async Task HandleAuthorizationInteractionAsync(InteractionContext<Unit, bool> interaction)
+	private async Task HandleAuthorizationInteractionAsync(InteractionContext<Wallet, bool> interaction)
 	{
 		bool authorized = false;
-		if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+		if (!string.IsNullOrEmpty(interaction.Input.Kitchen.SaltSoup()))
 		{
 			bool retry;
 			do
 			{
-				var dialog = new PasswordAuthDialogViewModel(wallet);
+				var dialog = new PasswordAuthDialogViewModel(Wallet);
 				var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
 				if (dialogResult.Result && dialogResult.Kind == DialogResultKind.Normal)
