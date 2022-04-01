@@ -15,6 +15,9 @@ public class ClipboardCopyButton : TemplatedControl
 	public static readonly StyledProperty<bool> IsPopupOpenProperty =
 		AvaloniaProperty.Register<ClipboardCopyButton, bool>(nameof(IsPopupOpen));
 
+	public static readonly StyledProperty<bool> IsPopupVisibleProperty =
+		AvaloniaProperty.Register<ClipboardCopyButton, bool>(nameof(IsPopupVisible), true);
+
 	public static readonly StyledProperty<string> TextProperty =
 		AvaloniaProperty.Register<ClipboardCopyButton, string>(nameof(Text));
 
@@ -33,6 +36,12 @@ public class ClipboardCopyButton : TemplatedControl
 		set => SetValue(IsPopupOpenProperty, value);
 	}
 
+	public bool IsPopupVisible
+	{
+		get => GetValue(IsPopupVisibleProperty);
+		set => SetValue(IsPopupVisibleProperty, value);
+	}
+
 	public string Text
 	{
 		get => GetValue(TextProperty);
@@ -48,19 +57,19 @@ public class ClipboardCopyButton : TemplatedControl
 	public ClipboardCopyButton()
 	{
 		var canCopy = this.WhenAnyValue(c => c.Text, selector: s => s is not null);
-		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboard, canCopy);
+		CopyCommand = ReactiveCommand.CreateFromTask(CopyToClipboardAsync, canCopy);
 
 		var isPopupOpen = CopyCommand
-			.Select(unit =>
+			.Select(_ =>
 				Observable.Return(true).Concat(Observable.Timer(HidePopupTime).Select(l => false)))
 			.Switch();
 
 		this.Bind(IsPopupOpenProperty, isPopupOpen);
 	}
 
-	public TimeSpan HidePopupTime { get; set; } = TimeSpan.FromSeconds(2);
+	public TimeSpan HidePopupTime { get; set; } = TimeSpan.FromSeconds(1);
 
-	private async Task CopyToClipboard()
+	private async Task CopyToClipboardAsync()
 	{
 		if (Application.Current is {Clipboard: { } clipboard})
 		{

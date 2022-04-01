@@ -1,6 +1,8 @@
+using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
 
@@ -31,13 +33,6 @@ public class PreviewItem : ContentControl
 
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
-
-	public PreviewItem()
-	{
-		var isCopyButtonVisible = this.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue,
-			(a, b) => a && !string.IsNullOrWhiteSpace(b));
-		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
-	}
 
 	public string Label
 	{
@@ -85,5 +80,19 @@ public class PreviewItem : ContentControl
 	{
 		get => GetValue(PrivacyModeEnabledProperty);
 		set => SetValue(PrivacyModeEnabledProperty, value);
+	}
+
+	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+	{
+		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
+		var isPopupOpen = button.WhenAnyValue(b => b.IsPopupOpen);
+
+		var isCopyButtonVisible = this.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue,
+			(a, b) => a && !string.IsNullOrWhiteSpace(b))
+			.CombineLatest(isPopupOpen, (over, isPopupVisible) => over || isPopupVisible);
+		
+		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
+
+		base.OnApplyTemplate(e);
 	}
 }
