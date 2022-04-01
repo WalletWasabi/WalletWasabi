@@ -264,7 +264,7 @@ public class StepTransactionSigningTests
 			CancellationToken.None).ConfigureAwait(false);
 
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.WitHash.ScriptPubKey,
 			aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None).ConfigureAwait(false);
