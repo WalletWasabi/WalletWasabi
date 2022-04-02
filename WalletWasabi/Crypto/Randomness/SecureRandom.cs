@@ -4,38 +4,22 @@ namespace WalletWasabi.Crypto.Randomness;
 
 public class SecureRandom : WasabiRandom
 {
-	private bool _disposedValue;
-
 	public SecureRandom()
 	{
-		Random = RandomNumberGenerator.Create();
+	}
+	
+	public override void GetBytes(byte[] buffer)
+	{
+		RandomNumberGenerator.Fill(buffer);
 	}
 
-	private RandomNumberGenerator Random { get; }
-
-	public override void GetBytes(byte[] buffer) => Random.GetBytes(buffer);
-
-	public override void GetBytes(Span<byte> buffer) => Random.GetBytes(buffer);
-
-	public override int GetInt(int fromInclusive, int toExclusive) => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
-
-	protected virtual void Dispose(bool disposing)
+	public override void GetBytes(Span<byte> buffer)
 	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				Random?.Dispose();
-			}
-
-			_disposedValue = true;
-		}
+		RandomNumberGenerator.Fill(buffer);
 	}
 
-	public override void Dispose()
+	public override int GetInt(int fromInclusive, int toExclusive)
 	{
-		// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		return RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);		
 	}
 }
