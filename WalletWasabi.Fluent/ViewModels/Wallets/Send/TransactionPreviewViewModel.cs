@@ -427,7 +427,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+		var authResult = await Interactions.Authorize.Handle(_wallet);
 		if (authResult)
 		{
 			IsBusy = true;
@@ -448,25 +448,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			IsBusy = false;
 		}
-	}
-
-	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
-	{
-		if (!_wallet.KeyManager.IsHardwareWallet &&
-		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
-		{
-			return true;
-		}
-
-		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
-		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
-
-		if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
-		{
-			await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
-		}
-
-		return authDialogResult.Result;
 	}
 
 	private async Task SendTransactionAsync(SmartTransaction transaction)

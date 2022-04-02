@@ -29,7 +29,6 @@ public partial class WalletViewModel : WalletViewModelBase
 	private readonly int _smallLayoutIndex;
 	private readonly int _normalLayoutIndex;
 	private readonly int _wideLayoutIndex;
-	private readonly Interaction<Wallet, bool> _authorizationInteraction = new();
 	[AutoNotify] private IList<TileViewModel> _tiles;
 	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 	[AutoNotify] private int _layoutIndex;
@@ -44,7 +43,6 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
-		_authorizationInteraction.RegisterHandler(HandleAuthorizationInteractionAsync);
 
 		Disposables = Disposables is null
 			? new CompositeDisposable()
@@ -133,7 +131,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var authorized = await _authorizationInteraction.Handle(wallet);
+			var authorized = await Interactions.Authorize.Handle(wallet);
 
 			if (!authorized)
 			{
