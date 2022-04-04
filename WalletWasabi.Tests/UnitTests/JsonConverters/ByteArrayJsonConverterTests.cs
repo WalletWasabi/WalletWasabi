@@ -1,5 +1,6 @@
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using WalletWasabi.JsonConverters;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.JsonConverters;
