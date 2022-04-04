@@ -48,6 +48,8 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="Margin" Value="8,5,8, 0" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
@@ -92,23 +94,23 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel.wallets" x:DataType="vmw:WalletViewModelBase">
-      <Setter Property="ToolTip.Tip" Value="{Binding Title}" />
-    </Style>
-
-    <Style Selector=":is(Panel).NavBarItemPanel.utilities" x:DataType="vm:NavBarItemViewModel">
-      <Setter Property="ToolTip.Tip" Value="{Binding Title}" />
-    </Style>
 
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />
+      <Setter Property="Margin" Value="10, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
           <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
         </Transitions>
       </Setter>
+    </Style>
+
+    <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="TextTrimming" Value="None" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
@@ -130,20 +132,10 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities">
+            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
-                  <Panel HorizontalAlignment="Stretch" Margin="5 5 5 0">
-                    <Panel.OpacityMask>
-                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="80%,0%">
-                        <LinearGradientBrush.GradientStops>
-                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
-                          <GradientStop Color="#FFFFFFFF" Offset="1" />
-                        </LinearGradientBrush.GradientStops>
-                      </LinearGradientBrush>
-                    </Panel.OpacityMask>
-                    <TextBlock Text="{Binding Title}" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
-                  </Panel>
+                  <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
@@ -164,23 +156,13 @@
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Classes="NavBarItemPanel wallets">
+            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}">
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
-                  <Panel HorizontalAlignment="Stretch" Margin="5 5 5 0">
-                    <Panel.OpacityMask>
-                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="80%,0%">
-                        <LinearGradientBrush.GradientStops>
-                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
-                          <GradientStop Color="#FFFFFFFF" Offset="1" />
-                        </LinearGradientBrush.GradientStops>
-                      </LinearGradientBrush>
-                    </Panel.OpacityMask>
-                    <TextBlock Text="{Binding Title}" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
-                  </Panel>
+                  <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
