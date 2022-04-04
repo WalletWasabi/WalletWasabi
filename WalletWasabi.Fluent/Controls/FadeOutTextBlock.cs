@@ -102,36 +102,33 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		_noTrimLayout.Draw(context);
 	}
 
-	private void NewCreateTextLayout(Size constraint, string text)
+	private void NewCreateTextLayout(Size constraint, string? text)
 	{
 		if (constraint == Size.Empty)
 		{
 			_trimmedLayout = null;
 		}
 
-		var text1 = text ?? string.Empty;
+		var text1 = text ?? "";
 		var typeface = new Typeface(FontFamily, FontStyle, FontWeight);
 		var fontSize = FontSize;
 		var foreground = Foreground;
 		var textAlignment = (int) TextAlignment;
 		var textWrapping = (int) TextWrapping;
-		var textTrimming = (int) TextTrimming;
 		var textDecorations = TextDecorations;
 		var width = constraint.Width;
 		var height = constraint.Height;
-		var maxLines1 = 1;
-		var lineHeight = LineHeight;
-		var maxLines2 = maxLines1;
+ 		var lineHeight = LineHeight;
 
 		_noTrimLayout = new TextLayout(text1, typeface, fontSize, foreground, (TextAlignment) textAlignment,
 			(TextWrapping) textWrapping, TextTrimming.None, textDecorations, width, height, lineHeight,
-			maxLines2);
+			1);
 
 		_trimmedLayout = new TextLayout(text1, typeface, fontSize, foreground, (TextAlignment) textAlignment,
 			(TextWrapping) textWrapping, TextTrimming.CharacterEllipsis, textDecorations, width, height, lineHeight,
-			maxLines2);
+			1);
 
-		_cutOff = (_trimmedLayout.TextLines.Any(x => x.HasCollapsed));
+		_cutOff = _trimmedLayout.TextLines[0].HasCollapsed;
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
