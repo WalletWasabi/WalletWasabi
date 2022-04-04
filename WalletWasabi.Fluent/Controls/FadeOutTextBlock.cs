@@ -1,7 +1,6 @@
 using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Styling;
@@ -17,7 +16,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		TextWrapping = TextWrapping.NoWrap;
 	}
 
-	private static IBrush FadeoutOpacityMask = new LinearGradientBrush
+	private static readonly IBrush FadeoutOpacityMask = new LinearGradientBrush
 	{
 		StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
 		EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
@@ -38,15 +37,11 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 	{
 		var background = Background;
 
-		Rect bounds;
+		var bounds = Bounds;
 
 		if (background != null)
 		{
-			var drawingContext = context;
-			var brush = background;
-			bounds = Bounds;
-			var rect = new Rect(bounds.Size);
-			drawingContext.FillRectangle(brush, rect);
+			context.FillRectangle(background, Bounds);
 		}
 
 		if (_trimmedLayout is null || _noTrimLayout is null)
@@ -54,45 +49,19 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 			return;
 		}
 
-		var textAlignment = TextAlignment;
-		bounds = Bounds;
 		var width = bounds.Size.Width;
-		var num1 = 0.0;
-		switch (textAlignment)
-		{
-			case TextAlignment.Center:
-				num1 = (width - _trimmedLayout.Size.Width) / 2.0;
-				break;
-			case TextAlignment.Right:
-				num1 = width - _trimmedLayout.Size.Width;
-				break;
-		}
 
-		var padding = Padding;
-		var yPosition = padding.Top;
-		var size = _trimmedLayout.Size;
-		bounds = Bounds;
-		if (bounds.Height < size.Height)
+		var num1 = TextAlignment switch
 		{
-			switch (VerticalAlignment)
-			{
-				case VerticalAlignment.Center:
-					var num2 = yPosition;
-					bounds = Bounds;
-					var num3 = (bounds.Height - size.Height) / 2.0;
-					yPosition = num2 + num3;
-					break;
-				case VerticalAlignment.Bottom:
-					var num4 = yPosition;
-					bounds = Bounds;
-					var num5 = bounds.Height - size.Height;
-					yPosition = num4 + num5;
-					break;
-			}
-		}
+			TextAlignment.Center => (width - _trimmedLayout.Size.Width) / 2.0,
+			TextAlignment.Right => width - _trimmedLayout.Size.Width,
+			_ => 0.0
+		};
+
+		var (left, yPosition, _, _) = Padding;
 
 		using var a =
-			context.PushPostTransform(Matrix.CreateTranslation(padding.Left + num1, yPosition));
+			context.PushPostTransform(Matrix.CreateTranslation(left + num1, yPosition));
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
 		_noTrimLayout.Draw(context);
 	}
