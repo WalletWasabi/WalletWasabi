@@ -71,7 +71,7 @@
     <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="SystemChromeLowColor" />
 
     <Color x:Key="TileRegionColor">White</Color>
-    <Color x:Key="TileBorderColor">#14000000</Color>
+    <Color x:Key="TileBorderColor">#EBEBEB</Color>
     <Color x:Key="AcrylicTrimForeground">#FCFCFC</Color>
     <Color x:Key="AcrylicTrimBackground">#285687</Color>
     <Color x:Key="AcrylicTrimOverlayBackground">#AE134074</Color>
