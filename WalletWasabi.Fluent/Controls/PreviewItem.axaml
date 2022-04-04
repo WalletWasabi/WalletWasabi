@@ -23,7 +23,6 @@
                        Opacity="0.6" />
             <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
               <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
-                                     IsPopupVisible="False"
                                      ToolTip.Tip="Copy"
                                      DockPanel.Dock="Right" Width="30"
                                      Text="{TemplateBinding TextValue}"

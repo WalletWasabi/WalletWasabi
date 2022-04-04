@@ -10,18 +10,9 @@
       <ControlTemplate>
         <Panel>
           <c:AnimatedButton x:Name="CopyButton" Command="{TemplateBinding CopyCommand}"
-                            ToolTip.Tip="{Binding ToolTipText}"
                             NormalIcon="{StaticResource copy_regular}"
                             ClickIcon="{StaticResource copy_confirmed}"
                             InitialOpacity="0.6" />
-          <Popup IsOpen="{TemplateBinding IsPopupOpen}" PlacementTarget="CopyButton" PlacementMode="AnchorAndGravity"
-                 PlacementGravity="Top" PlacementAnchor="Top">
-            <Border IsVisible="{TemplateBinding IsPopupVisible}" Margin="6" Padding="10"
-                    Background="{StaticResource SystemBaseLowColor}" BorderBrush="{StaticResource TextForegroundColor}"
-                    CornerRadius="10" BorderThickness="1">
-              <TextBlock Text="{TemplateBinding CopiedMessage}" />
-            </Border>
-          </Popup>
         </Panel>
       </ControlTemplate>
     </Setter>

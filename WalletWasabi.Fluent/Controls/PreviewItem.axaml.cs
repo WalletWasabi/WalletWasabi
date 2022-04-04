@@ -85,11 +85,16 @@ public class PreviewItem : ContentControl
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 	{
 		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
-		var isPopupOpen = button.WhenAnyValue(b => b.IsPopupOpen);
 
-		var isCopyButtonVisible = this.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue,
-			(a, b) => a && !string.IsNullOrWhiteSpace(b))
-			.CombineLatest(isPopupOpen, (over, isPopupVisible) => over || isPopupVisible);
+		var hasBeenJustCopied = Observable.Return(false)
+			.Concat(button.CopyCommand
+			.Select(_ =>
+				Observable.Return(true).Concat(Observable.Timer(TimeSpan.FromSeconds(1)).Select(l => false)))
+			.Switch());
+
+		var isCopyButtonVisible = this
+			.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b))
+			.CombineLatest(hasBeenJustCopied, (over, justCopied) => over || justCopied);
 		
 		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 
