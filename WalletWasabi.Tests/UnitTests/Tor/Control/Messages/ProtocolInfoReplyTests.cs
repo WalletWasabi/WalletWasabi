@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Tor.Control.Messages;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Tor.Control;
+namespace WalletWasabi.Tests.UnitTests.Tor.Control.Messages;
 
 /// <summary>
 /// Tests for <see cref="ProtocolInfoReply"/> class.

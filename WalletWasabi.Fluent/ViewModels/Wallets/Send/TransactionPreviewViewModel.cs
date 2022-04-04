@@ -27,20 +27,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 [NavigationMetaData(Title = "Transaction Preview")]
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
+	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly bool _isFixedAmount;
 	private readonly Wallet _wallet;
-	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _destination;
 	private BuildTransactionResult? _transaction;
+	private TransactionInfo _info;
+	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource _cancellationTokenSource;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
+	[AutoNotify] private bool _canUndo;
 
 	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
 	{
+		_undoHistory = new();
 		_wallet = wallet;
 		_info = info;
+		_currentTransactionInfo = info.Clone();
 		_destination = destination;
 		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource();
@@ -129,6 +134,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				await OnAdjustFeeAsync();
 			}
 		});
+
+		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (_undoHistory.TryPop(out var previous))
+			{
+				_info = previous.Item2;
+				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
+				CanUndo = _undoHistory.Any();
+				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, previous.Item1, _isFixedAmount, _cancellationTokenSource.Token);
+			}
+		});
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -142,6 +158,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 	public ICommand AdjustFeeCommand { get; }
+
+	public ICommand UndoCommand { get; }
 
 	private async Task ShowAdvancedDialogAsync()
 	{
@@ -166,14 +184,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction)
+	private void UpdateTransaction(TransactionSummaryViewModel summary, BuildTransactionResult transaction, bool addToUndoHistory = true)
 	{
 		if (!summary.IsPreview)
 		{
+			if (addToUndoHistory)
+			{
+				AddToUndoHistory();
+			}
+
 			_transaction = transaction;
+			_currentTransactionInfo = _info.Clone();
 		}
 
-		summary.UpdateTransaction(transaction);
+		summary.UpdateTransaction(transaction, _info);
 
 		DisplayedTransactionSummary = summary;
 	}
@@ -425,8 +449,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnConfirmAsync()
 	{
-		_cancellationTokenSource.Cancel();
-
 		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
@@ -439,6 +461,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
+				_cancellationTokenSource.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
 			catch (Exception ex)
@@ -493,5 +516,14 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 
 		return transaction;
+	}
+
+	private void AddToUndoHistory()
+	{
+		if (_transaction is { })
+		{
+			_undoHistory.Push((_transaction, _currentTransactionInfo));
+			CanUndo = true;
+		}
 	}
 }

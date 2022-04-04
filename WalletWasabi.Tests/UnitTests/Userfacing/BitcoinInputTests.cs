@@ -1,7 +1,7 @@
 using WalletWasabi.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Userfacing;
 
 public class BitcoinInputTests
 {
