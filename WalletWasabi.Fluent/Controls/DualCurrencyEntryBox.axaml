@@ -1,0 +1,76 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+  <Style Selector="c|DualCurrencyEntryBox">
+    <Setter Property="LeftColumn" Value="0"/>
+    <Setter Property="RightColumn" Value="2"/>
+    
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+          <DataValidationErrors DockPanel.Dock="Bottom"/>
+
+          <Grid ColumnDefinitions="*,Auto,*">
+            <c:CurrencyEntryBox x:Name="PART_LeftEntryBox"
+                                Text="{TemplateBinding Text, Mode=TwoWay}"
+                                IsReadOnly="{TemplateBinding IsReadOnly}"
+                                CurrencyCode="{TemplateBinding CurrencyCode}"
+                                ConversionRate="{TemplateBinding ConversionRate}"
+                                IsFiat="False"
+                                Watermark="{TemplateBinding Watermark}"
+                                IsApproximate="False"
+                                Grid.Column="{TemplateBinding LeftColumn}"/>
+
+            <Button x:Name="PART_SwapButton" Focusable="False"
+                    Cursor="Arrow" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
+                    BorderBrush="Transparent" BorderThickness="0" Padding="0" Margin="5"
+                    Grid.Column="1">
+              <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
+            </Button>
+
+            <c:CurrencyEntryBox x:Name="PART_RightEntryBox"
+                                Text="{TemplateBinding ConversionText, Mode=TwoWay}"
+                                IsReadOnly="{TemplateBinding IsReadOnly}"
+                                CurrencyCode="{TemplateBinding ConversionCurrencyCode}"
+                                ConversionRate="{TemplateBinding ConversionRate}"
+                                IsFiat="True"
+                                Watermark="{TemplateBinding ConversionWatermark}"
+                                IsApproximate="{TemplateBinding IsConversionApproximate}"
+                                Grid.Column="{TemplateBinding RightColumn}"/>
+          </Grid>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|DualCurrencyEntryBox:noexchangerate Button#PART_SwapButton">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="c|DualCurrencyEntryBox:reversed">
+    <Setter Property="LeftColumn" Value="2" />
+    <Setter Property="RightColumn" Value="0" />
+  </Style>
+
+  <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
+  <Style Selector="c|DualCurrencyEntryBox /template/ DataValidationErrors">
+    <Setter Property="MinHeight" Value="21" />
+  </Style>
+
+  <Style Selector="c|DualCurrencyEntryBox:error /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+  </Style>
+
+  <Style Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
+  <Style Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton:pointerover">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <Style
+      Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+</Styles>
