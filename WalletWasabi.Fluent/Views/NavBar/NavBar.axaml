@@ -48,17 +48,10 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-      <Setter Property="TextAlignment" Value="Center" />
-      <Setter Property="Margin" Value="8,5,8, 0" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
-      <Setter Property="DockPanel.Dock" Value="Bottom" />
-    </Style>
-
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel Panel">
+    <Style Selector=":is(Panel).NavBarItemPanel DockPanel > Panel">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
       <Setter Property="Background" Value="Transparent" />
@@ -99,14 +92,6 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel.wallets  DockPanel TextBlock" x:DataType="vmw:WalletViewModelBase">
-      <Setter Property="Text" Value="{Binding Title}" />
-    </Style>
-
-    <Style Selector=":is(Panel).NavBarItemPanel.utilities  DockPanel TextBlock" x:DataType="vm:NavBarItemViewModel">
-      <Setter Property="Text" Value="{Binding Title}" />
-    </Style>
-
     <Style Selector=":is(Panel).NavBarItemPanel.wallets" x:DataType="vmw:WalletViewModelBase">
       <Setter Property="ToolTip.Tip" Value="{Binding Title}" />
     </Style>
@@ -118,26 +103,11 @@
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="10, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
           <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
         </Transitions>
-      </Setter>
-    </Style>
-
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextWrapping" Value="NoWrap" />
-      <Setter Property="TextTrimming" Value="None" />
-      <Setter Property="HorizontalAlignment" Value="Center" />
-      <Setter Property="OpacityMask">
-        <LinearGradientBrush StartPoint="100%,0%" EndPoint="70%,0%">
-          <LinearGradientBrush.GradientStops>
-            <GradientStop Color="#00FFFFFF" Offset="0.1" />
-            <GradientStop Color="#FFFFFFFF" Offset="1" />
-          </LinearGradientBrush.GradientStops>
-        </LinearGradientBrush>
       </Setter>
     </Style>
 
@@ -162,8 +132,18 @@
           <DataTemplate DataType="vm:NavBarItemViewModel">
             <Panel Classes="NavBarItemPanel utilities">
               <DockPanel>
-                <LayoutTransformControl>
-                  <TextBlock />
+                <LayoutTransformControl DockPanel.Dock="Bottom">
+                  <Panel HorizontalAlignment="Stretch" Margin="5 5 5 0">
+                    <Panel.OpacityMask>
+                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="80%,0%">
+                        <LinearGradientBrush.GradientStops>
+                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
+                          <GradientStop Color="#FFFFFFFF" Offset="1" />
+                        </LinearGradientBrush.GradientStops>
+                      </LinearGradientBrush>
+                    </Panel.OpacityMask>
+                    <TextBlock Text="{Binding Title}" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
                 </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
@@ -189,8 +169,18 @@
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />
               <DockPanel>
-                <LayoutTransformControl>
-                  <TextBlock />
+                <LayoutTransformControl DockPanel.Dock="Bottom">
+                  <Panel HorizontalAlignment="Stretch" Margin="5 5 5 0">
+                    <Panel.OpacityMask>
+                      <LinearGradientBrush StartPoint="100%,0%" EndPoint="80%,0%">
+                        <LinearGradientBrush.GradientStops>
+                          <GradientStop Color="#00FFFFFF" Offset="0.1" />
+                          <GradientStop Color="#FFFFFFFF" Offset="1" />
+                        </LinearGradientBrush.GradientStops>
+                      </LinearGradientBrush>
+                    </Panel.OpacityMask>
+                    <TextBlock Text="{Binding Title}" HorizontalAlignment="Stretch" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
                 </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
