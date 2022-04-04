@@ -30,11 +30,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly IObservable<Unit> _updateTrigger;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
-	private readonly object _transactionListLock = new();
 
 	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isInitialized;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isTransactionHistoryEmpty;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isInitialized;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
@@ -223,45 +226,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
 			var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
 
-			lock (_transactionListLock)
+			_transactionSourceList.Edit(x =>
 			{
-				_transactionSourceList.Edit(x =>
-				{
-					var copyList = Transactions.ToList();
+				x.Clear();
+				x.AddRange(newHistoryList);
+			});
 
-					foreach (var oldItem in copyList)
-					{
-						if (newHistoryList.All(x => x.Id != oldItem.Id))
-						{
-							x.Remove(oldItem);
-						}
-					}
-
-					foreach (var newItem in newHistoryList)
-					{
-						if (_transactions.FirstOrDefault(x => x.Id == newItem.Id) is { } item)
-						{
-							if (item.GetType() != newItem.GetType())
-							{
-								x.Remove(item);
-								x.Add(newItem);
-							}
-							else
-							{
-								item.Update(newItem);
-							}
-						}
-						else
-						{
-							x.Add(newItem);
-						}
-					}
-				});
-
-				if (!IsInitialized)
-				{
-					IsInitialized = true;
-				}
+			if (!IsInitialized)
+			{
+				IsInitialized = true;
 			}
 		}
 		catch (Exception ex)
@@ -299,8 +272,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
-				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+			    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
+			     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 			{
 				cjg.SetBalance(balance);
 				yield return cjg;
