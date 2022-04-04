@@ -55,6 +55,6 @@ public static class Interactions
 	private static async Task ShowErrorAsync(string title, string message, string caption)
 	{
 		var dialog = new ShowErrorDialogViewModel(message, title, caption);
-		await MainViewModel.Instance.DialogScreen.NavigateDialogAsync(dialog);
+		await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(dialog);
 	}
 }
