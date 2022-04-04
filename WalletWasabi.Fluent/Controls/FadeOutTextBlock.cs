@@ -24,7 +24,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		{
 			new GradientStop {Color = Colors.White, Offset = 0},
 			new GradientStop {Color = Colors.White, Offset = 0.5},
-			new GradientStop {Color = Colors.Transparent, Offset = 0.8}
+			new GradientStop {Color = Colors.Transparent, Offset = 0.77}
 		}
 	}.ToImmutable();
 
