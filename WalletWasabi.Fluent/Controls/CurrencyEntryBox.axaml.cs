@@ -274,4 +274,18 @@ public class CurrencyEntryBox : TextBox
 
 		return "";
 	}
+
+	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	{
+		base.OnPropertyChanged(change);
+
+		if (change.Property == IsReadOnlyProperty)
+		{
+			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+		}
+		else if (change.Property == ConversionRateProperty)
+		{
+			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+		}
+	}
 }

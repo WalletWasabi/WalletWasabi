@@ -222,9 +222,9 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
   </Style>
 
-  <Style Selector="c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
+  <!--<Style Selector="c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-  </Style>
+  </Style>-->
 </Styles>
