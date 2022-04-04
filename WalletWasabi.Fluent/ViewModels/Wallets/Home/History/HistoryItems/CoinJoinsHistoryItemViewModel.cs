@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -41,39 +42,19 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
 		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
-		UpdateAmount();
+		OutgoingAmount = CoinJoinTransactions.Sum(x => x.Amount) * -1;
 		UpdateDateString();
-	}
-
-	public override void Update(HistoryItemViewModelBase item)
-	{
-		if (item is not CoinJoinsHistoryItemViewModel coinJoinHistoryItemViewModel)
-		{
-			throw new InvalidOperationException("Not the same type!");
-		}
-
-		CoinJoinTransactions = coinJoinHistoryItemViewModel.CoinJoinTransactions;
-		UpdateAmount();
-
-		base.Update(item);
-
-		this.RaisePropertyChanged();
 	}
 
 	protected void UpdateDateString()
 	{
-		var dates = CoinJoinTransactions.Select(tx => tx.DateTime);
+		var dates = CoinJoinTransactions.Select(tx => tx.DateTime).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
 
 		DateString = firstDate.Day == lastDate.Day
 			? $"{firstDate:MM/dd/yy}"
 			: $"{firstDate:MM/dd/yy} - {lastDate:MM/dd/yy}";
-	}
-
-	private void UpdateAmount()
-	{
-		OutgoingAmount = CoinJoinTransactions.Sum(x => x.Amount) * -1;
 	}
 
 	public void SetBalance(Money balance)

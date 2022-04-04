@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -11,6 +12,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
@@ -93,7 +95,11 @@ public class CurrencyEntryBox : TextBox
 				$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 
 		PseudoClasses.Set(":noexchangerate", true);
+
+		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
+
+	public ICommand ModifiedPaste { get; }
 
 	public decimal AmountBtc
 	{
