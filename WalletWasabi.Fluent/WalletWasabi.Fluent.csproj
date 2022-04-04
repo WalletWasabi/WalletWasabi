@@ -39,10 +39,4 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Controls\DualCurrencyEntryBox.axaml.cs">
-	    <DependentUpon>DualCurrencyEntryBox.axaml</DependentUpon>
-	  </Compile>
-	</ItemGroup>
 </Project>
