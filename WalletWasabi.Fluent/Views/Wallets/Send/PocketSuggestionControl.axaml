@@ -16,7 +16,8 @@
     <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Some people or companies could know about this:" />
 
     <c:LabelsListBox Items="{Binding Labels}"
-                     HorizontalAlignment="Center" />
+                     HorizontalAlignment="Center"
+                     MaxWidth="700"/>
 
     <TextBlock Text="Control your privacy?" TextWrapping="Wrap" HorizontalAlignment="Center" />
 
