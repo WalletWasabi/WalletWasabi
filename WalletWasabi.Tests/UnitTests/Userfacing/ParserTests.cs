@@ -155,14 +155,14 @@ public class ParserTests
 	{
 		(string address, Network network)[] tests = new[]
 		{
-				("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", Network.Main),
-				("17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem", Network.Main),
-				("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX", Network.Main),
-				("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Network.Main),
-				("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn", Network.TestNet),
-				("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc", Network.TestNet),
-				("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", Network.TestNet),
-			};
+			("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", Network.Main),
+			("17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem", Network.Main),
+			("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX", Network.Main),
+			("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Network.Main),
+			("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn", Network.TestNet),
+			("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc", Network.TestNet),
+			("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", Network.TestNet),
+		};
 
 		foreach (var test in tests)
 		{
@@ -174,10 +174,10 @@ public class ParserTests
 			Assert.False(AddressStringParser.TryParseBitcoinAddress(null!, test.network, out _));
 
 			Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder? result));
-			Assert.Equal(test.address, result!.Address.ToString());
+			Assert.Equal(test.address, result!.Address!.ToString());
 
 			Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(0, "   "), test.network, out result));
-			Assert.Equal(test.address.Trim(), result!.Address.ToString());
+			Assert.Equal(test.address.Trim(), result!.Address!.ToString());
 		}
 	}
 
@@ -205,10 +205,10 @@ public class ParserTests
 			Assert.False(AddressStringParser.TryParseBitcoinUrl(null!, test.network, out _));
 
 			Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url, test.network, out BitcoinUrlBuilder? result));
-			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address.ToString());
+			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address!.ToString());
 
 			Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(0, "   "), test.network, out result));
-			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address.ToString());
+			Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result!.Address!.ToString());
 			Assert.Equal("Luke-Jr", result.Label);
 			Assert.Equal(Money.Coins(50m), result.Amount);
 		}

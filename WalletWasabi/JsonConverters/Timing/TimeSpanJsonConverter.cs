@@ -2,16 +2,10 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters.Timing;
 
-public class TimeSpanJsonConverter : JsonConverter
+public class TimeSpanJsonConverter : JsonConverter<TimeSpan>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
-	{
-		return objectType == typeof(TimeSpan);
-	}
-
-	/// <inheritdoc />
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		var stringValue = reader.Value as string;
 		return Parse(stringValue);
@@ -38,9 +32,9 @@ public class TimeSpanJsonConverter : JsonConverter
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, TimeSpan value, JsonSerializer serializer)
 	{
-		var ts = (TimeSpan)value;
+		var ts = value;
 		writer.WriteValue($"{ts.Days}d {ts.Hours}h {ts.Minutes}m {ts.Seconds}s");
 	}
 }
