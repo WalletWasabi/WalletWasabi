@@ -98,7 +98,7 @@
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="10, 0" />
+      <Setter Property="Margin" Value="2, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
@@ -108,9 +108,8 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextWrapping" Value="NoWrap" />
-      <Setter Property="TextTrimming" Value="None" />
-      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="TextAlignment" Value="Center"></Setter>
+      <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
     </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
