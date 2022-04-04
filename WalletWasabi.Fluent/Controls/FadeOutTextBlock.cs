@@ -51,7 +51,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 		var width = bounds.Size.Width;
 
-		var num1 = TextAlignment switch
+		var centerOffset = TextAlignment switch
 		{
 			TextAlignment.Center => (width - _trimmedLayout.Size.Width) / 2.0,
 			TextAlignment.Right => width - _trimmedLayout.Size.Width,
@@ -61,7 +61,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var (left, yPosition, _, _) = Padding;
 
 		using var a =
-			context.PushPostTransform(Matrix.CreateTranslation(left + num1, yPosition));
+			context.PushPostTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
 		_noTrimLayout.Draw(context);
 	}
