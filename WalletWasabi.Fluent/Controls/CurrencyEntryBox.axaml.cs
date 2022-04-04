@@ -16,6 +16,7 @@ using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -61,12 +62,12 @@ public class CurrencyEntryBox : TextBox
 		_customCultureInfo = new CultureInfo("")
 		{
 			NumberFormat =
-				{
-					CurrencyGroupSeparator = _groupSeparator.ToString(),
-					NumberGroupSeparator = _groupSeparator.ToString(),
-					CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-					NumberDecimalSeparator = _decimalSeparator.ToString()
-				}
+			{
+				CurrencyGroupSeparator = _groupSeparator.ToString(),
+				NumberGroupSeparator = _groupSeparator.ToString(),
+				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
+				NumberDecimalSeparator = _decimalSeparator.ToString()
+			}
 		};
 
 		this.GetObservable(TextProperty).Subscribe(InputText);
@@ -79,9 +80,9 @@ public class CurrencyEntryBox : TextBox
 		Text = string.Empty;
 
 		_regexBtcFormat =
-		new Regex(
-			$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
-			RegexOptions.Compiled);
+			new Regex(
+				$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
+				RegexOptions.Compiled);
 
 		_regexDecimalCharsOnly =
 			new Regex(
@@ -188,7 +189,7 @@ public class CurrencyEntryBox : TextBox
 		decimal fiatValue = 0;
 
 		e.Handled = !(ValidateEntryText(preComposedText) &&
-					decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+		              decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 		if (IsConversionReversed & !e.Handled)
 		{
@@ -213,7 +214,7 @@ public class CurrencyEntryBox : TextBox
 
 		// Check for consecutive spaces (2 or more) and leading spaces.
 		var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
-												   _regexConsecutiveSpaces.IsMatch(preComposedText));
+		                                           _regexConsecutiveSpaces.IsMatch(preComposedText));
 
 		// Check for trailing spaces in the whole number part and in the last part of the precomp string.
 		var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
@@ -267,17 +268,24 @@ public class CurrencyEntryBox : TextBox
 
 	private async Task DoPasteCheckAsync(KeyEventArgs e)
 	{
-		var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
-
-		bool Match(IEnumerable<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
-
-		if (keymap is { } && Match(keymap.Paste))
+		try
 		{
-			await ModifiedPasteAsync();
+			var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
+
+			bool Match(IEnumerable<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
+
+			if (keymap is { } && Match(keymap.Paste))
+			{
+				await ModifiedPasteAsync();
+			}
+			else
+			{
+				base.OnKeyDown(e);
+			}
 		}
-		else
+		catch (Exception ex)
 		{
-			base.OnKeyDown(e);
+			Logger.LogError(ex);
 		}
 	}
 
@@ -324,8 +332,8 @@ public class CurrencyEntryBox : TextBox
 		var selectionEnd = SelectionEnd;
 
 		if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
-											 input.Length + preComposedText.Length -
-											 Math.Abs(selectionStart - selectionEnd) <= MaxLength))
+		                                     input.Length + preComposedText.Length -
+		                                     Math.Abs(selectionStart - selectionEnd) <= MaxLength))
 		{
 			if (selectionStart != selectionEnd)
 			{
@@ -352,9 +360,9 @@ public class CurrencyEntryBox : TextBox
 		bool approximate)
 	{
 		return (approximate ? "≈ " : "") + $"{value.FormattedFiat()}" +
-			   (!string.IsNullOrWhiteSpace(currencyCode)
-				   ? $" {currencyCode}"
-				   : "");
+		       (!string.IsNullOrWhiteSpace(currencyCode)
+			       ? $" {currencyCode}"
+			       : "");
 	}
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
