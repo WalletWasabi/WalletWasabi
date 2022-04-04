@@ -258,7 +258,7 @@ public class DualCurrencyEntryBox : UserControl
 		IsConversionApproximate = AmountBtc > 0;
 
 		Watermark = FullFormatBtc(0);
-		ConversionWatermark = FullFormatFiat(0, ConversionCurrencyCode, false);
+		ConversionWatermark = FullFormatFiat(0, ConversionCurrencyCode, true);
 
 		if (updateTextField)
 		{
