@@ -58,7 +58,7 @@
       </DockPanel.Styles>
 
       <!-- To -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="100">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  Watermark="(e.g. Bitcoin address or payjoin URL)">
