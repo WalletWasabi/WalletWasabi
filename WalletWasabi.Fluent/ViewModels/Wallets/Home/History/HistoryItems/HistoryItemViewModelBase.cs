@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -16,6 +17,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private DateTimeOffset _date;
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private bool _isExpanded;
+	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
@@ -39,6 +42,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCoinJoin { get; protected set; }
 
+	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
+
 	public Money? Balance { get; protected set; }
 
 	public Money? OutgoingAmount { get; protected set; }
@@ -46,6 +51,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public Money? IncomingAmount { get; protected set; }
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
+
+	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
+	{
+		throw new NotSupportedException();
+	}
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
