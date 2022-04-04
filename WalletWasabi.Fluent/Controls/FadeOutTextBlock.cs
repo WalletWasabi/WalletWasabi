@@ -1,14 +1,9 @@
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data;
 using Avalonia.Layout;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using Avalonia.Metadata;
 using Avalonia.Styling;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -113,19 +108,19 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var typeface = new Typeface(FontFamily, FontStyle, FontWeight);
 		var fontSize = FontSize;
 		var foreground = Foreground;
-		var textAlignment = (int) TextAlignment;
-		var textWrapping = (int) TextWrapping;
+		var textAlignment = TextAlignment;
+		var textWrapping = TextWrapping;
 		var textDecorations = TextDecorations;
 		var width = constraint.Width;
 		var height = constraint.Height;
- 		var lineHeight = LineHeight;
+		var lineHeight = LineHeight;
 
-		_noTrimLayout = new TextLayout(text1, typeface, fontSize, foreground, (TextAlignment) textAlignment,
-			(TextWrapping) textWrapping, TextTrimming.None, textDecorations, width, height, lineHeight,
+		_noTrimLayout = new TextLayout(text1, typeface, fontSize, foreground, textAlignment,
+			textWrapping, TextTrimming.None, textDecorations, width, height, lineHeight,
 			1);
 
-		_trimmedLayout = new TextLayout(text1, typeface, fontSize, foreground, (TextAlignment) textAlignment,
-			(TextWrapping) textWrapping, TextTrimming.CharacterEllipsis, textDecorations, width, height, lineHeight,
+		_trimmedLayout = new TextLayout(text1, typeface, fontSize, foreground, textAlignment,
+			textWrapping, TextTrimming.CharacterEllipsis, textDecorations, width, height, lineHeight,
 			1);
 
 		_cutOff = _trimmedLayout.TextLines[0].HasCollapsed;
@@ -147,6 +142,6 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		}
 
 		var textLayout = _trimmedLayout;
-		return (textLayout != null ? textLayout.Size : Size.Empty).Inflate(padding);
+		return (textLayout?.Size ?? Size.Empty).Inflate(padding);
 	}
 }
