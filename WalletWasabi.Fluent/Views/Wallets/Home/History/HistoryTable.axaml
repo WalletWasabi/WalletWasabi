@@ -40,6 +40,37 @@
           <Setter Property="Spacing" Value="10" />
           <Setter Property="Margin" Value="10 0" />
         </Style>
+        <Style Selector="TreeDataGrid" x:CompileBindings="False">
+          <Setter Property="Template">
+            <ControlTemplate>
+              <Border Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}">
+                <DockPanel>
+                  <ScrollViewer DockPanel.Dock="Top"
+                                IsVisible="{TemplateBinding ShowColumnHeaders}"
+                                Offset="{Binding Scroll.Offset, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollBarVisibility="Disabled">
+                    <Border BorderThickness="0 0 0 1" BorderBrush="{DynamicResource TreeDataGridGridLinesBrush}">
+                      <h:CustomTreeDataGridColumnHeadersPresenter Name="PART_ColumnHeadersPresenter"
+                                                                  ElementFactory="{TemplateBinding ElementFactory}"
+                                                                  Items="{TemplateBinding Columns}"/>
+                    </Border>
+                  </ScrollViewer>
+                  <ScrollViewer Name="PART_ScrollViewer"
+                                HorizontalScrollBarVisibility="Auto">
+                    <TreeDataGridRowsPresenter Name="PART_RowsPresenter"
+                                               Columns="{TemplateBinding Columns}"
+                                               ElementFactory="{TemplateBinding ElementFactory}"
+                                               Items="{TemplateBinding Rows}"
+                                               Selection="{TemplateBinding SelectionInteraction}"/>
+                  </ScrollViewer>
+                </DockPanel>
+              </Border>
+            </ControlTemplate>
+          </Setter>
+        </Style>
         <Style Selector="TreeDataGridRow Button.historyDetails">
           <Setter Property="Opacity" Value="0"></Setter>
         </Style>

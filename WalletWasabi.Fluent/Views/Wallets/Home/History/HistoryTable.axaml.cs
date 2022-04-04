@@ -6,6 +6,41 @@ using Avalonia.Styling;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.History;
 
+public class CustomTreeDataGridColumnHeadersPresenter : TreeDataGridColumnHeadersPresenter
+{
+	protected override Size MeasureOverride(Size availableSize)
+	{
+		Console.WriteLine($"[CustomTreeDataGridColumnHeadersPresenter.MeasureOverride] availableSize='{availableSize}'");
+		try
+		{
+			var result = base.MeasureOverride(availableSize);
+			Console.WriteLine($"[CustomTreeDataGridColumnHeadersPresenter.MeasureOverride] result='{result}'");
+			return result;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+	}
+
+	protected override Size ArrangeOverride(Size finalSize)
+	{
+		Console.WriteLine($"[CustomTreeDataGridColumnHeadersPresenter.ArrangeOverride] finalSize='{finalSize}'");
+		try
+		{
+			var result = base.ArrangeOverride(finalSize);
+			Console.WriteLine($"[CustomTreeDataGridColumnHeadersPresenter.ArrangeOverride] result='{result}'");
+			return result;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+	}
+}
+
 public class CustomTreeDataGridCellsPresenter : TreeDataGridCellsPresenter
 {
 	protected override Size MeasureOverride(Size availableSize)
