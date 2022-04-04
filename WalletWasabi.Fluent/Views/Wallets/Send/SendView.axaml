@@ -58,10 +58,11 @@
       </DockPanel.Styles>
 
       <!-- To -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="100">
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="63">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
-                 Watermark="(e.g. Bitcoin address or payjoin URL)">
+                 Watermark="(e.g. Bitcoin address or payjoin URL)"
+                 AcceptsReturn="False">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
             <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
