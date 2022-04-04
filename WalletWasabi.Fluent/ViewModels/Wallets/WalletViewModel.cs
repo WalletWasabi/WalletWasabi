@@ -43,7 +43,6 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
-
 		Disposables = Disposables is null
 			? new CompositeDisposable()
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -72,7 +71,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
-				args switch {
+				args switch
+				{
 					StartedEventArgs _ => true,
 					StoppedEventArgs _ => false,
 					CompletedEventArgs => false,
@@ -173,41 +173,6 @@ public partial class WalletViewModel : WalletViewModelBase
 	public HistoryViewModel History { get; }
 
 	public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
-
-	private async Task HandleAuthorizationInteractionAsync(InteractionContext<Wallet, bool> interaction)
-	{
-		bool authorized = false;
-		if (!string.IsNullOrEmpty(interaction.Input.Kitchen.SaltSoup()))
-		{
-			bool retry;
-			do
-			{
-				var dialog = new PasswordAuthDialogViewModel(Wallet);
-				var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
-
-				if (dialogResult.Result && dialogResult.Kind == DialogResultKind.Normal)
-				{
-					retry = false;
-					authorized = true;
-				}
-				else if (dialogResult.Kind == DialogResultKind.Normal)
-				{
-					await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
-					retry = true;
-				}
-				else
-				{
-					retry = false;
-				}
-			} while (retry);
-
-			interaction.SetOutput(authorized);
-		}
-		else
-		{
-			interaction.SetOutput(true);
-		}
-	}
 
 	private void LayoutSelector(double width, double height)
 	{
