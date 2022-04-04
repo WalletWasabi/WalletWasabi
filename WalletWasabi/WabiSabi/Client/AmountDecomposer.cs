@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -14,14 +14,18 @@ public class AmountDecomposer
 	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="outputSize">Size of an output.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int availableVsize)
+	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int availableVsize, Random? random = null)
 	{
 		FeeRate = feeRate;
+		OutputFee = FeeRate.GetFee(outputSize);
 		OutputSize = outputSize;
 		AvailableVsize = availableVsize;
 
 		MinAllowedOutputAmountPlusFee = allowedOutputAmount.Min + OutputFee;
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
+
+		Random = random ?? Random.Shared;
 
 		// Create many standard denominations.
 		DenominationsPlusFees = CreateDenominationsPlusFees();
@@ -32,9 +36,10 @@ public class AmountDecomposer
 	public Money MinAllowedOutputAmountPlusFee { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
-	public Money OutputFee => FeeRate.GetFee(OutputSize);
+	public Money OutputFee { get; }
 	public int OutputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
+	private Random Random { get; }
 
 	private IOrderedEnumerable<ulong> CreateDenominationsPlusFees()
 	{
@@ -189,7 +194,7 @@ public class AmountDecomposer
 		var setCandidates = new Dictionary<int, (IEnumerable<Money> Decomp, Money Cost)>();
 
 		// How many times can we participate with the same denomination.
-		var maxDenomUsage = Random.Shared.Next(2, 8);
+		var maxDenomUsage = Random.Next(2, 8);
 
 		// Create the most naive decomposition for starter.
 		List<Money> naiveSet = new();
@@ -289,7 +294,7 @@ public class AmountDecomposer
 		var finalCandidate = orderedCandidates.First().Decomp;
 		foreach (var candidate in orderedCandidates)
 		{
-			if (Random.Shared.NextDouble() < 0.5)
+			if (Random.NextDouble() < 0.5)
 			{
 				finalCandidate = candidate.Decomp;
 				break;
