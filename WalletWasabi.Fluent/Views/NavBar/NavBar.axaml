@@ -105,7 +105,6 @@
 
     <Style Selector=":is(Panel).NavBarItemPanel.utilities  DockPanel TextBlock" x:DataType="vm:NavBarItemViewModel">
       <Setter Property="Text" Value="{Binding Title}" />
-      <Setter Property="Margin" Value="-2 6 "></Setter>
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel.wallets" x:DataType="vmw:WalletViewModelBase">
@@ -119,11 +118,26 @@
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />
+      <Setter Property="Margin" Value="10, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
           <DoubleTransition Property="Opacity" Duration="0:0:0.175" Easing="1,0,1,0" />
         </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="TextTrimming" Value="None" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="OpacityMask">
+        <LinearGradientBrush StartPoint="100%,0%" EndPoint="70%,0%">
+          <LinearGradientBrush.GradientStops>
+            <GradientStop Color="#00FFFFFF" Offset="0.1" />
+            <GradientStop Color="#FFFFFFFF" Offset="1" />
+          </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
       </Setter>
     </Style>
 
