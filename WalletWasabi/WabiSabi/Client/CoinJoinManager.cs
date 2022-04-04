@@ -134,26 +134,7 @@ public class CoinJoinManager : BackgroundService
 			switch (command)
 			{
 				case StartCoinJoinCommand startCommand:
-
-					var walletToStart = startCommand.Wallet;
-					if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
-					{
-						continue;
-					}
-
-					if (!TryGetCandidateCoins(walletToStart, startCommand.RestartAutomatically, out var coinCandidates))
-					{
-						if (startCommand.RestartAutomatically)
-						{
-							ScheduleRestartAutomatically(trackedAutoStarts, startCommand.Wallet, stoppingToken);
-						}
-
-						continue;
-					}
-
-					trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically), (_, cjt) => cjt);
-					var registrationTimeout = TimeSpan.MaxValue;
-					NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+					HandleCoinJoinCommands(startCommand, coinJoinTrackerFactory, trackedAutoStarts, trackedCoinJoins, stoppingToken);
 					break;
 
 				case StopCoinJoinCommand stopCommand:
@@ -165,6 +146,34 @@ public class CoinJoinManager : BackgroundService
 					break;
 			}
 		}
+	}
+
+	private void HandleCoinJoinCommands(
+		StartCoinJoinCommand startCommand,
+		CoinJoinTrackerFactory coinJoinTrackerFactory,
+		ConcurrentDictionary<Wallet, Task> trackedAutoStarts,
+		ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins,
+		CancellationToken stoppingToken)
+	{
+		var walletToStart = startCommand.Wallet;
+		if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
+		{
+			return;
+		}
+
+		if (!TryGetCandidateCoins(walletToStart, startCommand.RestartAutomatically, out var coinCandidates))
+		{
+			if (startCommand.RestartAutomatically)
+			{
+				ScheduleRestartAutomatically(trackedAutoStarts, startCommand.Wallet, stoppingToken);
+			}
+
+			return;
+		}
+
+		trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically), (_, cjt) => cjt);
+		var registrationTimeout = TimeSpan.MaxValue;
+		NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 	}
 
 	private bool TryGetCandidateCoins(Wallet wallet, bool isAutoCoinJoin, [NotNullWhen(true)] out IEnumerable<SmartCoin>? coinCandidates)
