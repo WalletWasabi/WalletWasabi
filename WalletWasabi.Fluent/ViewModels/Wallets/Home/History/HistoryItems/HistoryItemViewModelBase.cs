@@ -57,16 +57,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
-	public virtual void Update(HistoryItemViewModelBase item)
-	{
-		OrderIndex = item.OrderIndex;
-		Date = item.Date;
-		DateString = item.DateString;
-		IsConfirmed = item.IsConfirmed;
-	}
-
-	public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
-
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
 		return (x, y) =>
