@@ -37,10 +37,10 @@
     <Border ClipToBounds="True"
             CornerRadius="4 4 0 0"
             BorderBrush="{DynamicResource TileBorderColor}"
-            BorderThickness="1">
+            BorderThickness="1,1,1,0">
       <Panel DataContext="{Binding CurrentWallet.CoinJoinStateViewModel}">
         <controls:BlurBehind BlurRadius="10,10" />
-        <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.5" />
+        <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.4" />
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
           <StackPanel Spacing="5">
