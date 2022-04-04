@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -96,7 +97,7 @@ public class CurrencyEntryBox : TextBox
 
 		PseudoClasses.Set(":noexchangerate", true);
 
-		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
+		ModifiedPaste = ReactiveCommand.CreateFromTask(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
 
 	public ICommand ModifiedPaste { get; }
@@ -259,12 +260,12 @@ public class CurrencyEntryBox : TextBox
 		return true;
 	}
 
-	protected override void OnKeyDown(KeyEventArgs e)
+	protected override async void OnKeyDown(KeyEventArgs e)
 	{
-		DoPasteCheck(e);
+		await DoPasteCheckAsync(e);
 	}
 
-	private void DoPasteCheck(KeyEventArgs e)
+	private async Task DoPasteCheckAsync(KeyEventArgs e)
 	{
 		var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
 
@@ -272,7 +273,7 @@ public class CurrencyEntryBox : TextBox
 
 		if (keymap is { } && Match(keymap.Paste))
 		{
-			ModifiedPasteAsync();
+			await ModifiedPasteAsync();
 		}
 		else
 		{
@@ -280,7 +281,7 @@ public class CurrencyEntryBox : TextBox
 		}
 	}
 
-	public async void ModifiedPasteAsync()
+	public async Task ModifiedPasteAsync()
 	{
 		if (AvaloniaLocator.Current.GetService<IClipboard>() is { } clipboard)
 		{
