@@ -10,7 +10,7 @@
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingControl">
-  <controls:ContentArea>
+  <controls:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel Margin="0 0 0 30">
       <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
         <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
