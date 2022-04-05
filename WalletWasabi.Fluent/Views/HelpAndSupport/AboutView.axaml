@@ -10,17 +10,6 @@
              x:DataType="vm:AboutViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
-  <UserControl.Styles>
-    <Style Selector="TextBlock.Hyperlink">
-      <Setter Property="TextDecorations" Value="Underline" />
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBlock.LinkSeparatorPadding">
-      <Setter Property="Margin" Value="5 -0.5" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-  </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="{Binding !EnableBack}"
                           NextContent="Close"
@@ -28,7 +17,7 @@
       <DockPanel LastChildFill="True">
         <Viewbox DockPanel.Dock="Top" Margin="25,25,25,50" Width="112" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
-          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          <Image Source="{DynamicResource wasabi_logo_dynamic}" />
         </Viewbox>
         <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
@@ -71,7 +60,8 @@
               </ItemsControl.Styles>
               <ItemsControl.DataTemplates>
                 <DataTemplate DataType="vm:SeparatorViewModel">
-                  <TextBlock Classes="LinkSeparatorPadding"
+                  <TextBlock VerticalAlignment="Center"
+                             Margin="5 -0.5"
                              Text="-"
                              IsVisible="True" />
                 </DataTemplate>
@@ -87,7 +77,7 @@
           </DockPanel>
           <!-- Advanced -->
           <Button DockPanel.Dock="Bottom"
-                  HorizontalAlignment="Center" 
+                  HorizontalAlignment="Center"
                   VerticalAlignment="Bottom"
                   Classes="plain obscured"
                   Command="{Binding AboutAdvancedInfoDialogCommand}">
