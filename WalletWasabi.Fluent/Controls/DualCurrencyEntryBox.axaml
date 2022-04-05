@@ -156,8 +156,6 @@
     <Setter Property="HorizontalAlignment" Value="Right"/>
   </Style>
 
-
-  
   <!-- Disabled State -->
   <Style Selector="c|DualCurrencyEntryBox:disabled">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
