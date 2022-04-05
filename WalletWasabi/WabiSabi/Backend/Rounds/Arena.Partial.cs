@@ -63,7 +63,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// for validation purposes.
 			_ = round.Assert<ConstructionState>().AddInput(coin);
 
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Config.CoordinatorIdentifier, round.Id);
 			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
