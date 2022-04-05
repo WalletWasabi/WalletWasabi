@@ -163,6 +163,24 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
+	public void SelfAnonsetSanityCheck2()
+	{
+		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var othersOutputs = new[] { 1 };
+		var ownOutputs = new[] { 1, 1, 1, 1 };
+		var tx = BitcoinFactory.CreateSmartTransaction(
+				1,
+				othersOutputs.Select(x => Money.Coins(x)),
+				new[] { (Money.Coins(4.2m), 4) },
+				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
+
+		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		analyser.Analyze(tx);
+		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + 1 / 4, x.HdPubKey.AnonymitySet));
+	}
+
+	[Fact]
 	public void InputSanityCheck()
 	{
 		// Anonset can never be larger than the number of inputs.
@@ -192,12 +210,11 @@ public class CoinJoinAnonScoreTests
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
-		// The anonset calculation naively would be 5,
-		// but there's only 3 inputs so that limits our anonset to 3.
-		// After that we should get 3/2 because 2 out of 3 is ours.
-		// Finally we don't mess around with decimal precisions, so
-		// conservatively 3/2 = 1.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		// The anonset calculation naively would be 5 as there are 5 equal outputs.
+		// But there're only 3 inputs so that limits our anonset to 3.
+		// After that we should get 5/2 because 2 out of 5 is ours.
+		// Finally we don't mess around with decimal precisions, so conservatively 5/2 = 2.
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
 	}
 
 	[Fact]
