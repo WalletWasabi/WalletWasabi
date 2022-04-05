@@ -1,9 +1,9 @@
-using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Styling;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -103,14 +103,15 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		}
 
 		var padding = Padding;
+
 		availableSize = availableSize.Deflate(padding);
+
 		if (_constraint != availableSize)
 		{
 			_constraint = availableSize;
 			NewCreateTextLayout(_constraint, Text);
 		}
 
-		var textLayout = _trimmedLayout;
-		return (textLayout?.Size ?? Size.Empty).Inflate(padding);
+		return (_trimmedLayout?.Size ?? Size.Empty).Inflate(padding);
 	}
 }
