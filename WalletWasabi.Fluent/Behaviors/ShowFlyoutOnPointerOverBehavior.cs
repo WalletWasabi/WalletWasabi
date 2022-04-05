@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -15,8 +16,18 @@ public class ShowFlyoutOnPointerOverBehavior : DisposingBehavior<Control>
 		}
 
 		Observable
-			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerEnter))
-			.Subscribe(_ => FlyoutBase.ShowAttachedFlyout(AssociatedObject))
+			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerMoved))
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => OnPointerMove())
 			.DisposeWith(disposables);
+	}
+
+	private void OnPointerMove()
+	{
+		if (AssociatedObject.IsPointerOver)
+		{
+			FlyoutBase.ShowAttachedFlyout(AssociatedObject);
+		}
 	}
 }
