@@ -56,7 +56,7 @@
 
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
-    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemAccentColor" />
 
     <StaticResource x:Key="TextControlBackground" ResourceKey="SystemChromeMediumColor" />
     <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeWhiteColor" />
