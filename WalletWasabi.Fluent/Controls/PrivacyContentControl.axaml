@@ -18,7 +18,7 @@
           <Panel Name="PART_PrivacyReplacement"
                  IsVisible="{TemplateBinding IsPrivacyContentVisible}">
             <Viewbox Name="PART_Icon">
-              <PathIcon Data="{StaticResource incognito_regular}" Opacity="0.15" />
+              <PathIcon Data="{StaticResource incognito_pathicon}" Opacity="0.15" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText"
                        Text="{TemplateBinding PrivacyText}"/>
