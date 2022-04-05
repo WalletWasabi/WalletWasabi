@@ -5,19 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
         xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
         mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
         x:Class="WalletWasabi.Fluent.Views.MainWindow"
+        x:DataType="viewModels:MainViewModel"
         x:Name="MainWindow"
+        x:CompileBindings="True"
         MinWidth="640" MinHeight="480"
         Width="{Binding WindowWidth, Mode=TwoWay}"
         Height="{Binding WindowHeight, Mode=TwoWay}"
         WindowStartupLocation="Manual"
         Background="{x:Null}"
-        TransparencyLevelHint="Mica"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaTitleBarHeightHint="50"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}">
+  <Window.Styles>
+    <Style Selector="TitleBar">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
+  </Window.Styles>
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
     <behaviors:HideShowBehavior />

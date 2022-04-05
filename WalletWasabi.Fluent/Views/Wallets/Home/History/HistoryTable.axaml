@@ -142,7 +142,8 @@
                     <ToggleButton Classes="ExpandCollapseChevron"
                                   Focusable="False"
                                   IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                  IsVisible="{TemplateBinding ShowExpander}"/>
+                                  IsVisible="{TemplateBinding ShowExpander}"
+                                  Cursor="Hand"/>
                   </Border>
                   <Decorator Name="PART_Content"/>
                 </DockPanel>
@@ -151,7 +152,7 @@
           </Setter>
         </Style>
 
-        <Style Selector="behaviors|TreeDataGridItemDetailsAdorner">
+        <Style Selector="c|TreeDataGridItemDetailsAdorner">
           <Setter Property="Margin" Value="-31,0,0,0" />
           <Setter Property="HorizontalAlignment" Value="Left" />
           <Setter Property="VerticalAlignment" Value="Top" />

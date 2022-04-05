@@ -40,6 +40,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsListBox.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
