@@ -137,9 +137,4 @@
         <Setter Property="Width" Value="100" />
         <Setter Property="Height" Value="100" />
     </Style>
-
-    <Style Selector="Button.skip:pointerover /template/ ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemAccentColor}" />
-    </Style>
-
 </Styles>
