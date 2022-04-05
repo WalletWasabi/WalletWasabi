@@ -13,11 +13,13 @@ public class AmountDecomposer
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
 	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="outputSize">Size of an output.</param>
+	/// <param name="outputSize">Size of an input.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int availableVsize)
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int inputSize, int availableVsize)
 	{
 		FeeRate = feeRate;
 		OutputSize = outputSize;
+		InputSize = inputSize;
 		AvailableVsize = availableVsize;
 
 		MinAllowedOutputAmountPlusFee = allowedOutputAmount.Min + OutputFee;
@@ -33,7 +35,9 @@ public class AmountDecomposer
 	public Money MaxAllowedOutputAmount { get; }
 
 	public Money OutputFee => FeeRate.GetFee(OutputSize);
+	public Money InputFee => FeeRate.GetFee(InputSize);
 	public int OutputSize { get; }
+	public int InputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
 
 	private IOrderedEnumerable<ulong> CreateDenominationsPlusFees()
@@ -250,7 +254,7 @@ public class AmountDecomposer
 
 		setCandidates.Add(
 			hash.ToHashCode(), // Create hash to ensure uniqueness.
-			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
+			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee + (ulong)naiveSet.Count * InputFee)); // The cost is the remaining + output cost + input cost.
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
@@ -273,7 +277,7 @@ public class AmountDecomposer
 				{
 					hash.Add(item);
 				}
-				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
+				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee + (ulong)count * InputFee)); // The cost is the remaining + output cost + input cost.
 			}
 		}
 
