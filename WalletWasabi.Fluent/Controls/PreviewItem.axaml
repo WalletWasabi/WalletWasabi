@@ -61,23 +61,20 @@
   </Style>
 
   <!-- Transitions -->
-  <Style
-    Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter,
-                     c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
+  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter,
+                   c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
     <Setter Property="Transitions">
       <Transitions>
         <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
       </Transitions>
     </Setter>
   </Style>
-  <Style
-    Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
-                     c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
+                   c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
     <Setter Property="Opacity" Value="1" />
   </Style>
-  <Style
-    Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
-                     c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
+                   c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
     <Setter Property="Opacity" Value="0" />
   </Style>
 

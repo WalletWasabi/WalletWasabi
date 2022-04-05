@@ -88,14 +88,13 @@ public class PreviewItem : ContentControl
 
 		var hasBeenJustCopied = Observable.Return(false)
 			.Concat(button.CopyCommand
-			.Select(_ =>
-				Observable.Return(true).Concat(Observable.Timer(TimeSpan.FromSeconds(1)).Select(l => false)))
-			.Switch());
+				.Select(_ => Observable.Return(true).Concat(Observable.Timer(TimeSpan.FromSeconds(1)).Select(_ => false)))
+				.Switch());
 
 		var isCopyButtonVisible = this
 			.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b))
 			.CombineLatest(hasBeenJustCopied, (over, justCopied) => over || justCopied);
-		
+
 		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
 
 		base.OnApplyTemplate(e);

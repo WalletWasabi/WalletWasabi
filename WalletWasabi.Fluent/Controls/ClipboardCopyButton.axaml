@@ -8,12 +8,10 @@
   <Style Selector="c|ClipboardCopyButton">
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel>
-          <c:AnimatedButton x:Name="CopyButton" Command="{TemplateBinding CopyCommand}"
-                            NormalIcon="{StaticResource copy_regular}"
-                            ClickIcon="{StaticResource copy_confirmed}"
-                            InitialOpacity="0.6" />
-        </Panel>
+        <c:AnimatedButton x:Name="CopyButton" Command="{TemplateBinding CopyCommand}"
+                          NormalIcon="{StaticResource copy_regular}"
+                          ClickIcon="{StaticResource copy_confirmed}"
+                          InitialOpacity="0.6" />
       </ControlTemplate>
     </Setter>
   </Style>
