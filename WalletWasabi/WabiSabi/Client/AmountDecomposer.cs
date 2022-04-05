@@ -13,7 +13,7 @@ public class AmountDecomposer
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
 	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="outputSize">Size of an output.</param>
-	/// <param name="outputSize">Size of an input.</param>
+	/// <param name="inputSize">Size of an input.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
 	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int inputSize, int availableVsize)
 	{
@@ -290,7 +290,7 @@ public class AmountDecomposer
 			.ThenBy(x => x.Decomp.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
 			.Select(x => x).ToList();
 
-		// We want to introduce randomity between the best selections.
+		// We want to introduce randomness between the best selections.
 		var bestCandidateCost = orderedCandidates.First().Cost;
 		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.3m);
 		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
