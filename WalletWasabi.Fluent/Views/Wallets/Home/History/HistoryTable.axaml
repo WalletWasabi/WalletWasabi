@@ -174,7 +174,8 @@
                     <ToggleButton Classes="ExpandCollapseChevron"
                                   Focusable="False"
                                   IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                  IsVisible="{TemplateBinding ShowExpander}"/>
+                                  IsVisible="{TemplateBinding ShowExpander}"
+                                  Cursor="Hand"/>
                   </Border>
                   <Decorator Name="PART_Content"/>
                 </DockPanel>

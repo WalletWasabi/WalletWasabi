@@ -2,77 +2,80 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
-    <Style Selector="c|PreviewItem">
-        <Setter Property="Template">
-            <ControlTemplate>
-                <DockPanel Background="Transparent">
-                    <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
-                              Data="{TemplateBinding Icon}"
-                              Opacity="0.5"
-                              Foreground="{StaticResource SystemAccentNeutralColor}"
-                              IsVisible="{TemplateBinding IsIconVisible}" DockPanel.Dock="Left" />
-                    <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
-                        <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />
-                        <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-                            <Panel DockPanel.Dock="Right"
-                                   Width="30">
-                                <c:AnimatedButton Command="{TemplateBinding CopyCommand}"
-                                                  CommandParameter="{TemplateBinding CopyParameter}"
-                                                  ToolTip.Tip="Copy"
-                                                  NormalIcon="{StaticResource copy_regular}"
-                                                  ClickIcon="{StaticResource copy_confirmed}"
-                                                  InitialOpacity="0.6"
-                                                  IsVisible="{TemplateBinding CopyButtonVisibility}" />
-                            </Panel>
-                            <Panel>
-                              <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
-                                                ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
-                              <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}"/>
-                            </Panel>
-                        </DockPanel>
-                    </DockPanel>
-                </DockPanel>
-            </ControlTemplate>
-        </Setter>
-    </Style>
+  <Design.PreviewWith>
+    <Border Height="100" Width="400">
+      <c:PreviewItem Label="Transaction ID"
+                     TextValue="Text to copy" />
+    </Border>
+  </Design.PreviewWith>
 
-    <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="14" />
-    </Style>
+  <Style Selector="c|PreviewItem">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel Background="Transparent">
+          <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
+                    Data="{TemplateBinding Icon}"
+                    Opacity="0.5"
+                    Foreground="{StaticResource SystemAccentNeutralColor}"
+                    DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <DockPanel DockPanel.Dock="Right" Margin="20 0 0 0">
+            <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
+                       Opacity="0.6" />
+            <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
+              <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+                                     ToolTip.Tip="Copy"
+                                     DockPanel.Dock="Right" Width="30"
+                                     Text="{TemplateBinding TextValue}"
+                                     IsVisible="{TemplateBinding IsCopyButtonVisible}" />
+              <Panel>
+                <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
+                <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}" />
+              </Panel>
+            </DockPanel>
+          </DockPanel>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
 
-    <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="TextWrapping" Value="Wrap" />
-    </Style>
+  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="TextBlock.FontSize" Value="14" />
+  </Style>
 
-    <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
-        <Setter Property="TextWrapping" Value="Wrap" />
-    </Style>
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
 
-    <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
-        <Setter Property="Text" Value="Sensitive Data" />
-        <Setter Property="Foreground" Value="IndianRed" />
-    </Style>
+  <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
 
-    <!-- Transitions -->
-    <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter,
-                     c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
-        <Setter Property="Transitions">
-            <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
-            </Transitions>
-        </Setter>
-    </Style>
-    <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
-                     c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
-                     c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
-        <Setter Property="Opacity" Value="0" />
-    </Style>
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
+    <Setter Property="Text" Value="Sensitive Data" />
+    <Setter Property="Foreground" Value="IndianRed" />
+  </Style>
+
+  <!-- Transitions -->
+  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter,
+                   c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock">
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=True],
+                   c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=True]">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_ContentReplacementTextBlock[IsVisible=False],
+                   c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
 
 </Styles>
