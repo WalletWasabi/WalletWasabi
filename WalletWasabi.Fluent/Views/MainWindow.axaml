@@ -22,6 +22,11 @@
         ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}">
+  <Window.Styles>
+    <Style Selector="TitleBar">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
+  </Window.Styles>
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
     <behaviors:HideShowBehavior />
