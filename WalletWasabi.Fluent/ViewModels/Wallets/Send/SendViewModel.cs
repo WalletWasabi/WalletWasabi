@@ -143,7 +143,8 @@ public partial class SendViewModel : RoutableViewModel
             .Skip(1)
             .Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-        var pasteMonitor = new ClipboardPasteMonitor(this.WhenAnyValue(model => model.To, selector: s => s.Trim()), IsBtcAddress);
+		var pasteMonitor = new ClipboardPasteMonitor(this.WhenAnyValue(model => model.To, selector: s => s.Trim()),
+			s => IsBtcAddress(s) && PayJoinEndPoint is null);
 
 		_navigatedTo
 			.SelectMany(_ => ApplicationUtils.GetClipboardTextAsync())
@@ -157,6 +158,8 @@ public partial class SendViewModel : RoutableViewModel
 			.Select(t => IsBtcAddress(t) ? $"Paste BTC Address:\r\n{t}" : "Paste")
 			.ToProperty(this, nameof(ToolTip));
 	}
+
+	public string RawClipboardText { get; set; }
 
 	public ReactiveCommand<Unit, Unit> PasteCommand { get; }
 
