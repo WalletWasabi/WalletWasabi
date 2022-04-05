@@ -205,13 +205,7 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundPointerOver}" />
   </Style>
 
-  <Style Selector="c|CurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
-  </Style>
-
-  <Style
-    Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
+  <Style Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
   </Style>
 

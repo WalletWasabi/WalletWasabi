@@ -171,6 +171,11 @@
     <Setter Property="MinHeight" Value="21" />
   </Style>
 
+  <Style Selector="c|DualCurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}"/>
+  </Style>
+
   <Style Selector="c|DualCurrencyEntryBox:error /template/ Border#PART_BorderElement">
     <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
   </Style>
