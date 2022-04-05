@@ -42,6 +42,18 @@ public class LabelsPanel : VirtualizingStackPanel
 		base.OnAttachedToVisualTree(e);
 	}
 
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		if (EllipsisControl is { } ellipsisControl)
+		{
+			((ISetLogicalParent)ellipsisControl).SetParent(null);
+			LogicalChildren.Remove(ellipsisControl);
+			VisualChildren.Remove(ellipsisControl);
+		}
+
+		base.OnDetachedFromVisualTree(e);
+	}
+
 	protected override Size MeasureOverride(Size availableSize)
 	{
 		var ellipsis = 0.0;
