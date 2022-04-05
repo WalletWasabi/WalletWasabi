@@ -65,7 +65,7 @@
                   </Style>
                 </DockPanel.Styles>
                 <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
-                                           HorizontalAlignment="Center" Height="64" />
+                                           HorizontalAlignment="Center" Height="66" />
                 <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
               </DockPanel>
               <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" Margin="0 0 -5 -5" />
