@@ -62,7 +62,9 @@
                   <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                               ElementFactory="{TemplateBinding ElementFactory}"
                                               Items="{TemplateBinding Columns}"
-                                              Rows="{TemplateBinding Rows}"/>
+                                              Rows="{TemplateBinding Rows}"
+                                              Classes.coinJoinTransaction="{Binding IsCoinJoinTransaction}"
+                                              x:CompileBindings="False"/>
                 </Panel>
               </DockPanel>
             </ControlTemplate>
@@ -100,6 +102,15 @@
         <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter">
           <Setter Property="Background" Value="Transparent" />
         </Style>
+        <Style Selector="TreeDataGridRow /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}"/>
+        </Style>
+        <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+          <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TreeDataGridRow:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
+          <Setter Property="Background" Value="Transparent"/>
+        </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
@@ -118,6 +129,29 @@
             </i:BehaviorCollectionTemplate>
           </Setter>
         </Style>
+
+        <Style Selector="TreeDataGridExpanderCell">
+          <Setter Property="Template">
+            <ControlTemplate>
+              <Border Background="{TemplateBinding Background}"
+                      Padding="0">
+                <DockPanel>
+                  <Border DockPanel.Dock="Left"
+                          Margin="4 0"
+                          Width="12" Height="12">
+                    <ToggleButton Classes="ExpandCollapseChevron"
+                                  Focusable="False"
+                                  IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+                                  IsVisible="{TemplateBinding ShowExpander}"
+                                  Cursor="Hand"/>
+                  </Border>
+                  <Decorator Name="PART_Content"/>
+                </DockPanel>
+              </Border>
+            </ControlTemplate>
+          </Setter>
+        </Style>
+
         <Style Selector="behaviors|TreeDataGridItemDetailsAdorner">
           <Setter Property="Margin" Value="-31,0,0,0" />
           <Setter Property="HorizontalAlignment" Value="Left" />
