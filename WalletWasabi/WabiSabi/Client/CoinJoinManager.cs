@@ -37,7 +37,7 @@ public class CoinJoinManager : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
-	private CancellationTokenSource AbortCancellationTokenSource { get; } = new ();
+	private CancellationTokenSource AbortCancellationTokenSource { get; } = new();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -54,7 +54,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task StartAutomaticallyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken,AbortCancellationTokenSource.Token);
+		using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, AbortCancellationTokenSource.Token);
 		var combinedToken = combinedTokenSource.Token;
 
 		while (!combinedToken.IsCancellationRequested && wallet.NonPrivateCoins.TotalAmount() <= wallet.KeyManager.PlebStopThreshold)
@@ -136,37 +136,47 @@ public class CoinJoinManager : BackgroundService
 		{
 			var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, stoppingToken);
 
+			void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
+			{
+				var walletToStart = startCommand.Wallet;
+				if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
+				{
+					return;
+				}
+				var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
+				if (coinCandidates.Length == 0)
+				{
+					NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
+					return;
+				}
+
+				var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically);
+
+				trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
+				var registrationTimeout = TimeSpan.MaxValue;
+				NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+			}
+
+			void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
+			{
+				var walletToStop = stopCommand.Wallet;
+				if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
+				{
+					coinJoinTrackerToStop.Cancel();
+				}
+			}
+
 			while (!stoppingToken.IsCancellationRequested)
 			{
 				var command = await CommandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
-						var walletToStart = startCommand.Wallet;
-						if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
-						{
-							continue;
-						}
-						var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
-						if (coinCandidates.Length == 0)
-						{
-							NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
-							continue;
-						}
-
-						var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically);
-
-						trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
-						var registrationTimeout = TimeSpan.MaxValue;
-						NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+						StartCoinJoinCommand(startCommand);
 						break;
 
 					case StopCoinJoinCommand stopCommand:
-						var walletToStop = stopCommand.Wallet;
-						if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
-						{
-							coinJoinTrackerToStop.Cancel();
-						}
+						StopCoinJoinCommand(stopCommand);
 						break;
 				}
 			}
