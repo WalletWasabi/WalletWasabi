@@ -25,7 +25,7 @@
           <Color x:Key="SystemChromeGrayColor">#FF6D8EA3</Color>
           <Color x:Key="SystemChromeHighColor">#FFEBEFF2</Color>
           <Color x:Key="SystemChromeLowColor">#FFEFFAFF</Color>
-          <Color x:Key="SystemChromeMediumColor">#FFEEF8FC</Color>
+          <Color x:Key="SystemChromeMediumColor">#1A8093AE</Color>
           <Color x:Key="SystemChromeMediumLowColor">#FFEFFAFF</Color>
           <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
           <Color x:Key="SystemListLowColor">#FFEEF8FC</Color>
@@ -59,7 +59,7 @@
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
 
     <StaticResource x:Key="TextControlBackground" ResourceKey="SystemChromeMediumColor" />
-    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeMediumColor" />
+    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="SystemChromeWhiteColor" />
     <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="SystemChromeMediumColor" />
 
     <StaticResource x:Key="ComboBoxItemBackground" ResourceKey="SystemChromeMediumColor" />

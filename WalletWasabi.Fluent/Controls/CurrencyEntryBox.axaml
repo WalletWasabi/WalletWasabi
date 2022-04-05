@@ -189,7 +189,7 @@
   </Style>
 
   <Style Selector="c|CurrencyEntryBox /template/ Border#PART_BorderElement">
-    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
   </Style>
 
   <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
