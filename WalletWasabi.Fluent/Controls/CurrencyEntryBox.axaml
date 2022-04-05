@@ -24,9 +24,12 @@
     <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="ContextMenu">
       <ContextMenu>
-        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}" InputGesture="{x:Static TextBox.CutGesture}" />
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-        <MenuItem Header="Paste" Command="{Binding $parent[c:CurrencyEntryBox].ModifiedPaste}" IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
+        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"
+                  InputGesture="{x:Static TextBox.CutGesture}" />
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
+                  IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
+        <MenuItem Header="Paste" Command="{Binding $parent[c:CurrencyEntryBox].ModifiedPaste}"
+                  IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
       </ContextMenu>
     </Setter>
     <Setter Property="Cursor" Value="IBeam" />
@@ -45,23 +48,23 @@
           <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 5 0 0" />
           <Panel IsVisible="{Binding !$parent[c:CurrencyEntryBox].IsReadOnly}">
             <Border
-                Name="PART_BorderElement"
-                Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="{TemplateBinding BorderThickness}"
-                MinWidth="{TemplateBinding MinWidth}"
-                MinHeight="{TemplateBinding MinHeight}" />
+              Name="PART_BorderElement"
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              MinWidth="{TemplateBinding MinWidth}"
+              MinHeight="{TemplateBinding MinHeight}" />
 
             <Panel
-                Margin="{TemplateBinding BorderThickness}">
+              Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
                                   Content="{TemplateBinding InnerLeftContent}" />
                 <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
                        Margin="{TemplateBinding Padding}">
                   <ScrollViewer
-                      HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                    HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                    VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                     <DockPanel>
                       <TextBlock Name="PART_ConversionWatermark"
                                  DockPanel.Dock="Right"
@@ -136,13 +139,13 @@
 
           <Panel>
             <Border
-                BorderThickness="{TemplateBinding BorderThickness}"
-                MinWidth="{TemplateBinding MinWidth}"
-                MinHeight="{TemplateBinding MinHeight}" />
+              BorderThickness="{TemplateBinding BorderThickness}"
+              MinWidth="{TemplateBinding MinWidth}"
+              MinHeight="{TemplateBinding MinHeight}" />
             <Panel
-                Margin="{TemplateBinding BorderThickness}">
+              Margin="{TemplateBinding BorderThickness}">
               <Panel
-                  Margin="{TemplateBinding Padding}">
+                Margin="{TemplateBinding Padding}">
                 <DockPanel>
                   <StackPanel Orientation="Horizontal">
                     <TextPresenter Name="PART_TextPresenter"
@@ -208,7 +211,7 @@
   </Style>
 
   <Style
-      Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark">
+    Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
   </Style>
 
@@ -223,7 +226,7 @@
   </Style>
 
   <Style
-      Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
+    Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
   </Style>
 
@@ -233,7 +236,7 @@
   </Style>
 
   <Style
-      Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
+    Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
   </Style>
 
@@ -256,7 +259,7 @@
   </Style>
 
   <Style
-      Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
   </Style>
 </Styles>
