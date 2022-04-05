@@ -282,23 +282,23 @@ public class AmountDecomposer
 		}
 
 		var denomHashSet = preFilteredDenoms.ToHashSet();
-		var finalCandidates = setCandidates.Select(x => x.Value).ToList();
-		finalCandidates.Shuffle();
+		var preCandidates = setCandidates.Select(x => x.Value).ToList();
+		preCandidates.Shuffle();
 
-		var orderedCandidates = finalCandidates
+		var orderedCandidates = preCandidates
 			.OrderBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomp.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
 			.Select(x => x).ToList();
 
-		var finalCandidate = orderedCandidates.First().Decomp;
-		foreach (var candidate in orderedCandidates)
-		{
-			if (Random.Shared.NextDouble() < 0.5)
-			{
-				finalCandidate = candidate.Decomp;
-				break;
-			}
-		}
+		// We want to introduce randomity between the best selections.
+		var bestCandidateCost = orderedCandidates.First().Cost;
+		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.3m);
+		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+
+		// We want to make sure our random selection is not between similar decompositions.
+		// Different largest elements result in very different decompositions.
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
 
 		finalCandidate = finalCandidate.Select(x => x - OutputFee);
 
