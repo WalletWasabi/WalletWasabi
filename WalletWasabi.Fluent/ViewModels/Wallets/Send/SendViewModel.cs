@@ -49,6 +49,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify] private string? _rawAddressText;
 
 	private bool _parsingUrl;
 	private readonly ObservableAsPropertyHelper<bool> _canPasteFromClipboard;
@@ -143,8 +144,11 @@ public partial class SendViewModel : RoutableViewModel
             .Skip(1)
             .Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		var pasteMonitor = new ClipboardPasteMonitor(this.WhenAnyValue(model => model.To, selector: s => s.Trim()),
-			s => IsBtcAddress(s) && PayJoinEndPoint is null);
+		var rawTextChanged = this
+			.WhenAnyValue(model => model.RawAddressText, selector: s => s?.Trim() ?? "");
+
+		var pasteMonitor = new ClipboardPasteMonitor(rawTextChanged,
+			IsBtcAddress);
 
 		_navigatedTo
 			.SelectMany(_ => ApplicationUtils.GetClipboardTextAsync())
@@ -153,13 +157,20 @@ public partial class SendViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.InvokeCommand(PasteCommand);
 
+		this.WhenAnyValue(model => model.To)
+			.Subscribe(s =>
+			{
+				if (!_parsingUrl)
+				{
+					RawAddressText = s.Trim();
+				}
+			});
+
 		_canPasteFromClipboard = pasteMonitor.CanPaste.ToProperty(this, nameof(CanPasteFromClipboard));
 		_toolTip = pasteMonitor.ClipboardText
 			.Select(t => IsBtcAddress(t) ? $"Paste BTC Address:\r\n{t}" : "Paste")
 			.ToProperty(this, nameof(ToolTip));
 	}
-
-	public string RawClipboardText { get; set; }
 
 	public ReactiveCommand<Unit, Unit> PasteCommand { get; }
 
@@ -281,6 +292,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
+			RawAddressText = text;
 			result = true;
 			if (url.Label is { } label)
 			{
