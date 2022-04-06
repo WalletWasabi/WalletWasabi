@@ -7,6 +7,7 @@ using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -19,7 +20,7 @@ public class CoordinatorTests
 		var workDir = Common.GetWorkDir();
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
-		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient());
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore());
 		await coordinator.StartAsync(CancellationToken.None);
 		await coordinator.StopAsync(CancellationToken.None);
 	}
@@ -31,32 +32,32 @@ public class CoordinatorTests
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 
-		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient());
+		using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore());
 		using CancellationTokenSource cts = new();
 		cts.Cancel();
 		await coordinator.StartAsync(cts.Token);
 		await coordinator.StopAsync(CancellationToken.None);
 
-		using WabiSabiCoordinator coordinator2 = new(coordinatorParameters, NewMockRpcClient());
+		using WabiSabiCoordinator coordinator2 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore());
 		using CancellationTokenSource cts2 = new();
 		await coordinator2.StartAsync(cts2.Token);
 		cts2.Cancel();
 		await coordinator2.StopAsync(CancellationToken.None);
 
-		using WabiSabiCoordinator coordinator3 = new(coordinatorParameters, NewMockRpcClient());
+		using WabiSabiCoordinator coordinator3 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore());
 		using CancellationTokenSource cts3 = new();
 		var t = coordinator3.StartAsync(cts3.Token);
 		cts3.Cancel();
 		await t;
 		await coordinator3.StopAsync(CancellationToken.None);
 
-		using WabiSabiCoordinator coordinator4 = new(coordinatorParameters, NewMockRpcClient());
+		using WabiSabiCoordinator coordinator4 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore());
 		await coordinator4.StartAsync(CancellationToken.None);
 		using CancellationTokenSource cts4 = new();
 		cts4.Cancel();
 		await coordinator4.StopAsync(cts4.Token);
 
-		using WabiSabiCoordinator coordinator5 = new(coordinatorParameters, NewMockRpcClient());
+		using WabiSabiCoordinator coordinator5 = new(coordinatorParameters, NewMockRpcClient(), new CoinJoinIdStore());
 		await coordinator5.StartAsync(CancellationToken.None);
 		using CancellationTokenSource cts5 = new();
 		t = coordinator5.StopAsync(cts5.Token);

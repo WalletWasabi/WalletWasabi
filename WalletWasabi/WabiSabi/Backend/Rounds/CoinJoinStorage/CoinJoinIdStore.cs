@@ -10,6 +10,10 @@ public class CoinJoinIdStore : ICoinJoinIdStore
 	public string CoinJoinsFilePath { get; set; }
 	private object FileWriteLock { get; set; } = new();
 
+	public CoinJoinIdStore() : this(string.Empty)
+	{
+	}
+
 	public CoinJoinIdStore(string ww2CoinjoinsFilePath)
 	{
 		CoinJoinsFilePath = ww2CoinjoinsFilePath;

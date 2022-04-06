@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, CoinJoinIdStore coinJoinIdStore)
 	{
 		Parameters = parameters;
 
