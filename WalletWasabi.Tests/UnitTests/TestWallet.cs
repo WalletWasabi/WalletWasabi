@@ -64,7 +64,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public Transaction CreateSelfTransfer(FeeRate feeRate)
 	{
 		var (tx, spendingCoin) = CreateTemplateTransaction();
-		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes), CreateNewAddress());
+		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFee(Constants.P2wpkhOutputVirtualSize), CreateNewAddress());
 		return tx;
 	}
 
