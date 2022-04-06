@@ -22,21 +22,47 @@
 
     <Style Selector="TextBox#SearchBox">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="BorderThickness" Value="1 1 1 1" />
       <Setter Property="Margin" Value="0" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="Padding" Value="6 3" />
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="BorderBrush">
+        <SolidColorBrush Opacity="0.4" Color="{DynamicResource AcrylicTrimForeground}" />
+      </Setter>
+      <Setter Property="CornerRadius" Value="5" />
     </Style>
 
     <Style Selector="PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
 
-    <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
-      <Setter Property="CornerRadius" Value="5" />
+    <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+      <Setter Property="BorderBrush">
+        <SolidColorBrush Opacity="0.6" Color="{DynamicResource AcrylicTrimForeground}" />
+      </Setter>
+    </Style>
+
+    <Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush">
+        <SolidColorBrush Opacity="1" Color="{DynamicResource AcrylicTrimForeground}" />
+      </Setter>
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBox#SearchBox PathIcon">
+      <Setter Property="Opacity" Value="0.4"/>
+    </Style>
+
+    <Style Selector="TextBox#SearchBox:focus PathIcon">
+      <Setter Property="Opacity" Value="0.6"/>
+    </Style>
+
+    <Style Selector="TextBox#SearchBox:pointerover PathIcon">
+      <Setter Property="Opacity" Value="1"/>
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ DataValidationErrors">
@@ -46,11 +72,6 @@
     <Style Selector="TextBox:pointerover">
       <Setter Property="Foreground" Value="White" />
       <Setter Property="Cursor" Value="Hand" />
-    </Style>
-
-    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-      <Setter Property="BorderBrush" Value="White" />
-      <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <Style
@@ -71,12 +92,6 @@
       <Setter Property="Foreground">
         <SolidColorBrush Opacity="0.5" Color="{DynamicResource AcrylicTrimForeground}" />
       </Setter>
-    </Style>
-
-    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="White" />
-      <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
     </Style>
 
     <Style Selector="FlyoutPresenter">
