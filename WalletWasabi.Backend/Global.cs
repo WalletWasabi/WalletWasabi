@@ -14,6 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.Backend;
 
@@ -42,6 +43,7 @@ public class Global : IDisposable
 	public Config Config { get; private set; }
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
+	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
 
 	public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
 	{
@@ -56,9 +58,6 @@ public class Global : IDisposable
 		await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
 		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
-
-		CoordinatorParameters coordinatorParameters = new(DataDir);
-		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
 
 		if (roundConfig.FilePath is { })
 		{
@@ -86,7 +85,15 @@ public class Global : IDisposable
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
+
+		CoordinatorParameters coordinatorParameters = new(DataDir);
 		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+
+		CoinJoinIdStore = new(coordinatorParameters.CoinJoinIdStoreFilePath);
+		CoinJoinIdStore.InMemoryCoinJoinIdStore.ImportWW1CoinJoinsToWW2(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
+
+		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore), "WabiSabi Coordinator");
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
@@ -94,6 +101,11 @@ public class Global : IDisposable
 		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+	}
+
+	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
+	{
+		CoinJoinIdStore.Append(transaction.GetHash());
 	}
 
 	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
@@ -165,6 +177,8 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
+				Coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;
+
 				if (Coordinator is { } coordinator)
 				{
 					coordinator.Dispose();
