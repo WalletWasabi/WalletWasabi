@@ -140,9 +140,9 @@ public partial class SendViewModel : RoutableViewModel
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
 
-        this.WhenAnyValue(x => x.ConversionReversed)
-            .Skip(1)
-            .Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+		this.WhenAnyValue(x => x.ConversionReversed)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
 		var rawTextChanged = this
 			.WhenAnyValue(model => model.RawAddressText, selector: s => s?.Trim() ?? "");
