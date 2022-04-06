@@ -121,14 +121,10 @@
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
            Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
     <TextBox.InnerLeftContent>
-      <LayoutTransformControl>
-        <PathIcon Data="{DynamicResource action_center_regular}" Margin="10 0" />
-      </LayoutTransformControl>
+      <PathIcon Data="{DynamicResource action_center_regular}" Margin="10 0" />
     </TextBox.InnerLeftContent>
     <TextBox.InnerRightContent>
-      <LayoutTransformControl>
-        <PathIcon Data="{DynamicResource search_regular}" Margin="10 0" />
-      </LayoutTransformControl>
+      <PathIcon Data="{DynamicResource search_regular}" Margin="10 0" />
     </TextBox.InnerRightContent>
   </TextBox>
 
