@@ -177,6 +177,10 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 		analyser.Analyze(tx);
 		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
+		// The increase in the anonymity set would naively be 1 as there is 1 equal non-wallet output.
+		// Since 4 outputs are ours, we divide the increase in anonymity between them
+		// and add that to the inherited anonymity of 4.
 		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + 1 / 4, x.HdPubKey.AnonymitySet));
 	}
 
