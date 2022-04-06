@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
@@ -39,5 +40,28 @@ public class InMemoryCoinJoinIdStore
 
 		var store = new InMemoryCoinJoinIdStore(lines);
 		return store;
+	}
+
+	public void ImportWW1CoinJoinsToWW2(string ww1CoinJoinsFilePath, string coinJoinIdStoreFilePath)
+	{
+		try
+		{
+			var oldCoinjoins = File.ReadAllLines(ww1CoinJoinsFilePath);
+
+			var newCoinjoins = File.ReadAllLines(coinJoinIdStoreFilePath);
+			var missingOldCoinjoins = oldCoinjoins.Except(newCoinjoins);
+			if (missingOldCoinjoins.Any())
+			{
+				foreach (var coinjoinId in missingOldCoinjoins)
+				{
+					Add(uint256.Parse(coinjoinId));
+				}
+				File.AppendAllLines(coinJoinIdStoreFilePath, missingOldCoinjoins);
+			}
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError("Failed to import old coinjoins. Reason:", exc);
+		}
 	}
 }
