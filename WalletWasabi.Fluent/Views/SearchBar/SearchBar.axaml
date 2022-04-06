@@ -38,6 +38,16 @@
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
 
+    <Style Selector="TextBox#SearchBox /template/ Border#PART_BorderElement">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush"
+                           Duration="0:0:0.35"
+                           Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+    </Style>
+
     <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
@@ -54,15 +64,22 @@
     </Style>
 
     <Style Selector="TextBox#SearchBox PathIcon">
-      <Setter Property="Opacity" Value="0.4"/>
+      <Setter Property="Opacity" Value="0.4" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity"
+                            Duration="0:0:0.35"
+                            Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
     </Style>
 
     <Style Selector="TextBox#SearchBox:focus PathIcon">
-      <Setter Property="Opacity" Value="0.6"/>
+      <Setter Property="Opacity" Value="0.6" />
     </Style>
 
     <Style Selector="TextBox#SearchBox:pointerover PathIcon">
-      <Setter Property="Opacity" Value="1"/>
+      <Setter Property="Opacity" Value="1" />
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ DataValidationErrors">
@@ -117,7 +134,8 @@
   </FlyoutBase.AttachedFlyout>
 
   <i:Interaction.Behaviors>
-    <behaviors:SearchBarBehavior SearchBox="SearchBox" SearchPanel="SearchBarDropdown" IsSearchPanelOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
+    <behaviors:SearchBarBehavior SearchBox="SearchBox" SearchPanel="SearchBarDropdown"
+                                 IsSearchPanelOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
   </i:Interaction.Behaviors>
 
 </UserControl>
