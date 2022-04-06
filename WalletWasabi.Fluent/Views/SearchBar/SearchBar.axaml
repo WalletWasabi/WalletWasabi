@@ -65,13 +65,25 @@
 
     <Style Selector="TextBox#SearchBox PathIcon">
       <Setter Property="Opacity" Value="0.4" />
+      <Setter Property="Margin" Value="10 0" />
       <Setter Property="Transitions">
         <Transitions>
           <DoubleTransition Property="Opacity"
                             Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
+          <ThicknessTransition Property="Margin"
+                               Duration="0:0:0.127"
+                               Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
+    </Style>
+
+    <Style Selector="TextBox#SearchBox:focus-within PathIcon#LeftIcon">
+      <Setter Property="Margin" Value=" -30 0 10 0" />
+    </Style>
+
+    <Style Selector="TextBox#SearchBox:focus-within PathIcon#RightIcon">
+      <Setter Property="Margin" Value=" 10 0 -30 0" />
     </Style>
 
     <Style Selector="TextBox#SearchBox:focus-within PathIcon">
@@ -121,10 +133,10 @@
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
            Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
     <TextBox.InnerLeftContent>
-      <PathIcon Data="{DynamicResource action_center_regular}" Margin="10 0" />
+      <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
     </TextBox.InnerLeftContent>
     <TextBox.InnerRightContent>
-      <PathIcon Data="{DynamicResource search_regular}" Margin="10 0" />
+      <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
     </TextBox.InnerRightContent>
   </TextBox>
 
