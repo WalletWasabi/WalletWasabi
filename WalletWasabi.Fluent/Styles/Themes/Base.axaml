@@ -15,12 +15,8 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
 
-    <Color x:Key="SystemAccentColor">#FF78A827</Color>
-    <Color x:Key="SystemAccentNeutralColor">#FF7FAF2E</Color>
-
-    <Color x:Key="NavBarTintColor">#134074</Color>
-    <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
     <Color x:Key="OrangeCoinColor">#F2994A</Color>
+    <Color x:Key="CoinjoinActiveColor">Orange</Color>
     <SolidColorBrush x:Key="DismissColor" Color="#DD4343" />
 
     <SolidColorBrush x:Key="InvisibleButtonBackgroundColor" Opacity="0" Color="{DynamicResource SystemBaseHighColor}" />
@@ -29,9 +25,7 @@
     <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.25"
                      Color="{DynamicResource SystemBaseHighColor}" />
 
-    <SolidColorBrush x:Key="TextControlBackground" Color="{DynamicResource SystemChromeMediumColor}" />
-    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{DynamicResource SystemChromeMediumColor}" />
-    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{DynamicResource SystemChromeMediumColor}" />
+    <Color x:Key="StatusForegroundColor">White</Color>
 
     <SolidColorBrush x:Key="PopupBackground" Color="{DynamicResource SystemBaseLowColor}" />
     <SolidColorBrush x:Key="OptionButtonBackground" Color="{DynamicResource TileRegionColor}" />
@@ -42,14 +36,14 @@
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Opacity="0.25"
                      Color="{DynamicResource SystemBaseMediumLowColor}" />
 
-    <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="White" />
-    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource SystemAccentColor}" />
-    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource SystemAccentColorDark1}" />
-    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource SystemAccentColorLight1}" />
+    <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{DynamicResource ActionForegroundColor}" />
+    <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{DynamicResource ActionColor}" />
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{DynamicResource ActionColorDark1}" />
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{DynamicResource ActionColorLight1}" />
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{DynamicResource SystemChromeDisabledLowColor}" />
 
-    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentNeutralColor}"/>
-    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentNeutralColor}"/>
+    <SolidColorBrush x:Key="NavBarAccentColor" Color="{StaticResource SystemAccentColor}" />
+    <SolidColorBrush x:Key="NavBarAccentColorPressed" Opacity="0.5" Color="{StaticResource SystemAccentColor}" />
     <SolidColorBrush x:Key="NavBarItemPressedAccentColor">#719B2A</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemDisabledBrush">#66FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="NavBarItemPointerOverBrush">#FFFFFFFF</SolidColorBrush>
@@ -86,6 +80,11 @@
     <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent" />
     <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundColor" Color="Transparent" />
     <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundColor" Color="Transparent" />
+
+    <SolidColorBrush x:Key="GlassEdgeColor"
+                     Color="{DynamicResource SystemBaseHighColor}"
+                     Opacity="0.12"/>
+
     <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1.0</x:Double>
     <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1.0</x:Double>
 
@@ -98,7 +97,25 @@
                     ResourceKey="DataGridRowSelectedBackgroundColor" />
     <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
 
+    <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />
+    <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
+    <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
+
     <BoxShadows x:Key="EmptyBoxShadow">0 0 0 0 #000000</BoxShadows>
+
+    <LinearGradientBrush x:Key="LogoBaseColor" StartPoint="616.03,205.77002" EndPoint="371.41003,625.12">
+      <LinearGradientBrush.GradientStops>
+        <GradientStop Offset="0" Color="#FFFFFFFF" />
+        <GradientStop Offset="0.25" Color="#FFE1E1E1" />
+        <GradientStop Offset="0.54" Color="#FFC6C6C6" />
+        <GradientStop Offset="0.79999995" Color="#FFB5B5B5" />
+        <GradientStop Offset="0.99" Color="#FFAFAFAF" />
+      </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
 
     <LinearGradientBrush x:Key="LogoGradientFixed" StartPoint="62%,31%" EndPoint="24%,81%">
       <LinearGradientBrush.GradientStops>
@@ -110,22 +127,8 @@
       </LinearGradientBrush.GradientStops>
     </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="PrivacyIndicatorWalletGradientBrush" StartPoint="0,2.5" EndPoint="66.8942,36.3931">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Offset="0" Color="#FF646A74" />
-        <GradientStop Offset="1.0000001" Color="#FF545E6F" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
-    <LinearGradientBrush x:Key="PrivacyIndicatorShieldGradientBrush0" StartPoint="46.4998,1.7628994" EndPoint="0,45.3796">
-      <LinearGradientBrush.GradientStops>
-        <GradientStop Offset="0" Color="#FF97D234" />
-        <GradientStop Offset="1" Color="#FF7FAF2F" />
-      </LinearGradientBrush.GradientStops>
-    </LinearGradientBrush>
-
     <system:Double x:Key="HistoryTableRowHeight">36.5</system:Double>
     <system:Double x:Key="HistoryTablePlaceholderTextOpacity">0.5</system:Double>
     <Thickness x:Key="HistoryTablePlaceholderPanelMargin">0 42 0 0</Thickness>
-
   </Styles.Resources>
 </Styles>

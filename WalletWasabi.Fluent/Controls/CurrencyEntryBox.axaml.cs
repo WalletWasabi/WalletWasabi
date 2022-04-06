@@ -1,16 +1,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
-using Avalonia.Interactivity;
 using Avalonia.Threading;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
@@ -18,28 +16,17 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class CurrencyEntryBox : TextBox
 {
-	public static readonly DirectProperty<CurrencyEntryBox, decimal> AmountBtcProperty =
-		AvaloniaProperty.RegisterDirect<CurrencyEntryBox, decimal>(
-			nameof(AmountBtc),
-			o => o.AmountBtc,
-			(o, v) => o.AmountBtc = v,
-			enableDataValidation: true,
-			defaultBindingMode: BindingMode.TwoWay);
-
-	public static readonly StyledProperty<string> ConversionTextProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(ConversionText));
-
-	public static readonly StyledProperty<decimal> ConversionRateProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(ConversionRate));
-
 	public static readonly StyledProperty<string> CurrencyCodeProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(CurrencyCode));
 
-	public static readonly StyledProperty<string> ConversionCurrencyCodeProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(ConversionCurrencyCode));
+	public static readonly StyledProperty<bool> IsFiatProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsFiat));
 
-	public static readonly StyledProperty<bool> IsConversionReversedProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsConversionReversed));
+	public static readonly StyledProperty<bool> IsApproximateProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsApproximate));
+
+	public static readonly StyledProperty<decimal> ConversionRateProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(ConversionRate));
 
 	private readonly CultureInfo _customCultureInfo;
 	private readonly char _decimalSeparator = '.';
@@ -48,10 +35,6 @@ public class CurrencyEntryBox : TextBox
 	private readonly Regex _regexDecimalCharsOnly;
 	private readonly Regex _regexConsecutiveSpaces;
 	private readonly Regex _regexGroupAndDecimal;
-	private Button? _swapButton;
-	private CompositeDisposable? _disposable;
-	private bool _canUpdateDisplay = true;
-	private decimal _amountBtc;
 
 	public CurrencyEntryBox()
 	{
@@ -66,13 +49,6 @@ public class CurrencyEntryBox : TextBox
 				}
 		};
 
-		this.GetObservable(TextProperty).Subscribe(InputText);
-		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
-		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
-		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
-
-		Watermark = "0 BTC";
 		Text = string.Empty;
 
 		_regexBtcFormat =
@@ -93,20 +69,11 @@ public class CurrencyEntryBox : TextBox
 				$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 
 		PseudoClasses.Set(":noexchangerate", true);
+
+		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
 
-	public decimal AmountBtc
-	{
-		get => _amountBtc;
-		set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
-	}
-
-	public string ConversionText
-	{
-		get => GetValue(ConversionTextProperty);
-		set => SetValue(ConversionTextProperty, value);
-	}
-
+	public ICommand ModifiedPaste { get; }
 	public decimal ConversionRate
 	{
 		get => GetValue(ConversionRateProperty);
@@ -119,34 +86,21 @@ public class CurrencyEntryBox : TextBox
 		set => SetValue(CurrencyCodeProperty, value);
 	}
 
-	public string ConversionCurrencyCode
+	public bool IsFiat
 	{
-		get => GetValue(ConversionCurrencyCodeProperty);
-		set => SetValue(ConversionCurrencyCodeProperty, value);
+		get => GetValue(IsFiatProperty);
+		set => SetValue(IsFiatProperty, value);
 	}
 
-	public bool IsConversionReversed
+	public bool IsApproximate
 	{
-		get => GetValue(IsConversionReversedProperty);
-		set => SetValue(IsConversionReversedProperty, value);
+		get => GetValue(IsApproximateProperty);
+		set => SetValue(IsApproximateProperty, value);
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
 		return fiatValue / ConversionRate;
-	}
-
-	private decimal BitcoinToFiat(decimal btcValue)
-	{
-		return btcValue * ConversionRate;
-	}
-
-	protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
-	{
-		if (property == AmountBtcProperty)
-		{
-			DataValidationErrors.SetError(this, value.Error);
-		}
 	}
 
 	protected override void OnGotFocus(GotFocusEventArgs e)
@@ -156,13 +110,6 @@ public class CurrencyEntryBox : TextBox
 		CaretIndex = Text?.Length ?? 0;
 
 		Dispatcher.UIThread.Post(SelectAll);
-	}
-
-	protected override void OnLostFocus(RoutedEventArgs e)
-	{
-		base.OnLostFocus(e);
-
-		UpdateDisplay(true);
 	}
 
 	protected override void OnTextInput(TextInputEventArgs e)
@@ -183,7 +130,7 @@ public class CurrencyEntryBox : TextBox
 		e.Handled = !(ValidateEntryText(preComposedText) &&
 					decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
-		if (IsConversionReversed & !e.Handled)
+		if (IsFiat & !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
@@ -231,7 +178,7 @@ public class CurrencyEntryBox : TextBox
 				return false;
 		}
 
-		if (IsConversionReversed)
+		if (IsFiat)
 		{
 			// Fiat input restriction is to only allow 2 decimal places max
 			// and also 16 whole number places.
@@ -334,146 +281,6 @@ public class CurrencyEntryBox : TextBox
 		return "";
 	}
 
-	private static string FullFormatBtc(decimal value)
-	{
-		return $"{value.FormattedBtc()} BTC";
-	}
-
-	private static string FullFormatFiat(
-		decimal value,
-		string currencyCode,
-		bool approximate)
-	{
-		return (approximate ? "≈ " : "") + $"{value.FormattedFiat()}" +
-			   (!string.IsNullOrWhiteSpace(currencyCode)
-				   ? $" {currencyCode}"
-				   : "");
-	}
-
-	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-	{
-		base.OnApplyTemplate(e);
-
-		_disposable?.Dispose();
-		_disposable = new CompositeDisposable();
-
-		_swapButton = e.NameScope.Find<Button>("PART_SwapButton");
-
-		if (_swapButton is { })
-		{
-			_swapButton.Click += SwapButtonOnClick;
-
-			_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
-		}
-
-		UpdateDisplay(true);
-	}
-
-	private void SwapButtonOnClick(object? sender, RoutedEventArgs e)
-	{
-		IsConversionReversed = !IsConversionReversed;
-	}
-
-	private void InputText(string text)
-	{
-		if (!_canUpdateDisplay)
-		{
-			return;
-		}
-
-		if (string.IsNullOrWhiteSpace(text))
-		{
-			InputBtcValue(0);
-			UpdateDisplay(false);
-		}
-		else
-		{
-			if (IsConversionReversed)
-			{
-				InputFiatString(text);
-			}
-			else
-			{
-				InputBtcString(text);
-			}
-		}
-	}
-
-	private void InputFiatString(string value)
-	{
-		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
-		{
-			InputBtcValue(FiatToBitcoin(decimalValue));
-		}
-
-		UpdateDisplay(false);
-	}
-
-	private void InputBtcString(string value)
-	{
-		if (BitcoinInput.TryCorrectAmount(value, out var better))
-		{
-			if (better != Constants.MaximumNumberOfBitcoins.ToString())
-			{
-				value = better;
-			}
-		}
-
-		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
-		{
-			InputBtcValue(decimalValue);
-		}
-
-		UpdateDisplay(false);
-	}
-
-	private void InputBtcValue(decimal value)
-	{
-		AmountBtc = value;
-	}
-
-	private void UpdateDisplay(bool updateTextField)
-	{
-		if (ConversionRate == 0m)
-		{
-			return;
-		}
-
-		var conversion = BitcoinToFiat(AmountBtc);
-
-		if (IsConversionReversed && !IsReadOnly)
-		{
-			CurrencyCode = ConversionCurrencyCode;
-			ConversionText = FullFormatBtc(AmountBtc);
-			Watermark = FullFormatFiat(0, ConversionCurrencyCode, false);
-
-			if (updateTextField)
-			{
-				_canUpdateDisplay = false;
-				Text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
-				_canUpdateDisplay = true;
-			}
-		}
-		else
-		{
-			CurrencyCode = "BTC";
-
-			ConversionText = FullFormatFiat(
-				conversion,
-				ConversionCurrencyCode,
-				true);
-
-			Watermark = FullFormatBtc(0);
-
-			if (updateTextField)
-			{
-				_canUpdateDisplay = false;
-				Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
-				_canUpdateDisplay = true;
-			}
-		}
-	}
-
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
 		base.OnPropertyChanged(change);
@@ -485,11 +292,6 @@ public class CurrencyEntryBox : TextBox
 		else if (change.Property == ConversionRateProperty)
 		{
 			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
-		}
-		else if (change.Property == IsConversionReversedProperty)
-		{
-			UpdateDisplay(true);
-			CaretIndex = SelectionStart = SelectionEnd = Text.Length;
 		}
 	}
 }

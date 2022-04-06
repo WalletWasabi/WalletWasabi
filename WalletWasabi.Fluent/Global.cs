@@ -221,19 +221,18 @@ public class Global
 		}
 	}
 
-	private async Task StartTorProcessManagerAsync(CancellationToken cancel)
+	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
 		if (Config.UseTor && Network != Network.RegTest)
 		{
 			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 			{
 				TorManager = new TorProcessManager(TorSettings);
-				await TorManager.StartAsync(cancel).ConfigureAwait(false);
+				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			Tor.Http.TorHttpClient torHttpClient = HttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
 		}
 	}
 

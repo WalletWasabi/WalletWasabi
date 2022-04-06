@@ -10,19 +10,28 @@
       <controls:TileControl.WideSizeContent>
         <Panel Width="660" Height="330" Background="Blue" />
       </controls:TileControl.WideSizeContent>
-      </controls:TileControl>
+    </controls:TileControl>
   </Design.PreviewWith>
 
   <Style Selector="controls|TileControl">
     <!-- Set Defaults -->
     <Setter Property="Template">
       <ControlTemplate>
-        <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
-          <ContentPresenter Name="PART_ContentPresenter"
-                            Background="{TemplateBinding Background}"
-                            Padding="{TemplateBinding Padding}"
-                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+        <Border Name="PART_MainBorder"
+                TextBlock.FontFamily="{StaticResource MonospacedFont}"
+                CornerRadius="2" BorderThickness="1"
+                Margin="6"
+                Background="{DynamicResource TileRegionColor}"
+                BorderBrush="{DynamicResource TileBorderColor}">
+          <Panel>
+            <Border Padding="16">
+              <ContentPresenter Name="PART_ContentPresenter"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+            </Border>
+          </Panel>
         </Border>
       </ControlTemplate>
     </Setter>

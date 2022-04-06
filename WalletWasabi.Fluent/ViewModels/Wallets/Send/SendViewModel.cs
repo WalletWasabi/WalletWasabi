@@ -59,6 +59,8 @@ public partial class SendViewModel : RoutableViewModel
 		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
+		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
+
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
@@ -116,15 +118,28 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.Create(() =>
+		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var address = BitcoinAddress.Create(To, wallet.Network);
 
 			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+			if (result.Result is not { } label)
+			{
+				return;
+			}
+
+			_transactionInfo.UserLabels = label;
+
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
+
+		this.WhenAnyValue(x => x.ConversionReversed)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public bool IsQrButtonVisible { get; }
@@ -169,7 +184,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)

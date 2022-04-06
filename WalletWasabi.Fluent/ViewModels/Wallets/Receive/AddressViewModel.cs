@@ -18,8 +18,7 @@ public partial class AddressViewModel : ViewModelBase
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
-		Label = model.Label.Take(1).ToList();
-		FilteredLabel = model.Label.Skip(1).ToList();
+		Label = model.Label.ToList();
 
 		CopyAddressCommand =
 				ReactiveCommand.CreateFromTask(async () =>
@@ -32,7 +31,7 @@ public partial class AddressViewModel : ViewModelBase
 
 		HideAddressCommand =
 			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
-			
+
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
@@ -46,8 +45,6 @@ public partial class AddressViewModel : ViewModelBase
 	public ICommand EditLabelCommand { get; }
 
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
-
-	public List<string> FilteredLabel { get; }
 
 	public List<string> Label { get; }
 

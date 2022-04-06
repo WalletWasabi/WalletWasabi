@@ -7,6 +7,7 @@
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusBar"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="statusBar:StatusBarViewModel"
              x:CompileBindings="True"
@@ -30,12 +31,12 @@
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
     </Style>
   </UserControl.Styles>
-  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 0 5">
+  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">
     <Interaction.Behaviors>
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
     <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+      <Flyout Placement="BottomEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
@@ -84,19 +85,17 @@
             <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
                           Title="Update available"
                           StatusText="{Binding VersionText}" />
-            <Button Classes="plain" Command="{Binding UpdateCommand}">
+            <Button Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
-                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"
-                          Foreground="{StaticResource SystemAccentColor}" />
-                <TextBlock Text="Update now" Foreground="{StaticResource SystemAccentColor}" />
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"/>
+                <AccessText Text="Update now" />
               </StackPanel>
             </Button>
 
-            <Button Classes="plain" Command="{Binding AskMeLaterCommand}"
-                    IsVisible="{Binding !CriticalUpdateAvailable}">
+            <Button Classes="activeHyperLink" Command="{Binding AskMeLaterCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
-                <PathIcon Data="{StaticResource clock_regular}" Height="13" />
-                <TextBlock Text="Ask me later" />
+                <PathIcon Data="{StaticResource clock_regular}" Height="13"/>
+                <AccessText Text="Ask me later" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -118,15 +117,15 @@
                 IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}">
       <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
       <PathIcon Data="{StaticResource critical_update}"
-                Foreground="IndianRed"
+                Foreground="{DynamicResource SystemErrorTextColor}"
                 Height="30" />
     </StackPanel>
 
     <!-- Ready -->
     <PathIcon Data="{StaticResource checkmark_circle_filled}"
-              Foreground="{StaticResource SystemAccentColor}"
+              Foreground="{Binding $parent[sb:StatusBar].Foreground}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="30"
+              Height="40"
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}" />
 
@@ -140,9 +139,9 @@
 
     <!-- Loading -->
     <PathIcon Data="{StaticResource arrow_sync_regular}"
-              Foreground="{StaticResource SystemAccentColor}"
+              Foreground="{Binding $parent[sb:StatusBar].Foreground}"
               VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="30"
+              Height="40"
               Margin="10 0"
               IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
               Classes.rotate="{Binding $self.IsVisible}" />

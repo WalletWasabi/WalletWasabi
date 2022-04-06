@@ -135,7 +135,7 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Use the slider to choose your preference for how fast the transaction will be processed"
+                 Caption="Set your preference for how fast the transaction should be confirmed"
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="true"
@@ -165,7 +165,7 @@
                 <ToolTip>
                   <StackPanel Spacing="10" x:CompileBindings="False">
                     <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: \{0:0\} sat/vByte'}" />
-                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: ~\{0\}'}" />
+                    <TextBlock Text="{Binding $parent[Slider].DataContext.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: \{0\}'}" />
                   </StackPanel>
                 </ToolTip>
               </Template>

@@ -8,6 +8,7 @@ public class StatusChangedEventArgs : EventArgs
 	{
 		Wallet = wallet;
 	}
+
 	public Wallet Wallet { get; }
 }
 
@@ -30,13 +31,14 @@ public class StartedEventArgs : StatusChangedEventArgs
 	public TimeSpan RegistrationTimeout { get; }
 }
 
-public class CoinJoinCompletedEventArgs : StatusChangedEventArgs
+public class CompletedEventArgs : StatusChangedEventArgs
 {
-	public CoinJoinCompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
+	public CompletedEventArgs(Wallet wallet, CompletionStatus completionStatus)
 		: base(wallet)
 	{
 		CompletionStatus = completionStatus;
 	}
+
 	public CompletionStatus CompletionStatus { get; }
 }
 
@@ -47,18 +49,19 @@ public class StoppedEventArgs : StatusChangedEventArgs
 	{
 		Reason = reason;
 	}
+
 	public StopReason Reason { get; }
 }
 
 public class StartErrorEventArgs : StatusChangedEventArgs
 {
-
 	public StartErrorEventArgs(Wallet wallet, CoinjoinError error)
 		: base(wallet)
 	{
 		Error = error;
 	}
-	public CoinjoinError Error;
+
+	public CoinjoinError Error { get; }
 }
 
 public enum StopReason

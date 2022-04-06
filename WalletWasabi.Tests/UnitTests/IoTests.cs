@@ -153,11 +153,10 @@ public class IoTests
 		static string RandomString()
 		{
 			StringBuilder builder = new();
-			var rnd = new Random();
 			char ch;
-			for (int i = 0; i < rnd.Next(10, 100); i++)
+			for (int i = 0; i < Random.Shared.Next(10, 100); i++)
 			{
-				ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * rnd.NextDouble() + 65)));
+				ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * Random.Shared.NextDouble() + 65)));
 				builder.Append(ch);
 			}
 			return builder.ToString();

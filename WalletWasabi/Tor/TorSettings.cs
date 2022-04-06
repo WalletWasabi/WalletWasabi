@@ -11,6 +11,9 @@ namespace WalletWasabi.Tor;
 /// </summary>
 public class TorSettings
 {
+	/// <summary>Tor binary file name without extension.</summary>
+	public const string TorBinaryFileName = "tor";
+
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
 	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
@@ -67,7 +70,7 @@ public class TorSettings
 	{
 		platform ??= MicroserviceHelpers.GetCurrentPlatform();
 
-		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", "tor"), platform);
+		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
 		return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
 	}
 
