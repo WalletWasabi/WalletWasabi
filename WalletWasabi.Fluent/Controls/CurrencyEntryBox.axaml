@@ -74,14 +74,26 @@
                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <StackPanel Orientation="Horizontal">
+                        <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
                           <TextBlock Text="≈"
                                      IsVisible="{TemplateBinding IsApproximate}"
                                      Margin="0 0 5 0"
                                      Opacity="0.5"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                     DockPanel.Dock="Left">
                           </TextBlock>
+
+                          <!-- Current Currency Code -->
+                          <TextBlock Name="PART_CurrencyCode"
+                                     Opacity="0.5"
+                                     Margin="5 0 0 0"
+                                     Text="{TemplateBinding CurrencyCode}"
+                                     IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                     DockPanel.Dock="Right"/>
+
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
                                          CaretIndex="{TemplateBinding CaretIndex}"
@@ -96,15 +108,8 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                          <!-- Current Currency Code -->
-                          <TextBlock Name="PART_CurrencyCode"
-                                     Opacity="0.5"
-                                     Margin="5 0 0 0"
-                                     Text="{TemplateBinding CurrencyCode}"
-                                     IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        </StackPanel>
+                        
+                        </DockPanel>
                       </Panel>
                     </DockPanel>
                   </ScrollViewer>
