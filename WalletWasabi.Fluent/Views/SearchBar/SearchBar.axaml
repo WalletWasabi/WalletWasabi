@@ -71,9 +71,9 @@
           <DoubleTransition Property="Opacity"
                             Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
-          <ThicknessTransition Property="Margin"
-                               Duration="0:0:0.127"
-                               Easing="{StaticResource FluentEasing}" />
+          <!-- <ThicknessTransition Property="Margin" -->
+          <!--                      Duration="0:0:0.127" -->
+          <!--                      Easing="{StaticResource FluentEasing}" /> -->
         </Transitions>
       </Setter>
     </Style>
