@@ -116,8 +116,8 @@ public class BlockchainAnalyzer
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			var output = newCoin.TxOut;
-			int equalOutputs = indistinguishableOutputs[output.Value];
-			int anonset = Math.Min(equalOutputs - indistinguishableWalletOutputs[output.Value], inputCount - tx.WalletInputs.Count);
+			int equalOutputCount = indistinguishableOutputs[output.Value];
+			int anonset = Math.Min(equalOutputCount - indistinguishableWalletOutputs[output.Value], inputCount - tx.WalletInputs.Count);
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= indistinguishableWalletOutputs[newCoin.Amount];
