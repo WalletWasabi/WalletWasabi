@@ -84,7 +84,7 @@ public class DualCurrencyEntryBox : UserControl
 
 		this.GetObservable(TextProperty).Subscribe(InputText);
 		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
-		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
+		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(true));
 		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
 		this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
