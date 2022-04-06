@@ -113,21 +113,11 @@ public class BlockchainAnalyzer
 
 		var inputCount = tx.Transaction.Inputs.Count;
 
-		var anonsets = new Dictionary<uint, int>();
-		foreach (var outputIndex in tx.WalletOutputs.Select(x => x.Index))
+		foreach (var newCoin in tx.WalletOutputs)
 		{
-			var output = tx.Transaction.Outputs[outputIndex];
+			var output = newCoin.TxOut;
 			int equalOutputs = indistinguishableOutputs[output.Value];
-			var anonSet = Math.Min(equalOutputs - indistinguishableWalletOutputs[output.Value], inputCount - tx.WalletInputs.Count);
-
-			anonsets.Add(outputIndex, anonSet);
-		}
-
-		foreach (var newCoin in tx.WalletOutputs.ToArray())
-		{
-			// Begin estimating the anonymity set size based on the number of
-			// equivalent outputs that the i-th output has in the transaction.
-			int anonset = anonsets[newCoin.Index];
+			int anonset = Math.Min(equalOutputs - indistinguishableWalletOutputs[output.Value], inputCount - tx.WalletInputs.Count);
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= indistinguishableWalletOutputs[newCoin.Amount];
