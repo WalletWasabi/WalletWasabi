@@ -112,12 +112,14 @@ public class BlockchainAnalyzer
 			.ToDictionary(x => x.Key, y => y.Count());
 
 		var inputCount = tx.Transaction.Inputs.Count;
+		var ownInputCount = tx.WalletInputs.Count;
 
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			var output = newCoin.TxOut;
-			int equalOutputCount = indistinguishableOutputs[output.Value];
-			int anonset = Math.Min(equalOutputCount - indistinguishableWalletOutputs[output.Value], inputCount - tx.WalletInputs.Count);
+			var equalOutputCount = indistinguishableOutputs[output.Value];
+			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
+			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, inputCount - ownInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= indistinguishableWalletOutputs[newCoin.Amount];
