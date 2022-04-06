@@ -175,20 +175,20 @@ public class Global : IDisposable
 				{
 					if (IndexBuilderService is { } indexBuilderService)
 					{
-						await indexBuilderService.StopAsync();
+						await indexBuilderService.StopAsync().ConfigureAwait(false);
 						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
 					}
 
 					if (HostedServices is { } hostedServices)
 					{
 						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-						await hostedServices.StopAllAsync(cts.Token);
+						await hostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
 						hostedServices.Dispose();
 					}
 
 					if (P2pNode is { } p2pNode)
 					{
-						await p2pNode.DisposeAsync();
+						await p2pNode.DisposeAsync().ConfigureAwait(false);
 						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
 					}
 				});
