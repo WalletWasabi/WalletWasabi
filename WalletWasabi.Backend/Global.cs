@@ -17,8 +17,10 @@ using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Backend;
 
-public class Global
+public class Global : IDisposable
 {
+	private bool _disposedValue;
+
 	public Global(string dataDir)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
@@ -155,5 +157,24 @@ public class Global
 			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
 			throw;
 		}
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			if (disposing)
+			{
+				// TODO: dispose managed state (managed objects)
+			}
+
+			_disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }
