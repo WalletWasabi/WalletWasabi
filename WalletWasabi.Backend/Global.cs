@@ -175,7 +175,7 @@ public class Global : IDisposable
 				{
 					if (IndexBuilderService is { } indexBuilderService)
 					{
-						await indexBuilderService.StopAsync();
+						await indexBuilderService.StopAsync().ConfigureAwait(false);
 						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
 					}
 
