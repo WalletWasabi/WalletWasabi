@@ -48,17 +48,17 @@
       </Setter>
     </Style>
 
-    <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
+    <Style Selector="TextBox#SearchBox:focus-within /template/ Border#PART_BorderElement">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
       <Setter Property="BorderBrush">
-        <SolidColorBrush Opacity="0.6" Color="{DynamicResource AcrylicTrimForeground}" />
+        <SolidColorBrush Opacity="1" Color="{DynamicResource AcrylicTrimForeground}" />
       </Setter>
     </Style>
 
     <Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
       <Setter Property="BorderBrush">
-        <SolidColorBrush Opacity="1" Color="{DynamicResource AcrylicTrimForeground}" />
+        <SolidColorBrush Opacity="0.6" Color="{DynamicResource AcrylicTrimForeground}" />
       </Setter>
       <Setter Property="Background" Value="Transparent" />
     </Style>
@@ -74,12 +74,12 @@
       </Setter>
     </Style>
 
-    <Style Selector="TextBox#SearchBox:focus PathIcon">
-      <Setter Property="Opacity" Value="0.6" />
+    <Style Selector="TextBox#SearchBox:focus-within PathIcon">
+      <Setter Property="Opacity" Value="1" />
     </Style>
 
     <Style Selector="TextBox#SearchBox:pointerover PathIcon">
-      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Opacity" Value="0.6" />
     </Style>
 
     <Style Selector="TextBox#SearchBox /template/ DataValidationErrors">
@@ -99,13 +99,14 @@
     </Style>
 
     <!-- Focused State -->
-    <Style Selector="TextBox:focus">
+    <Style Selector="TextBox:focus-within">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Cursor" Value="Arrow" />
     </Style>
 
     <Style
-      Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+      Selector="TextBox:focus-within /template/ TextBlock#PART_Watermark,
+       TextBox:focus-within /template/ TextBlock#PART_FloatingWatermark">
       <Setter Property="Foreground">
         <SolidColorBrush Opacity="0.5" Color="{DynamicResource AcrylicTrimForeground}" />
       </Setter>
@@ -120,10 +121,14 @@
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
            Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
     <TextBox.InnerLeftContent>
-      <PathIcon Data="{DynamicResource action_center_regular}" Margin="10 0" />
+      <LayoutTransformControl>
+        <PathIcon Data="{DynamicResource action_center_regular}" Margin="10 0" />
+      </LayoutTransformControl>
     </TextBox.InnerLeftContent>
     <TextBox.InnerRightContent>
-      <PathIcon Data="{DynamicResource search_regular}" Margin="10 0" />
+      <LayoutTransformControl>
+        <PathIcon Data="{DynamicResource search_regular}" Margin="10 0" />
+      </LayoutTransformControl>
     </TextBox.InnerRightContent>
   </TextBox>
 
