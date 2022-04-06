@@ -51,7 +51,7 @@
     <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Background" Value="{DynamicResource TileRegionColor}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource OptionButtonBorderBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
   </Style>
 
   <!-- Pointerover -->
