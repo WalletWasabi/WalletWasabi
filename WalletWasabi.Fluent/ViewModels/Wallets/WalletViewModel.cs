@@ -131,7 +131,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var authorized = await Interactions.Authorize.Handle(wallet);
+			var authorized = await Interactions.LightAuthorize.Handle(wallet);
 
 			if (!authorized)
 			{

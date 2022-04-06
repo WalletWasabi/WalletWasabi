@@ -427,7 +427,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-		var authResult = await Interactions.Authorize.Handle(_wallet);
+		var authResult = await Interactions.TransactionAuthorize.Handle(new AuthorizationRequest(_wallet, transactionAuthorizationInfo));
 		if (authResult)
 		{
 			IsBusy = true;
