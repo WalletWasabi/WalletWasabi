@@ -42,7 +42,7 @@
       <Setter Property="Transitions">
         <Transitions>
           <BrushTransition Property="BorderBrush"
-                           Duration="0:0:0.35"
+                           Duration="0:0:0.127"
                            Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
@@ -68,7 +68,7 @@
       <Setter Property="Transitions">
         <Transitions>
           <DoubleTransition Property="Opacity"
-                            Duration="0:0:0.35"
+                            Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
