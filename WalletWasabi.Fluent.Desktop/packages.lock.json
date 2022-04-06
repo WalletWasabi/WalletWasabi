@@ -134,29 +134,29 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.12.2",
-        "contentHash": "EqfzwstvqQcWnTJnaBvezxKwBSddozXpkFi5WrzVe976zedE+A1NruFgnC19aG7Vvy0mTQdlWFTtbAInv6IQyg==",
+        "resolved": "0.10.13.1",
+        "contentHash": "Z+wcwoJCKBBds6aHQ7Fddph3027h9tXswlrOxVh7dJEqTUK0MNYHUlyjOaqIOGl2ng3uBK6cs2L2wXG5Cwzf5g==",
         "dependencies": {
-          "Avalonia": "0.10.12",
-          "Avalonia.Xaml.Interactions": "0.10.12.2",
-          "Avalonia.Xaml.Interactivity": "0.10.12.2"
+          "Avalonia": "0.10.13",
+          "Avalonia.Xaml.Interactions": "0.10.13.1",
+          "Avalonia.Xaml.Interactivity": "0.10.13.1"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.12.2",
-        "contentHash": "01NGXHMbvpg1JcZ4tFAZXD6i55vHIQnJl3+HFi7RSP1jevkjkSaVM8qjwLsTSfREsJ2OoiWxx2LcyUQJvO5Kjw==",
+        "resolved": "0.10.13.1",
+        "contentHash": "FfBzAwH9TXVk3P+diK8V0t/dYufXCm1tpY7Ok14bll3xMlI+vICObxE7yzXriFTfQO7oaFONaPgdspQnfGKwEg==",
         "dependencies": {
-          "Avalonia": "0.10.12",
-          "Avalonia.Xaml.Interactivity": "0.10.12.2"
+          "Avalonia": "0.10.13",
+          "Avalonia.Xaml.Interactivity": "0.10.13.1"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.12.2",
-        "contentHash": "AGAbT1I6XW1+9tweLHDMGX8+SijE111vNNIQy2gI3bpbLfPYTirLPyK0do2s9V6l7hHfQnNmiX2NA6JHC4WG4Q==",
+        "resolved": "0.10.13.1",
+        "contentHash": "jCgTyl3sVMIBZwMEHp7PbY3SMGUQfYWVYTPj010HxvkXo9Zrisxm6iPzDlmd57NfEPgMiW0s/zt6yun4IVnVQQ==",
         "dependencies": {
-          "Avalonia": "0.10.12"
+          "Avalonia": "0.10.13"
         }
       },
       "DynamicData": {
@@ -678,7 +678,7 @@
           "Avalonia.Diagnostics": "0.10.999-cibuild0019263-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0019263-beta",
           "Avalonia.Skia": "0.10.999-cibuild0019263-beta",
-          "Avalonia.Xaml.Behaviors": "0.10.12.2",
+          "Avalonia.Xaml.Behaviors": "0.10.13.1",
           "System.Drawing.Common": "6.0.0",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
