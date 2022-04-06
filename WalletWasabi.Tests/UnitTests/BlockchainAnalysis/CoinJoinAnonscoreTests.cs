@@ -210,10 +210,10 @@ public class CoinJoinAnonScoreTests
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
-		// The anonset calculation naively would be 5 as there are 5 equal outputs.
-		// But there're only 3 inputs so that limits our anonset to 3.
-		// After that we should get 5/2 because 2 out of 5 is ours.
-		// Finally we don't mess around with decimal precisions, so conservatively 5/2 = 2.
+		// The increase in the anonymity set would naively be 3 as there are 3 equal non-wallet outputs.
+		// But there are only 2 non-wallet inputs, so that limits the increase to 2.
+		// Since 2 outputs are ours, we divide the increase in anonymity between them and add that
+		// to the inherited anonymity, getting an anonymity set of 1 + 2/2 = 2.
 		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
 	}
 
