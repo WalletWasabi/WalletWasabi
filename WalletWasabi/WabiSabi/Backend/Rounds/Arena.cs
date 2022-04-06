@@ -25,7 +25,7 @@ public partial class Arena : PeriodicRunner
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
-		CoinJoinIdStore coinJoinIdStore,
+		ICoinJoinIdStore coinJoinIdStore,
 		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
 	{
@@ -48,7 +48,7 @@ public partial class Arena : PeriodicRunner
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
+	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
