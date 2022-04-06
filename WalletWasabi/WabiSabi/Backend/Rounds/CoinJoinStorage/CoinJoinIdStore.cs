@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 public class CoinJoinIdStore : ICoinJoinIdStore
 {
 	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; set; }
-	public string CoinJoinIdStoreFilePath { get; set; }
+	private string CoinJoinIdStoreFilePath { get; set; }
 	private object FileWriteLock { get; set; } = new();
 
 	public CoinJoinIdStore() : this(string.Empty)
@@ -23,17 +23,19 @@ public class CoinJoinIdStore : ICoinJoinIdStore
 
 	public void Append(uint256 id)
 	{
-		InMemoryCoinJoinIdStore.Add(id);
-		try
+		if (InMemoryCoinJoinIdStore.TryAdd(id))
 		{
-			lock (FileWriteLock)
+			try
 			{
-				File.AppendAllLines(CoinJoinIdStoreFilePath, new[] { id.ToString() });
+				lock (FileWriteLock)
+				{
+					File.AppendAllLines(CoinJoinIdStoreFilePath, new[] { id.ToString() });
+				}
 			}
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"Could not write to file {CoinJoinIdStoreFilePath}.", ex);
+			catch (Exception ex)
+			{
+				Logger.LogError($"Could not write to file {CoinJoinIdStoreFilePath}.", ex);
+			}
 		}
 	}
 
@@ -57,7 +59,7 @@ public class CoinJoinIdStore : ICoinJoinIdStore
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError("Failed to import old coinjoins. Reason:", ex);
+			Logger.LogError("Failed to import WW1 coinjoins. Reason:", ex);
 		}
 	}
 }

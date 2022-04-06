@@ -26,10 +26,10 @@ public class InMemoryCoinJoinIdStore
 		return CoinJoinIds.ContainsKey(hash);
 	}
 
-	public void Add(uint256 hash)
+	public bool TryAdd(uint256 hash)
 	{
 		// The byte is just a dummy value, we are not using it.
-		CoinJoinIds.TryAdd(hash, byte.MinValue);
+		return CoinJoinIds.TryAdd(hash, byte.MinValue);
 	}
 
 	public static InMemoryCoinJoinIdStore LoadFromFile(string filePath)
