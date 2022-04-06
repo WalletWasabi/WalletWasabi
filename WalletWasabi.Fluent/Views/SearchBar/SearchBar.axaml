@@ -71,6 +71,7 @@
           <DoubleTransition Property="Opacity"
                             Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
+          <!-- TODO: Find out why this is a bit glitchy when clicking/focusing on the control. -->
           <!-- <ThicknessTransition Property="Margin" -->
           <!--                      Duration="0:0:0.127" -->
           <!--                      Easing="{StaticResource FluentEasing}" /> -->
