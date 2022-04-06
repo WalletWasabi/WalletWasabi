@@ -114,40 +114,7 @@ public class Startup
 
 	private void OnShutdown(Global global)
 	{
-		CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
-	}
-
-	private async Task CleanupAsync(Global global)
-	{
-		var coordinator = global.Coordinator;
-		if (coordinator is { })
-		{
-			coordinator.Dispose();
-			Logger.LogInfo($"{nameof(coordinator)} is disposed.");
-		}
-
-		var indexBuilderService = global.IndexBuilderService;
-		if (indexBuilderService is { })
-		{
-			await indexBuilderService.StopAsync();
-			Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
-		}
-
-		var hostedServices = global.HostedServices;
-		if (hostedServices is { })
-		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-			await hostedServices.StopAllAsync(cts.Token);
-			hostedServices.Dispose();
-		}
-
-		var p2pNode = global.P2pNode;
-		if (p2pNode is { })
-		{
-			await p2pNode.DisposeAsync();
-			Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
-		}
-
+		global.Dispose();
 		Logger.LogSoftwareStopped("Wasabi Backend");
 	}
 }

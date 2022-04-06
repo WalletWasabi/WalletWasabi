@@ -165,7 +165,35 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
-				// TODO: dispose managed state (managed objects)
+				if (Coordinator is { } coordinator)
+				{
+					coordinator.Dispose();
+					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
+				}
+
+				var stoppingTask = Task.Run(async () =>
+				{
+					if (IndexBuilderService is { } indexBuilderService)
+					{
+						await indexBuilderService.StopAsync();
+						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
+					}
+
+					if (HostedServices is { } hostedServices)
+					{
+						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+						await hostedServices.StopAllAsync(cts.Token);
+						hostedServices.Dispose();
+					}
+
+					if (P2pNode is { } p2pNode)
+					{
+						await p2pNode.DisposeAsync();
+						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
+					}
+				});
+
+				stoppingTask.GetAwaiter().GetResult();
 			}
 
 			_disposedValue = true;
