@@ -19,7 +19,6 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		IObservable<Unit> updateTrigger)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = transactionSummary.Label.ToList();
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
