@@ -68,7 +68,9 @@ public class Startup
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		services.AddSingleton<IdempotencyRequestCache>();
+#pragma warning disable CA2000 // Dispose objects before losing scope, reason: https://github.com/dotnet/roslyn-analyzers/issues/3836
 		services.AddSingleton(new Global(Configuration["datadir"]));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		services.AddSingleton(serviceProvider =>
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
