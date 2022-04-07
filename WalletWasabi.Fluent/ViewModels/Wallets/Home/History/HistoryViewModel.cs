@@ -66,11 +66,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		130				150			true
 		// Balance			BalanceColumnView			Balance (BTC)		Auto		130				150			true
 
-		Source = new FlatTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
+		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
 			Columns =
 			{
 				// Indicators
+				new HierarchicalExpanderColumn<HistoryItemViewModelBase>(
 				new TemplateColumn<HistoryItemViewModelBase>(
 					null,
 					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new IndicatorsColumnView(), true),
@@ -83,6 +84,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(80, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
+				x => x.Children,
+				x =>
+				{
+					if (x is CoinJoinsHistoryItemViewModel coinJoinsHistoryItemViewModel
+					    && coinJoinsHistoryItemViewModel.CoinJoinTransactions.Count > 1)
+					{
+						return true;
+					}
+
+					return false;
+				},
+				x => x.IsExpanded),
 
 				// Date
 				new PrivacyTextColumn<HistoryItemViewModelBase>(
@@ -174,7 +187,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public ObservableCollection<HistoryItemViewModelBase> Transactions => _transactions;
 
-	public FlatTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
+	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
@@ -252,7 +265,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, _walletViewModel, _updateTrigger);
 				}
 				else
 				{

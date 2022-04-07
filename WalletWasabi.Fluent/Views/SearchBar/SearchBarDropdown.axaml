@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
+             x:CompileBindings="False"
+             x:DataType="sb:SearchBarViewModel"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent">
+  <Design.DataContext>
+    <sb:SearchBarDesignViewModel />
+  </Design.DataContext>
+
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ItemsControl:empty">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <TextBlock Margin="10">No results</TextBlock>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- TODO: Investigate why this is needed. Removing it will render monospaced font in Flyout -->
+    <Style Selector="TextBlock">
+      <Setter Property="FontFamily" Value="Arial" />
+    </Style>
+
+    <Style Selector="Button.searchItem /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="Background">
+        <Setter.Value>
+          <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+  </UserControl.Styles>
+
+  <UserControl.DataTemplates>
+
+    <DataTemplate DataType="sb:NonActionableSearchItem">
+
+      <DockPanel Background="Transparent" Margin="10">
+        <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+          <!--TODO: Remove this workaround. We must leave the PathIcon only-->
+          <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+          <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+        </Panel>
+        <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
+        <ContentControl HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        Content="{Binding Content}" />
+      </DockPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="sb:DarkThemeSelector">
+      <ToggleSwitch HorizontalAlignment="Right" IsChecked="{Binding IsDarkThemeEnabled, Mode=TwoWay}" />
+    </DataTemplate>
+
+    <DataTemplate DataType="sb:AutocloseActionableItem">
+
+        <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0">
+
+        <DockPanel Background="Transparent" Margin="10">
+          <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
+            <!--TODO: Remove this workaround. We must leave the PathIcon only-->
+            <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+            <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+          </Panel>
+          <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
+          <TextBlock Opacity="0.5" VerticalAlignment="Center" Text="{Binding Description}"
+                     TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+      </Button>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <ItemsControl Items="{Binding Groups}">
+    <ItemsControl.ItemTemplate>
+      <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
+        <DockPanel Margin="0 0 0 10">
+          <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
+          <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
+        </DockPanel>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
+
+</UserControl>

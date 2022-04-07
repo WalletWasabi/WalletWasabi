@@ -8,7 +8,7 @@ using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Rectangle>
+public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior<Control>
 {
 	public static readonly AttachedProperty<Control> NavBarItemParentProperty =
 		AvaloniaProperty.RegisterAttached<NavBarSelectedIndicatorChildBehavior, Control, Control>(

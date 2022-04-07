@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 
-namespace WalletWasabi.Fluent.Behaviors;
+namespace WalletWasabi.Fluent.Controls;
 
 public class TreeDataGridItemDetailsAdorner : TemplatedControl
 {

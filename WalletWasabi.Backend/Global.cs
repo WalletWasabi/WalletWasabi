@@ -17,8 +17,10 @@ using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Backend;
 
-public class Global
+public class Global : IDisposable
 {
+	private bool _disposedValue;
+
 	public Global(string dataDir)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
@@ -155,5 +157,52 @@ public class Global
 			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
 			throw;
 		}
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			if (disposing)
+			{
+				if (Coordinator is { } coordinator)
+				{
+					coordinator.Dispose();
+					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
+				}
+
+				var stoppingTask = Task.Run(async () =>
+				{
+					if (IndexBuilderService is { } indexBuilderService)
+					{
+						await indexBuilderService.StopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
+					}
+
+					if (HostedServices is { } hostedServices)
+					{
+						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+						await hostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+						hostedServices.Dispose();
+					}
+
+					if (P2pNode is { } p2pNode)
+					{
+						await p2pNode.DisposeAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
+					}
+				});
+
+				stoppingTask.GetAwaiter().GetResult();
+			}
+
+			_disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }
