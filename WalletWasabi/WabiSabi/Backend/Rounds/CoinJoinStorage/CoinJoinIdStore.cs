@@ -98,7 +98,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		return new CoinJoinIdStore(parsedCoinjoinIds, coinJoinIdStoreFilePath);
 	}
 
-	private static IEnumerable<uint256> GetValidCoinjoinIds(IEnumerable<string> coinjoins, out List<string> validCoinJoins, out bool wasError)
+	internal static IEnumerable<uint256> GetValidCoinjoinIds(IEnumerable<string> coinjoins, out List<string> validCoinJoins, out bool wasError)
 	{
 		wasError = false;
 		validCoinJoins = new List<string>();

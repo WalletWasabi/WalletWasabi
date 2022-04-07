@@ -18,6 +18,9 @@ public class InMemoryCoinJoinIdStore : ICoinJoinIdStore
 	{
 	}
 
+	// For testing only.
+	internal IEnumerable<uint256> GetCoinJoinIds => CoinJoinIds.Keys;
+
 	// We would use a HashSet here but ConcurrentHashSet not exists.
 	private ConcurrentDictionary<uint256, byte> CoinJoinIds { get; }
 
