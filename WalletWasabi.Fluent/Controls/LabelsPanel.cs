@@ -14,6 +14,9 @@ public class LabelsPanel : VirtualizingStackPanel
 			nameof(VisibleItemsCount),
 			o => o.VisibleItemsCount);
 
+	public static readonly StyledProperty<List<string>?> FilteredItemsProperty =
+		AvaloniaProperty.Register<LabelsPanel, List<string>?>(nameof(FilteredItems));
+
 	private int _visibleItemsCount;
 
 	public Control? EllipsisControl
@@ -28,7 +31,11 @@ public class LabelsPanel : VirtualizingStackPanel
 		private set => SetAndRaise(VisibleItemsCountProperty, ref _visibleItemsCount, value);
 	}
 
-	public List<string>? FilteredItems { get; set; }
+	public List<string>? FilteredItems
+	{
+		get => GetValue(FilteredItemsProperty);
+		set => SetValue(FilteredItemsProperty, value);
+	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
