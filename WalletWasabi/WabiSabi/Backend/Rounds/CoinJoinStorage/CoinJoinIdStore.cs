@@ -85,11 +85,36 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 			updateFile = true;
 		}
 
-		if (updateFile)
+		var parsedIds = ParseIds(coinjoins, out var stringIds);
+		if (stringIds.Count() != coinjoins.Count())
 		{
-			File.WriteAllLines(coinJoinIdStoreFilePath, coinjoins);
+			updateFile = true;
 		}
 
-		return new CoinJoinIdStore(coinjoins.Select(id => uint256.Parse(id)), coinJoinIdStoreFilePath);
+		if (updateFile)
+		{
+			File.WriteAllLines(coinJoinIdStoreFilePath, stringIds);
+		}
+
+		return new CoinJoinIdStore(parsedIds, coinJoinIdStoreFilePath);
+	}
+
+	private static IEnumerable<uint256> ParseIds(IEnumerable<string> coinjoins, out IEnumerable<string> stringIds)
+	{
+		stringIds = Enumerable.Empty<string>();
+		var ids = Enumerable.Empty<uint256>();
+		foreach (var line in coinjoins)
+		{
+			if (uint256.TryParse(line, out uint256 id))
+			{
+				ids = ids.Append(id);
+				stringIds = stringIds.Append(line);
+			}
+			else
+			{
+				Logger.LogError($"Failed to parse coinjoin id: {line}.");
+			}
+		}
+		return ids;
 	}
 }
