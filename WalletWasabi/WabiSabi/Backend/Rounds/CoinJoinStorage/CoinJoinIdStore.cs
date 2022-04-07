@@ -86,7 +86,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		}
 
 		var parsedIds = ParseIds(coinjoins, out var stringIds);
-		if (stringIds.Count() != coinjoins.Count())
+		if (stringIds.Count != coinjoins.Count())
 		{
 			updateFile = true;
 		}
@@ -99,16 +99,16 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		return new CoinJoinIdStore(parsedIds, coinJoinIdStoreFilePath);
 	}
 
-	private static IEnumerable<uint256> ParseIds(IEnumerable<string> coinjoins, out IEnumerable<string> stringIds)
+	private static IEnumerable<uint256> ParseIds(IEnumerable<string> coinjoins, out List<string> stringIds)
 	{
-		stringIds = Enumerable.Empty<string>();
-		var ids = Enumerable.Empty<uint256>();
+		stringIds = new();
+		List<uint256> ids = new();
 		foreach (var line in coinjoins)
 		{
 			if (uint256.TryParse(line, out uint256 id))
 			{
-				ids = ids.Append(id);
-				stringIds = stringIds.Append(line);
+				ids.Add(id);
+				stringIds.Add(line);
 			}
 			else
 			{

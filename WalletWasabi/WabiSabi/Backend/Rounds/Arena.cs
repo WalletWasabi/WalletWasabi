@@ -48,7 +48,7 @@ public partial class Arena : PeriodicRunner
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
+	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
