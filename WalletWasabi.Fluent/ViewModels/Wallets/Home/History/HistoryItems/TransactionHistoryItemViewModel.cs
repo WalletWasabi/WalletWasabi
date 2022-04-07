@@ -19,7 +19,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		: base(orderIndex, transactionSummary)
 	{
 		Label = transactionSummary.Label.ToList();
-    SortLabel = string.Join(' ', transactionSummary.Label.ToArray());
+		SortLabel = string.Join(' ', transactionSummary.Label.ToArray());
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
