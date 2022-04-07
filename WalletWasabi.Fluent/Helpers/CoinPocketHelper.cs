@@ -17,7 +17,7 @@ public static class CoinPocketHelper
 
 		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold))
 		{
-			var cluster = coin.HdPubKey.Cluster.Labels.ToString();
+			var cluster = coin.HdPubKey.Cluster.Labels;
 
 			if (clusters.Keys.FirstOrDefault(x => string.Equals(x, cluster, StringComparison.OrdinalIgnoreCase)) is { } key &&
 			    clusters.TryGetValue(key, out var clusterCoins))
