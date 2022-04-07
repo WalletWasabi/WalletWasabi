@@ -27,6 +27,7 @@ public class UiConfig : ConfigBase
 	private bool _hideOnClose;
 	private bool _autoPaste;
 	private int _feeTarget;
+	private bool _sendAmountConversionReversed;
 
 	public UiConfig() : base()
 	{
@@ -48,6 +49,12 @@ public class UiConfig : ConfigBase
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(x => x.SendAmountConversionReversed)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -188,5 +195,13 @@ public class UiConfig : ConfigBase
 	{
 		get => _hideOnClose;
 		set => RaiseAndSetIfChanged(ref _hideOnClose, value);
+	}
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "SendAmountConversionReversed", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool SendAmountConversionReversed
+	{
+		get => _sendAmountConversionReversed;
+		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value);
 	}
 }

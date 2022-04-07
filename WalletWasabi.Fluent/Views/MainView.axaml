@@ -4,15 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
+             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
@@ -71,6 +72,10 @@
               <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" Margin="0 0 -5 -5" />
             </Panel>
           </Border>
+
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch"
+                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
+
         </Grid>
       </Panel>
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False"
