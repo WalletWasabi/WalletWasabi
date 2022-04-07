@@ -124,7 +124,7 @@ public class BlockchainAnalyzer
 			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, inputCount - ownInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
-			anonset /= indistinguishableWalletOutputs[newCoin.Amount];
+			anonset /= ownEqualOutputCount;
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
