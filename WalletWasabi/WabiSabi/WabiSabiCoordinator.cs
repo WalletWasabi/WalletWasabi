@@ -60,7 +60,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
-		CoinJoinIdStore.Append(transaction.GetHash());
+		CoinJoinIdStore.TryAdd(transaction.GetHash());
 
 		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
 		try

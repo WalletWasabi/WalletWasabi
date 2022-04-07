@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 public interface ICoinJoinIdStore
 {
-	public void Append(uint256 id);
+	public bool TryAdd(uint256 id);
 
 	public bool Contains(uint256 id);
 }

@@ -90,9 +90,7 @@ public class Global : IDisposable
 		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
-		// First, import all coinjoins to one place, so CoinJoinIdStore can load all into memory during creation
-		CoinJoinIdStore.ImportWW1CoinJoinsToWW2(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
-		CoinJoinIdStore = new(coordinatorParameters.CoinJoinIdStoreFilePath);
+		CoinJoinIdStore = CoinJoinIdStore.Create(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
 
 		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore), "WabiSabi Coordinator");
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
@@ -106,7 +104,7 @@ public class Global : IDisposable
 
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
 	{
-		CoinJoinIdStore.Append(transaction.GetHash());
+		CoinJoinIdStore.TryAdd(transaction.GetHash());
 	}
 
 	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
