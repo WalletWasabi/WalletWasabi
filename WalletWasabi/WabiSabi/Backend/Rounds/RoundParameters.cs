@@ -12,7 +12,7 @@ public class RoundParameters
 		WasabiRandom random,
 		FeeRate feeRate,
 		CoordinationFeeRate coordinationFeeRate,
-		Money suggestedMaxAmount)
+		Money maxSuggestedAmount)
 	{
 		Network = network;
 		Random = random;
@@ -30,7 +30,7 @@ public class RoundParameters
 		OutputRegistrationTimeout = wabiSabiConfig.OutputRegistrationTimeout;
 		TransactionSigningTimeout = wabiSabiConfig.TransactionSigningTimeout;
 		BlameInputRegistrationTimeout = wabiSabiConfig.BlameInputRegistrationTimeout;
-		SuggestedMaxAmount = suggestedMaxAmount;
+		MaxSuggestedAmount = maxSuggestedAmount;
 	}
 
 	public WasabiRandom Random { get; }
@@ -46,5 +46,5 @@ public class RoundParameters
 	public TimeSpan OutputRegistrationTimeout { get; }
 	public TimeSpan TransactionSigningTimeout { get; }
 	public TimeSpan BlameInputRegistrationTimeout { get; }
-	public Money SuggestedMaxAmount { get; }
+	public Money MaxSuggestedAmount { get; }
 }

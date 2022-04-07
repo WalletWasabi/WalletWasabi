@@ -33,7 +33,7 @@ public class Round
 		ConnectionConfirmationTimeFrame = TimeFrame.Create(RoundParameters.ConnectionConfirmationTimeout);
 		OutputRegistrationTimeFrame = TimeFrame.Create(RoundParameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(RoundParameters.TransactionSigningTimeout);
-		SuggestedMaxAmount = roundParameters.SuggestedMaxAmount;
+		MaxSuggestedAmount = roundParameters.MaxSuggestedAmount;
 	}
 
 	public uint256 Id => _id ??= CalculateHash();
@@ -65,7 +65,7 @@ public class Round
 
 	protected RoundParameters RoundParameters { get; }
 	public Script CoordinatorScript { get; set; }
-	public Money SuggestedMaxAmount { get; }
+	public Money MaxSuggestedAmount { get; }
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -145,6 +145,7 @@ public class Round
 				MaxAmountCredentialValue,
 				MaxVsizeCredentialValue,
 				MaxVsizeAllocationPerAlice,
+				MaxSuggestedAmount,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
 }

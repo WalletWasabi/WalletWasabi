@@ -332,7 +332,7 @@ public partial class Arena : PeriodicRunner
 	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate, round.SuggestedMaxAmount);
+		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate, round.MaxSuggestedAmount);
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !Prison.IsBanned(x))
@@ -348,13 +348,13 @@ public partial class Arena : PeriodicRunner
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate, GetSuggestedMaxAmount(ConnectionConfirmationStartedCounter));
+			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate, GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
 			Rounds.Add(r);
 		}
 	}
 
-	internal static Money GetSuggestedMaxAmount(int roundCounter)
+	internal static Money GetMaxSuggestedAmount(int roundCounter)
 	{
 		Money baseAmount = Money.Coins(0.1m);
 

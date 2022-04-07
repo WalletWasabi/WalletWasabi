@@ -90,7 +90,7 @@ public class MultipartyTransactionStateTests
 				_ => baseAmount,
 			};
 
-			Assert.Equal(expected, Arena.GetSuggestedMaxAmount(i));
+			Assert.Equal(expected, Arena.GetMaxSuggestedAmount(i));
 		}
 	}
 }

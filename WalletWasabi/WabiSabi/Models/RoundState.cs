@@ -23,6 +23,7 @@ public record RoundState(
 	long MaxAmountCredentialValue,
 	long MaxVsizeCredentialValue,
 	long MaxVsizeAllocationPerAlice,
+	long MaxSuggestedAmount,
 	MultipartyTransactionState CoinjoinState)
 {
 	private uint256 _id;
@@ -48,7 +49,9 @@ public record RoundState(
 			round.MaxAmountCredentialValue,
 			round.MaxVsizeCredentialValue,
 			round.MaxVsizeAllocationPerAlice,
-			round.CoinjoinState.GetStateFrom(stateId));
+			round.MaxSuggestedAmount,
+			round.CoinjoinState.GetStateFrom(stateId)
+			);
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -82,6 +85,7 @@ public record RoundState(
 			MaxAmountCredentialValue,
 			MaxVsizeCredentialValue,
 			MaxVsizeAllocationPerAlice,
+			MaxSuggestedAmount,
 			AmountCredentialIssuerParameters,
 			VsizeCredentialIssuerParameters);
 }

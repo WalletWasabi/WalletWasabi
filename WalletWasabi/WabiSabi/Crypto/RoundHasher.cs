@@ -26,6 +26,7 @@ public static class RoundHasher
 			long maxAmountCredentialValue,
 			long maxVsizeCredentialValue,
 			long maxVsizeAllocationPerAlice,
+			long maxSuggestedAmount,
 			CredentialIssuerParameters amountCredentialIssuerParameters,
 			CredentialIssuerParameters vsizeCredentialIssuerParameters)
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
@@ -46,6 +47,7 @@ public static class RoundHasher
 				.Append(ProtocolConstants.RoundMaxAmountCredentialValueStrobeLabel, maxAmountCredentialValue)
 				.Append(ProtocolConstants.RoundMaxVsizeCredentialValueStrobeLabel, maxVsizeCredentialValue)
 				.Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, maxVsizeAllocationPerAlice)
+				.Append(ProtocolConstants.RoundMaxSuggestedAmount, maxSuggestedAmount)
 				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, amountCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, vsizeCredentialIssuerParameters)
 				.GetHash();
