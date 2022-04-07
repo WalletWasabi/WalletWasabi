@@ -5,8 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
@@ -73,8 +72,27 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch"
-                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" VerticalAlignment="Stretch"
+                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" >
+            <searchBar:SearchBar.Styles>
+              <Style Selector="searchBar|SearchBar.small">
+                <Setter Property="Width" Value="180" />
+              </Style>
+              <Style Selector="searchBar|SearchBar.medium">
+                <Setter Property="Width" Value="300" />
+              </Style>
+              <Style Selector="searchBar|SearchBar.wide">
+                <Setter Property="Width" Value="400" />
+              </Style>
+            </searchBar:SearchBar.Styles>
+            <i:Interaction.Behaviors>
+              <ir:AdaptiveBehavior SourceControl="{Binding $parent[TopLevel]}">
+                <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="780" ClassName="small" />
+                <ir:AdaptiveClassSetter MinWidth="780" MaxWidth="880" ClassName="medium" />
+                <ir:AdaptiveClassSetter MinWidth="880" MaxWidth="Infinity" ClassName="wide" />
+              </ir:AdaptiveBehavior>
+            </i:Interaction.Behaviors>
+          </searchBar:SearchBar>
 
         </Grid>
       </Panel>
