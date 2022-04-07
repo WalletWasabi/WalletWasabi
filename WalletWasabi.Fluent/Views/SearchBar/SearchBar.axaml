@@ -131,7 +131,7 @@
 
   </UserControl.Styles>
 
-  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
+  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Left"
            Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
     <TextBox.InnerLeftContent>
       <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
