@@ -80,7 +80,7 @@ public class BlockchainAnalyzer
 
 		// Group all of the transaction inputs by the TXID from which they originated.
 		// Discard the groups which do not contain a wallet input.
-		var walletInputTxs = tx.WalletInputs.Select(x => x.Transaction).ToHashSet();
+		var walletInputTxs = tx.GetAllOwnPreviousTransactions().ToHashSet();
 		var walletInputTxIds = walletInputTxs.Select(x => x.GetHash()).ToHashSet();
 		Dictionary<SmartTransaction, TxIn[]> inputGroups = tx.Transaction.Inputs
 			.GroupBy(x => x.PrevOut.Hash)

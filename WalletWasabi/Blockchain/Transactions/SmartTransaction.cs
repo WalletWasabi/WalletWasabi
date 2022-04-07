@@ -196,6 +196,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	   => WalletInputs.Any() // We must be a participant in order to be this transaction our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
+	public IEnumerable<SmartTransaction> GetAllOwnPreviousTransactions()
+	{
+		foreach (var tx in WalletInputs.Select(x => x.Transaction))
+		{
+			yield return tx;
+
+			foreach (var innerTx in tx.GetAllOwnPreviousTransactions())
+			{
+				yield return innerTx;
+			}
+		}
+	}
+
 	#region LineSerialization
 
 	public string ToLine()
