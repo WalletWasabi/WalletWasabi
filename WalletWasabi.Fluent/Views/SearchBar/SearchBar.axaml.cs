@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Search;
+namespace WalletWasabi.Fluent.Views.SearchBar;
 
-public class SearchPageView : UserControl
+public class SearchBar : UserControl
 {
-	public SearchPageView()
+	public SearchBar()
 	{
 		InitializeComponent();
 	}
