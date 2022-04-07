@@ -12,7 +12,8 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 	private string CoinJoinIdStoreFilePath { get; set; }
 	private object FileWriteLock { get; set; } = new();
 
-	public CoinJoinIdStore() : this(Enumerable.Empty<uint256>(), string.Empty)
+	// Only for testing purposes.
+	internal CoinJoinIdStore() : this(Enumerable.Empty<uint256>(), string.Empty)
 	{
 	}
 
@@ -70,6 +71,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 			{
 				coinjoins = missingWw1Coinjoins.Concat(coinjoins);
 				updateFile = true;
+				Logger.LogWarning($"Imported {missingWw1Coinjoins.Count()} WW1 coinjoins.");
 			}
 		}
 		catch (Exception ex)
