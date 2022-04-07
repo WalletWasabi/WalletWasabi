@@ -105,25 +105,30 @@ public class BlockchainAnalyzer
 			.WalletOutputs.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var anonsets = tx.Transaction.GetAnonymitySets(tx.WalletOutputs.Select(x => x.Index));
+		var indistinguishableOutputs = tx.Transaction.Outputs
+			.GroupBy(x => x.ScriptPubKey)
+			.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
+			.GroupBy(x => x.Value)
+			.ToDictionary(x => x.Key, y => y.Count());
 
-		foreach (var newCoin in tx.WalletOutputs.ToArray())
+		var inputCount = tx.Transaction.Inputs.Count;
+		var ownInputCount = tx.WalletInputs.Count;
+
+		foreach (var newCoin in tx.WalletOutputs)
 		{
-			// Begin estimating the anonymity set size based on the number of
-			// equivalent outputs that the i-th output has in the transaction.
-			int anonset = anonsets[newCoin.Index];
+			var output = newCoin.TxOut;
+			var equalOutputCount = indistinguishableOutputs[output.Value];
+			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
+
+			// Anonset gain cannot be larger than others' input count.
+			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, inputCount - ownInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
-			anonset /= indistinguishableWalletOutputs[newCoin.Amount];
+			anonset /= ownEqualOutputCount;
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
-			// The anonymity set size estimated for the input cluster is corrected
-			// by -1 to avoid double counting ourselves in the anonset.
-			// Stated differently, the right value to use for the calculation is not the
-			// anonymity set size, but the subset of only the other participants, since
-			// every output must belong to a member of the set.
-			anonset += newInputAnonset - 1;
+			anonset += newInputAnonset;
 
 			HdPubKey hdPubKey = newCoin.HdPubKey;
 			uint256 txid = tx.GetHash();
