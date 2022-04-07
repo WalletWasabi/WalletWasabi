@@ -13,17 +13,29 @@ public static class CoinPocketHelper
 	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
 		List<(SmartLabel SmartLabel, ICoinsView Coins)> pockets = new();
+		var clusters = new Dictionary<SmartLabel, List<SmartCoin>>();
 
-		var clusters = allCoins
-			.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold)
-			.GroupBy(x => x.HdPubKey.Cluster.Labels);
+		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold))
+		{
+			var cluster = coin.HdPubKey.Cluster.Labels.ToString();
+
+			if (clusters.Keys.FirstOrDefault(x => string.Equals(x, cluster, StringComparison.OrdinalIgnoreCase)) is { } key &&
+			    clusters.TryGetValue(key, out var clusterCoins))
+			{
+				clusterCoins.Add(coin);
+			}
+			else
+			{
+				clusters.Add(cluster, new List<SmartCoin> { coin });
+			}
+		}
 
 		CoinsView? unLabelledCoins = null;
 
 		foreach (var cluster in clusters)
 		{
 			string[] allLabels = cluster.Key.Labels.ToArray();
-			SmartCoin[] coins = cluster.ToArray();
+			SmartCoin[] coins = cluster.Value.ToArray();
 
 			if (allLabels.Length == 0)
 			{
