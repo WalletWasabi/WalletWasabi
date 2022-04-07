@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
@@ -69,5 +70,27 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(state3.Outputs, clientState3.Outputs);
 		Assert.Equal(clientState3.Inputs, state3.Inputs);
 		Assert.Equal(clientState3.Outputs, state3.Outputs);
+	}
+
+	[Fact]
+	public void GetSuggestedAmountsTest()
+	{
+		Money baseAmount = Money.Coins(0.1m);
+
+		for (int i = 0; i < 100; i++)
+		{
+			var expected = i switch
+			{
+				0 => baseAmount,
+				var n when (n % 32 == 0) => baseAmount * 100000,
+				var n when (n % 16 == 0) => baseAmount * 10000,
+				var n when (n % 8 == 0) => baseAmount * 1000,
+				var n when (n % 4 == 0) => baseAmount * 100,
+				var n when (n % 2 == 0) => baseAmount * 10,
+				_ => baseAmount,
+			};
+
+			Assert.Equal(expected, Arena.GetSuggestedMaxAmount(i));
+		}
 	}
 }

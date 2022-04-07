@@ -56,7 +56,8 @@ public static class WabiSabiFactory
 			Network.Main,
 			new InsecureRandom(),
 			new FeeRate(100m),
-			new CoordinationFeeRate(0.003m, Money.Zero)));
+			new CoordinationFeeRate(0.003m, Money.Zero),
+			Money.Zero));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
 	}
@@ -259,7 +260,7 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate, round.SuggestedMaxAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{

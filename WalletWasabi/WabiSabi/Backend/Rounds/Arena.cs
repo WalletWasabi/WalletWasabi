@@ -52,6 +52,8 @@ public partial class Arena : PeriodicRunner
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
+	private int ConnectionConfirmationStartedCounter { get; set; }
+
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -104,6 +106,7 @@ public partial class Arena : PeriodicRunner
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
+					ConnectionConfirmationStartedCounter++;
 				}
 			}
 			catch (Exception ex)
@@ -329,7 +332,7 @@ public partial class Arena : PeriodicRunner
 	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate);
+		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate, round.SuggestedMaxAmount);
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !Prison.IsBanned(x))
@@ -345,10 +348,28 @@ public partial class Arena : PeriodicRunner
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate);
+			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate, GetSuggestedMaxAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
 			Rounds.Add(r);
 		}
+	}
+
+	internal static Money GetSuggestedMaxAmount(int roundCounter)
+	{
+		Money baseAmount = Money.Coins(0.1m);
+
+		var suggested = roundCounter switch
+		{
+			0 => baseAmount,
+			var n when (n % 32 == 0) => baseAmount * 100000,
+			var n when (n % 16 == 0) => baseAmount * 10000,
+			var n when (n % 8 == 0) => baseAmount * 1000,
+			var n when (n % 4 == 0) => baseAmount * 100,
+			var n when (n % 2 == 0) => baseAmount * 10,
+			_ => baseAmount,
+		};
+
+		return suggested;
 	}
 
 	private void TimeoutRounds()
