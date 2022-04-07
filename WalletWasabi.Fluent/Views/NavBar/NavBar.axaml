@@ -161,7 +161,7 @@
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
-                  <c:FadeOutTextBlock Text="{Binding Title}" />
+                  <c:FadeOutTextBlock Text="{Binding Title, Converter={x:Static conv:WalletTitleAcronymConverter.Instance}}" />
                 </LayoutTransformControl>
                 <Panel>
                   <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
