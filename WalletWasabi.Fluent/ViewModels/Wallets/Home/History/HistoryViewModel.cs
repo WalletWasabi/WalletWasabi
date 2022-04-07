@@ -120,8 +120,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
-						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.SortLabel),
-						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.SortLabel),
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label),
 						MinWidth = new GridLength(100, GridUnitType.Pixel)
 					},
 					width: new GridLength(1, GridUnitType.Star)),
