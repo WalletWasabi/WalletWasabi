@@ -85,36 +85,35 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 			updateFile = true;
 		}
 
-		var parsedIds = ParseIds(coinjoins, out var stringIds);
-		if (stringIds.Count != coinjoins.Count())
+		// Parse and filter all invalid ids.
+		var parsedCoinjoinIds = GetValidCoinjoinIds(coinjoins, out List<string> validCoinjoinIds, out bool wasError);
+
+		if (updateFile || wasError)
 		{
-			updateFile = true;
+			File.WriteAllLines(coinJoinIdStoreFilePath, validCoinjoinIds);
 		}
 
-		if (updateFile)
-		{
-			File.WriteAllLines(coinJoinIdStoreFilePath, stringIds);
-		}
-
-		return new CoinJoinIdStore(parsedIds, coinJoinIdStoreFilePath);
+		return new CoinJoinIdStore(parsedCoinjoinIds, coinJoinIdStoreFilePath);
 	}
 
-	private static IEnumerable<uint256> ParseIds(IEnumerable<string> coinjoins, out List<string> stringIds)
+	private static IEnumerable<uint256> GetValidCoinjoinIds(IEnumerable<string> coinjoins, out List<string> validCoinJoins, out bool wasError)
 	{
-		stringIds = new();
-		List<uint256> ids = new();
-		foreach (var line in coinjoins)
+		wasError = false;
+		validCoinJoins = new List<string>();
+		List<uint256> parsedIds = new();
+		foreach (string id in coinjoins)
 		{
-			if (uint256.TryParse(line, out uint256 id))
+			if (uint256.TryParse(id, out uint256 parsedId))
 			{
-				ids.Add(id);
-				stringIds.Add(line);
+				parsedIds.Add(parsedId);
+				validCoinJoins.Add(id);
 			}
 			else
 			{
-				Logger.LogError($"Failed to parse coinjoin id: {line}.");
+				wasError = true;
+				Logger.LogError($"Failed to parse coinjoin id: {id}.");
 			}
 		}
-		return ids;
+		return parsedIds;
 	}
 }
