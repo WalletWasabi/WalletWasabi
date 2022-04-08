@@ -57,7 +57,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		}
 		else
 		{
-			coinjoins = File.ReadAllLines(coinJoinIdStoreFilePath);
+			coinjoins = File.ReadAllLines(coinJoinIdStoreFilePath).Where(line => !string.IsNullOrEmpty(line));
 		}
 
 		// Try to import ww1 coinjoins.
@@ -65,7 +65,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		{
 			var ww1Coinjoins = File.ReadAllLines(ww1CoinJoinsFilePath);
 
-			var missingWw1Coinjoins = ww1Coinjoins.Except(coinjoins);
+			var missingWw1Coinjoins = ww1Coinjoins.Except(coinjoins).Where(line => !string.IsNullOrEmpty(line));
 
 			if (missingWw1Coinjoins.Any())
 			{
@@ -94,6 +94,8 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 		{
 			File.WriteAllLines(coinJoinIdStoreFilePath, validCoinjoinIds);
 		}
+
+		Logger.LogInfo($"{parsedCoinjoinIds.Count()} coinjoins were imported from files.");
 
 		return new CoinJoinIdStore(parsedCoinjoinIds, coinJoinIdStoreFilePath);
 	}
