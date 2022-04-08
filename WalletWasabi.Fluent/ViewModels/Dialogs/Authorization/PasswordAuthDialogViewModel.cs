@@ -1,4 +1,7 @@
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -9,6 +12,7 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 {
 	private readonly Wallet _wallet;
 	[AutoNotify] private string _password;
+	[AutoNotify] private string _errorMessage;
 
 	public PasswordAuthDialogViewModel(Wallet wallet)
 	{
@@ -32,6 +36,13 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 	protected override async Task<bool> Authorize()
 	{
-		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
+		var result = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
+
+		if (!result)
+		{
+			ErrorMessage = "The password is incorrect! Try Again.";
+		}
+
+		return result;
 	}
 }

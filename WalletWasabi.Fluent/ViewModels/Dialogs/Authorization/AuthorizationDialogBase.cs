@@ -11,7 +11,10 @@ public abstract class AuthorizationDialogBase : DialogViewModelBase<bool>
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var result = await Authorize();
-			Close(DialogResultKind.Normal, result);
+			if (result)
+			{
+				Close(DialogResultKind.Normal, result);
+			}
 		});
 
 		EnableAutoBusyOn(NextCommand);
