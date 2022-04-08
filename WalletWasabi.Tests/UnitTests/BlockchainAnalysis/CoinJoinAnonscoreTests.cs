@@ -425,6 +425,6 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(2, tx3.WalletInputs.First().HdPubKey.AnonymitySet);
 		analyser.Analyze(tx3);
 		Assert.Equal(2, tx3.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.All(tx3.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+		Assert.All(tx3.WalletOutputs, x => Assert.Equal(4, x.HdPubKey.AnonymitySet));
 	}
 }
