@@ -43,7 +43,7 @@ namespace WalletWasabi.Packager
 		{
 			"win7-x64",
 			"linux-x64",
-			"osx-x64"
+			"osx.10.15-x64"
 		};
 
 		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));

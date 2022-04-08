@@ -3349,7 +3349,7 @@
         }
       }
     },
-    ".NETCoreApp,Version=v3.1/osx-x64": {
+    ".NETCoreApp,Version=v3.1/osx.10.15-x64": {
       "System.Runtime": {
         "type": "Direct",
         "requested": "[4.3.1, )",
@@ -3391,6 +3391,50 @@
         "contentHash": "uqX2Frwf9PW8MaY7PRNY6HM5BpW1D8oj1EdqzrmbEFD5nH63Yat3aEjN/tws6Tw6Fk7LwmLBvtUh32tTeTaHiA==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1"
+        }
+      },
+      "Microsoft.NETCore.DotNetHost": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "uaMgykq6AckP3hZW4dsD6zjocxyXPz0tcTl8OX7mlSUWsyFXdtf45sjdwI0JIHxt3gnI6GihAlOAwYK8HE4niQ==",
+        "dependencies": {
+          "runtime.osx.10.10-x64.Microsoft.NETCore.DotNetHost": "1.0.1"
+        }
+      },
+      "Microsoft.NETCore.DotNetHostPolicy": {
+        "type": "Transitive",
+        "resolved": "1.0.5",
+        "contentHash": "KR8e8+lh/YnhD0wDCMBRUjn0/VnryxHbu6I61U6m7PAyz9HbRr+iX3BYL925OHMFuFmk1atc/RRGjGtVOVrvrg==",
+        "dependencies": {
+          "Microsoft.NETCore.DotNetHostResolver": "1.0.1",
+          "runtime.osx.10.10-x64.Microsoft.NETCore.DotNetHostPolicy": "1.0.5"
+        }
+      },
+      "Microsoft.NETCore.DotNetHostResolver": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "GEXgpAHB9E0OhfcmNJ664Xcd2bJkz2qkGIAFmCgEI5ANlQy4qEEmBVfUqA+Z9HB85ZwWxZc1eIJ6fxdxcjrctg==",
+        "dependencies": {
+          "Microsoft.NETCore.DotNetHost": "1.0.1",
+          "runtime.osx.10.10-x64.Microsoft.NETCore.DotNetHostResolver": "1.0.1"
+        }
+      },
+      "Microsoft.NETCore.Jit": {
+        "type": "Transitive",
+        "resolved": "1.0.7",
+        "contentHash": "pNYSZFvX14x4ubToTLxj9O9xNIEg1kHaL6gkMr8urWKIY65cu8272KRlT3cgJCKLbzFO0XZDjvPlRBCFrbJm7Q==",
+        "dependencies": {
+          "runtime.osx.10.10-x64.Microsoft.NETCore.Jit": "1.0.7"
+        }
+      },
+      "Microsoft.NETCore.Runtime.CoreCLR": {
+        "type": "Transitive",
+        "resolved": "1.0.7",
+        "contentHash": "t81co+R1xDubSQDDYP+zddd1Eya7xGeN2XlJMSsNFUCKRm35/5u8knnXOQTdfE1nf6bYqPROt18WlhdZui1FLA==",
+        "dependencies": {
+          "Microsoft.NETCore.Jit": "1.0.7",
+          "Microsoft.NETCore.Windows.ApiSets": "1.0.1",
+          "runtime.osx.10.10-x64.Microsoft.NETCore.Runtime.CoreCLR": "1.0.7"
         }
       },
       "Microsoft.Win32.Primitives": {
@@ -3527,6 +3571,46 @@
         "resolved": "4.3.0",
         "contentHash": "c3YNH1GQJbfIPJeCnr4avseugSqPrxwIqzthYyZDN6EuOyNOzq+y2KSUfRcXauya1sF4foESTgwM5e1A8arAKw=="
       },
+      "runtime.native.System": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "c/qWt2LieNZIj1jGnVNsE2Kl23Ya2aSTBuXMD6V7k9KWr6l16Tqdwq+hJScEpWER9753NWC8h96PaVNY5Ld7Jw==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Targets": "1.1.0",
+          "runtime.osx.10.10-x64.runtime.native.System": "4.3.1"
+        }
+      },
+      "runtime.native.System.IO.Compression": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "INBPonS5QPEgn7naufQFXJEp3zX6L4bwHgJ/ZH78aBTpeNfQMtf7C6VrAFhlq2xxWBveIOWyFzQjJ8XzHMhdOQ==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Targets": "1.1.0",
+          "runtime.osx.10.10-x64.runtime.native.System.IO.Compression": "4.3.2"
+        }
+      },
+      "runtime.native.System.Net.Http": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "ZVuZJqnnegJhd2k/PtAbbIcZ3aZeITq3sj06oKfMBSfphW3HDmk/t4ObvbOk/JA/swGR0LNqMksAh/f7gpTROg==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Targets": "1.1.0",
+          "runtime.osx.10.10-x64.runtime.native.System.Net.Http": "4.3.1"
+        }
+      },
+      "runtime.native.System.Net.Security": {
+        "type": "Transitive",
+        "resolved": "4.0.1",
+        "contentHash": "Az6Ff6rZFb8nYGAaejFR6jr8ktt9f3e1Q/yKdw0pwHNTLaO/1eCAC9vzBoR9YAb0QeZD6fZXl1A9tRB5stpzXA==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.0.1",
+          "Microsoft.NETCore.Targets": "1.0.1",
+          "runtime.osx.10.10-x64.runtime.native.System.Net.Security": "4.3.1"
+        }
+      },
       "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -3536,6 +3620,57 @@
         "type": "Transitive",
         "resolved": "4.3.0",
         "contentHash": "KeLz4HClKf+nFS7p/6Fi/CqyLXh81FpiGzcmuS8DGi9lUqSnZ6Es23/gv2O+1XVGfrbNmviF7CckBpavkBoIFQ=="
+      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.DotNetHost": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "mOOQMpPwZsKQ6HffNvKb5V/Cv1u3Kpdw0GhAcjkND1uNPyJnnqg8C0DvAFKtTzq4ERO7QcqejP/5vHgR1p7jug=="
+      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.DotNetHostPolicy": {
+        "type": "Transitive",
+        "resolved": "1.0.5",
+        "contentHash": "1cJeEwLNcXRML+VHQME3LzqhbF/4vB7xYkuaxeoWlyyoERmX+oBULCf4k3MN+g4vgeDAeMw6bxipZgJMZoRi6g==",
+        "dependencies": {
+          "Microsoft.NETCore.DotNetHostResolver": "1.0.1"
+        }
+      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.DotNetHostResolver": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "Ira2vafU8carEloXDxk5NxYqDvBo93Ym/PqGx6rDiCVvC3Lmlf7LUqUDXIEcb79RkHPlBnm7Z6XaOvYBZ+WbxQ==",
+        "dependencies": {
+          "Microsoft.NETCore.DotNetHost": "1.0.1"
+        }
+      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.Jit": {
+        "type": "Transitive",
+        "resolved": "1.0.7",
+        "contentHash": "Hs+F9H1VgDLpIARPuvVorNQthJDEZhne28EyITsdBDD2nVaVkaFhzU0sK1i5s1zF6jRMeI/CxjUuTWcIsQlbTA=="
+      },
+      "runtime.osx.10.10-x64.Microsoft.NETCore.Runtime.CoreCLR": {
+        "type": "Transitive",
+        "resolved": "1.0.7",
+        "contentHash": "wXJR0eckycBAPj6mprLZs9HnyRIxCMYkWQHSbVZOiwIwJzxCTjHg1S1XExgVxofyq5ZFAgQoUybP/aOLV4aFpA=="
+      },
+      "runtime.osx.10.10-x64.runtime.native.System": {
+        "type": "Transitive",
+        "resolved": "4.3.1",
+        "contentHash": "4zfNDbnNJQLaWQDH5HxjW+CF2v+JsdNgCg+CktZ7Io6617QMvJ7VbtJIiWpNB9U2FrHW4d+0TfqoVNBXgxfPEA=="
+      },
+      "runtime.osx.10.10-x64.runtime.native.System.IO.Compression": {
+        "type": "Transitive",
+        "resolved": "4.3.2",
+        "contentHash": "2CGkvz0kt0QMugBU4ykzXszNcdabtDIyWFw5O28C+gC9Sse0eie5/A3js4QPcJ6zgvkiY8zrLrFtPd3gp5Or2Q=="
+      },
+      "runtime.osx.10.10-x64.runtime.native.System.Net.Http": {
+        "type": "Transitive",
+        "resolved": "4.3.1",
+        "contentHash": "Fq6Ec15Xzn9LLMlsv2+q2/k+N8iKLrI6bpkjGpuh3t6Kmaa0SFqI0BeY0jy8raPgYMbCrqajyJhBW9bIX5xedA=="
+      },
+      "runtime.osx.10.10-x64.runtime.native.System.Net.Security": {
+        "type": "Transitive",
+        "resolved": "4.3.1",
+        "contentHash": "jE0SfQkQinoTN8XgxnrkkJJWAtbZcetimpF0H5x5EmiM8Xq3wMuN856gQ2O0g+fbEKiH5O6rf6MrkKS1Ddvc/Q=="
       },
       "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple": {
         "type": "Transitive",
