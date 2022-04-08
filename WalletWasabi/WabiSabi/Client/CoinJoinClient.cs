@@ -403,15 +403,10 @@ public class CoinJoinClient
 		var missingCoinsWithOriginal = diffWithOriginal < 0 ? 0 : diffWithOriginal;
 		var missingCoinsWithSuggested = diffWithSuggested < 0 ? 0 : diffWithSuggested;
 
-		if (missingCoinsWithSuggested > missingCoinsWithOriginal)
-		{
-			// After taking the suggestion into account, the situation worsen.
-			throw new InvalidOperationException("Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.");
-		}
-		else
-		{
-			filteredCoins = suggestedCoins.ToArray();
-		}
+		// Check if after taking the suggestion into account, the situation worsen?
+		filteredCoins = missingCoinsWithOriginal < missingCoinsWithSuggested
+			? throw new InvalidOperationException("Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.")
+			: suggestedCoins;
 
 		// Select a group of coins those are close to each other by Anonimity Score.
 		List<IEnumerable<SmartCoin>> groups = new();
