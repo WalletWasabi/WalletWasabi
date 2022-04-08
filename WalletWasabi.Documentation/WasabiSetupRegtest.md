@@ -28,6 +28,7 @@ Linux: $HOME/.bitcoin/
 ```C#
 regtest.server = 1
 regtest.listen = 1
+regtest.txindex = 1
 regtest.whitebind = 127.0.0.1:18444
 regtest.rpchost = 127.0.0.1
 regtest.rpcport = 18443
