@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -19,8 +20,6 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 	public static readonly StyledProperty<bool> IsSearchPanelOpenProperty =
 		AvaloniaProperty.Register<SearchBarBehavior, bool>(nameof(SearchBox));
 
-	private TopLevel? _topLevel;
-
 	[ResolveByName]
 	public Control? SearchBox
 	{
@@ -34,7 +33,6 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		get => GetValue(SearchPanelProperty);
 		set => SetValue(SearchPanelProperty, value);
 	}
-
 
 	public bool IsSearchPanelOpen
 	{
@@ -54,37 +52,22 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 
 		if (AssociatedObject.GetVisualRoot() is TopLevel topLevel)
 		{
-			_topLevel = topLevel;
-
-			topLevel.AddHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel);
+			topLevel
+				.AddDisposableHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel)
+				.DisposeWith(disposables);
 		}
 
 		if (SearchBox is { } && SearchPanel is { })
 		{
-			SearchBox.GotFocus += SearchBoxOnGotFocus;
-			AssociatedObject.LostFocus += AssociatedObjectOnLostFocus;
-		}
-	}
+			Observable
+				.FromEventPattern(SearchBox, nameof(SearchBox.GotFocus))
+				.Subscribe(_ => SearchBoxOnGotFocus())
+				.DisposeWith(disposables);
 
-	protected override void OnDetaching()
-	{
-		base.OnDetaching();
-
-		if (_topLevel is { })
-		{
-			_topLevel.RemoveHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed);
-
-			_topLevel = null;
-		}
-
-		if (SearchBox is { })
-		{
-			SearchBox.GotFocus -= SearchBoxOnGotFocus;
-		}
-
-		if (AssociatedObject is { })
-		{
-			AssociatedObject.LostFocus -= AssociatedObjectOnLostFocus;
+			Observable
+				.FromEventPattern(SearchBox, nameof(SearchBox.LostFocus))
+				.Subscribe(_ => AssociatedObjectOnLostFocus(AssociatedObject, SearchBox))
+				.DisposeWith(disposables);
 		}
 	}
 
@@ -100,7 +83,7 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		}
 	}
 
-	private void SearchBoxOnGotFocus(object? sender, GotFocusEventArgs e)
+	private void SearchBoxOnGotFocus()
 	{
 		ShowFlyout();
 	}
@@ -115,31 +98,30 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		IsSearchPanelOpen = true;
 	}
 
-	private void AssociatedObjectOnLostFocus(object? sender, RoutedEventArgs e)
+	private void AssociatedObjectOnLostFocus(Control associatedObject, Control searchBox)
 	{
-		if (AssociatedObject is { } && SearchPanel is { })
+		if (!associatedObject.IsKeyboardFocusWithin && !searchBox.IsKeyboardFocusWithin)
 		{
-			if (!AssociatedObject.IsKeyboardFocusWithin && !SearchPanel.IsKeyboardFocusWithin)
-			{
-				HideFlyout();
-			}
+			HideFlyout();
 		}
 	}
 
 	private void HideFlyout()
 	{
+		if (AssociatedObject is null)
+		{
+			return;
+		}
+
 		FlyoutBase.GetAttachedFlyout(AssociatedObject)?.Hide();
 		IsSearchPanelOpen = false;
 	}
 
 	private void OnTopLevelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-		if (AssociatedObject is { } && !AssociatedObject.IsPointerOver)
+		if (AssociatedObject is { IsPointerOver: false } && ReferenceEquals(FocusManager.Instance?.Current, SearchBox))
 		{
-			if (ReferenceEquals(FocusManager.Instance?.Current, SearchBox))
-			{
-				FocusManager.Instance?.Focus(null);
-			}
+			FocusManager.Instance?.Focus(null);
 		}
 	}
 }
