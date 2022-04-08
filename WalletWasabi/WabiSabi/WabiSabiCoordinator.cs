@@ -17,20 +17,18 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore)
 	{
 		Parameters = parameters;
 
 		Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
-
+		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
 		CoinJoinFeeRateStatStore.NewStat += FeeRateStatStore_NewStat;
-
-		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
 
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(parameters.CoinJoinScriptStoreFilePath);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
@@ -41,7 +39,7 @@ public class WabiSabiCoordinator : BackgroundService
 			Config,
 			rpc,
 			Warden.Prison,
-			inMemoryCoinJoinIdStore,
+			coinJoinIdStore,
 			transactionArchiver,
 			coinJoinScriptStore);
 
@@ -50,6 +48,7 @@ public class WabiSabiCoordinator : BackgroundService
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }
+	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }
@@ -59,22 +58,14 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
 
-	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
+	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
-		var coinJoinIdStoreFilePath = Parameters.CoinJoinIdStoreFilePath;
-		try
-		{
-			File.AppendAllLines(coinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"Could not write file {coinJoinIdStoreFilePath}.", ex);
-		}
+		CoinJoinIdStore.TryAdd(transaction.GetHash());
 
 		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
 		try
 		{
-			File.AppendAllLines(coinJoinScriptStoreFilePath, e.Outputs.Select(x => x.ScriptPubKey.ToHex()));
+			File.AppendAllLines(coinJoinScriptStoreFilePath, transaction.Outputs.Select(x => x.ScriptPubKey.ToHex()));
 		}
 		catch (Exception ex)
 		{
