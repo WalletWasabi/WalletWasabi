@@ -45,6 +45,8 @@ regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 10. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
 `generatetoaddress 1 <replace_new_address_here>`
 
+You can force rebuilding the txindex with the `-reindex` command line argument.
+
 ## Setup Wasabi Backend
 
 Here you will have to build from source, follow [these instructions here](https://github.com/zkSNACKs/WalletWasabi#build-from-source-code).
