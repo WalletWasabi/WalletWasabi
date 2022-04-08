@@ -17,7 +17,13 @@ public class Round
 		RoundParameters = roundParameters;
 
 		var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
-		var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, roundParameters.CoordinationFeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
+		var txParams = new MultipartyTransactionParameters(
+			roundParameters.FeeRate,
+			roundParameters.CoordinationFeeRate,
+			allowedAmounts,
+			allowedAmounts,
+			roundParameters.Network,
+			roundParameters.MaxSuggestedAmount);
 		CoinjoinState = new ConstructionState(txParams);
 
 		InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
@@ -33,7 +39,6 @@ public class Round
 		ConnectionConfirmationTimeFrame = TimeFrame.Create(RoundParameters.ConnectionConfirmationTimeout);
 		OutputRegistrationTimeFrame = TimeFrame.Create(RoundParameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(RoundParameters.TransactionSigningTimeout);
-		MaxSuggestedAmount = roundParameters.MaxSuggestedAmount;
 	}
 
 	public uint256 Id => _id ??= CalculateHash();
@@ -65,7 +70,7 @@ public class Round
 
 	protected RoundParameters RoundParameters { get; }
 	public Script CoordinatorScript { get; set; }
-	public Money MaxSuggestedAmount { get; }
+	public Money MaxSuggestedAmount => RoundParameters.MaxSuggestedAmount;
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch

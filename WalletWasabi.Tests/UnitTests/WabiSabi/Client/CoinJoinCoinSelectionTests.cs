@@ -5,6 +5,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
@@ -154,7 +155,8 @@ public class CoinJoinCoinSelectionTests
 			CoordinationFeeRate.Zero,
 			reasonableRange,
 			reasonableRange,
-			Network.Main);
+			Network.Main,
+			Money.Coins(Constants.MaximumNumberOfBitcoins));
 		return txParams;
 	}
 }

@@ -6,13 +6,21 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
 public class MultipartyTransactionTests
 {
 	private static MoneyRange DefaultAllowedAmounts = new(Money.Zero, Money.Coins(1));
-	private static MultipartyTransactionParameters DefaultParameters = new(FeeRate.Zero, CoordinationFeeRate.Zero, DefaultAllowedAmounts, DefaultAllowedAmounts, Network.Main);
+
+	private static MultipartyTransactionParameters DefaultParameters = new(
+		FeeRate.Zero,
+		CoordinationFeeRate.Zero,
+		DefaultAllowedAmounts,
+		DefaultAllowedAmounts,
+		Network.Main,
+		Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	private static void ThrowsProtocolException(WabiSabiProtocolErrorCode expectedError, Action action) =>
 		Assert.Equal(expectedError, Assert.Throws<WabiSabiProtocolException>(action).ErrorCode);

@@ -366,6 +366,7 @@ public class CoinJoinClient
 	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
 	{
 		var filteredCoins = coins
+			.Where(x => x.Amount < parameters.MaxSuggestedAmount)
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.ToShuffled() // Preshuffle before ordering.

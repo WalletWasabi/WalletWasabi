@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Policy;
 using System.Collections.Immutable;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -18,13 +19,15 @@ public record MultipartyTransactionParameters
 		Models.CoordinationFeeRate coordinationFeeRate,
 		MoneyRange allowedInputAmounts,
 		MoneyRange allowedOutputAmounts,
-		Network network)
+		Network network,
+		Money maxSuggestedAmount)
 	{
 		FeeRate = feeRate;
 		CoordinationFeeRate = coordinationFeeRate;
 		AllowedInputAmounts = allowedInputAmounts;
 		AllowedOutputAmounts = allowedOutputAmounts;
 		Network = network;
+		MaxSuggestedAmount = maxSuggestedAmount;
 	}
 
 	// These parameters need to be committed to the transcript, but we want
@@ -41,6 +44,7 @@ public record MultipartyTransactionParameters
 	public MoneyRange AllowedInputAmounts { get; init; }
 	public MoneyRange AllowedOutputAmounts { get; init; }
 	public Network Network { get; }
+	public Money MaxSuggestedAmount { get; }
 
 	// implied:
 	// segwit transaction
