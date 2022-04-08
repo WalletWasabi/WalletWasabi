@@ -322,4 +322,109 @@ public class CoinJoinAnonScoreTests
 		Assert.All(tx1.WalletInputs, x => Assert.All(tx2.WalletInputs, y => Assert.True(x.HdPubKey.AnonymitySet > y.HdPubKey.AnonymitySet)));
 		Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
 	}
+
+	[Fact]
+	public void SiblingCoinjoinDoesntContributeToAnonScore()
+	{
+		// See full explanation of this example here: https://github.com/zkSNACKs/WalletWasabi/issues/7635#issuecomment-1085978009
+		// Create TX1 as a 2 in 2 out coinjoin. Outputs gain 1 anonset.
+		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var othersOutputs = new[] { 1 };
+		var ownOutputs = new[] { 1 };
+		var tx1 = BitcoinFactory.CreateSmartTransaction(
+				1,
+				othersOutputs.Select(x => Money.Coins(x)),
+				new[] { (Money.Coins(1m), 1) },
+				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
+
+		Assert.Equal(1, tx1.WalletInputs.First().HdPubKey.AnonymitySet);
+		analyser.Analyze(tx1);
+		Assert.Equal(1, tx1.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx1.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+
+		// Let's create TX2 that is the same as TX1 except its inputs are TX1: a sybil coinjoin.
+		ownOutputs = new[] { 1, 1 };
+		var tx2 = BitcoinFactory.CreateSmartTransaction(
+				1,
+				othersOutputs.Select(x => Money.Coins(x)),
+				new[] { (Money.Coins(1m), 1) },
+				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
+
+		// Link up the tx with the previous one.
+		tx2.WalletInputs.Clear();
+		tx2.WalletInputs.Add(tx1.WalletOutputs.First());
+		tx2.Transaction.Inputs.Clear();
+		tx2.Transaction.Inputs.Add(tx1.Transaction, 0);
+		tx2.Transaction.Inputs.Add(tx1.Transaction, 1);
+
+		Assert.Equal(2, tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+		analyser.Analyze(tx2);
+		Assert.Equal(2, tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx2.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+	}
+
+	[Fact]
+	public void EarlierSiblingCoinjoinDoesntContributeToAnonScore()
+	{
+		// See full explanation of this example here: https://github.com/zkSNACKs/WalletWasabi/issues/7635#issuecomment-1084612032
+		// Create TX1 as a 2 in 2 out coinjoin. Outputs gain 1 anonset.
+		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var othersOutputs = new[] { 2 };
+		var ownOutputs = new[] { 2 };
+		var tx1 = BitcoinFactory.CreateSmartTransaction(
+				1,
+				othersOutputs.Select(x => Money.Coins(x)),
+				new[] { (Money.Coins(2m), 1) },
+				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
+
+		Assert.Equal(1, tx1.WalletInputs.First().HdPubKey.AnonymitySet);
+		analyser.Analyze(tx1);
+		Assert.Equal(1, tx1.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx1.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+
+		// Let's create TX2 with 2 input 3 outputs. One of our input is from TX1.
+		othersOutputs = new[] { 1 };
+		ownOutputs = new[] { 1, 1 };
+		var tx2 = BitcoinFactory.CreateSmartTransaction(
+				1,
+				othersOutputs.Select(x => Money.Coins(x)),
+				new[] { (Money.Coins(2m), 1) },
+				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
+
+		// Link up the tx with the previous one.
+		tx2.Transaction.Inputs.RemoveAll(x => x.PrevOut == tx2.WalletInputs.First().OutPoint);
+		tx2.WalletInputs.Clear();
+		tx2.WalletInputs.Add(tx1.WalletOutputs.First());
+		tx2.Transaction.Inputs.Add(tx1.Transaction, (int)tx1.WalletOutputs.First().Index);
+
+		Assert.Equal(2, tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+		analyser.Analyze(tx2);
+		Assert.Equal(2, tx2.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx2.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+
+		// Finally create TX3 that takes 3 inputs and 4 outputs.
+		// 1 input comes from TX1, from others.
+		// 2 inputs come from TX2. One is ours, one from others.
+		// All the amounts are 1 BTC.
+		othersOutputs = new[] { 1, 1, 1 };
+		ownOutputs = new[] { 1 };
+		var tx3 = BitcoinFactory.CreateSmartTransaction(
+				2,
+				othersOutputs.Select(x => Money.Coins(x)),
+				new[] { (Money.Coins(1m), 1) },
+				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
+
+		// Link it up.
+		tx3.WalletInputs.Clear();
+		tx3.WalletInputs.Add(tx2.WalletOutputs.First());
+		tx3.Transaction.Inputs.Clear();
+		tx3.Transaction.Inputs.Add(tx1.Transaction, tx1.WalletOutputs.First().Index == 0 ? 1 : 0);
+		tx3.Transaction.Inputs.Add(tx2.Transaction, tx2.WalletOutputs.First().Index == 0 ? 1 : 0);
+		tx3.Transaction.Inputs.Add(tx2.Transaction, (int)tx2.WalletOutputs.First().Index);
+
+		Assert.Equal(2, tx3.WalletInputs.First().HdPubKey.AnonymitySet);
+		analyser.Analyze(tx3);
+		Assert.Equal(2, tx3.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx3.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+	}
 }

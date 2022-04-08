@@ -103,7 +103,7 @@ public class BlockchainAnalyzer
 			}
 		}
 
-		startingInputAnonset = Intersect(anonsets, coefficient);
+		startingInputAnonset = Math.Max(newInputAnonset, Intersect(anonsets, coefficient));
 	}
 
 	/// <summary>
