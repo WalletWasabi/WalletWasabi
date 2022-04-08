@@ -28,5 +28,7 @@
 	<string>public.app-category.finance</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.15</string>
 </dict>
 </plist>
