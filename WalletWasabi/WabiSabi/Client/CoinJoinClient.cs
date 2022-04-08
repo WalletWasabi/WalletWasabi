@@ -116,11 +116,10 @@ public class CoinJoinClient
 	{
 		var tryLimit = 6;
 
-		ImmutableList<SmartCoin> coins = ImmutableList<SmartCoin>.Empty;
 		RoundState? currentRoundState;
 		Money targetMaxSuggestedAmount = Money.Zero;
-
-		while (!cancellationToken.IsCancellationRequested)
+		ImmutableList<SmartCoin> coins;
+		while (true)
 		{
 			currentRoundState = await WaitForRoundAsync(targetMaxSuggestedAmount, cancellationToken).ConfigureAwait(false);
 
@@ -131,9 +130,12 @@ public class CoinJoinClient
 			}
 			catch (InvalidOperationException ex)
 			{
+				// Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.
 				targetMaxSuggestedAmount = currentRoundState.MaxSuggestedAmount;
 				Logger.LogInfo(ex.Message);
 			}
+
+			cancellationToken.ThrowIfCancellationRequested();
 		}
 
 		if (coins.IsEmpty)
