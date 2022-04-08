@@ -61,7 +61,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 			return -1;
 		}
 
-		return string.CompareOrdinal(ToString(), other.ToString());
+		return string.Compare(this, other, StringComparison.OrdinalIgnoreCase);
 	}
 
 	public override bool Equals(object? obj) => Equals(obj as SmartLabel) || Equals(obj as string);
