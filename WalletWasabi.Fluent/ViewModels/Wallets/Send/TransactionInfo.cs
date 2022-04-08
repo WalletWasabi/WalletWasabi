@@ -73,4 +73,21 @@ public partial class TransactionInfo
 	{
 		MaximumPossibleFeeRate = null;
 	}
+
+	public TransactionInfo Clone()
+	{
+		return new TransactionInfo(_privateCoinThreshold)
+		{
+			Amount = Amount,
+			ChangelessCoins = ChangelessCoins,
+			Coins = Coins,
+			ConfirmationTimeSpan = ConfirmationTimeSpan,
+			FeeRate = FeeRate,
+			IsCustomFeeUsed = IsCustomFeeUsed,
+			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
+			PayJoinClient = PayJoinClient,
+			SubtractFee = SubtractFee,
+			UserLabels = UserLabels
+		};
+	}
 }

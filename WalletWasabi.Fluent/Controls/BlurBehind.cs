@@ -54,6 +54,13 @@ public class BlurBehind : Control
 				return;
 			}
 
+			// One or both dimensions has zero size.
+			// Skia doesnt like that.
+			if (_bounds.Size.AspectRatio == 0)
+			{
+				return;
+			}
+
 			using var backgroundSnapshot = skia.SkSurface.Snapshot();
 
 			using var preBlur =

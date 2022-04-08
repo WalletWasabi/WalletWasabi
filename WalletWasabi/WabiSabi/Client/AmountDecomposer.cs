@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -13,15 +13,25 @@ public class AmountDecomposer
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
 	/// <param name="allowedOutputAmount">Range of output amount that's allowed to be registered.</param>
 	/// <param name="outputSize">Size of an output.</param>
+	/// <param name="inputSize">Size of an input.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int availableVsize)
+	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int inputSize, int availableVsize, Random? random = null)
 	{
 		FeeRate = feeRate;
+
+		InputSize = inputSize;
 		OutputSize = outputSize;
+
+		InputFee = FeeRate.GetFee(inputSize);
+		OutputFee = FeeRate.GetFee(outputSize);
+
 		AvailableVsize = availableVsize;
 
 		MinAllowedOutputAmountPlusFee = allowedOutputAmount.Min + OutputFee;
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
+
+		Random = random ?? Random.Shared;
 
 		// Create many standard denominations.
 		DenominationsPlusFees = CreateDenominationsPlusFees();
@@ -32,9 +42,12 @@ public class AmountDecomposer
 	public Money MinAllowedOutputAmountPlusFee { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
-	public Money OutputFee => FeeRate.GetFee(OutputSize);
+	public Money OutputFee { get; }
+	public Money InputFee { get; }
 	public int OutputSize { get; }
+	public int InputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
+	private Random Random { get; }
 
 	private IOrderedEnumerable<ulong> CreateDenominationsPlusFees()
 	{
@@ -189,7 +202,7 @@ public class AmountDecomposer
 		var setCandidates = new Dictionary<int, (IEnumerable<Money> Decomp, Money Cost)>();
 
 		// How many times can we participate with the same denomination.
-		var maxDenomUsage = Random.Shared.Next(2, 8);
+		var maxDenomUsage = Random.Next(2, 8);
 
 		// Create the most naive decomposition for starter.
 		List<Money> naiveSet = new();
@@ -250,7 +263,7 @@ public class AmountDecomposer
 
 		setCandidates.Add(
 			hash.ToHashCode(), // Create hash to ensure uniqueness.
-			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee)); // The cost is the remaining + output cost.
+			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee + (ulong)naiveSet.Count * InputFee)); // The cost is the remaining + output cost + input cost.
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
@@ -273,28 +286,28 @@ public class AmountDecomposer
 				{
 					hash.Add(item);
 				}
-				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee)); // The cost is the remaining + output cost.
+				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee + (ulong)count * InputFee)); // The cost is the remaining + output cost + input cost.
 			}
 		}
 
 		var denomHashSet = preFilteredDenoms.ToHashSet();
-		var finalCandidates = setCandidates.Select(x => x.Value).ToList();
-		finalCandidates.Shuffle();
+		var preCandidates = setCandidates.Select(x => x.Value).ToList();
+		preCandidates.Shuffle();
 
-		var orderedCandidates = finalCandidates
+		var orderedCandidates = preCandidates
 			.OrderBy(x => x.Cost) // Less cost is better.
 			.ThenBy(x => x.Decomp.All(x => denomHashSet.Contains(x)) ? 0 : 1) // Prefer no change.
 			.Select(x => x).ToList();
 
-		var finalCandidate = orderedCandidates.First().Decomp;
-		foreach (var candidate in orderedCandidates)
-		{
-			if (Random.Shared.NextDouble() < 0.5)
-			{
-				finalCandidate = candidate.Decomp;
-				break;
-			}
-		}
+		// We want to introduce randomness between the best selections.
+		var bestCandidateCost = orderedCandidates.First().Cost;
+		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.3m);
+		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
+
+		// We want to make sure our random selection is not between similar decompositions.
+		// Different largest elements result in very different decompositions.
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
 
 		finalCandidate = finalCandidate.Select(x => x - OutputFee);
 

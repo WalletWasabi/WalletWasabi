@@ -268,7 +268,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 
 		var usedLabels = SmartLabel.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
-		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value)).ToArray();
+		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value, StringComparer.OrdinalIgnoreCase)).ToArray();
 		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
 
 		foreach (LabelViewModel label in notUsedLabelViewModels)

@@ -14,11 +14,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.Backend;
 
-public class Global
+public class Global : IDisposable
 {
+	private bool _disposedValue;
+
 	public Global(string dataDir)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
@@ -40,6 +43,7 @@ public class Global
 	public Config Config { get; private set; }
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
+	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
 
 	public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
 	{
@@ -54,9 +58,6 @@ public class Global
 		await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
 		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
-
-		CoordinatorParameters coordinatorParameters = new(DataDir);
-		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
 
 		if (roundConfig.FilePath is { })
 		{
@@ -84,7 +85,14 @@ public class Global
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
+
+		CoordinatorParameters coordinatorParameters = new(DataDir);
 		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+
+		CoinJoinIdStore = CoinJoinIdStore.Create(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
+
+		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore), "WabiSabi Coordinator");
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
@@ -92,6 +100,11 @@ public class Global
 		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+	}
+
+	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
+	{
+		CoinJoinIdStore.TryAdd(transaction.GetHash());
 	}
 
 	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
@@ -155,5 +168,54 @@ public class Global
 			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
 			throw;
 		}
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			if (disposing)
+			{
+				Coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;
+
+				if (Coordinator is { } coordinator)
+				{
+					coordinator.Dispose();
+					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
+				}
+
+				var stoppingTask = Task.Run(async () =>
+				{
+					if (IndexBuilderService is { } indexBuilderService)
+					{
+						await indexBuilderService.StopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
+					}
+
+					if (HostedServices is { } hostedServices)
+					{
+						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+						await hostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+						hostedServices.Dispose();
+					}
+
+					if (P2pNode is { } p2pNode)
+					{
+						await p2pNode.DisposeAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
+					}
+				});
+
+				stoppingTask.GetAwaiter().GetResult();
+			}
+
+			_disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

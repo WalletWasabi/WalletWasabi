@@ -28,6 +28,7 @@ Linux: $HOME/.bitcoin/
 ```C#
 regtest.server = 1
 regtest.listen = 1
+regtest.txindex = 1
 regtest.whitebind = 127.0.0.1:18444
 regtest.rpchost = 127.0.0.1
 regtest.rpcport = 18443
@@ -43,6 +44,8 @@ regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 `generatetoaddress 101 <replace_new_address_here>`
 10. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
 `generatetoaddress 1 <replace_new_address_here>`
+
+You can force rebuilding the txindex with the `-reindex` command line argument.
 
 ## Setup Wasabi Backend
 
