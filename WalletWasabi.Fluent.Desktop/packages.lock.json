@@ -1104,7 +1104,7 @@
         }
       }
     },
-    "net6.0/osx-x64": {
+    "net6.0/osx.10.15-x64": {
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1228,7 +1228,8 @@
         "contentHash": "c/qWt2LieNZIj1jGnVNsE2Kl23Ya2aSTBuXMD6V7k9KWr6l16Tqdwq+hJScEpWER9753NWC8h96PaVNY5Ld7Jw==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
-          "Microsoft.NETCore.Targets": "1.1.0"
+          "Microsoft.NETCore.Targets": "1.1.0",
+          "runtime.osx.10.10-x64.runtime.native.System": "4.3.1"
         }
       },
       "runtime.native.System.Security.Cryptography.OpenSsl": {
@@ -1257,6 +1258,11 @@
         "type": "Transitive",
         "resolved": "4.3.0",
         "contentHash": "KeLz4HClKf+nFS7p/6Fi/CqyLXh81FpiGzcmuS8DGi9lUqSnZ6Es23/gv2O+1XVGfrbNmviF7CckBpavkBoIFQ=="
+      },
+      "runtime.osx.10.10-x64.runtime.native.System": {
+        "type": "Transitive",
+        "resolved": "4.3.1",
+        "contentHash": "4zfNDbnNJQLaWQDH5HxjW+CF2v+JsdNgCg+CktZ7Io6617QMvJ7VbtJIiWpNB9U2FrHW4d+0TfqoVNBXgxfPEA=="
       },
       "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl": {
         "type": "Transitive",

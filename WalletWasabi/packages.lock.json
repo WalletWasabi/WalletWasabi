@@ -565,7 +565,7 @@
         }
       }
     },
-    "net6.0/osx-x64": {
+    "net6.0/osx.10.15-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[6.0.0, )",
@@ -644,7 +644,8 @@
         "contentHash": "QfS/nQI7k/BLgmLrw7qm7YBoULEvgWnPI+cYsbfCVFTW8Aj+i8JhccxcFMu1RWms0YZzF+UHguNBK4Qn89e2Sg==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
-          "Microsoft.NETCore.Targets": "1.0.1"
+          "Microsoft.NETCore.Targets": "1.0.1",
+          "runtime.osx.10.10-x64.runtime.native.System": "1.0.1"
         }
       },
       "runtime.native.System.Security.Cryptography": {
@@ -653,8 +654,19 @@
         "contentHash": "2CQK0jmO6Eu7ZeMgD+LOFbNJSXHFVQbCJJkEyEwowh1SCgYnrn9W9RykMfpeeVGw7h4IBvYikzpGUlmZTUafJw==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
-          "Microsoft.NETCore.Targets": "1.0.1"
+          "Microsoft.NETCore.Targets": "1.0.1",
+          "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography": "1.0.1"
         }
+      },
+      "runtime.osx.10.10-x64.runtime.native.System": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "8HTIxJfs2nHQHTc4KLrTXCbR9illzE4MjEA9nQryvFZl+WIggCClPPkO646MyeBK2PhyNq5fm7EN8ZZNyXuTjg=="
+      },
+      "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "lmQUKSYs2CASw2ZDYNEoKjBUyS+r30ZzalhuiKewVVVGU8NBWp2EKg5HuMhFys6gdFnA8b7XIsixRdZGkP466Q=="
       },
       "runtime.unix.System.Diagnostics.Debug": {
         "type": "Transitive",

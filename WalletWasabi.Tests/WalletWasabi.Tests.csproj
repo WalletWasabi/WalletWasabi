@@ -13,7 +13,7 @@
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Nullable>enable</Nullable>
 		<InvariantGlobalization>true</InvariantGlobalization>
-		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win7-x64;linux-x64;osx.10.15-x64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>
 	</PropertyGroup>
 

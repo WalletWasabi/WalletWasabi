@@ -113,7 +113,7 @@
         }
       }
     },
-    ".NETStandard,Version=v2.0/osx-x64": {
+    ".NETStandard,Version=v2.0/osx.10.15-x64": {
       "System.Text.Encoding.CodePages": {
         "type": "Transitive",
         "resolved": "4.5.1",

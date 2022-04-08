@@ -36,10 +36,10 @@ public static class Program
 	// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 	private static string[] Targets = new[]
 	{
-			"win7-x64",
-			"linux-x64",
-			"osx-x64"
-		};
+		"win7-x64",
+		"linux-x64",
+		"osx.10.15-x64"
+	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
