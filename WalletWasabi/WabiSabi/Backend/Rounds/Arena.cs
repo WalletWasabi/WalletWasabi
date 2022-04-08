@@ -358,7 +358,7 @@ public partial class Arena : PeriodicRunner
 	{
 		Money baseAmount = Money.Coins(0.1m);
 
-		var suggested = roundCounter switch
+		return roundCounter switch
 		{
 			0 => baseAmount,
 			var n when (n % 32 == 0) => baseAmount * 100000,
@@ -368,8 +368,6 @@ public partial class Arena : PeriodicRunner
 			var n when (n % 2 == 0) => baseAmount * 10,
 			_ => baseAmount,
 		};
-
-		return suggested;
 	}
 
 	private void TimeoutRounds()
