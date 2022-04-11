@@ -33,7 +33,8 @@
         <Separator />
 
         <StackPanel Spacing="10">
-          <TextBlock Text="Privacy threshold" />
+          <TextBlock Text="Privacy threshold"
+                     ToolTip.Tip="Minimum anonimity set for a coin to be considered private" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                       Data="{StaticResource privacy_minimal}" />
