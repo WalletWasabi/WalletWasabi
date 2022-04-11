@@ -27,6 +27,9 @@ public static class SearchItemProvider
 			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.RunOnSystemStartup), "Run on system startup", "Settings", new List<string>(), null) { IsDefault = false },
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.UseTor), "User Tor", "Settings", new List<string>(), null) { IsDefault = false },
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.TerminateTorOnExit), "Terminate Tor on exit", "Settings", new List<string>(), null) { IsDefault = false },
+			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.StartLocalBitcoinCoreOnStartup), "Start local Bitcoin core on startup", "Settings", new List<string>(), null) { IsDefault = false },
+			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.StopLocalBitcoinCoreOnShutdown), "Start local Bitcoin core on shutdown", "Settings", new List<string>(), null) { IsDefault = false },
+			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.JsonRpcServerEnabled), "Enable JSON-RPC Server", "Settings", new List<string>(), null) { IsDefault = false },
 		};
 	}
 
