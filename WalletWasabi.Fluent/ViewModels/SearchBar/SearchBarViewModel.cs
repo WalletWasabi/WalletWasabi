@@ -39,6 +39,10 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Subscribe();
 
 		ShowListCommand = ReactiveCommand.Create(() => IsSearchListVisible = true);
+
+		//this.WhenAnyValue(x => x.IsSearchListVisible)
+		//	.Where(x => x == false)
+		//	.Subscribe(_ => SearchText = "");
 	}
 
 	public ICommand ShowListCommand { get; }
@@ -49,9 +53,9 @@ public partial class SearchBarViewModel : ReactiveObject
 	{
 		return searchItem =>
 		{
-			if (text is null)
+			if (string.IsNullOrWhiteSpace(text))
 			{
-				return true;
+				return searchItem.IsDefault;
 			}
 
 			var containsName = searchItem.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase);

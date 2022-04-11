@@ -6,14 +6,11 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public class DarkThemeSelector : ReactiveObject
+public class DarkThemeSetting : Setting<UiConfig, bool>
 {
-	private bool _isDarkThemeEnabled;
-
-	public DarkThemeSelector()
+	public DarkThemeSetting(UiConfig uiConfig) : base(uiConfig, config => config.DarkModeEnabled)
 	{
-		IsDarkThemeEnabled = ThemeHelper.CurrentTheme == Theme.Dark;
-		this.WhenAnyValue(x => x.IsDarkThemeEnabled)
+		this.WhenAnyValue(x => x.Value)
 			.SelectMany(b =>
 			{
 				return Observable.FromAsync(() =>
@@ -23,11 +20,5 @@ public class DarkThemeSelector : ReactiveObject
 				});
 			})
 			.Subscribe();
-	}
-
-	public bool IsDarkThemeEnabled
-	{
-		get => _isDarkThemeEnabled;
-		set => this.RaiseAndSetIfChanged(ref _isDarkThemeEnabled, value);
 	}
 }

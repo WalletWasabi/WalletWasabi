@@ -37,19 +37,5 @@ public class AutocloseActionableItem : IActionableItem
 	public string Category => _item.Category;
 
 	public IEnumerable<string> Keywords => _item.Keywords;
-}
-
-public interface IActionableItem : ISearchItem
-{
-	Func<Task> OnExecution { get; }
-}
-
-public interface ISearchItem
-{
-	string Name { get; }
-	string Description { get; }
-	ComposedKey Key { get; }
-	string? Icon { get; set; }
-	string Category { get; }
-	IEnumerable<string> Keywords { get; }
+	public bool IsDefault => _item.IsDefault;
 }

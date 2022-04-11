@@ -54,6 +54,14 @@
 
   <UserControl.DataTemplates>
 
+    <sb:SettingSelector>
+      <sb:SettingSelector.DataTemplates>
+        <DataTemplate DataType="x:Boolean">
+          <ToggleSwitch HorizontalAlignment="Right" IsChecked="{Binding Value, Mode=TwoWay}" />
+        </DataTemplate>
+      </sb:SettingSelector.DataTemplates>
+    </sb:SettingSelector>
+
     <DataTemplate DataType="sb:NonActionableSearchItem">
 
       <DockPanel Background="Transparent" Margin="10">
@@ -67,10 +75,6 @@
                         VerticalContentAlignment="Stretch"
                         Content="{Binding Content}" />
       </DockPanel>
-    </DataTemplate>
-
-    <DataTemplate DataType="sb:DarkThemeSelector">
-      <ToggleSwitch HorizontalAlignment="Right" IsChecked="{Binding IsDarkThemeEnabled, Mode=TwoWay}" />
     </DataTemplate>
 
     <DataTemplate DataType="sb:AutocloseActionableItem">

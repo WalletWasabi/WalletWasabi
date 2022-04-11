@@ -12,7 +12,22 @@ public static class SearchItemProvider
 	public static IObservable<ISearchItem> GetSearchItems()
 	{
 		return GetItemsFromMetadata()
+			.Concat(GetAdditionalItems())
 			.ToObservable();
+	}
+
+	private static IEnumerable<ISearchItem> GetAdditionalItems()
+	{
+		return new ISearchItem[]
+		{
+			new NonActionableSearchItem(new DarkThemeSetting(Services.UiConfig), "Dark theme", "Appearance", new List<string>(), null){ IsDefault = false},
+			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.Autocopy), "Autocopy", "Settings", new List<string>(), null)  { IsDefault = false },
+			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.AutoPaste), "Autopaste", "Settings", new List<string>(), null)  { IsDefault = false },
+			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.HideOnClose), "Hide on close", "Settings", new List<string>(), null) { IsDefault = false },
+			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.RunOnSystemStartup), "Run on system startup", "Settings", new List<string>(), null) { IsDefault = false },
+			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.UseTor), "User Tor", "Settings", new List<string>(), null) { IsDefault = false },
+			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.TerminateTorOnExit), "Terminate Tor on exit", "Settings", new List<string>(), null) { IsDefault = false },
+		};
 	}
 
 	private static IEnumerable<ActionableItem> GetItemsFromMetadata()
@@ -24,7 +39,8 @@ public static class SearchItemProvider
 				var onActivate = CreateOnActivateFunction(m);
 				var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category ?? "No category", m.Keywords)
 				{
-					Icon = m.IconName
+					Icon = m.IconName,
+					IsDefault = true,
 				};
 				return searchItem;
 			});

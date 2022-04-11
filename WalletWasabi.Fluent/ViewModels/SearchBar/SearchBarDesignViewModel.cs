@@ -33,7 +33,7 @@ public class SearchBarDesignViewModel : ReactiveObject
 
 		var nonActionable = new ISearchItem[]
 		{
-			new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance", new List<string>(), null)
+			new NonActionableSearchItem(new DarkThemeSetting(Services.UiConfig), "Dark theme", "Appearance", new List<string>(), null)
 		};
 
 		_items = actionable.Concat(nonActionable).ToList();

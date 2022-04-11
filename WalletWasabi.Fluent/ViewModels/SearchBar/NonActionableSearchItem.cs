@@ -21,4 +21,5 @@ public class NonActionableSearchItem : ISearchItem
 	public string? Icon { get; set; }
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
+	public bool IsDefault { get; set; }
 }
