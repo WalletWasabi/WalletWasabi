@@ -207,4 +207,46 @@ public class BranchAndBoundTests
 		// Total costs: (17 + 2) + (10 + 3) + (3 + 1) + (2 + 1) = 39
 		Assert.Equal(new long[] { 17, 10, 3, 2 }, actualSelection);
 	}
+
+	[Fact]
+	public void MaxInputCountTest()
+	{
+		// Less Strategy
+
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		long target = 9;
+
+		BranchAndBound algorithm = new();
+		LessSelectionStrategy lessStrategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(lessStrategy, out _, cts.Token);
+
+		long[] actualSelection = lessStrategy.GetBestSelectionFound()!;
+
+		Assert.NotNull(actualSelection);
+		Assert.Equal(new long[] { 1, 1, 1, 1, 1, }, actualSelection);
+		Assert.Equal(CoinSelection.MaxCoinCount, actualSelection.Length);
+
+		// More Strategy
+
+		inputValues = new long[] { 20, 10, 10, 10, 5, 5, 5, 1, 1 };
+		inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		target = 52;
+
+		algorithm = new();
+		MoreSelectionStrategy moreStrategy = new(target, inputValues, inputCosts);
+		_ = algorithm.TryGetMatch(moreStrategy, out _, cts.Token);
+
+		long[] result = moreStrategy.GetBestSelectionFound()!;
+
+		Assert.NotNull(result);
+
+		// Bnb should have chosen { 20, 10, 10, 10, 1, 1 } but with the MaxInputCount this is the best we can get.
+		Assert.Equal(new long[] { 20, 10, 10, 10, 5 }, result);
+		Assert.Equal(CoinSelection.MaxCoinCount, result.Length);
+	}
 }
