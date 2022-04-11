@@ -33,6 +33,8 @@ public class App : Application
 			DataContext = applicationViewModel;
 			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
 		}
+
+		TransactionWatcher.Instance = new TransactionWatcher();
 	}
 
 	public App(Func<Task> backendInitialiseAsync) : this()

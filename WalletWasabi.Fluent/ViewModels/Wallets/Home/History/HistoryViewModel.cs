@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -38,6 +39,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isInitialized;
+
+	private readonly SourceCache<HistoryItemViewModelBase, uint256> _sourceCache;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
@@ -227,12 +230,15 @@ public partial class HistoryViewModel : ActivatableViewModel
 			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
 			var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
+			MessageBus.Current.SendMessage(new TransactionsChangedMessage(this, newHistoryList));
 
 			_transactionSourceList.Edit(x =>
 			{
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
+
+			
 
 			if (!IsInitialized)
 			{

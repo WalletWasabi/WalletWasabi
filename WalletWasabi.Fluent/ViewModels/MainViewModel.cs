@@ -4,6 +4,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -174,12 +175,16 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		_walletWatcher = new WalletWatcher(Services.WalletManager);
+		var transactionChanges = TransactionWatcher.Instance.TransactionCache.Connect()
+			.Transform(r => (ISearchItem)new NonActionableSearchItem(r.HistoryItem.Label, r.HistoryItem.Date.ToString(), "", new List<string>(), null)
+			{
+				IsDefault = true,
+			});
 
-		var items = SearchItemProvider.GetSearchItems()
-			.Merge(_walletWatcher.Transactions
-				.Select(r => new NonActionableSearchItem(r.Amount.ToString(), r.Label, "Transactions", new List<string>(), null ){ IsDefault = true}));
-		SearchBar = new SearchBarViewModel(items);
+		var staticItems = SearchItemProvider.GetSearchItems().ToObservableChangeSet(r => r.Key);
+
+		SearchBar = new
+			SearchBarViewModel(transactionChanges.Merge(staticItems));
 	}
 
 	public TargettedNavigationStack MainScreen { get; }
