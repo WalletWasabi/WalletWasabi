@@ -1,0 +1,33 @@
+[
+  {
+    "name": "",
+    "request": {
+      "inputSize": 58,
+      "outputSize": 43,
+      "availableVsize": 394,
+      "miningFeeRate": 129000,
+      "allowedOutputAmounts": {
+        "min": 5000,
+        "max": 4300000000000
+      },
+      "internalAmounts": [
+        19932518,
+        996992518
+      ],
+      "externalAmounts": []
+    },
+    "expectedResponse": {
+      "outputAmounts": [
+        16777216,
+        16777216,
+        16777216,
+        16777216,
+        16777216,
+        16777216,
+        16777216,
+        16777216,
+        882657385
+      ]
+    }
+  }
+]

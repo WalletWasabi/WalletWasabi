@@ -19,6 +19,7 @@ public class IntegrationsTest
 	[ClassData(typeof(GetZeroCredentialRequestsTestVectors))]
 	[ClassData(typeof(GetRealCredentialRequestsTestVectors))]
 	[ClassData(typeof(GetCredentialsVectors))]
+	[ClassData(typeof(GetOutpusAmountsTestVectors))]
 	public async Task TestPostAsync([System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "xUnit1026")] string name, string method, string requestContentString, string expectedResponseContentString)
 	{
 		HttpClient client = _factory.CreateClient();
@@ -71,6 +72,13 @@ public class GetRealCredentialRequestsTestVectors : TestVectors
 public class GetCredentialsVectors : TestVectors
 {
 	public GetCredentialsVectors() : base("GetCredentials.json", "get-credentials")
+	{
+	}
+}
+
+public class GetOutpusAmountsTestVectors : TestVectors
+{
+	public GetOutpusAmountsTestVectors() : base("GetOutputsAmounts.json", "get-outputs-amounts")
 	{
 	}
 }
