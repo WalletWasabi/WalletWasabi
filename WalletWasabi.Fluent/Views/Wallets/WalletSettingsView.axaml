@@ -34,7 +34,7 @@
 
         <StackPanel Spacing="10">
           <TextBlock Text="Privacy threshold"
-                     ToolTip.Tip="Minimum anonimity set for a coin to be considered private" />
+                     ToolTip.Tip="Minimum anonymity set for a coin to be considered private" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                       Data="{StaticResource privacy_minimal}" />
@@ -43,7 +43,8 @@
           </DockPanel>
         </StackPanel>
         <StackPanel Spacing="10">
-          <TextBlock Text="Privacy sanity check" />
+          <TextBlock Text="Privacy sanity check"
+                     ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity set is reached" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
                       Data="{StaticResource privacy_medium}" />
