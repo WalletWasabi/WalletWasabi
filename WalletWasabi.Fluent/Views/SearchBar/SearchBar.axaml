@@ -105,6 +105,11 @@
     </Style>
 
     <Style
+      Selector="TextBox /template/ TextBlock#PART_Watermark, TextBox /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="TextBlock.TextTrimming" Value="WordEllipsis"/>
+    </Style>
+
+    <Style
       Selector="TextBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
       <Setter Property="Foreground">
         <SolidColorBrush Opacity="0.7" Color="{DynamicResource AcrylicTrimForeground}" />
