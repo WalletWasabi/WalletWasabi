@@ -5,6 +5,7 @@ using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -44,6 +45,28 @@ public class WasabiJsonRpcService : IJsonRpcService
 			label = x.HdPubKey.Label.ToString(),
 			keyPath = x.HdPubKey.FullKeyPath.ToString(),
 			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
+		}).ToArray();
+	}
+
+	[JsonRpcMethod("listcoins")]
+	public object[] GetCoinList()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		var coinRegistry = activeWallet.Coins as CoinsRegistry;
+		return coinRegistry.AsAllCoinsView().Select(x => new
+		{
+			txid = x.TransactionId.ToString(),
+			index = x.Index,
+			amount = x.Amount.Satoshi,
+			anonymitySet = x.HdPubKey.AnonymitySet,
+			confirmed = x.Confirmed,
+			confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+			keyPath = x.HdPubKey.FullKeyPath.ToString(),
+			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString(),
+			spentBy = x.SpenderTransaction?.GetHash().ToString()
 		}).ToArray();
 	}
 
