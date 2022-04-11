@@ -44,7 +44,7 @@
         </StackPanel>
         <StackPanel Spacing="10">
           <TextBlock Text="Privacy sanity check"
-                     ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity set is reached" />
+                     ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached" />
           <DockPanel>
             <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
                       Data="{StaticResource privacy_medium}" />
