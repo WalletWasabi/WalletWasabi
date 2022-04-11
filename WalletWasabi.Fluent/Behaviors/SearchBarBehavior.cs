@@ -66,7 +66,7 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 
 			Observable
 				.FromEventPattern(SearchBox, nameof(SearchBox.LostFocus))
-				.Subscribe(_ => AssociatedObjectOnLostFocus(AssociatedObject, SearchBox))
+				.Subscribe(_ => AssociatedObjectOnLostFocus())
 				.DisposeWith(disposables);
 		}
 	}
@@ -98,9 +98,10 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		IsSearchPanelOpen = true;
 	}
 
-	private void AssociatedObjectOnLostFocus(Control associatedObject, Control searchBox)
+	private void AssociatedObjectOnLostFocus()
 	{
-		if (!associatedObject.IsKeyboardFocusWithin && !searchBox.IsKeyboardFocusWithin)
+		if (AssociatedObject is { } && SearchPanel is { } &&
+		    !AssociatedObject.IsKeyboardFocusWithin && !SearchPanel.IsKeyboardFocusWithin)
 		{
 			HideFlyout();
 		}
