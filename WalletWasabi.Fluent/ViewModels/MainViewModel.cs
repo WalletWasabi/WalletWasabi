@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -40,6 +41,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private double _windowWidth;
 	[AutoNotify] private double _windowHeight;
 	[AutoNotify] private PixelPoint? _windowPosition;
+	private readonly WalletWatcher _walletWatcher;
 
 	public MainViewModel()
 	{
@@ -172,7 +174,12 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		SearchBar = new SearchBarViewModel(SearchItemProvider.GetSearchItems());
+		_walletWatcher = new WalletWatcher(Services.WalletManager);
+
+		var items = SearchItemProvider.GetSearchItems()
+			.Merge(_walletWatcher.Transactions
+				.Select(r => new NonActionableSearchItem(r.Amount.ToString(), r.Label, "Transactions", new List<string>(), null ){ IsDefault = true}));
+		SearchBar = new SearchBarViewModel(items);
 	}
 
 	public TargettedNavigationStack MainScreen { get; }
