@@ -8,6 +8,8 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class CoinSelection
 {
+	internal static readonly int MaxCoinCount = 5;
+
 	public CoinSelection(long sum, long sumWithCosts)
 	{
 		PaymentAmount = sum;
@@ -26,9 +28,12 @@ public class CoinSelection
 
 	public void Update(long paymentAmount, long totalCosts, long[] selection)
 	{
-		PaymentAmount = paymentAmount;
-		TotalCosts = totalCosts;
-		Selection = selection;
+		if (selection.Where(x => x > 0).Count() <= MaxCoinCount)
+		{
+			PaymentAmount = paymentAmount;
+			TotalCosts = totalCosts;
+			Selection = selection;
+		}
 	}
 
 	public long[]? GetSolutionArray()
