@@ -41,7 +41,7 @@
             <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
           </DockPanel>
         </StackPanel>
-        <StackPanel Spacing="10" ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached">
+        <StackPanel Spacing="10" ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached.">
           <TextBlock Text="Privacy sanity check" />
           <DockPanel>
             <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
