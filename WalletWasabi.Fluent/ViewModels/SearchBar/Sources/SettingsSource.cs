@@ -9,10 +9,9 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public class SettingsSource : ISearchItemSource
 {
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Source
-	{
-		get { return ToChangetSet(GetSettingsItems()); }
-	}
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Source => GetSettingsItems()
+		.ToObservable()
+		.ToObservableChangeSet(x => x.Key);
 
 	private static IEnumerable<ISearchItem> GetSettingsItems()
 	{
@@ -29,10 +28,5 @@ public class SettingsSource : ISearchItemSource
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.StopLocalBitcoinCoreOnShutdown), "Start local Bitcoin core on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.JsonRpcServerEnabled), "Enable JSON-RPC Server", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 		};
-	}
-
-	private static IObservable<IChangeSet<ISearchItem, ComposedKey>> ToChangetSet(IEnumerable<ISearchItem> items)
-	{
-		return items.ToObservable().ToObservableChangeSet(x => x.Key);
 	}
 }
