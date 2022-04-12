@@ -24,6 +24,8 @@ public class CoinSelection
 	/// <remarks>Array items containing zeros mean that the coin is not part of the coin selection.</remarks>
 	public long[]? Selection { get; private set; }
 
+	/// <summary>Sets a new coin selection with its properties.</summary>
+	/// <remarks>Old selection is forgotten.</remarks>
 	public void Update(long paymentAmount, long totalCosts, long[] selection)
 	{
 		PaymentAmount = paymentAmount;
@@ -31,6 +33,7 @@ public class CoinSelection
 		Selection = selection;
 	}
 
+	/// <summary>Gets an array with non-zero values in satoshis.</summary>
 	public long[]? GetSolutionArray()
 	{
 		return Selection?.Where(x => x > 0).ToArray();

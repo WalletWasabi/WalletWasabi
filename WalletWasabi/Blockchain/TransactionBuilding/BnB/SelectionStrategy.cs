@@ -8,6 +8,7 @@ public abstract class SelectionStrategy
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputValues">Values in satoshis of the coins the user has (in descending order).</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
+	/// <param name="bestSelection">Best selection so far.</param>
 	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts, CoinSelection bestSelection)
 	{
 		InputCosts = inputCosts;
