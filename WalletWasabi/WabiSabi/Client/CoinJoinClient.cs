@@ -81,7 +81,7 @@ public class CoinJoinClient
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.FeeRate)
-					&& roundState.MaxSuggestedAmount > targetMaxSuggestedAmount,
+					&& roundState.MaxSuggestedAmount >= targetMaxSuggestedAmount,
 				token)
 			.ConfigureAwait(false);
 	}
