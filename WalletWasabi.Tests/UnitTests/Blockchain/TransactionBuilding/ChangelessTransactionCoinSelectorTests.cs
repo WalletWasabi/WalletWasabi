@@ -34,7 +34,7 @@ public class ChangelessTransactionCoinSelectorTests
 		long[] inputCosts = coins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
 
 		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
-		var strategy = new MoreSelectionStrategy(target, inputEffectiveValues.Values.ToArray(), inputCosts);
+		var strategy = new MoreSelectionStrategy(target, inputEffectiveValues.Values.ToArray(), inputCosts, maxInputCount: 5);
 
 		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
 		Assert.True(found);
@@ -59,7 +59,7 @@ public class ChangelessTransactionCoinSelectorTests
 
 		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
-		var strategy = new LessSelectionStrategy(target, inputEffectiveValues.Values.ToArray(), inputCosts);
+		var strategy = new LessSelectionStrategy(target, inputEffectiveValues.Values.ToArray(), inputCosts, maxInputCount: 5);
 
 		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
 		Assert.True(found);
@@ -85,7 +85,7 @@ public class ChangelessTransactionCoinSelectorTests
 
 		Dictionary<SmartCoin, long> inputEffectiveValues = new(coins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
-		var strategy = new LessSelectionStrategy(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
+		var strategy = new LessSelectionStrategy(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts, maxInputCount: 5);
 
 		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
 		Assert.False(found);
