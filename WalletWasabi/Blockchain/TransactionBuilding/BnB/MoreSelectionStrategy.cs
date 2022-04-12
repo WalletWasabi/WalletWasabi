@@ -33,9 +33,9 @@ public class MoreSelectionStrategy : SelectionStrategy
 
 		if (sum >= Target)
 		{
-			if (sum < BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
+			if (CompareFitness(IncludedCoinsCount, sum, totalCost))
 			{
-				BestSelection.Update(sum, totalCost, selection[0..depth]);
+				BestSelection.Update(sum, totalCost, IncludedCoinsCount, selection[0..depth]);
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't
@@ -56,5 +56,35 @@ public class MoreSelectionStrategy : SelectionStrategy
 		}
 
 		return EvaluationResult.Continue;
+	}
+
+	private bool CompareFitness(long includedCoinsCount, long sum, long totalCost)
+	{
+		// The same amount but less coins. Take it.
+		if (sum == BestSelection.PaymentAmount && includedCoinsCount < BestSelection.IncludedCoinsCount)
+		{
+			return true;
+		}
+		else if (sum < BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
+		{
+			// Number of coins is not worse than in the current best selection. Take it.
+			if (includedCoinsCount <= BestSelection.IncludedCoinsCount)
+			{
+				return true;
+			}
+			else
+			{
+				// Number of coins is worse. Is it worth it?
+				long diff = BestSelection.PaymentAmount - sum;
+
+				// Adding a coin to the selection is warranted when it adds at least 10% of the amount to pay.
+				if (diff / (double)BestSelection.PaymentAmount >= 0.1)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

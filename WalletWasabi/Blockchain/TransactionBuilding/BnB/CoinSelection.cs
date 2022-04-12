@@ -12,6 +12,7 @@ public class CoinSelection
 	{
 		PaymentAmount = sum;
 		TotalCosts = sumWithCosts;
+		IncludedCoinsCount = 0;
 	}
 
 	/// <summary>Value in satoshi that the receiver will receive.</summary>
@@ -21,15 +22,20 @@ public class CoinSelection
 	/// <remarks><see cref="TotalCosts"/> is always greater than <see cref="PaymentAmount"/>.</remarks>
 	public long TotalCosts { get; private set; }
 
+	/// <summary>Number of non-zero values in <see cref="Selection"/>.</summary>
+	/// <remarks>This is an optimization to avoid computing this value again and again.</remarks>
+	public long IncludedCoinsCount { get; private set; }
+
 	/// <remarks>Array items containing zeros mean that the coin is not part of the coin selection.</remarks>
 	public long[]? Selection { get; private set; }
 
 	/// <summary>Sets a new coin selection with its properties.</summary>
 	/// <remarks>Old selection is forgotten.</remarks>
-	public void Update(long paymentAmount, long totalCosts, long[] selection)
+	public void Update(long paymentAmount, long totalCosts, long includedCoinsCount, long[] selection)
 	{
 		PaymentAmount = paymentAmount;
 		TotalCosts = totalCosts;
+		IncludedCoinsCount = includedCoinsCount;
 		Selection = selection;
 	}
 
