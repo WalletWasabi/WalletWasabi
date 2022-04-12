@@ -6,6 +6,7 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -48,8 +49,9 @@ public partial class LoginViewModel : RoutableViewModel
 	private async Task OnNextAsync(ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 	{
 		string? compatibilityPasswordUsed = null;
+		var password = Guard.Correct(Password);
 
-		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(password, out compatibilityPasswordUsed));
 
 		if (!isPasswordCorrect)
 		{
