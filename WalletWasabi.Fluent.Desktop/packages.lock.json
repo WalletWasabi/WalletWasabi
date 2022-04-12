@@ -58,8 +58,8 @@
       },
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Transitive",
-        "resolved": "0.10.10-cibuild0018875-beta",
-        "contentHash": "8OaZ116UARIu+yQGUOiBWPYrTp+4rTqDHoMrrzx8Jw1wTo1nMw+nD2Wh/OOFuwcdJxLRaIlDNWLRtW/R5yfNsw==",
+        "resolved": "0.10.10",
+        "contentHash": "YmcjgZF8aSZK4d2smHK42h8cWEwg2O957no1wmDSTfCf/AUkkcvmU83G/QtMpW0MewO+ZqUA7gCvdf0gb/7FEA==",
         "dependencies": {
           "Avalonia": "0.10.10"
         }
@@ -674,7 +674,7 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "0.10.999-cibuild0019263-beta",
-          "Avalonia.Controls.TreeDataGrid": "0.10.10-cibuild0018875-beta",
+          "Avalonia.Controls.TreeDataGrid": "0.10.10",
           "Avalonia.Diagnostics": "0.10.999-cibuild0019263-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0019263-beta",
           "Avalonia.Skia": "0.10.999-cibuild0019263-beta",
