@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters;
@@ -16,19 +17,36 @@ public class CompactSignatureJsonConverter : JsonConverter<CompactSignature>
 		}
 
 		byte[] bytes = Convert.FromBase64String(value);
+
+		if (bytes.Length != 65)
+		{
+			throw new ArgumentOutOfRangeException("Correct compact signatures are serialized as 65 bytes long arrays.");
+		}
+
 		int recoveryId = ComputeRecoveryId(bytes[0]);
 		byte[] signature = bytes[1..];
 
-		return new CompactSignature(recoveryId, signature);
+		CompactSignature compactSignature = new(recoveryId, signature);
+
+		if (!SecpRecoverableECDSASignature.TryCreateFromCompact(compactSignature.Signature, compactSignature.RecoveryId, out _))
+		{
+			throw new InvalidOperationException("Compact signature is not valid.");
+		}
+
+		return compactSignature;
 	}
 
+	/// <remarks>
+	/// See commit https://github.com/MetacoSA/NBitcoin/commit/48341d508ef306dd7cfc1f50539acbd3b847ba23 and the original <c>NBitcoin/PubKey.cs:471</c> file.
+	/// This method mimics the old code. Especially, no constant was modified.
+	/// </remarks>
 	private static int ComputeRecoveryId(byte b)
 	{
 		int header = b;
 
 		if (header < 27 || header > 34)
 		{
-			throw new ArgumentException("Header byte out of range: " + header);
+			throw new ArgumentOutOfRangeException($"Header byte out of range: {header}");
 		}
 
 		// This means: Compressed = true.
@@ -59,6 +77,10 @@ public class CompactSignatureJsonConverter : JsonConverter<CompactSignature>
 		}
 	}
 
+	/// <remarks>
+	/// See commit https://github.com/MetacoSA/NBitcoin/commit/48341d508ef306dd7cfc1f50539acbd3b847ba23 and the original <c>NBitcoin/Key.cs:237</c> file.
+	/// This method mimics the old code. Especially, no constant was modified.
+	/// </remarks>
 	internal static byte[] ToBytes(CompactSignature compactSignature)
 	{
 		bool isCompressed = true;

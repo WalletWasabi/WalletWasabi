@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System.Text;
 using WalletWasabi.JsonConverters;
 using Xunit;
