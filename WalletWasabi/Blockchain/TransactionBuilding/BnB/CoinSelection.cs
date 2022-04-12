@@ -8,8 +8,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class CoinSelection
 {
-	internal static readonly int MaxCoinCount = 5;
-
 	public CoinSelection(long sum, long sumWithCosts)
 	{
 		PaymentAmount = sum;

@@ -228,7 +228,7 @@ public class BranchAndBoundTests
 
 		Assert.NotNull(actualSelection);
 		Assert.Equal(new long[] { 1, 1, 1, 1, 1, }, actualSelection);
-		Assert.Equal(CoinSelection.MaxCoinCount, actualSelection.Length);
+		Assert.Equal(5, actualSelection.Length);
 
 		// More Strategy
 
@@ -247,6 +247,6 @@ public class BranchAndBoundTests
 
 		// Bnb should have chosen { 20, 10, 10, 10, 1, 1 } but with the MaxInputCount this is the best we can get.
 		Assert.Equal(new long[] { 20, 10, 10, 10, 5 }, result);
-		Assert.Equal(CoinSelection.MaxCoinCount, result.Length);
+		Assert.Equal(5, result.Length);
 	}
 }
