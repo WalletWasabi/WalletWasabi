@@ -382,9 +382,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 		}
 
-		await ShowErrorAsync("Transaction Building", "The transaction cannot be sent at the moment.",
-			"Wasabi was unable to create your transaction.");
+		var errorMessage = maximumPossibleFeeRate == FeeRate.Zero
+			? "There are not enough funds to cover the transaction fee."
+			: "The transaction cannot be sent at the moment.";
 
+		await ShowErrorAsync("Transaction Building", errorMessage,
+			"Wasabi was unable to create your transaction.");
 		return false;
 	}
 
