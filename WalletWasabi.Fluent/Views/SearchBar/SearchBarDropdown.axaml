@@ -9,7 +9,9 @@
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:searchItem="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem"
-             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Settings">
+             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Settings"
+             xmlns:sources="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Sources"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
   </Design.DataContext>
@@ -64,6 +66,14 @@
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
 
+    <DataTemplate DataType="searchItem:TransactionSearchItem">
+      <DockPanel ToolTip.Tip="{Binding Id}">
+        <TextBlock VerticalAlignment="Center" DockPanel.Dock="Right" Text="{Binding Amount, Converter={x:Static conv:MoneyConverters.ToFormattedString}}" Margin="10 0" />
+        <TextBlock VerticalAlignment="Center" DockPanel.Dock="Right" Text="{Binding Date, StringFormat='{}{0:d}'}" Margin="10 0" />
+        <controls:LabelsListBox Items="{Binding Labels}" Margin="10 0" />
+      </DockPanel>
+    </DataTemplate>
+
     <DataTemplate DataType="searchItem:NonActionableSearchItem">
 
       <DockPanel Background="Transparent" Margin="10">
@@ -72,7 +82,7 @@
           <PathIcon Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
           <Image Source="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
         </Panel>
-        <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
+        <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" IsVisible="{Binding Name, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         <ContentControl HorizontalContentAlignment="Stretch"
                         VerticalContentAlignment="Stretch"
                         Content="{Binding Content}" />
@@ -96,6 +106,7 @@
 
       </Button>
     </DataTemplate>
+
   </UserControl.DataTemplates>
 
   <ItemsControl Items="{Binding Groups}">

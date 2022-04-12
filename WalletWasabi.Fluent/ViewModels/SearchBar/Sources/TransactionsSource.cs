@@ -15,12 +15,7 @@ public class TransactionsSource : ISearchItemSource
 	private static ISearchItem ToSearchItem(TransactionEntry r)
 	{
 		var transactionId = r.HistoryItem.Id.ToString().Trim('0');
-		var keywords = r.HistoryItem.Label.Concat(new[] { transactionId });
-
-		var labels = r.HistoryItem.Label is not null ? string.Join(" ", r.HistoryItem.Label) : "";
-		return new NonActionableSearchItem(r.HistoryItem.Date.Date.ToShortDateString(), labels, "Transactions", keywords.ToList(), "normal_transaction")
-		{
-			IsDefault = true,
-		};
+		var keywords = r.HistoryItem.Label?.Concat(new[] { transactionId }) ?? Enumerable.Empty<string>();
+		return new NonActionableSearchItem(new TransactionSearchItem(r.HistoryItem), "", "Transactions", keywords.ToList(), "normal_transaction");
 	}
 }
