@@ -35,6 +35,10 @@ public abstract class SelectionStrategy
 	/// <summary>Input values sorted in descending orders.</summary>
 	public long[] InputValues { get; }
 
+	/// <summary>Number of coins included in current selection.</summary>
+	/// <remarks>Range of values is <c>0</c> to <see cref="InputValues"/> size.</remarks>
+	protected long IncludedCoinsCount { get; set; } = 0;
+
 	/// <summary>Holds best coin selection found so far with some metadata to improve performance.</summary>
 	protected CoinSelection BestSelection { get; }
 
@@ -67,6 +71,7 @@ public abstract class SelectionStrategy
 				CurrentInputCosts += InputCosts[depth];
 			}
 
+			IncludedCoinsCount++;
 			selection[depth] = InputValues[depth];
 			newSum = oldSum + selection[depth];
 		}
@@ -74,6 +79,7 @@ public abstract class SelectionStrategy
 		{
 			if (selection[depth] > 0)
 			{
+				IncludedCoinsCount--;
 				CurrentInputCosts -= InputCosts[depth];
 			}
 
