@@ -7,12 +7,12 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent;
 
-public class TransactionWatcher
+public class TransactionsWatcher
 {
 	public IObservable<IChangeSet<TransactionEntry, ComposedKey>> TransactionChanges { get; }
-	public static TransactionWatcher Instance { get; set; } = new();
+	public static TransactionsWatcher Instance { get; set; } = new();
 
-	public TransactionWatcher()
+	public TransactionsWatcher()
 	{
 		var cache = new SourceCache<TransactionEntry, ComposedKey>(x => x.Key);
 
