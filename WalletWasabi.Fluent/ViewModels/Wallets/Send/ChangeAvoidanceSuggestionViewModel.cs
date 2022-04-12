@@ -46,13 +46,14 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		int originalInputCount,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 			transactionInfo.Coins,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
-			transactionInfo.Coins.Count(),
+			originalInputCount,
 			cancellationToken).ConfigureAwait(false);
 
 		await foreach (var selection in selections)

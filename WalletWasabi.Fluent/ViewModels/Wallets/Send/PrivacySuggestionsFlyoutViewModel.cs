@@ -59,7 +59,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
 			var suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, transaction.SpentCoins.Count(), linkedCts.Token);
 
 			await foreach (var suggestion in suggestions)
 			{
