@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
@@ -11,8 +13,8 @@ public class LessSelectionStrategy : SelectionStrategy
 	public const double MinPaymentThreshold = 0.75;
 
 	/// <inheritdoc/>
-	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
-		: base(target, inputValues, inputCosts, new CoinSelection(long.MinValue, long.MinValue))
+	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts, int maxInputCount)
+		: base(target, inputValues, inputCosts, new CoinSelection(long.MinValue, long.MinValue), maxInputCount)
 	{
 		MinimumTarget = (long)(target * MinPaymentThreshold);
 	}
@@ -42,6 +44,8 @@ public class LessSelectionStrategy : SelectionStrategy
 		if (sum > BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
 		{
 			BestSelection.Update(sum, totalCost, selection[0..depth]);
+
+			Candidates.Add(selection[0..depth]);
 		}
 
 		if (depth == selection.Length)
@@ -51,5 +55,18 @@ public class LessSelectionStrategy : SelectionStrategy
 		}
 
 		return EvaluationResult.Continue;
+	}
+
+	public override long[] GetBestCandidate()
+	{
+		var closestMatchesByAmount = Candidates
+			.Select(x => x.Where(x => x > 0).ToArray())
+			.Select(x => (Coins: x, Count: x.Length, Amount: x.Sum()))
+			.Where(x => x.Count <= MaxInputCount)
+			.OrderByDescending(x => x.Amount);
+
+		var solution = closestMatchesByAmount.FirstOrDefault().Coins;
+
+		return solution;
 	}
 }

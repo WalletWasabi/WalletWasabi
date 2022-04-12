@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -8,12 +9,13 @@ public abstract class SelectionStrategy
 	/// <param name="target">Value in satoshis.</param>
 	/// <param name="inputValues">Values in satoshis of the coins the user has (in descending order).</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
-	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts, CoinSelection bestSelection)
+	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts, CoinSelection bestSelection, int maxInputCount)
 	{
 		InputCosts = inputCosts;
 		InputValues = inputValues;
 		Target = target;
 		BestSelection = bestSelection;
+		MaxInputCount = maxInputCount;
 
 		RemainingAmounts = new long[inputValues.Length];
 		long accumulator = InputValues.Sum();
@@ -37,6 +39,8 @@ public abstract class SelectionStrategy
 	/// <summary>Holds best coin selection found so far with some metadata to improve performance.</summary>
 	protected CoinSelection BestSelection { get; }
 
+	public int MaxInputCount { get; }
+
 	/// <summary>Gets best found selection as an array of effective values, or <c>null</c> if none was found.</summary>
 	public long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
 
@@ -46,6 +50,8 @@ public abstract class SelectionStrategy
 	/// <summary>Sums of the remaining coins.</summary>
 	/// <remarks>i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
 	protected long[] RemainingAmounts { get; set; }
+
+	protected List<long[]> Candidates { get; set; } = new();
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
@@ -91,4 +97,6 @@ public abstract class SelectionStrategy
 	/// <param name="depth">Number of <paramref name="selection"/> elements that contains the current solution.</param>
 	/// <param name="sum">Sum of first <paramref name="depth"/> elements of <paramref name="selection"/>.</param>
 	public abstract EvaluationResult Evaluate(long[] selection, int depth, long sum);
+
+	public abstract long[] GetBestCandidate();
 }

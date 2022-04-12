@@ -52,6 +52,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.Coins,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
+			transactionInfo.Coins.Count(),
 			cancellationToken).ConfigureAwait(false);
 
 		await foreach (var selection in selections)

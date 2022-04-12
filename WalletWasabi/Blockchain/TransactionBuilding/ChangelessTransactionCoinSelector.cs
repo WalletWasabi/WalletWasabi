@@ -17,6 +17,7 @@ public static class ChangelessTransactionCoinSelector
 		IEnumerable<SmartCoin> availableCoins,
 		FeeRate feeRate,
 		TxOut txOut,
+		int originalTxInputCount,
 		[EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
 		// target = target amount + output cost
@@ -33,10 +34,12 @@ public static class ChangelessTransactionCoinSelector
 		// Pass smart coins' effective values in descending order.
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
 
+		int maxInputCount = (int)Math.Ceiling(originalTxInputCount * 1.5);
+
 		var strategies = new SelectionStrategy[]
 		{
-			new MoreSelectionStrategy(target, inputValues, inputCosts),
-			new LessSelectionStrategy(target, inputValues, inputCosts)
+			new MoreSelectionStrategy(target, inputValues, inputCosts, maxInputCount),
+			new LessSelectionStrategy(target, inputValues, inputCosts, maxInputCount)
 		};
 
 		var tasks = strategies.Select(strategy => Task.Run(() =>
@@ -83,7 +86,7 @@ public static class ChangelessTransactionCoinSelector
 		}
 
 		// If we've not found an optimal solution then we will use the best.
-		if (!foundExactMatch && strategy.GetBestSelectionFound() is long[] bestSolution)
+		if (!foundExactMatch && strategy.GetBestCandidate() is long[] bestSolution)
 		{
 			solution = bestSolution.ToList();
 		}

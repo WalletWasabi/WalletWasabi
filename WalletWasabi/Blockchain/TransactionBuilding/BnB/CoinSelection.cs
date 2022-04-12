@@ -28,12 +28,9 @@ public class CoinSelection
 
 	public void Update(long paymentAmount, long totalCosts, long[] selection)
 	{
-		if (selection.Where(x => x > 0).Count() <= MaxCoinCount)
-		{
-			PaymentAmount = paymentAmount;
-			TotalCosts = totalCosts;
-			Selection = selection;
-		}
+		PaymentAmount = paymentAmount;
+		TotalCosts = totalCosts;
+		Selection = selection;
 	}
 
 	public long[]? GetSolutionArray()

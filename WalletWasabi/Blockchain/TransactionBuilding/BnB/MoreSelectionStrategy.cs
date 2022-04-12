@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
@@ -11,8 +13,8 @@ public class MoreSelectionStrategy : SelectionStrategy
 	public const double MaxExtraPayment = 1.25;
 
 	/// <inheritdoc/>
-	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
-		: base(target, inputValues, inputCosts, new CoinSelection(long.MaxValue, long.MaxValue))
+	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts, int maxInputCount)
+		: base(target, inputValues, inputCosts, new CoinSelection(long.MaxValue, long.MaxValue), maxInputCount)
 	{
 		MaximumTarget = (long)(target * MaxExtraPayment);
 	}
@@ -36,6 +38,8 @@ public class MoreSelectionStrategy : SelectionStrategy
 			if (sum < BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
 			{
 				BestSelection.Update(sum, totalCost, selection[0..depth]);
+
+				Candidates.Add(selection[0..depth]);
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't
@@ -56,5 +60,18 @@ public class MoreSelectionStrategy : SelectionStrategy
 		}
 
 		return EvaluationResult.Continue;
+	}
+
+	public override long[] GetBestCandidate()
+	{
+		var closestMatchesByAmount = Candidates
+			.Select(x => x.Where(x => x > 0).ToArray())
+			.Select(x => (Coins: x, Count: x.Length, Amount: x.Sum()))
+			.Where(x => x.Count <= MaxInputCount)
+			.OrderBy(x => x.Amount);
+
+		var solution = closestMatchesByAmount.FirstOrDefault().Coins;
+
+		return solution;
 	}
 }
