@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
@@ -18,16 +19,16 @@ public partial class AddressViewModel : ViewModelBase
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
-		Label = model.Label.ToList();
+		Label = model.Label;
 
 		CopyAddressCommand =
-				ReactiveCommand.CreateFromTask(async () =>
+			ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (Application.Current is { Clipboard: { } clipboard })
 				{
-					if (Application.Current is { Clipboard: { } clipboard })
-					{
-						await clipboard.SetTextAsync(Address);
-					}
-				});
+					await clipboard.SetTextAsync(Address);
+				}
+			});
 
 		HideAddressCommand =
 			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
@@ -46,7 +47,7 @@ public partial class AddressViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
-	public List<string> Label { get; }
+	public SmartLabel Label { get; }
 
 	public static Comparison<AddressViewModel?> SortAscending<T>(Func<AddressViewModel, T> selector)
 	{

@@ -76,7 +76,7 @@
 
     <DataTemplate DataType="sb:AutocloseActionableItem">
 
-        <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0">
+        <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
         <DockPanel Background="Transparent" Margin="10">
           <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">

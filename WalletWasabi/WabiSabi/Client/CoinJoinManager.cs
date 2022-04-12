@@ -278,9 +278,10 @@ public class CoinJoinManager : BackgroundService
 			coins.CoinJoinInProgress = false;
 		}
 
-		Logger.LogInfo($"{logPrefix} Restart automatically {finishedCoinJoin.RestartAutomatically} was cancelled {finishedCoinJoin.CoinJoinTask.IsCanceled}.");
 		if (finishedCoinJoin.RestartAutomatically && !finishedCoinJoin.CoinJoinTask.IsCanceled)
 		{
+			Logger.LogInfo($"{logPrefix} restart automatically.");
+
 			await StartAutomaticallyAsync(finishedCoinJoin.Wallet, cancellationToken).ConfigureAwait(false);
 		}
 	}

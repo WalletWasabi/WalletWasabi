@@ -25,26 +25,26 @@
         </DockPanel>
 
         <StackPanel Spacing="10"
-            ToolTip.Tip="No automatic coinjoin if the non-private wallet balance is less than this.">
-          <TextBlock Text= "Automatic coinjoin threshold (BTC)" />
+                    ToolTip.Tip="No automatic coinjoin if the non-private wallet balance is less than this.">
+          <TextBlock Text="Automatic coinjoin threshold (BTC)" />
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
 
         <Separator />
 
-        <StackPanel Spacing="10">
+        <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
           <TextBlock Text="Privacy threshold" />
           <DockPanel>
-            <PathIcon ToolTip.Tip="Min" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
+            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                       Data="{StaticResource privacy_minimal}" />
             <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
             <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
           </DockPanel>
         </StackPanel>
-        <StackPanel Spacing="10">
+        <StackPanel Spacing="10" ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached.">
           <TextBlock Text="Privacy sanity check" />
           <DockPanel>
-            <PathIcon ToolTip.Tip="Max" DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
+            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
                       Data="{StaticResource privacy_medium}" />
             <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
             <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
