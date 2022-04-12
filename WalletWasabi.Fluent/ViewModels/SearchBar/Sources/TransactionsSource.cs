@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Linq;
 using DynamicData;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
@@ -14,7 +14,11 @@ public class TransactionsSource : ISearchItemSource
 
 	private static ISearchItem ToSearchItem(TransactionEntry r)
 	{
-		return new NonActionableSearchItem(r.HistoryItem.Label, r.HistoryItem.Date.ToString(), "Transactions", new List<string>(), "normal_transaction")
+		var transactionId = r.HistoryItem.Id.ToString().Trim('0');
+		var keywords = r.HistoryItem.Label.Concat(new[] { transactionId });
+
+		var labels = r.HistoryItem.Label is not null ? string.Join(" ", r.HistoryItem.Label) : "";
+		return new NonActionableSearchItem(r.HistoryItem.Date.Date.ToShortDateString(), labels, "Transactions", keywords.ToList(), "normal_transaction")
 		{
 			IsDefault = true,
 		};

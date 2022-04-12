@@ -23,7 +23,9 @@ public class TransactionWatcher
 				{
 					var toRemove = r.Items.Where(r => r.Parent == msg.HistoryViewModel).ToList();
 					r.Remove(toRemove);
-					r.AddOrUpdate(msg.NewHistoryList.Select(b => new TransactionEntry(msg.HistoryViewModel, b)));
+					r.AddOrUpdate(msg.NewHistoryList
+						.OrderByDescending(r => r.Date)
+						.Select(b => new TransactionEntry(msg.HistoryViewModel, b)));
 				});
 			});
 
