@@ -3,7 +3,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class Setting<TTarget, TProperty> : ReactiveObject
 {

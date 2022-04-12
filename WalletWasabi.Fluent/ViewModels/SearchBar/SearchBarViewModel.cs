@@ -4,6 +4,8 @@ using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
@@ -24,6 +26,7 @@ public class SearchBarViewModel : ReactiveObject
 		itemsObservable
 			.RefCount()
 			.Filter(filterPredicate)
+			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
 			.Bind(out _groups)

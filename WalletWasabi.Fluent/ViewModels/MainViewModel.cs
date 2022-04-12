@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
@@ -175,16 +176,8 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		var transactionChanges = TransactionWatcher.Instance.TransactionCache.Connect()
-			.Transform(r => (ISearchItem)new NonActionableSearchItem(r.HistoryItem.Label, r.HistoryItem.Date.ToString(), "", new List<string>(), null)
-			{
-				IsDefault = true,
-			});
-
-		var staticItems = SearchItemProvider.GetSearchItems().ToObservableChangeSet(r => r.Key);
-
-		SearchBar = new
-			SearchBarViewModel(transactionChanges.Merge(staticItems));
+		var compositeSearchItemSource = new CompositeSearchItemsSource(new TransactionsSource(), new ActionsSource(), new SettingsSource());
+		SearchBar = new SearchBarViewModel(compositeSearchItemSource.Source);
 	}
 
 	public TargettedNavigationStack MainScreen { get; }

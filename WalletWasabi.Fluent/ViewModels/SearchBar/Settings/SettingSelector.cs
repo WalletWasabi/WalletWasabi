@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class SettingSelector : IDataTemplate
 {

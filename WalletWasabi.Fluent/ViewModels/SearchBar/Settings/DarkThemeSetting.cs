@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class DarkThemeSetting : Setting<UiConfig, bool>
 {

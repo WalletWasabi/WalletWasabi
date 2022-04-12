@@ -1,4 +1,5 @@
 using WalletWasabi.Fluent.ViewModels.SearchBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;

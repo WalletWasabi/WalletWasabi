@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
 
 public interface ISearchItem
 {

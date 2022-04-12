@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
 
 public class AutocloseActionableItem : IActionableItem
 {

@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 

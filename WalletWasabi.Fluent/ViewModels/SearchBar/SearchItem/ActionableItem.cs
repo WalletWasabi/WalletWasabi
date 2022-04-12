@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
 
 public class ActionableItem : IActionableItem
 {
