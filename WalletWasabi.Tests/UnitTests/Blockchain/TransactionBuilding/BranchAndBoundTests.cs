@@ -71,7 +71,7 @@ public class BranchAndBoundTests
 
 		// Selection (35) costs us 35 + 1 = 36.
 		// Selection (17, 10) is actually more expensive: (17 + 10) + (10 + 1) = 38, but
-		// we use that selection sa 27 is exactly the amount a payee expects.
+		// we use that selection as 27 is exactly the amount a payee expects.
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
@@ -91,8 +91,7 @@ public class BranchAndBoundTests
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		List<long> inputValues = new();
-		inputValues.Add(1_000_000);
+		List<long> inputValues = new() { 1_000_000 };
 
 		for (int i = 0; i < 1000; i++)
 		{
@@ -120,8 +119,7 @@ public class BranchAndBoundTests
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		List<long> inputValues = new();
-		inputValues.Add(999_999);
+		List<long> inputValues = new() { 999_999 };
 
 		for (int i = 0; i < 1000; i++)
 		{
