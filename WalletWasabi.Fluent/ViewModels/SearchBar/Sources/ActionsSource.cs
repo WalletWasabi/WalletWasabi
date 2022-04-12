@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public class ActionsSource : ISearchItemSource
 {
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Source => GetItemsFromMetadata()
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes => GetItemsFromMetadata()
 		.ToObservable()
 		.ToObservableChangeSet(x => x.Key);
 

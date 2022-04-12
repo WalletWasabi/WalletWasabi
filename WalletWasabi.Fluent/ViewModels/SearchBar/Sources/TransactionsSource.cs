@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public class TransactionsSource : ISearchItemSource
 {
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Source =>
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes =>
 		TransactionsWatcher.Instance.TransactionChanges
 			.Transform(ToSearchItem);
 

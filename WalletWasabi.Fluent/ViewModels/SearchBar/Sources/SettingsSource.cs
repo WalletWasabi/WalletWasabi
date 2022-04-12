@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public class SettingsSource : ISearchItemSource
 {
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Source => GetSettingsItems()
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes => GetSettingsItems()
 		.ToObservable()
 		.ToObservableChangeSet(x => x.Key);
 
@@ -22,7 +22,7 @@ public class SettingsSource : ISearchItemSource
 			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.AutoPaste), "Autopaste Bitcoin address", "Settings", new List<string>(), "nav_settings_regular")  { IsDefault = false },
 			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.HideOnClose), "Hide on close", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<UiConfig, bool>(Services.UiConfig, b => b.RunOnSystemStartup), "Run on system startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.UseTor), "User Tor", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
+			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.UseTor), "Use Tor", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.TerminateTorOnExit), "Terminate Tor on exit", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.StartLocalBitcoinCoreOnStartup), "Start local Bitcoin core on startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<Config, bool>(Services.Config, b => b.StopLocalBitcoinCoreOnShutdown), "Start local Bitcoin core on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },

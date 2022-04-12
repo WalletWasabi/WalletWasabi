@@ -176,8 +176,8 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		var compositeSearchItemSource = new CompositeSearchItemsSource(new TransactionsSource(), new ActionsSource(), new SettingsSource());
-		SearchBar = new SearchBarViewModel(compositeSearchItemSource.Source);
+		var source = new CompositeSearchItemsSource(new TransactionsSource(), new ActionsSource(), new SettingsSource());
+		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
 	public TargettedNavigationStack MainScreen { get; }
