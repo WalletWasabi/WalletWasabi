@@ -4,6 +4,7 @@ using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using Splat;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
@@ -33,6 +34,7 @@ public class Program
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 		bool runGui = true;
+		bool runGuiMinimzed = args.Any(arg => arg.Contains("--silent"));
 
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -61,6 +63,12 @@ public class Program
 			try
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
+
+				if (runGuiMinimzed)
+				{
+					uiConfig.WindowState = WindowState.Minimized.ToString();  // If the OS started the wallet, we only want the tray icon.
+				}
+
 				using SingleInstanceChecker singleInstanceChecker = new(config.Network);
 				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
