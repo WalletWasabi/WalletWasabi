@@ -35,17 +35,24 @@
           <Grid.Styles>
             <Style Selector="Panel.titleBar">
               <Setter Property="(Grid.Row)" Value="0" />
-              <Setter Property="(Grid.Column)" Value="{ext:Platform 0, Osx=1}" />
-              <Setter Property="(Grid.ColumnSpan)" Value="{ext:Platform 2, Osx=1}" />
+              <Setter Property="(Grid.Column)" Value="0" />
+              <Setter Property="(Grid.ColumnSpan)" Value="2" />
               <Setter Property="(TextBlock.Foreground)" Value="{DynamicResource NavBarItemForegroundBrush}" />
+            </Style>
+            <Style Selector="Panel.titleBar.osx">
+              <Setter Property="(Grid.Column)" Value="1" />
+              <Setter Property="(Grid.ColumnSpan)" Value="1" />
             </Style>
             <Style Selector="statusBar|StatusBar.statusBar">
               <Setter Property="(Grid.Row)" Value="0" />
-              <Setter Property="(Grid.Column)" Value="{ext:Platform 1, Osx=2}" />
+              <Setter Property="(Grid.Column)" Value="1" />
               <Setter Property="HorizontalAlignment" Value="Right" />
               <Setter Property="VerticalAlignment" Value="Center" />
               <Setter Property="Margin" Value="0 0 5 0" />
               <Setter Property="(TextBlock.Foreground)" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+            <Style Selector="statusBar|StatusBar.statusBar.osx">
+              <Setter Property="(Grid.Column)" Value="2" />
             </Style>
             <Style Selector="searchBar|SearchBar.searchBar">
               <Setter Property="(Grid.Row)" Value="0" />
@@ -64,7 +71,7 @@
             </Style>
           </Grid.Styles>
 
-          <Panel Classes="titleBar">
+          <Panel Classes="titleBar" Classes.osx="{x:Static ext:Platform.Osx}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20 0 0 0">
               <Viewbox Height="18" Width="18" IsHitTestVisible="False">
                 <Image Source="{DynamicResource wasabi_logo_dynamic}" />
@@ -74,7 +81,8 @@
             </StackPanel>
           </Panel>
 
-          <statusBar:StatusBar Classes="statusBar" DataContext="{Binding StatusBar}" />
+          <statusBar:StatusBar Classes="statusBar" Classes.osx="{x:Static ext:Platform.Osx}"
+                               DataContext="{Binding StatusBar}" />
 
           <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
 
