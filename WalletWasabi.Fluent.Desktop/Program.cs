@@ -34,7 +34,7 @@ public class Program
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 		bool runGui = true;
-		bool runGuiMinimzed = args.Any(arg => arg.Contains("--silent"));
+		bool runGuiMinimized = args.Any(arg => arg.Contains("--silent"));
 
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -64,7 +64,7 @@ public class Program
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-				if (runGuiMinimzed)
+				if (runGuiMinimized)
 				{
 					uiConfig.WindowState = WindowState.Minimized.ToString();  // If the OS started the wallet, we only want the tray icon.
 				}
