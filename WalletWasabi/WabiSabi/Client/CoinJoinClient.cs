@@ -117,6 +117,10 @@ public class CoinJoinClient
 
 		var currentRoundState = await WaitForRoundAsync(cancellationToken).ConfigureAwait(false);
 		var coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+		if (coins.Any(c => !currentRoundState.CoinjoinState.Parameters.AllowedInputAmounts.Contains(c.Amount)))
+		{
+			throw new InvalidOperationException("Skipping the round for more optimal mixing, waiting for one with bigger suggested input value.");
+		}
 
 		if (coins.IsEmpty)
 		{
@@ -366,7 +370,6 @@ public class CoinJoinClient
 	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
 	{
 		var filteredCoins = coins
-			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.ToShuffled() // Preshuffle before ordering.
 			.OrderBy(x => x.HdPubKey.AnonymitySet)

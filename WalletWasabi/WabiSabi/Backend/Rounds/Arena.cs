@@ -52,6 +52,8 @@ public partial class Arena : PeriodicRunner
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
+	private int ConnectionConfirmationStartedCounter { get; set; }
+
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -104,6 +106,7 @@ public partial class Arena : PeriodicRunner
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
+					ConnectionConfirmationStartedCounter++;
 				}
 			}
 			catch (Exception ex)
@@ -344,10 +347,27 @@ public partial class Arena : PeriodicRunner
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate);
+			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate, GetMaxAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
 			Rounds.Add(r);
 		}
+	}
+
+	internal static Money GetMaxAmount(int roundCounter)
+	{
+		Money baseAmount = Money.Coins(0.1m);
+		var maxAmount = roundCounter switch
+		{
+			0 => baseAmount,
+			var n when (n % 32 == 0) => baseAmount * 100000,
+			var n when (n % 16 == 0) => baseAmount * 10000,
+			var n when (n % 8 == 0) => baseAmount * 1000,
+			var n when (n % 4 == 0) => baseAmount * 100,
+			var n when (n % 2 == 0) => baseAmount * 10,
+			_ => baseAmount,
+		};
+
+		return Money.Min(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), maxAmount);
 	}
 
 	private void TimeoutRounds()

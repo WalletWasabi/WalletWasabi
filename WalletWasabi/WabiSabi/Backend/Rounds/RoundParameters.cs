@@ -11,7 +11,8 @@ public class RoundParameters
 		Network network,
 		WasabiRandom random,
 		FeeRate feeRate,
-		CoordinationFeeRate coordinationFeeRate)
+		CoordinationFeeRate coordinationFeeRate,
+		Money? overrideMaxRegistrableAmount = null)
 	{
 		Network = network;
 		Random = random;
@@ -21,7 +22,10 @@ public class RoundParameters
 		MaxInputCountByRound = wabiSabiConfig.MaxInputCountByRound;
 		MinInputCountByRound = wabiSabiConfig.MinInputCountByRound;
 		MinRegistrableAmount = wabiSabiConfig.MinRegistrableAmount;
-		MaxRegistrableAmount = wabiSabiConfig.MaxRegistrableAmount;
+
+		MaxRegistrableAmount = overrideMaxRegistrableAmount is { }
+			? Money.Min(overrideMaxRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount)
+			: wabiSabiConfig.MaxRegistrableAmount;
 
 		// Note that input registration timeouts can be modified runtime.
 		StandardInputRegistrationTimeout = wabiSabiConfig.StandardInputRegistrationTimeout;
