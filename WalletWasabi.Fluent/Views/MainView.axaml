@@ -32,7 +32,39 @@
 
         <Grid ColumnDefinitions="68, *, 150" RowDefinitions="48, *">
 
-          <Panel Grid.Row="0" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" TextBlock.Foreground="{DynamicResource NavBarItemForegroundBrush}">
+          <Grid.Styles>
+            <Style Selector="Panel.titleBar">
+              <Setter Property="(Grid.Row)" Value="0" />
+              <Setter Property="(Grid.Column)" Value="{ext:Platform 0, Osx=1}" />
+              <Setter Property="(Grid.ColumnSpan)" Value="{ext:Platform 2, Osx=1}" />
+              <Setter Property="(TextBlock.Foreground)" Value="{DynamicResource NavBarItemForegroundBrush}" />
+            </Style>
+            <Style Selector="statusBar|StatusBar.statusBar">
+              <Setter Property="(Grid.Row)" Value="0" />
+              <Setter Property="(Grid.Column)" Value="{ext:Platform 1, Osx=2}" />
+              <Setter Property="HorizontalAlignment" Value="Right" />
+              <Setter Property="VerticalAlignment" Value="Center" />
+              <Setter Property="Margin" Value="0 0 5 0" />
+              <Setter Property="(TextBlock.Foreground)" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+            <Style Selector="searchBar|SearchBar.searchBar">
+              <Setter Property="(Grid.Row)" Value="0" />
+              <Setter Property="(Grid.Column)" Value="1" />
+              <Setter Property="(Grid.ColumnSpan)" Value="2" />
+              <Setter Property="VerticalAlignment" Value="Stretch" />
+            </Style>
+            <Style Selector="searchBar|SearchBar.small">
+              <Setter Property="Width" Value="180" />
+            </Style>
+            <Style Selector="searchBar|SearchBar.medium">
+              <Setter Property="Width" Value="300" />
+            </Style>
+            <Style Selector="searchBar|SearchBar.wide">
+              <Setter Property="Width" Value="400" />
+            </Style>
+          </Grid.Styles>
+
+          <Panel Classes="titleBar">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20 0 0 0">
               <Viewbox Height="18" Width="18" IsHitTestVisible="False">
                 <Image Source="{DynamicResource wasabi_logo_dynamic}" />
@@ -42,7 +74,7 @@
             </StackPanel>
           </Panel>
 
-          <statusBar:StatusBar Grid.Column="{ext:Platform 1, Osx=2}" Margin="0 0 5 0" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+          <statusBar:StatusBar Classes="statusBar" DataContext="{Binding StatusBar}" />
 
           <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
 
@@ -72,19 +104,7 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" VerticalAlignment="Stretch"
-                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" >
-            <searchBar:SearchBar.Styles>
-              <Style Selector="searchBar|SearchBar.small">
-                <Setter Property="Width" Value="180" />
-              </Style>
-              <Style Selector="searchBar|SearchBar.medium">
-                <Setter Property="Width" Value="300" />
-              </Style>
-              <Style Selector="searchBar|SearchBar.wide">
-                <Setter Property="Width" Value="400" />
-              </Style>
-            </searchBar:SearchBar.Styles>
+          <searchBar:SearchBar Classes="searchBar" DataContext="{Binding SearchBar}">
             <i:Interaction.Behaviors>
               <ir:AdaptiveBehavior SourceControl="{Binding $parent[TopLevel]}">
                 <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="780" ClassName="small" />
