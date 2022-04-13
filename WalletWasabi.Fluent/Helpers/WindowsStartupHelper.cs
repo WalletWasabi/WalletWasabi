@@ -18,6 +18,8 @@ public static class WindowsStartupHelper
 
 		string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
 
+		string silentArg = pathToExeFile + " --silent";
+
 		if (!File.Exists(pathToExeFile))
 		{
 			throw new InvalidOperationException($"Path: {pathToExeFile} does not exist.");
@@ -26,7 +28,7 @@ public static class WindowsStartupHelper
 		using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
 		if (runOnSystemStartup)
 		{
-			key.SetValue(nameof(WalletWasabi), pathToExeFile);
+			key.SetValue(nameof(WalletWasabi), silentArg);
 		}
 		else
 		{
