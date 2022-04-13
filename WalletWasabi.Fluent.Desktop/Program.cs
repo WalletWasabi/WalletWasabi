@@ -6,6 +6,7 @@ using Splat;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
@@ -73,7 +74,15 @@ public class Program
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				BuildAvaloniaApp()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+					.AfterSetup(_ =>
+					{
+						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
+						if (glInterface is { })
+						{
+							Logger.LogInfo($"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}");
+						}
+						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+					})
 					.StartWithClassicDesktopLifetime(args);
 			}
 			catch (OperationCanceledException ex)
