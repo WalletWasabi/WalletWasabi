@@ -71,7 +71,7 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
-	private async Task<RoundState> WaitForRoundAsync(Money targetMaxSuggestedAmount, CancellationToken token)
+	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
 		return await RoundStatusUpdater
 			.CreateRoundAwaiter(
@@ -81,7 +81,7 @@ public class CoinJoinClient
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
 					&& IsRoundEconomic(roundState.FeeRate)
-					&& roundState.MaxSuggestedAmount >= targetMaxSuggestedAmount,
+					&& roundState.Id != excludeRound,
 				token)
 			.ConfigureAwait(false);
 	}
@@ -117,26 +117,24 @@ public class CoinJoinClient
 		var tryLimit = 6;
 
 		RoundState? currentRoundState;
-		Money targetMaxSuggestedAmount = Money.Zero;
+		uint256 excludeRound = uint256.Zero;
 		ImmutableList<SmartCoin> coins;
-		while (true)
+
+		do
 		{
-			currentRoundState = await WaitForRoundAsync(targetMaxSuggestedAmount, cancellationToken).ConfigureAwait(false);
+			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
+			coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
 
-			try
+			if (coins.Any(c => c.Amount > currentRoundState.MaxSuggestedAmount))
 			{
-				coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
-				break;
-			}
-			catch (InvalidOperationException ex)
-			{
-				// Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.
-				targetMaxSuggestedAmount = currentRoundState.MaxSuggestedAmount;
-				Logger.LogInfo(ex.Message);
+				excludeRound = currentRoundState.Id;
+				Logger.LogInfo("Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.");
+				continue;
 			}
 
-			cancellationToken.ThrowIfCancellationRequested();
+			break;
 		}
+		while (!cancellationToken.IsCancellationRequested);
 
 		if (coins.IsEmpty)
 		{
@@ -395,18 +393,6 @@ public class CoinJoinClient
 
 		// How many inputs do we want to provide to the mix?
 		int inputCount = consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd);
-
-		// Take MaxSuggestedAmount into consideration.
-		var suggestedCoins = filteredCoins.Where(x => x.Amount < parameters.MaxSuggestedAmount).ToArray();
-		var diffWithOriginal = inputCount - filteredCoins.Length;
-		var diffWithSuggested = inputCount - suggestedCoins.Length;
-		var missingCoinsWithOriginal = diffWithOriginal < 0 ? 0 : diffWithOriginal;
-		var missingCoinsWithSuggested = diffWithSuggested < 0 ? 0 : diffWithSuggested;
-
-		// Check if after taking the suggestion into account, the situation worsen?
-		filteredCoins = missingCoinsWithOriginal < missingCoinsWithSuggested
-			? throw new InvalidOperationException("Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.")
-			: suggestedCoins;
 
 		// Select a group of coins those are close to each other by Anonimity Score.
 		List<IEnumerable<SmartCoin>> groups = new();
