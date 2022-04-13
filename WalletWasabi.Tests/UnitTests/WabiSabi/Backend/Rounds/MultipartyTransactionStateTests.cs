@@ -72,25 +72,23 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(clientState3.Outputs, state3.Outputs);
 	}
 
-	[Fact]
-	public void GetSuggestedAmountsTest()
+	[Theory]
+	[InlineData(32, "1343.75")]
+	[InlineData(32 + 32, "1343.75")]
+	[InlineData(16, "1000")]
+	[InlineData(16 + 32, "1000")]
+	[InlineData(8, "100")]
+	[InlineData(8 + 32, "100")]
+	[InlineData(4, "10")]
+	[InlineData(4 + 32, "10")]
+	[InlineData(2, "1")]
+	[InlineData(2 + 32, "1")]
+	[InlineData(1, "0.1")]
+	[InlineData(1 + 32, "0.1")]
+	[InlineData(0, "0.1")]
+	public void GetSuggestedAmountsTest(int roundCounter, string amount)
 	{
-		Money baseAmount = Money.Coins(0.1m);
-
-		for (int i = 0; i < 100; i++)
-		{
-			var expected = i switch
-			{
-				0 => baseAmount,
-				var n when (n % 32 == 0) => baseAmount * 100000,
-				var n when (n % 16 == 0) => baseAmount * 10000,
-				var n when (n % 8 == 0) => baseAmount * 1000,
-				var n when (n % 4 == 0) => baseAmount * 100,
-				var n when (n % 2 == 0) => baseAmount * 10,
-				_ => baseAmount,
-			};
-
-			Assert.Equal(expected, Arena.GetMaxSuggestedAmount(i));
-		}
+		var expected = Money.Coins(decimal.Parse(amount));
+		Assert.Equal(expected, RoundHelpers.GetMaxSuggestedAmount(roundCounter));
 	}
 }

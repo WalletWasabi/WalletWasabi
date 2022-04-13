@@ -348,26 +348,17 @@ public partial class Arena : PeriodicRunner
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate, GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
+			RoundParameters roundParams = new(
+				Config,
+				Network,
+				Random,
+				feeRate,
+				Config.CoordinationFeeRate,
+				RoundHelpers.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
 			Rounds.Add(r);
+			r.LogInfo($"Created round with params: {nameof(RoundParameters.MaxRegistrableAmount)}:'{roundParams.MaxRegistrableAmount}'.");
 		}
-	}
-
-	internal static Money GetMaxSuggestedAmount(int roundCounter)
-	{
-		Money baseAmount = Money.Coins(0.1m);
-
-		return roundCounter switch
-		{
-			0 => baseAmount,
-			var n when (n % 32 == 0) => baseAmount * 100000,
-			var n when (n % 16 == 0) => baseAmount * 10000,
-			var n when (n % 8 == 0) => baseAmount * 1000,
-			var n when (n % 4 == 0) => baseAmount * 100,
-			var n when (n % 2 == 0) => baseAmount * 10,
-			_ => baseAmount,
-		};
 	}
 
 	private void TimeoutRounds()
