@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -34,7 +35,12 @@ public class ArenaBuilder
 		Network network = Network ?? Network.Main;
 		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new();
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
+		Mock<Arena> mockProcess = new(period, network, config, rpc, prison, coinJoinIdStore, null, null);
+		mockProcess.Setup(p => p.GetMaxSuggestedAmount())
+			.Returns(() => Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
+		mockProcess.CallBase = true;
+
+		Arena arena = mockProcess.Object;
 
 		foreach (var round in rounds)
 		{

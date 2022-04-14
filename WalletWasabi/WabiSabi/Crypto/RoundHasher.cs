@@ -47,7 +47,7 @@ public static class RoundHasher
 				.Append(ProtocolConstants.RoundMaxAmountCredentialValueStrobeLabel, maxAmountCredentialValue)
 				.Append(ProtocolConstants.RoundMaxVsizeCredentialValueStrobeLabel, maxVsizeCredentialValue)
 				.Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, maxVsizeAllocationPerAlice)
-				.Append(ProtocolConstants.RoundMaxSuggestedAmount, maxSuggestedAmount)
+				.Append(ProtocolConstants.RoundMaxSuggestedAmountLabel, maxSuggestedAmount)
 				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, amountCredentialIssuerParameters)
 				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, vsizeCredentialIssuerParameters)
 				.GetHash();

@@ -354,11 +354,16 @@ public partial class Arena : PeriodicRunner
 				Random,
 				feeRate,
 				Config.CoordinationFeeRate,
-				RoundHelpers.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
+				GetMaxSuggestedAmount());
 			Round r = new(roundParams);
 			Rounds.Add(r);
 			r.LogInfo($"Created round with params: {nameof(RoundParameters.MaxRegistrableAmount)}:'{roundParams.MaxRegistrableAmount}'.");
 		}
+	}
+
+	internal virtual Money GetMaxSuggestedAmount()
+	{
+		return RoundHelpers.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter);
 	}
 
 	private void TimeoutRounds()
