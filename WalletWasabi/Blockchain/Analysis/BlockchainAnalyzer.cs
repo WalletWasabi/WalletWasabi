@@ -136,10 +136,8 @@ public class BlockchainAnalyzer
 			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
 
 			// Anonset gain cannot be larger than others' input count.
-			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
-
 			// Picking randomly an output would make our anonset: total/ours.
-			anonset /= ownEqualOutputCount;
+			var anonset = Math.Min(equalOutputCount / ownEqualOutputCount - 1, foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
