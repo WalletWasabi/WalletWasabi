@@ -377,9 +377,9 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 		WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 };
 		var round = WabiSabiFactory.CreateRound(cfg);
+		round.MaxVsizeAllocationPerAlice = 0;
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		round.MaxVsizeAllocationPerAlice = 0;
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 
