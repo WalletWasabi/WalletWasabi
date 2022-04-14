@@ -11,6 +11,7 @@ public static class ProtocolConstants
 
 	// Round hashing labels
 	public const string RoundStrobeDomain = "round-parameters";
+
 	public const string RoundAllowedInputAmountsStrobeLabel = "allowed-input-amounts";
 	public const string RoundAllowedOutputAmountsStrobeLabel = "allowed-output-amounts";
 	public const string RoundAllowedInputTypesStrobeLabel = "allowed-input-types";
@@ -34,6 +35,7 @@ public static class ProtocolConstants
 
 	// Alice hashing labels
 	public const string AliceStrobeDomain = "alice-parameters";
+
 	public const string AliceCoinTxOutStrobeLabel = "coin-txout";
 	public const string AliceCoinOutpointStrobeLabel = "coin-outpoint";
 	public const string AliceOwnershipProofStrobeLabel = "ownership-proof";
