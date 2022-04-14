@@ -55,4 +55,6 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 			return false;
 		}
 	}
+
+	protected override string AuthorizationFailedMessage => $"Authorization failed.{Environment.NewLine}Please, check that your device is connected and try again.";
 }
