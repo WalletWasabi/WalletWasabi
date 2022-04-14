@@ -86,7 +86,7 @@ public class UiConfig : ConfigBase
 	public string WindowState
 	{
 		get => _windowState;
-		set => RaiseAndSetIfChanged(ref _windowState, value);
+		internal set => RaiseAndSetIfChanged(ref _windowState, value);
 	}
 
 	[JsonProperty(PropertyName = "WindowX")]

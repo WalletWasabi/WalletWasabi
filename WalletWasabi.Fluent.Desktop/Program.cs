@@ -64,11 +64,6 @@ public class Program
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-				if (runGuiMinimized)
-				{
-					uiConfig.WindowState = WindowState.Minimized.ToString();  // If the OS started the wallet, we only want the tray icon.
-				}
-
 				using SingleInstanceChecker singleInstanceChecker = new(config.Network);
 				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
