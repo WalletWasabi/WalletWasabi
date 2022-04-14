@@ -11,18 +11,7 @@ public static class SearchItemProvider
 	public static IObservable<ISearchItem> GetSearchItems()
 	{
 		return GetItemsFromMetadata()
-			//.Concat(GetAdditionalItems())
 			.ToObservable();
-	}
-
-	private static IEnumerable<ISearchItem> GetAdditionalItems()
-	{
-		return new ISearchItem[]
-		{
-			new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance",
-				new[] {"Dark", "Light", "Theme", "Appearance", "Colors"},
-				null)
-		};
 	}
 
 	private static IEnumerable<ActionableItem> GetItemsFromMetadata()

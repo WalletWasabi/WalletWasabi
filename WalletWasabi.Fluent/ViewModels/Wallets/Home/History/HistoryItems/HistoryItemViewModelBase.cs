@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 
@@ -36,7 +37,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public List<string>? Label { get; protected set; }
+	public SmartLabel Label { get; protected set; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
 

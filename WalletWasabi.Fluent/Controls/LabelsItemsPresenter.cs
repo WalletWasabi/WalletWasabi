@@ -20,7 +20,7 @@ public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 			labelsPanel.WhenAnyValue(x => x.VisibleItemsCount)
 				.Subscribe(x =>
 				{
-					if (Items is List<string> items)
+					if (Items is IEnumerable<string> items)
 					{
 						labelsPanel.FilteredItems = items.Skip(x).ToList();
 					}

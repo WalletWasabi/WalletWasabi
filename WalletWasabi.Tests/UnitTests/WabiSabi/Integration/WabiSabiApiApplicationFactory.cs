@@ -58,7 +58,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<Prison>();
 			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
-			services.AddScoped(s => new InMemoryCoinJoinIdStore());
+			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 		});
 		builder.ConfigureLogging(o =>
