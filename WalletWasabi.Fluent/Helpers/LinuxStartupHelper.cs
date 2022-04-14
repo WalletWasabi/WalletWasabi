@@ -17,7 +17,7 @@ public static class LinuxStartupHelper
 		{
 			string pathToExec = EnvironmentHelpers.GetExecutablePath();
 
-			string pathToExecWithArgs = string.Concat(pathToExec, " ", StartupHelper.SilentArgument);
+			string pathToExecWithArgs = $"{pathToExec}  {StartupHelper.SilentArgument}";
 
 			IoHelpers.EnsureFileExists(pathToExec);
 

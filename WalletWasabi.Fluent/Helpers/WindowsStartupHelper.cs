@@ -18,7 +18,7 @@ public static class WindowsStartupHelper
 
 		string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
 
-		string silentArg = pathToExeFile + " --silent";
+		string pathToExecWithArgs = $"{pathToExeFile}  {StartupHelper.SilentArgument}";
 
 		if (!File.Exists(pathToExeFile))
 		{
@@ -28,7 +28,7 @@ public static class WindowsStartupHelper
 		using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
 		if (runOnSystemStartup)
 		{
-			key.SetValue(nameof(WalletWasabi), silentArg);
+			key.SetValue(nameof(WalletWasabi), pathToExecWithArgs);
 		}
 		else
 		{

@@ -13,7 +13,7 @@ public static class LinuxStartupTestHelper
 				"[Desktop Entry]",
 				$"Name={Constants.AppName}",
 				"Type=Application",
-				$"Exec={EnvironmentHelpers.GetExecutablePath() + " " + StartupHelper.SilentArgument}",
+				$"Exec={EnvironmentHelpers.GetExecutablePath()} {StartupHelper.SilentArgument}",
 				"Hidden=false",
 				"Terminal=false",
 				"X-GNOME-Autostart-enabled=true");
