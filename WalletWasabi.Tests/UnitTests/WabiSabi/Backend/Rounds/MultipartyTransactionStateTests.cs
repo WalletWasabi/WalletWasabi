@@ -88,7 +88,9 @@ public class MultipartyTransactionStateTests
 	[InlineData(0, "0.1")]
 	public void GetSuggestedAmountsTest(int roundCounter, string amount)
 	{
+		WabiSabiConfig config = new();
+		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
 		var expected = Money.Coins(decimal.Parse(amount));
-		Assert.Equal(expected, RoundHelpers.GetMaxSuggestedAmount(roundCounter));
+		Assert.Equal(expected, maxSuggestedAmountProvider.GetMaxSuggestedAmount(roundCounter));
 	}
 }

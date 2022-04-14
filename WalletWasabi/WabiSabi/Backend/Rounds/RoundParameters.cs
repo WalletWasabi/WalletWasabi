@@ -18,6 +18,7 @@ public class RoundParameters
 		Random = random;
 		FeeRate = feeRate;
 		CoordinationFeeRate = coordinationFeeRate;
+		MaxSuggestedAmount = maxSuggestedAmount;
 
 		MaxInputCountByRound = wabiSabiConfig.MaxInputCountByRound;
 		MinInputCountByRound = wabiSabiConfig.MinInputCountByRound;
@@ -30,7 +31,6 @@ public class RoundParameters
 		OutputRegistrationTimeout = wabiSabiConfig.OutputRegistrationTimeout;
 		TransactionSigningTimeout = wabiSabiConfig.TransactionSigningTimeout;
 		BlameInputRegistrationTimeout = wabiSabiConfig.BlameInputRegistrationTimeout;
-		MaxSuggestedAmount = maxSuggestedAmount;
 	}
 
 	public WasabiRandom Random { get; }
@@ -41,10 +41,10 @@ public class RoundParameters
 	public int MaxInputCountByRound { get; }
 	public Money MinRegistrableAmount { get; }
 	public Money MaxRegistrableAmount { get; }
+	public Money MaxSuggestedAmount { get; }
 	public TimeSpan StandardInputRegistrationTimeout { get; }
 	public TimeSpan ConnectionConfirmationTimeout { get; }
 	public TimeSpan OutputRegistrationTimeout { get; }
 	public TimeSpan TransactionSigningTimeout { get; }
 	public TimeSpan BlameInputRegistrationTimeout { get; }
-	public Money MaxSuggestedAmount { get; }
 }

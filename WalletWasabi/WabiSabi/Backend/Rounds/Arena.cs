@@ -37,6 +37,7 @@ public partial class Arena : PeriodicRunner
 		Random = new SecureRandom();
 		InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
+		MaxSuggestedAmountProvider = new(Config);
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -49,6 +50,7 @@ public partial class Arena : PeriodicRunner
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+	private MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
@@ -354,16 +356,11 @@ public partial class Arena : PeriodicRunner
 				Random,
 				feeRate,
 				Config.CoordinationFeeRate,
-				GetMaxSuggestedAmount());
+				MaxSuggestedAmountProvider.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
 			Rounds.Add(r);
 			r.LogInfo($"Created round with params: {nameof(RoundParameters.MaxRegistrableAmount)}:'{roundParams.MaxRegistrableAmount}'.");
 		}
-	}
-
-	internal virtual Money GetMaxSuggestedAmount()
-	{
-		return RoundHelpers.GetMaxSuggestedAmount(Config.MaxRegistrableAmount, ConnectionConfirmationStartedCounter);
 	}
 
 	private void TimeoutRounds()

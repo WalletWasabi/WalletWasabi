@@ -35,12 +35,7 @@ public class ArenaBuilder
 		Network network = Network ?? Network.Main;
 		InMemoryCoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new();
 
-		Mock<Arena> mockProcess = new(period, network, config, rpc, prison, coinJoinIdStore, null, null);
-		mockProcess.Setup(p => p.GetMaxSuggestedAmount())
-			.Returns(() => Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
-		mockProcess.CallBase = true;
-
-		Arena arena = mockProcess.Object;
+		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
 
 		foreach (var round in rounds)
 		{
