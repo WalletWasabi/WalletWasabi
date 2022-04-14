@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
@@ -42,35 +40,14 @@ public static class SearchItemProvider
 				return;
 			}
 
-			if (vm is DialogViewModelBase<Unit> dialog)
+			if (vm is NavBarItemViewModel item && item.OpenCommand.CanExecute(default))
 			{
-				if (dialog is AddWalletPageViewModel)
-				{
-					MainViewModel.Instance.IsOobeBackgroundVisible = true;
-					await dialog.NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-					MainViewModel.Instance.IsOobeBackgroundVisible = false;
-				}
-				else
-				{
-					await dialog.NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
-				}
+				item.OpenCommand.Execute(default);
 			}
 			else
 			{
-				Navigate(vm.DefaultTarget).To(vm);
+				RoutableViewModel.Navigate(vm.DefaultTarget).To(vm);
 			}
-		};
-	}
-
-	private static INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
-	{
-		return currentTarget switch
-		{
-			NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
-			NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
-			NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
-			NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
-			_ => throw new NotSupportedException()
 		};
 	}
 }
