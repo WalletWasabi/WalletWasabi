@@ -12,7 +12,7 @@ public abstract partial class AuthorizationDialogBase : DialogViewModelBase<bool
 	{
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var result = await AuthorizeCore();
+			var result = await AuthorizeCoreAsync();
 			if (result)
 			{
 				Close(DialogResultKind.Normal, result);
@@ -24,11 +24,11 @@ public abstract partial class AuthorizationDialogBase : DialogViewModelBase<bool
 
 	protected abstract string AuthorizationFailedMessage { get; }
 
-	protected abstract Task<bool> Authorize();
+	protected abstract Task<bool> AuthorizeAsync();
 
-	private async Task<bool> AuthorizeCore()
+	private async Task<bool> AuthorizeCoreAsync()
 	{
-		var success = await Authorize();
+		var success = await AuthorizeAsync();
 
 		if (!success)
 		{

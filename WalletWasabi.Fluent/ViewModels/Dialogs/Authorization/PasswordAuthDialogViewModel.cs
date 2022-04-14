@@ -32,7 +32,7 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 	protected override string AuthorizationFailedMessage => $"The password is incorrect.{Environment.NewLine}Please, try Again.";
 
-	protected override async Task<bool> Authorize()
+	protected override async Task<bool> AuthorizeAsync()
 	{
 		var success = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
 		if (!success)

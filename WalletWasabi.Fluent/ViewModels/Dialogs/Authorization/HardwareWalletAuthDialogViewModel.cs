@@ -33,7 +33,7 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 
 	public WalletType WalletType { get; }
 
-	protected override async Task<bool> Authorize()
+	protected override async Task<bool> AuthorizeAsync()
 	{
 		try
 		{
