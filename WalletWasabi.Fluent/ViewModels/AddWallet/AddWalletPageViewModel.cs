@@ -39,9 +39,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		OpenCommand = ReactiveCommand.Create(async () =>
 		{
-			MainViewModel.Instance.IsOobeBackgroundVisible = true;
 			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-			MainViewModel.Instance.IsOobeBackgroundVisible = false;
 		});
 	}
 
@@ -100,9 +98,16 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
+		MainViewModel.Instance.IsOobeBackgroundVisible = true;
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		MainViewModel.Instance.IsOobeBackgroundVisible = false;
+		base.OnNavigatedFrom(isInHistory);
 	}
 }
