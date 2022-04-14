@@ -56,5 +56,5 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 		}
 	}
 
-	protected override string AuthorizationFailedMessage => $"Authorization failed.{Environment.NewLine}Please, check that your device is connected and try again.";
+	protected override string AuthorizationFailedMessage => $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
 }
