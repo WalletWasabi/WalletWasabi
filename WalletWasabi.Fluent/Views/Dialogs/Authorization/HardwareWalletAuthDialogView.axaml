@@ -18,7 +18,7 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <StackPanel>
-      <Viewbox MaxHeight="150">
+      <Viewbox MaxHeight="120">
         <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
       </Viewbox>
       <TextBlock TextAlignment="Center" Foreground="{StaticResource SystemErrorTextColor}"
