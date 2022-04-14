@@ -44,6 +44,7 @@ public class Global : IDisposable
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
 	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
+	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 
 	public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
 	{
@@ -92,7 +93,8 @@ public class Global : IDisposable
 
 		CoinJoinIdStore = CoinJoinIdStore.Create(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
 
-		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore), "WabiSabi Coordinator");
+		WabiSabiCoordinator = new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore);
+		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
