@@ -44,6 +44,11 @@ public static class NotificationHelpers
 		}
 	}
 
+	public static void Show(object viewModel)
+	{
+		NotificationManager?.Show(viewModel);
+	}
+
 	private static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? message)
 	{
 		message = null;
