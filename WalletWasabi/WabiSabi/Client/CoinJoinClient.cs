@@ -128,7 +128,7 @@ public class CoinJoinClient
 			if (coins.Any(c => c.Amount > currentRoundState.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
-				Logger.LogInfo("Skipping the round for more optimal mixing, waiting for one with bigger suggested amount.");
+				Logger.LogInfo("Skipping the round for more optimal mixing, waiting for one with bigger suggested input value.");
 				continue;
 			}
 
