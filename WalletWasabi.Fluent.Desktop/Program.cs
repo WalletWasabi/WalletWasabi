@@ -77,10 +77,10 @@ public class Program
 					.AfterSetup(_ =>
 					{
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						if (glInterface is { })
-						{
-							Logger.LogInfo($"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}");
-						}
+						Logger.LogInfo(glInterface is { }
+							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
+							: "Renderer: Avalonia Software");
+
 						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(args);
