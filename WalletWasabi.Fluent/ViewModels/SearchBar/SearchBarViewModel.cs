@@ -38,10 +38,6 @@ public class SearchBarViewModel : ReactiveObject
 			.Subscribe();
 
 		ShowListCommand = ReactiveCommand.Create(() => IsSearchListVisible = true);
-
-		this.WhenAnyValue(x => x.IsSearchListVisible)
-			.Where(x => x == false)
-			.Subscribe(_ => SearchText = "");
 	}
 
 	public ReactiveCommand<Unit, bool> ShowListCommand { get; set; }

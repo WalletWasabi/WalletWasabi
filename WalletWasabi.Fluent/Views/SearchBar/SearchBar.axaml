@@ -133,12 +133,18 @@
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" HorizontalAlignment="Left"
            Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
+
+    <i:Interaction.Behaviors>
+      <behaviors:TextBoxAutoSelectTextBehavior />
+    </i:Interaction.Behaviors>
+
     <TextBox.InnerLeftContent>
       <PathIcon Name="LeftIcon" Data="{DynamicResource action_center_regular}" />
     </TextBox.InnerLeftContent>
     <TextBox.InnerRightContent>
       <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
     </TextBox.InnerRightContent>
+    
   </TextBox>
 
   <FlyoutBase.AttachedFlyout>
