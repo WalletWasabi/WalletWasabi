@@ -363,7 +363,7 @@ public partial class Arena : PeriodicRunner
 
 	internal virtual Money GetMaxSuggestedAmount()
 	{
-		return RoundHelpers.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter);
+		return RoundHelpers.GetMaxSuggestedAmount(Config.MaxRegistrableAmount, ConnectionConfirmationStartedCounter);
 	}
 
 	private void TimeoutRounds()

@@ -45,11 +45,11 @@ internal class RoundHelpers
 		return roundCounterDividerAndMaxAmounts;
 	}
 
-	public static Money GetMaxSuggestedAmount(int roundCounter)
+	public static Money GetMaxSuggestedAmount(Money maxRegistrableAmount, int roundCounter)
 	{
 		if (roundCounter != 0)
 		{
-			foreach (var (divider, maxValue) in RoundCounterDividerAndMaxAmounts)
+			foreach (var (divider, maxValue) in RoundCounterDividerAndMaxAmounts.Where(v => v.MaxValue <= maxRegistrableAmount))
 			{
 				if (roundCounter % divider == 0)
 				{
