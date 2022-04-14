@@ -9,11 +9,11 @@ internal class TextBoxAutoSelectTextBehavior : AttachedToVisualTreeBehavior<Text
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		AssociatedObject?.SelectAll();
-		Observable.FromEventPattern(AssociatedObject, "GotFocus")
-			.Subscribe(_ => AssociatedObject.SelectAll())
+		Observable.FromEventPattern(AssociatedObject!, "GotFocus")
+			.Subscribe(_ => AssociatedObject!.SelectAll())
 			.DisposeWith(disposable);
-		Observable.FromEventPattern(AssociatedObject, "PointerReleased")
-			.Subscribe(_ => AssociatedObject.SelectAll())
+		Observable.FromEventPattern(AssociatedObject!, "PointerReleased")
+			.Subscribe(_ => AssociatedObject!.SelectAll())
 			.DisposeWith(disposable);;
 	}
 }
