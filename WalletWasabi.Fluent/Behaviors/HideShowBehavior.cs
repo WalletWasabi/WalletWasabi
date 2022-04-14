@@ -26,7 +26,7 @@ public class HideShowBehavior : DisposingBehavior<Window>
 			{
 				if (AssociatedObject.WindowState == WindowState.Minimized)
 				{
-					AssociatedObject.WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+					AssociatedObject.WindowState = (WindowState)Enum.Parse(typeof(WindowState), "Normal");
 				}
 
 				AssociatedObject.Show();
