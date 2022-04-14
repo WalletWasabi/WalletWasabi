@@ -29,6 +29,8 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
+
+		AuthorizationFailedMessage = $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
 	}
 
 	public WalletType WalletType { get; }
@@ -55,6 +57,4 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 			return false;
 		}
 	}
-
-	protected override string AuthorizationFailedMessage => $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
 }

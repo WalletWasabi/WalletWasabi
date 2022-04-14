@@ -22,9 +22,9 @@
         <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
       </Viewbox>
       <TextBlock TextAlignment="Center" Foreground="{StaticResource SystemErrorTextColor}"
-                 Text="{Binding ErrorMessage}"
+                 Text="{Binding AuthorizationFailedMessage}"
                  TextWrapping="Wrap"
-                 IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                 IsVisible="{Binding HasAuthorizationFailed}" />
     </StackPanel>
   </c:ContentArea>
 </UserControl>

@@ -6,35 +6,27 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 
 public abstract partial class AuthorizationDialogBase : DialogViewModelBase<bool>
 {
-	[AutoNotify] private string _errorMessage = "";
+	[AutoNotify] private bool _hasAuthorizationFailed;
+
+	[AutoNotify(SetterModifier = AccessModifier.Protected)]
+	private string _authorizationFailedMessage = "The Authorization has failed, please try again.";
 
 	protected AuthorizationDialogBase()
 	{
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			var result = await AuthorizeCoreAsync();
-			if (result)
-			{
-				Close(DialogResultKind.Normal, result);
-			}
-		});
+		NextCommand = ReactiveCommand.CreateFromTask(AuthorizeCoreAsync);
 
 		EnableAutoBusyOn(NextCommand);
 	}
 
-	protected abstract string AuthorizationFailedMessage { get; }
-
 	protected abstract Task<bool> AuthorizeAsync();
 
-	private async Task<bool> AuthorizeCoreAsync()
+	private async Task AuthorizeCoreAsync()
 	{
-		var success = await AuthorizeAsync();
+		HasAuthorizationFailed = !await AuthorizeAsync();
 
-		if (!success)
+		if (!HasAuthorizationFailed)
 		{
-			ErrorMessage = AuthorizationFailedMessage;
+			Close(DialogResultKind.Normal, true);
 		}
-
-		return success;
 	}
 }

@@ -23,22 +23,14 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
-	}
 
-	protected override void OnDialogClosed()
-	{
-		Password = "";
+		AuthorizationFailedMessage = $"The password is incorrect.{Environment.NewLine}Please, try Again.";
 	}
-
-	protected override string AuthorizationFailedMessage => $"The password is incorrect.{Environment.NewLine}Please, try Again.";
 
 	protected override async Task<bool> AuthorizeAsync()
 	{
 		var success = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
-		if (!success)
-		{
-			Password = "";
-		}
+		Password = "";
 		return success;
 	}
 }

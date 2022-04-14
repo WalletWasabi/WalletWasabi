@@ -485,11 +485,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
 
-		if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
-		{
-			await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
-		}
-
 		return authDialogResult.Result;
 	}
 
