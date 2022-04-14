@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Runtime.CompilerServices;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -29,7 +30,7 @@ public static class LoggerTools
 
 	public static void Log(this RoundState roundState, LogLevel logLevel, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
-		string round = roundState.BlameOf == 0 ? "Round" : "Blame Round";
+		string round = roundState.BlameOf == uint256.Zero ? "Round" : "Blame Round";
 
 		Logger.Log(logLevel, $"{round} ({roundState.Id}): {logMessage}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 	}
