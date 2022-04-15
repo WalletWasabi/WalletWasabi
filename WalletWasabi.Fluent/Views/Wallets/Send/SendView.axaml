@@ -95,13 +95,14 @@
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
-          <c:CurrencyEntryBox x:Name="amountTb"
-                              KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
-                              IsReadOnly="{Binding IsFixedAmount}"
-                              AmountBtc="{Binding AmountBtc}"
-                              ConversionRate="{Binding ExchangeRate}"
-                              ConversionCurrencyCode="USD"
-                              IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
+          <c:DualCurrencyEntryBox x:Name="amountTb"
+                                  KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
+                                  IsReadOnly="{Binding IsFixedAmount}"
+                                  AmountBtc="{Binding AmountBtc}"
+                                  ConversionRate="{Binding ExchangeRate}"
+                                  CurrencyCode="BTC"
+                                  ConversionCurrencyCode="USD"
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
         </DockPanel>
       </DockPanel>
 

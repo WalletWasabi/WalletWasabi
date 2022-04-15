@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
   <Design.PreviewWith>
-    <c:CurrencyEntryBox IsReadOnly="True" AmountBtc="1" ConversionCurrencyCode="USD" />
+    <c:CurrencyEntryBox IsReadOnly="True" />
   </Design.PreviewWith>
   <Styles.Resources>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
@@ -24,9 +24,12 @@
     <Setter Property="FocusAdorner" Value="{x:Null}" />
     <Setter Property="ContextMenu">
       <ContextMenu>
-        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}" InputGesture="{x:Static TextBox.CutGesture}" />
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-        <MenuItem Header="Paste" Command="{Binding $parent[c:CurrencyEntryBox].ModifiedPaste}" IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
+        <MenuItem Header="Cut" Command="{Binding $parent[TextBox].Cut}" IsEnabled="{Binding $parent[TextBox].CanCut}"
+                  InputGesture="{x:Static TextBox.CutGesture}" />
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
+                  IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
+        <MenuItem Header="Paste" Command="{Binding $parent[c:CurrencyEntryBox].ModifiedPaste}"
+                  IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}" />
       </ContextMenu>
     </Setter>
     <Setter Property="Cursor" Value="IBeam" />
@@ -41,34 +44,27 @@
                             TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
-
-          <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 5 0 0" />
+          
           <Panel IsVisible="{Binding !$parent[c:CurrencyEntryBox].IsReadOnly}">
             <Border
-                Name="PART_BorderElement"
-                Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="{TemplateBinding BorderThickness}"
-                MinWidth="{TemplateBinding MinWidth}"
-                MinHeight="{TemplateBinding MinHeight}" />
+              Name="PART_BorderElement"
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              MinWidth="{TemplateBinding MinWidth}"
+              MinHeight="{TemplateBinding MinHeight}" />
 
             <Panel
-                Margin="{TemplateBinding BorderThickness}">
+              Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
                                   Content="{TemplateBinding InnerLeftContent}" />
                 <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
                        Margin="{TemplateBinding Padding}">
                   <ScrollViewer
-                      HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                    HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                    VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                     <DockPanel>
-                      <TextBlock Name="PART_ConversionWatermark"
-                                 DockPanel.Dock="Right"
-                                 Opacity="0.5"
-                                 Text="{TemplateBinding ConversionText}"
-                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                       <Panel>
                         <TextBlock Name="PART_Watermark"
                                    Opacity="0.5"
@@ -78,8 +74,14 @@
                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <!-- TODO eliminate this margin... text layout issue? -->
                         <StackPanel Orientation="Horizontal">
+                          <TextBlock Text="≈"
+                                     IsVisible="{TemplateBinding IsApproximate}"
+                                     Margin="0 0 5 0"
+                                     Opacity="0.5"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                          </TextBlock>
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
                                          CaretIndex="{TemplateBinding CaretIndex}"
@@ -94,6 +96,7 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                          <!-- Current Currency Code -->
                           <TextBlock Name="PART_CurrencyCode"
                                      Opacity="0.5"
                                      Margin="5 0 0 0"
@@ -110,17 +113,13 @@
                                   Content="{TemplateBinding InnerRightContent}" />
               </Grid>
             </Panel>
-            <Button x:Name="PART_SwapButton" Focusable="False"
-                    Cursor="Arrow" HorizontalAlignment="Center" Background="Transparent"
-                    BorderBrush="Transparent" BorderThickness="0" Padding="0" Margin="0">
-              <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
-            </Button>
           </Panel>
         </DockPanel>
       </ControlTemplate>
     </Setter>
   </Style>
 
+  <!-- Readonly Template -->
   <Style Selector="c|CurrencyEntryBox:readonly">
     <Setter Property="Template">
       <ControlTemplate>
@@ -132,19 +131,22 @@
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
-          <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
-
           <Panel>
             <Border
-                BorderThickness="{TemplateBinding BorderThickness}"
-                MinWidth="{TemplateBinding MinWidth}"
-                MinHeight="{TemplateBinding MinHeight}" />
+              BorderThickness="{TemplateBinding BorderThickness}"
+              MinWidth="{TemplateBinding MinWidth}"
+              MinHeight="{TemplateBinding MinHeight}" />
             <Panel
-                Margin="{TemplateBinding BorderThickness}">
+              Margin="{TemplateBinding BorderThickness}">
               <Panel
-                  Margin="{TemplateBinding Padding}">
+                Margin="{TemplateBinding Padding}">
                 <DockPanel>
                   <StackPanel Orientation="Horizontal">
+                    <TextBlock Margin="0 0 5 0"
+                               Text="≈"
+                               IsVisible="{TemplateBinding IsFiat}"
+                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     <TextPresenter Name="PART_TextPresenter"
                                    Text="{TemplateBinding Text, Mode=TwoWay}"
                                    CaretIndex="{TemplateBinding CaretIndex}"
@@ -164,12 +166,6 @@
                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                    <TextBlock DockPanel.Dock="Right"
-                               Margin="20 0 0 0"
-                               Opacity="0.5"
-                               Text="{TemplateBinding ConversionText}"
-                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                   </StackPanel>
                 </DockPanel>
               </Panel>
@@ -180,16 +176,8 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|CurrencyEntryBox:noexchangerate Button#PART_SwapButton">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-
-  <Style Selector="c|CurrencyEntryBox:noexchangerate TextBlock#PART_ConversionWatermark">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-
   <Style Selector="c|CurrencyEntryBox /template/ Border#PART_BorderElement">
-    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
   </Style>
 
   <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
@@ -208,7 +196,7 @@
   </Style>
 
   <Style
-      Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark">
+    Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
   </Style>
 
@@ -217,13 +205,7 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundPointerOver}" />
   </Style>
 
-  <Style Selector="c|CurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
-  </Style>
-
-  <Style
-      Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
+  <Style Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
   </Style>
 
@@ -233,30 +215,7 @@
   </Style>
 
   <Style
-      Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
+    Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
-  </Style>
-
-  <Style Selector="c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-  </Style>
-
-  <Style Selector="c|CurrencyEntryBox:error /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
-  </Style>
-
-  <Style Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton">
-    <Setter Property="Opacity" Value="0.5" />
-  </Style>
-
-  <Style Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
-
-  <Style
-      Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
   </Style>
 </Styles>

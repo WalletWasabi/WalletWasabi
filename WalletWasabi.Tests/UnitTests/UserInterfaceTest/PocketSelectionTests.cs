@@ -4,11 +4,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
@@ -759,6 +761,30 @@ public class PocketSelectionTests
 		Assert.DoesNotContain(selection.GetLabel("David"), selection.LabelsWhiteList);
 
 		Assert.False(selection.EnoughSelected);
+	}
+
+	[Fact]
+	public void SetUsedLabelIgnoreCase()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, "Dan");
+		pockets.AddPocket(1.0M, out var pocket2, "Lucas");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.Contains(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var hdpk = km.GenerateNewKey("dan", KeyState.Clean, false);
+		var usedCoin = BitcoinFactory.CreateSmartCoin(hdpk, 1.0M, 1);
+		selection.SetUsedLabel(new[] { usedCoin }, privateThreshold: 10);
+
+		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsBlackList);
+		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
 	}
 }
 

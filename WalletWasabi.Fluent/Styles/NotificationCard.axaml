@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+  <Style Selector="NotificationCard">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <LayoutTransformControl Name="PART_LayoutTransformControl" UseRenderTransform="True">
+          <Border CornerRadius="{TemplateBinding CornerRadius}" BoxShadow="0 6 8 0 #4F000000" Margin="5 5 5 10">
+            <Border Background="Transparent"
+                    BorderBrush="{DynamicResource GlassEdgeColor}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    ClipToBounds="True">
+              <Panel>
+                <c:BlurBehind BlurRadius="10,10"/>
+                <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
+                <DockPanel>
+                  <Panel x:Name="PART_HeaderBar" Height="4" DockPanel.Dock="Top" />
+                  <ContentControl Name="PART_Content" Content="{TemplateBinding Content}" />
+                </DockPanel>
+              </Panel>
+            </Border>
+          </Border>
+        </LayoutTransformControl>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

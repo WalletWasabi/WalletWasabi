@@ -20,7 +20,7 @@ public static class Constants
 	public const int P2wpkhInputSizeInBytes = 41;
 	public const int P2wpkhInputVirtualSize = 69;
 	public const int P2pkhInputSizeInBytes = 145;
-	public const int P2wpkhOutputSizeInBytes = 31;
+	public const int P2wpkhOutputVirtualSize = 31;
 
 	/// <summary>
 	/// OBSOLATED, USE SPECIFIC TYPE
@@ -57,7 +57,7 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-	public static readonly Version ClientVersion = new(1, 98, 1, 0);
+	public static readonly Version ClientVersion = new(1, 98, 2, 0);
 	public static readonly Version HwiVersion = new("2.0.2");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
 	public static readonly Version LegalDocumentsVersion = new(2, 0);

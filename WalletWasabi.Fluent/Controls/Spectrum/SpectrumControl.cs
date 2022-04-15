@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
@@ -15,8 +14,8 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private ImmutablePen _linePen;
-	private IBrush _lineBrush;
+	private ImmutablePen? _linePen;
+	private IBrush? _lineBrush;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
@@ -39,9 +38,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
-
-		_lineBrush = SolidColorBrush.Parse("#97D234").ToImmutable();
-		_linePen = new(_lineBrush);
 
 		Background = new RadialGradientBrush()
 		{
@@ -78,6 +74,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				_splashEffectDataSource.Start();
 			}
 		}
+		else if (change.Property == ForegroundProperty)
+		{
+			_lineBrush = Foreground ?? Brushes.Magenta;
+			InvalidateArrange();
+		}
 	}
 
 	public bool IsActive
@@ -95,7 +96,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	protected override Size ArrangeOverride(Size finalSize)
 	{
 		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
-
 		return base.ArrangeOverride(finalSize);
 	}
 

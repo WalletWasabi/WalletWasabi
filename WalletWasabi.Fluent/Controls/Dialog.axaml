@@ -16,6 +16,8 @@
                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
             <Border Name="PART_Border"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource TileBorderColor}"
                     Background="{DynamicResource RegionColor}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
               <Panel Name="PART_Dismiss">

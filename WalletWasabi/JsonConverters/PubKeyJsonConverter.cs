@@ -3,24 +3,25 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters;
 
-public class PubKeyJsonConverter : JsonConverter
+public class PubKeyJsonConverter : JsonConverter<PubKey>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
+	public override PubKey? ReadJson(JsonReader reader, Type objectType, PubKey? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return objectType == typeof(PubKey);
+		string? hex = ((string?)reader.Value)?.Trim();
+
+		if (hex is null)
+		{
+			throw new ArgumentNullException(nameof(hex));
+		}
+
+		return new PubKey(hex);
 	}
 
 	/// <inheritdoc />
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, PubKey? value, JsonSerializer serializer)
 	{
-		return new PubKey(((string)reader.Value).Trim());
-	}
-
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-	{
-		var pubKey = (PubKey)value;
-		writer.WriteValue(pubKey.ToHex());
+		var pubKeyHex = value?.ToHex() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(pubKeyHex);
 	}
 }

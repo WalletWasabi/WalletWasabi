@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 
@@ -16,6 +18,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private DateTimeOffset _date;
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private bool _isExpanded;
+	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
@@ -33,11 +37,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public List<string>? FilteredLabel { get; protected set; }
-
-	public string? Label { get; protected set; }
+	public SmartLabel Label { get; protected set; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
+
+	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
 
 	public Money? Balance { get; protected set; }
 
@@ -47,15 +51,10 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
-	public virtual void Update(HistoryItemViewModelBase item)
+	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
-		OrderIndex = item.OrderIndex;
-		Date = item.Date;
-		DateString = item.DateString;
-		IsConfirmed = item.IsConfirmed;
+		throw new NotSupportedException();
 	}
-
-	public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{

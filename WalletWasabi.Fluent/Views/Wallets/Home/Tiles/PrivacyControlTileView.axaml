@@ -16,9 +16,9 @@
           <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
                   BorderBrush="{StaticResource ButtonForeground}">
             <TextBlock
-              Text="PRIVATE" Classes="h9 bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+              Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
           </Border>
-          <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9"
+          <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9"
                                           VerticalAlignment="Center"
 
                                           Content="{Binding BalancePrivateBtc}" />
