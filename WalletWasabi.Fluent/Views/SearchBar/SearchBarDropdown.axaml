@@ -7,8 +7,7 @@
              x:CompileBindings="False"
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent">
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
   </Design.DataContext>
