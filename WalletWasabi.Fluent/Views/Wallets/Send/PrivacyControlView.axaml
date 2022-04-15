@@ -74,7 +74,7 @@
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:LabelViewModel">
+                <DataTemplate DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
@@ -124,7 +124,7 @@
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:LabelViewModel">
+                <DataTemplate DataType="vm:LabelViewModel">
                   <Button Classes="plain" Margin="5" Command="{Binding ClickedCommand}" Classes.faded="{Binding IsFaded}" ToolTip.Tip="{Binding ToolTip}">
                     <i:Interaction.Behaviors>
                       <behaviors:BindPointerOverBehavior IsPointerOver="{Binding IsPointerOver}" />
