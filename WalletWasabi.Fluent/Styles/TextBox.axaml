@@ -43,8 +43,7 @@
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}"
                 MinWidth="{TemplateBinding MinWidth}"
-                MinHeight="{TemplateBinding MinHeight}">
-              </Border>
+                MinHeight="{TemplateBinding MinHeight}" />
 
               <Border
                 Margin="{TemplateBinding BorderThickness}">

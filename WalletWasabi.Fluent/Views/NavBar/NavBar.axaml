@@ -106,8 +106,8 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextAlignment" Value="Center"></Setter>
-      <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
