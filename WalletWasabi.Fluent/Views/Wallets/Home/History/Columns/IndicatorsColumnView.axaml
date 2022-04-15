@@ -5,7 +5,9 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.IndicatorsColumnView"
+             x:CompileBindings="True"
+             x:DataType="historyItems:HistoryItemViewModelBase">
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
     <Panel x:DataType="historyItems:HistoryItemViewModelBase">
       <!-- Confirmed -->
