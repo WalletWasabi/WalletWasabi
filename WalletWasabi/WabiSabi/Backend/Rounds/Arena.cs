@@ -25,7 +25,7 @@ public partial class Arena : PeriodicRunner
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
-		InMemoryCoinJoinIdStore inMemoryCoinJoinIdStore,
+		ICoinJoinIdStore coinJoinIdStore,
 		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
 	{
@@ -35,7 +35,7 @@ public partial class Arena : PeriodicRunner
 		Prison = prison;
 		TransactionArchiver = archiver;
 		Random = new SecureRandom();
-		InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
+		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 	}
 
@@ -48,7 +48,7 @@ public partial class Arena : PeriodicRunner
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
@@ -265,7 +265,6 @@ public partial class Arena : PeriodicRunner
 					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 
-					InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}

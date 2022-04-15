@@ -49,7 +49,7 @@
   </NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="{Binding TrayIcon}" Clicked="TrayIcon_OnClicked">
+      <TrayIcon Icon="{Binding TrayIcon}" Clicked="TrayIcon_OnClicked" ToolTipText="Wasabi Wallet">
         <NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="Show" Command="{Binding ShowCommand} " />
