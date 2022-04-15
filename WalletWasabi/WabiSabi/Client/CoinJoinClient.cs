@@ -352,6 +352,7 @@ public class CoinJoinClient
 		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
 		string[] summary = new string[] {
+		$"",
 		$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
 		$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
 		$"\tTotal diff : {totalDifference.ToString(true, false)}",
