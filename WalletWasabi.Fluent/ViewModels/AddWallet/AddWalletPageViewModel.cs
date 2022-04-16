@@ -59,7 +59,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			{
 				CreationOption = WalletCreationOption.RecoverWallet,
 				Title = "Recover a wallet",
-				Description = "Lost access to your wallet? recover it by entering your recovery words.",
+				Description = "Enter recovery words.",
 				IconName = "recover_arrow_right_regular"
 			},
 		};
