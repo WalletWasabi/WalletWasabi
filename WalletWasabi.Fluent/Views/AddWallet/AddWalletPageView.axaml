@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
@@ -11,8 +12,84 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}">
-    <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
+                 IsBusy="{Binding IsBusy}"
+                 EnableNext="True"
+                 NextContent="Continue">
+    <ListBox Items="{Binding Options}" SelectedItem="{Binding SelectedOption}" Background="Transparent">
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Cursor" Value="Hand" />
+          <Setter Property="Padding" Value="0 12 0 12"/>
+        </Style>
+        <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected Border#PART_DecorationBorderHover, ListBoxItem:selected Border#PART_DecorationBorderUnselected">
+          <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+
+        <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+          <Setter Property="Padding" Value="12 25 12 25" />
+          <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
+          <Setter Property="Padding" Value="12 25 12 25" />
+          <Setter Property="CornerRadius" Value="4" />
+          <Setter Property="Margin" Value="5" />
+          <Setter Property="BorderBrush" Value="#14FFFFFF" />
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+        </Style>
+
+        <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+          <Setter Property="Padding" Value="12 25 12 25" />
+          <Setter Property="CornerRadius" Value="4" />
+          <Setter Property="Margin" Value="5" />
+          <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+
+          <Setter Property="Opacity" Value="0" />
+        </Style>
+
+        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
+          <Setter Property="Opacity" Value="1" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.DataTemplates>
+        <DataTemplate>
+          <c:SuggestionItem>
+            <StackPanel Spacing="20" Width="150" Height="210">
+              <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Height="34"/>
+              <Viewbox HorizontalAlignment="Center" Height="70">
+                <PathIcon Data="{Binding IconName, Converter={x:Static conv:ResolveApplicationResourceConverter.Instance}}"
+                          Foreground="{StaticResource SystemAccentColor}"/>
+              </Viewbox>
+              <TextBlock Text="{Binding Description}"
+                         TextWrapping="Wrap"
+                         TextAlignment="Center"/>
+            </StackPanel>
+          </c:SuggestionItem>
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
+
+
+
+
+    <!--<WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
       <WrapPanel.Styles>
         <Style Selector="c|TileButton">
           <Setter Property="Margin" Value="4"/>
@@ -32,6 +109,6 @@
       <c:TileButton Text="Recover a wallet"
                     Icon="{StaticResource recover_arrow_right_regular}"
                     Command="{Binding RecoverWalletCommand}" />
-    </WrapPanel>
+    </WrapPanel>-->
   </c:ContentArea>
 </UserControl>

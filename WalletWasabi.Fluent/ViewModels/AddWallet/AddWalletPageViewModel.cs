@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -25,17 +26,45 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
+	[AutoNotify] private AddWalletPageOption _selectedOption;
+
 	public AddWalletPageViewModel()
 	{
 		SelectionMode = NavBarItemSelectionMode.Button;
 
-		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
+		Options = new()
+		{
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.AddNewWallet,
+				Title = "Create a new wallet",
+				Description = "Set up a new empty wallet.",
+				IconName = "add_regular"
+			},
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.ConnectToHardwareWallet,
+				Title = "Connect to hardware wallet",
+				Description = "Link your physical device to Wasabi.",
+				IconName = "calculator_regular"
+			},
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.ImportWallet,
+				Title = "Import a wallet",
+				Description = "Add an existing wallet file.",
+				IconName = "import_regular"
+			},
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.RecoverWallet,
+				Title = "Recover a wallet",
+				Description = "Lost access to your wallet? recover it by entering your recovery words.",
+				IconName = "recover_arrow_right_regular"
+			},
+		};
 
-		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
-
-		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
-
-		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
+		_selectedOption = Options.First();
 
 		OpenCommand = ReactiveCommand.Create(async () =>
 		{
@@ -43,27 +72,13 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
 			MainViewModel.Instance.IsOobeBackgroundVisible = false;
 		});
+
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 	}
 
-	public ICommand CreateWalletCommand { get; }
+	public List<AddWalletPageOption> Options { get; }
 
-	public ICommand ConnectHardwareWalletCommand { get; }
-
-	public ICommand ImportWalletCommand { get; }
-
-	public ICommand RecoverWalletCommand { get; }
-
-	private void OnCreateWallet()
-	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.AddNewWallet));
-	}
-
-	private void OnConnectHardwareWallet()
-	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ConnectToHardwareWallet));
-	}
-
-	private async Task OnImportWalletAsync()
+	private async Task ImportWalletAsync()
 	{
 		try
 		{
@@ -93,9 +108,18 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		}
 	}
 
-	private void OnRecoverWallet()
+	private async Task OnNextAsync()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
+		var selected = SelectedOption ?? Options.First();
+
+		if (selected.CreationOption == WalletCreationOption.ImportWallet)
+		{
+			await ImportWalletAsync();
+		}
+		else
+		{
+			Navigate().To(new WalletNamePageViewModel(selected.CreationOption));
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -104,5 +128,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+
+		SelectedOption = Options.First();
 	}
 }
