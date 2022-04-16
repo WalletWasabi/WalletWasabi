@@ -21,4 +21,6 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	public override int MaxAnonScoreTarget { get; }
 
 	public override int FeeRateMedianTimeFrameHours { get; }
+
+	public override string IconName => "coinjoin_cost";
 }

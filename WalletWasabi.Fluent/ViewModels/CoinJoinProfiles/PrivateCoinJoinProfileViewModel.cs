@@ -21,4 +21,6 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		using SecureRandom rand = new();
 		return rand.GetInt(minInclusive, maxExclusive);
 	}
+
+	public override string IconName => "coinjoin_privacy";
 }

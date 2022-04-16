@@ -5,6 +5,10 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:prof="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:CoinJoinProfilesViewModel"
              x:CompileBindings="True"
@@ -42,12 +46,12 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-            <Setter Property="Padding" Value="20,25,20,25" />
+            <Setter Property="Padding" Value="15,25,15,0" />
             <Setter Property="CornerRadius" Value="4" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-            <Setter Property="Padding" Value="15 25 15 25" />
+            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Margin" Value="5" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
@@ -57,7 +61,7 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-            <Setter Property="Padding" Value="15 25 15 25" />
+            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Margin" Value="5" />
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
@@ -71,16 +75,42 @@
           <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
             <Setter Property="Opacity" Value="1" />
           </Style>
+
+          <Style Selector="WrapPanel.narrow">
+            <Setter Property="ItemWidth" Value="180"/>
+            <Setter Property="ItemHeight" Value="275"/>
+          </Style>
+
+          <Style Selector="WrapPanel">
+            <Setter Property="ItemWidth" Value="210"/>
+            <Setter Property="ItemHeight" Value="290"/>
+          </Style>
+
         </ListBox.Styles>
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <i:Interaction.Behaviors>
+                <ir:AdaptiveBehavior>
+                  <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="600" ClassName="narrow" />
+                </ir:AdaptiveBehavior>
+              </i:Interaction.Behaviors>
+            </WrapPanel>
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
           <DataTemplate DataType="vm:CoinJoinProfileViewModelBase">
             <c:SuggestionItem>
-              <prof:CoinJoinProfileControl />
+              <StackPanel Spacing="20">
+                <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center"/>
+                <Viewbox HorizontalAlignment="Center" Height="70">
+                  <PathIcon Data="{Binding IconName, Converter={x:Static conv:ResolveApplicationResourceConverter.Instance}}"
+                            Foreground="{StaticResource SystemAccentColor}"/>
+                </Viewbox>
+                <TextBlock Text="{Binding Description}"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"/>
+              </StackPanel>
             </c:SuggestionItem>
           </DataTemplate>
         </ListBox.DataTemplates>
