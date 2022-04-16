@@ -5,6 +5,9 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
@@ -33,12 +36,12 @@
         </Style>
 
         <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-          <Setter Property="Padding" Value="12 25 12 25" />
+          <Setter Property="Padding" Value="10 25 10 25" />
           <Setter Property="CornerRadius" Value="4" />
         </Style>
 
         <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-          <Setter Property="Padding" Value="12 25 12 25" />
+          <Setter Property="Padding" Value="10 25 10 25" />
           <Setter Property="CornerRadius" Value="4" />
           <Setter Property="Margin" Value="5" />
           <Setter Property="BorderBrush" Value="#14FFFFFF" />
@@ -48,7 +51,7 @@
         </Style>
 
         <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-          <Setter Property="Padding" Value="12 25 12 25" />
+          <Setter Property="Padding" Value="10 25 10 25" />
           <Setter Property="CornerRadius" Value="4" />
           <Setter Property="Margin" Value="5" />
           <Setter Property="BorderBrush" Value="#2AFFFFFF" />
@@ -62,16 +65,33 @@
         <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
           <Setter Property="Opacity" Value="1" />
         </Style>
+
+        <Style Selector="WrapPanel.narrow">
+          <Setter Property="ItemWidth" Value="125"/>
+          <Setter Property="ItemHeight" Value="330"/>
+        </Style>
+        
+        <Style Selector="WrapPanel">
+          <Setter Property="ItemWidth" Value="210"/>
+          <Setter Property="ItemWidth" Value="170"/>
+        </Style>
+
       </ListBox.Styles>
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <i:Interaction.Behaviors>
+              <ir:AdaptiveBehavior>
+                <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="570" ClassName="narrow" />
+              </ir:AdaptiveBehavior>
+            </i:Interaction.Behaviors>
+          </WrapPanel>
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.DataTemplates>
         <DataTemplate>
           <c:SuggestionItem>
-            <StackPanel Spacing="20" Width="150" Height="210">
+            <StackPanel Spacing="20">
               <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Height="34"/>
               <Viewbox HorizontalAlignment="Center" Height="70">
                 <PathIcon Data="{Binding IconName, Converter={x:Static conv:ResolveApplicationResourceConverter.Instance}}"
@@ -85,30 +105,5 @@
         </DataTemplate>
       </ListBox.DataTemplates>
     </ListBox>
-
-
-
-
-    <!--<WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
-      <WrapPanel.Styles>
-        <Style Selector="c|TileButton">
-          <Setter Property="Margin" Value="4"/>
-        </Style>
-      </WrapPanel.Styles>
-      <c:TileButton Text="Create a new wallet"
-                    Classes="action"
-                    Icon="{StaticResource add_regular}"
-                    Command="{Binding CreateWalletCommand}"
-                    IsDefault="{Binding IsActive}" />
-      <c:TileButton Text="Connect to hardware wallet"
-                    Icon="{StaticResource calculator_regular}"
-                    Command="{Binding ConnectHardwareWalletCommand}" />
-      <c:TileButton Text="Import a wallet"
-                    Icon="{StaticResource import_regular}"
-                    Command="{Binding ImportWalletCommand}" />
-      <c:TileButton Text="Recover a wallet"
-                    Icon="{StaticResource recover_arrow_right_regular}"
-                    Command="{Binding RecoverWalletCommand}" />
-    </WrapPanel>-->
   </c:ContentArea>
 </UserControl>
