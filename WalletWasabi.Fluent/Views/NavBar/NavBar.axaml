@@ -114,6 +114,15 @@
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
+
+    <Style Selector="c|NavBarItem PathIcon" x:CompileBindings="False">
+      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
+
+    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
+      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
+
   </UserControl.Styles>
   <DockPanel Margin="0 -4 0 4">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
@@ -134,8 +143,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new size24"
-                          Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                <PathIcon Classes="new size24" />
               </DockPanel>
             </Panel>
           </DataTemplate>
@@ -160,8 +168,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new size24" Background="Red"
-                          Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+                <PathIcon Classes="new size24" />
               </DockPanel>
             </Panel>
           </DataTemplate>
