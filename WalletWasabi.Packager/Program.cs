@@ -38,10 +38,8 @@ public static class Program
 	{
 		"win7-x64",
 		"linux-x64",
-		"osx-x64"
-
-		// TODO: Add support.
-		// "osx-arm64"
+		"osx-x64",
+		"osx-arm64"
 	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
@@ -276,6 +274,7 @@ public static class Program
 				$"--runtime \"{target}\"",
 				$"--disable-parallel",
 				$"--no-cache",
+				$"--no-restore",
 				$"/p:VersionPrefix={VersionPrefix}",
 				$"/p:DebugType=none",
 				$"/p:DebugSymbols=false",
