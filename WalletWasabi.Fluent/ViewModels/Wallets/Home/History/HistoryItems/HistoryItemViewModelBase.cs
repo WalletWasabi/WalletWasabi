@@ -74,6 +74,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			}
 			else
 			{
+				if (!x.IsConfirmed && y.IsConfirmed)
+				{
+					return -1;
+				}
+				else if (x.IsConfirmed && !y.IsConfirmed)
+				{
+					return 1;
+				}
 				return Comparer<T>.Default.Compare(selector(x), selector(y));
 			}
 		};
@@ -97,6 +105,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			}
 			else
 			{
+				if (!x.IsConfirmed && y.IsConfirmed)
+				{
+					return -1;
+				}
+				else if (x.IsConfirmed && !y.IsConfirmed)
+				{
+					return 1;
+				}
 				return Comparer<T>.Default.Compare(selector(y), selector(x));
 			}
 		};
