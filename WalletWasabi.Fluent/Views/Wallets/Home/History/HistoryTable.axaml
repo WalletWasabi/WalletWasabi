@@ -74,9 +74,17 @@
               <ContextMenu x:DataType="historyItems:HistoryItemViewModelBase">
                 <MenuItem Header="Speed-up transaction"
                           IsVisible="{Binding !IsConfirmed}"
-                          Command="{Binding SpeedUpTransactionCommand}" />
+                          Command="{Binding SpeedUpTransactionCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource rocket_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Show details"
-                          Command="{Binding ShowDetailsCommand}" />
+                          Command="{Binding ShowDetailsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource details_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
               </ContextMenu>
             </Setter.Value>
           </Setter>
