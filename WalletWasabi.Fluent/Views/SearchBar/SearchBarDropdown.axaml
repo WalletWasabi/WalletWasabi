@@ -10,7 +10,6 @@
              xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:searchItem="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem"
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Settings"
-             xmlns:sources="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Sources"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
@@ -56,6 +55,26 @@
 
   </UserControl.Styles>
 
+  <UserControl.Resources>
+
+    <SolidColorBrush x:Key="ToggleSwitchContentForeground" Color="{DynamicResource AcrylicTrimForeground}" />
+
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="{DynamicResource AcrylicTrimForeground}" />
+
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="{DynamicResource AcrylicTrimForeground}" />
+
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="{DynamicResource AcrylicTrimForeground}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="{DynamicResource AcrylicTrimForeground}" />
+  </UserControl.Resources>
+
   <UserControl.DataTemplates>
 
     <settings:SettingSelector>
@@ -91,7 +110,7 @@
 
     <DataTemplate DataType="searchItem:AutocloseActionableItem">
 
-        <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
+      <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
         <DockPanel Background="Transparent" Margin="10">
           <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
