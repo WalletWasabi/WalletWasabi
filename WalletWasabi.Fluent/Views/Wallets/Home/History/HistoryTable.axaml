@@ -75,6 +75,8 @@
                 <MenuItem Header="Speed-up transaction"
                           IsVisible="{Binding !IsConfirmed}"
                           Command="{Binding SpeedUpTransactionCommand}" />
+                <MenuItem Header="Show details"
+                          Command="{Binding ShowDetailsCommand}" />
               </ContextMenu>
             </Setter.Value>
           </Setter>
