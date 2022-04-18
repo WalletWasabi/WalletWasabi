@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -11,7 +12,7 @@ internal class TransactionSearchItem
 	public TransactionSearchItem(HistoryItemViewModelBase transaction)
 	{
 		Transaction = transaction;
-		Labels = transaction.Label;
+		Labels = transaction.Label.Labels.ToList();
 		Date = transaction.Date;
 		Id = transaction.Id.ToString();
 		Amount = transaction.IncomingAmount ?? -transaction.OutgoingAmount ?? Money.Zero;
