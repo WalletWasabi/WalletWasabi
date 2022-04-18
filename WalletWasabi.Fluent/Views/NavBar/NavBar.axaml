@@ -134,7 +134,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new 28px"
+                <PathIcon Classes="new size28"
                           Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
               </DockPanel>
             </Panel>
@@ -160,7 +160,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new 28px"
+                <PathIcon Classes="new size28"
                           Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
               </DockPanel>
             </Panel>
