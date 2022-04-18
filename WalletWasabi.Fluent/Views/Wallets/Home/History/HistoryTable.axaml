@@ -69,6 +69,14 @@
               </DockPanel>
             </ControlTemplate>
           </Setter>
+          <Setter Property="ContextMenu">
+            <Setter.Value>
+              <ContextMenu IsEnabled="{Binding !IsConfirmed}"
+                           x:DataType="historyItems:HistoryItemViewModelBase">
+                <MenuItem Header="Speed up my pending transaction" />
+              </ContextMenu>
+            </Setter.Value>
+          </Setter>
         </Style>
         <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
           <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
