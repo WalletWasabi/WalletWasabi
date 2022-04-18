@@ -1,5 +1,7 @@
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,32 +15,40 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
+public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
-	public ApplicationViewModel()
+	private readonly IMainWindowService _mainWindowService;
+	[AutoNotify] private bool _isMainWindowShown = true;
+
+	public ApplicationViewModel(IMainWindowService mainWindowService)
 	{
-		QuitCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			if (CanShutdown())
+		_mainWindowService = mainWindowService;
+
+		this.WhenAnyValue(x => x.IsMainWindowShown)
+			.Where(x => x == false)
+			.Subscribe(async x =>
 			{
-				if (Application.Current?.ApplicationLifetime is IControlledApplicationLifetime lifetime)
+				if (!Services.UiConfig.HideOnClose)
 				{
-					lifetime.Shutdown();
+					DoQuit();
 				}
+			});
+
+		QuitCommand = ReactiveCommand.Create(DoQuit);
+
+		ShowCommand = ReactiveCommand.Create(() =>
+		{
+			if (IsMainWindowShown)
+			{
+				_mainWindowService.Close();
+				IsMainWindowShown = false;
 			}
 			else
 			{
-				// Show the window if it was hidden.
-				ShowRequested?.Invoke(this, EventArgs.Empty);
-
-				await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-					"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
-					"Warning",
-					"Unable to close right now"));
+				_mainWindowService.Show();
+				IsMainWindowShown = true;
 			}
 		});
-
-		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
 		var dialogScreen = MainViewModel.Instance.DialogScreen;
 
@@ -69,10 +79,38 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		}
 	}
 
+	private void DoQuit()
+	{
+		if (CanShutdown())
+		{
+			if (Application.Current?.ApplicationLifetime is IControlledApplicationLifetime lifetime)
+			{
+				lifetime.Shutdown();
+			}
+		}
+		else
+		{
+			_mainWindowService.Show();
+			IsMainWindowShown = true;
+
+			OnClosePrevented();
+		}
+	}
+
+	public void OnClosePrevented()
+	{
+		_mainWindowService.Show();
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
+				"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
+				"Warning",
+				"Unable to close right now"));
+		});
+	}
+
 	public WindowIcon TrayIcon { get; }
-
-	public event EventHandler? ShowRequested;
-
 	public ICommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
 	public ICommand QuitCommand { get; }

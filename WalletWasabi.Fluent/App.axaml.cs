@@ -1,4 +1,5 @@
 using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,7 +14,9 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent;
 
-public class App : Application
+
+
+public class App : Application, IMainWindowService
 {
 	private readonly Func<Task>? _backendInitialiseAsync;
 
@@ -29,9 +32,7 @@ public class App : Application
 
 		if (!Design.IsDesignMode)
 		{
-			ApplicationViewModel applicationViewModel = new();
-			DataContext = applicationViewModel;
-			applicationViewModel.ShowRequested += (sender, args) => ShowRequested?.Invoke(sender, args);
+			DataContext = new ApplicationViewModel(this);
 		}
 	}
 
@@ -39,8 +40,6 @@ public class App : Application
 	{
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
-
-	public event EventHandler? ShowRequested;
 
 	public ICanShutdownProvider? CanShutdownProvider
 	{
@@ -59,12 +58,11 @@ public class App : Application
 		{
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
+				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
 				desktop.ShutdownRequested += DesktopOnShutdownRequested;
 
-				desktop.MainWindow = new MainWindow
-				{
-					DataContext = MainViewModel.Instance
-				};
+				desktop.MainWindow = CreateMainWindow();
 
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
@@ -79,20 +77,62 @@ public class App : Application
 		base.OnFrameworkInitializationCompleted();
 	}
 
+	private Window CreateMainWindow()
+	{
+		var result = new MainWindow
+		{
+			DataContext = MainViewModel.Instance
+		};
+
+		Observable.FromEventPattern(result, nameof(result.Closed))
+			.Take(1)
+			.Subscribe(x =>
+			{
+				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is { })
+				{
+					desktop.MainWindow = null;
+
+					if (DataContext is ApplicationViewModel avm)
+					{
+						avm.IsMainWindowShown = false;
+					}
+				}
+			});
+
+		return result;
+	}
+
 	private void DesktopOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		if (CanShutdownProvider is { } provider)
 		{
 			// Shutdown prevention will only work if you directly run the executable.
 			e.Cancel = !provider.CanShutdown();
+
+			if (e.Cancel && DataContext is ApplicationViewModel avm)
+			{
+				avm.OnClosePrevented();
+			}
+
 			Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 		}
 	}
 
-	// Note, this is only supported on Win32 and some Linux DEs
-	// https://github.com/AvaloniaUI/Avalonia/blob/99d983499f5412febf07aafe2bf03872319b412b/src/Avalonia.Controls/TrayIcon.cs#L66
-	private void TrayIcon_OnClicked(object? sender, EventArgs e)
+	void IMainWindowService.Show()
 	{
-		ShowRequested?.Invoke(this, EventArgs.Empty);
+		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is null)
+		{
+			desktop.MainWindow = CreateMainWindow();
+			desktop.MainWindow.Show();
+		}
+	}
+
+	void IMainWindowService.Close()
+	{
+		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is { })
+		{
+			desktop.MainWindow.Close();
+			desktop.MainWindow = null;
+		}
 	}
 }
