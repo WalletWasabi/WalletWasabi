@@ -28,7 +28,10 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			.Where(x => x == false)
 			.Subscribe(async x =>
 			{
-				if (!Services.UiConfig.HideOnClose)
+				if (!Services.UiConfig.HideOnClose && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
+				    {
+					    MainWindow: null
+				    })
 				{
 					DoQuit();
 				}
@@ -40,21 +43,29 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (IsMainWindowShown)
 			{
-				_mainWindowService.Close();
+				if (Services.UiConfig.HideOnClose)
+				{
+					_mainWindowService.Close();
+				}
+				else
+				{
+					MainViewModel.Instance.WindowState = WindowState.Minimized;
+				}
+
 				IsMainWindowShown = false;
 			}
 			else
 			{
 				_mainWindowService.Show();
 				IsMainWindowShown = true;
+
+				MainViewModel.Instance.WindowState = WindowState.Normal;
 			}
 		});
 
-		var dialogScreen = MainViewModel.Instance.DialogScreen;
-
 		AboutCommand = ReactiveCommand.Create(
-			() => dialogScreen.To(new AboutViewModel(navigateBack: dialogScreen.CurrentPage is not null)),
-			canExecute: dialogScreen.WhenAnyValue(x => x.CurrentPage)
+			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
+			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage)
 				.SelectMany(x =>
 				{
 					return x switch
@@ -117,6 +128,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown()
 	{
+		return true;
 		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		if (cjManager is { })

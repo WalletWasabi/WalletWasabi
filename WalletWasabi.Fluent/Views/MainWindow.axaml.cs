@@ -26,16 +26,13 @@ public class MainWindow : Window
 	{
 		base.OnClosing(e);
 
-		if (Application.Current?.DataContext is ApplicationViewModel avm)
+		if (!Services.UiConfig.HideOnClose && Application.Current?.DataContext is ApplicationViewModel avm)
 		{
-			if (!Services.UiConfig.HideOnClose)
-			{
-				e.Cancel = !avm.CanShutdown();
+			e.Cancel = !avm.CanShutdown();
 
-				if (e.Cancel)
-				{
-					avm.OnClosePrevented();
-				}
+			if (e.Cancel)
+			{
+				avm.OnClosePrevented();
 			}
 		}
 	}
