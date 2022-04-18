@@ -72,6 +72,9 @@
           <Setter Property="ContextMenu">
             <Setter.Value>
               <ContextMenu x:DataType="historyItems:HistoryItemViewModelBase">
+                <MenuItem Header="Speed-up transaction"
+                          IsVisible="{Binding !IsConfirmed}"
+                          Command="{Binding SpeedUpTransactionCommand}" />
               </ContextMenu>
             </Setter.Value>
           </Setter>

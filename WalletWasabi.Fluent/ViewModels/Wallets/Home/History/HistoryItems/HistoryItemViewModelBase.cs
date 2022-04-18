@@ -51,6 +51,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
+	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+
 	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
 		throw new NotSupportedException();
