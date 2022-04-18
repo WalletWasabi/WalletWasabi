@@ -80,8 +80,7 @@
                                      Margin="0 0 5 0"
                                      Opacity="0.5"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                          </TextBlock>
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
                                          CaretIndex="{TemplateBinding CaretIndex}"

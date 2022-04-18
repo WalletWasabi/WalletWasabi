@@ -8,13 +8,12 @@
              x:DataType="receive:AddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.LabelsColumnView">
-  <DockPanel LastChildFill="True" Margin="10 0 30 0" x:DataType="receive:AddressViewModel">
+  <DockPanel LastChildFill="True" Margin="10 0 30 0">
     <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                              VerticalAlignment="Center">
       <DockPanel LastChildFill="False">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                     Margin="0 0 0 0" Spacing="5" Orientation="Horizontal"
-                    x:DataType="receive:AddressViewModel"
                     DockPanel.Dock="Right">
           <Button Classes="plain addressActionButton" ToolTip.Tip="Edit"
                   Command="{Binding EditLabelCommand}">
