@@ -11,12 +11,14 @@ public class RoundParameters
 		Network network,
 		WasabiRandom random,
 		FeeRate feeRate,
-		CoordinationFeeRate coordinationFeeRate)
+		CoordinationFeeRate coordinationFeeRate,
+		Money maxSuggestedAmount)
 	{
 		Network = network;
 		Random = random;
 		FeeRate = feeRate;
 		CoordinationFeeRate = coordinationFeeRate;
+		MaxSuggestedAmount = maxSuggestedAmount;
 
 		MaxInputCountByRound = wabiSabiConfig.MaxInputCountByRound;
 		MinInputCountByRound = wabiSabiConfig.MinInputCountByRound;
@@ -39,6 +41,7 @@ public class RoundParameters
 	public int MaxInputCountByRound { get; }
 	public Money MinRegistrableAmount { get; }
 	public Money MaxRegistrableAmount { get; }
+	public Money MaxSuggestedAmount { get; }
 	public TimeSpan StandardInputRegistrationTimeout { get; }
 	public TimeSpan ConnectionConfirmationTimeout { get; }
 	public TimeSpan OutputRegistrationTimeout { get; }

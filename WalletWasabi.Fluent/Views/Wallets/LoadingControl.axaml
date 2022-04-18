@@ -31,7 +31,7 @@
         <Viewbox>
           <Viewbox.Styles>
             <Style Selector=":is(Control).City">
-              <Setter Property="Opacity" Value="0"></Setter>
+              <Setter Property="Opacity" Value="0" />
               <Setter Property="Transitions">
                 <Transitions>
                   <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
