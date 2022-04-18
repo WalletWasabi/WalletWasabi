@@ -89,8 +89,8 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		}
 		else
 		{
-			IconName = "nav_wallet_28";
-			IconName = "nav_wallet_28_filled";
+			IconName = "nav_wallet_28_regular";
+			IconNameFocused = "nav_wallet_28_filled";
 		}
 	}
 

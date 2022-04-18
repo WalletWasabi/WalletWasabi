@@ -5,7 +5,7 @@
         <Border Background="{TemplateBinding Background}">
           <Path Fill="{TemplateBinding Foreground}"
                 Data="{TemplateBinding Data}"
-                Stretch="Uniform" />
+                Stretch="None" />
         </Border>
       </ControlTemplate>
     </Setter>

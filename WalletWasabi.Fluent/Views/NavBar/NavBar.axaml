@@ -51,7 +51,7 @@
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel > Panel">
+    <Style Selector=":is(Panel).NavBarItemPanel DockPanel > PathIcon">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
       <Setter Property="Background" Value="Transparent" />
@@ -134,7 +134,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new size28"
+                <PathIcon Classes="new size24"
                           Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
               </DockPanel>
             </Panel>
@@ -160,7 +160,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new size28"
+                <PathIcon Classes="new size24" Background="Red"
                           Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
               </DockPanel>
             </Panel>
