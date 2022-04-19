@@ -25,11 +25,6 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 			throw new ArgumentNullException(nameof(selector));
 		}
 
-		if (selector == null)
-		{
-			throw new ArgumentNullException(nameof(selector));
-		}
-
 		if (PropertyHelper<TTarget>.GetProperty(selector) is not { } pr)
 		{
 			throw new InvalidOperationException($"The expression {selector} is not a valid property selector");
@@ -41,7 +36,7 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 				new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted"));
 		});
 
-		Value = (TProperty?) pr.GetValue(target);
+		Value = (TProperty?)pr.GetValue(target);
 
 		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
 

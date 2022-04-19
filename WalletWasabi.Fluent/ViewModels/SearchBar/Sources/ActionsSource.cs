@@ -56,5 +56,4 @@ public class ActionsSource : ISearchItemSource
 			_ => throw new NotSupportedException()
 		};
 	}
-
 }

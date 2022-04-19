@@ -24,12 +24,13 @@ public class SettingSelector : IDataTemplate
 
 			return d.Match(value);
 		});
+
 		if (template is not null)
 		{
 			return template.Build(param);
 		}
 
-		return new TextBlock {Text = "Not found"};
+		return new TextBlock { Text = "Not found" };
 	}
 
 	public bool Match(object data)

@@ -5,6 +5,7 @@ using System.Linq;
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 #nullable disable
+
 [Serializable]
 [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 public abstract class ValueObject : IComparable, IComparable<ValueObject>
@@ -21,7 +22,7 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 			return string.Compare(thisType.ToString(), otherType.ToString(), StringComparison.Ordinal);
 		}
 
-		var other = (ValueObject) obj;
+		var other = (ValueObject)obj;
 
 		var components = GetEqualityComponents().ToArray();
 		var otherComponents = other.GetEqualityComponents().ToArray();
@@ -40,7 +41,6 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 
 	public virtual int CompareTo(ValueObject other)
 	{
-
 		return CompareTo(other as object);
 	}
 
@@ -64,7 +64,6 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 		return !(a == b);
 	}
 
-
 	public override bool Equals(object obj)
 	{
 		if (obj == null)
@@ -77,7 +76,7 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 			return false;
 		}
 
-		var valueObject = (ValueObject) obj;
+		var valueObject = (ValueObject)obj;
 
 		return GetEqualityComponents().SequenceEqual(valueObject.GetEqualityComponents());
 	}
