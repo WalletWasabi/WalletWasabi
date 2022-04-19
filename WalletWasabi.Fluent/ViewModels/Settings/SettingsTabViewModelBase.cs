@@ -14,7 +14,6 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 	{
 		ConfigOnOpen = new Config(Services.Config.FilePath);
 		ConfigOnOpen.LoadFile();
-		MessageBus.Current.Listen<SaveConfigMessage>();
 	}
 
 	public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
