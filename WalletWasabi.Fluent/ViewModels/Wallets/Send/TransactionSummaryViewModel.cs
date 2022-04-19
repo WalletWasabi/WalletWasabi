@@ -1,11 +1,10 @@
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -22,6 +21,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
+	[AutoNotify] private bool _isOtherPocketSelectionPossible;
+	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, BitcoinAddress address, bool isPreview = false)
 	{
@@ -72,6 +73,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		TransactionHasPockets = !info.IsPrivate;
 
+		Labels = SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels(info.PrivateCoinThreshold)));
+		var exactPocketUsed = Labels.Count() == info.UserLabels.Count() && Labels.All(label => info.UserLabels.Contains(label, StringComparer.OrdinalIgnoreCase));
+		TransactionHasPockets = Labels.Any() && !exactPocketUsed;
+
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
+		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 	}
 }
