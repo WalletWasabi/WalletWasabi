@@ -257,7 +257,7 @@
                 <TranslateTransform X="-7" Y="-33" />
               </TransformGroup>
             </Panel.RenderTransform>
-            <Ellipse Width="100" Height="100" Fill="White" Opacity="0.06"></Ellipse>
+            <Ellipse Width="100" Height="100" Fill="White" Opacity="0.06" />
           </Panel>
 
           <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">
@@ -267,7 +267,7 @@
                 <TranslateTransform X="-7" Y="-33" />
               </TransformGroup>
             </Panel.RenderTransform>
-            <Ellipse Width="100" Height="100" Fill="White" Opacity="0.06"></Ellipse>
+            <Ellipse Width="100" Height="100" Fill="White" Opacity="0.06" />
           </Panel>
 
           <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">

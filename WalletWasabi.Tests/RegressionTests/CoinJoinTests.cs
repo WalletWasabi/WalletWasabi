@@ -156,7 +156,7 @@ public class CoinJoinTests
 		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 		Assert.Contains(HttpStatusCode.BadRequest.ToReasonString(), httpRequestException.Message);
 
-		byte[] dummySignature = new byte[65];
+		CompactSignature dummySignature = new(0, new byte[64]);
 
 		BlindedOutputWithNonceIndex nullBlindedScript = new(0, uint256.One);
 		inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() + 1).Select(x => nullBlindedScript);
@@ -729,7 +729,7 @@ public class CoinJoinTests
 		// important data for each of the participants in the coinjoin session.
 		var participants = new List<(AliceClient4,
 									 List<(Requester requester, BitcoinAddress outputAddress, BlindedOutputWithNonceIndex blindedScript)>,
-									 List<(OutPoint input, byte[] proof, Coin coin, Key key)>)>();
+									 List<(OutPoint input, CompactSignature proof, Coin coin, Key key)>)>();
 
 		// INPUTS REGISTRATION PHASE --
 		for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
@@ -753,7 +753,7 @@ public class CoinJoinTests
 			var blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptListBytes));
 
 			// Create 4 new coins that we want to mix
-			var inputs = new List<(OutPoint input, byte[] proof, Coin coin, Key key)>();
+			var inputs = new List<(OutPoint input, CompactSignature proof, Coin coin, Key key)>();
 			for (var inputIdx = 0; inputIdx < 4; inputIdx++)
 			{
 				var key = new Key();

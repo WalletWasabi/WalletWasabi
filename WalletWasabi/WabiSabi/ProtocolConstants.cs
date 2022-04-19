@@ -32,6 +32,7 @@ public static class ProtocolConstants
 	public const string RoundConnectionConfirmationTimeoutStrobeLabel = "connection-confirmation-timeout";
 	public const string RoundOutputRegistrationTimeoutStrobeLabel = "output-registration-timeout";
 	public const string RoundTransactionSigningTimeoutStrobeLabel = "transaction-signing-timeout";
+	public const string RoundMaxSuggestedAmountLabel = "maximum-suggested-amount";
 
 	// Alice hashing labels
 	public const string AliceStrobeDomain = "alice-parameters";

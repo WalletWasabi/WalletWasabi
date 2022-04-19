@@ -71,7 +71,7 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
-	private async Task<RoundState> WaitForRoundAsync(CancellationToken token)
+	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
 		return await RoundStatusUpdater
 			.CreateRoundAwaiter(
@@ -80,7 +80,8 @@ public class CoinJoinClient
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
-					&& IsRoundEconomic(roundState.FeeRate),
+					&& IsRoundEconomic(roundState.FeeRate)
+					&& roundState.Id != excludeRound,
 				token)
 			.ConfigureAwait(false);
 	}
@@ -115,8 +116,25 @@ public class CoinJoinClient
 	{
 		var tryLimit = 6;
 
-		var currentRoundState = await WaitForRoundAsync(cancellationToken).ConfigureAwait(false);
-		var coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+		RoundState? currentRoundState;
+		uint256 excludeRound = uint256.Zero;
+		ImmutableList<SmartCoin> coins;
+
+		do
+		{
+			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
+			coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+
+			if (coins.Any(c => c.Amount > currentRoundState.MaxSuggestedAmount))
+			{
+				excludeRound = currentRoundState.Id;
+				Logger.LogInfo("Skipping the round for more optimal mixing, waiting for one with bigger suggested input value.");
+				continue;
+			}
+
+			break;
+		}
+		while (!cancellationToken.IsCancellationRequested);
 
 		if (coins.IsEmpty)
 		{

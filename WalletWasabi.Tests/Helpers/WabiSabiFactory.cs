@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -56,7 +57,8 @@ public static class WabiSabiFactory
 			Network.Main,
 			new InsecureRandom(),
 			new FeeRate(100m),
-			new CoordinationFeeRate(0.003m, Money.Zero)));
+			new CoordinationFeeRate(0.003m, Money.Zero),
+			Money.Coins(Constants.MaximumNumberOfBitcoins)));
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		return round;
 	}
@@ -259,7 +261,7 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate, round.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
