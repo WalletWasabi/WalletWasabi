@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -43,7 +41,6 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private double _windowWidth;
 	[AutoNotify] private double _windowHeight;
 	[AutoNotify] private PixelPoint? _windowPosition;
-	private readonly WalletWatcher _walletWatcher;
 
 	public MainViewModel()
 	{
@@ -176,7 +173,7 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		var source = new CompositeSearchItemsSource(new TransactionsSource(), new ActionsSource(), new SettingsSource(_settingsPage));
+		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
