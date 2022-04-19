@@ -1,14 +1,69 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
+#nullable disable
 [Serializable]
+[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 public abstract class ValueObject : IComparable, IComparable<ValueObject>
 {
 	private int? _cachedHashCode;
 
-	protected abstract IEnumerable<object> GetEqualityComponents();
+	public virtual int CompareTo(object obj)
+	{
+		var thisType = GetUnproxiedType(this);
+		var otherType = GetUnproxiedType(obj);
+
+		if (thisType != otherType)
+		{
+			return string.Compare(thisType.ToString(), otherType.ToString(), StringComparison.Ordinal);
+		}
+
+		var other = (ValueObject) obj;
+
+		var components = GetEqualityComponents().ToArray();
+		var otherComponents = other.GetEqualityComponents().ToArray();
+
+		for (var i = 0; i < components.Length; i++)
+		{
+			var comparison = CompareComponents(components[i], otherComponents[i]);
+			if (comparison != 0)
+			{
+				return comparison;
+			}
+		}
+
+		return 0;
+	}
+
+	public virtual int CompareTo(ValueObject other)
+	{
+
+		return CompareTo(other as object);
+	}
+
+	public static bool operator ==(ValueObject a, ValueObject b)
+	{
+		if (a is null && b is null)
+		{
+			return true;
+		}
+
+		if (a is null || b is null)
+		{
+			return false;
+		}
+
+		return a.Equals(b);
+	}
+
+	public static bool operator !=(ValueObject a, ValueObject b)
+	{
+		return !(a == b);
+	}
+
 
 	public override bool Equals(object obj)
 	{
@@ -22,7 +77,7 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 			return false;
 		}
 
-		var valueObject = (ValueObject)obj;
+		var valueObject = (ValueObject) obj;
 
 		return GetEqualityComponents().SequenceEqual(valueObject.GetEqualityComponents());
 	}
@@ -44,31 +99,22 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 		return _cachedHashCode.Value;
 	}
 
-	public virtual int CompareTo(object obj)
+	protected abstract IEnumerable<object> GetEqualityComponents();
+
+	internal static Type GetUnproxiedType(object obj)
 	{
-		Type thisType = GetUnproxiedType(this);
-		Type otherType = GetUnproxiedType(obj);
+		const string EFCoreProxyPrefix = "Castle.Proxies.";
+		const string NHibernateProxyPostfix = "Proxy";
 
-		if (thisType != otherType)
+		var type = obj.GetType();
+		var typeString = type.ToString();
+
+		if (typeString.Contains(EFCoreProxyPrefix) || typeString.EndsWith(NHibernateProxyPostfix))
 		{
-			return string.Compare(thisType.ToString(), otherType.ToString(), StringComparison.Ordinal);
+			return type.BaseType;
 		}
 
-		var other = (ValueObject)obj;
-
-		object[] components = GetEqualityComponents().ToArray();
-		object[] otherComponents = other.GetEqualityComponents().ToArray();
-
-		for (int i = 0; i < components.Length; i++)
-		{
-			int comparison = CompareComponents(components[i], otherComponents[i]);
-			if (comparison != 0)
-			{
-				return comparison;
-			}
-		}
-
-		return 0;
+		return type;
 	}
 
 	private int CompareComponents(object object1, object object2)
@@ -94,46 +140,5 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 		}
 
 		return object1.Equals(object2) ? 0 : -1;
-	}
-
-	public virtual int CompareTo(ValueObject other)
-	{
-		return CompareTo(other as object);
-	}
-
-	public static bool operator ==(ValueObject a, ValueObject b)
-	{
-		if (a is null && b is null)
-		{
-			return true;
-		}
-
-		if (a is null || b is null)
-		{
-			return false;
-		}
-
-		return a.Equals(b);
-	}
-
-	public static bool operator !=(ValueObject a, ValueObject b)
-	{
-		return !(a == b);
-	}
-
-	internal static Type GetUnproxiedType(object obj)
-	{
-		const string EFCoreProxyPrefix = "Castle.Proxies.";
-		const string NHibernateProxyPostfix = "Proxy";
-
-		Type type = obj.GetType();
-		string typeString = type.ToString();
-
-		if (typeString.Contains(EFCoreProxyPrefix) || typeString.EndsWith(NHibernateProxyPostfix))
-		{
-			return type.BaseType;
-		}
-
-		return type;
 	}
 }
