@@ -18,7 +18,7 @@ public static class WindowsStartupHelper
 
 		string pathToExeFile = EnvironmentHelpers.GetExecutablePath();
 
-		string pathToExecWithArgs = $"{pathToExeFile}  {StartupHelper.SilentArgument}";
+		string pathToExecWithArgs = $"{pathToExeFile} {StartupHelper.SilentArgument}";
 
 		if (!File.Exists(pathToExeFile))
 		{
