@@ -13,13 +13,17 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Packager;
 
+/// <summary>
+/// Instructions:
+/// <list type="number">
+/// <item>Bump Client version (or else wrong .msi will be created) - <see cref="Helpers.Constants.ClientVersion"/>.</item>
+/// <item>Publish with Packager.</item>
+/// <item>Build WIX project with Release and x64 configuration.</item>
+/// <item>Sign with Packager, set restore true so the password won't be kept.</item>
+/// </list>
+/// </summary>
 public static class Program
 {
-	// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
-	// 1. Publish with Packager.
-	// 2. Build WIX project with Release and x64 configuration.
-	// 3. Sign with Packager, set restore true so the password won't be kept.
-
 	public const bool DoPublish = true;
 	public const bool DoSign = false;
 	public const bool DoRestoreProgramCs = false;
@@ -27,13 +31,8 @@ public static class Program
 	public const string PfxPath = "C:\\digicert.pfx";
 	public const string ExecutableName = Constants.ExecutableName;
 
-	// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
-	// BOTTLENECKS:
-	// Tor - win-32, linux-32, osx-64
-	// .NET Core - win-32, linux-64, osx-64
-	// Avalonia - win7-32, linux-64, osx-64
-	// We'll only support x64, if someone complains, we can come back to it.
-	// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
+	/// <remarks>Only 64-bit platforms are supported for now.</remarks>
+	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
 		"win7-x64",
