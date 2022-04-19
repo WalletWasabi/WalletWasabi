@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 

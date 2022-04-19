@@ -7,6 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class SettingSelector : IDataTemplate
 {
+	// ReSharper disable once CollectionNeverUpdated.Global
 	public List<IDataTemplate> DataTemplates { get; set; } = new();
 
 	public IControl Build(object param)
