@@ -18,9 +18,8 @@ public static class MacSignTools
 			throw new NotSupportedException("This signing method is only valid on macOS!");
 		}
 
-		Console.WriteLine("Phase: finding the zip file on desktop which contains the compiled binaries from Windows.");
-
 		string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+		Console.WriteLine($"Phase: finding the zip file on desktop '{desktopPath}' which contains the compiled binaries from Windows.");
 
 		var srcZipFileNamePattern = "Wasabi-osx-*.zip";
 		var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); // Example: Wasabi-osx-1.1.10.2.zip
@@ -111,13 +110,13 @@ public static class MacSignTools
 				bundleIdentifier = lines[i + 1].Trim().Replace("<string>", "").Replace("</string>", "");
 			}
 		}
+
 		if (string.IsNullOrWhiteSpace(bundleIdentifier))
 		{
 			throw new InvalidDataException("Bundle identifier not found in plist file.");
 		}
 
 		File.Delete(infoFilePath);
-
 		File.WriteAllLines(infoFilePath, lines);
 
 		using (var process = Process.Start(new ProcessStartInfo
