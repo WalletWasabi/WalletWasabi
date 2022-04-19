@@ -125,10 +125,11 @@ public class CoinJoinClient
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			coins = SelectCoinsForRound(coinCandidates, currentRoundState.CoinjoinState.Parameters, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
 
-			if (coins.Any(c => c.Amount > currentRoundState.MaxSuggestedAmount))
+			if (currentRoundState.MaxSuggestedAmount != default && coins.Any(c => c.Amount > currentRoundState.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
-				Logger.LogInfo("Skipping the round for more optimal mixing, waiting for one with bigger suggested input value.");
+				currentRoundState.LogInfo($"Skipping the round for more optimal mixing. Max suggested amount is '{currentRoundState.MaxSuggestedAmount}' BTC, biggest coin amount is: '{coins.Select(c => c.Amount).Max()}' BTC.");
+
 				continue;
 			}
 
