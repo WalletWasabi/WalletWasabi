@@ -138,11 +138,6 @@
                             <send:ChangeAvoidanceSuggestionControl />
                           </c:SuggestionItem>
                         </DataTemplate>
-                        <DataTemplate DataType="vm:PocketSuggestionViewModel">
-                          <c:SuggestionItem>
-                            <send:PocketSuggestionControl />
-                          </c:SuggestionItem>
-                        </DataTemplate>
                       </ListBox.DataTemplates>
                     </ListBox>
                   </DockPanel>
