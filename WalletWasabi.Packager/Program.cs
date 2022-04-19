@@ -56,6 +56,7 @@ public static class Program
 	/// <summary>
 	/// Main entry point.
 	/// </summary>
+	/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md"/>
 	private static async Task Main(string[] args)
 	{
 		var argsProcessor = new ArgsProcessor(args);
@@ -102,7 +103,7 @@ public static class Program
 	{
 		if (OnlyBinaries)
 		{
-			Console.WriteLine($"I'll only generate binaries and disregard all other options.");
+			Console.WriteLine("I'll only generate binaries and disregard all other options.");
 		}
 		Console.WriteLine($"{nameof(VersionPrefix)}:\t\t\t{VersionPrefix}");
 		Console.WriteLine($"{nameof(ExecutableName)}:\t\t\t{ExecutableName}");
