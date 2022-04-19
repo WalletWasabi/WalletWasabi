@@ -3,7 +3,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 internal class TransactionSearchItem
 {

@@ -8,9 +8,9 @@
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             xmlns:searchItem="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem"
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Settings"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls">
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:searchItems="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
   </Design.DataContext>
@@ -85,7 +85,7 @@
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
 
-    <DataTemplate DataType="searchItem:TransactionSearchItem">
+    <DataTemplate DataType="searchItems:TransactionSearchItem">
       <DockPanel ToolTip.Tip="{Binding Id}">
         <TextBlock VerticalAlignment="Center" DockPanel.Dock="Right" Text="{Binding Amount, Converter={x:Static conv:MoneyConverters.ToFormattedString}}" Margin="10 0" />
         <TextBlock VerticalAlignment="Center" DockPanel.Dock="Right" Text="{Binding Date, StringFormat='{}{0:d}'}" Margin="10 0" />
@@ -93,7 +93,7 @@
       </DockPanel>
     </DataTemplate>
 
-    <DataTemplate DataType="searchItem:NonActionableSearchItem">
+    <DataTemplate DataType="searchItems:NonActionableSearchItem">
 
       <DockPanel Background="Transparent" Margin="10">
         <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
@@ -108,7 +108,7 @@
       </DockPanel>
     </DataTemplate>
 
-    <DataTemplate DataType="searchItem:AutocloseActionableItem">
+    <DataTemplate DataType="searchItems:AutocloseActionableItem">
 
       <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class ActionableItem : IActionableItem
 {

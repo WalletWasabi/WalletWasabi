@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using DynamicData;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
-using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItem;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 using WalletWasabi.Fluent.ViewModels.Settings;
 
