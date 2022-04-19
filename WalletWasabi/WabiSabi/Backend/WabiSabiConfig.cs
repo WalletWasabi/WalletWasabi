@@ -95,6 +95,11 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
+	[DefaultValueMoneyBtc("0.1")]
+	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;

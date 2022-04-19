@@ -57,9 +57,12 @@ public class WabiSabiCoordinator : BackgroundService
 	public CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
 
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
+	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
+		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
+
 		CoinJoinIdStore.TryAdd(transaction.GetHash());
 
 		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
