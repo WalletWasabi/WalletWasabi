@@ -16,7 +16,7 @@ public class ArgsProcessorTests
 	[InlineData(new string[] { "---0nlyBinaries" }, false)]
 	public void IsOnlyBinariesModeTest(string[] input, bool expectedResult)
 	{
-		var argsProcessor = new ArgsProcessor(input);
+		ArgsProcessor argsProcessor = new(input);
 		Assert.Equal(expectedResult, argsProcessor.IsOnlyBinariesMode());
 	}
 }

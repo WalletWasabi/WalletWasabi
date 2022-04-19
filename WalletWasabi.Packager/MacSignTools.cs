@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using WalletWasabi.Helpers;
 
@@ -11,13 +10,9 @@ namespace WalletWasabi.Packager;
 
 public static class MacSignTools
 {
+	/// <remarks>The method works only on macOS platforms.</remarks>
 	public static void Sign()
 	{
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			throw new NotSupportedException("This signing method is only valid on macOS!");
-		}
-
 		string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 		Console.WriteLine($"Phase: finding the zip file on desktop '{desktopPath}' which contains the compiled binaries from Windows.");
 

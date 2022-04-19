@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -56,17 +55,19 @@ public static class Program
 	/// <summary>
 	/// Main entry point.
 	/// </summary>
-	/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md"/>
 	private static async Task Main(string[] args)
 	{
-		var argsProcessor = new ArgsProcessor(args);
+		ArgsProcessor argsProcessor = new(args);
 
-		// For now this is enough. If you run it on macOS you want to sign.
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		if (argsProcessor.IsMacSigning())
 		{
-			// TODO: Fix for "osx-arm64".
-			MacSignTools.Sign();
-			return;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				MacSignTools.Sign();
+				return;
+			}
+
+			throw new NotSupportedException("This signing method is only valid on macOS!");
 		}
 
 		// Only binaries mode is for deterministic builds.
@@ -494,7 +495,7 @@ public static class Program
 
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 				var wasabiStarterScriptContent = $"#!/bin/sh\n" +
-					$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
