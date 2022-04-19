@@ -43,11 +43,7 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 
 		Value = (TProperty?) pr.GetValue(target);
 
-		SetValueCommand = ReactiveCommand.Create(() =>
-		{
-			pr.SetValue(target, Value);
-			MessageBus.Current.SendMessage(new PropertyChangedMessage(pr.Name));
-		});
+		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
 
 		this.WhenAnyValue(x => x.Value)
 			.ObserveOn(RxApp.TaskpoolScheduler)

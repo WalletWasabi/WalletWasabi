@@ -13,7 +13,17 @@ public class SettingSelector : IDataTemplate
 	public IControl Build(object param)
 	{
 		var prop = param.GetType().GetProperty("Value");
-		var template = DataTemplates.FirstOrDefault(d => d.Match(prop.GetValue(param)));
+		var template = DataTemplates.FirstOrDefault(d =>
+		{
+			var value = prop?.GetValue(param);
+
+			if (value is null)
+			{
+				return false;
+			}
+
+			return d.Match(value);
+		});
 		if (template is not null)
 		{
 			return template.Build(param);
