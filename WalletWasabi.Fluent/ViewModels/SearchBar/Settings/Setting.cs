@@ -12,7 +12,8 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 {
 	private TProperty? _value;
 
-	public Setting([DisallowNull] TTarget target, Expression<Func<TTarget, TProperty>> selector, bool requiresRestart = false)
+	public Setting([DisallowNull] TTarget target, Expression<Func<TTarget, TProperty>> selector,
+		bool requiresRestart = false)
 	{
 		if (target == null)
 		{
@@ -31,23 +32,24 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 
 		if (PropertyHelper<TTarget>.GetProperty(selector) is not { } pr)
 		{
-			throw new InvalidOperationException("The expression {selector} is not a valid property selector");
+			throw new InvalidOperationException($"The expression {selector} is not a valid property selector");
 		}
 
 		ShowRestartNotificationCommand = ReactiveCommand.Create(() =>
 		{
-			NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted"));
+			NotificationHelpers.Show(
+				new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted"));
 		});
 
-		Value = (TProperty?)pr.GetValue(target);
+		Value = (TProperty?) pr.GetValue(target);
 
-		SetIsActiveCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
-		
+		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
+
 		this.WhenAnyValue(x => x.Value)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Select(_ => Unit.Default)
-			.InvokeCommand(SetIsActiveCommand);
+			.InvokeCommand(SetValueCommand);
 
 		if (requiresRestart)
 		{
@@ -59,7 +61,7 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 		}
 	}
 
-	public ICommand ShowRestartNotificationCommand { get; set; }
+	public ICommand ShowRestartNotificationCommand { get; }
 
 	public TProperty? Value
 	{
@@ -67,5 +69,5 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 		set => this.RaiseAndSetIfChanged(ref _value, value);
 	}
 
-	public ReactiveCommand<Unit, Unit> SetIsActiveCommand { get; }
+	public ReactiveCommand<Unit, Unit> SetValueCommand { get; }
 }
