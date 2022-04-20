@@ -20,6 +20,7 @@ namespace WalletWasabi.Packager;
 /// <item>Build WIX project with Release and x64 configuration.</item>
 /// <item>Sign with Packager, set restore true so the password won't be kept.</item>
 /// </list>
+/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientDeployment.md"/>
 /// </summary>
 public static class Program
 {
