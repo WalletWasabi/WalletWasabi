@@ -79,6 +79,12 @@ public static class Program
 
 		if (DoPublish || OnlyBinaries)
 		{
+			if (!OnlyBinaries)
+			{
+				// If we are releasing it is unexpected to have uncommited changes.
+				CheckUncommittedGitChanges();
+			}
+
 			await PublishAsync().ConfigureAwait(false);
 
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
@@ -187,11 +193,20 @@ public static class Program
 
 	private static async Task PublishAsync()
 	{
+		var processNamesToKill = new[] { "bitcoind", "tor" };
+		foreach (var process in processNamesToKill.SelectMany(p => Process.GetProcessesByName(p)))
+		{
+			process.Kill();
+			Console.WriteLine($"Killed '{process.ProcessName}' process.");
+		}
+
 		if (Directory.Exists(BinDistDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).ConfigureAwait(false);
 			Console.WriteLine($"Deleted {BinDistDirectory}");
 		}
+
+		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "restore --locked-mode");
 
 		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean --configuration Release");
 
@@ -215,15 +230,6 @@ public static class Program
 		Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
 
 		string buildInfoJson = GetBuildInfoData();
-
-		CheckUncommittedGitChanges();
-
-		var processNamesToKill = new[] { "bitcoind", "tor" };
-		foreach (var process in processNamesToKill.SelectMany(p => Process.GetProcessesByName(p)))
-		{
-			process.Kill();
-			Console.WriteLine($"Killed '{process.ProcessName}' process.");
-		}
 
 		foreach (string target in Targets)
 		{
@@ -288,8 +294,7 @@ public static class Program
 				$"/p:DebugSymbols=false",
 				$"/p:ErrorReport=none",
 				$"/p:DocumentationFile=\"\"",
-				$"/p:Deterministic=true",
-				$"/p:RestoreLockedMode=true");
+				$"/p:Deterministic=true");
 
 			StartProcessAndWaitForExit(
 				"dotnet",
