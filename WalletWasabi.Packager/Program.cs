@@ -387,10 +387,30 @@ public static class Program
 					? $"_WasabiToMac-osxarm64-{VersionPrefix}.zip"
 					: $"_WasabiToMac-osx-{VersionPrefix}.zip";
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, zipFileName));
+				var zipFilePath = Path.Combine(BinDistDirectory, zipFileName);
+
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, zipFilePath);
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {currentBinDistDirectory}");
+
+				try
+				{
+					Console.WriteLine($"Trying to copy unsigned zip file to removable.");
+					var driveList = DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable);
+					if (!driveList.Any())
+					{
+						Console.WriteLine($"No removable drive found - finish.");
+					}
+
+					var drive = driveList.Single();
+					var targetFilePath = Path.Combine(drive.Name, zipFileName);
+					File.Move(zipFilePath, targetFilePath, overwrite: true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"There was an error during copying the file to removable: '{ex.Message}'");
+				}
 			}
 			else if (target.StartsWith("linux"))
 			{
