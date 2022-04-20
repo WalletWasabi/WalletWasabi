@@ -12,7 +12,7 @@ public class ResolveApplicationResourceConverter : IValueConverter
 
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		if (Application.Current is not { })
+		if (Application.Current is null)
 		{
 			return null;
 		}
