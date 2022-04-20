@@ -218,6 +218,12 @@ public static class Program
 
 		CheckUncommittedGitChanges();
 
+		var processNamesToKill = new[] { "bitcoind", "tor" };
+		foreach (var process in processNamesToKill.SelectMany(p => Process.GetProcessesByName(p)))
+		{
+			process.Kill();
+		}
+
 		foreach (string target in Targets)
 		{
 			string publishedFolder = Path.Combine(BinDistDirectory, target);
