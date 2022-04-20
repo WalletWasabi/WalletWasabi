@@ -78,7 +78,7 @@
 
           <Style Selector="WrapPanel.narrow">
             <Setter Property="ItemWidth" Value="180"/>
-            <Setter Property="ItemHeight" Value="275"/>
+            <Setter Property="ItemHeight" Value="270"/>
           </Style>
 
           <Style Selector="WrapPanel">
