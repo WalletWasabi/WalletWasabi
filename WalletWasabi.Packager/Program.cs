@@ -222,6 +222,7 @@ public static class Program
 		foreach (var process in processNamesToKill.SelectMany(p => Process.GetProcessesByName(p)))
 		{
 			process.Kill();
+			Console.WriteLine($"Killed '{process.ProcessName}' process.");
 		}
 
 		foreach (string target in Targets)
