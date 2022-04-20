@@ -383,7 +383,11 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
+				var zipFileName = target.Contains("arm64")
+					? $"_WasabiToMac-osxarm64-{VersionPrefix}.zip"
+					: $"_WasabiToMac-osx-{VersionPrefix}.zip";
+
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, zipFileName));
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {currentBinDistDirectory}");
