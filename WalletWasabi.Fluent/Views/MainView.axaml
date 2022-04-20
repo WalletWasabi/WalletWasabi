@@ -70,8 +70,8 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch"
-                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch" x:CompileBindings="False"
+                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled}" />
 
         </Grid>
       </Panel>
