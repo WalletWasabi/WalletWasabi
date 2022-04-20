@@ -16,7 +16,7 @@
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
     <Panel>
-      <Panel>
+      <Panel IsEnabled="{Binding IsMainContentEnabled}">
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
