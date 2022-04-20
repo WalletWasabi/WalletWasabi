@@ -49,9 +49,8 @@ public partial class LoginViewModel : RoutableViewModel
 	private async Task OnNextAsync(ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 	{
 		string? compatibilityPasswordUsed = null;
-		var password = Guard.Correct(Password);
 
-		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(password, out compatibilityPasswordUsed));
+		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
 
 		if (!isPasswordCorrect)
 		{
