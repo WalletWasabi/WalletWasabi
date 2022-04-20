@@ -11,5 +11,5 @@ internal class EconomicCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int FeeRateMedianTimeFrameHours => 168; // One week median.
 
-	public override string IconName => "coinjoin_cost";
+	public override string IconName => "coinjoin_manual";
 }
