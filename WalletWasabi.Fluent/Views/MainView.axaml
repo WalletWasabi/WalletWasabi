@@ -71,7 +71,7 @@
           </Border>
 
           <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch" x:CompileBindings="False"
-                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled}" />
+                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
 
         </Grid>
       </Panel>
