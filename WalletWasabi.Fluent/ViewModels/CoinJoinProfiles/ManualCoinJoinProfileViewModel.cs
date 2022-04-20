@@ -22,5 +22,5 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int FeeRateMedianTimeFrameHours { get; }
 
-	public override string IconName => "coinjoin_manual";
+	public override string IconName => "coinjoin_cost";
 }
