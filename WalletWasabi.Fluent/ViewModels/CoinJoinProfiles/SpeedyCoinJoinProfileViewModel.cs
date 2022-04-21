@@ -1,6 +1,3 @@
-using Avalonia.Media;
-using WalletWasabi.Fluent.Helpers;
-
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 internal class SpeedyCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
@@ -10,6 +7,4 @@ internal class SpeedyCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	public override string Description => "Getting things done. Geared towards speed and convenience.";
 
 	public override int FeeRateMedianTimeFrameHours => 0;
-
-	public override string IconName => "coinjoin_speed";
 }
