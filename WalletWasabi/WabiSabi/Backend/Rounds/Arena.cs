@@ -25,7 +25,7 @@ public partial class Arena : PeriodicRunner
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
-		InMemoryCoinJoinIdStore inMemoryCoinJoinIdStore,
+		ICoinJoinIdStore coinJoinIdStore,
 		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
 	{
@@ -35,8 +35,9 @@ public partial class Arena : PeriodicRunner
 		Prison = prison;
 		TransactionArchiver = archiver;
 		Random = new SecureRandom();
-		InMemoryCoinJoinIdStore = inMemoryCoinJoinIdStore;
+		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
+		MaxSuggestedAmountProvider = new(Config);
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -48,9 +49,12 @@ public partial class Arena : PeriodicRunner
 	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	private InMemoryCoinJoinIdStore InMemoryCoinJoinIdStore { get; }
+	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
+	private MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
+
+	private int ConnectionConfirmationStartedCounter { get; set; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -104,6 +108,7 @@ public partial class Arena : PeriodicRunner
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
+					ConnectionConfirmationStartedCounter++;
 				}
 			}
 			catch (Exception ex)
@@ -265,7 +270,6 @@ public partial class Arena : PeriodicRunner
 					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 
-					InMemoryCoinJoinIdStore.Add(coinjoin.GetHash());
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}
@@ -329,7 +333,7 @@ public partial class Arena : PeriodicRunner
 	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate);
+		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate, round.MaxSuggestedAmount);
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !Prison.IsBanned(x))
@@ -345,9 +349,16 @@ public partial class Arena : PeriodicRunner
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			RoundParameters roundParams = new(Config, Network, Random, feeRate, Config.CoordinationFeeRate);
+			RoundParameters roundParams = new(
+				Config,
+				Network,
+				Random,
+				feeRate,
+				Config.CoordinationFeeRate,
+				MaxSuggestedAmountProvider.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
 			Rounds.Add(r);
+			r.LogInfo($"Created round with params: {nameof(RoundParameters.MaxRegistrableAmount)}:'{roundParams.MaxRegistrableAmount}'.");
 		}
 	}
 

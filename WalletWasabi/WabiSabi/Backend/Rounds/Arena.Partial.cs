@@ -73,14 +73,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// only that the probability of duplicates is very low).
 			var id = new Guid(Random.GetBytes(16));
 
-			var isPayingZeroCoordinationFee = InMemoryCoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			var isPayingZeroCoordinationFee = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
 
 			if (!isPayingZeroCoordinationFee)
 			{
 				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
 				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
 
-				if (tx.Inputs.All(input => InMemoryCoinJoinIdStore.Contains(input.PrevOut.Hash)))
+				if (tx.Inputs.All(input => CoinJoinIdStore.Contains(input.PrevOut.Hash)))
 				{
 					isPayingZeroCoordinationFee = true;
 				}

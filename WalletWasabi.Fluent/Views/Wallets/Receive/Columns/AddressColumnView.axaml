@@ -8,7 +8,7 @@
              x:DataType="receive:AddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.AddressColumnView">
-  <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
+  <DockPanel LastChildFill="True" Margin="10 0">
     <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
                              Classes="monoSpaced"
                              NumberOfPrivacyChars="38" />

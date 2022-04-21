@@ -19,7 +19,7 @@
                         NextContent="{Binding NextLabel}"
                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <DockPanel LastChildFill="True" x:DataType="addWallet:WelcomePageViewModel">
+    <DockPanel LastChildFill="True">
 
       <!-- Indicator & Buttons -->
       <Panel DockPanel.Dock="Bottom">
