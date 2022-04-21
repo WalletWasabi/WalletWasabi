@@ -685,6 +685,32 @@ public class PocketSelectionTests
 		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsBlackList);
 		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
 	}
+
+	[Fact]
+	public void SetUsedLabelIncludePrivateFunds()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.5"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out _, "Dan");
+
+		var privateCoins = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+		};
+		var coinsView = new CoinsView(privateCoins.ToArray());
+		var pocket = new Pocket((SmartLabel.Empty, coinsView));
+		pockets.Add(pocket);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+
+		selection.SetUsedLabel(output.SelectMany(x => x.Coins), privateThreshold: 10);
+
+		Assert.True(selection.EnoughSelected);
+	}
 }
 
 internal static class LabelTestExtensions
