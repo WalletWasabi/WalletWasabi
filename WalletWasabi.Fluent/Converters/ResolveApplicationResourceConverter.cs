@@ -19,7 +19,7 @@ public class ResolveApplicationResourceConverter : IValueConverter
 
 		if (value is not string key || string.IsNullOrEmpty(key))
 		{
-			return null;
+			return AvaloniaProperty.UnsetValue;
 		}
 
 		return
