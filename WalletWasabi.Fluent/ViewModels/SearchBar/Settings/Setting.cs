@@ -50,7 +50,6 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 		{
 			this.WhenAnyValue(r => r.Value)
 				.Skip(1)
-				.Any()
 				.Select(_ => Unit.Default)
 				.InvokeCommand(ShowRestartNotificationCommand);
 		}
