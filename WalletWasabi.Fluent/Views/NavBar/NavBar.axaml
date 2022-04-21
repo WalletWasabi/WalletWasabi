@@ -138,7 +138,7 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}">
+            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
