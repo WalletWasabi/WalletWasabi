@@ -107,7 +107,7 @@
                                          SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         
                         </DockPanel>
                       </Panel>
@@ -219,8 +219,27 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
   </Style>
 
-  <Style
-    Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
+  <Style Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
   </Style>
+
+  <Style Selector="c|CurrencyEntryBox:isrightside">
+    <Setter Property="TextAlignment" Value="Right"/>
+    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+  </Style>
+
+  <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
+  <Style Selector="c|CurrencyEntryBox:empty /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="0 0 0 0"/>
+  </Style>
+  <Style Selector="c|CurrencyEntryBox:empty:isfiat /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="13 0 0 0"/>
+  </Style>
+  <Style Selector="c|CurrencyEntryBox:empty:isrightside /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="0 0 40 0"/>
+  </Style>
+  <Style Selector="c|CurrencyEntryBox:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="0 0 63 0"/>
+  </Style>
+  
 </Styles>
