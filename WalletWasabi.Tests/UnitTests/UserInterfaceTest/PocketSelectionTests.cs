@@ -724,8 +724,9 @@ internal static class LabelTestExtensions
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, out Pocket pocket, params string[] labels)
 	{
-		var coinsView = new CoinsView(new[] { BitcoinFactory.CreateSmartCoin(NewKey(), amount) });
-		pocket = new Pocket((new SmartLabel(labels), coinsView));
+		var label = new SmartLabel(labels);
+		var coinsView = new CoinsView(new[] { BitcoinFactory.CreateSmartCoin(NewKey(label), amount) });
+		pocket = new Pocket((label, coinsView));
 		pockets.Add(pocket);
 	}
 
@@ -733,6 +734,8 @@ internal static class LabelTestExtensions
 	{
 		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true, false);
 		key.SetAnonymitySet(anonymitySet);
+		key.SetLabel(label);
+
 		return key;
 	}
 }
