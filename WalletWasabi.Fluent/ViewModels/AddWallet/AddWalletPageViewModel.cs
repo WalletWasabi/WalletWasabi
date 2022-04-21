@@ -110,15 +110,13 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private async Task OnNextAsync()
 	{
-		var selected = SelectedOption ?? Options.First();
-
-		if (selected.CreationOption == WalletCreationOption.ImportWallet)
+		if (SelectedOption.CreationOption == WalletCreationOption.ImportWallet)
 		{
 			await ImportWalletAsync();
 		}
 		else
 		{
-			Navigate().To(new WalletNamePageViewModel(selected.CreationOption));
+			Navigate().To(new WalletNamePageViewModel(SelectedOption.CreationOption));
 		}
 	}
 
