@@ -479,7 +479,7 @@ public static class Program
 					$"Section: utils\n" +
 					$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
 					$"Version: {VersionPrefix}\n" +
-					$"Homepage: http://wasabiwallet.io\n" +
+					$"Homepage: https://wasabiwallet.io\n" +
 					$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
 					$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
 					$"Architecture: amd64\n" +
