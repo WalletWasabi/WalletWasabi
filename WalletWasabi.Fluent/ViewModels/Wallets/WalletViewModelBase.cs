@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
@@ -78,18 +79,18 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 	private void SetIcon()
 	{
-		if (Wallet.KeyManager.Icon is { } iconString && Application.Current?.Styles is { } styles && styles.TryGetResource(iconString, out _))
+		var walletType = WalletHelpers.GetType(Wallet.KeyManager);
+
+		var baseResourceName = walletType switch
 		{
-			IconName = iconString;
-		}
-		else if (Wallet.KeyManager.IsHardwareWallet)
-		{
-			IconName = "nav_generic_hww_regular";
-		}
-		else
-		{
-			IconName = "nav_wallet_regular";
-		}
+			WalletType.Coldcard => "coldcard_24",
+			WalletType.Trezor => "trezor_24",
+			WalletType.Ledger => "ledger_24",
+			_ => "wallet_24"
+		};
+
+		IconName = $"nav_{baseResourceName}_regular";
+		IconNameFocused = $"nav_{baseResourceName}_filled";
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
