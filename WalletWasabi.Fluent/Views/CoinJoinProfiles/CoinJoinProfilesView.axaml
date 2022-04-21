@@ -80,22 +80,13 @@
         </ListBox.Styles>
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
-            <UniformGrid Rows="1"/>
+            <UniformGrid Rows="1" />
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
-          <DataTemplate DataType="vm:CoinJoinProfileViewModelBase">
+          <DataTemplate>
             <c:SuggestionItem VerticalAlignment="Center">
-              <StackPanel Spacing="20" Height="220" MaxWidth="180">
-                <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center"/>
-                <Viewbox HorizontalAlignment="Center" Height="70">
-                  <PathIcon Data="{Binding IconName, Converter={x:Static conv:ResolveApplicationResourceConverter.Instance}}"
-                            Foreground="{StaticResource SystemAccentColor}"/>
-                </Viewbox>
-                <TextBlock Text="{Binding Description}"
-                           TextWrapping="Wrap"
-                           HorizontalAlignment="Center"/>
-              </StackPanel>
+              <prof:CoinJoinProfileControl />
             </c:SuggestionItem>
           </DataTemplate>
         </ListBox.DataTemplates>
