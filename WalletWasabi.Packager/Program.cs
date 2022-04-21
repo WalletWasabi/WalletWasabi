@@ -252,33 +252,7 @@ public static class Program
 
 			StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
-			// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
-			// -c|--configuration {Debug|Release}
-			//		Defines the build configuration. The default value is Debug.
-			// --force
-			//		Forces all dependencies to be resolved even if the last restore was successful. Specifying this flag is the same as deleting the project.assets.json file.
-			// -o|--output <OUTPUT_DIRECTORY>
-			//		Specifies the path for the output directory.
-			//		If not specified, it defaults to ./bin/[configuration]/[framework]/publish/ for a framework-dependent deployment or
-			//		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
-			//		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
-			// --self-contained
-			//		Publishes the .NET Core runtime with your application so the runtime does not need to be installed on the target machine.
-			//		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
-			// -r|--runtime <RUNTIME_IDENTIFIER>
-			//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
-			//		For a list of Runtime Identifiers (RIDs), see the RID catalog. Default is to publish a framework-dependent deployment (FDD).
-			// --version-suffix <VERSION_SUFFIX>
-			//		Defines the version suffix to replace the asterisk (*) in the version field of the project file.
-			// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x
-			// --disable-parallel
-			//		Disables restoring multiple projects in parallel.
-			// --no-cache
-			//		Specifies to not cache packages and HTTP requests.
-			// https://github.com/dotnet/docs/issues/7568
-			// /p:Version=1.2.3.4
-			//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-
+			// See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish for details.
 			string dotnetProcessArgs = string.Join(
 				" ",
 				$"publish",
@@ -295,7 +269,8 @@ public static class Program
 				$"/p:DebugSymbols=false",
 				$"/p:ErrorReport=none",
 				$"/p:DocumentationFile=\"\"",
-				$"/p:Deterministic=true");
+				$"/p:Deterministic=true",
+				$"/p:RestoreLockedMode=true");
 
 			StartProcessAndWaitForExit(
 				"dotnet",
