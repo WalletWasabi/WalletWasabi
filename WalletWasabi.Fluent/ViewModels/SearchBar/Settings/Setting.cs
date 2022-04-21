@@ -36,6 +36,7 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 				new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted"));
 		});
 
+		var originalValue = (TProperty?) pr.GetValue(target);
 		Value = (TProperty?)pr.GetValue(target);
 
 		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
@@ -48,8 +49,9 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 
 		if (requiresRestart)
 		{
-			this.WhenAnyValue(r => r.Value)
-				.Skip(1)
+			this.WhenAnyValue(x => x.Value)
+				.Select(currentValue => new{current = currentValue, originalValue})
+				.Where(x => !Equals(x.current, x.originalValue))
 				.Select(_ => Unit.Default)
 				.InvokeCommand(ShowRestartNotificationCommand);
 		}
