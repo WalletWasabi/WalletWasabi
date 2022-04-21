@@ -18,7 +18,8 @@
                  IsBusy="{Binding IsBusy}"
                  EnableNext="True"
                  NextContent="Continue">
-    <ListBox Items="{Binding Options}" SelectedItem="{Binding SelectedOption}" Background="Transparent">
+    <ListBox Items="{Binding Options}" SelectedItem="{Binding SelectedOption}" Background="Transparent"
+             ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <ListBox.Styles>
         <Style Selector="ListBoxItem">
           <Setter Property="Cursor" Value="Hand" />
@@ -26,6 +27,7 @@
         </Style>
         <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
           <Setter Property="Background" Value="Transparent" />
+          <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
         <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -66,35 +68,19 @@
           <Setter Property="Opacity" Value="1" />
         </Style>
 
-        <Style Selector="WrapPanel.narrow">
-          <Setter Property="ItemWidth" Value="125"/>
-          <Setter Property="ItemHeight" Value="330"/>
-        </Style>
-        
-        <Style Selector="WrapPanel">
-          <Setter Property="ItemWidth" Value="210"/>
-          <Setter Property="ItemWidth" Value="170"/>
-        </Style>
-
       </ListBox.Styles>
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <i:Interaction.Behaviors>
-              <ir:AdaptiveBehavior>
-                <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="570" ClassName="narrow" />
-              </ir:AdaptiveBehavior>
-            </i:Interaction.Behaviors>
-          </WrapPanel>
+          <UniformGrid Rows="1"/>
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.DataTemplates>
         <DataTemplate>
-          <c:SuggestionItem>
-            <StackPanel Spacing="20">
+          <c:SuggestionItem VerticalAlignment="Center">
+            <StackPanel Spacing="20" Height="200" MaxWidth="180">
               <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Height="34"/>
               <Viewbox HorizontalAlignment="Center" Height="70">
-                <PathIcon Data="{Binding IconName, Converter={x:Static conv:ResolveApplicationResourceConverter.Instance}}"
+                <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
                           Foreground="{StaticResource SystemAccentColor}"/>
               </Viewbox>
               <TextBlock Text="{Binding Description}"
