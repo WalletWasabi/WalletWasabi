@@ -10,7 +10,11 @@
              x:DataType="send:PocketSuggestionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PocketSuggestionControl">
   <StackPanel Spacing="20">
-    <Image Source="{StaticResource nav_incognito_filled_accent}" DockPanel.Dock="Top" Height="24" Width="24" />
+    <PathIcon Data="{StaticResource incognito_24_regular}"
+              Foreground="{StaticResource SystemAccentColor}"
+              Classes="new size24"
+              DockPanel.Dock="Top" />
+
     <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Some people or companies could know about this:" />
 
     <c:LabelsListBox Items="{Binding Labels}"
