@@ -10,14 +10,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public class Round
 {
-	private uint256 _id;
+	private uint256? _id;
+	private int _maxVsizeAllocationPerAlice;
 
 	public Round(RoundParameters roundParameters)
 	{
 		RoundParameters = roundParameters;
 
 		var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
-		var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, roundParameters.CoordinationFeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
+		var txParams = new MultipartyTransactionParameters(
+			roundParameters.FeeRate,
+			roundParameters.CoordinationFeeRate,
+			allowedAmounts,
+			allowedAmounts,
+			roundParameters.Network,
+			roundParameters.MaxSuggestedAmount);
 		CoinjoinState = new ConstructionState(txParams);
 
 		InitialInputVsizeAllocation = CoinjoinState.Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
@@ -41,7 +48,20 @@ public class Round
 	public Money MinAmountCredentialValue => RoundParameters.MinRegistrableAmount;
 	public Money MaxAmountCredentialValue => RoundParameters.MaxRegistrableAmount;
 	public int MaxVsizeCredentialValue { get; }
-	public int MaxVsizeAllocationPerAlice { get; internal set; }
+
+	public int MaxVsizeAllocationPerAlice
+	{
+		get => _maxVsizeAllocationPerAlice;
+		internal set
+		{
+			if (_maxVsizeAllocationPerAlice != value)
+			{
+				_maxVsizeAllocationPerAlice = value;
+				_id = null;
+			}
+		}
+	}
+
 	public FeeRate FeeRate => RoundParameters.FeeRate;
 	public CoordinationFeeRate CoordinationFeeRate => RoundParameters.CoordinationFeeRate;
 	public CredentialIssuer AmountCredentialIssuer { get; }
@@ -64,6 +84,7 @@ public class Round
 
 	protected RoundParameters RoundParameters { get; }
 	public Script CoordinatorScript { get; set; }
+	public Money MaxSuggestedAmount => RoundParameters.MaxSuggestedAmount;
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -143,6 +164,7 @@ public class Round
 				MaxAmountCredentialValue,
 				MaxVsizeCredentialValue,
 				MaxVsizeAllocationPerAlice,
+				MaxSuggestedAmount,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
 }

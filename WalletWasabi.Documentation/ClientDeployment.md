@@ -117,4 +117,15 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 7. Apply the default password from `secret-ssl/codesigning/windows/password.txt`.
 8. Packager needs the codesigning certificate file to be here: `c:\digicert.pfx`.
 
+## Packager environment setup
+
+### WSL
+
+You can disable WSL sudo password promt with this oneliner: 
+
+```
+echo "`whoami` ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/`whoami` && sudo chmod 0440 /etc/sudoers.d/`whoami`
+```
+
+
 
