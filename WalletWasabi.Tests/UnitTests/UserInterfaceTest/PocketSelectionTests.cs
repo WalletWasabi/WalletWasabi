@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -9,108 +7,10 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
-
-internal class TestCoinsView : ICoinsView
-{
-	private Money _total;
-
-	public TestCoinsView(Money total)
-	{
-		_total = total;
-	}
-
-	public IEnumerator<SmartCoin> GetEnumerator()
-	{
-		throw new NotImplementedException();
-	}
-
-	IEnumerator IEnumerable.GetEnumerator()
-	{
-		return GetEnumerator();
-	}
-
-	public ICoinsView AtBlockHeight(Height height)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView Available()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView ChildrenOf(SmartCoin coin)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView CoinJoinInProcess()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView Confirmed()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView DescendantOf(SmartCoin coin)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView DescendantOfAndSelf(SmartCoin coin)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView FilterBy(Func<SmartCoin, bool> expression)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView OutPoints(ISet<OutPoint> outPoints)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView CreatedBy(uint256 txid)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView SpentBy(uint256 txid)
-	{
-		throw new NotImplementedException();
-	}
-
-	public SmartCoin[] ToArray()
-	{
-		throw new NotImplementedException();
-	}
-
-	public Money TotalAmount() => _total;
-
-	public ICoinsView Unconfirmed()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView Unspent()
-	{
-		throw new NotImplementedException();
-	}
-
-	public bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin)
-	{
-		throw new NotImplementedException();
-	}
-}
 
 public class PocketSelectionTests
 {
@@ -778,9 +678,8 @@ public class PocketSelectionTests
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 
-		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdpk = km.GenerateNewKey("dan", KeyState.Clean, false);
-		var usedCoin = BitcoinFactory.CreateSmartCoin(hdpk, 1.0M, 1);
+		var hdpk = LabelTestExtensions.NewKey("dan");
+		var usedCoin = BitcoinFactory.CreateSmartCoin(hdpk, 1.0M);
 		selection.SetUsedLabel(new[] { usedCoin }, privateThreshold: 10);
 
 		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsBlackList);
@@ -790,6 +689,8 @@ public class PocketSelectionTests
 
 internal static class LabelTestExtensions
 {
+	private static readonly KeyManager KeyManager = ServiceFactory.CreateKeyManager();
+
 	public static LabelViewModel GetLabel(this LabelSelectionViewModel selection, string label)
 	{
 		return selection.AllLabelsViewModel.Single(x => x.Value == label);
@@ -797,7 +698,15 @@ internal static class LabelTestExtensions
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, out Pocket pocket, params string[] labels)
 	{
-		pocket = new Pocket(new(new SmartLabel(labels), new TestCoinsView(Money.FromUnit(amount, MoneyUnit.BTC))));
+		var coinsView = new CoinsView(new[] { BitcoinFactory.CreateSmartCoin(NewKey(), amount) });
+		pocket = new Pocket((new SmartLabel(labels), coinsView));
 		pockets.Add(pocket);
+	}
+
+	public static HdPubKey NewKey(string label = "", int anonymitySet = 1)
+	{
+		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true, false);
+		key.SetAnonymitySet(anonymitySet);
+		return key;
 	}
 }
