@@ -256,6 +256,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			_includePrivatePocket = false;
 		}
 
+		UpdateLists();
+	}
+
+	private void UpdateLists()
+	{
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
@@ -267,6 +272,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return;
 		}
 
+		usedCoins = usedCoins.ToImmutableArray();
+
+		_includePrivatePocket = usedCoins.Any(coin => coin.HdPubKey.AnonymitySet >= privateThreshold);
+		EnoughSelected = usedCoins.Sum(x => x.Amount) >= _targetAmount;
+
 		var usedLabels = SmartLabel.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
 		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value, StringComparer.OrdinalIgnoreCase)).ToArray();
 		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
@@ -276,6 +286,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			label.Swap();
 		}
 
-		OnSelectionChanged();
+		UpdateLists();
 	}
 }
