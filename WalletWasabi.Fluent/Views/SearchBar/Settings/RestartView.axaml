@@ -9,7 +9,9 @@
              x:Class="WalletWasabi.Fluent.Views.SearchBar.Settings.RestartView">
 
   <DockPanel Margin="10">
-    <Button Classes="action" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Command="{Binding RestartCommand}">Restart now</Button>
-    <TextBlock Margin="20" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding Message}" />
+    <Button Classes="action" Margin="10" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Command="{Binding RestartCommand}">
+      <TextBlock>Restart now</TextBlock>
+    </Button>
+    <TextBlock Margin="10 20 10 10" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding Message}" />
   </DockPanel>
 </UserControl>
