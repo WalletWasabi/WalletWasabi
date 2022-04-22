@@ -28,6 +28,8 @@ public class ArenaClient
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
 
+	public static CoinJoinTimeBenchmarker CoinJoinTimeBenchmarker { get; set; } = new();
+
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
 		OutPoint outPoint,
@@ -37,6 +39,7 @@ public class ArenaClient
 		var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 		var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
+		var start = DateTimeOffset.UtcNow;
 		var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
 			new InputRegistrationRequest(
 				roundId,
@@ -45,6 +48,7 @@ public class ArenaClient
 				zeroAmountCredentialRequestData.CredentialsRequest,
 				zeroVsizeCredentialRequestData.CredentialsRequest),
 			cancellationToken).ConfigureAwait(false);
+		CoinJoinTimeBenchmarker.AddRegisterInput(DateTimeOffset.UtcNow - start);
 
 		var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 		var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
@@ -76,7 +80,7 @@ public class ArenaClient
 		var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 			vsizeCredentialsToPresent,
 			cancellationToken);
-
+		var start = DateTimeOffset.UtcNow;
 		await RequestHandler.RegisterOutputAsync(
 			new OutputRegistrationRequest(
 				roundId,
@@ -84,6 +88,7 @@ public class ArenaClient
 				realAmountCredentialRequest,
 				realVsizeCredentialRequest),
 			cancellationToken).ConfigureAwait(false);
+		CoinJoinTimeBenchmarker.AddRegisterOutput(DateTimeOffset.UtcNow - start);
 	}
 
 	public async Task<ArenaResponse> ReissueCredentialAsync(
@@ -115,7 +120,7 @@ public class ArenaClient
 
 		var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 		var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
-
+		var start = DateTimeOffset.UtcNow;
 		var reissuanceResponse = await RequestHandler.ReissuanceAsync(
 			new ReissueCredentialRequest(
 				roundId,
@@ -124,6 +129,7 @@ public class ArenaClient
 				zeroAmountCredentialRequestData.CredentialsRequest,
 				zeroVsizeCredentialRequestData.CredentialsRequest),
 			cancellationToken).ConfigureAwait(false);
+		CoinJoinTimeBenchmarker.AddReissuance(DateTimeOffset.UtcNow - start);
 
 		var realAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
 		var realVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
@@ -160,6 +166,7 @@ public class ArenaClient
 		var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 		var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
+		var start = DateTimeOffset.UtcNow;
 		var confirmConnectionResponse = await RequestHandler.ConfirmConnectionAsync(
 			new ConnectionConfirmationRequest(
 				roundId,
@@ -175,11 +182,13 @@ public class ArenaClient
 
 		if (confirmConnectionResponse is { RealAmountCredentials: { }, RealVsizeCredentials: { } })
 		{
+			CoinJoinTimeBenchmarker.AddConfirmConnectionReal(DateTimeOffset.UtcNow - start);
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
 			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(confirmConnectionResponse.RealVsizeCredentials, realVsizeCredentialRequestData.CredentialsResponseValidation);
 			return new(true, realAmountCredentials.Concat(zeroAmountCredentials), realVsizeCredentials.Concat(zeroVsizeCredentials));
 		}
 
+		CoinJoinTimeBenchmarker.AddConfirmConnectionZero(DateTimeOffset.UtcNow - start);
 		return new(false, zeroAmountCredentials, zeroVsizeCredentials);
 	}
 
@@ -191,13 +200,17 @@ public class ArenaClient
 		{
 			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 		}
-
+		var start = DateTimeOffset.UtcNow;
 		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		CoinJoinTimeBenchmarker.AddSignTransaction(DateTimeOffset.UtcNow - start);
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		return await RequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
+		var start = DateTimeOffset.UtcNow;
+		var result = await RequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
+		CoinJoinTimeBenchmarker.AddGetStatus(DateTimeOffset.UtcNow - start);
+		return result;
 	}
 
 	public async Task ReadyToSignAsync(
@@ -205,10 +218,13 @@ public class ArenaClient
 		Guid aliceId,
 		CancellationToken cancellationToken)
 	{
+		var start = DateTimeOffset.UtcNow;
 		await RequestHandler.ReadyToSignAsync(
 			new ReadyToSignRequestRequest(
 				roundId,
 				aliceId),
 			cancellationToken).ConfigureAwait(false);
+
+		CoinJoinTimeBenchmarker.AddReadyToSign(DateTimeOffset.UtcNow - start);
 	}
 }

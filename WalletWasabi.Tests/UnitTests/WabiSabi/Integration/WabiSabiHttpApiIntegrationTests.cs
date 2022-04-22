@@ -315,8 +315,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(123456)]
 	public async Task MultiClientsCoinJoinTestAsync(int seed)
 	{
-		const int NumberOfParticipants = 10;
-		const int NumberOfCoinsPerParticipant = 2;
+		const int NumberOfParticipants = 100;
+		const int NumberOfCoinsPerParticipant = 5;
 		const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
 
 		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
@@ -399,6 +399,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
 			Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
+
+			var bench = ArenaClient.CoinJoinTimeBenchmarker;
+
+			_output.WriteLine("Time results Client Side--------");
+			_output.WriteLine($"RegInput - {bench.GetResults(bench.RegisterInput)}.");
+			_output.WriteLine($"ConnZero - {bench.GetResults(bench.ConfirmConnectionZero)}.");
+			_output.WriteLine($"ConnReal - {bench.GetResults(bench.ConfirmConnectionReal)}.");
+			_output.WriteLine($"Reissuan - {bench.GetResults(bench.Reissuance)}.");
+			_output.WriteLine($"RegOutpu - {bench.GetResults(bench.RegisterOutput)}.");
+			_output.WriteLine($"ReadyToS - {bench.GetResults(bench.ReadyToSign)}.");
+			_output.WriteLine($"SignTran - {bench.GetResults(bench.SignTransaction)}.");
+			_output.WriteLine($"GetStatu - {bench.GetResults(bench.GetStatus)}.");
 		}
 		finally
 		{
