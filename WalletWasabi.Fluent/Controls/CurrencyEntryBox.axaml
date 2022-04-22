@@ -223,6 +223,10 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
   </Style>
 
+  <Style Selector="c|CurrencyEntryBox">
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+  </Style>
+  
   <Style Selector="c|CurrencyEntryBox:isrightside">
     <Setter Property="TextAlignment" Value="Right"/>
     <Setter Property="HorizontalContentAlignment" Value="Right"/>
