@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
+             x:Class="WalletWasabi.Fluent.App">
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">

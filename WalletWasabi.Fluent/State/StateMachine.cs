@@ -44,6 +44,8 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public void Fire(TTrigger trigger)
 	{
+		_currentState.Process(trigger);
+
 		if (_currentState.CanTransit(trigger))
 		{
 			Goto(trigger, _currentState.GetDestination(trigger));
@@ -52,10 +54,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			Goto(trigger, _currentState.Parent.StateId, true, false);
 			Goto(trigger, _currentState.GetDestination(trigger));
-		}
-		else
-		{
-			_currentState.Process(trigger);
 		}
 	}
 

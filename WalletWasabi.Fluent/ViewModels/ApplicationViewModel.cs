@@ -43,23 +43,11 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		{
 			if (IsMainWindowShown)
 			{
-				if (Services.UiConfig.HideOnClose)
-				{
-					_mainWindowService.Close();
-				}
-				else
-				{
-					MainViewModel.Instance.WindowState = WindowState.Minimized;
-				}
-
-				IsMainWindowShown = false;
+				_mainWindowService.Close();
 			}
 			else
 			{
 				_mainWindowService.Show();
-				IsMainWindowShown = true;
-
-				MainViewModel.Instance.WindowState = WindowState.Normal;
 			}
 		});
 
