@@ -92,7 +92,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown()
 	{
-		return true;
 		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		if (cjManager is { })
