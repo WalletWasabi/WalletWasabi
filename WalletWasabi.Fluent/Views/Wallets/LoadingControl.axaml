@@ -5,6 +5,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
@@ -19,6 +20,18 @@
     </controls:ContentArea.Title>
 
     <DockPanel Margin="0 0 0 30">
+      <DockPanel.Styles>
+        <Style Selector="DockPanel.small > Panel#WorldMap">
+          <Setter Property="IsVisible" Value="False" />
+        </Style>
+      </DockPanel.Styles>
+
+      <i:Interaction.Behaviors>
+        <ir:AdaptiveBehavior>
+          <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="350" ClassName="small" />
+        </ir:AdaptiveBehavior>
+      </i:Interaction.Behaviors>
+
       <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
         <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
                    DockPanel.Dock="Bottom" />
@@ -34,7 +47,7 @@
         <TextBlock Text="{Binding StatusText, StringFormat={}{0}⠀}" TextAlignment="Center" Opacity="0.6" />
       </StackPanel>
 
-      <Panel Margin="80 40">
+      <Panel Margin="80 40" x:Name="WorldMap">
         <Viewbox>
           <Viewbox.Styles>
             <Style Selector=":is(Control).City">
