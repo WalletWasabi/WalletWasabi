@@ -179,6 +179,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 					action();
 				}
 			}
+
+			if (Parent is { })
+			{
+				Parent.Process(trigger);
+			}
 		}
 
 		internal bool CanTransit(TTrigger trigger)
