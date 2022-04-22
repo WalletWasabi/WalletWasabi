@@ -51,6 +51,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public void AddWalletInput(SmartCoin input)
 	{
 		_walletInputs.Add(input);
+		_foreignInputs = null;
 	}
 
 	public IReadOnlyCollection<SmartCoin> WalletOutputs
@@ -64,11 +65,13 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public void AddWalletOutput(SmartCoin output)
 	{
 		_walletOutputs.Add(output);
+		_foreignOutputs = null;
 	}
 
 	public void RemoveWalletOutput(SmartCoin output)
 	{
 		_walletOutputs.Remove(output);
+		_foreignOutputs = null;
 	}
 
 	[JsonProperty]
@@ -127,6 +130,22 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
+	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
+	{
+		get
+		{
+			return _foreignInputs ??= GetForeignInputs();
+		}
+	}
+
+	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
+	{
+		get
+		{
+			return _foreignOutputs ??= GetForeignOutputs();
+		}
+	}
+
 	/// <summary>
 	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
@@ -137,7 +156,22 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	private HashSet<SmartCoin> _walletOutputs;
 
+	private HashSet<IndexedTxIn>? _foreignInputs = null;
+	private HashSet<IndexedTxOut>? _foreignOutputs = null;
+
 	#endregion Members
+
+	public HashSet<IndexedTxIn> GetForeignInputs()
+	{
+		var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+		return Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+	}
+
+	public HashSet<IndexedTxOut> GetForeignOutputs()
+	{
+		var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+		return Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+	}
 
 	/// <summary>
 	/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
