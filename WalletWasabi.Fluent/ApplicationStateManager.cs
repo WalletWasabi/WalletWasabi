@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;

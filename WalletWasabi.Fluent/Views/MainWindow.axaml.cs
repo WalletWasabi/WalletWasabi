@@ -1,9 +1,6 @@
-using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.Platform;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views;
 
