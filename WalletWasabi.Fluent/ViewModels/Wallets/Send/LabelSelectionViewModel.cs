@@ -228,7 +228,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		OnSelectionChanged();
 	}
 
-	private void OnSelectionChanged()
+	private void OnSelectionChanged(bool forceIncludePrivatePocket = false)
 	{
 		Money sumOfWhiteList =
 			NonPrivatePockets
@@ -240,12 +240,14 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			EnoughSelected = true;
 			_includePrivatePocket = false;
 		}
-		else if (!LabelsBlackList.Any() && sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
+		else if ((!LabelsBlackList.Any() || forceIncludePrivatePocket) &&
+		         sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
 		{
 			EnoughSelected = true;
 			_includePrivatePocket = true;
 		}
-		else if (!LabelsWhiteList.Any() && _privatePocket.Amount >= _targetAmount)
+		else if ((!LabelsWhiteList.Any() || forceIncludePrivatePocket) &&
+		         _privatePocket.Amount >= _targetAmount)
 		{
 			EnoughSelected = true;
 			_includePrivatePocket = true;
@@ -267,6 +269,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return;
 		}
 
+		usedCoins = usedCoins.ToImmutableArray();
+
+		var isPrivatePocketUsed = usedCoins.Any(coin => coin.HdPubKey.AnonymitySet >= privateThreshold);
 		var usedLabels = SmartLabel.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
 		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value, StringComparer.OrdinalIgnoreCase)).ToArray();
 		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
@@ -276,6 +281,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			label.Swap();
 		}
 
-		OnSelectionChanged();
+		OnSelectionChanged(isPrivatePocketUsed);
 	}
 }

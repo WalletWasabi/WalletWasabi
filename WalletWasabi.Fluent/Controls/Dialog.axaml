@@ -16,7 +16,6 @@
                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
             <Border Name="PART_Border"
-                    BorderThickness="1"
                     BorderBrush="{DynamicResource TileBorderColor}"
                     Background="{DynamicResource RegionColor}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
@@ -59,6 +58,7 @@
   </Style>
   <Style Selector="c|Dialog /template/ Border#PART_Border">
     <Setter Property="Margin" Value="40"/>
+    <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="CornerRadius" Value="4"/>
     <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
   </Style>
@@ -106,6 +106,7 @@
   <!-- Dialog Fullscreen State -->
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Border#PART_Border">
     <Setter Property="Margin" Value="0 30 0 0" />
+    <Setter Property="BorderThickness" Value="0" />
     <Setter Property="BoxShadow" Value="{StaticResource EmptyBoxShadow}" />
   </Style>
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
