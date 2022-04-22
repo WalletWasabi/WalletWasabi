@@ -24,20 +24,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		_mainWindowService = mainWindowService;
 
-		this.WhenAnyValue(x => x.IsMainWindowShown)
-			.Where(x => x == false)
-			.Subscribe(async x =>
-			{
-				if (!Services.UiConfig.HideOnClose && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-				    {
-					    MainWindow: null
-				    })
-				{
-					DoQuit();
-				}
-			});
-
-		QuitCommand = ReactiveCommand.Create(DoQuit);
+		QuitCommand = ReactiveCommand.Create(_mainWindowService.Shutdown);
 
 		ShowCommand = ReactiveCommand.Create(() =>
 		{
@@ -76,37 +63,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 			TrayIcon = new WindowIcon(bitmap);
 		}
-	}
-
-	private void DoQuit()
-	{
-		if (CanShutdown())
-		{
-			if (Application.Current?.ApplicationLifetime is IControlledApplicationLifetime lifetime)
-			{
-				lifetime.Shutdown();
-			}
-		}
-		else
-		{
-			_mainWindowService.Show();
-			IsMainWindowShown = true;
-
-			OnClosePrevented();
-		}
-	}
-
-	public void OnClosePrevented()
-	{
-		_mainWindowService.Show();
-
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-				"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
-				"Warning",
-				"Unable to close right now"));
-		});
 	}
 
 	public WindowIcon TrayIcon { get; }

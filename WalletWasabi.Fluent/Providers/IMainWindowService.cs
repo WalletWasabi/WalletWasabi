@@ -5,4 +5,6 @@ public interface IMainWindowService
 	void Show();
 
 	void Close();
+
+	void Shutdown();
 }

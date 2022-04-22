@@ -21,19 +21,4 @@ public class MainWindow : Window
 		this.AttachDevTools();
 #endif
 	}
-
-	protected override void OnClosing(CancelEventArgs e)
-	{
-		base.OnClosing(e);
-
-		if (!Services.UiConfig.HideOnClose && Application.Current?.DataContext is ApplicationViewModel avm)
-		{
-			e.Cancel = !avm.CanShutdown();
-
-			if (e.Cancel)
-			{
-				avm.OnClosePrevented();
-			}
-		}
-	}
 }
