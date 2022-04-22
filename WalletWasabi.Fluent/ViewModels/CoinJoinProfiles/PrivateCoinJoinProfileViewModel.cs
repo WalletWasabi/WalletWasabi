@@ -1,6 +1,4 @@
-using Avalonia.Media;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
