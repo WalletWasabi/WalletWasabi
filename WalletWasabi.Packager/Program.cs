@@ -658,11 +658,7 @@ public static class Program
 	{
 		if (target.StartsWith("osx"))
 		{
-			if (target.Contains("arm64"))
-			{
-				return "macOS-arm64";
-			}
-			return "macOS-x64";
+			return target.Replace("osx", "macOS");
 		}
 
 		return target;
