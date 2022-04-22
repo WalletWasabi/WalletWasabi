@@ -64,7 +64,7 @@ public static class Program
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				MacSignTools.Sign();
+				MacSignTools.Sign(argsProcessor);
 				return;
 			}
 

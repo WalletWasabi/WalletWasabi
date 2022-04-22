@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -11,14 +11,13 @@ namespace WalletWasabi.Packager;
 public static class MacSignTools
 {
 	/// <remarks>The method works only on macOS platforms.</remarks>
-	public static void Sign()
+	public static void Sign(ArgsProcessor argsProcessor)
 	{
 		string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 		var driveList = DriveInfo.GetDrives().Where(d => d.Name.Contains("USB")).ToArray();
 		if (!driveList.Any())
 		{
 			throw new InvalidDataException($"No removable drive found - finish.");
-
 		}
 
 		var drive = driveList.Single();
@@ -34,27 +33,24 @@ public static class MacSignTools
 			(osxFile, $"Wasabi-{versionPrefix}.dmg"),
 			(osxArm64File, $"WasabiArm64-{versionPrefix}.dmg") };
 
-		string? appleId = null;
-		string? password = null;
-		do
+		var (appleId, password) = argsProcessor.GetAppleIdAndPassword();
+
+		while (string.IsNullOrWhiteSpace(appleId))
 		{
 			Console.WriteLine("Enter appleId (email):");
 			appleId = Console.ReadLine();
 		}
-		while (string.IsNullOrWhiteSpace(appleId));
 
-		do
+		while (string.IsNullOrWhiteSpace(password))
 		{
 			Console.WriteLine("Enter password:");
 			password = Console.ReadLine();
 		}
-		while (string.IsNullOrWhiteSpace(password));
 
 		foreach (var (sourceZipPath, destinationDmgFileName) in sourceZipAndDestination)
 		{
-
 			var zipPath = sourceZipPath;
-			
+
 			var workingDir = Path.Combine(desktopPath, "wasabiTemp");
 			var dmgPath = Path.Combine(workingDir, "dmg");
 			var unzippedPath = Path.Combine(workingDir, "unzipped");
@@ -78,8 +74,6 @@ public static class MacSignTools
 			var signArguments = $"--sign \"L233B2JQ68\" --verbose --force --options runtime --timestamp";
 
 			Console.WriteLine("Phase: creating the working directory.");
-
-
 
 			if (Directory.Exists(workingDir))
 			{
@@ -317,7 +311,6 @@ public static class MacSignTools
 
 			Console.WriteLine("Phase: finish.");
 		}
-
 	}
 
 	private static Process WaitProcessToFinish(Process? process, string processName)
