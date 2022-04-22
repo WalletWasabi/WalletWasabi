@@ -37,6 +37,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			ArenaTimeBenchmarker.AddRegisterInputLock(DateTimeOffset.UtcNow - start);
 			var round = GetRound(request.RoundId);
 
 			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast))
@@ -267,6 +268,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var start = DateTimeOffset.UtcNow;
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
+			ArenaTimeBenchmarker.AddRegisterOutputLock(DateTimeOffset.UtcNow - start);
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
@@ -334,6 +336,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			round = GetRound(request.RoundId, Phase.ConnectionConfirmation, Phase.OutputRegistration);
 		}
+		ArenaTimeBenchmarker.AddReissuanceLock(DateTimeOffset.UtcNow - start);
 
 		if (request.RealAmountCredentialRequests.Delta != 0)
 		{

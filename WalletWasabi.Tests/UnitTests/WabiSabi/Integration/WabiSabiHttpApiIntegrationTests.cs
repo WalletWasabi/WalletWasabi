@@ -416,10 +416,13 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			_output.WriteLine("Time results Backend Side--------");
 			_output.WriteLine($"RegInput - {backendBench.GetResults(backendBench.RegisterInput)}.");
+			_output.WriteLine($"RegILock - {backendBench.GetResults(backendBench.RegisterInputLock)}.");
 			_output.WriteLine($"ConnZero - {backendBench.GetResults(backendBench.ConfirmConnectionZero)}.");
 			_output.WriteLine($"ConnReal - {backendBench.GetResults(backendBench.ConfirmConnectionReal)}.");
 			_output.WriteLine($"Reissuan - {backendBench.GetResults(backendBench.Reissuance)}.");
+			_output.WriteLine($"ReisLock - {backendBench.GetResults(backendBench.ReissuanceLock)}.");
 			_output.WriteLine($"RegOutpu - {backendBench.GetResults(backendBench.RegisterOutput)}.");
+			_output.WriteLine($"RegOLock - {backendBench.GetResults(backendBench.RegisterOutputLock)}.");
 			_output.WriteLine($"ReadyToS - {backendBench.GetResults(backendBench.ReadyToSign)}.");
 			_output.WriteLine($"SignTran - {backendBench.GetResults(backendBench.SignTransaction)}.");
 			_output.WriteLine($"GetStatu - {backendBench.GetResults(backendBench.GetStatus)}.");

@@ -20,6 +20,10 @@ public class ArenaTimeBenchmarker
 	public ConcurrentBag<TimeSpan> GetStatus { get; set; } = new();
 	public ConcurrentBag<TimeSpan> ReadyToSign { get; set; } = new();
 
+	public ConcurrentBag<TimeSpan> RegisterOutputLock { get; set; } = new();
+	public ConcurrentBag<TimeSpan> RegisterInputLock { get; set; } = new();
+	public ConcurrentBag<TimeSpan> ReissuanceLock { get; set; } = new();
+
 	public string GetResults(ConcurrentBag<TimeSpan> timeSpans)
 	{
 		var array = timeSpans.ToArray();
@@ -73,6 +77,21 @@ public class ArenaTimeBenchmarker
 	internal void AddGetStatus(TimeSpan timeSpan)
 	{
 		GetStatus.Add(timeSpan);
+	}
+
+	internal void AddRegisterInputLock(TimeSpan timeSpan)
+	{
+		RegisterInputLock.Add(timeSpan);
+	}
+
+	internal void AddReissuanceLock(TimeSpan timeSpan)
+	{
+		ReissuanceLock.Add(timeSpan);
+	}
+
+	internal void AddRegisterOutputLock(TimeSpan timeSpan)
+	{
+		RegisterOutputLock.Add(timeSpan);
 	}
 
 	internal void AddReadyToSign(TimeSpan timeSpan)
