@@ -400,17 +400,29 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
 			Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
 
-			var bench = ArenaClient.CoinJoinTimeBenchmarker;
+			var clientBench = ArenaClient.CoinJoinTimeBenchmarker;
 
 			_output.WriteLine("Time results Client Side--------");
-			_output.WriteLine($"RegInput - {bench.GetResults(bench.RegisterInput)}.");
-			_output.WriteLine($"ConnZero - {bench.GetResults(bench.ConfirmConnectionZero)}.");
-			_output.WriteLine($"ConnReal - {bench.GetResults(bench.ConfirmConnectionReal)}.");
-			_output.WriteLine($"Reissuan - {bench.GetResults(bench.Reissuance)}.");
-			_output.WriteLine($"RegOutpu - {bench.GetResults(bench.RegisterOutput)}.");
-			_output.WriteLine($"ReadyToS - {bench.GetResults(bench.ReadyToSign)}.");
-			_output.WriteLine($"SignTran - {bench.GetResults(bench.SignTransaction)}.");
-			_output.WriteLine($"GetStatu - {bench.GetResults(bench.GetStatus)}.");
+			_output.WriteLine($"RegInput - {clientBench.GetResults(clientBench.RegisterInput)}.");
+			_output.WriteLine($"ConnZero - {clientBench.GetResults(clientBench.ConfirmConnectionZero)}.");
+			_output.WriteLine($"ConnReal - {clientBench.GetResults(clientBench.ConfirmConnectionReal)}.");
+			_output.WriteLine($"Reissuan - {clientBench.GetResults(clientBench.Reissuance)}.");
+			_output.WriteLine($"RegOutpu - {clientBench.GetResults(clientBench.RegisterOutput)}.");
+			_output.WriteLine($"ReadyToS - {clientBench.GetResults(clientBench.ReadyToSign)}.");
+			_output.WriteLine($"SignTran - {clientBench.GetResults(clientBench.SignTransaction)}.");
+			_output.WriteLine($"GetStatu - {clientBench.GetResults(clientBench.GetStatus)}.");
+
+			var backendBench = Arena.ArenaTimeBenchmarker;
+
+			_output.WriteLine("Time results Backend Side--------");
+			_output.WriteLine($"RegInput - {backendBench.GetResults(backendBench.RegisterInput)}.");
+			_output.WriteLine($"ConnZero - {backendBench.GetResults(backendBench.ConfirmConnectionZero)}.");
+			_output.WriteLine($"ConnReal - {backendBench.GetResults(backendBench.ConfirmConnectionReal)}.");
+			_output.WriteLine($"Reissuan - {backendBench.GetResults(backendBench.Reissuance)}.");
+			_output.WriteLine($"RegOutpu - {backendBench.GetResults(backendBench.RegisterOutput)}.");
+			_output.WriteLine($"ReadyToS - {backendBench.GetResults(backendBench.ReadyToSign)}.");
+			_output.WriteLine($"SignTran - {backendBench.GetResults(backendBench.SignTransaction)}.");
+			_output.WriteLine($"GetStatu - {backendBench.GetResults(backendBench.GetStatus)}.");
 		}
 		finally
 		{

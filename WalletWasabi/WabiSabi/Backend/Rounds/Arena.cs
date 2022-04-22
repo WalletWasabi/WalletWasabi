@@ -56,8 +56,11 @@ public partial class Arena : PeriodicRunner
 
 	private int ConnectionConfirmationStartedCounter { get; set; }
 
+	public static ArenaTimeBenchmarker ArenaTimeBenchmarker { get; set; } = new();
+
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		DateTimeOffset start = DateTimeOffset.UtcNow;
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			TimeoutRounds();
@@ -77,6 +80,7 @@ public partial class Arena : PeriodicRunner
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 		}
+		ArenaTimeBenchmarker.AddAction(DateTimeOffset.UtcNow - start);
 	}
 
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
