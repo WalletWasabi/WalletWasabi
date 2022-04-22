@@ -412,9 +412,22 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			_output.WriteLine($"SignTran - {clientBench.GetResults(clientBench.SignTransaction)}.");
 			_output.WriteLine($"GetStatu - {clientBench.GetResults(clientBench.GetStatus)}.");
 
+			var total = TimeSpan.FromMilliseconds(
+				clientBench.GetStatus.ToArray()
+				.Concat(clientBench.Reissuance.ToArray())
+				.Concat(clientBench.RegisterOutput.ToArray())
+				.Concat(clientBench.ConfirmConnectionReal.ToArray())
+				.Concat(clientBench.ConfirmConnectionZero.ToArray())
+				.Concat(clientBench.ReadyToSign.ToArray())
+				.Concat(clientBench.RegisterInput.ToArray())
+				.Concat(clientBench.SignTransaction.ToArray())
+				.Sum(t => t.Milliseconds));
+			_output.WriteLine($"TotalDel - {total}.");
+
 			var backendBench = Arena.ArenaTimeBenchmarker;
 
 			_output.WriteLine("Time results Backend Side--------");
+			_output.WriteLine($"ArenaAct - {backendBench.GetResults(backendBench.ArenaAction)}.");
 			_output.WriteLine($"RegInput - {backendBench.GetResults(backendBench.RegisterInput)}.");
 			_output.WriteLine($"RegILock - {backendBench.GetResults(backendBench.RegisterInputLock)}.");
 			_output.WriteLine($"ConnZero - {backendBench.GetResults(backendBench.ConfirmConnectionZero)}.");
@@ -426,6 +439,23 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			_output.WriteLine($"ReadyToS - {backendBench.GetResults(backendBench.ReadyToSign)}.");
 			_output.WriteLine($"SignTran - {backendBench.GetResults(backendBench.SignTransaction)}.");
 			_output.WriteLine($"GetStatu - {backendBench.GetResults(backendBench.GetStatus)}.");
+
+			var totalBackend = TimeSpan.FromMilliseconds(
+				backendBench.ArenaAction.ToArray()
+				.Concat(backendBench.RegisterInput.ToArray())
+				.Concat(backendBench.RegisterInputLock.ToArray())
+				.Concat(backendBench.ConfirmConnectionZero.ToArray())
+				.Concat(backendBench.ConfirmConnectionReal.ToArray())
+				.Concat(backendBench.Reissuance.ToArray())
+				.Concat(backendBench.ReissuanceLock.ToArray())
+				.Concat(backendBench.RegisterOutput.ToArray())
+				.Concat(backendBench.RegisterOutputLock.ToArray())
+				.Concat(backendBench.ReadyToSign.ToArray())
+				.Concat(backendBench.SignTransaction.ToArray())
+				.Concat(backendBench.GetStatus.ToArray())
+				.Sum(t => t.Milliseconds));
+
+			_output.WriteLine($"TotalDel - {totalBackend}.");
 		}
 		finally
 		{
