@@ -211,6 +211,11 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void CreateAndShowMainWindow()
 	{
+		if (_lifetime.MainWindow is { })
+		{
+			return;
+		}
+
 		var result = new MainWindow
 		{
 			DataContext = MainViewModel.Instance
@@ -237,7 +242,7 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				_subscriptions?.Dispose();
 				_subscriptions = null;
-				_lifetime.MainWindow.Closing -= MainWindowOnClosing;
+				result.Closing -= MainWindowOnClosing;
 				_stateMachine.Fire(Trigger.MainWindowClosed);
 			});
 
