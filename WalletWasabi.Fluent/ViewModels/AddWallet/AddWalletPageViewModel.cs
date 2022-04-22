@@ -38,28 +38,24 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			{
 				CreationOption = WalletCreationOption.AddNewWallet,
 				Title = "Create a new wallet",
-				Description = "Set up a new empty wallet.",
 				IconName = "add_regular"
 			},
 			new AddWalletPageOption
 			{
 				CreationOption = WalletCreationOption.ConnectToHardwareWallet,
 				Title = "Connect to hardware wallet",
-				Description = "Link your physical device to Wasabi.",
 				IconName = "calculator_regular"
 			},
 			new AddWalletPageOption
 			{
 				CreationOption = WalletCreationOption.ImportWallet,
 				Title = "Import a wallet",
-				Description = "Add an existing wallet file.",
 				IconName = "import_regular"
 			},
 			new AddWalletPageOption
 			{
 				CreationOption = WalletCreationOption.RecoverWallet,
 				Title = "Recover a wallet",
-				Description = "Enter recovery words.",
 				IconName = "recover_arrow_right_regular"
 			},
 		};
