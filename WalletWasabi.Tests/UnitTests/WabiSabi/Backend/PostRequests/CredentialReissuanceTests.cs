@@ -44,7 +44,7 @@ public class CredentialReissuanceTest
 		var vsizeCredentialsToPresent = vsClient.HandleResponse(weResp, weValid).ToArray();
 
 		// Step 2.
-		var invalidVsizesToRequest = vsizeCredentialsToPresent.Select(x => 2 * x.Value); // we request the double han what we have.
+		var invalidVsizesToRequest = vsizeCredentialsToPresent.Select(x => 2 * x.Value); // we request the double than what we have.
 		var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = vsClient.CreateRequest(
 			invalidVsizesToRequest,
 			vsizeCredentialsToPresent,
@@ -58,8 +58,8 @@ public class CredentialReissuanceTest
 		var zeroAmountCredentialRequestData = amClient.CreateRequestForZeroAmount();
 		var zeroVsizeCredentialRequestData = vsClient.CreateRequestForZeroAmount();
 
-		// hit Arena directly to verify it prevents requesting more vise credentials than what are presented.
-		// we have to bypass the ArenaClient because it also prevent this invalid requests and breaks the circuit
+		// hit Arena directly to verify it prevents requesting more vsize credentials than what are presented.
+		// we have to bypass the ArenaClient because it also prevents this invalid requests and breaks the circuit
 		// early, not allowing to hit Arena.
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 			await arena.ReissuanceAsync(
