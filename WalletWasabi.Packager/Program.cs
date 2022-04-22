@@ -337,7 +337,7 @@ public static class Program
 					continue; // In Windows build at this moment it does not matter though.
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -352,7 +352,7 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -398,7 +398,7 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -652,5 +652,19 @@ public static class Program
 			Console.WriteLine($"Process failed: '{ex}'.");
 		}
 		return false;
+	}
+
+	private static string GetPackageTargetPostfix(string target)
+	{
+		if (target.StartsWith("osx"))
+		{
+			if (target.Contains("arm64"))
+			{
+				return "macOS-arm64";
+			}
+			return "macOS-x64";
+		}
+
+		return target;
 	}
 }
