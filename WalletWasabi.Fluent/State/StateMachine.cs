@@ -13,6 +13,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public TState State => _currentState.StateId;
 
+	public bool IsInState(TState state)
+	{
+		return _currentState.StateId.Equals(state) || (_currentState.Parent?.StateId.Equals(state) ?? false);
+	}
+
 	public StateMachine(TState initialState)
 	{
 		_states = new Dictionary<TState, StateContext>();
