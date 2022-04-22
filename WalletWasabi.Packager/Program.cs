@@ -269,8 +269,7 @@ public static class Program
 				$"/p:DebugSymbols=false",
 				$"/p:ErrorReport=none",
 				$"/p:DocumentationFile=\"\"",
-				$"/p:Deterministic=true",
-				$"/p:RestoreLockedMode=true");
+				$"/p:Deterministic=true");
 
 			StartProcessAndWaitForExit(
 				"dotnet",
