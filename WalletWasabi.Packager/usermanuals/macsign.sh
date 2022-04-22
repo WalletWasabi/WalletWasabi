@@ -1,5 +1,5 @@
 #!/bin/sh
 cd ~/Desktop/WalletWasabi/WalletWasabi.Packager
-git pull || exit "Failed to pull git changes"
+git pull
 dotnet run -- sign --appleid=test@gmail.com:myapplepassword
 
