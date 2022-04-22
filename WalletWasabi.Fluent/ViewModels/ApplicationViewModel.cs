@@ -27,7 +27,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		QuitCommand = ReactiveCommand.Create(_mainWindowService.Shutdown);
 
-		ShowCommand = ReactiveCommand.Create(() =>
+		ShowHideCommand = ReactiveCommand.Create(() =>
 		{
 			if (IsMainWindowShown)
 			{
@@ -37,6 +37,11 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			{
 				_mainWindowService.Show();
 			}
+		});
+
+		ShowCommand = ReactiveCommand.Create(() =>
+		{
+			_mainWindowService.Show();
 		});
 
 		AboutCommand = ReactiveCommand.Create(
@@ -69,6 +74,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	public WindowIcon TrayIcon { get; }
 	public ICommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
+
+	public ICommand ShowHideCommand { get; }
+
 	public ICommand QuitCommand { get; }
 
 	public void OnShutdownPrevented()
