@@ -51,9 +51,38 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	private HashSet<SmartCoin> WalletOutputsInternal { get; }
 
+	private HashSet<IndexedTxIn>? ForeignInputsInternal { get; set; }
+	private HashSet<IndexedTxOut>? ForeignOutputsInternal { get; set; }
+
 	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
 
 	public IReadOnlyCollection<SmartCoin> WalletOutputs => WalletOutputsInternal;
+
+	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
+	{
+		get
+		{
+			if (ForeignInputsInternal is null)
+			{
+				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+				ForeignInputsInternal = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+			}
+			return ForeignInputsInternal;
+		}
+	}
+
+	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
+	{
+		get
+		{
+			if (ForeignOutputsInternal is null)
+			{
+				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+				ForeignOutputsInternal = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+			}
+			return ForeignOutputsInternal;
+		}
+	}
 
 	[JsonProperty]
 	[JsonConverter(typeof(TransactionJsonConverter))]
@@ -113,13 +142,45 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#endregion Members
 
-	public bool TryAddWalletInput(SmartCoin input) => WalletInputsInternal.Add(input);
+	public bool TryAddWalletInput(SmartCoin input)
+	{
+		if (WalletInputsInternal.Add(input))
+		{
+			ForeignInputsInternal = null;
+			return true;
+		}
+		return false;
+	}
 
-	public void TryAddWalletOutput(SmartCoin output) => WalletOutputsInternal.Add(output);
+	public bool TryAddWalletOutput(SmartCoin output)
+	{
+		if (WalletOutputsInternal.Add(output))
+		{
+			ForeignOutputsInternal = null;
+			return true;
+		}
+		return false;
+	}
 
-	public bool TryRemoveWalletInput(SmartCoin input) => WalletInputsInternal.Remove(input);
+	public bool TryRemoveWalletInput(SmartCoin input)
+	{
+		if (WalletInputsInternal.Remove(input))
+		{
+			ForeignInputsInternal = null;
+			return true;
+		}
+		return false;
+	}
 
-	public bool TryRemoveWalletOutput(SmartCoin output) => WalletOutputsInternal.Remove(output);
+	public bool TryRemoveWalletOutput(SmartCoin output)
+	{
+		if (WalletOutputsInternal.Remove(output))
+		{
+			ForeignOutputsInternal = null;
+			return true;
+		}
+		return false;
+	}
 
 	/// <summary>
 	/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
