@@ -8,9 +8,10 @@
              ClipToBounds="False"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileControl">
-  <StackPanel Spacing="20" Height="220" MaxWidth="180">
-    <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" />
-    <Viewbox HorizontalAlignment="Center" Height="70">
+  <DockPanel MaxWidth="180">
+    <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top" />
+    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20" Height="90" />
+    <Viewbox HorizontalAlignment="Center" Margin="0 10 0 10" MaxHeight="70">
       <ContentControl Content="{Binding .}">
         <ContentControl.DataTemplates>
           <DataTemplate DataType="vm:EconomicCoinJoinProfileViewModel">
@@ -28,8 +29,5 @@
         </ContentControl.DataTemplates>
       </ContentControl>
     </Viewbox>
-    <TextBlock Text="{Binding Description}"
-               TextWrapping="Wrap"
-               HorizontalAlignment="Center" />
-  </StackPanel>
+  </DockPanel>
 </UserControl>

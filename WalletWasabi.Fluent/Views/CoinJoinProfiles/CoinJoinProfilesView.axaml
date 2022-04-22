@@ -76,7 +76,6 @@
           <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
             <Setter Property="Opacity" Value="1" />
           </Style>
-
         </ListBox.Styles>
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
@@ -85,7 +84,7 @@
         </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
           <DataTemplate>
-            <c:SuggestionItem VerticalAlignment="Center">
+            <c:SuggestionItem MaxHeight="280">
               <prof:CoinJoinProfileControl />
             </c:SuggestionItem>
           </DataTemplate>
