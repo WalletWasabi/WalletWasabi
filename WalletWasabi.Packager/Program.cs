@@ -372,7 +372,7 @@ public static class Program
 
 				try
 				{
-					Console.WriteLine($"Trying to copy unsigned zip file to removable.");
+					Console.WriteLine($"Trying to move unsigned zip file to removable.");
 					var driveList = DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable);
 					if (!driveList.Any())
 					{
@@ -381,6 +381,8 @@ public static class Program
 
 					var drive = driveList.Single();
 					var targetFilePath = Path.Combine(drive.Name, zipFileName);
+
+					Console.WriteLine($"Trying to move unsigned zip file to removable ('{targetFilePath}').");
 					File.Move(zipFilePath, targetFilePath, overwrite: true);
 				}
 				catch (Exception ex)
