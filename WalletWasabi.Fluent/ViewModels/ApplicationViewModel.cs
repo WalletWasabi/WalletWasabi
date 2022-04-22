@@ -9,6 +9,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
@@ -69,6 +70,17 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	public ICommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
 	public ICommand QuitCommand { get; }
+
+	public void OnShutdownPrevented()
+	{
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShowErrorDialogViewModel (
+				"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
+				"Warning",
+				"Unable to close right now"));
+		});
+	}
 
 	public bool CanShutdown()
 	{

@@ -27,7 +27,9 @@ public class ApplicationStateManager : IMainWindowService
 		ShutdownRequested,
 		MainWindowClosed,
 		BackgroundModeOff,
-		BackgroundModeOn
+		BackgroundModeOn,
+		Minimised,
+		Restored
 	}
 
 	enum State
@@ -43,6 +45,7 @@ public class ApplicationStateManager : IMainWindowService
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
+	private IDisposable? _subscriptions;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
@@ -62,13 +65,7 @@ public class ApplicationStateManager : IMainWindowService
 			})
 			.OnTrigger(Trigger.ShutdownPrevented, () =>
 			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
-				{
-					await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShowErrorDialogViewModel (
-						"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
-						"Warning",
-						"Unable to close right now"));
-				});
+				ApplicationViewModel?.OnShutdownPrevented();
 			})
 			.Permit(Trigger.BackgroundModeOff, State.StandardMode)
 			.Permit(Trigger.Initialise, State.Closed);
@@ -103,13 +100,13 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				_stateMachine.Fire(Trigger.Initialise);
 			})
+			.OnTrigger(Trigger.ShutdownPrevented, () =>
+			{
+				ApplicationViewModel?.OnShutdownPrevented();
+			})
 			.OnTrigger(Trigger.ShutdownRequested, () =>
 			{
 				lifetime.Shutdown();
-			})
-			.OnExit(() =>
-			{
-				_lifetime.MainWindow.Closing -= MainWindowOnClosing;
 			})
 			.Permit(Trigger.BackgroundModeOn, State.BackgroundMode)
 			.Permit(Trigger.Initialise, State.Shown);
@@ -117,28 +114,29 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Configure(State.Shown)
 			.SubstateOf(State.StandardMode)
 			.Permit(Trigger.Hide, State.Hidden)
+			.Permit(Trigger.Minimised, State.Hidden)
 			.OnEntry(() =>
 			{
 				if (_lifetime.MainWindow is null)
 				{
 					CreateAndShowMainWindow();
-
-					_lifetime.MainWindow!.Closing += MainWindowOnClosing;
 				}
-				else
+				else if(_lifetime.MainWindow.WindowState == WindowState.Minimized)
 				{
 					_lifetime.MainWindow.WindowState = WindowState.Normal;
 				}
 
 				if (ApplicationViewModel is { })
 				{
-					ApplicationViewModel.IsMainWindowShown = false;
+					ApplicationViewModel.IsMainWindowShown = true;
 				}
 			});
 
 		_stateMachine.Configure(State.Hidden)
 			.SubstateOf(State.StandardMode)
 			.Permit(Trigger.Show, State.Shown)
+			.Permit(Trigger.Restored, State.Shown)
+			.Permit(Trigger.ShutdownPrevented, State.Shown)
 			.OnEntry(() =>
 			{
 				_lifetime.MainWindow.WindowState = WindowState.Minimized;
@@ -218,10 +216,28 @@ public class ApplicationStateManager : IMainWindowService
 			DataContext = MainViewModel.Instance
 		};
 
+		result.Closing += MainWindowOnClosing;
+
+		_subscriptions = result.WhenAnyValue(x => x.WindowState)
+			.Subscribe(x =>
+			{
+				if (x == WindowState.Minimized)
+				{
+					_stateMachine.Fire(Trigger.Minimised);
+				}
+				else
+				{
+					_stateMachine.Fire(Trigger.Restored);
+				}
+			});
+
 		Observable.FromEventPattern(result, nameof(result.Closed))
 			.Take(1)
 			.Subscribe(x =>
 			{
+				_subscriptions?.Dispose();
+				_subscriptions = null;
+				_lifetime.MainWindow.Closing -= MainWindowOnClosing;
 				_stateMachine.Fire(Trigger.MainWindowClosed);
 			});
 
