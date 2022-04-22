@@ -12,13 +12,14 @@
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
     <Panel>
-      <Panel>
+      <Panel IsEnabled="{Binding IsMainContentEnabled}">
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
@@ -112,7 +113,8 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar Classes="searchBar" DataContext="{Binding SearchBar}">
+          <searchBar:SearchBar Classes="searchBar" DataContext="{Binding SearchBar}" x:CompileBindings="False"
+                               IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}">
             <i:Interaction.Behaviors>
               <ir:AdaptiveBehavior SourceControl="{Binding $parent[TopLevel]}">
                 <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="780" ClassName="small" />
@@ -137,7 +139,7 @@
           <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
         </Viewbox>
       </ExperimentalAcrylicBorder>
-      <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+      <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="{Binding $parent[Window].OffScreenMargin, Converter={x:Static converters:ThicknessConverters.Negate}}" />
       <c:Dialog x:CompileBindings="False"
                 DataContext="{Binding FullScreen}"
                 IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"

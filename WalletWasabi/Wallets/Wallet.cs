@@ -66,11 +66,12 @@ public class Wallet : BackgroundService
 			{
 				return;
 			}
+
 			_state = value;
 			StateChanged?.Invoke(this, _state);
 		}
 	}
-	
+
 	public BitcoinStore BitcoinStore { get; private set; }
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
@@ -109,7 +110,7 @@ public class Wallet : BackgroundService
 		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
 		{
 			IsLoggedIn = true;
-			Kitchen.Cook(password);
+			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
 		}
 
 		return IsLoggedIn;
@@ -336,6 +337,7 @@ public class Wallet : BackgroundService
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
+
 			NewFilterProcessed?.Invoke(this, filterModel);
 
 			do
@@ -345,6 +347,7 @@ public class Wallet : BackgroundService
 				{
 					return;
 				}
+
 				// Make sure fully synced and this filter is the latest filter.
 				if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModel.Header.BlockHash)
 				{
@@ -377,7 +380,7 @@ public class Wallet : BackgroundService
 
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
-		new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
+			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -442,6 +445,7 @@ public class Wallet : BackgroundService
 				Transaction tx = currentBlock.Transactions[i];
 				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
+
 			TransactionProcessor.Process(txsToProcess);
 			KeyManager.SetBestHeight(height);
 
@@ -457,6 +461,7 @@ public class Wallet : BackgroundService
 		{
 			throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
 		}
+
 		State = WalletState.WaitingForInit;
 	}
 

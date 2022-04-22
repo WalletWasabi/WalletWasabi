@@ -1,4 +1,5 @@
 using System.IO;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.Helpers;
@@ -12,7 +13,7 @@ public static class LinuxStartupTestHelper
 				"[Desktop Entry]",
 				$"Name={Constants.AppName}",
 				"Type=Application",
-				$"Exec={EnvironmentHelpers.GetExecutablePath()}",
+				$"Exec={EnvironmentHelpers.GetExecutablePath()} {StartupHelper.SilentArgument}",
 				"Hidden=false",
 				"Terminal=false",
 				"X-GNOME-Autostart-enabled=true");
