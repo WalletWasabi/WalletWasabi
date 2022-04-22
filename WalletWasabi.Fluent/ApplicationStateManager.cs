@@ -174,18 +174,21 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void MainWindowOnClosing(object? sender, CancelEventArgs e)
 	{
-		if (ApplicationViewModel is { })
+		if (_stateMachine.IsInState(State.StandardMode))
 		{
-			e.Cancel = !ApplicationViewModel.CanShutdown();
-		}
+			if (ApplicationViewModel is { })
+			{
+				e.Cancel = !ApplicationViewModel.CanShutdown();
+			}
 
-		if (e.Cancel)
-		{
-			_stateMachine.Fire(Trigger.ShutdownPrevented);
-		}
-		else
-		{
-			_stateMachine.Fire(Trigger.ShutdownRequested);
+			if (e.Cancel)
+			{
+				_stateMachine.Fire(Trigger.ShutdownPrevented);
+			}
+			else
+			{
+				_stateMachine.Fire(Trigger.ShutdownRequested);
+			}
 		}
 	}
 
