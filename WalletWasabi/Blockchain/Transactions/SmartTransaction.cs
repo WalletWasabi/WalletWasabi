@@ -34,6 +34,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = isReplacement;
 		WalletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+
+		_foreignInputs = new Lazy<HashSet<IndexedTxIn>>(() => GetForeignInputs(), true);
+		_foreignOutputs = new Lazy<HashSet<IndexedTxOut>>(() => GetForeignOutputs(), true);
 	}
 
 	#endregion Constructors
@@ -106,7 +109,25 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
+	public HashSet<IndexedTxIn> ForeignInputs => _foreignInputs.Value;
+	public HashSet<IndexedTxOut> ForeignOutputs => _foreignOutputs.Value;
+
+	private Lazy<HashSet<IndexedTxIn>> _foreignInputs;
+	private Lazy<HashSet<IndexedTxOut>> _foreignOutputs;
+
 	#endregion Members
+
+	public HashSet<IndexedTxIn> GetForeignInputs()
+	{
+		var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+		return Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+	}
+
+	public HashSet<IndexedTxOut> GetForeignOutputs()
+	{
+		var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+		return Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+	}
 
 	/// <summary>
 	/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
