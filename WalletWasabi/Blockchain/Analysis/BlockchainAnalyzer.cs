@@ -45,7 +45,7 @@ public class BlockchainAnalyzer
 			}
 			else
 			{
-				AnalyzeCoinjoin(tx, newInputAnonset);
+				AnalyzeCoinjoin(tx, newInputAnonset, sanctionedInputAnonset);
 			}
 
 			AdjustWalletInputsAfter(tx, newInputAnonset);
@@ -132,33 +132,19 @@ public class BlockchainAnalyzer
 		return (decimal)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
 
-	private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset)
+	private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset, int sanctionedInputAnonset)
 	{
-		var indistinguishableWalletOutputs = tx
-			.WalletOutputs.GroupBy(x => x.Amount)
-			.ToDictionary(x => x.Key, y => y.Count());
-
-		var indistinguishableOutputs = tx.Transaction.Outputs
-			.GroupBy(x => x.ScriptPubKey)
-			.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
-			.GroupBy(x => x.Value)
-			.ToDictionary(x => x.Key, y => y.Count());
-
 		var foreignInputCount = tx.ForeignInputs.Count;
 
 		foreach (var newCoin in tx.WalletOutputs)
 		{
-			var output = newCoin.TxOut;
-			var equalOutputCount = indistinguishableOutputs[output.Value];
-			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
-
 			// Anonset gain cannot be larger than others' input count.
 			// Picking randomly an output would make our anonset: total/ours.
-			var anonset = Math.Min(equalOutputCount / ownEqualOutputCount - 1, foreignInputCount);
+			var anonset = Math.Min((int)ComputeAnonymityContribution(newCoin), foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
-			anonset += newInputAnonset;
+			anonset += sanctionedInputAnonset;
 
 			HdPubKey hdPubKey = newCoin.HdPubKey;
 			uint256 txid = tx.GetHash();
