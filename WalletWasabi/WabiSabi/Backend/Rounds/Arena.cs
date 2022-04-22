@@ -14,6 +14,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using Microsoft.VisualStudio.Threading;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -41,7 +42,7 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
-	private AsyncLock AsyncLock { get; } = new();
+	private AsyncReaderWriterLock AsyncLock { get; } = new();
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
@@ -61,7 +62,7 @@ public partial class Arena : PeriodicRunner
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		DateTimeOffset start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await AsyncLock.WriteLockAsync(cancel))
 		{
 			TimeoutRounds();
 
@@ -80,6 +81,7 @@ public partial class Arena : PeriodicRunner
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 		}
+
 		ArenaTimeBenchmarker.AddAction(DateTimeOffset.UtcNow - start);
 	}
 

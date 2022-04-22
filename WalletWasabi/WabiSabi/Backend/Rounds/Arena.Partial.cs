@@ -35,7 +35,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var start = DateTimeOffset.UtcNow;
 		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.WriteLockAsync(cancellationToken))
 		{
 			ArenaTimeBenchmarker.AddRegisterInputLock(DateTimeOffset.UtcNow - start);
 			var round = GetRound(request.RoundId);
@@ -135,7 +135,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
 	{
 		var start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.WriteLockAsync(cancellationToken))
 		{
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
@@ -146,7 +146,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.WriteLockAsync(cancellationToken))
 		{
 			var round = GetRound(request.RoundId, Phase.InputRegistration);
 
@@ -177,7 +177,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var realAmountCredentialRequests = request.RealAmountCredentialRequests;
 		var realVsizeCredentialRequests = request.RealVsizeCredentialRequests;
 
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.ReadLockAsync(cancellationToken))
 		{
 			round = GetRound(request.RoundId, Phase.InputRegistration, Phase.ConnectionConfirmation);
 
@@ -212,7 +212,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			vsizeRealCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 		}
 
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.ReadLockAsync(cancellationToken))
 		{
 			alice = GetAlice(request.AliceId, round);
 
@@ -266,7 +266,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task<EmptyResponse> RegisterOutputCoreAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		var start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.WriteLockAsync(cancellationToken))
 		{
 			ArenaTimeBenchmarker.AddRegisterOutputLock(DateTimeOffset.UtcNow - start);
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
@@ -316,7 +316,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 	{
 		var start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.WriteLockAsync(cancellationToken))
 		{
 			var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
@@ -332,7 +332,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		var start = DateTimeOffset.UtcNow;
 		Round round;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.ReadLockAsync(cancellationToken))
 		{
 			round = GetRound(request.RoundId, Phase.ConnectionConfirmation, Phase.OutputRegistration);
 		}
@@ -397,7 +397,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		var start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await AsyncLock.ReadLockAsync(cancellationToken))
 		{
 			var roundStates = Rounds.Select(x =>
 			{

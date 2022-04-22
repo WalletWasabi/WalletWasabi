@@ -29,6 +29,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Threading" Version="17.1.46" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="6.0.0" />
 		<PackageReference Include="NBitcoin" Version="7.0.6" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="3.0.1" />
