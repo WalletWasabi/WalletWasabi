@@ -39,23 +39,17 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			}
 		});
 
-		ShowCommand = ReactiveCommand.Create(() =>
-		{
-			_mainWindowService.Show();
-		});
+		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
 
 		AboutCommand = ReactiveCommand.Create(
 			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
 			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage)
-				.SelectMany(x =>
-				{
-					return x switch
+				.SelectMany(x => x switch
 					{
 						null => Observable.Return(true),
 						AboutViewModel => Observable.Return(false),
 						_ => x.WhenAnyValue(page => page.IsBusy).Select(isBusy => !isBusy)
-					};
-				}));
+					}));
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
@@ -82,12 +76,10 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	public void OnShutdownPrevented()
 	{
 		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShowErrorDialogViewModel (
+			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShowErrorDialogViewModel(
 				"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
 				"Warning",
-				"Unable to close right now"));
-		});
+				"Unable to close right now")));
 	}
 
 	public bool CanShutdown()
