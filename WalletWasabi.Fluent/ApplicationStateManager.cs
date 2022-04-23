@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Reactive.Concurrency;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -7,8 +6,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
 
@@ -16,7 +13,7 @@ namespace WalletWasabi.Fluent;
 
 public class ApplicationStateManager : IMainWindowService
 {
-	enum Trigger
+	private enum Trigger
 	{
 		Invalid = 0,
 		Initialise,
@@ -32,7 +29,7 @@ public class ApplicationStateManager : IMainWindowService
 		Restored
 	}
 
-	enum State
+	private enum State
 	{
 		Invalid = 0,
 		BackgroundMode,
@@ -55,18 +52,9 @@ public class ApplicationStateManager : IMainWindowService
 			new StateMachine<State, Trigger>(Services.UiConfig.HideOnClose ? State.BackgroundMode : State.StandardMode);
 
 		_stateMachine.Configure(State.BackgroundMode)
-			.OnEntry(() =>
-			{
-				_stateMachine.Fire(Trigger.Initialise);
-			})
-			.OnTrigger(Trigger.ShutdownRequested, () =>
-			{
-				lifetime.Shutdown();
-			})
-			.OnTrigger(Trigger.ShutdownPrevented, () =>
-			{
-				ApplicationViewModel?.OnShutdownPrevented();
-			})
+			.OnEntry(() => _stateMachine.Fire(Trigger.Initialise))
+			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
+			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel?.OnShutdownPrevented())
 			.Permit(Trigger.BackgroundModeOff, State.StandardMode)
 			.Permit(Trigger.Initialise, State.Closed);
 
@@ -88,26 +76,14 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.BackgroundMode)
 			.OnEntry(CreateAndShowMainWindow)
-			.OnTrigger(Trigger.Hide, () =>
-			{
-				_lifetime.MainWindow.Close();
-			})
+			.OnTrigger(Trigger.Hide, () => _lifetime.MainWindow.Close())
 			.Permit(Trigger.Hide, State.Closed)
 			.Permit(Trigger.MainWindowClosed, State.Closed);
 
 		_stateMachine.Configure(State.StandardMode)
-			.OnEntry(() =>
-			{
-				_stateMachine.Fire(Trigger.Initialise);
-			})
-			.OnTrigger(Trigger.ShutdownPrevented, () =>
-			{
-				ApplicationViewModel?.OnShutdownPrevented();
-			})
-			.OnTrigger(Trigger.ShutdownRequested, () =>
-			{
-				lifetime.Shutdown();
-			})
+			.OnEntry(() => _stateMachine.Fire(Trigger.Initialise))
+			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel?.OnShutdownPrevented())
+			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
 			.Permit(Trigger.BackgroundModeOn, State.BackgroundMode)
 			.Permit(Trigger.Initialise, State.Shown);
 
@@ -121,7 +97,7 @@ public class ApplicationStateManager : IMainWindowService
 				{
 					CreateAndShowMainWindow();
 				}
-				else if(_lifetime.MainWindow.WindowState == WindowState.Minimized)
+				else if (_lifetime.MainWindow.WindowState == WindowState.Minimized)
 				{
 					_lifetime.MainWindow.WindowState = WindowState.Normal;
 				}
@@ -146,7 +122,6 @@ public class ApplicationStateManager : IMainWindowService
 					ApplicationViewModel.IsMainWindowShown = false;
 				}
 			});
-
 
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
