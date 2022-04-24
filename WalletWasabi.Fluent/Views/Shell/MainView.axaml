@@ -11,80 +11,57 @@
                     x:Class="WalletWasabi.Fluent.Views.Shell.MainView"
                     x:DataType="viewModels:MainViewModel"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    d:DesignWidth="1400" d:DesignHeight="1000"
+                    xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+                    d:DesignWidth="1200" d:DesignHeight="1000"
                     x:CompileBindings="True">
 
-  <Grid ShowGridLines="True" RowDefinitions="48, *">
-
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="68" />
-      <ColumnDefinition Width="10*" />
-      <ColumnDefinition Width="35*" MinWidth="200" />
-      <ColumnDefinition Width="Auto" />
-      <ColumnDefinition Width="150" />
-    </Grid.ColumnDefinitions>
-
-    <Viewbox Height="18" Width="18" IsHitTestVisible="False">
-      <Image Source="{DynamicResource wasabi_logo_dynamic}" />
-    </Viewbox>
-
-    <WrapPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
-      <WrapPanel.Styles>
-        <Style Selector="TextBlock">
-          <Setter Property="Margin" Value="3 0" />
-          <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-      </WrapPanel.Styles>
-      <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" Text="Wasabi Wallet" />
-      <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" Opacity="0.6" Text="TESTNET PREVIEW" />
-    </WrapPanel>
-
-    <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
-
-    <Border x:Name="ContentPart" Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0" Grid.ColumnSpan="3" CornerRadius="10 0 0 0" ClipToBounds="True">
-      <Panel>
-        <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True" IsHitTestVisible="False" />
-        <Panel VerticalAlignment="Bottom"
-               Height="100">
-          <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
-                                    IsDockEffectVisible="{Binding MusicControls.IsActive}"
-                                    Classes.fireEffect="{Binding MusicControls.CurrentWallet.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
-            <spectrum:SpectrumControl.Styles>
-              <Style Selector="spectrum|SpectrumControl.fireEffect">
-                <Setter Property="Foreground" Value="{StaticResource OrangeCoinColor}" />
+  <DockPanel>
+    <shell:TitleBarView IsHitTestVisible="False" DockPanel.Dock="Top" />
+    <DockPanel>
+      <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
+      <Border x:Name="ContentPart" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0"
+              CornerRadius="10 0 0 0" ClipToBounds="True">
+        <Panel>
+          <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True"
+                  IsHitTestVisible="False" />
+          <Panel VerticalAlignment="Bottom"
+                 Height="100">
+            <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
+                                      IsDockEffectVisible="{Binding MusicControls.IsActive}"
+                                      Classes.fireEffect="{Binding MusicControls.CurrentWallet.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
+              <spectrum:SpectrumControl.Styles>
+                <Style Selector="spectrum|SpectrumControl.fireEffect">
+                  <Setter Property="Foreground" Value="{StaticResource OrangeCoinColor}" />
+                </Style>
+                <Style Selector="spectrum|SpectrumControl">
+                  <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+                </Style>
+              </spectrum:SpectrumControl.Styles>
+              <spectrum:SpectrumControl.Transitions>
+                <Transitions>
+                  <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}"/>
+                </Transitions>
+              </spectrum:SpectrumControl.Transitions>
+            </spectrum:SpectrumControl>
+          </Panel>
+          <DockPanel>
+            <DockPanel.Styles>
+              <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
+                <Setter Property="IsVisible" Value="False" />
               </Style>
-              <Style Selector="spectrum|SpectrumControl">
-                <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+
+              <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+                <Setter Property="Margin" Value="31 26 31 0" />
               </Style>
-            </spectrum:SpectrumControl.Styles>
-            <spectrum:SpectrumControl.Transitions>
-              <Transitions>
-                <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}"/>
-              </Transitions>
-            </spectrum:SpectrumControl.Transitions>
-          </spectrum:SpectrumControl>
+            </DockPanel.Styles>
+            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
+                                       HorizontalAlignment="Center" Height="66" />
+            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
+          </DockPanel>
+          <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True"
+                  IsHitTestVisible="False" Margin="0 0 -5 -5" />
         </Panel>
-        <DockPanel>
-          <DockPanel.Styles>
-            <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
-              <Setter Property="IsVisible" Value="False" />
-            </Style>
-
-            <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
-              <Setter Property="Margin" Value="31 26 31 0" />
-            </Style>
-          </DockPanel.Styles>
-          <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding MusicControls}"
-                                     HorizontalAlignment="Center" Height="66" />
-          <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
-        </DockPanel>
-        <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True" IsHitTestVisible="False" Margin="0 0 -5 -5" />
-      </Panel>
-    </Border>
-
-    <searchBar:SearchBar DataContext="{Binding SearchBar}" VerticalAlignment="Stretch" HorizontalAlignment="Center"
-                         Grid.Row="0" Grid.Column="2" />
-
-    <statusBar:StatusBar Grid.Column="{ext:Platform 2, Osx=3}" Margin="0 0 5 0" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-  </Grid>
+      </Border>
+    </DockPanel>
+  </DockPanel>
 </UserControl>

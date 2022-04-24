@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ext="using:WalletWasabi.Fluent.Helpers"
+             xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Shell.TitleBarView">
+  <Grid>
+
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="68" />
+      <ColumnDefinition Width="10*" MinWidth="130" />
+      <ColumnDefinition Width="35*" MinWidth="200" />
+      <ColumnDefinition Width="10*" />
+      <ColumnDefinition Width="5*" MinWidth="150" />
+    </Grid.ColumnDefinitions>
+
+    <Viewbox Height="18" Width="18" IsHitTestVisible="False">
+      <Image Source="{DynamicResource wasabi_logo_dynamic}" />
+    </Viewbox>
+
+    <WrapPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+      <WrapPanel.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Margin" Value="3 0" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+      </WrapPanel.Styles>
+      <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" Text="Wasabi Wallet" />
+      <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" Opacity="0.6" Text="TESTNET PREVIEW" />
+    </WrapPanel>
+
+    <searchBar:SearchBar DataContext="{Binding SearchBar}" VerticalAlignment="Stretch" HorizontalAlignment="Center"
+                         Grid.Row="0" Grid.Column="2" />
+
+    <statusBar:StatusBar Grid.Column="{ext:Platform 3, Osx=4}" Margin="0 0 5 0"
+                         Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusBar}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center" />
+  </Grid>
+</UserControl>
