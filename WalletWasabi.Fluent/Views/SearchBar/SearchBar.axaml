@@ -133,7 +133,7 @@
   </UserControl.Styles>
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Left"
-           Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
+           Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />

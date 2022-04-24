@@ -11,26 +11,37 @@
                     x:Class="WalletWasabi.Fluent.Views.Shell.MainView"
                     x:DataType="viewModels:MainViewModel"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    d:DesignWidth="1200" d:DesignHeight="1000"
+                    d:DesignWidth="1400" d:DesignHeight="1000"
                     x:CompileBindings="True">
 
-  <Grid ColumnDefinitions="68, *, 150" RowDefinitions="48, *">
+  <Grid ShowGridLines="True" RowDefinitions="48, *">
 
-    <Panel Grid.Row="0" Grid.Column="{ext:Platform 0, Osx=1}" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" TextBlock.Foreground="{DynamicResource NavBarItemForegroundBrush}">
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20 0 0 0">
-        <Viewbox Height="18" Width="18" IsHitTestVisible="False">
-          <Image Source="{DynamicResource wasabi_logo_dynamic}" />
-        </Viewbox>
-        <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" VerticalAlignment="Center" Text="Wasabi Wallet" Margin="20 0 0 0" IsHitTestVisible="False" />
-        <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" VerticalAlignment="Center" Opacity="0.6" Text="TESTNET PREVIEW" IsHitTestVisible="False" Margin="5 0 0 0" />
-      </StackPanel>
-    </Panel>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="68" />
+      <ColumnDefinition Width="10*" />
+      <ColumnDefinition Width="35*" MinWidth="200" />
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="150" />
+    </Grid.ColumnDefinitions>
 
-    <statusBar:StatusBar Grid.Column="{ext:Platform 1, Osx=2}" Margin="0 0 5 0" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+    <Viewbox Height="18" Width="18" IsHitTestVisible="False">
+      <Image Source="{DynamicResource wasabi_logo_dynamic}" />
+    </Viewbox>
+
+    <WrapPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+      <WrapPanel.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Margin" Value="3 0" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+      </WrapPanel.Styles>
+      <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" Text="Wasabi Wallet" />
+      <TextBlock Foreground="{DynamicResource AcrylicTrimForeground}" Classes="h8" Opacity="0.6" Text="TESTNET PREVIEW" />
+    </WrapPanel>
 
     <navbar:NavBar Grid.Row="1" Grid.Column="0" DataContext="{Binding NavBar}" />
 
-    <Border Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0" Grid.ColumnSpan="2" CornerRadius="10 0 0 0" ClipToBounds="True">
+    <Border x:Name="ContentPart" Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0" Grid.ColumnSpan="3" CornerRadius="10 0 0 0" ClipToBounds="True">
       <Panel>
         <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True" IsHitTestVisible="False" />
         <Panel VerticalAlignment="Bottom"
@@ -71,8 +82,9 @@
       </Panel>
     </Border>
 
-    <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch"
-                         Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
+    <searchBar:SearchBar DataContext="{Binding SearchBar}" VerticalAlignment="Stretch" HorizontalAlignment="Center"
+                         Grid.Row="0" Grid.Column="2" />
 
+    <statusBar:StatusBar Grid.Column="{ext:Platform 2, Osx=3}" Margin="0 0 5 0" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusBar}" HorizontalAlignment="Right" VerticalAlignment="Center" />
   </Grid>
 </UserControl>
