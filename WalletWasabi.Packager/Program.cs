@@ -406,14 +406,15 @@ public static class Program
 
 				var commands = new[]
 				{
-						"cd ~",
-						$"sudo umount /mnt/{driveLetterLower}",
-						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
-						$"cd {linuxPath}",
-						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
-					};
+					$"cd /",
+					$"sudo umount -l /mnt/{driveLetterLower}",
+					$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
+					$"cd {linuxPath}",
+					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
+					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
+				};
+
 				string arguments = string.Join(" && ", commands);
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
@@ -499,16 +500,17 @@ public static class Program
 
 				commands = new[]
 				{
-						"cd ~",
-						"sudo umount /mnt/c",
-						"sudo mount -t drvfs C: /mnt/c -o metadata",
-						$"cd {linuxPath}",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
-						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
-						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
-					};
+					$"cd /",
+					$"sudo umount -l /mnt/c",
+					$"sudo mount -t drvfs C: /mnt/c -o metadata",
+					$"cd {linuxPath}",
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
+					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
+					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
+				};
+
 				arguments = string.Join(" && ", commands);
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
