@@ -407,7 +407,7 @@ public class CoinJoinManager : BackgroundService
 			}
 			catch (Exception ex)
 			{
-				Logger.LogInfo($"Task '{logPrefix}' finished but with an error: '{ex.Message}'.");
+				Logger.LogInfo($"Task '{logPrefix}' finished but with an error: '{ex}'.");
 			}
 		}
 	}
