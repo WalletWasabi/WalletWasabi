@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace WalletWasabi.Packager;
 
@@ -61,6 +62,25 @@ public static class Tools
 	{
 		driveLetterUpper = char.ToUpper(windowsPath[0]);
 		return $"/mnt/{char.ToLower(driveLetterUpper)}/{LinuxPath(windowsPath[3..])}";
+	}
+
+	/// <summary>Builds a WSL command from <paramref name="commands"/> in a way that <c>chmod</c> command works in WSL (not true by default).</summary>
+	/// <param name="windowsWorkingDirectory">Working directory where to run <paramref name="commands"/> as a Windows full path.</param>
+	/// <param name="commands">Linux commands to execute in WSL path corresponding with <paramref name="windowsWorkingDirectory"/>.</param>
+	public static string CreateWslCommand(string windowsWorkingDirectory, params string[] commands)
+	{
+		string wslPath = Win2WslPath(windowsWorkingDirectory, out char driveLetterUpper);
+		char driveLetterLower = char.ToLower(driveLetterUpper);
+
+		string[] allCommands = new string[]
+		{
+			$"cd /",
+			$"sudo umount -l /mnt/{driveLetterLower}",
+			$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
+			$"cd {wslPath}",
+		}.Concat(commands).ToArray();
+
+		return string.Join(" && ", allCommands);
 	}
 
 	public static long DirSize(DirectoryInfo d)

@@ -400,7 +400,7 @@ public static class Program
 				publishedFolder = newFolderPath;
 
 				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
-				string arguments = BuildWslCommand(BinDistDirectory,
+				string arguments = Tools.CreateWslCommand(BinDistDirectory,
 					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
 					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}");
@@ -485,8 +485,8 @@ public static class Program
 
 				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
-				arguments = BuildWslCommand(BinDistDirectory,
-				$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+				arguments = Tools.CreateWslCommand(BinDistDirectory,
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
@@ -504,22 +504,6 @@ public static class Program
 				Console.WriteLine($"Deleted {publishedFolder}");
 			}
 		}
-	}
-
-	private static string BuildWslCommand(string windowsPath, params string[] commands)
-	{
-		string wslPath = Tools.Win2WslPath(windowsPath, out char driveLetterUpper);
-		char driveLetterLower = char.ToLower(driveLetterUpper);
-
-		string[] allCommands = new string[]
-		{
-			$"cd /",
-			$"sudo umount -l /mnt/{driveLetterLower}",
-			$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
-			$"cd {wslPath}",
-		}.Concat(commands).ToArray();
-
-		return string.Join(" && ", allCommands);
 	}
 
 	/// <summary>Checks whether there are uncommitted changes.</summary>
