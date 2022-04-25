@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.Analysis;
@@ -37,7 +36,7 @@ public class BlockchainAnalyzer
 		}
 		else
 		{
-			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset, out int startingInputAnonset);
+			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
 
 			if (inputCount == ownInputCount)
 			{
@@ -45,7 +44,7 @@ public class BlockchainAnalyzer
 			}
 			else
 			{
-				AnalyzeCoinjoin(tx, startingInputAnonset, distinctWalletInputPubKeys);
+				AnalyzeCoinjoin(tx, newInputAnonset, distinctWalletInputPubKeys);
 			}
 
 			AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
@@ -55,11 +54,7 @@ public class BlockchainAnalyzer
 	}
 
 	/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
-	private void AnalyzeWalletInputs(
-		SmartTransaction tx,
-		out HashSet<HdPubKey> distinctWalletInputPubKeys,
-		out int newInputAnonset,
-		out int startingInputAnonset)
+	private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset)
 	{
 		// We want to weaken the punishment if the input merge happens in coinjoins.
 		// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
@@ -77,33 +72,6 @@ public class BlockchainAnalyzer
 		{
 			key.SetAnonymitySet(newInputAnonset);
 		}
-
-		// Group all of the transaction inputs by the TXID from which they originated.
-		// Discard the groups which do not contain a wallet input.
-		var walletInputTxs = tx.GetAllOwnPreviousTransactions().ToHashSet();
-		var walletInputTxIds = walletInputTxs.Select(x => x.GetHash()).ToHashSet();
-		Dictionary<SmartTransaction, TxIn[]> inputGroups = tx.Transaction.Inputs
-			.GroupBy(x => x.PrevOut.Hash)
-			.Where(g => walletInputTxIds.Contains(g.Key))
-			.ToDictionary(g => walletInputTxs.First(x => x.GetHash() == g.Key), g => g.ToArray());
-
-		// Ruin anonsets for wallet inputs based on how many others participated.
-		var anonsets = new List<int>();
-		foreach (var inputGroup in inputGroups)
-		{
-			var prevTx = inputGroup.Key;
-			var walletInputsInGroup = tx.WalletInputs.Where(x => x.TransactionId == prevTx.GetHash());
-			foreach (var walletInput in walletInputsInGroup)
-			{
-				// Discount the anonymity that was gained earlier and is now lost due to mixing with siblings.
-				var equalOutputCount = prevTx.Transaction.Outputs.Count(x => x.Value == walletInput.Amount);
-				var prevIndistinguishableWalletOutputCount = prevTx.WalletOutputs.Count(x => x.Amount == walletInput.Amount);
-
-				anonsets.Add(walletInput.HdPubKey.AnonymitySet - (equalOutputCount - walletInputsInGroup.Count()) / prevIndistinguishableWalletOutputCount);
-			}
-		}
-
-		startingInputAnonset = Math.Max(newInputAnonset, Intersect(anonsets, coefficient));
 	}
 
 	/// <summary>

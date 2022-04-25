@@ -190,6 +190,7 @@ public static class Program
 			Console.WriteLine($"Deleted {BinDistDirectory}");
 		}
 
+		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "restore --locked-mode");
 		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean --configuration Release");
 
 		var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
@@ -272,13 +273,13 @@ public static class Program
 				$"--runtime \"{target}\"",
 				$"--disable-parallel",
 				$"--no-cache",
+				$"--no-restore",
 				$"/p:VersionPrefix={VersionPrefix}",
 				$"/p:DebugType=none",
 				$"/p:DebugSymbols=false",
 				$"/p:ErrorReport=none",
 				$"/p:DocumentationFile=\"\"",
-				$"/p:Deterministic=true",
-				$"/p:RestoreLockedMode=true");
+				$"/p:Deterministic=true");
 
 			StartProcessAndWaitForExit(
 				"dotnet",

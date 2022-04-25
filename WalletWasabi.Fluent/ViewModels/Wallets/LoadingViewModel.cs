@@ -147,7 +147,14 @@ public partial class LoadingViewModel : ActivatableViewModel
 		var percentText = $"{Percent}% completed";
 
 		var remainingMilliseconds = (double)_stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
-		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
+		var remainingTimeSpan = TimeSpan.FromMilliseconds(remainingMilliseconds);
+
+		if (remainingTimeSpan > TimeSpan.FromHours(1))
+		{
+ 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+		}
+
+		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);
 		var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
 		StatusText = $"{percentText} {remainingTimeText}";
