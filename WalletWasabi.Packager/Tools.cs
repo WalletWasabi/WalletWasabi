@@ -52,6 +52,17 @@ public static class Tools
 		return path.Replace(@"\", @"/");
 	}
 
+	/// <summary>Converts a Windows path to a WSL path.</summary>
+	/// <param name="windowsPath">Full Windows path (e.g. <c>C:\something\something</c>).</param>
+	/// <param name="driveLetterUpper">Output parameter with capital drive letter of <paramref name="windowsPath"/>.</param>
+	/// <returns>WSL path corresponding with <paramref name="windowsPath"/> (e.g. <c>/mnt/c/something/something</c>).</returns>
+	/// <remarks>Supports both WSL 1 and WSL 2.</remarks>
+	public static string Win2WslPath(string windowsPath, out char driveLetterUpper)
+	{
+		driveLetterUpper = char.ToUpper(windowsPath[0]);
+		return $"/mnt/{char.ToLower(driveLetterUpper)}/{LinuxPath(windowsPath[3..])}";
+	}
+
 	public static long DirSize(DirectoryInfo d)
 	{
 		long size = 0;

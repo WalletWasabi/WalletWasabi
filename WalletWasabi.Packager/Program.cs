@@ -388,34 +388,22 @@ public static class Program
 				}
 
 				Console.WriteLine("Create Linux .tar.gz");
+
 				if (!Directory.Exists(publishedFolder))
 				{
 					throw new Exception($"{publishedFolder} does not exist.");
 				}
+
 				var newFolderName = $"Wasabi-{VersionPrefix}";
 				var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
 
-				var driveLetterUpper = BinDistDirectory[0];
-				var driveLetterLower = char.ToLower(driveLetterUpper);
-
-				var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory[3..])}";
-
 				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
-
-				var commands = new[]
-				{
-					$"cd /",
-					$"sudo umount -l /mnt/{driveLetterLower}",
-					$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
-					$"cd {linuxPath}",
+				string arguments  = BuildWslCommand(BinDistDirectory,
 					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
-				};
-
-				string arguments = string.Join(" && ", commands);
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}");
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
@@ -491,27 +479,19 @@ public static class Program
 
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 				var wasabiStarterScriptContent = $"#!/bin/sh\n" +
-					$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
 				string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
 				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
-				commands = new[]
-				{
-					$"cd /",
-					$"sudo umount -l /mnt/c",
-					$"sudo mount -t drvfs C: /mnt/c -o metadata",
-					$"cd {linuxPath}",
-					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+				arguments = BuildWslCommand(BinDistDirectory,
+				$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
-				};
-
-				arguments = string.Join(" && ", commands);
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)");				
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
@@ -525,6 +505,22 @@ public static class Program
 				Console.WriteLine($"Deleted {publishedFolder}");
 			}
 		}
+	}
+
+	private static string BuildWslCommand(string windowsPath, params string[] commands)
+	{
+		string wslPath = Tools.Win2WslPath(windowsPath, out char driveLetterUpper);
+		char driveLetterLower = char.ToLower(driveLetterUpper);
+
+		string[] allCommands = new string[]
+		{
+			$"cd /",
+			$"sudo umount -l /mnt/{driveLetterLower}",
+			$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
+			$"cd {wslPath}",
+		}.Concat(commands).ToArray();
+
+		return string.Join(" && ", allCommands);
 	}
 
 	/// <summary>Checks whether there are uncommitted changes.</summary>
