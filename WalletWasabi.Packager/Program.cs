@@ -213,6 +213,8 @@ public static class Program
 
 		string buildInfoJson = GetBuildInfoData();
 
+		CheckUncommittedGitChanges();
+
 		foreach (string target in Targets)
 		{
 			string publishedFolder = Path.Combine(BinDistDirectory, target);
