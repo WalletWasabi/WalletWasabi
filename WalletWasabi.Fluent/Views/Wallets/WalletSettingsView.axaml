@@ -35,8 +35,8 @@
         <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
           <TextBlock Text="Privacy threshold" />
           <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
-                      Data="{StaticResource privacy_minimal}" />
+            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
+                      Data="{StaticResource privacy_strong}" />
             <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
             <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
           </DockPanel>
@@ -44,8 +44,8 @@
         <StackPanel Spacing="10" ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached.">
           <TextBlock Text="Privacy sanity check" />
           <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
-                      Data="{StaticResource privacy_medium}" />
+            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelStrongBrush}"
+                      Data="{StaticResource privacy_strong}" />
             <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
             <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
           </DockPanel>
