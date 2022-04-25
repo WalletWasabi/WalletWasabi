@@ -483,7 +483,6 @@ public static class Program
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
-				string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
 				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
 				arguments = BuildWslCommand(BinDistDirectory,
