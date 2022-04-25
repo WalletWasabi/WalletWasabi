@@ -4,11 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBarDropdown"
-             x:CompileBindings="False"
+             x:CompileBindings="True"
              x:DataType="sb:SearchBarViewModel"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent">
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />
   </Design.DataContext>

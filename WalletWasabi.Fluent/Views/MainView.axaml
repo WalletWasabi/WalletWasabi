@@ -4,22 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:ic="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
     <Panel>
-      <Panel>
+      <Panel IsEnabled="{Binding IsMainContentEnabled}">
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
@@ -73,8 +71,8 @@
             </Panel>
           </Border>
 
-          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch"
-                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
+          <searchBar:SearchBar DataContext="{Binding SearchBar}" Width="400" VerticalAlignment="Stretch" x:CompileBindings="False"
+                               Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
 
         </Grid>
       </Panel>
@@ -91,7 +89,7 @@
           <ContentControl Template="{StaticResource WelcomeBg}" ClipToBounds="False" />
         </Viewbox>
       </ExperimentalAcrylicBorder>
-      <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+      <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="{Binding $parent[Window].OffScreenMargin, Converter={x:Static converters:ThicknessConverters.Negate}}" />
       <c:Dialog x:CompileBindings="False"
                 DataContext="{Binding FullScreen}"
                 IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"

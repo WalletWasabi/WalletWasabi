@@ -81,6 +81,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel>
+          <DataValidationErrors DockPanel.Dock="Bottom"/>
           <Panel>
             <Border
                Name="PART_BorderElement"

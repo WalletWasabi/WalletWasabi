@@ -33,7 +33,7 @@
 		</Description>
 		<Copyright>MIT</Copyright>
 		<PackageId>Wasabi Wallet Fluent</PackageId>
-		<AssemblyTitle>Privacy focused Bitcoin wallet.</AssemblyTitle>
+		<AssemblyTitle>Wasabi Wallet</AssemblyTitle>
 		<Company>zkSNACKs</Company>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
 		<PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>

@@ -208,7 +208,6 @@ public static class Program
 		}
 
 		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "restore --locked-mode");
-
 		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean --configuration Release");
 
 		var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
