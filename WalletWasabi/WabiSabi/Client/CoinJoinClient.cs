@@ -150,7 +150,8 @@ public class CoinJoinClient
 				return result;
 			}
 
-			throw new InvalidOperationException("Blame rounds are not allowed in this test.");
+			// Only use successfully registered coins in the blame round.
+			coins = result.RegisteredCoins;
 
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
