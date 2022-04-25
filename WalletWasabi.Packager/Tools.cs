@@ -66,7 +66,7 @@ public static class Tools
 
 	/// <summary>Builds a WSL command from <paramref name="commands"/> in a way that <c>chmod</c> command works in WSL (not true by default).</summary>
 	/// <param name="windowsWorkingDirectory">Working directory where to run <paramref name="commands"/> as a Windows full path.</param>
-	/// <param name="commands">Linux commands to execute in WSL path corresponding with <paramref name="windowsWorkingDirectory"/>.</param>
+	/// <param name="commands">Linux commands to execute in WSL folder corresponding to <paramref name="windowsWorkingDirectory"/>.</param>
 	public static string CreateWslCommand(string windowsWorkingDirectory, params string[] commands)
 	{
 		string wslPath = Win2WslPath(windowsWorkingDirectory, out char driveLetterUpper);
