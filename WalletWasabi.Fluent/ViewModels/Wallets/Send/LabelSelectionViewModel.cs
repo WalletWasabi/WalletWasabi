@@ -228,35 +228,16 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		OnSelectionChanged();
 	}
 
-	private void OnSelectionChanged(bool forceIncludePrivatePocket = false)
+	private void OnSelectionChanged()
 	{
 		Money sumOfWhiteList =
 			NonPrivatePockets
 				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
 				.Sum(x => x.Amount);
 
-		if (sumOfWhiteList >= _targetAmount)
-		{
-			EnoughSelected = true;
-			_includePrivatePocket = false;
-		}
-		else if ((!LabelsBlackList.Any() || forceIncludePrivatePocket) &&
-		         sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
-		{
-			EnoughSelected = true;
-			_includePrivatePocket = true;
-		}
-		else if ((!LabelsWhiteList.Any() || forceIncludePrivatePocket) &&
-		         _privatePocket.Amount >= _targetAmount)
-		{
-			EnoughSelected = true;
-			_includePrivatePocket = true;
-		}
-		else
-		{
-			EnoughSelected = false;
-			_includePrivatePocket = false;
-		}
+		_includePrivatePocket = NonPrivatePockets.Sum(x => x.Amount) < _targetAmount || (LabelsWhiteList.IsEmpty() && _privatePocket.Amount >= _targetAmount);
+		var totalSelected = sumOfWhiteList + (_includePrivatePocket ? _privatePocket.Amount : Money.Zero);
+		EnoughSelected = totalSelected >= _targetAmount;
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
@@ -271,7 +252,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 		usedCoins = usedCoins.ToImmutableArray();
 
-		var isPrivatePocketUsed = usedCoins.Any(coin => coin.HdPubKey.AnonymitySet >= privateThreshold);
 		var usedLabels = SmartLabel.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
 		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value, StringComparer.OrdinalIgnoreCase)).ToArray();
 		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
@@ -281,6 +261,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			label.Swap();
 		}
 
-		OnSelectionChanged(isPrivatePocketUsed);
+		OnSelectionChanged();
 	}
 }
