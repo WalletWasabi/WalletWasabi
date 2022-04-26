@@ -46,7 +46,7 @@ public class BlockchainAnalyzer
 				AnalyzeCoinjoin(tx, newInputAnonset, distinctWalletInputPubKeys);
 			}
 
-			AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
+			AdjustWalletInputsAfter(tx, distinctWalletInputPubKeys, newInputAnonset);
 		}
 
 		AnalyzeClusters(tx);
@@ -177,7 +177,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Adjusts the anonset of the inputs to the newly calculated output anonsets.
 	/// </summary>
-	private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
+	private static void AdjustWalletInputsAfter(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
 	{
 		// Sanity check.
 		if (!tx.WalletOutputs.Any())
