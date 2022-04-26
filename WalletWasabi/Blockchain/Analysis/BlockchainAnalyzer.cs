@@ -36,7 +36,7 @@ public class BlockchainAnalyzer
 		}
 		else
 		{
-			AnalyzeWalletInputs(tx, out int newInputAnonset);
+			AnalyzeWalletInputs(tx, out int newInputAnonset, out int sanctionedInputAnonset);
 			AdjustWalletInputsBefore(tx, newInputAnonset);
 
 			if (foreignInputCount == 0)
@@ -55,7 +55,10 @@ public class BlockchainAnalyzer
 	}
 
 	/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
-	private void AnalyzeWalletInputs(SmartTransaction tx, out int newInputAnonset)
+	private void AnalyzeWalletInputs(
+		SmartTransaction tx,
+		out int newInputAnonset,
+		out int sanctionedInputAnonset)
 	{
 		// We want to weaken the punishment if the input merge happens in coinjoins.
 		// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
@@ -65,6 +68,13 @@ public class BlockchainAnalyzer
 		double coefficient = (double)tx.WalletVirtualInputs.Count / (tx.ForeignInputs.Count + tx.WalletVirtualInputs.Count);
 
 		newInputAnonset = Intersect(tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet), coefficient);
+
+		List<int> anonsets = new();
+		foreach (var virtualInput in tx.WalletVirtualInputs)
+		{
+			anonsets.Add(virtualInput.SmartCoins.Select(i => Math.Max(1, virtualInput.HdPubKey.AnonymitySet - (int)ComputeInputSanction(tx, i))).Min());
+		}
+		sanctionedInputAnonset = Intersect(anonsets, coefficient);
 	}
 
 	/// <summary>
