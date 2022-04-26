@@ -347,6 +347,39 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public void StillIncludePrivateFundsAfterSwap()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+		var pockets = new List<Pocket>();
+
+		var privateCoin = LabelTestExtensions.CreateCoin(0.8m, "", 999);
+		var privatePocket = new Pocket((CoinPocketHelper.PrivateFundsText, new CoinsView(new[] { privateCoin })));
+		pockets.Add(privatePocket);
+
+		pockets.AddPocket(0.2M, out var pocket2, "Dan");
+		pockets.AddPocket(0.1M, out var pocket3, "Lucas");
+
+		selection.Reset(pockets.ToArray());
+
+		var usedCoins = new List<SmartCoin>
+		{
+			privateCoin
+		};
+		usedCoins.AddRange(pocket2.Coins);
+
+		selection.SetUsedLabel(usedCoins, 10);
+		var output = selection.GetUsedPockets();
+		Assert.Contains(privatePocket, output);
+		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.True(selection.EnoughSelected);
+
+		selection.SwapLabel(selection.GetLabel("Lucas"));
+		selection.SwapLabel(selection.GetLabel("Lucas"));
+		Assert.True(selection.EnoughSelected);
+	}
+
+	[Fact]
 	public void NotEnoughSelected()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
@@ -737,5 +770,13 @@ internal static class LabelTestExtensions
 		key.SetLabel(label);
 
 		return key;
+	}
+
+	public static SmartCoin CreateCoin(decimal amount, string label = "", int anonymitySet = 1)
+	{
+		var coin = BitcoinFactory.CreateSmartCoin(NewKey(label: label, anonymitySet: anonymitySet), amount);
+		coin.HdPubKey.SetAnonymitySet(anonymitySet);
+
+		return coin;
 	}
 }
