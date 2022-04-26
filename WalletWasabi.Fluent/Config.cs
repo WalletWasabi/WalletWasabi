@@ -16,7 +16,7 @@ using WalletWasabi.Userfacing;
 namespace WalletWasabi.Fluent;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class Config : ConfigBase
+public record Config : ConfigBase
 {
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
@@ -24,12 +24,37 @@ public class Config : ConfigBase
 	private Uri? _backendUri = null;
 	private Uri? _fallbackBackendUri;
 
-	/// <summary>
-	/// Constructor for config population using Newtonsoft.JSON.
-	/// </summary>
-	public Config() : base()
+	[JsonConstructor]
+	public Config(Uri? backendUri, Uri? fallbackBackendUri, Network network, string mainNetBackendUriV3,
+		string testNetBackendUriV3, string mainNetFallbackBackendUri, string testNetFallbackBackendUri,
+		string regTestBackendUriV3, bool useTor, bool terminateTorOnExit, bool startLocalBitcoinCoreOnStartup,
+		bool stopLocalBitcoinCoreOnShutdown, string localBitcoinCoreDataDir, EndPoint mainNetBitcoinP2pEndPoint,
+		EndPoint testNetBitcoinP2pEndPoint, EndPoint regTestBitcoinP2pEndPoint, bool jsonRpcServerEnabled,
+		string jsonRpcUser, string jsonRpcPassword, string[] jsonRpcServerPrefixes, Money dustThreshold)
 	{
-		ServiceConfiguration = null!;
+		_backendUri = backendUri;
+		_fallbackBackendUri = fallbackBackendUri;
+		Network = network;
+		MainNetBackendUriV3 = mainNetBackendUriV3;
+		TestNetBackendUriV3 = testNetBackendUriV3;
+		MainNetFallbackBackendUri = mainNetFallbackBackendUri;
+		TestNetFallbackBackendUri = testNetFallbackBackendUri;
+		RegTestBackendUriV3 = regTestBackendUriV3;
+		UseTor = useTor;
+		TerminateTorOnExit = terminateTorOnExit;
+		StartLocalBitcoinCoreOnStartup = startLocalBitcoinCoreOnStartup;
+		StopLocalBitcoinCoreOnShutdown = stopLocalBitcoinCoreOnShutdown;
+		LocalBitcoinCoreDataDir = localBitcoinCoreDataDir;
+		MainNetBitcoinP2pEndPoint = mainNetBitcoinP2pEndPoint;
+		TestNetBitcoinP2pEndPoint = testNetBitcoinP2pEndPoint;
+		RegTestBitcoinP2pEndPoint = regTestBitcoinP2pEndPoint;
+		JsonRpcServerEnabled = jsonRpcServerEnabled;
+		JsonRpcUser = jsonRpcUser;
+		JsonRpcPassword = jsonRpcPassword;
+		JsonRpcServerPrefixes = jsonRpcServerPrefixes;
+		DustThreshold = dustThreshold;
+
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
 	}
 
 	public Config(string filePath) : base(filePath)
@@ -39,46 +64,46 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.TestNet;
+	public Network Network { get; init; } = Network.TestNet;
 
 	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
 	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetBackendUriV3 { get; private set; } = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
+	public string MainNetBackendUriV3 { get; init; } = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
 
 	[DefaultValue("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/")]
 	[JsonProperty(PropertyName = "TestNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetBackendUriV3 { get; private set; } = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
+	public string TestNetBackendUriV3 { get; init; } = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
 
 	[DefaultValue("https://wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetFallbackBackendUri { get; private set; } = "https://wasabiwallet.io/";
+	public string MainNetFallbackBackendUri { get; init; } = "https://wasabiwallet.io/";
 
 	[DefaultValue("https://wasabiwallet.co/")]
 	[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetFallbackBackendUri { get; private set; } = "https://wasabiwallet.co/";
+	public string TestNetFallbackBackendUri { get; init; } = "https://wasabiwallet.co/";
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string RegTestBackendUriV3 { get; private set; } = "http://localhost:37127/";
+	public string RegTestBackendUriV3 { get; init; } = "http://localhost:37127/";
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool UseTor { get; internal set; } = true;
+	public bool UseTor { get; init; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool TerminateTorOnExit { get; internal set; } = false;
+	public bool TerminateTorOnExit { get; init; } = false;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StartLocalBitcoinCoreOnStartup { get; internal set; } = false;
+	public bool StartLocalBitcoinCoreOnStartup { get; init; } = false;
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "StopLocalBitcoinCoreOnShutdown", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool StopLocalBitcoinCoreOnShutdown { get; internal set; } = true;
+	public bool StopLocalBitcoinCoreOnShutdown { get; init; } = true;
 
 	[JsonProperty(PropertyName = "LocalBitcoinCoreDataDir")]
-	public string LocalBitcoinCoreDataDir { get; internal set; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
+	public string LocalBitcoinCoreDataDir { get; init; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
 
 	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
@@ -105,11 +130,11 @@ public class Config : ConfigBase
 	public string JsonRpcPassword { get; internal set; } = "";
 
 	[JsonProperty(PropertyName = "JsonRpcServerPrefixes")]
-	public string[] JsonRpcServerPrefixes { get; internal set; } = new[]
+	public string[] JsonRpcServerPrefixes { get; init; } = new[]
 	{
-			"http://127.0.0.1:37128/",
-			"http://localhost:37128/"
-		};
+		"http://127.0.0.1:37128/",
+		"http://localhost:37128/"
+	};
 
 	[JsonProperty(PropertyName = "DustThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]

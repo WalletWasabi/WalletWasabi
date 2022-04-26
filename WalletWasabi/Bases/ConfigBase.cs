@@ -9,7 +9,7 @@ using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Bases;
 
-public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
+public abstract record ConfigBase : IConfig
 {
 	protected ConfigBase()
 	{
@@ -21,6 +21,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	}
 
 	/// <inheritdoc />
+	[JsonIgnore]
 	public string FilePath { get; private set; } = null;
 
 	/// <inheritdoc />

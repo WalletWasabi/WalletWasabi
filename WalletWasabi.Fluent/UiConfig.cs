@@ -5,11 +5,13 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
+using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class UiConfig : ConfigBase
+public record UiConfig : ConfigBase
 {
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
@@ -51,13 +53,13 @@ public class UiConfig : ConfigBase
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(x => x.SendAmountConversionReversed)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(
@@ -69,7 +71,7 @@ public class UiConfig : ConfigBase
 				(_, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(750))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
@@ -203,5 +205,24 @@ public class UiConfig : ConfigBase
 	{
 		get => _sendAmountConversionReversed;
 		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value);
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+		{
+			return false;
+		}
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
 	}
 }

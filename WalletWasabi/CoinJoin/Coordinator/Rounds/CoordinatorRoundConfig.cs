@@ -9,7 +9,7 @@ using WalletWasabi.JsonConverters.Bitcoin;
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class CoordinatorRoundConfig : ConfigBase
+public record CoordinatorRoundConfig : ConfigBase
 {
 	public CoordinatorRoundConfig() : base()
 	{

@@ -38,11 +38,10 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 				{
 					lock (ConfigLock)
 					{
-						config.LoadFile();
-						EditConfigOnSave(config);
-						config.ToFile();
+						Config newConfig = EditConfigOnSave(config);
+						newConfig.ToFile();
 
-						IsRestartNeeded(ConfigOnOpen);
+						IsRestartNeeded(config);
 					}
 				}
 				catch (Exception ex)
@@ -52,7 +51,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			});
 	}
 
-	protected abstract void EditConfigOnSave(Config config);
+	protected abstract Config EditConfigOnSave(Config config);
 
 	private static void IsRestartNeeded(Config configOnOpen)
 	{

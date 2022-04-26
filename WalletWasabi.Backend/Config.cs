@@ -13,7 +13,7 @@ using WalletWasabi.Userfacing;
 namespace WalletWasabi.Backend;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class Config : ConfigBase
+public record Config : ConfigBase
 {
 	public Config() : base()
 	{

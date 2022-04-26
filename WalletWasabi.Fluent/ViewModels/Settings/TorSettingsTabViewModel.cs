@@ -32,9 +32,12 @@ public partial class TorSettingsTabViewModel : SettingsTabViewModelBase
 			.Subscribe(_ => Save());
 	}
 
-	protected override void EditConfigOnSave(Config config)
+	protected override Config EditConfigOnSave(Config config)
 	{
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
+		return config with
+		{
+			UseTor = UseTor,
+			TerminateTorOnExit = TerminateTorOnExit,
+		};
 	}
 }

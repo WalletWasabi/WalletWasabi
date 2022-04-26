@@ -94,8 +94,10 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 		}
 	}
 
-	protected override void EditConfigOnSave(Config config)
+	protected override Config EditConfigOnSave(Config config)
 	{
+		Config result;
+
 		if (Network == config.Network)
 		{
 			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
@@ -103,17 +105,26 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 				config.SetBitcoinP2pEndpoint(p2PEp);
 			}
 
-			config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-			config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-			config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
-				? Money.Coins(threshold)
-				: Config.DefaultDustThreshold;
+			result = config with
+			{
+				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
+				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
+				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
+				DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+					? Money.Coins(threshold)
+					: Config.DefaultDustThreshold
+			};
 		}
 		else
 		{
-			config.Network = Network;
+			result = config with
+			{
+				Network = Network
+			};
+
 			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
+
+		return result;
 	}
 }

@@ -11,7 +11,7 @@ using WalletWasabi.WabiSabi.Models;
 namespace WalletWasabi.WabiSabi.Backend;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class WabiSabiConfig : ConfigBase
+public record WabiSabiConfig : ConfigBase
 {
 	public WabiSabiConfig() : base()
 	{
