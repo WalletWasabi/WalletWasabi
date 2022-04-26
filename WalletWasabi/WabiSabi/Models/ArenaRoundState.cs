@@ -70,19 +70,4 @@ public record ArenaRoundState(
 			round.CoinjoinState.GetStateFrom(0),
 			round.End
 			);
-
-	public bool IsInputRegistrationEnded(int maxInputCount)
-	{
-		if (Phase > Phase.InputRegistration)
-		{
-			return true;
-		}
-
-		if (CoinjoinState.Inputs.Count() >= maxInputCount)
-		{
-			return true;
-		}
-
-		return InputRegistrationTimeFrame.HasExpired;
-	}
 }

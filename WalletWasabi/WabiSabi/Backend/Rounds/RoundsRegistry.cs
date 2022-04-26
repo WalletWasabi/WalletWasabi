@@ -24,11 +24,7 @@ internal class RoundsRegistry
 	public void AddRound(Round round)
 	{
 		var asyncLock = new AsyncReaderWriterLock();
-		asyncLock.OnBeforeWriteLockReleased(() =>
-			{
-				RefreshRoundStates(round.Id);
-				return Task.CompletedTask;
-			});
+
 		RoundRegistryItems.TryAdd(round.Id, new(round, asyncLock));
 		RefreshRoundStates();
 		round.LogInfo($"Created round with params: {nameof(RoundParameters.MaxRegistrableAmount)}:'{round.MaxAmountCredentialValue}'.");
@@ -55,7 +51,7 @@ internal class RoundsRegistry
 			var releaser = await roundRegistryItem.AsyncReaderWriterLock.WriteLockAsync();
 			if (RoundRegistryItems.TryGetValue(roundId, out roundRegistryItem))
 			{
-				return new RoundLockReleaser(releaser, roundRegistryItem.Round);
+				return new RoundLockReleaser(releaser, roundRegistryItem.Round, () => RefreshRoundStates(roundId));
 			}
 		}
 		throw new InvalidOperationException();
@@ -76,10 +72,11 @@ internal class RoundsRegistry
 
 public record RoundRegistryItem(Round Round, AsyncReaderWriterLock AsyncReaderWriterLock);
 
-public record RoundLockReleaser(AsyncReaderWriterLock.Releaser Releaser, Round Round) : IDisposable
+public record RoundLockReleaser(AsyncReaderWriterLock.Releaser Releaser, Round Round, Action Updater) : IDisposable
 {
 	public void Dispose()
 	{
+		Updater();
 		Releaser.Dispose();
 	}
 }

@@ -89,11 +89,16 @@ public partial class Arena : PeriodicRunner
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 	{
 		foreach (var roundState in RoundsRegistry.RoundStates.Where(x =>
-			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
+			x.Phase == Phase.InputRegistration))
 		{
 			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
 			var round = roundLock.Round;
+
+			if (!round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			{
+				continue;
+			}
+
 			try
 			{
 				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
@@ -113,7 +118,7 @@ public partial class Arena : PeriodicRunner
 					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}).");
 				}
-				else if (roundState.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
 					ConnectionConfirmationStartedCounter++;
@@ -389,10 +394,15 @@ public partial class Arena : PeriodicRunner
 
 	private async Task TimeoutAlicesAsync()
 	{
-		foreach (var roundState in RoundsRegistry.RoundStates.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
+		foreach (var roundState in RoundsRegistry.RoundStates) //TODO: this is far from optimal!
 		{
 			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
 			var round = roundLock.Round;
+			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			{
+				continue;
+			}
+
 			var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 			if (removedAliceCount > 0)
 			{
