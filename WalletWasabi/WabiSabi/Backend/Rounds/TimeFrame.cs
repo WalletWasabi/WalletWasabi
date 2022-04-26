@@ -11,6 +11,9 @@ public record TimeFrame
 	public static TimeFrame Create(TimeSpan duration) =>
 		new(DateTimeOffset.MinValue, duration);
 
+	public static TimeFrame Create(DateTimeOffset startTime, TimeSpan duration) =>
+		new(startTime, duration);
+
 	public DateTimeOffset EndTime => StartTime + Duration;
 	public DateTimeOffset StartTime { get; init; }
 	public TimeSpan Duration { get; init; }

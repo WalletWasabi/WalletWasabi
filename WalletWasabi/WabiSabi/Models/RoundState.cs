@@ -32,6 +32,8 @@ public record RoundState(
 
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
+	public bool IsBlameRound => BlameOf != uint256.Zero;
+
 	public static RoundState FromRound(Round round, int stateId = 0) =>
 		new(
 			round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,

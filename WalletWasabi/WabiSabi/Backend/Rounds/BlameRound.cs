@@ -1,11 +1,12 @@
 using NBitcoin;
 using System.Collections.Generic;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public class BlameRound : Round
 {
-	public BlameRound(RoundParameters roundParameters, Round blameOf, ISet<OutPoint> blameWhitelist)
+	public BlameRound(RoundParameters roundParameters, RoundState blameOf, ISet<OutPoint> blameWhitelist)
 		: base(roundParameters)
 	{
 		BlameOf = blameOf;
@@ -13,7 +14,7 @@ public class BlameRound : Round
 		InputRegistrationTimeFrame = TimeFrame.Create(RoundParameters.BlameInputRegistrationTimeout).StartNow();
 	}
 
-	public Round BlameOf { get; }
+	public RoundState BlameOf { get; }
 	public ISet<OutPoint> BlameWhitelist { get; }
 
 	public override bool IsInputRegistrationEnded(int maxInputCount)

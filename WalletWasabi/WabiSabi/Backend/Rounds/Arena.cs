@@ -14,6 +14,8 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using System.Collections.Immutable;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -40,8 +42,8 @@ public partial class Arena : PeriodicRunner
 		MaxSuggestedAmountProvider = new(Config);
 	}
 
-	public HashSet<Round> Rounds { get; } = new();
-	private AsyncLock AsyncLock { get; } = new();
+	private RoundsRegistry RoundsRegistry { get; } = new();
+
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
@@ -61,35 +63,35 @@ public partial class Arena : PeriodicRunner
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		DateTimeOffset start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
-		{
-			TimeoutRounds();
 
-			TimeoutAlices();
+		TimeoutRounds();
 
-			await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
+		await TimeoutAlicesAsync().ConfigureAwait(false);
 
-			await StepOutputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
+		await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
 
-			await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
+		await StepOutputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
-			await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
+		await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
 
-			cancel.ThrowIfCancellationRequested();
+		await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
-			// Ensure there's at least one non-blame round in input registration.
-			await CreateRoundsAsync(cancel).ConfigureAwait(false);
-		}
+		cancel.ThrowIfCancellationRequested();
+
+		// Ensure there's at least one non-blame round in input registration.
+		await CreateRoundsAsync(cancel).ConfigureAwait(false);
+
 		ArenaTimeBenchmarker.AddAction(DateTimeOffset.UtcNow - start);
 	}
 
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 	{
-		foreach (var round in Rounds.Where(x =>
+		foreach (var roundState in RoundsRegistry.RoundStates.Where(x =>
 			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
-			.ToArray())
+			&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
 		{
+			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
+			var round = roundLock.Round;
 			try
 			{
 				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
@@ -109,7 +111,7 @@ public partial class Arena : PeriodicRunner
 					round.SetPhase(Phase.Ended);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}).");
 				}
-				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				else if (roundState.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
 					ConnectionConfirmationStartedCounter++;
@@ -125,8 +127,10 @@ public partial class Arena : PeriodicRunner
 
 	private async Task StepConnectionConfirmationPhaseAsync(CancellationToken cancel)
 	{
-		foreach (var round in Rounds.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
+		foreach (var roundState in RoundsRegistry.RoundStates.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 		{
+			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
+			var round = roundLock.Round;
 			try
 			{
 				if (round.Alices.All(x => x.ConfirmedConnection))
@@ -179,8 +183,10 @@ public partial class Arena : PeriodicRunner
 
 	private async Task StepOutputRegistrationPhaseAsync(CancellationToken cancellationToken)
 	{
-		foreach (var round in Rounds.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
+		foreach (var roundState in RoundsRegistry.RoundStates.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 		{
+			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
+			var round = roundLock.Round;
 			try
 			{
 				var allReady = round.Alices.All(a => a.ReadyToSign);
@@ -192,7 +198,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
-					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
+					UpdateCoordinatorScriptPreventReuseNoLockAsync(round);
 					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
@@ -212,8 +218,10 @@ public partial class Arena : PeriodicRunner
 
 	private async Task StepTransactionSigningPhaseAsync(CancellationToken cancellationToken)
 	{
-		foreach (var round in Rounds.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
+		foreach (var roundState in RoundsRegistry.RoundStates.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 		{
+			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
+			var round = roundLock.Round;
 			var state = round.Assert<SigningState>();
 
 			try
@@ -330,26 +338,26 @@ public partial class Arena : PeriodicRunner
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
-			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+			await CreateBlameRoundAsync(RoundState.FromRound(round), cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
+	private async Task CreateBlameRoundAsync(RoundState roundState, CancellationToken cancellationToken)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate, round.MaxSuggestedAmount);
-		var blameWhitelist = round.Alices
-			.Select(x => x.Coin.Outpoint)
+		RoundParameters parameters = new(Config, Network, Random, feeRate, roundState.CoordinationFeeRate, roundState.MaxSuggestedAmount);
+
+		var blameWhitelist = roundState.CoinjoinState.Inputs.Select(c => c.Outpoint)
 			.Where(x => !Prison.IsBanned(x))
 			.ToHashSet();
 
-		BlameRound blameRound = new(parameters, round, blameWhitelist);
-		Rounds.Add(blameRound);
+		BlameRound blameRound = new(parameters, roundState, blameWhitelist);
+		RoundsRegistry.AddRound(blameRound);
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
-		if (!Rounds.Any(x => x is not BlameRound && x.Phase == Phase.InputRegistration))
+		if (!RoundsRegistry.RoundStates.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
@@ -361,26 +369,28 @@ public partial class Arena : PeriodicRunner
 				Config.CoordinationFeeRate,
 				MaxSuggestedAmountProvider.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
 			Round r = new(roundParams);
-			Rounds.Add(r);
+			RoundsRegistry.AddRound(r);
 			r.LogInfo($"Created round with params: {nameof(RoundParameters.MaxRegistrableAmount)}:'{roundParams.MaxRegistrableAmount}'.");
 		}
 	}
 
 	private void TimeoutRounds()
 	{
-		foreach (var expiredRound in Rounds.Where(
+		foreach (var expiredRound in RoundsRegistry.RoundStates.Where(
 			x =>
 			x.Phase == Phase.Ended
 			&& x.End + Config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
 		{
-			Rounds.Remove(expiredRound);
+			RoundsRegistry.RemoveRound(expiredRound.Id);
 		}
 	}
 
-	private void TimeoutAlices()
+	private async Task TimeoutAlicesAsync()
 	{
-		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
+		foreach (var roundState in RoundsRegistry.RoundStates.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 		{
+			using var roundLock = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
+			var round = roundLock.Round;
 			var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 			if (removedAliceCount > 0)
 			{
@@ -453,19 +463,26 @@ public partial class Arena : PeriodicRunner
 		return coinjoin;
 	}
 
-	private Script GetCoordinatorScriptPreventReuse(Round round)
+	private async Task UpdateCoordinatorScriptPreventReuseNoLockAsync(Round round)
 	{
 		var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 
+		HashSet<Script> otherRoundCoordinatorScripts = new();
+		foreach (var roundState in RoundsRegistry.RoundStates.Where(rs => rs.Id != round.Id))
+		{
+			using var roundLockReleaser = await RoundsRegistry.LockRoundAsync(roundState.Id).ConfigureAwait(false);
+			otherRoundCoordinatorScripts.Add(roundLockReleaser.Round.CoordinatorScript);
+		}
+
 		// Prevent coord script reuse.
-		if (Rounds.Any(r => r.CoordinatorScript == coordinatorScriptPubKey))
+		if (otherRoundCoordinatorScripts.Contains(coordinatorScriptPubKey))
 		{
 			Config.MakeNextCoordinatorScriptDirty();
 			coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 			round.LogWarning("Coordinator script pub key was already used by another round, making it dirty and taking a new one.");
 		}
 
-		return coordinatorScriptPubKey;
+		round.CoordinatorScript = coordinatorScriptPubKey;
 	}
 
 	public override void Dispose()
