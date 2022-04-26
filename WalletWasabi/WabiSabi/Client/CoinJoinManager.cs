@@ -75,7 +75,7 @@ public class CoinJoinManager : BackgroundService
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
 		// Coinjoin handling Start / Stop and finallization.
-		var monitorAndHandleCoinjoinsTask = MonitorAndHandleConjoinsAsync(stoppingToken);
+		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
 
 		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
 
@@ -112,7 +112,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private async Task MonitorAndHandleConjoinsAsync(CancellationToken stoppingToken)
+	private async Task MonitorAndHandleCoinJoinsAsync(CancellationToken stoppingToken)
 	{
 		// This is a shared resource and that's why it is concurrent. Alternatives are locking structures,
 		// using a single lock around its access or use a channel.
