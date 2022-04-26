@@ -36,6 +36,7 @@ public class BlockchainAnalyzer
 		else
 		{
 			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
+			AdjustWalletInputsBefore(tx, distinctWalletInputPubKeys, newInputAnonset);
 
 			if (foreignInputCount == 0)
 			{
@@ -66,11 +67,6 @@ public class BlockchainAnalyzer
 		double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
 
 		newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
-
-		foreach (var key in distinctWalletInputPubKeys)
-		{
-			key.SetAnonymitySet(newInputAnonset);
-		}
 	}
 
 	/// <summary>
@@ -165,6 +161,14 @@ public class BlockchainAnalyzer
 				// It's address reuse.
 				hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1), txid);
 			}
+		}
+	}
+
+	private static void AdjustWalletInputsBefore(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
+	{
+		foreach (var key in distinctWalletInputPubKeys)
+		{
+			key.SetAnonymitySet(newInputAnonset);
 		}
 	}
 
