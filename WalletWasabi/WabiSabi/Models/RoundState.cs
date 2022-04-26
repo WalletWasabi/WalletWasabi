@@ -55,6 +55,29 @@ public record RoundState(
 			round.CoinjoinState.GetStateFrom(stateId)
 			);
 
+	public RoundState FromStateId(int stateId)
+	{
+		return new(
+			BlameOf,
+			AmountCredentialIssuerParameters,
+			VsizeCredentialIssuerParameters,
+			FeeRate,
+			CoordinationFeeRate,
+			Phase,
+			WasTransactionBroadcast,
+			InputRegistrationStart,
+			InputRegistrationTimeout,
+			ConnectionConfirmationTimeout,
+			OutputRegistrationTimeout,
+			TransactionSigningTimeout,
+			MaxAmountCredentialValue,
+			MaxVsizeCredentialValue,
+			MaxVsizeAllocationPerAlice,
+			MaxSuggestedAmount,
+			CoinjoinState.GetStateFrom(stateId)
+			);
+	}
+
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
 		{

@@ -42,7 +42,9 @@ public partial class Arena : PeriodicRunner
 		MaxSuggestedAmountProvider = new(Config);
 	}
 
-	private RoundsRegistry RoundsRegistry { get; } = new();
+	internal RoundsRegistry RoundsRegistry { get; } = new();
+
+	internal IEnumerable<Round> Rounds => RoundsRegistry.Rounds;
 
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
@@ -198,7 +200,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
-					UpdateCoordinatorScriptPreventReuseNoLockAsync(round);
+					await UpdateCoordinatorScriptPreventReuseNoLockAsync(round).ConfigureAwait(false);
 					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);

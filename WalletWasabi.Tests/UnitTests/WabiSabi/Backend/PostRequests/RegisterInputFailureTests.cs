@@ -97,7 +97,7 @@ public class RegisterInputFailureTests
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-		arena.Rounds.Add(round);
+		arena.RoundsRegistry.AddRound(round);
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WrongPhaseException>(

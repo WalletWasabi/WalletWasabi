@@ -55,7 +55,7 @@ public class RoundCreationTests
 
 		round.SetPhase(Phase.ConnectionConfirmation);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-		Assert.Equal(2, arena.Rounds.Count);
+		Assert.Equal(2, arena.Rounds.Count());
 
 		await arena.StopAsync(CancellationToken.None);
 	}
@@ -82,9 +82,9 @@ public class RoundCreationTests
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 		Assert.Equal(Phase.InputRegistration, blameRound.Phase);
-		arena.Rounds.Add(blameRound);
+		arena.RoundsRegistry.AddRound(blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-		Assert.Equal(3, arena.Rounds.Count);
+		Assert.Equal(3, arena.Rounds.Count());
 		Assert.Equal(2, arena.Rounds.Where(x => x.Phase == Phase.InputRegistration).Count());
 
 		await arena.StopAsync(CancellationToken.None);

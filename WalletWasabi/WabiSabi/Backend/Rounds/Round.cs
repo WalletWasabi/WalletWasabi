@@ -121,6 +121,21 @@ public class Round
 		}
 	}
 
+	public virtual bool IsInputRegistrationEnded(int maxInputCount)
+	{
+		if (Phase > Phase.InputRegistration)
+		{
+			return true;
+		}
+
+		if (Alices.Count >= maxInputCount)
+		{
+			return true;
+		}
+
+		return InputRegistrationTimeFrame.HasExpired;
+	}
+
 	public ConstructionState AddInput(Coin coin)
 		=> Assert<ConstructionState>().AddInput(coin);
 

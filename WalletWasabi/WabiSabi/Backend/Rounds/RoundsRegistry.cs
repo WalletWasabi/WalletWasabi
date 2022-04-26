@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
@@ -17,6 +18,8 @@ internal class RoundsRegistry
 	public ImmutableList<ArenaRoundState> RoundStates { get; private set; } = ImmutableList.Create<ArenaRoundState>();
 
 	private ConcurrentDictionary<uint256, RoundRegistryItem> RoundRegistryItems { get; } = new();
+
+	internal IEnumerable<Round> Rounds => RoundRegistryItems.Values.Select(x => x.Round);
 
 	public void AddRound(Round round)
 	{
@@ -57,6 +60,18 @@ internal class RoundsRegistry
 		}
 		throw new InvalidOperationException();
 	}
+
+	public ArenaRoundState GetRoundState(uint256 roundId) =>
+		RoundStates.FirstOrDefault(x => x.Id == roundId)
+			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({roundId}) not found.");
+
+	private ArenaRoundState InPhase(ArenaRoundState round, Phase[] phases) =>
+		phases.Contains(round.Phase)
+		? round
+		: throw new WrongPhaseException(RoundRegistryItems[round.Id].Round, phases);
+
+	public ArenaRoundState GetRoundState(uint256 roundId, params Phase[] phases) =>
+		InPhase(GetRoundState(roundId), phases);
 }
 
 public record RoundRegistryItem(Round Round, AsyncReaderWriterLock AsyncReaderWriterLock);

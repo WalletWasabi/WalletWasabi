@@ -39,7 +39,7 @@ public class ArenaBuilder
 
 		foreach (var round in rounds)
 		{
-			arena.Rounds.Add(round);
+			arena.RoundsRegistry.AddRound(round);
 		}
 
 		return arena;
