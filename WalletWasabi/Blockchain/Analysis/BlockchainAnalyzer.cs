@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.Analysis;
@@ -35,7 +36,7 @@ public class BlockchainAnalyzer
 		}
 		else
 		{
-			AnalyzeWalletInputs(tx, out int newInputAnonset);
+			AnalyzeWalletInputs(tx, out int newInputAnonset, out int sanctionedInputAnonset);
 			AdjustWalletInputsBefore(tx, newInputAnonset);
 
 			if (foreignInputCount == 0)
@@ -54,7 +55,10 @@ public class BlockchainAnalyzer
 	}
 
 	/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
-	private void AnalyzeWalletInputs(SmartTransaction tx, out int newInputAnonset)
+	private void AnalyzeWalletInputs(
+		SmartTransaction tx,
+		out int newInputAnonset,
+		out int sanctionedInputAnonset)
 	{
 		// We want to weaken the punishment if the input merge happens in coinjoins.
 		// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
@@ -64,6 +68,20 @@ public class BlockchainAnalyzer
 		double coefficient = (double)tx.WalletVirtualInputs.Count / (tx.ForeignInputs.Count + tx.WalletVirtualInputs.Count);
 
 		newInputAnonset = Intersect(tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet), coefficient);
+
+		// If we remix with siblings from earlier CoinJoins, then we must avoid double-counting their contribution to our anonymity set.
+		// Search the history of each input to find any siblings with which we are remixing in the current transaction.
+		// Discount the anonymity gain that we got from them earlier and are now losing due to the remix.
+		CoinjoinAnalyzer coinjoinAnalyzer = new(tx);
+		List<int> anonsets = new();
+		foreach (var virtualInput in tx.WalletVirtualInputs)
+		{
+			anonsets.Add(virtualInput.SmartCoins.Select(i => Math.Max(1, virtualInput.HdPubKey.AnonymitySet - (int)coinjoinAnalyzer.ComputeInputSanction(i))).Min());
+		}
+
+		// Recompute newInputAnonset using the discounted anonsets.
+		// This result is used as the base for computing the anonymity of this transaction's outputs.
+		sanctionedInputAnonset = Intersect(anonsets, coefficient);
 	}
 
 	/// <summary>
