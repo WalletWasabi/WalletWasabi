@@ -3,9 +3,12 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Blockchain;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -52,6 +55,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		_walletInputs.Add(input);
 		_foreignInputs = null;
+		_walletVirtualInputs = null;
 	}
 
 	public IReadOnlyCollection<SmartCoin> WalletOutputs
@@ -66,12 +70,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		_walletOutputs.Add(output);
 		_foreignOutputs = null;
+		_walletVirtualOutputs = null;
+		_foreignVirtualOutputs = null;
 	}
 
 	public void RemoveWalletOutput(SmartCoin output)
 	{
 		_walletOutputs.Remove(output);
 		_foreignOutputs = null;
+		_walletVirtualOutputs = null;
+		_foreignVirtualOutputs = null;
 	}
 
 	[JsonProperty]
@@ -146,6 +154,31 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
+	public IReadOnlyCollection<WalletVirtualInput> WalletVirtualInputs
+	{
+		get
+		{
+			return _walletVirtualInputs ??= GetWalletVirtualInputs();
+		}
+	}
+
+	public IReadOnlyCollection<WalletVirtualOutput> WalletVirtualOutputs
+	{
+		get
+		{
+			return _walletVirtualOutputs ??= GetWalletVirtualOutputs();
+		}
+
+	}
+
+	public IReadOnlyCollection<ForeignVirtualOutput> ForeignVirtualOutputs
+	{
+		get
+		{
+			return _foreignVirtualOutputs ??= GetForeignVirtualOutputs();
+		}
+	}
+
 	/// <summary>
 	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
@@ -159,6 +192,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private HashSet<IndexedTxIn>? _foreignInputs = null;
 	private HashSet<IndexedTxOut>? _foreignOutputs = null;
 
+	private HashSet<WalletVirtualInput>? _walletVirtualInputs = null;
+	private HashSet<WalletVirtualOutput>? _walletVirtualOutputs = null;
+	private HashSet<ForeignVirtualOutput>? _foreignVirtualOutputs = null;
+
 	#endregion Members
 
 	public HashSet<IndexedTxIn> GetForeignInputs()
@@ -171,6 +208,39 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
 		return Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+	}
+
+	private static byte[] ExtractKeyId(Script scriptPubKey)
+		=> scriptPubKey.GetScriptType() switch
+		{
+			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey).ToBytes(),
+			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey).ToBytes(),
+			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey).ToBytes(),
+			_ => scriptPubKey.ToBytes()
+		};
+
+	private static byte[] ExtractKeyId(HdPubKey hdPubKey) => hdPubKey.PubKey.ToBytes();
+
+	public HashSet<WalletVirtualInput> GetWalletVirtualInputs()
+	{
+		Func<IGrouping<byte[], SmartCoin>, WalletVirtualInput> groupToVirtualInput = g => new WalletVirtualInput(g.First().HdPubKey, g.ToHashSet());
+		return WalletInputs.GroupBy(i => ExtractKeyId(i.HdPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualInput).ToHashSet();
+	}
+
+	public HashSet<WalletVirtualOutput> GetWalletVirtualOutputs()
+	{
+
+		var transactionHash = GetHash();
+		Func<IGrouping<byte[], SmartCoin>, WalletVirtualOutput> groupToVirtualOutput = g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(transactionHash, o.Index)).ToHashSet());
+		return WalletOutputs.GroupBy(o => ExtractKeyId(o.HdPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualOutput).ToHashSet();
+	}
+
+	public HashSet<ForeignVirtualOutput> GetForeignVirtualOutputs()
+	{
+
+		var transactionHash = GetHash();
+		Func<IGrouping<byte[], IndexedTxOut>, ForeignVirtualOutput> groupToVirtualOutput = g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(transactionHash, o.N)).ToHashSet());
+		return ForeignOutputs.GroupBy(o => ExtractKeyId(o.TxOut.ScriptPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualOutput).ToHashSet();
 	}
 
 	/// <summary>
