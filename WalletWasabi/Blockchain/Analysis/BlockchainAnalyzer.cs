@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Blockchain.Analysis;
@@ -89,6 +90,36 @@ public class BlockchainAnalyzer
 		// The minimum anonymity set size is 1, enforce it when the punishment is very large.
 		var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
 		return normalizedIntersectionAnonset;
+	}
+
+	decimal ComputeInputSanction(SmartTransaction analyzedTransaction, SmartCoin transactionInput)
+	{
+		HashSet<OutPoint> analyzedTransactionPrevOuts = analyzedTransaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
+
+		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
+		{
+			SmartTransaction transaction = transactionOutput.Transaction;
+			decimal sanction = ComputeAnonymityContribution(transactionOutput, analyzedTransactionPrevOuts);
+			return sanction + transaction.WalletInputs.Select(ComputeInputSanctionHelper).Sum();
+		}
+
+		return ComputeInputSanctionHelper(transactionInput);
+	}
+
+	decimal ComputeAnonymityContribution(SmartCoin transactionOutput, HashSet<OutPoint>? relevantOutpoints = null)
+	{
+		SmartTransaction transaction = transactionOutput.Transaction;
+		IEnumerable<VirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
+		IEnumerable<VirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
+
+		Money amount = walletVirtualOutputs.Where(o => o.Outpoints.Contains(transactionOutput.OutPoint)).First().Amount;
+		Func<VirtualOutput, bool> isEqualValueVirtualOutput = x => x.Amount == amount;
+		Func<VirtualOutput, bool> isRelevantVirtualOutput = output => relevantOutpoints is null ? true : relevantOutpoints.Intersect(output.Outpoints).Any();
+
+		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(isEqualValueVirtualOutput).Count();
+		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(isEqualValueVirtualOutput).Where(isRelevantVirtualOutput).Count();
+
+		return (decimal)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
 
 	private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset)
