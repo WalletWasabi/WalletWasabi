@@ -16,7 +16,6 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	private static int GetRandom(int minInclusive, int maxExclusive)
 	{
-		using SecureRandom rand = new();
-		return rand.GetInt(minInclusive, maxExclusive);
+		return SecureRandom.Instance.GetInt(minInclusive, maxExclusive);
 	}
 }
