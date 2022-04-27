@@ -435,7 +435,7 @@ public static class Program
 				var controlFileContent = $"Package: {ExecutableName}\n" +
 					$"Priority: optional\n" +
 					$"Section: utils\n" +
-					$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
+					$"Maintainer: zkSNACKs Ltd\n" +
 					$"Version: {VersionPrefix}\n" +
 					$"Homepage: https://wasabiwallet.io\n" +
 					$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
@@ -459,7 +459,7 @@ public static class Program
 					$"Terminal=false\n" +
 					$"Exec={ExecutableName}\n" +
 					$"Categories=Office;Finance;\n" +
-					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
+					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;\n";
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
