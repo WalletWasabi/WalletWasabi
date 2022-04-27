@@ -377,18 +377,16 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
+		var responseRoundStates = RoundStates.Select(x =>
 		{
-			var roundStates = Rounds.Select(x =>
-			{
-				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
-				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
-			}).ToArray();
+			requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint);
+			return x.GetSubState(checkPoint == default ? 0 : checkPoint.StateId);
+		}).ToArray();
 
-			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>());
-		}
+		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 	}
 
 	private Round GetRound(uint256 roundId) =>
