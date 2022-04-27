@@ -137,14 +137,14 @@ public class CoinJoinManager : BackgroundService
 			var walletToStart = startCommand.Wallet;
 			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker) && !tracker.IsCompleted)
 			{
-				Logger.LogDebug($"Cannot start CoinJoin for wallet '{walletToStart.WalletName}', bacause it is already running .");
+				Logger.LogDebug($"Cannot start coinjoin for wallet '{walletToStart.WalletName}', bacause it is already running .");
 				return;
 			}
 
 			// Only take PlebStop into account when AutoCoinJoin.
 			if (startCommand.RestartAutomatically && walletToStart.NonPrivateCoins.TotalAmount() <= walletToStart.KeyManager.PlebStopThreshold)
 			{
-				Logger.LogDebug($"PlebStop preventing CoinJoin for wallet '{walletToStart.WalletName}'.");
+				Logger.LogDebug($"PlebStop preventing coinjoin for wallet '{walletToStart.WalletName}'.");
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 				ScheduleRestartAutomatically(walletToStart);
 				return;
@@ -167,7 +167,7 @@ public class CoinJoinManager : BackgroundService
 			trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
-			Logger.LogDebug($"CoinJoin client started for wallet '{walletToStart.WalletName}'.");
+			Logger.LogDebug($"Coinjoin client started for wallet '{walletToStart.WalletName}'.");
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
