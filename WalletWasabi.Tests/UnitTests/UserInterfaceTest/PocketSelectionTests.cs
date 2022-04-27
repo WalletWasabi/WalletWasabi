@@ -361,8 +361,10 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var usedCoins = new List<SmartCoin>();
-		usedCoins.Add(privateCoin);
+		var usedCoins = new List<SmartCoin>
+		{
+			privateCoin
+		};
 		usedCoins.AddRange(pocket2.Coins);
 
 		selection.SetUsedLabel(usedCoins, 10);

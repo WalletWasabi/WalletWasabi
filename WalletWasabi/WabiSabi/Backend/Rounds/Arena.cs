@@ -34,7 +34,6 @@ public partial class Arena : PeriodicRunner
 		Rpc = rpc;
 		Prison = prison;
 		TransactionArchiver = archiver;
-		Random = new SecureRandom();
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		MaxSuggestedAmountProvider = new(Config);
@@ -46,7 +45,6 @@ public partial class Arena : PeriodicRunner
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
-	private SecureRandom Random { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
@@ -337,7 +335,7 @@ public partial class Arena : PeriodicRunner
 	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
 	{
 		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-		RoundParameters parameters = new(Config, Network, Random, feeRate, round.CoordinationFeeRate, round.MaxSuggestedAmount);
+		RoundParameters parameters = new(Config, Network, SecureRandom.Instance, feeRate, round.CoordinationFeeRate, round.MaxSuggestedAmount);
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !Prison.IsBanned(x))
@@ -356,7 +354,7 @@ public partial class Arena : PeriodicRunner
 			RoundParameters roundParams = new(
 				Config,
 				Network,
-				Random,
+				SecureRandom.Instance,
 				feeRate,
 				Config.CoordinationFeeRate,
 				MaxSuggestedAmountProvider.GetMaxSuggestedAmount(ConnectionConfirmationStartedCounter));
@@ -400,7 +398,7 @@ public partial class Arena : PeriodicRunner
 		var diffMoney = Money.Satoshis(diff) - coinjoin.Parameters.FeeRate.GetFee(blameScript.EstimateOutputVsize());
 		if (diffMoney > coinjoin.Parameters.AllowedOutputAmounts.Min)
 		{
-			// If diff is smaller than max feerate of a tx, then add it as fee.
+			// If diff is smaller than max fee rate of a tx, then add it as fee.
 			var highestFeeRate = (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
 			if (coinjoin.EffectiveFeeRate > highestFeeRate)
@@ -457,7 +455,7 @@ public partial class Arena : PeriodicRunner
 	{
 		var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 
-		// Prevent coord script reuse.
+		// Prevent coordinator script reuse.
 		if (Rounds.Any(r => r.CoordinatorScript == coordinatorScriptPubKey))
 		{
 			Config.MakeNextCoordinatorScriptDirty();
@@ -466,11 +464,5 @@ public partial class Arena : PeriodicRunner
 		}
 
 		return coordinatorScriptPubKey;
-	}
-
-	public override void Dispose()
-	{
-		Random.Dispose();
-		base.Dispose();
 	}
 }

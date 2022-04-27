@@ -148,9 +148,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		var pocketsToReturn = NonPrivatePockets.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToList();
 
-		if (_includePrivatePocket && _privatePocket is { } privatePocket)
+		if (_includePrivatePocket)
 		{
-			pocketsToReturn.Add(privatePocket);
+			pocketsToReturn.Add(_privatePocket);
 		}
 
 		return pocketsToReturn.ToArray();
