@@ -78,6 +78,7 @@ public partial class Arena : PeriodicRunner
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
+			// RoundStates have to contain all states. Do not change stateId=0.
 			RoundStates = Rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
 		}
 	}
