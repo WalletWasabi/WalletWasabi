@@ -382,8 +382,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
 		var responseRoundStates = RoundStates.Select(x =>
 		{
-			requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint);
-			return x.GetSubState(checkPoint == default ? 0 : checkPoint.StateId);
+			if (requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint) && checkPoint.StateId != 0)
+			{
+				return x.GetSubState(checkPoint.StateId);
+			}
+
+			return x;
 		}).ToArray();
 
 		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
