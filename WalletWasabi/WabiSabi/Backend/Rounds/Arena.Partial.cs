@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
+using System.Collections.Immutable;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -400,20 +401,20 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		var start = DateTimeOffset.UtcNow;
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			var roundStates = Rounds.Select(x =>
-			{
-				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
-				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
-			}).ToArray();
 
-			ArenaTimeBenchmarker.AddGetStatus(DateTimeOffset.UtcNow - start);
-			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>());
-		}
+		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
+
+		var responseRoundStates = RoundStates.Select(x =>
+		{
+			requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint);
+			return x.GetSubState(checkPoint == default ? 0 : checkPoint.StateId);
+		}).ToArray();
+
+		ArenaTimeBenchmarker.AddGetStatus(DateTimeOffset.UtcNow - start);
+		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 	}
 
 	private Round GetRound(uint256 roundId) =>
