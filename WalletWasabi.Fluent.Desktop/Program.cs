@@ -4,6 +4,7 @@ using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using Splat;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
@@ -33,10 +34,13 @@ public class Program
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 		bool runGui = true;
+		bool runGuiMinimized = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		SetupLogger(dataDir, args);
+
+		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none") }.");
 
 		try
 		{
@@ -61,6 +65,7 @@ public class Program
 			try
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
+
 				using SingleInstanceChecker singleInstanceChecker = new(config.Network);
 				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 

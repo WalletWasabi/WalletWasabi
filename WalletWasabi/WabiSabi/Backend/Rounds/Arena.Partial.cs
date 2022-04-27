@@ -12,6 +12,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -71,7 +72,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// that it is not guessable (Guid.NewGuid() documentation does
 			// not say anything about GUID version or randomness source,
 			// only that the probability of duplicates is very low).
-			var id = new Guid(Random.GetBytes(16));
+			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
 			var isPayingZeroCoordinationFee = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
 
@@ -321,6 +322,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		if (request.RealAmountCredentialRequests.Delta != 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
+		}
+
+		if (request.RealVsizeCredentialRequests.Delta != 0)
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Vsize credentials delta must be zero.");
 		}
 
 		if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using System.Globalization;
+using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Converters;
 
@@ -18,7 +19,7 @@ public class NavBarIconConverter : IValueConverter
 		{
 			if (Application.Current.Styles.TryGetResource(iconName, out object? resource))
 			{
-				return resource ?? AvaloniaProperty.UnsetValue;
+				return resource is not StreamGeometry ? AvaloniaProperty.UnsetValue : resource;
 			}
 		}
 

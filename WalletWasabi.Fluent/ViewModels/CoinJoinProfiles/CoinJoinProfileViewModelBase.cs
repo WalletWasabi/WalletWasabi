@@ -1,5 +1,3 @@
-using Avalonia.Media;
-
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public abstract class CoinJoinProfileViewModelBase : ViewModelBase
