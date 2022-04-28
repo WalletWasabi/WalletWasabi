@@ -13,10 +13,10 @@ public static class MacSignTools
 {
 	public static void Sign(ArgsProcessor argsProcessor)
 	{
-		//if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		//{
-		//	throw new NotSupportedException("This signing method is only valid on macOS!");
-		//}
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			throw new NotSupportedException("This signing method is only valid on macOS!");
+		}
 
 		Console.WriteLine("Phase: finding the zip file on desktop which contains the compiled binaries from Windows.");
 
@@ -58,7 +58,7 @@ public static class MacSignTools
 			var appResPath = Path.Combine(appContentsPath, "Resources");
 			var appFrameworksPath = Path.Combine(appContentsPath, "Frameworks");
 			var infoFilePath = Path.Combine(appContentsPath, "Info.plist");
-			var dmgFileName = zipFile.Replace("WasabiToNotarize", "Wasabi").Replace("zip","dmg");
+			var dmgFileName = zipFile.Replace("WasabiToNotarize", "Wasabi").Replace("zip", "dmg");
 			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
 			var dmgUnzippedFilePath = Path.Combine(workingDir, $"Wasabi.tmp.dmg");
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
