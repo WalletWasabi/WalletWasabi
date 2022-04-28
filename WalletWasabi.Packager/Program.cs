@@ -160,7 +160,7 @@ public static class Program
 				{
 					throw new Exception(".dmg does not exist.");
 				}
-				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip");
+				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip");
 				if (File.Exists(zipFilePath))
 				{
 					File.Delete(zipFilePath);
@@ -319,7 +319,7 @@ public static class Program
 					continue; // In Windows build at this moment it does not matter though.
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -334,14 +334,14 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip"));
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {currentBinDistDirectory}");
@@ -354,7 +354,7 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -609,5 +609,15 @@ public static class Program
 		}
 
 		return false;
+	}
+
+	private static string GetPackageTargetPostfix(string target)
+	{
+		if (target.StartsWith("osx"))
+		{
+			return target.Replace("osx", "macOS");
+		}
+
+		return target;
 	}
 }
