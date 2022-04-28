@@ -19,9 +19,6 @@ public partial class TransactionInfo
 	{
 		_privateCoinThreshold = minAnonScoreTarget;
 
-		this.WhenAnyValue(x => x.FeeRate)
-			.Subscribe(_ => OnFeeChanged());
-
 		this.WhenAnyValue(x => x.Coins)
 			.Subscribe(_ => OnCoinsChanged());
 	}
@@ -62,11 +59,6 @@ public partial class TransactionInfo
 		{
 			FeeRate = FeeRate.Zero;
 		}
-	}
-
-	private void OnFeeChanged()
-	{
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
 	}
 
 	private void OnCoinsChanged()
