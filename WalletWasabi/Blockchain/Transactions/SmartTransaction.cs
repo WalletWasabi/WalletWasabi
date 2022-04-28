@@ -149,7 +149,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey).ToBytes(),
 			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey).ToBytes(),
-			_ => throw new NotImplementedException()
+			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey).ToBytes(),
+			_ => scriptPubKey.ToBytes()
 		};
 
 	private static byte[] ExtractKeyId(HdPubKey hdPubKey) => hdPubKey.PubKey.ToBytes();
