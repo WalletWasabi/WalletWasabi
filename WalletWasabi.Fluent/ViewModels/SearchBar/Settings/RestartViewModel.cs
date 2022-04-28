@@ -1,4 +1,4 @@
-using System.Reactive;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -14,5 +14,5 @@ public class RestartViewModel: ViewModelBase
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 	}
 
-	public ReactiveCommand<Unit, Unit> RestartCommand { get; }
+	public ICommand RestartCommand { get; }
 }
