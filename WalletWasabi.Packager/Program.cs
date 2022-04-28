@@ -24,10 +24,6 @@ namespace WalletWasabi.Packager;
 /// </summary>
 public static class Program
 {
-	public const bool DoPublish = false;
-	public const bool DoSign = true;
-	public const bool DoRestoreProgramCs = false;
-
 	public const string PfxPath = "C:\\digicert.pfx";
 	public const string ExecutableName = Constants.ExecutableName;
 
@@ -74,7 +70,7 @@ public static class Program
 
 		ReportStatus();
 
-		if (DoPublish || OnlyBinaries)
+		if (argsProcessor.IsPublish() || OnlyBinaries)
 		{
 			await PublishAsync().ConfigureAwait(false);
 
@@ -84,14 +80,9 @@ public static class Program
 #pragma warning disable CS0162 // Unreachable code detected
 		if (!OnlyBinaries)
 		{
-			if (DoSign)
+			if (argsProcessor.IsSign())
 			{
 				await SignAsync().ConfigureAwait(false);
-			}
-
-			if (DoRestoreProgramCs)
-			{
-				RestoreProgramCs();
 			}
 		}
 #pragma warning restore CS0162 // Unreachable code detected
@@ -120,11 +111,6 @@ public static class Program
 			}
 		}
 		Console.WriteLine();
-	}
-
-	private static void RestoreProgramCs()
-	{
-		StartProcessAndWaitForExit("git", PackagerProjectDirectory, arguments: "checkout -- Program.cs");
 	}
 
 	private static async Task SignAsync()
