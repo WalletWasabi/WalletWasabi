@@ -309,6 +309,11 @@ public static class MacSignTools
 
 			var toRemovableFilePath = Path.Combine(removableDriveFolder, Path.GetFileName(desktopDmgFilePath));
 			File.Move(desktopDmgFilePath, toRemovableFilePath, true);
+
+			if (File.Exists(zipPath))
+			{
+				File.Delete(zipPath);
+			}
 		}
 	}
 
