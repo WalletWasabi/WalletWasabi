@@ -24,8 +24,8 @@ namespace WalletWasabi.Packager;
 /// </summary>
 public static class Program
 {
-	public const bool DoPublish = true;
-	public const bool DoSign = false;
+	public const bool DoPublish = false;
+	public const bool DoSign = true;
 	public const bool DoRestoreProgramCs = false;
 
 	public const string PfxPath = "C:\\digicert.pfx";
@@ -143,7 +143,7 @@ public static class Program
 				}
 				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-				File.Copy(msiPath, newMsiPath);
+				File.Copy(msiPath, newMsiPath, true);
 
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
@@ -156,16 +156,16 @@ public static class Program
 			}
 			else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
 			{
-				string dmgFilePath = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.dmg");
+				string dmgFileName = target.Contains("arm") ? $"Wasabi-{VersionPrefix}.dmg" : $"Wasabi-{VersionPrefix}-arm64.dmg";
+				string dmgFilePath = Path.Combine(Tools.GetSingleUsbDrive(), dmgFileName);
+
 				if (!File.Exists(dmgFilePath))
 				{
 					throw new Exception(".dmg does not exist.");
 				}
-				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip");
-				if (File.Exists(zipFilePath))
-				{
-					File.Delete(zipFilePath);
-				}
+
+				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
+				File.Move(dmgFilePath, destinationFilePath);
 			}
 		}
 
