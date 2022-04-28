@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
@@ -9,11 +8,11 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public class SearchBarViewModel : ReactiveObject
+public partial class SearchBarViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
-	private bool _isSearchListVisible;
-	private string _searchText;
+	[AutoNotify] private bool _isSearchListVisible;
+	[AutoNotify] private string _searchText;
 
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
@@ -33,25 +32,9 @@ public class SearchBarViewModel : ReactiveObject
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
-
-		ShowListCommand = ReactiveCommand.Create(() => IsSearchListVisible = true);
 	}
-
-	public ReactiveCommand<Unit, bool> ShowListCommand { get; set; }
-
-	public bool IsSearchListVisible
-	{
-		get => _isSearchListVisible;
-		set => this.RaiseAndSetIfChanged(ref _isSearchListVisible, value);
-	}
-
+	
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
-
-	public string SearchText
-	{
-		get => _searchText;
-		set => this.RaiseAndSetIfChanged(ref _searchText, value);
-	}
 
 	private static Func<ISearchItem, bool> SearchItemFilterFunc(string? text)
 	{

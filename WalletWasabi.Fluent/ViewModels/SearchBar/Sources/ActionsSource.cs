@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -21,8 +22,8 @@ public class ActionsSource : ISearchItemSource
 			.Where(m => m.Searchable)
 			.Select(m =>
 			{
-				var func = CreateFunc(m);
-				var searchItem = new ActionableItem(m.Title, m.Caption, func, m.Category ?? "No category", m.Keywords)
+				var onActivate = CreateOnActivateFunction(m);
+				var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category ?? "No category", m.Keywords)
 				{
 					Icon = m.IconName,
 					IsDefault = true,
@@ -31,7 +32,7 @@ public class ActionsSource : ISearchItemSource
 			});
 	}
 
-	private static Func<Task> CreateFunc(NavigationMetaData navigationMetaData)
+	private static Func<Task> CreateOnActivateFunction(NavigationMetaData navigationMetaData)
 	{
 		return async () =>
 		{
@@ -41,19 +42,14 @@ public class ActionsSource : ISearchItemSource
 				return;
 			}
 
-			Navigate(vm.DefaultTarget).To(vm);
-		};
-	}
-
-	private static INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
-	{
-		return currentTarget switch
-		{
-			NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
-			NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
-			NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
-			NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
-			_ => throw new NotSupportedException()
+			if (vm is NavBarItemViewModel item && item.OpenCommand.CanExecute(default))
+			{
+				item.OpenCommand.Execute(default);
+			}
+			else
+			{
+				RoutableViewModel.Navigate(vm.DefaultTarget).To(vm);
+			}
 		};
 	}
 }
