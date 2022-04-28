@@ -9,9 +9,9 @@ public static class PropertyHelper<T>
 		Expression<Func<T, TValue>> selector)
 	{
 		Expression body = selector;
-		if (body is LambdaExpression)
+		if (body is LambdaExpression expression)
 		{
-			body = ((LambdaExpression)body).Body;
+			body = expression.Body;
 		}
 
 		return body.NodeType switch
