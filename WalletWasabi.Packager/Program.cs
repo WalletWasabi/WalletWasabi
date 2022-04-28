@@ -506,7 +506,6 @@ public static class Program
 	private static void CheckUncommittedGitChanges()
 	{
 		if (TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, out var gitStatus, arguments: "status --porcelain", redirectStandardOutput: true) && !string.IsNullOrEmpty(gitStatus))
-
 		{
 			Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
 			int i = Console.Read();
