@@ -171,7 +171,7 @@ public static class Program
 				{
 					throw new Exception(".dmg does not exist.");
 				}
-				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip");
+				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip");
 				if (File.Exists(zipFilePath))
 				{
 					File.Delete(zipFilePath);
@@ -477,7 +477,7 @@ public static class Program
 				var controlFileContent = $"Package: {ExecutableName}\n" +
 					$"Priority: optional\n" +
 					$"Section: utils\n" +
-					$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
+					$"Maintainer: zkSNACKs Ltd <info@zksnacks.com>\n" +
 					$"Version: {VersionPrefix}\n" +
 					$"Homepage: https://wasabiwallet.io\n" +
 					$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
@@ -501,7 +501,7 @@ public static class Program
 					$"Terminal=false\n" +
 					$"Exec={ExecutableName}\n" +
 					$"Categories=Office;Finance;\n" +
-					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
+					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;\n";
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
@@ -548,7 +548,6 @@ public static class Program
 	private static void CheckUncommittedGitChanges()
 	{
 		if (TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, out var gitStatus, arguments: "status --porcelain", redirectStandardOutput: true) && !string.IsNullOrEmpty(gitStatus))
-
 		{
 			Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
 			int i = Console.Read();
@@ -640,6 +639,7 @@ public static class Program
 	private static bool TryStartProcessAndWaitForExit(string command, string workingDirectory, [NotNullWhen(true)] out string? result, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
 	{
 		result = null;
+
 		try
 		{
 			result = StartProcessAndWaitForExit(command, workingDirectory, writeToStandardInput, arguments, redirectStandardOutput)?.Trim() ?? "";
@@ -649,6 +649,7 @@ public static class Program
 		{
 			Console.WriteLine($"Process failed: '{ex}'.");
 		}
+
 		return false;
 	}
 
