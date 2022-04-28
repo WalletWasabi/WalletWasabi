@@ -1,5 +1,7 @@
+// This file belongs to CSharpFunctionalExtensions (https://github.com/vkhorikov/CSharpFunctionalExtensions)
+// It's been checked by the owners and collaborators with extensive tests. Therefore, we aren't actively maintaining/editing it to comply with our coding style and standards.
+
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
@@ -7,7 +9,6 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 #nullable disable
 
 [Serializable]
-[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 public abstract class ValueObject : IComparable, IComparable<ValueObject>
 {
 	private int? _cachedHashCode;
