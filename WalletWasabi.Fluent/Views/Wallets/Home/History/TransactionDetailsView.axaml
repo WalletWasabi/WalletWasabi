@@ -75,7 +75,7 @@
                      Label="Labels"
                      TextValue="{Binding Labels}">
         <c:PrivacyContentControl NumberOfPrivacyChars="20">
-          <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
+          <c:LabelsListBox Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
     </StackPanel>
