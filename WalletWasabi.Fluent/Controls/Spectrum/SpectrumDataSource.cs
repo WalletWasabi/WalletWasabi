@@ -7,24 +7,13 @@ public abstract class SpectrumDataSource
 	private float[] _averaged;
 	private DispatcherTimer _timer;
 
+	public bool ShouldRender { get; set; }
+
 	public SpectrumDataSource(int numBins, int numAverages, TimeSpan mixInterval)
 	{
 		Bins = new float[numBins];
 		_averaged = new float[numBins];
-
-		_timer = new DispatcherTimer
-		{
-			Interval = mixInterval
-		};
-
-		_timer.Tick += TimerOnTick;
-
 		NumAverages = numAverages;
-	}
-
-	private void TimerOnTick(object? sender, EventArgs e)
-	{
-		OnMixData();
 	}
 
 	public int NumAverages { get; }
@@ -39,6 +28,8 @@ public abstract class SpectrumDataSource
 
 	public void Render(ref float[] data)
 	{
+		OnMixData();
+
 		for (int i = 0; i < NumBins; i++)
 		{
 			_averaged[i] -= _averaged[i] / NumAverages;
@@ -50,11 +41,12 @@ public abstract class SpectrumDataSource
 
 	public void Start()
 	{
-		_timer.Start();
+		ShouldRender = true;
 	}
+
 
 	public void Stop()
 	{
-		_timer.Stop();
+		ShouldRender = false;
 	}
 }
