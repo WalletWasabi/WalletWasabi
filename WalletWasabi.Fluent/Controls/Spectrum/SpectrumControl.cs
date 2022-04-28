@@ -113,7 +113,17 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			source.Render(ref _data);
 		}
 
-		context.Custom(this);
+		var sum = 0f;
+
+		for (var i = 0; i < NumBins; i++)
+		{
+			sum += _data[i] ;
+		}
+
+		if (sum > 0.00001f) // Arbitrary zero
+		{
+			context.Custom(this);
+		}
 
 		Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
