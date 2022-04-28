@@ -53,7 +53,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			cancellationToken).ConfigureAwait(false);
-
+		List<Money> amounts = new();
 		await foreach (var selection in selections)
 		{
 			if (selection.Any())
@@ -66,10 +66,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					selection,
 					tryToSign: false);
 
-				yield return new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-					transaction,
-					wallet.Synchronizer.UsdExchangeRate);
+				var destinationAmount = transaction.CalculateDestinationAmount();
+
+				if (!amounts.Contains(destinationAmount))
+				{
+					amounts.Add(destinationAmount);
+					yield return new ChangeAvoidanceSuggestionViewModel(
+						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+						transaction,
+						wallet.Synchronizer.UsdExchangeRate);
+				}
 			}
 		}
 	}
