@@ -244,7 +244,7 @@ public class StepTransactionSigningTests
 		var round = Assert.Single(arena.Rounds);
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 
-		// Refresh the Arena States because of vsize manupulation.
+		// Refresh the Arena States because of vsize manipulation.
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
