@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -58,7 +58,7 @@ public static class MacSignTools
 			var appResPath = Path.Combine(appContentsPath, "Resources");
 			var appFrameworksPath = Path.Combine(appContentsPath, "Frameworks");
 			var infoFilePath = Path.Combine(appContentsPath, "Info.plist");
-			var dmgFileName = zipFile.Replace("WasabiToNotarize", "Wasabi");
+			var dmgFileName = zipFile.Replace("WasabiToNotarize", "Wasabi").Replace("zip","dmg");
 			var dmgFilePath = Path.Combine(workingDir, dmgFileName);
 			var dmgUnzippedFilePath = Path.Combine(workingDir, $"Wasabi.tmp.dmg");
 			var appNotarizeFilePath = Path.Combine(workingDir, $"Wasabi-{versionPrefix}.zip");
