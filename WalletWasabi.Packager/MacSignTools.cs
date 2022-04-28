@@ -11,7 +11,7 @@ namespace WalletWasabi.Packager;
 
 public static class MacSignTools
 {
-	public static void Sign()
+	public static void Sign(ArgsProcessor argsProcessor)
 	{
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
@@ -53,21 +53,19 @@ public static class MacSignTools
 
 		Console.WriteLine("Phase: creating the working directory.");
 
-		string? appleId = null;
-		string? password = null;
-		do
+		var (appleId, password) = argsProcessor.GetAppleIdAndPassword();
+
+		while (string.IsNullOrWhiteSpace(appleId))
 		{
 			Console.WriteLine("Enter appleId (email):");
 			appleId = Console.ReadLine();
 		}
-		while (string.IsNullOrWhiteSpace(appleId));
 
-		do
+		while (string.IsNullOrWhiteSpace(password))
 		{
 			Console.WriteLine("Enter password:");
 			password = Console.ReadLine();
 		}
-		while (string.IsNullOrWhiteSpace(password));
 
 		if (Directory.Exists(workingDir))
 		{

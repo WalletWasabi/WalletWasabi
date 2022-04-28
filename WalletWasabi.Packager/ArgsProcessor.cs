@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace WalletWasabi.Packager;
 
 /// <summary>
@@ -32,5 +34,26 @@ public class ArgsProcessor
 		}
 
 		return false;
+	}
+
+	public (string AppleId, string Password) GetAppleIdAndPassword()
+	{
+		string appleId = "";
+		string password = "";
+
+		try
+		{
+			var appleidArg = Args.Where(a => a.Contains("appleid", StringComparison.InvariantCultureIgnoreCase)).First();
+			var parameters = appleidArg.Split("=")[1];
+			var idAndPassword = parameters.Split(":");
+			appleId = idAndPassword[0];
+			password = idAndPassword[1];
+		}
+		catch (Exception)
+		{
+			throw;
+		}
+
+		return (appleId, password);
 	}
 }
