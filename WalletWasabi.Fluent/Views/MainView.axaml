@@ -21,10 +21,10 @@
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="{DynamicResource AcrylicTrimBackground}"
-                                         TintOpacity="1"
-                                         FallbackColor="{DynamicResource AcrylicTrimBackground}"
-                                         MaterialOpacity="0.9" />
+                                         TintColor="Transparent"
+                                         TintOpacity="0"
+                                         FallbackColor="Transparent"
+                                         MaterialOpacity="0" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
         <Panel IsHitTestVisible="False" Background="{DynamicResource AcrylicTrimOverlayBackground}"/>
