@@ -22,8 +22,8 @@ public static class MacSignTools
 
 		string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-		var srcZipFileNamePattern = "Wasabi-osx-*.zip";
-		var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); // Example: Wasabi-osx-1.1.10.2.zip
+		var srcZipFileNamePattern = "Wasabi-macOS-*.zip";
+		var files = Directory.GetFiles(desktopPath, srcZipFileNamePattern); // Example: Wasabi-macOS-1.1.10.2.zip
 		if (files.Length != 1)
 		{
 			throw new InvalidDataException($"{srcZipFileNamePattern} file missing or there are more on Desktop! There must be exactly one!");
