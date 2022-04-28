@@ -29,10 +29,10 @@
     </Style>
   </Window.Styles>
   <i:Interaction.Behaviors>
-    <behaviors:RegisterNotificationHostBehavior />
+    <!--<behaviors:RegisterNotificationHostBehavior />
     <behaviors:HideShowBehavior />
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Key1="LeftCtrl" Key2="D" Key3="C" />
-    <behaviors:MainWindowBindPositionBehavior/>
+    <behaviors:MainWindowBindPositionBehavior/>-->
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

@@ -43,136 +43,136 @@ public partial class MainViewModel : ViewModelBase
 
 	public MainViewModel()
 	{
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
-		_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
-		_windowHeight = Services.UiConfig.WindowHeight ?? 960;
+		//_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		//_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
+		//_windowHeight = Services.UiConfig.WindowHeight ?? 960;
 
-		var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
-		if (x != null && y != null)
-		{
-			_windowPosition = new PixelPoint(x.Value, y.Value);
-		}
+		//var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
+		//if (x != null && y != null)
+		//{
+		//	_windowPosition = new PixelPoint(x.Value, y.Value);
+		//}
 
-		_dialogScreen = new DialogScreenViewModel();
+		//_dialogScreen = new DialogScreenViewModel();
 
-		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
+		//_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 
-		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		//_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 
-		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
+		//MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
-		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
+		//NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
-		_isMainContentEnabled = true;
-		_isDialogScreenEnabled = true;
-		_isFullScreenEnabled = true;
+		//_isMainContentEnabled = true;
+		//_isDialogScreenEnabled = true;
+		//_isFullScreenEnabled = true;
 
-		_statusBar = new StatusBarViewModel();
+		//_statusBar = new StatusBarViewModel();
 
-		UiServices.Initialize();
+		//UiServices.Initialize();
 
-		_addWalletPage = new AddWalletPageViewModel();
-		_settingsPage = new SettingsPageViewModel();
-		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel(MainScreen);
+		//_addWalletPage = new AddWalletPageViewModel();
+		//_settingsPage = new SettingsPageViewModel();
+		//_privacyMode = new PrivacyModeViewModel();
+		//_navBar = new NavBarViewModel(MainScreen);
 
-		MusicControls = new MusicControlsViewModel();
+		//MusicControls = new MusicControlsViewModel();
 
-		NavigationManager.RegisterType(_navBar);
-		RegisterViewModels();
+		//NavigationManager.RegisterType(_navBar);
+		//RegisterViewModels();
 
-		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
+		//RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
-			.Where(x => x.Item1 != WindowState.Minimized)
-			.Where(x => x.Item2 != new PixelPoint(-32000, -32000)) // value when minimized
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(t =>
-			{
-				var (state, position, width, height) = t;
+		//this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
+		//	.Where(x => x.Item1 != WindowState.Minimized)
+		//	.Where(x => x.Item2 != new PixelPoint(-32000, -32000)) // value when minimized
+		//	.ObserveOn(RxApp.MainThreadScheduler)
+		//	.Subscribe(t =>
+		//	{
+		//		var (state, position, width, height) = t;
 
-				Services.UiConfig.WindowState = state.ToString();
-				if (position is { })
-				{
-					Services.UiConfig.WindowX = position.Value.X;
-					Services.UiConfig.WindowY = position.Value.Y;
-				}
+		//		Services.UiConfig.WindowState = state.ToString();
+		//		if (position is { })
+		//		{
+		//			Services.UiConfig.WindowX = position.Value.X;
+		//			Services.UiConfig.WindowY = position.Value.Y;
+		//		}
 
-				Services.UiConfig.WindowWidth = width;
-				Services.UiConfig.WindowHeight = height;
-			});
+		//		Services.UiConfig.WindowWidth = width;
+		//		Services.UiConfig.WindowHeight = height;
+		//	});
 
-		this.WhenAnyValue(
-				x => x.DialogScreen!.IsDialogOpen,
-				x => x.FullScreen!.IsDialogOpen,
-				x => x.CompactDialogScreen!.IsDialogOpen)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(tup =>
-			{
-				var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
+		//this.WhenAnyValue(
+		//		x => x.DialogScreen!.IsDialogOpen,
+		//		x => x.FullScreen!.IsDialogOpen,
+		//		x => x.CompactDialogScreen!.IsDialogOpen)
+		//	.ObserveOn(RxApp.MainThreadScheduler)
+		//	.Subscribe(tup =>
+		//	{
+		//		var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
 
-				IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
-			});
+		//		IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
+		//	});
 
-		this.WhenAnyValue(
-				x => x.DialogScreen.CurrentPage,
-				x => x.CompactDialogScreen.CurrentPage,
-				x => x.FullScreen.CurrentPage,
-				x => x.MainScreen.CurrentPage)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(tup =>
-			{
-				var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
+		//this.WhenAnyValue(
+		//		x => x.DialogScreen.CurrentPage,
+		//		x => x.CompactDialogScreen.CurrentPage,
+		//		x => x.FullScreen.CurrentPage,
+		//		x => x.MainScreen.CurrentPage)
+		//	.ObserveOn(RxApp.MainThreadScheduler)
+		//	.Subscribe(tup =>
+		//	{
+		//		var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
 
-				/*
-				 * Order is important.
-				 * Always the topmost content will be the active one.
-				 */
+		//		/*
+		//		 * Order is important.
+		//		 * Always the topmost content will be the active one.
+		//		 */
 
-				if (compactDialog is { })
-				{
-					compactDialog.SetActive();
-					return;
-				}
+		//		if (compactDialog is { })
+		//		{
+		//			compactDialog.SetActive();
+		//			return;
+		//		}
 
-				if (dialog is { })
-				{
-					dialog.SetActive();
-					return;
-				}
+		//		if (dialog is { })
+		//		{
+		//			dialog.SetActive();
+		//			return;
+		//		}
 
-				if (fullscreenDialog is { })
-				{
-					fullscreenDialog.SetActive();
-					return;
-				}
+		//		if (fullscreenDialog is { })
+		//		{
+		//			fullscreenDialog.SetActive();
+		//			return;
+		//		}
 
-				if (mainsScreen is { })
-				{
-					mainsScreen.SetActive();
-					return;
-				}
-			});
+		//		if (mainsScreen is { })
+		//		{
+		//			mainsScreen.SetActive();
+		//			return;
+		//		}
+		//	});
 
-		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
+		//IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
-			{
-				IsOobeBackgroundVisible = true;
+		//RxApp.MainThreadScheduler.Schedule(async () =>
+		//{
+		//	if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+		//	{
+		//		IsOobeBackgroundVisible = true;
 
-				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+		//		await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
 
-				if (Services.WalletManager.HasWallet())
-				{
-					Services.UiConfig.Oobe = false;
-					IsOobeBackgroundVisible = false;
-				}
-			}
-		});
+		//		if (Services.WalletManager.HasWallet())
+		//		{
+		//			Services.UiConfig.Oobe = false;
+		//			IsOobeBackgroundVisible = false;
+		//		}
+		//	}
+		//});
 
-		SearchBar = new SearchBarViewModel(SearchItemProvider.GetSearchItems());
+		//SearchBar = new SearchBarViewModel(SearchItemProvider.GetSearchItems());
 	}
 
 	public TargettedNavigationStack MainScreen { get; }

@@ -22,9 +22,9 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
-	private static Global? Global;
+	// private static Global? Global;
 
-	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
+	// private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
 
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -64,18 +64,18 @@ public class Program
 		{
 			try
 			{
-				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
+				//var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-				using SingleInstanceChecker singleInstanceChecker = new(config.Network);
-				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+				//using SingleInstanceChecker singleInstanceChecker = new(config.Network);
+				//singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
-				Global = CreateGlobal(dataDir, uiConfig, config);
+				// Global = CreateGlobal(dataDir, uiConfig, config);
 
-				Services.Initialize(Global, singleInstanceChecker);
+				// Services.Initialize(Global, singleInstanceChecker);
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
 				BuildAvaloniaApp()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+					// .AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
 					.StartWithClassicDesktopLifetime(args);
 			}
 			catch (OperationCanceledException ex)
@@ -90,7 +90,7 @@ public class Program
 		}
 
 		// Start termination/disposal of the application.
-		TerminateService.Terminate();
+		// TerminateService.Terminate();
 
 		if (exceptionToReport is { })
 		{
@@ -144,27 +144,27 @@ public class Program
 		return (uiConfig, config);
 	}
 
-	private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
-	{
-		var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
+	//private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
+	//{
+	//	var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
-		return new Global(dataDir, config, uiConfig, walletManager);
-	}
+	//	return new Global(dataDir, config, uiConfig, walletManager);
+	//}
 
-	/// <summary>
-	/// Do not call this method it should only be called by TerminateService.
-	/// </summary>
-	private static async Task TerminateApplicationAsync()
-	{
-		MainViewModel.Instance.ClearStacks();
-		MainViewModel.Instance.StatusBar.Dispose();
-		Logger.LogSoftwareStopped("Wasabi GUI");
+	///// <summary>
+	///// Do not call this method it should only be called by TerminateService.
+	///// </summary>
+	//private static async Task TerminateApplicationAsync()
+	//{
+	//	MainViewModel.Instance.ClearStacks();
+	//	MainViewModel.Instance.StatusBar.Dispose();
+	//	Logger.LogSoftwareStopped("Wasabi GUI");
 
-		if (Global is { } global)
-		{
-			await global.DisposeAsync().ConfigureAwait(false);
-		}
-	}
+	//	//if (Global is { } global)
+	//	//{
+	//	//	await global.DisposeAsync().ConfigureAwait(false);
+	//	//}
+	//}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
@@ -184,12 +184,13 @@ public class Program
 	{
 		bool useGpuLinux = true;
 
-		var result = AppBuilder.Configure(() => new App(async () =>
+		var result = AppBuilder.Configure(() => new App(() =>
 			{
-				if (Global is { } global)
-				{
-					await global.InitializeNoWalletAsync(TerminateService);
-				}
+				//if (Global is { } global)
+				//{
+				//	await global.InitializeNoWalletAsync(TerminateService);
+				//}
+				return Task.CompletedTask;
 			}))
 			.UseReactiveUI();
 

@@ -40,20 +40,20 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
 
-		var dialogScreen = MainViewModel.Instance.DialogScreen;
+		//var dialogScreen = MainViewModel.Instance.DialogScreen;
 
-		AboutCommand = ReactiveCommand.Create(
-			() => dialogScreen.To(new AboutViewModel(navigateBack: dialogScreen.CurrentPage is not null)),
-			canExecute: dialogScreen.WhenAnyValue(x => x.CurrentPage)
-				.SelectMany(x =>
-				{
-					return x switch
-					{
-						null => Observable.Return(true),
-						AboutViewModel => Observable.Return(false),
-						_ => x.WhenAnyValue(page => page.IsBusy).Select(isBusy => !isBusy)
-					};
-				}));
+		//AboutCommand = ReactiveCommand.Create(
+		//	() => dialogScreen.To(new AboutViewModel(navigateBack: dialogScreen.CurrentPage is not null)),
+		//	canExecute: dialogScreen.WhenAnyValue(x => x.CurrentPage)
+		//		.SelectMany(x =>
+		//		{
+		//			return x switch
+		//			{
+		//				null => Observable.Return(true),
+		//				AboutViewModel => Observable.Return(false),
+		//				_ => x.WhenAnyValue(page => page.IsBusy).Select(isBusy => !isBusy)
+		//			};
+		//		}));
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{

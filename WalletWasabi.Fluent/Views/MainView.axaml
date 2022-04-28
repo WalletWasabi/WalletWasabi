@@ -16,7 +16,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.MainView">
   <Panel>
-    <Panel>
+    <!--<Panel>
       <Panel IsEnabled="{Binding IsMainContentEnabled}">
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
@@ -144,6 +144,6 @@
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <ContentControl Content="{Binding CurrentPage}" />
       </c:Dialog>
-    </Panel>
+    </Panel>-->
   </Panel>
 </UserControl>
