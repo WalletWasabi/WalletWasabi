@@ -12,7 +12,7 @@
                     x:DataType="viewModels:MainViewModel"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
-                    d:DesignWidth="1200" d:DesignHeight="1000"
+                    d:DesignWidth="1000" d:DesignHeight="1000"
                     x:CompileBindings="True">
 
   <DockPanel>
