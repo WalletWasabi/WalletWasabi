@@ -435,7 +435,7 @@ public static class Program
 				var controlFileContent = $"Package: {ExecutableName}\n" +
 					$"Priority: optional\n" +
 					$"Section: utils\n" +
-					$"Maintainer: zkSNACKs Ltd\n" +
+					$"Maintainer: zkSNACKs Ltd <info@zksnacks.com>\n" +
 					$"Version: {VersionPrefix}\n" +
 					$"Homepage: https://wasabiwallet.io\n" +
 					$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
