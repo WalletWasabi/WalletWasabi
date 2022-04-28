@@ -32,11 +32,6 @@
       </Setter>
     </Style>
 
-    <!-- TODO: Investigate why this is needed. Removing it will render monospaced font in Flyout -->
-    <Style Selector="TextBlock">
-      <Setter Property="FontFamily" Value="Arial" />
-    </Style>
-
     <Style Selector="Button.searchItem /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
