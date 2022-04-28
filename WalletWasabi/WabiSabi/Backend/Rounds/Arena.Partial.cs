@@ -89,21 +89,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
 
-			if (alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate) <= Money.Zero)
+			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput);
 			}
 
-			if (alice.TotalInputAmount < round.MinAmountCredentialValue)
+			if (alice.TotalInputAmount < round.Parameters.MinAmountCredentialValue)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
-			if (alice.TotalInputAmount > round.MaxAmountCredentialValue)
+			if (alice.TotalInputAmount > round.Parameters.MaxAmountCredentialValue)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (alice.TotalInputVsize > round.MaxVsizeAllocationPerAlice)
+			if (alice.TotalInputVsize > round.Parameters.MaxVsizeAllocationPerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
@@ -111,7 +111,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var amountCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
 			var vsizeCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialRequests, cancellationToken);
 
-			if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
+			if (round.RemainingInputVsizeAllocation < round.Parameters.MaxVsizeAllocationPerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
 			}
@@ -183,12 +183,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 			}
 
-			if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
+			if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.Parameters.MaxVsizeAllocationPerAlice))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 			}
 
-			var remaining = alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate);
+			var remaining = alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate);
 			if (realAmountCredentialRequests.Delta != remaining)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
@@ -275,7 +275,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			Bob bob = new(request.Script, credentialAmount);
 
-			var outputValue = bob.CalculateOutputAmount(round.FeeRate);
+			var outputValue = bob.CalculateOutputAmount(round.Parameters.MiningFeeRate);
 
 			var vsizeCredentialRequests = request.VsizeCredentialRequests;
 			if (-vsizeCredentialRequests.Delta != bob.OutputVsize)

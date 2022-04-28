@@ -27,7 +27,7 @@ public class CredentialReissuanceTest
 		var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = WabiSabiFactory.CreateWabiSabiClientsAndIssuers(round);
 
 		var amountsToRequest = new[]
-			{alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi};
+			{alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi};
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
 			amountsToRequest,
 			amZeroCredentials, // FIXME doesn't make much sense

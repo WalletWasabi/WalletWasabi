@@ -86,8 +86,8 @@ public class ConfirmConnectionTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = new();
-		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
-		var round = arena.Rounds.First();
+		Round round = WabiSabiFactory.CreateRound(cfg);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
 		round.Alices.Add(alice);

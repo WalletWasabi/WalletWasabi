@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -13,12 +14,12 @@ public record OutputAdded (TxOut Output) : IEvent;
 
 public abstract record MultipartyTransactionState
 {
-	protected MultipartyTransactionState(MultipartyTransactionParameters parameters)
+	protected MultipartyTransactionState(RoundParameters parameters)
 	{
 		Parameters = parameters;
 	}
 
-	public MultipartyTransactionParameters Parameters { get; }
+	public RoundParameters Parameters { get; }
 
 	[JsonIgnore]
 	public IEnumerable<Coin> Inputs => Events.OfType<InputAdded>().Select(x => x.Coin);

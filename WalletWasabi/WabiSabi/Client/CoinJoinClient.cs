@@ -385,7 +385,7 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
+	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, RoundParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
 	{
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -413,8 +413,8 @@ public class CoinJoinClient
 				break;
 			}
 
-			var inSum = group.Sum(x => x.EffectiveValue(parameters.FeeRate, parameters.CoordinationFeeRate));
-			var outFee = parameters.FeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
+			var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
+			var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
 			if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
 			{
 				groups.Add(group);

@@ -8,6 +8,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -16,6 +17,11 @@ namespace WalletWasabi.Tests.Helpers;
 /// </summary>
 public class ArenaBuilder
 {
+	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg, Network network) =>
+		WabiSabiFactory.CreateRoundParametersFactory(cfg, network,
+			maxVsizeAllocationPerAlice: 11 + 31 + MultipartyTransactionParameters.SharedOverhead);
+
+
 	public static ArenaBuilder Default => new();
 
 	public TimeSpan? Period { get; set; }
@@ -23,6 +29,7 @@ public class ArenaBuilder
 	public WabiSabiConfig? Config { get; set; }
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
+	public RoundParameterFactory? RoundParameterFactory { get; set;  }
 	public ICoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
@@ -34,8 +41,9 @@ public class ArenaBuilder
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
 		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
+		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore);
+		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
 
 		foreach (var round in rounds)
 		{
@@ -78,6 +86,12 @@ public class ArenaBuilder
 	public ArenaBuilder With(IRPCClient rpc)
 	{
 		Rpc = rpc;
+		return this;
+	}
+
+	public ArenaBuilder With(RoundParameterFactory roundParameterFactory)
+	{
+		RoundParameterFactory = roundParameterFactory;
 		return this;
 	}
 

@@ -18,8 +18,8 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task RoundStateUpdaterTestsAsync()
 	{
-		var roundState1 = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
-		var roundState2 = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
+		var roundState1 = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var roundState2 = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeOut);
 		var cancellationToken = cancellationTokenSource.Token;
@@ -95,7 +95,7 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task RoundStateUpdaterFailureRecoveryTestsAsync()
 	{
-		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using var cancellationTokenSource = new CancellationTokenSource();
 		var cancellationToken = cancellationTokenSource.Token;
@@ -143,7 +143,7 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task FailOnUnexpectedAsync()
 	{
-		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using var cancellationTokenSource = new CancellationTokenSource();
 		var cancellationToken = cancellationTokenSource.Token;

@@ -33,8 +33,7 @@ public class ArenaClientTests
 	public async Task FullCoinjoinAsyncTestAsync()
 	{
 		var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
-		var round = WabiSabiFactory.CreateRound(config);
-		round.MaxVsizeAllocationPerAlice = 255;
+		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(config));
 		using var key = new Key();
 		var outpoint = BitcoinFactory.CreateOutPoint();
 		var mockRpc = new Mock<IRPCClient>();
@@ -84,7 +83,7 @@ public class ArenaClientTests
 		var inputVsize = Constants.P2wpkhInputVirtualSize;
 		var amountsToRequest = new[]
 		{
-			Money.Coins(.75m) - round.FeeRate.GetFee(inputVsize) - round.CoordinationFeeRate.GetFee(Money.Coins(1m)),
+			Money.Coins(.75m) - round.Parameters.MiningFeeRate.GetFee(inputVsize) - round.Parameters.CoordinationFeeRate.GetFee(Money.Coins(1m)),
 			Money.Coins(.25m),
 		}.Select(x => x.Satoshi).ToArray();
 
@@ -239,7 +238,7 @@ public class ArenaClientTests
 		var emptyState = round.Assert<ConstructionState>();
 
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
-		var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Events);
+		var finalizedEmptyState = new SigningState(round.Parameters, emptyState.Events);
 
 		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
