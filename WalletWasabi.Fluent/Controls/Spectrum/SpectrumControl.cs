@@ -110,7 +110,10 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		foreach (var source in _sources)
 		{
-			source.Render(ref _data);
+			if (source.ShouldRender)
+			{
+				source.Render(ref _data);
+			}
 		}
 
 		var sum = 0f;
