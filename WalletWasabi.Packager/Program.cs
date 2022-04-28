@@ -37,7 +37,8 @@ public static class Program
 	{
 		"win7-x64",
 		"linux-x64",
-		"osx-x64"
+		"osx-x64",
+		"osx-arm64"
 	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
@@ -341,10 +342,30 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip"));
+				// Only add postfix to the final package if arm64, otherwise nothing.
+				var postfix = target.Contains("arm64") ? "-arm64" : "";
+
+				// After notarization this will be the filename of the dmg file.
+				var zipFileName = $"WasabiToNotarize-{deterministicFileNameTag}{postfix}.zip";
+				var zipFilePath = Path.Combine(BinDistDirectory, zipFileName);
+
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, zipFilePath);
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {currentBinDistDirectory}");
+
+				try
+				{
+					var drive = Tools.GetSingleUsbDrive();
+					var targetFilePath = Path.Combine(drive, zipFileName);
+
+					Console.WriteLine($"Trying to move unsigned zip file to removable ('{targetFilePath}').");
+					File.Move(zipFilePath, targetFilePath, overwrite: true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"There was an error during copying the file to removable: '{ex.Message}'");
+				}
 			}
 			else if (target.StartsWith("linux"))
 			{
