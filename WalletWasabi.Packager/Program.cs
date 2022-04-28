@@ -63,7 +63,7 @@ public static class Program
 		// For now this is enough. If you run it on macOS you want to sign.
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			MacSignTools.Sign();
+			MacSignTools.Sign(argsProcessor);
 			return;
 		}
 
