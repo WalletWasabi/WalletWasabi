@@ -103,7 +103,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		base.Render(context);
 
-		for (int i = 0; i < NumBins; i++)
+		for (var i = 0; i < NumBins; i++)
 		{
 			_data[i] = 0;
 		}
