@@ -1,11 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-                    xmlns:ext="using:WalletWasabi.Fluent.Helpers"
-                    xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
                     xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
                     xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
-                    xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
                     xmlns:c="using:WalletWasabi.Fluent.Controls"
                     xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
                     x:Class="WalletWasabi.Fluent.Views.Shell.MainView"
@@ -16,7 +13,7 @@
                     x:CompileBindings="True">
 
   <DockPanel>
-    <shell:TitleBarView IsHitTestVisible="False" DockPanel.Dock="Top" />
+    <shell:TitleBarView DockPanel.Dock="Top" />
     <DockPanel>
       <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
       <Border x:Name="ContentPart" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0"
