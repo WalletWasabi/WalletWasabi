@@ -26,10 +26,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Paused,
 		AutoPlaying,
 		AutoFinished,
+		AutoPlebStop,
 
 		Stopped,
 		ManualPlaying,
 		ManualFinished,
+		ManualPlebStop
 	}
 
 	private enum Trigger
@@ -48,11 +50,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		RoundStart,
 		RoundFinished,
 		BalanceChanged,
-		Timer
+		Timer,
+		PlebStopChanged
 	}
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
+	private readonly WalletViewModel _walletVm;
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -78,6 +82,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "No balance to coinjoin" };
 
+	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Override Pleb Stop" };
+
 	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
@@ -88,6 +94,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countDownStarted = DateTimeOffset.Now;
 		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
+		_walletVm = walletVm;
 		_wallet = walletVm.Wallet;
 
 		DispatcherTimer.Run(() =>
@@ -130,6 +137,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
+
+		// WalletSettingsViewModel.PlebStopThreshold is save after 1 secont to KeyManager.
+		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
+			.Throttle(TimeSpan.FromSeconds(1))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => _stateMachine.Fire(Trigger.PlebStopChanged));
 
 		_stateMachine.Start();
 	}
@@ -175,6 +188,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
 			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
+			.Permit(Trigger.PlebStop, State.ManualPlebStop)
 			.OnEntry(async () =>
 			{
 				PlayVisible = false;
@@ -272,7 +286,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
 			.Permit(Trigger.Pause, State.Paused)
-			.Permit(Trigger.PlebStop, State.Paused)
+			.Permit(Trigger.PlebStop, State.AutoPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(async () =>
 			{
@@ -300,6 +314,36 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _finishedMessage;
 			});
+
+		_stateMachine.Configure(State.AutoPlebStop)
+			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
+			.Permit(Trigger.RoundStart, State.AutoPlaying)
+			.Permit(Trigger.BalanceChanged, State.AutoPlaying)
+			.Permit(Trigger.PlebStopChanged, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				CurrentStatus = _plebStopMessage;
+				ProgressValue = 0;
+
+				PauseVisible = false;
+				PlayVisible = true;
+			})
+			.OnTrigger(Trigger.Play, () => _walletVm.Settings.PlebStopThreshold = Money.Zero.ToString());
+
+		_stateMachine.Configure(State.ManualPlebStop)
+			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
+			.Permit(Trigger.BalanceChanged, State.ManualPlaying)
+			.Permit(Trigger.PlebStopChanged, State.ManualPlaying)
+			.OnEntry(() =>
+			{
+				CurrentStatus = _plebStopMessage;
+				ProgressValue = 0;
+
+				StopVisible = false;
+				PauseVisible = false;
+				PlayVisible = true;
+			})
+			.OnTrigger(Trigger.Play, () => _walletVm.Settings.PlebStopThreshold = Money.Zero.ToString());
 	}
 
 	private bool AutoStartTimedOut => GetRemainingTime() <= TimeSpan.Zero;
@@ -361,6 +405,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartedEventArgs:
 				_stateMachine.Fire(Trigger.RoundStart);
+				break;
+
+			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
+				_stateMachine.Fire(Trigger.PlebStop);
 				break;
 
 			case StartErrorEventArgs:
