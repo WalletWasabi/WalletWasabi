@@ -93,10 +93,8 @@ public class CoinJoinClient
 
 		var roundState = await RoundStatusUpdater
 				.CreateRoundAwaiter(
-					roundState =>
-						roundState.Phase == Phase.InputRegistration
-						&& roundState.BlameOf == blameRoundId,
-					token)
+					roundState => roundState.BlameOf == blameRoundId,
+					linkedTokenSource.Token)
 				.ConfigureAwait(false);
 
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
@@ -153,6 +151,7 @@ public class CoinJoinClient
 			// Only use successfully registered coins in the blame round.
 			coins = result.RegisteredCoins;
 
+			currentRoundState.LogInfo($"Waiting for the blame round.");
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
