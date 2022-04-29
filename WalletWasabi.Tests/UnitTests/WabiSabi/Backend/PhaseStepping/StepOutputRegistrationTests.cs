@@ -192,6 +192,9 @@ public class StepOutputRegistrationTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var round = Assert.Single(arena.Rounds);
 
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
