@@ -73,8 +73,12 @@ public record RoundParameters
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
 
-	public static RoundParameters Create(WabiSabiConfig wabiSabiConfig, Network network,
-		FeeRate miningMiningFeeRate, CoordinationFeeRate coordinationFeeRate, Money maxSuggestedAmount)
+	public static RoundParameters Create(
+		WabiSabiConfig wabiSabiConfig,
+		Network network,
+		FeeRate miningMiningFeeRate,
+		CoordinationFeeRate coordinationFeeRate,
+		Money maxSuggestedAmount)
 	{
 		return new RoundParameters(
 			network,
@@ -85,7 +89,6 @@ public record RoundParameters
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
-
 			wabiSabiConfig.StandardInputRegistrationTimeout,
 			wabiSabiConfig.ConnectionConfirmationTimeout,
 			wabiSabiConfig.OutputRegistrationTimeout,
