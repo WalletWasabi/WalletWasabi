@@ -14,6 +14,8 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using System.Collections.Immutable;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -40,6 +42,7 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
+	private ImmutableArray<RoundState> RoundStates { get; set; } = ImmutableArray.Create<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
@@ -74,6 +77,9 @@ public partial class Arena : PeriodicRunner
 
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
+
+			// RoundStates have to contain all states. Do not change stateId=0.
+			RoundStates = Rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
 		}
 	}
 

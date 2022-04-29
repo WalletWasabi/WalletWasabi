@@ -143,6 +143,9 @@ public class RegisterOutputTests
 		var round = arena.Rounds.First();
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
 		foreach (Phase phase in Enum.GetValues(typeof(Phase)))

@@ -16,6 +16,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
@@ -235,6 +236,10 @@ public class StepTransactionSigningTests
 
 		var round = Assert.Single(arena.Rounds);
 		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		// Register Alices.
