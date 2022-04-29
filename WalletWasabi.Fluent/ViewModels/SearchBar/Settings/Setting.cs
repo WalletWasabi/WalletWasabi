@@ -5,15 +5,15 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
-public class Setting<TTarget, TProperty> : ReactiveObject
+public partial class Setting<TTarget, TProperty> : ReactiveObject
 {
-	private TProperty? _value;
+	[AutoNotify] private TProperty? _value;
 
-	public Setting([DisallowNull] TTarget target, Expression<Func<TTarget, TProperty>> selector,
-		bool requiresRestart = false)
+	public Setting([DisallowNull] TTarget target, Expression<Func<TTarget, TProperty>> selector)
 	{
 		if (target == null)
 		{
@@ -30,40 +30,28 @@ public class Setting<TTarget, TProperty> : ReactiveObject
 			throw new InvalidOperationException($"The expression {selector} is not a valid property selector");
 		}
 
-		ShowRestartNotificationCommand = ReactiveCommand.Create(() =>
-		{
-			NotificationHelpers.Show(
-				new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted"));
-		});
-
-		var originalValue = (TProperty?) pr.GetValue(target);
 		Value = (TProperty?)pr.GetValue(target);
 
 		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
 
+		ShowNotificationCommand = ReactiveCommand.Create(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")));
+
 		this.WhenAnyValue(x => x.Value)
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Select(_ => Unit.Default)
 			.InvokeCommand(SetValueCommand);
 
-		if (requiresRestart)
-		{
-			this.WhenAnyValue(x => x.Value)
-				.Select(currentValue => new{current = currentValue, originalValue})
-				.Where(x => !Equals(x.current, x.originalValue))
-				.Select(_ => Unit.Default)
-				.InvokeCommand(ShowRestartNotificationCommand);
-		}
+		this.WhenAnyValue(x => x.Value)
+			.Skip(1)
+			.Throttle(TimeSpan.FromMilliseconds(SettingsTabViewModelBase.ThrottleTime + 50))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Where(_ => SettingsTabViewModelBase.CheckIfRestartIsNeeded())
+			.Select(_ => Unit.Default)
+			.InvokeCommand(ShowNotificationCommand);
 	}
 
-	public ICommand ShowRestartNotificationCommand { get; }
+	public ICommand SetValueCommand { get; }
 
-	public TProperty? Value
-	{
-		get => _value;
-		set => this.RaiseAndSetIfChanged(ref _value, value);
-	}
-
-	public ReactiveCommand<Unit, Unit> SetValueCommand { get; }
+	public ICommand ShowNotificationCommand { get; }
 }
