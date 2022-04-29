@@ -129,7 +129,7 @@ public static class Program
 				}
 				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-				File.Copy(msiPath, newMsiPath, true);
+				File.Copy(msiPath, newMsiPath, overwrite: true);
 
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
