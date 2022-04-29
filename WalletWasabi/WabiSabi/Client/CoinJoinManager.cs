@@ -141,8 +141,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			// Only take PlebStop into account when AutoCoinJoin.
-			if (startCommand.RestartAutomatically && walletToStart.NonPrivateCoins.TotalAmount() <= walletToStart.KeyManager.PlebStopThreshold)
+			if (walletToStart.NonPrivateCoins.TotalAmount() < walletToStart.KeyManager.PlebStopThreshold)
 			{
 				Logger.LogDebug($"PlebStop preventing coinjoin for wallet '{walletToStart.WalletName}'.");
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
