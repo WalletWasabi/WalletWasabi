@@ -9,6 +9,7 @@ namespace WalletWasabi.Blockchain.Analysis;
 public class CoinjoinAnalyzer
 {
 	public SmartTransaction AnalyzedTransaction { get; }
+	private Dictionary<SmartCoin, decimal> cachedInputSanctions = new();
 
 	public CoinjoinAnalyzer(SmartTransaction analyzedTransaction)
 	{
@@ -21,9 +22,16 @@ public class CoinjoinAnalyzer
 
 		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
 		{
+			if (cachedInputSanctions.ContainsKey(transactionOutput))
+			{
+				return cachedInputSanctions[transactionOutput];
+			}
+
 			SmartTransaction transaction = transactionOutput.Transaction;
 			decimal sanction = CoinjoinAnalyzer.ComputeAnonymityContribution(transactionOutput, analyzedTransactionPrevOuts);
-			return sanction + transaction.WalletInputs.Select(ComputeInputSanctionHelper).Sum();
+			sanction += transaction.WalletInputs.Select(ComputeInputSanctionHelper).Sum();
+			cachedInputSanctions[transactionOutput] = sanction;
+			return sanction;
 		}
 
 		return ComputeInputSanctionHelper(transactionInput);
