@@ -11,7 +11,8 @@ $host.UI.RawUI.ForegroundColor = "Green"
 $host.UI.RawUI.BackgroundColor = "Black"
 Read-Host -Prompt 'Remove and Plug the penrive to macOS and run the packager to notarize the files. Starting MSI build [Press ENTER]'
 
-Start-Process -FilePath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com' -ArgumentList ' C:\Users\user\Desktop\WalletWasabi\WalletWasabi.WindowsInstaller\WalletWasabi.WindowsInstaller.wixproj /Build "Release|x64"' -NoNewWindow -Wait 
+$arguments = $env:userprofile + '\Desktop\WalletWasabi\WalletWasabi.WindowsInstaller\WalletWasabi.WindowsInstaller.wixproj /Build "Release|x64"'
+Start-Process -FilePath 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com' -ArgumentList $arguments -NoNewWindow -Wait 
 
 $host.UI.RawUI.ForegroundColor = "Green"
 $host.UI.RawUI.BackgroundColor = "Black"
