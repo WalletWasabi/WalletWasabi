@@ -382,7 +382,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
 		var responseRoundStates = RoundStates.Select(x =>
 		{
-			if (requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint) && checkPoint.StateId != 0)
+			if (requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint) && checkPoint.StateId > 0)
 			{
 				return x.GetSubState(checkPoint.StateId);
 			}
