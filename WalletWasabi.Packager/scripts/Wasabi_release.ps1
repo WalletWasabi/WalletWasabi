@@ -5,7 +5,7 @@ $host.UI.RawUI.BackgroundColor = "Black"
 Read-Host -Prompt 'Releasing Wasabi Wallet - Insert pendrive for macOS notarization candidate files [Press ENTER]'
 
 cd $env:userprofile\desktop/WalletWasabi/WalletWasabi.Packager
-# dotnet run -- publish
+dotnet run -- publish
 
 $host.UI.RawUI.ForegroundColor = "Green"
 $host.UI.RawUI.BackgroundColor = "Black"
