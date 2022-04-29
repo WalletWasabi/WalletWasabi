@@ -8,12 +8,13 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class CoinjoinAnalyzer
 {
+	private Dictionary<SmartCoin, decimal> cachedInputSanctions = new();
+
 	public CoinjoinAnalyzer(SmartTransaction analyzedTransaction)
 	{
 		AnalyzedTransaction = analyzedTransaction;
 	}
 
-	private Dictionary<SmartCoin, decimal> cachedInputSanctions = new();
 	public SmartTransaction AnalyzedTransaction { get; }
 
 	public decimal ComputeInputSanction(SmartCoin transactionInput)
