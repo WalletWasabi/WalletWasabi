@@ -97,6 +97,11 @@ public class CoinJoinClient
 					linkedTokenSource.Token)
 				.ConfigureAwait(false);
 
+		if (roundState.Phase is not Phase.InputRegistration)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not in Input Registration but in '{roundState.Phase}'.");
+		}
+
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
