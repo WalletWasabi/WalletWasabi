@@ -10,27 +10,6 @@ public record RoundParameters
 {
 	public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create(ScriptType.P2WPKH);
 
-	public static RoundParameters Create(WabiSabiConfig wabiSabiConfig, Network network,
-		FeeRate miningMiningFeeRate, CoordinationFeeRate coordinationFeeRate, Money maxSuggestedAmount)
-	{
-		return new RoundParameters(
-			network,
-			miningMiningFeeRate,
-			coordinationFeeRate,
-			maxSuggestedAmount,
-			wabiSabiConfig.MinInputCountByRound,
-			wabiSabiConfig.MaxInputCountByRound,
-			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
-			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
-
-			wabiSabiConfig.StandardInputRegistrationTimeout,
-			wabiSabiConfig.ConnectionConfirmationTimeout,
-			wabiSabiConfig.OutputRegistrationTimeout,
-			wabiSabiConfig.TransactionSigningTimeout,
-			wabiSabiConfig.BlameInputRegistrationTimeout
-			);
-	}
-
 	public RoundParameters(
 		Network network,
 		FeeRate miningFeeRate,
@@ -84,16 +63,37 @@ public record RoundParameters
 
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
 	public Money MaxAmountCredentialValue => AllowedInputAmounts.Max;
-	
+
 	public int InitialInputVsizeAllocation { get; init; }
 	public int MaxVsizeCredentialValue { get; init; }
 	public int MaxVsizeAllocationPerAlice { get; init;  }
-	
+
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
-	
+
+	public static RoundParameters Create(WabiSabiConfig wabiSabiConfig, Network network,
+		FeeRate miningMiningFeeRate, CoordinationFeeRate coordinationFeeRate, Money maxSuggestedAmount)
+	{
+		return new RoundParameters(
+			network,
+			miningMiningFeeRate,
+			coordinationFeeRate,
+			maxSuggestedAmount,
+			wabiSabiConfig.MinInputCountByRound,
+			wabiSabiConfig.MaxInputCountByRound,
+			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
+			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
+
+			wabiSabiConfig.StandardInputRegistrationTimeout,
+			wabiSabiConfig.ConnectionConfirmationTimeout,
+			wabiSabiConfig.OutputRegistrationTimeout,
+			wabiSabiConfig.TransactionSigningTimeout,
+			wabiSabiConfig.BlameInputRegistrationTimeout
+			);
+	}
+
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
 }

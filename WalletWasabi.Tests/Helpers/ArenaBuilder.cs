@@ -17,11 +17,6 @@ namespace WalletWasabi.Tests.Helpers;
 /// </summary>
 public class ArenaBuilder
 {
-	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg, Network network) =>
-		WabiSabiFactory.CreateRoundParametersFactory(cfg, network,
-			maxVsizeAllocationPerAlice: 11 + 31 + MultipartyTransactionParameters.SharedOverhead);
-
-
 	public static ArenaBuilder Default => new();
 
 	public TimeSpan? Period { get; set; }
@@ -100,4 +95,7 @@ public class ArenaBuilder
 	public static ArenaBuilder From(WabiSabiConfig cfg, Prison prison) => new() { Config = cfg, Prison = prison };
 
 	public static ArenaBuilder From(WabiSabiConfig cfg, IMock<IRPCClient> mockRpc, Prison prison) => new() { Config = cfg, Rpc = mockRpc.Object, Prison = prison };
+
+	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg, Network network) =>
+		WabiSabiFactory.CreateRoundParametersFactory(cfg, network, maxVsizeAllocationPerAlice: 11 + 31 + MultipartyTransactionParameters.SharedOverhead);
 }
