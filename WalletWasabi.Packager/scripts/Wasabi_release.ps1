@@ -1,4 +1,5 @@
-﻿# If you have permission problems runnig this script run this in PS: Set-ExecutionPolicy RemoteSigned
+# If you are not allowed to run this script, run the following command in your PowerShell console: 
+# Set-ExecutionPolicy RemoteSigned
 
 $host.UI.RawUI.ForegroundColor = "Green"
 $host.UI.RawUI.BackgroundColor = "Black"
