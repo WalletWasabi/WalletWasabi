@@ -22,13 +22,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
 public class StepTransactionSigningTests
 {
-	private readonly ITestOutputHelper _output;
-
-	public StepTransactionSigningTests(ITestOutputHelper output)
-	{
-		_output = output;
-	}
-
 	[Fact]
 	public async Task EveryoneSignedAsync()
 	{
