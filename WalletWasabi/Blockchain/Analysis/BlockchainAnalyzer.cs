@@ -69,10 +69,11 @@ public class BlockchainAnalyzer
 
 		newInputAnonset = Intersect(tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet), coefficient);
 
+		CoinjoinAnalyzer coinjoinAnalyzer = new(tx);
 		List<int> anonsets = new();
 		foreach (var virtualInput in tx.WalletVirtualInputs)
 		{
-			anonsets.Add(virtualInput.SmartCoins.Select(i => Math.Max(1, virtualInput.HdPubKey.AnonymitySet - (int)ComputeInputSanction(tx, i))).Min());
+			anonsets.Add(virtualInput.SmartCoins.Select(i => Math.Max(1, virtualInput.HdPubKey.AnonymitySet - (int)coinjoinAnalyzer.ComputeInputSanction(i))).Min());
 		}
 		sanctionedInputAnonset = Intersect(anonsets, coefficient);
 	}
@@ -102,36 +103,6 @@ public class BlockchainAnalyzer
 		return normalizedIntersectionAnonset;
 	}
 
-	decimal ComputeInputSanction(SmartTransaction analyzedTransaction, SmartCoin transactionInput)
-	{
-		HashSet<OutPoint> analyzedTransactionPrevOuts = analyzedTransaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
-
-		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
-		{
-			SmartTransaction transaction = transactionOutput.Transaction;
-			decimal sanction = ComputeAnonymityContribution(transactionOutput, analyzedTransactionPrevOuts);
-			return sanction + transaction.WalletInputs.Select(ComputeInputSanctionHelper).Sum();
-		}
-
-		return ComputeInputSanctionHelper(transactionInput);
-	}
-
-	decimal ComputeAnonymityContribution(SmartCoin transactionOutput, HashSet<OutPoint>? relevantOutpoints = null)
-	{
-		SmartTransaction transaction = transactionOutput.Transaction;
-		IEnumerable<VirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
-		IEnumerable<VirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
-
-		Money amount = walletVirtualOutputs.Where(o => o.Outpoints.Contains(transactionOutput.OutPoint)).First().Amount;
-		Func<VirtualOutput, bool> isEqualValueVirtualOutput = x => x.Amount == amount;
-		Func<VirtualOutput, bool> isRelevantVirtualOutput = output => relevantOutpoints is null ? true : relevantOutpoints.Intersect(output.Outpoints).Any();
-
-		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(isEqualValueVirtualOutput).Count();
-		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(isEqualValueVirtualOutput).Where(isRelevantVirtualOutput).Count();
-
-		return (decimal)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
-	}
-
 	private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset, int sanctionedInputAnonset)
 	{
 		var foreignInputCount = tx.ForeignInputs.Count;
@@ -140,7 +111,7 @@ public class BlockchainAnalyzer
 		{
 			// Anonset gain cannot be larger than others' input count.
 			// Picking randomly an output would make our anonset: total/ours.
-			var anonset = Math.Min((int)ComputeAnonymityContribution(newCoin), foreignInputCount);
+			var anonset = Math.Min((int)CoinjoinAnalyzer.ComputeAnonymityContribution(newCoin), foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
