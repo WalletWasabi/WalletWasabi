@@ -45,9 +45,6 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 						// Store settings changes.
 						newConfig.ToFile();
 
-						// Compare the config with which the app was started
-						// and the current config in file. If there are modifications
-						// we need the app to restart to apply the config changes.
 						IsRestartNeeded(ConfigOnOpen);
 					}
 				}
