@@ -16,7 +16,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
-	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
+	public ChangeAvoidanceSuggestionViewModel(
+		decimal originalAmount,
 		BuildTransactionResult transactionResult,
 		decimal fiatExchangeRate)
 	{
