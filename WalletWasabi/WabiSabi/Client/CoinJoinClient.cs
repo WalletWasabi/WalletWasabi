@@ -272,7 +272,8 @@ public class CoinJoinClient
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 				return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
@@ -320,7 +321,8 @@ public class CoinJoinClient
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
@@ -340,7 +342,8 @@ public class CoinJoinClient
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
