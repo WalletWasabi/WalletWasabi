@@ -66,7 +66,7 @@ public record RoundParameters
 
 	public int InitialInputVsizeAllocation { get; init; }
 	public int MaxVsizeCredentialValue { get; init; }
-	public int MaxVsizeAllocationPerAlice { get; init;  }
+	public int MaxVsizeAllocationPerAlice { get; init; }
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
@@ -76,13 +76,13 @@ public record RoundParameters
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		Network network,
-		FeeRate miningMiningFeeRate,
+		FeeRate miningFeeRate,
 		CoordinationFeeRate coordinationFeeRate,
 		Money maxSuggestedAmount)
 	{
 		return new RoundParameters(
 			network,
-			miningMiningFeeRate,
+			miningFeeRate,
 			coordinationFeeRate,
 			maxSuggestedAmount,
 			wabiSabiConfig.MinInputCountByRound,
