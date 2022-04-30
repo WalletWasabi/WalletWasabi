@@ -93,8 +93,7 @@ public record RoundParameters
 			wabiSabiConfig.ConnectionConfirmationTimeout,
 			wabiSabiConfig.OutputRegistrationTimeout,
 			wabiSabiConfig.TransactionSigningTimeout,
-			wabiSabiConfig.BlameInputRegistrationTimeout
-			);
+			wabiSabiConfig.BlameInputRegistrationTimeout);
 	}
 
 	public Transaction CreateTransaction()

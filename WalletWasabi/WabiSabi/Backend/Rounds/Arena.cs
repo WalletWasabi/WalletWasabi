@@ -53,7 +53,7 @@ public partial class Arena : PeriodicRunner
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
-	
+
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
 	private int ConnectionConfirmationStartedCounter { get; set; }
@@ -398,6 +398,7 @@ public partial class Arena : PeriodicRunner
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
 			var highestFeeRate = (await Rpc.EstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+
 			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
 			if (coinjoin.EffectiveFeeRate > highestFeeRate)
 			{

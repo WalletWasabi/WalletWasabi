@@ -83,8 +83,7 @@ public class CredentialReissuanceTest
 				invalidVsizesToRequest, // we request the double than what we can
 				amountCredentialsToPresent,
 				vsizeCredentialsToPresent,
-				CancellationToken.None
-			));
+				CancellationToken.None));
 		await arena.StopAsync(CancellationToken.None);
 	}
 }
