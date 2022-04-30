@@ -381,7 +381,8 @@ public static class Program
 				publishedFolder = newFolderPath;
 
 				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
-				string arguments = Tools.CreateWslCommand(BinDistDirectory,
+				string arguments = Tools.CreateWslCommand(
+					BinDistDirectory,
 					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
 					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}");
