@@ -1,12 +1,10 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionBuilding.BnB;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -54,6 +52,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			new TxOut(transactionInfo.Amount, destination),
 			cancellationToken).ConfigureAwait(false);
 
+		// Exchange rate can change substantially during computation itself.
+		// Reporting up-to-date exchange rates would just confuse users.
+		decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+
 		await foreach (var selection in selections)
 		{
 			if (selection.Any())
@@ -69,7 +71,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				yield return new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 					transaction,
-					wallet.Synchronizer.UsdExchangeRate);
+					usdExchangeRate);
 			}
 		}
 	}
