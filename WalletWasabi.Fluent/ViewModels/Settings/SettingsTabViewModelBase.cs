@@ -29,7 +29,9 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			return;
 		}
 
-		var config = new Config(ConfigOnOpen.FilePath);
+		// Config stored in the file might be different than
+		// the config the application was started with.
+		Config currentFileConfig = new(ConfigOnOpen.FilePath);
 
 		RxApp.MainThreadScheduler.Schedule(
 			() =>
@@ -38,10 +40,15 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 				{
 					lock (ConfigLock)
 					{
-						Config newConfig = EditConfigOnSave(config);
+						Config newConfig = EditConfigOnSave(currentFileConfig);
+
+						// Store settings changes.
 						newConfig.ToFile();
 
-						IsRestartNeeded(config);
+						// Compare the config with which the app was started
+						// and the current config in file. If there are modifications
+						// we need the app to restart to apply the config changes.
+						IsRestartNeeded(ConfigOnOpen);
 					}
 				}
 				catch (Exception ex)
@@ -55,7 +62,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 
 	private static void IsRestartNeeded(Config configOnOpen)
 	{
-		var currentConfig = new Config(configOnOpen.FilePath);
+		Config currentConfig = new(configOnOpen.FilePath);
 		currentConfig.LoadFile();
 
 		var configChanged = !configOnOpen.AreDeepEqual(currentConfig);
