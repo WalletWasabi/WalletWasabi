@@ -25,7 +25,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		_mainWindowService = mainWindowService;
 
-		QuitCommand = ReactiveCommand.Create(_mainWindowService.Shutdown);
+		QuitCommand = ReactiveCommand.Create(ShutDown);
 
 		ShowHideCommand = ReactiveCommand.Create(() =>
 		{
@@ -73,13 +73,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public ICommand QuitCommand { get; }
 
+	public void ShutDown() => _mainWindowService.Shutdown();
+
 	public void OnShutdownPrevented()
 	{
 		RxApp.MainThreadScheduler.Schedule(async () =>
-			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShowErrorDialogViewModel(
-				"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
-				"Warning",
-				"Unable to close right now")));
+			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShuttingDownViewModel(this)));
 	}
 
 	public bool CanShutdown()
