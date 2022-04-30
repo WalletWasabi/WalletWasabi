@@ -6,20 +6,24 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Packager;
 
+/// <summary>
+/// Instructions:
+/// <list type="number">
+/// <item>Bump Client version (or else wrong .msi will be created) - <see cref="Helpers.Constants.ClientVersion"/>.</item>
+/// <item>Publish with Packager.</item>
+/// <item>Build WIX project with Release and x64 configuration.</item>
+/// <item>Sign with Packager, set restore true so the password won't be kept.</item>
+/// </list>
+/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/ClientDeployment.md"/>
+/// </summary>
 public static class Program
 {
-	// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
-	// 1. Publish with Packager.
-	// 2. Build WIX project with Release and x64 configuration.
-	// 3. Sign with Packager, set restore true so the password won't be kept.
-
 	public const bool DoPublish = true;
 	public const bool DoSign = false;
 	public const bool DoRestoreProgramCs = false;
@@ -27,19 +31,14 @@ public static class Program
 	public const string PfxPath = "C:\\digicert.pfx";
 	public const string ExecutableName = Constants.ExecutableName;
 
-	// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
-	// BOTTLENECKS:
-	// Tor - win-32, linux-32, osx-64
-	// .NET Core - win-32, linux-64, osx-64
-	// Avalonia - win7-32, linux-64, osx-64
-	// We'll only support x64, if someone complains, we can come back to it.
-	// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
+	/// <remarks>Only 64-bit platforms are supported for now.</remarks>
+	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
-			"win7-x64",
-			"linux-x64",
-			"osx-x64"
-		};
+		"win7-x64",
+		"linux-x64",
+		"osx-x64"
+	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
@@ -63,7 +62,7 @@ public static class Program
 		// For now this is enough. If you run it on macOS you want to sign.
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			MacSignTools.Sign();
+			MacSignTools.Sign(argsProcessor);
 			return;
 		}
 
@@ -101,7 +100,7 @@ public static class Program
 	{
 		if (OnlyBinaries)
 		{
-			Console.WriteLine($"I'll only generate binaries and disregard all other options.");
+			Console.WriteLine("I'll only generate binaries and disregard all other options.");
 		}
 		Console.WriteLine($"{nameof(VersionPrefix)}:\t\t\t{VersionPrefix}");
 		Console.WriteLine($"{nameof(ExecutableName)}:\t\t\t{ExecutableName}");
@@ -161,7 +160,7 @@ public static class Program
 				{
 					throw new Exception(".dmg does not exist.");
 				}
-				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip");
+				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip");
 				if (File.Exists(zipFilePath))
 				{
 					File.Delete(zipFilePath);
@@ -236,33 +235,7 @@ public static class Program
 
 			StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
-			// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
-			// -c|--configuration {Debug|Release}
-			//		Defines the build configuration. The default value is Debug.
-			// --force
-			//		Forces all dependencies to be resolved even if the last restore was successful. Specifying this flag is the same as deleting the project.assets.json file.
-			// -o|--output <OUTPUT_DIRECTORY>
-			//		Specifies the path for the output directory.
-			//		If not specified, it defaults to ./bin/[configuration]/[framework]/publish/ for a framework-dependent deployment or
-			//		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
-			//		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
-			// --self-contained
-			//		Publishes the .NET Core runtime with your application so the runtime does not need to be installed on the target machine.
-			//		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
-			// -r|--runtime <RUNTIME_IDENTIFIER>
-			//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
-			//		For a list of Runtime Identifiers (RIDs), see the RID catalog. Default is to publish a framework-dependent deployment (FDD).
-			// --version-suffix <VERSION_SUFFIX>
-			//		Defines the version suffix to replace the asterisk (*) in the version field of the project file.
-			// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x
-			// --disable-parallel
-			//		Disables restoring multiple projects in parallel.
-			// --no-cache
-			//		Specifies to not cache packages and HTTP requests.
-			// https://github.com/dotnet/docs/issues/7568
-			// /p:Version=1.2.3.4
-			//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-
+			// See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish for details.
 			string dotnetProcessArgs = string.Join(
 				" ",
 				$"publish",
@@ -346,7 +319,7 @@ public static class Program
 					continue; // In Windows build at this moment it does not matter though.
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -361,14 +334,14 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip"));
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {currentBinDistDirectory}");
@@ -381,7 +354,7 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{target}.zip"));
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
 				{
@@ -407,14 +380,15 @@ public static class Program
 
 				var commands = new[]
 				{
-						"cd ~",
-						$"sudo umount /mnt/{driveLetterLower}",
-						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
-						$"cd {linuxPath}",
-						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
-					};
+					"cd ~",
+					$"sudo umount /mnt/{driveLetterLower}",
+					$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
+					$"cd {linuxPath}",
+					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
+					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
+				};
+
 				string arguments = string.Join(" && ", commands);
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
@@ -461,9 +435,9 @@ public static class Program
 				var controlFileContent = $"Package: {ExecutableName}\n" +
 					$"Priority: optional\n" +
 					$"Section: utils\n" +
-					$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
+					$"Maintainer: zkSNACKs Ltd <info@zksnacks.com>\n" +
 					$"Version: {VersionPrefix}\n" +
-					$"Homepage: http://wasabiwallet.io\n" +
+					$"Homepage: https://wasabiwallet.io\n" +
 					$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
 					$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
 					$"Architecture: amd64\n" +
@@ -485,13 +459,13 @@ public static class Program
 					$"Terminal=false\n" +
 					$"Exec={ExecutableName}\n" +
 					$"Categories=Office;Finance;\n" +
-					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
+					$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;\n";
 
 				File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
 				var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 				var wasabiStarterScriptContent = $"#!/bin/sh\n" +
-					$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+					$"{linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
 				File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
@@ -500,16 +474,17 @@ public static class Program
 
 				commands = new[]
 				{
-						"cd ~",
-						"sudo umount /mnt/c",
-						"sudo mount -t drvfs C: /mnt/c -o metadata",
-						$"cd {linuxPath}",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
-						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
-						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
-					};
+					"cd ~",
+					"sudo umount /mnt/c",
+					"sudo mount -t drvfs C: /mnt/c -o metadata",
+					$"cd {linuxPath}",
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
+					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
+					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
+					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
+				};
+
 				arguments = string.Join(" && ", commands);
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
@@ -531,7 +506,6 @@ public static class Program
 	private static void CheckUncommittedGitChanges()
 	{
 		if (TryStartProcessAndWaitForExit("git", workingDirectory: SolutionDirectory, out var gitStatus, arguments: "status --porcelain", redirectStandardOutput: true) && !string.IsNullOrEmpty(gitStatus))
-
 		{
 			Console.WriteLine("BEWARE: There are uncommitted changes in the repository. Do you want to continue? (Y/N)");
 			int i = Console.Read();
@@ -623,6 +597,7 @@ public static class Program
 	private static bool TryStartProcessAndWaitForExit(string command, string workingDirectory, [NotNullWhen(true)] out string? result, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
 	{
 		result = null;
+
 		try
 		{
 			result = StartProcessAndWaitForExit(command, workingDirectory, writeToStandardInput, arguments, redirectStandardOutput)?.Trim() ?? "";
@@ -632,6 +607,17 @@ public static class Program
 		{
 			Console.WriteLine($"Process failed: '{ex}'.");
 		}
+
 		return false;
+	}
+
+	private static string GetPackageTargetPostfix(string target)
+	{
+		if (target.StartsWith("osx"))
+		{
+			return target.Replace("osx", "macOS");
+		}
+
+		return target;
 	}
 }
