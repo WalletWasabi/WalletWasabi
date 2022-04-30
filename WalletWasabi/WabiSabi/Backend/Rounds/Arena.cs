@@ -42,6 +42,8 @@ public partial class Arena : PeriodicRunner
 		RoundParameterFactory = roundParameterFactory;
 	}
 
+	public event EventHandler<Transaction>? CoinJoinBroadcast;
+
 	public HashSet<Round> Rounds { get; } = new();
 	private ImmutableArray<RoundState> RoundStates { get; set; } = ImmutableArray.Create<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
@@ -53,8 +55,6 @@ public partial class Arena : PeriodicRunner
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
-
-	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
 	private int ConnectionConfirmationStartedCounter { get; set; }
 
