@@ -14,8 +14,6 @@ public class ShuttingDownViewModel : DialogViewModelBase<Unit>
 	public ShuttingDownViewModel(ApplicationViewModel applicationViewModel)
 	{
 		_title = "Wasabi is shutting down...";
-
-		CancelCommand = ReactiveCommand.Create(() => Close());
 		_applicationViewModel = applicationViewModel;
 	}
 
