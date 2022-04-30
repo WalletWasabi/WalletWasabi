@@ -98,6 +98,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
 		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
 
+	/// <inheritdoc/>
 	protected override Config EditConfigOnSave(Config config)
 	{
 		return config;

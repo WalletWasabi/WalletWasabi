@@ -94,6 +94,7 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 		}
 	}
 
+	/// <inheritdoc/>
 	protected override Config EditConfigOnSave(Config config)
 	{
 		Config result;

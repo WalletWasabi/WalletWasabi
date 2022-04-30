@@ -32,6 +32,7 @@ public partial class TorSettingsTabViewModel : SettingsTabViewModelBase
 			.Subscribe(_ => Save());
 	}
 
+	/// <inheritdoc/>
 	protected override Config EditConfigOnSave(Config config)
 	{
 		return config with

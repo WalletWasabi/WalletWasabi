@@ -58,20 +58,29 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			});
 	}
 
+	/// <summary>
+	/// Applies changes the user made in settings tabs.
+	/// </summary>
+	/// <param name="config">Current file config as stored in the config file.</param>
+	/// <returns>Either the same reference or a new copy of the config with user settings changes.</returns>
 	protected abstract Config EditConfigOnSave(Config config);
 
+	/// <summary>
+	/// Compares config when the app was started with the current config.
+	/// Any change means that user needs to restart the app to apply the changes.
+	/// </summary>
 	private static void IsRestartNeeded(Config configOnOpen)
 	{
 		Config currentConfig = new(configOnOpen.FilePath);
 		currentConfig.LoadFile();
 
-		var configChanged = !configOnOpen.AreDeepEqual(currentConfig);
+		bool isRestartNeeded = !configOnOpen.AreDeepEqual(currentConfig);
 
 		RestartNeeded?.Invoke(
 			typeof(SettingsTabViewModelBase),
 			new RestartNeededEventArgs
 			{
-				IsRestartNeeded = configChanged
+				IsRestartNeeded = isRestartNeeded
 			});
 	}
 }
