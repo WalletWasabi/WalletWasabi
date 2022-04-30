@@ -8,12 +8,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto;
 
 public class MacTests
 {
+	public static readonly SecureRandom Rnd = SecureRandom.Instance;
+
 	[Fact]
 	[Trait("UnitTest", "UnitTest")]
 	public void CannotBuildWrongMac()
 	{
-		using var rnd = new SecureRandom();
-		var sk = new CredentialIssuerSecretKey(rnd);
+		var sk = new CredentialIssuerSecretKey(Rnd);
 
 		Assert.Throws<ArgumentNullException>(() => MAC.ComputeMAC(null!, Generators.G, Scalar.One));
 		Assert.Throws<ArgumentNullException>(() => MAC.ComputeMAC(sk, null!, Scalar.One));
@@ -25,11 +26,10 @@ public class MacTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProduceAndVerifyMAC()
 	{
-		using var rnd = new SecureRandom();
-		var sk = new CredentialIssuerSecretKey(rnd);
+		var sk = new CredentialIssuerSecretKey(Rnd);
 
-		var attribute = rnd.GetScalar() * Generators.G;  // any random point
-		var t = rnd.GetScalar();
+		var attribute = Rnd.GetScalar() * Generators.G;  // any random point
+		var t = Rnd.GetScalar();
 
 		var mac = MAC.ComputeMAC(sk, attribute, t);
 
@@ -40,23 +40,22 @@ public class MacTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanDetectInvalidMAC()
 	{
-		using var rnd = new SecureRandom();
-		var sk = new CredentialIssuerSecretKey(rnd);
+		var sk = new CredentialIssuerSecretKey(Rnd);
 
-		var attribute = rnd.GetScalar() * Generators.G;  // any random point
-		var differentAttribute = rnd.GetScalar() * Generators.G;  // any other random point
-		var t = rnd.GetScalar();
+		var attribute = Rnd.GetScalar() * Generators.G;  // any random point
+		var differentAttribute = Rnd.GetScalar() * Generators.G;  // any other random point
+		var t = Rnd.GetScalar();
 
 		// Create MAC for realAttribute and verify with fake/wrong attribute
 		var mac = MAC.ComputeMAC(sk, attribute, t);
 		Assert.False(mac.VerifyMAC(sk, differentAttribute));
 
-		var differentT = rnd.GetScalar();
+		var differentT = Rnd.GetScalar();
 		var differentMac = MAC.ComputeMAC(sk, attribute, differentT);
 		Assert.NotEqual(mac, differentMac);
 
 		mac = MAC.ComputeMAC(sk, attribute, differentT);
-		var differentSk = new CredentialIssuerSecretKey(rnd);
+		var differentSk = new CredentialIssuerSecretKey(Rnd);
 		Assert.False(mac.VerifyMAC(differentSk, attribute));
 	}
 
@@ -64,10 +63,9 @@ public class MacTests
 	[Trait("UnitTest", "UnitTest")]
 	public void EqualityTests()
 	{
-		using var rnd = new SecureRandom();
 
-		var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(rnd), t: rnd.GetScalar());
-		var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(rnd), t: rnd.GetScalar());
+		var right = (attribute: Rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(Rnd), t: Rnd.GetScalar());
+		var wrong = (attribute: Rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(Rnd), t: Rnd.GetScalar());
 
 		var cases = new[]
 		{

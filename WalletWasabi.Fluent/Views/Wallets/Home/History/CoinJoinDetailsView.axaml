@@ -36,9 +36,6 @@
                 </c:PreviewItem>
               </DataTemplate>
             </ItemsRepeater.ItemTemplate>
-            <ItemsRepeater.Layout>
-              <StackLayout />
-            </ItemsRepeater.Layout>
           </ItemsRepeater>
       </c:PreviewItem>
 

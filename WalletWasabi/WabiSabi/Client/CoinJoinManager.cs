@@ -75,9 +75,12 @@ public class CoinJoinManager : BackgroundService
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
 		// Coinjoin handling Start / Stop and finallization.
-		var coinJoinsTrackerTask = MonitorAndHandleConjoinsAsync(stoppingToken);
+		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
 
-		await Task.WhenAll(walletsMonitoringTask, coinJoinsTrackerTask).ConfigureAwait(false);
+		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
+
+		await WaitAndHandleResultOfTasksAsync(nameof(walletsMonitoringTask), walletsMonitoringTask).ConfigureAwait(false);
+		await WaitAndHandleResultOfTasksAsync(nameof(monitorAndHandleCoinjoinsTask), monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
 	}
 
 	private async Task MonitorWalletsAsync(CancellationToken stoppingToken)
@@ -109,7 +112,7 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 
-	private async Task MonitorAndHandleConjoinsAsync(CancellationToken stoppingToken)
+	private async Task MonitorAndHandleCoinJoinsAsync(CancellationToken stoppingToken)
 	{
 		// This is a shared resource and that's why it is concurrent. Alternatives are locking structures,
 		// using a single lock around its access or use a channel.
@@ -118,7 +121,10 @@ public class CoinJoinManager : BackgroundService
 		var commandsHandlingTask = Task.Run(() => HandleCoinJoinCommandsAsync(trackedCoinJoins, stoppingToken), stoppingToken);
 		var monitorCoinJoinTask = Task.Run(() => MonitorAndHandlingCoinJoinFinallizationAsync(trackedCoinJoins, stoppingToken), stoppingToken);
 
-		await Task.WhenAll(commandsHandlingTask, monitorCoinJoinTask).ConfigureAwait(false);
+		await Task.WhenAny(commandsHandlingTask, monitorCoinJoinTask).ConfigureAwait(false);
+
+		await WaitAndHandleResultOfTasksAsync(nameof(commandsHandlingTask), commandsHandlingTask).ConfigureAwait(false);
+		await WaitAndHandleResultOfTasksAsync(nameof(monitorCoinJoinTask), monitorCoinJoinTask).ConfigureAwait(false);
 	}
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken stoppingToken)
@@ -129,14 +135,16 @@ public class CoinJoinManager : BackgroundService
 		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
-			if (trackedCoinJoins.ContainsKey(walletToStart.WalletName))
+			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker) && !tracker.IsCompleted)
 			{
+				Logger.LogDebug($"Cannot start coinjoin for wallet '{walletToStart.WalletName}', bacause it is already running .");
 				return;
 			}
 
 			// Only take PlebStop into account when AutoCoinJoin.
 			if (startCommand.RestartAutomatically && walletToStart.NonPrivateCoins.TotalAmount() <= walletToStart.KeyManager.PlebStopThreshold)
 			{
+				Logger.LogDebug($"PlebStop preventing coinjoin for wallet '{walletToStart.WalletName}'.");
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 				ScheduleRestartAutomatically(walletToStart);
 				return;
@@ -145,6 +153,7 @@ public class CoinJoinManager : BackgroundService
 			var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
 			if (coinCandidates.Length == 0)
 			{
+				Logger.LogDebug($"No Coins to mix for wallet '{walletToStart.WalletName}'.");
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
 				if (startCommand.RestartAutomatically)
 				{
@@ -158,6 +167,7 @@ public class CoinJoinManager : BackgroundService
 			trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+			Logger.LogDebug($"Coinjoin client started for wallet '{walletToStart.WalletName}'.");
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
@@ -173,15 +183,20 @@ public class CoinJoinManager : BackgroundService
 		{
 			if (trackedAutoStarts.ContainsKey(walletToStart))
 			{
+				Logger.LogDebug($"AutoStart was already scheduled for wallet '{walletToStart.WalletName}'.");
 				return;
 			}
 
 			var restartTask = Task.Run(async () =>
 			{
-				await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
 				if (trackedAutoStarts.TryRemove(walletToStart, out _))
 				{
 					await StartAutomaticallyAsync(walletToStart, stoppingToken).ConfigureAwait(false);
+				}
+				else
+				{
+					Logger.LogInfo($"AutoStart was already handled for wallet '{walletToStart.WalletName}'.");
 				}
 			}, stoppingToken);
 
@@ -194,6 +209,7 @@ public class CoinJoinManager : BackgroundService
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			var command = await CommandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
+
 			switch (command)
 			{
 				case StartCoinJoinCommand startCommand:
@@ -205,6 +221,8 @@ public class CoinJoinManager : BackgroundService
 					break;
 			}
 		}
+
+		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task MonitorAndHandlingCoinJoinFinallizationAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken stoppingToken)
@@ -372,5 +390,25 @@ public class CoinJoinManager : BackgroundService
 
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
+	}
+
+	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
+	{
+		foreach (var task in tasks)
+		{
+			try
+			{
+				await task.ConfigureAwait(false);
+				Logger.LogInfo($"Task '{logPrefix}' finished successfully.");
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogInfo($"Task '{logPrefix}' finished successfully by cancellation.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogInfo($"Task '{logPrefix}' finished but with an error: '{ex}'.");
+			}
+		}
 	}
 }

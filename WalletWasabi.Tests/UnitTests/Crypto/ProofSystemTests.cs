@@ -10,31 +10,32 @@ namespace WalletWasabi.Tests.UnitTests.Crypto;
 
 public class ProofSystemTests
 {
+	public static readonly SecureRandom Rnd = SecureRandom.Instance;
+
 	[Fact]
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyMAC()
 	{
 		// The coordinator generates a composed private key called CredentialIssuerSecretKey
 		// and derives from that the coordinator's public parameters called credentialIssuerParameters.
-		using var rnd = new SecureRandom();
-		var credentialIssuerKey = new CredentialIssuerSecretKey(rnd);
+		var credentialIssuerKey = new CredentialIssuerSecretKey(Rnd);
 		var credentialIssuerParameters = credentialIssuerKey.ComputeCredentialIssuerParameters();
 
 		// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 		// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
 		// the coordinator.
 		var amount = new Scalar(10_000);
-		var r = rnd.GetScalar();
+		var r = Rnd.GetScalar();
 		var ma = amount * Generators.G + r * Generators.Gh;
 
 		// The coordinator generates a MAC and a proof that the MAC was generated using the
 		// coordinator's secret key. The coordinator sends the pair (MAC + proofOfMac) back
 		// to the client.
-		var t = rnd.GetScalar();
+		var t = Rnd.GetScalar();
 		var mac = MAC.ComputeMAC(credentialIssuerKey, ma, t);
 
 		var coordinatorKnowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, credentialIssuerKey);
-		var proofOfMac = ProofSystemHelpers.Prove(coordinatorKnowledge, rnd);
+		var proofOfMac = ProofSystemHelpers.Prove(coordinatorKnowledge, Rnd);
 
 		// The client receives the MAC and the proofOfMac which let the client know that the MAC
 		// was generated with the coordinator's secret key.
@@ -57,30 +58,29 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyMacShow()
 	{
-		using var rnd = new SecureRandom();
-		var credentialIssuerKey = new CredentialIssuerSecretKey(rnd);
+		var credentialIssuerKey = new CredentialIssuerSecretKey(Rnd);
 		var credentialIssuerParameters = credentialIssuerKey.ComputeCredentialIssuerParameters();
 
 		// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 		// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
 		// the coordinator.
 		var amount = 10_000L;
-		var r = rnd.GetScalar();
+		var r = Rnd.GetScalar();
 		var ma = new Scalar((ulong)amount) * Generators.Gg + r * Generators.Gh;
 
 		// The coordinator generates a MAC and a proof that the MAC was generated using the
 		// coordinator's secret key. The coordinator sends the pair (MAC, proofOfMac) back
 		// to the client.
-		var t = rnd.GetScalar();
+		var t = Rnd.GetScalar();
 		var mac = MAC.ComputeMAC(credentialIssuerKey, ma, t);
 
 		// The client randomizes the commitments before presenting them to the coordinator proving to
 		// the coordinator that a credential is valid (prover knows a valid MAC on non-randomized attribute)
 		var credential = new Credential(amount, r, mac);
-		var z = rnd.GetScalar();
+		var z = Rnd.GetScalar();
 		var randomizedCredential = credential.Present(z);
 		var knowledge = ProofSystem.ShowCredentialKnowledge(randomizedCredential, z, credential, credentialIssuerParameters);
-		var proofOfMacShow = ProofSystemHelpers.Prove(knowledge, rnd);
+		var proofOfMacShow = ProofSystemHelpers.Prove(knowledge, Rnd);
 
 		// The coordinator must verify the received randomized credential is valid.
 		var capitalZ = randomizedCredential.ComputeZ(credentialIssuerKey);
@@ -96,15 +96,14 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyPresentedBalance()
 	{
-		using var rnd = new SecureRandom();
 
 		var a = new Scalar(10_000u);
-		var r = rnd.GetScalar();
-		var z = rnd.GetScalar();
+		var r = Rnd.GetScalar();
+		var z = Rnd.GetScalar();
 		var ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
 
 		var knowledge = ProofSystem.BalanceProofKnowledge(z, r);
-		var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
+		var proofOfBalance = ProofSystemHelpers.Prove(knowledge, Rnd);
 
 		var statement = ProofSystem.BalanceProofStatement(ca - a * Generators.Gg);
 		Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
@@ -120,14 +119,13 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyRequestedBalance()
 	{
-		using var rnd = new SecureRandom();
 
 		var a = new Scalar(10_000u);
-		var r = rnd.GetScalar();
+		var r = Rnd.GetScalar();
 		var ma = a * Generators.Gg + r * Generators.Gh;
 
 		var knowledge = ProofSystem.BalanceProofKnowledge(Scalar.Zero, r.Negate());
-		var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
+		var proofOfBalance = ProofSystemHelpers.Prove(knowledge, Rnd);
 
 		var statement = ProofSystem.BalanceProofStatement(a * Generators.Gg - ma);
 		Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
@@ -152,22 +150,21 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyBalance(int presentedAmount, int requestedAmount)
 	{
-		using var rnd = new SecureRandom();
 
 		var a = new Scalar((uint)presentedAmount);
-		var r = rnd.GetScalar();
-		var z = rnd.GetScalar();
+		var r = Rnd.GetScalar();
+		var z = Rnd.GetScalar();
 		var ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
 
 		var ap = new Scalar((uint)requestedAmount);
-		var rp = rnd.GetScalar();
+		var rp = Rnd.GetScalar();
 		var ma = ap * Generators.Gg + rp * Generators.Gh;
 
 		var delta = new Scalar((uint)Math.Abs(presentedAmount - requestedAmount));
 		delta = presentedAmount > requestedAmount ? delta.Negate() : delta;
 		var knowledge = ProofSystem.BalanceProofKnowledge(z, r + rp.Negate());
 
-		var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
+		var proofOfBalance = ProofSystemHelpers.Prove(knowledge, Rnd);
 
 		var statement = ProofSystem.BalanceProofStatement(ca + delta * Generators.Gg - ma);
 		Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
@@ -195,18 +192,17 @@ public class ProofSystemTests
 	[InlineData((ulong)uint.MaxValue + 1, 33, true)]
 	public void CanProveAndVerifyCommitmentRange(ulong amount, int width, bool pass)
 	{
-		using var rnd = new SecureRandom();
 
 		var amountScalar = new Scalar(amount);
-		var randomness = rnd.GetScalar();
+		var randomness = Rnd.GetScalar();
 		var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
 
 		// First, generate a proof for the given statement. This proof may
 		// be invalid (verification equation fails to hold) if the statement
 		// is in fact wrong, in which case the verifier should reject.
-		var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd);
+		var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, Rnd);
 
-		var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
+		var rangeProof = ProofSystemHelpers.Prove(knowledge, Rnd);
 
 		Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments, width), rangeProof));
 
@@ -221,9 +217,9 @@ public class ProofSystemTests
 			// should still reject.
 			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
 
-			var (knowledgeOfSomethingElse, incompleteBitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
+			var (knowledgeOfSomethingElse, incompleteBitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, Rnd);
 
-			var incorrectRangeProof = ProofSystemHelpers.Prove(knowledgeOfSomethingElse, rnd);
+			var incorrectRangeProof = ProofSystemHelpers.Prove(knowledgeOfSomethingElse, Rnd);
 
 			Assert.False(ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, incompleteBitCommitments, width), incorrectRangeProof));
 
@@ -237,14 +233,13 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyZeroProofs()
 	{
-		using var rnd = new SecureRandom();
 
 		var a0 = Scalar.Zero;
-		var r0 = rnd.GetScalar();
+		var r0 = Rnd.GetScalar();
 		var ma0 = a0 * Generators.Gg + r0 * Generators.Gh;
 
 		var a1 = Scalar.Zero;
-		var r1 = rnd.GetScalar();
+		var r1 = Rnd.GetScalar();
 		var ma1 = a1 * Generators.Gg + r1 * Generators.Gh;
 
 		var knowledge = new[]
@@ -253,7 +248,7 @@ public class ProofSystemTests
 				ProofSystem.ZeroProofKnowledge(ma1, r1)
 			};
 
-		var proofs = ProofSystem.Prove(new Transcript(Array.Empty<byte>()), knowledge, rnd);
+		var proofs = ProofSystem.Prove(new Transcript(Array.Empty<byte>()), knowledge, Rnd);
 
 		var statements = new[]
 		{
