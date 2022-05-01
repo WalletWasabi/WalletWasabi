@@ -48,6 +48,10 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => UpdateRecentTransaction())
 			.DisposeWith(disposables);
+
+		Services.UiConfig.WhenAnyValue(x => x.ShowDecimalsInFiatBalance)
+						 .Subscribe(x => UpdateBalance())
+						 .DisposeWith(disposables);
 	}
 
 	private void UpdateBalance()
@@ -58,9 +62,9 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		var fiatAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
 		var format =
-			fiatAmount > 1
-			? "N0"
-			: "N2";
+			Services.UiConfig.ShowDecimalsInFiatBalance
+			? "N2"
+			: "N0";
 
 		BalanceFiat =
 			fiatAmount.GenerateFiatText("USD", format);

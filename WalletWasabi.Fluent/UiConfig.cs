@@ -28,6 +28,7 @@ public class UiConfig : ConfigBase
 	private bool _autoPaste;
 	private int _feeTarget;
 	private bool _sendAmountConversionReversed;
+	private bool _showDecimalsInFiatBalance;
 
 	public UiConfig() : base()
 	{
@@ -54,7 +55,9 @@ public class UiConfig : ConfigBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
-		this.WhenAnyValue(x => x.SendAmountConversionReversed)
+		this.WhenAnyValue(x =>
+			x.SendAmountConversionReversed,
+			x => x.ShowDecimalsInFiatBalance)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -131,6 +134,14 @@ public class UiConfig : ConfigBase
 	{
 		get => _feeDisplayUnit;
 		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value);
+	}
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "ShowDecimalsInFiatBalance", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool ShowDecimalsInFiatBalance
+	{
+		get => _showDecimalsInFiatBalance;
+		set => RaiseAndSetIfChanged(ref _showDecimalsInFiatBalance, value);
 	}
 
 	[DefaultValue(true)]

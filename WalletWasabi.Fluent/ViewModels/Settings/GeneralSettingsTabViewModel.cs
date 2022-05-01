@@ -30,6 +30,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
+	[AutoNotify] private bool _showDecimalsInFiatBalance;
 
 	public GeneralSettingsTabViewModel()
 	{
@@ -39,6 +40,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 		_hideOnClose = Services.UiConfig.HideOnClose;
+		_showDecimalsInFiatBalance = Services.UiConfig.ShowDecimalsInFiatBalance;
 		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
 			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
 			: FeeDisplayUnit.Satoshis;
@@ -91,6 +93,11 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.HideOnClose = x);
+
+		this.WhenAnyValue(x => x.ShowDecimalsInFiatBalance)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.ShowDecimalsInFiatBalance = x);
 	}
 
 	public ICommand StartupCommand { get; }

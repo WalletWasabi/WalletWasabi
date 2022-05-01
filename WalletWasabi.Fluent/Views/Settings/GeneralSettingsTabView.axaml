@@ -50,5 +50,10 @@
         </ComboBox.ItemTemplate>
       </ComboBox>
     </StackPanel>
+
+    <DockPanel>
+      <TextBlock VerticalAlignment="Top" Text="Show decimals for fiat amount in balance" />
+      <ToggleSwitch IsChecked="{Binding ShowDecimalsInFiatBalance}" />
+    </DockPanel>
   </StackPanel>
 </UserControl>
