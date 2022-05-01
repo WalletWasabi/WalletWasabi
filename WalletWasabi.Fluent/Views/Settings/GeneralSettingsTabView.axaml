@@ -36,7 +36,7 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text="Custom change address" />
+      <TextBlock Text="Custom change address" />
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
 
@@ -52,7 +52,7 @@
     </StackPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Top" Text="Show decimals for fiat amount in balance" />
+      <TextBlock Text="Show decimals for fiat amount in balance" />
       <ToggleSwitch IsChecked="{Binding ShowDecimalsInFiatBalance}" />
     </DockPanel>
   </StackPanel>
