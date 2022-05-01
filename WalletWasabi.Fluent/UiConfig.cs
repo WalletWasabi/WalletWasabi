@@ -55,9 +55,9 @@ public class UiConfig : ConfigBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
-		this.WhenAnyValue(x =>
-			x.SendAmountConversionReversed,
-			x => x.ShowDecimalsInFiatBalance)
+		this.WhenAnyValue(
+				x => x.SendAmountConversionReversed,
+				x => x.ShowDecimalsInFiatBalance)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
