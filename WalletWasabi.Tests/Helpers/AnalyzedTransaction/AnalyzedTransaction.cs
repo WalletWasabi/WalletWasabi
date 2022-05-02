@@ -64,7 +64,7 @@ public class AnalyzedTransaction : SmartTransaction
 	public void AddWalletInput(WalletOutput walletOutput)
 	{
 		AddForeignInput(walletOutput.ToForeignOutput());
-		WalletInputs.Add(walletOutput.ToSmartCoin());
+		AddWalletInput(walletOutput.ToSmartCoin());
 	}
 
 	public WalletOutput AddWalletInput(decimal amount = 1, string? label = null, int anonymity = 1)
@@ -87,7 +87,7 @@ public class AnalyzedTransaction : SmartTransaction
 	{
 		ForeignOutput foreignOutput = AddForeignOutput(amount, label);
 		SmartCoin smartCoin = new(this, foreignOutput.Index, CreateHdPubKey(label));
-		WalletOutputs.Add(smartCoin);
+		AddWalletOutput(smartCoin);
 		return new WalletOutput(smartCoin);
 	}
 
