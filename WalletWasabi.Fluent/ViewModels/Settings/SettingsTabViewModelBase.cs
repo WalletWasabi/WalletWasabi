@@ -1,5 +1,5 @@
-using System.Reactive.Concurrency;
 using ReactiveUI;
+using System.Reactive.Concurrency;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;

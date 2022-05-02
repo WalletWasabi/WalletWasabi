@@ -1,8 +1,8 @@
+using NBitcoin;
+using ReactiveUI;
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Linq;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -101,12 +101,20 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 
 		if (Network == config.Network)
 		{
+			// Make a copy.
+			result = config with { };
+
 			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
 			{
-				config.SetBitcoinP2pEndpoint(p2PEp);
+				result = result with
+				{
+					MainNetBitcoinP2pEndPoint = Network == Network.Main ? p2PEp : result.MainNetBitcoinP2pEndPoint,
+					TestNetBitcoinP2pEndPoint = Network == Network.TestNet ? p2PEp : result.TestNetBitcoinP2pEndPoint,
+					RegTestBitcoinP2pEndPoint = Network == Network.RegTest ? p2PEp : result.RegTestBitcoinP2pEndPoint,
+				};
 			}
 
-			result = config with
+			result = result with
 			{
 				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
 				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
@@ -123,7 +131,7 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 				Network = Network
 			};
 
-			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			BitcoinP2PEndPoint = result.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		}
 
 		return result;
