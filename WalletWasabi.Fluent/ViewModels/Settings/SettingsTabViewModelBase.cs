@@ -18,13 +18,13 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 
 	public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
-	public static Config? ConfigOnOpen { get; set; }
+	protected Config ConfigOnOpen { get; }
 
 	private static object ConfigLock { get; } = new();
 
 	protected void Save()
 	{
-		if (Validations.Any || ConfigOnOpen is null)
+		if (Validations.Any)
 		{
 			return;
 		}
@@ -45,7 +45,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 						// Store settings changes.
 						newConfig.ToFile();
 
-						IsRestartNeeded(ConfigOnOpen);
+						IsRestartNeeded(ConfigOnOpen, newConfig);
 					}
 				}
 				catch (Exception ex)
@@ -66,15 +66,13 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 	/// Compares config when the app was started with the current config.
 	/// Any change means that user needs to restart the app to apply the changes.
 	/// </summary>
-	private static void IsRestartNeeded(Config configOnOpen)
+	/// <param name="configOnOpen">Config when the application was started.</param>
+	/// <param name="storedConfig">Config currently stored in the configuration file.</param>
+	private static void IsRestartNeeded(Config configOnOpen, Config storedConfig)
 	{
-		Config currentConfig = new(configOnOpen.FilePath);
-		currentConfig.LoadFile();
+		bool isRestartNeeded = !configOnOpen.AreDeepEqual(storedConfig);
 
-		bool isRestartNeeded = !configOnOpen.AreDeepEqual(currentConfig);
-
-		RestartNeeded?.Invoke(
-			typeof(SettingsTabViewModelBase),
+		RestartNeeded?.Invoke(typeof(SettingsTabViewModelBase),
 			new RestartNeededEventArgs
 			{
 				IsRestartNeeded = isRestartNeeded
