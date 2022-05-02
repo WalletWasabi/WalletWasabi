@@ -3,6 +3,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Platform;
+using Avalonia.Rendering;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Skia.Helpers;
@@ -47,6 +48,37 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+
+		var renderTimer = new UiThreadRenderTimer(60);
+		renderTimer.Tick += OnTick;
+	}
+
+	private void OnTick(TimeSpan obj)
+	{
+		for (var i = 0; i < NumBins; i++)
+		{
+			_data[i] = 0;
+		}
+
+		foreach (var source in _sources)
+		{
+			if (source.ShouldRender)
+			{
+				source.Render(ref _data);
+			}
+		}
+
+		var sum = 0f;
+
+		for (var i = 0; i < NumBins; i++)
+		{
+			sum += _data[i] ;
+		}
+
+		if (sum > 0.001f) // Arbitrary zero
+		{
+			Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Background);
+		}
 	}
 
 	private void OnIsActiveChanged()
@@ -103,32 +135,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		base.Render(context);
 
-		for (var i = 0; i < NumBins; i++)
-		{
-			_data[i] = 0;
-		}
-
-		foreach (var source in _sources)
-		{
-			if (source.ShouldRender)
-			{
-				source.Render(ref _data);
-			}
-		}
-
-		var sum = 0f;
-
-		for (var i = 0; i < NumBins; i++)
-		{
-			sum += _data[i] ;
-		}
-
-		if (sum > 0.00001f) // Arbitrary zero
-		{
 			context.Custom(this);
-		}
-
-		Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
 
 	private void RenderBars(IDrawingContextImpl context)
