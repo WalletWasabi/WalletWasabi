@@ -29,10 +29,6 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			return;
 		}
 
-		// Config stored in the file might be different than
-		// the config the application was started with.
-		Config currentFileConfig = new(ConfigOnOpen.FilePath);
-
 		RxApp.MainThreadScheduler.Schedule(
 			() =>
 			{
@@ -40,6 +36,12 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 				{
 					lock (ConfigLock)
 					{
+						// Config stored in the file might be different than
+						// the config the application was started with.
+						Config currentFileConfig = new(ConfigOnOpen.FilePath);
+						currentFileConfig.LoadFile();
+
+						// Get modified config.
 						Config newConfig = EditConfigOnSave(currentFileConfig);
 
 						// Store settings changes.
