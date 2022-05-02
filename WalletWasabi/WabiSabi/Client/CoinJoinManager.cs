@@ -175,7 +175,7 @@ public class CoinJoinManager : BackgroundService
 			var walletToStop = stopCommand.Wallet;
 			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 			{
-				coinJoinTrackerToStop.Cancel();
+				coinJoinTrackerToStop.Stop();
 			}
 		}
 
@@ -296,7 +296,9 @@ public class CoinJoinManager : BackgroundService
 			coins.CoinJoinInProgress = false;
 		}
 
-		if (finishedCoinJoin.RestartAutomatically && !finishedCoinJoin.CoinJoinTask.IsCanceled)
+		if (finishedCoinJoin.RestartAutomatically &&
+			!finishedCoinJoin.IsStopped &&
+			!cancellationToken.IsCancellationRequested)
 		{
 			Logger.LogInfo($"{logPrefix} restart automatically.");
 

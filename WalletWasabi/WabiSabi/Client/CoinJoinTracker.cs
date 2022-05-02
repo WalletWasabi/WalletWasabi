@@ -35,9 +35,11 @@ public class CoinJoinTracker : IDisposable
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;
+	public bool IsStopped { get; private set; }
 
-	public void Cancel()
+	public void Stop()
 	{
+		IsStopped = true;
 		CancellationTokenSource.Cancel();
 	}
 
