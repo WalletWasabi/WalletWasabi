@@ -284,7 +284,14 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogInfo($"{logPrefix} was cancelled.");
+			if (finishedCoinJoin.IsStopped)
+			{
+				Logger.LogInfo($"{logPrefix} was stopped.");
+			}
+			else
+			{
+				Logger.LogInfo($"{logPrefix} was cancelled.");
+			}
 		}
 		catch (Exception e)
 		{
