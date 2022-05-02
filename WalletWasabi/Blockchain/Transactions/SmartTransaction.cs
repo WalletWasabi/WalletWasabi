@@ -32,23 +32,44 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-		WalletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
-		WalletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+		_walletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+		_walletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 	}
 
 	#endregion Constructors
 
 	#region Members
 
-	/// <summary>
-	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
-	public HashSet<SmartCoin> WalletInputs { get; }
+	public IReadOnlyCollection<SmartCoin> WalletInputs
+	{
+		get
+		{
+			return _walletInputs;
+		}
+	}
 
-	/// <summary>
-	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
-	public HashSet<SmartCoin> WalletOutputs { get; }
+	public void AddWalletInput(SmartCoin input)
+	{
+		_walletInputs.Add(input);
+	}
+
+	public IReadOnlyCollection<SmartCoin> WalletOutputs
+	{
+		get
+		{
+			return _walletOutputs;
+		}
+	}
+
+	public void AddWalletOutput(SmartCoin output)
+	{
+		_walletOutputs.Add(output);
+	}
+
+	public void RemoveWalletOutput(SmartCoin output)
+	{
+		_walletOutputs.Remove(output);
+	}
 
 	[JsonProperty]
 	[JsonConverter(typeof(TransactionJsonConverter))]
@@ -105,6 +126,16 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// * Implicitly in case one of its unconfirmed ancestors are replaceable
 	/// </summary>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
+
+	/// <summary>
+	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
+	private HashSet<SmartCoin> _walletInputs;
+
+	/// <summary>
+	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
+	private HashSet<SmartCoin> _walletOutputs;
 
 	#endregion Members
 

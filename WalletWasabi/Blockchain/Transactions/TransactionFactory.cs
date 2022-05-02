@@ -256,7 +256,7 @@ public class TransactionFactory
 		var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
 		foreach (var coin in spentCoins)
 		{
-			smartTransaction.WalletInputs.Add(coin);
+			smartTransaction.AddWalletInput(coin);
 		}
 		var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
 
@@ -267,7 +267,7 @@ public class TransactionFactory
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 				label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
-				smartTransaction.WalletOutputs.Add(smartCoin);
+				smartTransaction.AddWalletOutput(smartCoin);
 			}
 		}
 
