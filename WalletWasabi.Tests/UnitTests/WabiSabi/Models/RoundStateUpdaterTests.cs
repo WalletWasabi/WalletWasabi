@@ -190,14 +190,15 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task CancelAsync()
 	{
-		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 		mockApiClient
 			.Setup(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(
-				() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } },
-				Array.Empty<CoinJoinFeeRateMedian>()));
+				() => new RoundStateResponse(
+					new[] { roundState with { Phase = Phase.InputRegistration } },
+					Array.Empty<CoinJoinFeeRateMedian>()));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), mockApiClient.Object);
 		try
