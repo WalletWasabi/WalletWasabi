@@ -24,10 +24,6 @@ namespace WalletWasabi.Packager;
 /// </summary>
 public static class Program
 {
-	public const bool DoPublish = true;
-	public const bool DoSign = false;
-	public const bool DoRestoreProgramCs = false;
-
 	public const string PfxPath = "C:\\digicert.pfx";
 	public const string ExecutableName = Constants.ExecutableName;
 
@@ -37,7 +33,8 @@ public static class Program
 	{
 		"win7-x64",
 		"linux-x64",
-		"osx-x64"
+		"osx-x64",
+		"osx-arm64"
 	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
@@ -73,7 +70,7 @@ public static class Program
 
 		ReportStatus();
 
-		if (DoPublish || OnlyBinaries)
+		if (argsProcessor.IsPublish() || OnlyBinaries)
 		{
 			await PublishAsync().ConfigureAwait(false);
 
@@ -83,14 +80,9 @@ public static class Program
 #pragma warning disable CS0162 // Unreachable code detected
 		if (!OnlyBinaries)
 		{
-			if (DoSign)
+			if (argsProcessor.IsSign())
 			{
 				await SignAsync().ConfigureAwait(false);
-			}
-
-			if (DoRestoreProgramCs)
-			{
-				RestoreProgramCs();
 			}
 		}
 #pragma warning restore CS0162 // Unreachable code detected
@@ -121,11 +113,6 @@ public static class Program
 		Console.WriteLine();
 	}
 
-	private static void RestoreProgramCs()
-	{
-		StartProcessAndWaitForExit("git", PackagerProjectDirectory, arguments: "checkout -- Program.cs");
-	}
-
 	private static async Task SignAsync()
 	{
 		foreach (string target in Targets)
@@ -142,7 +129,7 @@ public static class Program
 				}
 				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-				File.Copy(msiPath, newMsiPath);
+				File.Copy(msiPath, newMsiPath, overwrite: true);
 
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
@@ -155,16 +142,16 @@ public static class Program
 			}
 			else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
 			{
-				string dmgFilePath = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.dmg");
+				string dmgFileName = target.Contains("arm") ? $"Wasabi-{VersionPrefix}.dmg" : $"Wasabi-{VersionPrefix}-arm64.dmg";
+				string dmgFilePath = Path.Combine(Tools.GetSingleUsbDrive(), dmgFileName);
+
 				if (!File.Exists(dmgFilePath))
 				{
 					throw new Exception(".dmg does not exist.");
 				}
-				string zipFilePath = Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip");
-				if (File.Exists(zipFilePath))
-				{
-					File.Delete(zipFilePath);
-				}
+
+				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
+				File.Move(dmgFilePath, destinationFilePath);
 			}
 		}
 
@@ -341,10 +328,30 @@ public static class Program
 					continue;
 				}
 
-				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-macOS-{VersionPrefix}.zip"));
+				// Only add postfix to the final package if arm64, otherwise nothing.
+				var postfix = target.Contains("arm64") ? "-arm64" : "";
+
+				// After notarization this will be the filename of the dmg file.
+				var zipFileName = $"WasabiToNotarize-{deterministicFileNameTag}{postfix}.zip";
+				var zipFilePath = Path.Combine(BinDistDirectory, zipFileName);
+
+				ZipFile.CreateFromDirectory(currentBinDistDirectory, zipFilePath);
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"Deleted {currentBinDistDirectory}");
+
+				try
+				{
+					var drive = Tools.GetSingleUsbDrive();
+					var targetFilePath = Path.Combine(drive, zipFileName);
+
+					Console.WriteLine($"Trying to move unsigned zip file to removable ('{targetFilePath}').");
+					File.Move(zipFilePath, targetFilePath, overwrite: true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"There was an error during copying the file to removable: '{ex.Message}'");
+				}
 			}
 			else if (target.StartsWith("linux"))
 			{

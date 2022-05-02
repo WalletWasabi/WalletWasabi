@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Packager;
 
@@ -70,5 +72,20 @@ public static class Tools
 			size += DirSize(di);
 		}
 		return size;
+	}
+
+	public static string GetSingleUsbDrive()
+	{
+		IEnumerable<DriveInfo> driveList;
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			driveList = DriveInfo.GetDrives().Where(d => d.Name.Contains("USB")).ToArray();
+		}
+		else
+		{
+			driveList = DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable);
+		}
+
+		return driveList.Single().Name;
 	}
 }

@@ -26,7 +26,7 @@ public record RoundState(
 	long MaxSuggestedAmount,
 	MultipartyTransactionState CoinjoinState)
 {
-	private uint256 _id;
+	private uint256? _id;
 
 	public uint256 Id => _id ??= CalculateHash();
 
@@ -52,6 +52,27 @@ public record RoundState(
 			round.MaxSuggestedAmount,
 			round.CoinjoinState.GetStateFrom(stateId)
 			);
+
+	public RoundState GetSubState(int skipFromBaseState) =>
+	new(
+		BlameOf,
+		AmountCredentialIssuerParameters,
+		VsizeCredentialIssuerParameters,
+		FeeRate,
+		CoordinationFeeRate,
+		Phase,
+		WasTransactionBroadcast,
+		InputRegistrationStart,
+		InputRegistrationTimeout,
+		ConnectionConfirmationTimeout,
+		OutputRegistrationTimeout,
+		TransactionSigningTimeout,
+		MaxAmountCredentialValue,
+		MaxVsizeCredentialValue,
+		MaxVsizeAllocationPerAlice,
+		MaxSuggestedAmount,
+		CoinjoinState.GetStateFrom(skipFromBaseState)
+		);
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 namespace WalletWasabi.Packager;
 
@@ -16,9 +16,13 @@ public class ArgsProcessor
 
 	/// <summary>Builds Wasabi Wallet binaries for supported platforms to be compared then with the official binaries, and terminates.</summary>
 	/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/DeterministicBuildGuide.md"/>
-	public bool IsOnlyBinariesMode() => IsOneOf("onlybinaries");
+	public bool IsOnlyBinariesMode() => IsOneOf("onlybinaries") || Args is null || Args.Length == 0;
 
 	public bool IsContinuousDeliveryMode() => IsOneOf("cdelivery");
+
+	public bool IsPublish() => IsOneOf("publish");
+
+	public bool IsSign() => IsOneOf("sign");
 
 	private bool IsOneOf(params string[] values)
 	{
@@ -51,7 +55,6 @@ public class ArgsProcessor
 		}
 		catch (Exception)
 		{
-			throw;
 		}
 
 		return (appleId, password);

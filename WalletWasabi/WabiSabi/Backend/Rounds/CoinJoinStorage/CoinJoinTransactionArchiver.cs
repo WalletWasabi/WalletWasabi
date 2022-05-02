@@ -23,7 +23,7 @@ public class CoinJoinTransactionArchiver
 	private string BaseStoragePath { get; }
 
 	/// <summary>
-	/// Save CoinJoin transaction in a JSON file for later inspection.
+	/// Save coinjoin transaction in a JSON file for later inspection.
 	/// </summary>
 	/// <param name="transaction">Transaction to store.</param>
 	/// <param name="currentDate">Date when the transaction was created or <c>null</c> to use current UTC time.</param>
@@ -51,7 +51,7 @@ public class CoinJoinTransactionArchiver
 	}
 
 	/// <summary>
-	/// Represents a single CoinJoin transaction.
+	/// Represents a single coinjoin transaction.
 	/// </summary>
 	/// <param name="Created">UNIX timestamp in milliseconds when the transaction was created.</param>
 	/// <param name="TxHash">Hash of the transaction.</param>
