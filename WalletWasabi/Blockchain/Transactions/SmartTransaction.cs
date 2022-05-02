@@ -38,9 +38,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		_walletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		_walletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
-		_foreignInputs = new Lazy<HashSet<IndexedTxIn>>(() => GetForeignInputs(), true);
-		_foreignOutputs = new Lazy<HashSet<IndexedTxOut>>(() => GetForeignOutputs(), true);
-
 		_walletVirtualInputs = new Lazy<HashSet<WalletVirtualInput>>(() => GetWalletVirtualInputs(), true);
 		_walletVirtualOutputs = new Lazy<HashSet<VirtualOutput>>(() => GetWalletVirtualOutputs(), true);
 		_foreignVirtualOutputs = new Lazy<HashSet<VirtualOutput>>(() => GetForeignVirtualOutputs(), true);
@@ -133,11 +130,24 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
-	public HashSet<IndexedTxIn> ForeignInputs => _foreignInputs.Value;
-	public HashSet<IndexedTxOut> ForeignOutputs => _foreignOutputs.Value;
+	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
+	{
+		get
+		{
+			return GetForeignInputs();
+		}
+	}
 
-	private Lazy<HashSet<IndexedTxIn>> _foreignInputs;
-	private Lazy<HashSet<IndexedTxOut>> _foreignOutputs;
+	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
+	{
+		get
+		{
+			return GetForeignOutputs();
+		}
+	}
+
+	private HashSet<IndexedTxIn> _foreignInputs;
+	private HashSet<IndexedTxOut> _foreignOutputs;
 
 	/// <summary>
 	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
