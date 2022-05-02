@@ -118,6 +118,31 @@ public class BranchAndBoundTests
 		Assert.Equal(new long[] { 1_000_000 }, actualSelection);
 	}
 
+
+	[Fact]
+	public void MoreSelection_MaxInputCountTest()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+		
+		long[] inputValues = new long[] { 20, 10, 10, 10, 5, 5, 5, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		long target = 52;
+
+		BranchAndBound algorithm = new();
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
+		MoreSelectionStrategy moreStrategy = new(parameters);
+		_ = algorithm.TryGetMatch(moreStrategy, out _, cts.Token);
+
+		long[] result = moreStrategy.GetBestSelectionFound()!;
+
+		Assert.NotNull(result);
+
+		// BnB should have chosen { 20, 10, 10, 10, 1, 1 } but with the MaxInputCount this is the best we can get.
+		Assert.Equal(new long[] { 20, 10, 10, 10, 5 }, result);
+		Assert.Equal(5, result.Length);
+	}
+
 	[Fact]
 	public void LessSelection_RemainingAmountOptimization()
 	{
@@ -212,5 +237,27 @@ public class BranchAndBoundTests
 		// Total costs: (17 + 2) + (10 + 3) + (5 + 3) = 40
 		// Total costs: (17 + 2) + (10 + 3) + (3 + 1) + (2 + 1) = 39
 		Assert.Equal(new long[] { 17, 10, 3, 2 }, actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_MaxInputCountTest()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		long target = 9;
+
+		BranchAndBound algorithm = new();
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
+		LessSelectionStrategy lessStrategy = new(parameters);
+		_ = algorithm.TryGetMatch(lessStrategy, out _, cts.Token);
+
+		long[] actualSelection = lessStrategy.GetBestSelectionFound()!;
+
+		Assert.NotNull(actualSelection);
+		Assert.Equal(new long[] { 1, 1, 1, 1, 1, }, actualSelection);
+		Assert.Equal(5, actualSelection.Length);
 	}
 }

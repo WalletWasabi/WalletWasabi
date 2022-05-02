@@ -25,6 +25,12 @@ public class MoreSelectionStrategy : SelectionStrategy
 	{
 		long totalCost = sum + CurrentInputCosts;
 
+		if (IncludedCoinsCount > Parameters.MaxInputCount)
+		{
+			// Too many coins in the selection. Cut the branch.
+			return EvaluationResult.SkipBranch;
+		}
+
 		if (sum > BestSelection.PaymentAmount || sum > MaximumTarget)
 		{
 			// Our solution is already better than what we might get here.

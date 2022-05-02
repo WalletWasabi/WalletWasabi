@@ -15,10 +15,14 @@ public record StrategyParameters
 	/// <remarks>Costs corresponding to <see cref="InputValues"/> values. So the arrays has to have the same lengths.</remarks>
 	public long[] InputCosts { get; }
 
+	/// <summary>Maximum number of coins that can be included in a selection.</summary>
+	public int MaxInputCount { get; }
+
 	/// <param name="target">Target value (in satoshis) we want to, ideally, sum up from the input values.</param>
 	/// <param name="inputValues">Values in satoshis of the coins the user has (in descending order).</param>
 	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
-	public StrategyParameters(long target, long[] inputValues, long[] inputCosts)
+	/// <param name="maxInputCount">Optionally, maximum number of coins that can be included in a selection, or "infinity".</param>
+	public StrategyParameters(long target, long[] inputValues, long[] inputCosts, int maxInputCount = int.MaxValue)
 	{
 		if (inputValues.Length != inputCosts.Length)
 		{
@@ -28,5 +32,6 @@ public record StrategyParameters
 		Target = target;
 		InputValues = inputValues;
 		InputCosts = inputCosts;
+		MaxInputCount = maxInputCount;
 	}
 }

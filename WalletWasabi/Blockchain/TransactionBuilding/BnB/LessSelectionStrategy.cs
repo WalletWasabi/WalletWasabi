@@ -25,6 +25,12 @@ public class LessSelectionStrategy : SelectionStrategy
 	{
 		long totalCost = sum + CurrentInputCosts;
 
+		if (IncludedCoinsCount > Parameters.MaxInputCount)
+		{
+			// Too many coins in the selection. Cut the branch.
+			return EvaluationResult.SkipBranch;
+		}
+
 		if (sum > Target)
 		{
 			// Excessive funds, cut the branch.

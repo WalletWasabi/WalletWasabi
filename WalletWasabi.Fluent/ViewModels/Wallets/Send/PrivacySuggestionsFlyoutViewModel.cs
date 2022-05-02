@@ -1,13 +1,13 @@
+using NBitcoin;
+using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -58,8 +58,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
-			var suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
+			int originalInputCount = transaction.SpentCoins.Count();
+
+			// Use at most 5 coins.
+			int maxInputCount = originalInputCount < 5 ? originalInputCount : 5;
+
+			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, linkedCts.Token);
 
 			await foreach (var suggestion in suggestions)
 			{
