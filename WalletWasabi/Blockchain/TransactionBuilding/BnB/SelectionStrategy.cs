@@ -42,15 +42,15 @@ public abstract class SelectionStrategy
 	/// <summary>Holds best coin selection found so far with some metadata to improve performance.</summary>
 	protected CoinSelection BestSelection { get; }
 
-	/// <summary>Gets best found selection as an array of effective values, or <c>null</c> if none was found.</summary>
-	public long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
-
 	/// <summary>Input cost(s) of the current selection.</summary>
 	protected long CurrentInputCosts { get; set; } = 0;
 
 	/// <summary>Sums of the remaining coins.</summary>
-	/// <remarks>i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
+	/// <remarks>Each i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
 	protected long[] RemainingAmounts { get; set; }
+
+	/// <summary>Gets best found selection as an array of effective values, or <c>null</c> if none was found.</summary>
+	public long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
