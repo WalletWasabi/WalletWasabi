@@ -33,10 +33,12 @@ public static class ChangelessTransactionCoinSelector
 		// Pass smart coins' effective values in descending order.
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
 
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+
 		var strategies = new SelectionStrategy[]
 		{
-			new MoreSelectionStrategy(target, inputValues, inputCosts),
-			new LessSelectionStrategy(target, inputValues, inputCosts)
+			new MoreSelectionStrategy(parameters),
+			new LessSelectionStrategy(parameters)
 		};
 
 		var tasks = strategies.Select(strategy => Task.Run(() =>
