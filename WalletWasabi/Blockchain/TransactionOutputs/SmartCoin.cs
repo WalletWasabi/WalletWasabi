@@ -48,7 +48,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 		HdPubKey = pubKey;
 
-		Transaction.WalletOutputs.Add(this);
+		Transaction.AddWalletOutput(this);
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -79,7 +79,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _spenderTransaction;
 		set
 		{
-			value?.WalletInputs.Add(this);
+			value?.AddWalletInput(this);
 			RaiseAndSetIfChanged(ref _spenderTransaction, value);
 		}
 	}
