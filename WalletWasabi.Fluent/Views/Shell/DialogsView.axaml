@@ -9,7 +9,7 @@
              x:CompileBindings="False"
              x:Class="WalletWasabi.Fluent.Views.Shell.DialogsView">
   <Panel>
-    <ExperimentalAcrylicBorder IsVisible="{Binding IsOobeBackgroundVisible, FallbackValue=False}">
+    <ExperimentalAcrylicBorder IsHitTestVisible="False" IsVisible="{Binding IsOobeBackgroundVisible, FallbackValue=False}">
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                      TintColor="{DynamicResource SystemAltHighColor}"
