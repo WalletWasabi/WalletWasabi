@@ -61,7 +61,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			int originalInputCount = transaction.SpentCoins.Count();
 
 			// Use at most 5 coins.
-			int maxInputCount = originalInputCount < 5 ? originalInputCount : 5;
+			int maxInputCount = Math.Max(3, originalInputCount * 1.3);
 
 			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
 				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, linkedCts.Token);
