@@ -7,6 +7,7 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -70,7 +71,10 @@ public static class NotificationHelpers
 				}
 				else if (isSpent && receiveSpentDiff == miningFee)
 				{
-					message = $"Self transfer. Fee: {amountString} BTC";
+					var fee = miningFee;
+					var feeText = fee.ToFeeDisplayUnitString();
+
+					message = $"Self transfer. Fee: {feeText}";
 				}
 				else if (incoming > Money.Zero)
 				{
@@ -92,7 +96,10 @@ public static class NotificationHelpers
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
-					message = $"Self transfer confirmed. Fee: {amountString} BTC";
+					var fee = miningFee;
+					var feeText = fee.ToFeeDisplayUnitString();
+
+					message = $"Self transfer confirmed. Fee: {feeText}";
 				}
 				else if (incoming > Money.Zero)
 				{
