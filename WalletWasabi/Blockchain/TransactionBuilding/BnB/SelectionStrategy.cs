@@ -20,6 +20,7 @@ public abstract class SelectionStrategy
 			RemainingAmounts[i] = accumulator;
 		}
 	}
+
 	public StrategyParameters Parameters { get; }
 
 	/// <inheritdoc cref="StrategyParameters.InputCosts"/>
