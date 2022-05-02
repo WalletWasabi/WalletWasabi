@@ -273,7 +273,7 @@ public partial class Arena : PeriodicRunner
 					}
 
 					round.SetPhase(Phase.Ended);
-					round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
+					round.LogInfo($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.");
 
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
