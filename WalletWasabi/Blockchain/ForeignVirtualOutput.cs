@@ -3,13 +3,15 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Blockchain;
 
-public record VirtualOutput
+public record ForeignVirtualOutput
 {
+	public byte[] KeyIdentifier;
 	public Money Amount;
 	public HashSet<OutPoint> Outpoints;
 
-	public VirtualOutput(Money amount, HashSet<OutPoint> outpoints)
+	public ForeignVirtualOutput(byte[] keyIdentifier, Money amount, HashSet<OutPoint> outpoints)
 	{
+		KeyIdentifier = keyIdentifier;
 		Amount = amount;
 		Outpoints = outpoints;
 	}

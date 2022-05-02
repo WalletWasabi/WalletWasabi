@@ -150,7 +150,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	public IReadOnlyCollection<VirtualOutput> WalletVirtualOutputs
+	public IReadOnlyCollection<WalletVirtualOutput> WalletVirtualOutputs
 	{
 		get
 		{
@@ -158,7 +158,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	public IReadOnlyCollection<VirtualOutput> ForeignVirtualOutputs
+	public IReadOnlyCollection<ForeignVirtualOutput> ForeignVirtualOutputs
 	{
 		get
 		{
@@ -180,8 +180,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private HashSet<SmartCoin> _walletOutputs;
 
 	private HashSet<WalletVirtualInput> _walletVirtualInputs;
-	private HashSet<VirtualOutput> _walletVirtualOutputs;
-	private HashSet<VirtualOutput> _foreignVirtualOutputs;
+	private HashSet<WalletVirtualOutput> _walletVirtualOutputs;
+	private HashSet<ForeignVirtualOutput> _foreignVirtualOutputs;
 
 	#endregion Members
 
@@ -214,19 +214,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		return WalletInputs.GroupBy(i => ExtractKeyId(i.HdPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualInput).ToHashSet();
 	}
 
-	public HashSet<VirtualOutput> GetWalletVirtualOutputs()
+	public HashSet<WalletVirtualOutput> GetWalletVirtualOutputs()
 	{
 
 		var transactionHash = GetHash();
-		Func<IGrouping<byte[], SmartCoin>, VirtualOutput> groupToVirtualOutput = g => new VirtualOutput(g.Sum(o => o.Amount), g.Select(o => new OutPoint(transactionHash, o.Index)).ToHashSet());
+		Func<IGrouping<byte[], SmartCoin>, WalletVirtualOutput> groupToVirtualOutput = g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(transactionHash, o.Index)).ToHashSet());
 		return WalletOutputs.GroupBy(o => ExtractKeyId(o.HdPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualOutput).ToHashSet();
 	}
 
-	public HashSet<VirtualOutput> GetForeignVirtualOutputs()
+	public HashSet<ForeignVirtualOutput> GetForeignVirtualOutputs()
 	{
 
 		var transactionHash = GetHash();
-		Func<IGrouping<byte[], IndexedTxOut>, VirtualOutput> groupToVirtualOutput = g => new VirtualOutput(g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(transactionHash, o.N)).ToHashSet());
+		Func<IGrouping<byte[], IndexedTxOut>, ForeignVirtualOutput> groupToVirtualOutput = g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(transactionHash, o.N)).ToHashSet());
 		return ForeignOutputs.GroupBy(o => ExtractKeyId(o.TxOut.ScriptPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualOutput).ToHashSet();
 	}
 

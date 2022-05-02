@@ -41,15 +41,14 @@ public class CoinjoinAnalyzer
 	public static decimal ComputeAnonymityContribution(SmartCoin transactionOutput, HashSet<OutPoint>? relevantOutpoints = null)
 	{
 		SmartTransaction transaction = transactionOutput.Transaction;
-		IEnumerable<VirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
-		IEnumerable<VirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
+		IEnumerable<WalletVirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
+		IEnumerable<ForeignVirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
 
 		Money amount = walletVirtualOutputs.Where(o => o.Outpoints.Contains(transactionOutput.OutPoint)).First().Amount;
-		Func<VirtualOutput, bool> isEqualValueVirtualOutput = x => x.Amount == amount;
-		Func<VirtualOutput, bool> isRelevantVirtualOutput = output => relevantOutpoints is null ? true : relevantOutpoints.Intersect(output.Outpoints).Any();
+		Func<ForeignVirtualOutput, bool> isRelevantVirtualOutput = output => relevantOutpoints is null ? true : relevantOutpoints.Intersect(output.Outpoints).Any();
 
-		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(isEqualValueVirtualOutput).Count();
-		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(isEqualValueVirtualOutput).Where(isRelevantVirtualOutput).Count();
+		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(o => o.Amount == amount).Count();
+		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(o => o.Amount == amount).Where(isRelevantVirtualOutput).Count();
 
 		return (decimal)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
