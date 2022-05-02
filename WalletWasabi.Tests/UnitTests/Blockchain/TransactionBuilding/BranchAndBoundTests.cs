@@ -23,7 +23,8 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSelectionFound());
@@ -40,7 +41,8 @@ public class BranchAndBoundTests
 		long target = 27;
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -66,7 +68,8 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Selection (35) costs us 35 + 1 = 36.
@@ -104,7 +107,8 @@ public class BranchAndBoundTests
 		long target = 999_999; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		StrategyParameters parameters = new(target, inputValues.ToArray(), inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Assert that we get expected best solution.
@@ -132,7 +136,8 @@ public class BranchAndBoundTests
 		long target = 1_000_000; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		StrategyParameters parameters = new(target, inputValues.ToArray(), inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Assert that we get expected best solution.
@@ -151,7 +156,8 @@ public class BranchAndBoundTests
 		long target = 16;
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -170,7 +176,8 @@ public class BranchAndBoundTests
 		long target = 26;
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -193,7 +200,8 @@ public class BranchAndBoundTests
 		long target = 33;
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;

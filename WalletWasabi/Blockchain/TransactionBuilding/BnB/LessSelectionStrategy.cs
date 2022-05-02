@@ -11,10 +11,10 @@ public class LessSelectionStrategy : SelectionStrategy
 	public const double MinPaymentThreshold = 0.75;
 
 	/// <inheritdoc/>
-	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
-		: base(target, inputValues, inputCosts, new CoinSelection(long.MinValue, long.MinValue))
+	public LessSelectionStrategy(StrategyParameters parameters)
+		: base(parameters, new CoinSelection(long.MinValue, long.MinValue))
 	{
-		MinimumTarget = (long)(target * MinPaymentThreshold);
+		MinimumTarget = (long)(parameters.Target * MinPaymentThreshold);
 	}
 
 	/// <summary>Minimum acceptable target (inclusive).</summary>

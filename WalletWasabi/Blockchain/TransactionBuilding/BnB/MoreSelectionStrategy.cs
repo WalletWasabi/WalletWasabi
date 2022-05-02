@@ -11,10 +11,10 @@ public class MoreSelectionStrategy : SelectionStrategy
 	public const double MaxExtraPayment = 1.25;
 
 	/// <inheritdoc/>
-	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
-		: base(target, inputValues, inputCosts, new CoinSelection(long.MaxValue, long.MaxValue))
+	public MoreSelectionStrategy(StrategyParameters parameters)
+		: base(parameters, new CoinSelection(long.MaxValue, long.MaxValue))
 	{
-		MaximumTarget = (long)(target * MaxExtraPayment);
+		MaximumTarget = (long)(parameters.Target * MaxExtraPayment);
 	}
 
 	/// <summary>Maximum acceptable target (inclusive).</summary>

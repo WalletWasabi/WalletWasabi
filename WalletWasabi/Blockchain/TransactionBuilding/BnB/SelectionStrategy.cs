@@ -1,39 +1,35 @@
-using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 public abstract class SelectionStrategy
 {
-	/// <param name="target">Value in satoshis.</param>
-	/// <param name="inputValues">Values in satoshis of the coins the user has (in descending order).</param>
-	/// <param name="inputCosts">Costs of spending coins in satoshis.</param>
+	/// <param name="parameters">Parameters of the strategy specifying input coins, the target and final selection restrictions.</param>
 	/// <param name="bestSelection">Best selection so far.</param>
-	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts, CoinSelection bestSelection)
+	public SelectionStrategy(StrategyParameters parameters, CoinSelection bestSelection)
 	{
-		InputCosts = inputCosts;
-		InputValues = inputValues;
-		Target = target;
+		Parameters = parameters;
 		BestSelection = bestSelection;
 
-		RemainingAmounts = new long[inputValues.Length];
+		RemainingAmounts = new long[InputValues.Length];
 		long accumulator = InputValues.Sum();
 
-		for (int i = 0; i < inputValues.Length; i++)
+		for (int i = 0; i < InputValues.Length; i++)
 		{
-			accumulator -= inputValues[i];
+			accumulator -= InputValues[i];
 			RemainingAmounts[i] = accumulator;
 		}
 	}
+	public StrategyParameters Parameters { get; }
 
-	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
-	public long[] InputCosts { get; }
+	/// <inheritdoc cref="StrategyParameters.InputCosts"/>
+	public long[] InputCosts => Parameters.InputCosts;
 
-	/// <summary>Target value we want to, ideally, sum up from the input values.</summary>
-	public long Target { get; }
+	/// <inheritdoc cref="StrategyParameters.Target"/>
+	public long Target => Parameters.Target;
 
-	/// <summary>Input values sorted in descending orders.</summary>
-	public long[] InputValues { get; }
+	/// <inheritdoc cref="StrategyParameters.InputValues"/>
+	public long[] InputValues => Parameters.InputValues;
 
 	/// <summary>Number of coins included in current selection.</summary>
 	/// <remarks>Range of values is <c>0</c> to <see cref="InputValues"/> size.</remarks>
