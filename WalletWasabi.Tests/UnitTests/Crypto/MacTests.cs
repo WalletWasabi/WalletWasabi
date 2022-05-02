@@ -63,7 +63,6 @@ public class MacTests
 	[Trait("UnitTest", "UnitTest")]
 	public void EqualityTests()
 	{
-
 		var right = (attribute: Rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(Rnd), t: Rnd.GetScalar());
 		var wrong = (attribute: Rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(Rnd), t: Rnd.GetScalar());
 

@@ -96,7 +96,6 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyPresentedBalance()
 	{
-
 		var a = new Scalar(10_000u);
 		var r = Rnd.GetScalar();
 		var z = Rnd.GetScalar();
@@ -119,7 +118,6 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyRequestedBalance()
 	{
-
 		var a = new Scalar(10_000u);
 		var r = Rnd.GetScalar();
 		var ma = a * Generators.Gg + r * Generators.Gh;
@@ -150,7 +148,6 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyBalance(int presentedAmount, int requestedAmount)
 	{
-
 		var a = new Scalar((uint)presentedAmount);
 		var r = Rnd.GetScalar();
 		var z = Rnd.GetScalar();
@@ -192,7 +189,6 @@ public class ProofSystemTests
 	[InlineData((ulong)uint.MaxValue + 1, 33, true)]
 	public void CanProveAndVerifyCommitmentRange(ulong amount, int width, bool pass)
 	{
-
 		var amountScalar = new Scalar(amount);
 		var randomness = Rnd.GetScalar();
 		var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
@@ -233,7 +229,6 @@ public class ProofSystemTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CanProveAndVerifyZeroProofs()
 	{
-
 		var a0 = Scalar.Zero;
 		var r0 = Rnd.GetScalar();
 		var ma0 = a0 * Generators.Gg + r0 * Generators.Gh;
