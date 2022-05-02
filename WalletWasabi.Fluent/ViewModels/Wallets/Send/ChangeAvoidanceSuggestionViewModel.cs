@@ -45,6 +45,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
@@ -52,10 +53,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			cancellationToken).ConfigureAwait(false);
-
-		// Exchange rate can change substantially during computation itself.
-		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
 
 		await foreach (var selection in selections)
 		{
