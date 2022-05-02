@@ -87,7 +87,9 @@ public abstract class ValueObject : IComparable, IComparable<ValueObject>
 		if (!_cachedHashCode.HasValue)
 		{
 			_cachedHashCode = GetEqualityComponents()
-				.Aggregate(1, (current, obj) =>
+				.Aggregate(
+				1,
+				(current, obj) =>
 				{
 					unchecked
 					{
