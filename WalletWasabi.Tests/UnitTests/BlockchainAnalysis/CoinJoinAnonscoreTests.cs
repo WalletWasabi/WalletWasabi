@@ -344,7 +344,6 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(2, F.Anonymity);
 	}
 
-
 	[Fact]
 	public void EarlierSiblingCoinjoinDoesntContributeToAnonScore()
 	{
