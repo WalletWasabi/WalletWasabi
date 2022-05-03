@@ -75,6 +75,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		recomputeForeignVirtualOutputs = true;
 	}
 
+	public void RemoveWalletOutput(SmartCoin output)
+	{
+		_walletOutputs.Remove(output);
+		recomputeForeignOutputs = true;
+		recomputeWalletVirtualOutputs = true;
+		recomputeForeignVirtualOutputs = true;
+	}
+
 	[JsonProperty]
 	[JsonConverter(typeof(TransactionJsonConverter))]
 	public Transaction Transaction { get; }
