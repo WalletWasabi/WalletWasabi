@@ -8,12 +8,13 @@ namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 public record WalletOutput
 {
 	public SmartCoin SmartCoin;
-	public int Anonymity => SmartCoin.HdPubKey.AnonymitySet;
 
 	public WalletOutput(SmartCoin smartCoin)
 	{
 		SmartCoin = smartCoin;
 	}
+
+	public int Anonymity => SmartCoin.HdPubKey.AnonymitySet;
 
 	public SmartCoin ToSmartCoin()
 	{
@@ -33,5 +34,4 @@ public record WalletOutput
 		smartTransaction.AddWalletOutput(smartCoin);
 		return new WalletOutput(smartCoin);
 	}
-
 }

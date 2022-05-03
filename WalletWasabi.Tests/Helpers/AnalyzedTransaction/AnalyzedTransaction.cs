@@ -20,9 +20,13 @@ public class AnalyzedTransaction : SmartTransaction
 	private static Key CreateKey(string? label = null)
 	{
 		if (label is null)
+		{
 			return new Key();
+		}
 		else
+		{
 			return new Key(Hashes.DoubleSHA256(Encoders.ASCII.DecodeData(label)).ToBytes());
+		}
 	}
 
 	private static Script CreateScript(string? label = null)
@@ -103,7 +107,9 @@ public class AnalyzedTransaction : SmartTransaction
 			{
 				analyzedTransactions.Add(transaction);
 				foreach (SmartCoin walletInput in transaction.WalletInputs)
+				{
 					AnalyzeRecursivelyHelper(walletInput.Transaction);
+				}
 				analyser.Analyze(transaction);
 			}
 		}
