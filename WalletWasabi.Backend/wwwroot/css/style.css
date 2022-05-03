@@ -450,8 +450,8 @@ footer .white-text {
     line-height: 1.5em;
 }
 .btn {
-    padding-top: 15px;
-    padding-bottom: 10px;
+    padding-top: 12px;
+    padding-bottom: 7px;
     font-weight: bold;
     font-size: 14px;
     border-radius: 0;
@@ -914,6 +914,20 @@ section:hover .pull-img-to-right, section:hover .pull-img-to-left {
     transform: translate(0, -50%);
 }
 */
+.op-text {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+}
+.download-icon {
+    height: 40px;
+}
+.download-icon.small {
+    height: 20px;
+    margin-left: 15px;
+    margin-top: 10px;
+    opacity: 0.5;
+}
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
