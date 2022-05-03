@@ -41,7 +41,8 @@ public class MultipartyTransactionStateTests
 
 		// Two events are missing
 		var diffd31 = state3.GetStateFrom(2);
-		Assert.Collection(diffd31.Inputs,
+		Assert.Collection(
+			diffd31.Inputs,
 			x => Assert.Equal(coin2.Outpoint, x.Outpoint),
 			x => Assert.Equal(coin3.Outpoint, x.Outpoint));
 
