@@ -9,6 +9,8 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 public interface IEvent{};
+
+public record RoundCreated(RoundParameters RoundParameters) : IEvent;
 public record InputAdded (Coin Coin) : IEvent;
 public record OutputAdded (TxOut Output) : IEvent;
 
@@ -16,10 +18,13 @@ public abstract record MultipartyTransactionState
 {
 	protected MultipartyTransactionState(RoundParameters parameters)
 	{
-		Parameters = parameters;
+		var builder = ImmutableList.CreateBuilder<IEvent>();
+		builder.Add(new RoundCreated(parameters));
+		Events = builder.ToImmutable();
 	}
 
-	public RoundParameters Parameters { get; }
+	[JsonIgnore]
+	public RoundParameters Parameters => Events.OfType<RoundCreated>().Single().RoundParameters;
 
 	[JsonIgnore]
 	public IEnumerable<Coin> Inputs => Events.OfType<InputAdded>().Select(x => x.Coin);
@@ -35,8 +40,6 @@ public abstract record MultipartyTransactionState
 
 	[JsonIgnore]
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
-	[JsonIgnore]
-	public int MaxTransactionSize => Parameters.MaxTransactionSize;
 
 	// With no coordinator fees we can't ensure that the shared overhead
 	// of the transaction also pays at the nominal feerate so this will have

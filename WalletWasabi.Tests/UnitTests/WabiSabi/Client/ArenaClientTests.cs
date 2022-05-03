@@ -91,7 +91,7 @@ public class ArenaClientTests
 		using var destinationKey2 = new Key();
 		var p2wpkhScriptSize = (long)destinationKey1.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize();
 
-		var vsizesToRequest = new[] { roundState.MaxVsizeAllocationPerAlice - (inputVsize + 2 * p2wpkhScriptSize), 2 * p2wpkhScriptSize };
+		var vsizesToRequest = new[] { round.Parameters.MaxVsizeAllocationPerAlice - (inputVsize + 2 * p2wpkhScriptSize), 2 * p2wpkhScriptSize };
 
 		// Phase: Input Registration
 		Assert.Equal(Phase.InputRegistration, round.Phase);
