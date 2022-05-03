@@ -12,6 +12,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -71,7 +72,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// that it is not guessable (Guid.NewGuid() documentation does
 			// not say anything about GUID version or randomness source,
 			// only that the probability of duplicates is very low).
-			var id = new Guid(Random.GetBytes(16));
+			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
 			var isPayingZeroCoordinationFee = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
 
@@ -323,6 +324,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
 		}
 
+		if (request.RealVsizeCredentialRequests.Delta != 0)
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Vsize credentials delta must be zero.");
+		}
+
 		if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
@@ -371,18 +377,20 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		return new Coin(input, txOutResponse.TxOut);
 	}
 
-	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
+		var responseRoundStates = RoundStates.Select(x =>
 		{
-			var roundStates = Rounds.Select(x =>
+			if (requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint) && checkPoint.StateId > 0)
 			{
-				var checkPoint = request.RoundCheckpoints.FirstOrDefault(y => y.RoundId == x.Id);
-				return RoundState.FromRound(x, checkPoint == default ? 0 : checkPoint.StateId);
-			}).ToArray();
+				return x.GetSubState(checkPoint.StateId);
+			}
 
-			return new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>());
-		}
+			return x;
+		}).ToArray();
+
+		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 	}
 
 	private Round GetRound(uint256 roundId) =>

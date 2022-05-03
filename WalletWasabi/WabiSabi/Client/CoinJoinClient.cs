@@ -93,11 +93,14 @@ public class CoinJoinClient
 
 		var roundState = await RoundStatusUpdater
 				.CreateRoundAwaiter(
-					roundState =>
-						roundState.Phase == Phase.InputRegistration
-						&& roundState.BlameOf == blameRoundId,
-					token)
+					roundState => roundState.BlameOf == blameRoundId,
+					linkedTokenSource.Token)
 				.ConfigureAwait(false);
+
+		if (roundState.Phase is not Phase.InputRegistration)
+		{
+			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not in Input Registration but in '{roundState.Phase}'.");
+		}
 
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
@@ -150,6 +153,10 @@ public class CoinJoinClient
 				return result;
 			}
 
+			// Only use successfully registered coins in the blame round.
+			coins = result.RegisteredCoins;
+
+			currentRoundState.LogInfo($"Waiting for the blame round.");
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
@@ -265,7 +272,8 @@ public class CoinJoinClient
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 				return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
-			}).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
@@ -302,7 +310,9 @@ public class CoinJoinClient
 	{
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
-		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
+		var tasks = Enumerable.Zip(
+			aliceClients,
+			scheduledDates,
 			async (aliceClient, scheduledDate) =>
 			{
 				var delay = scheduledDate - DateTimeOffset.UtcNow;
@@ -311,8 +321,8 @@ public class CoinJoinClient
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-			}
-		).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
@@ -321,7 +331,9 @@ public class CoinJoinClient
 	{
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), readyToSignEndTime, MaximumRequestDelay);
 
-		var tasks = Enumerable.Zip(aliceClients, scheduledDates,
+		var tasks = Enumerable.Zip(
+			aliceClients,
+			scheduledDates,
 			async (aliceClient, scheduledDate) =>
 			{
 				var delay = scheduledDate - DateTimeOffset.UtcNow;
@@ -330,8 +342,8 @@ public class CoinJoinClient
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
-			}
-		).ToImmutableArray();
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
@@ -370,13 +382,14 @@ public class CoinJoinClient
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
 		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundState.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
-		string[] summary = new string[] {
-		$"",
-		$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
-		$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
-		$"\tTotal diff : {totalDifference.ToString(true, false)}",
-		$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
-		$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
+		string[] summary = new string[]
+		{
+			$"",
+			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
+			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
+			$"\tTotal diff : {totalDifference.ToString(true, false)}",
+			$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
+			$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
 		};
 
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));

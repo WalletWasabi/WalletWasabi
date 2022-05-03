@@ -51,13 +51,13 @@ public class UiConfig : ConfigBase
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(x => x.SendAmountConversionReversed)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(
@@ -69,7 +69,7 @@ public class UiConfig : ConfigBase
 				(_, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(750))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 	}
 

@@ -77,4 +77,6 @@ public static class EnumerableExtensions
 
 		return -1;
 	}
+
+	public static bool IsEmpty<T>(this IEnumerable<T> source) => !source.Any();
 }

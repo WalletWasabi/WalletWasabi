@@ -41,7 +41,7 @@ public class BobClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
-		using var insecureRandom = new InsecureRandom();
+		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class NonActionableSearchItem : ISearchItem
 {
@@ -21,4 +22,5 @@ public class NonActionableSearchItem : ISearchItem
 	public string? Icon { get; set; }
 	public string Category { get; }
 	public IEnumerable<string> Keywords { get; }
+	public bool IsDefault { get; set; }
 }

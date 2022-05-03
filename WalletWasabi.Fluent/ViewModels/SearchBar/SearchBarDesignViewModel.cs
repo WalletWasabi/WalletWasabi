@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
@@ -31,12 +33,7 @@ public class SearchBarDesignViewModel : ReactiveObject
 			new ActionableItem("Test 3", "Another", null, "Help") {Icon = "settings_bitcoin_regular"}
 		}.Select(item => (ISearchItem) new AutocloseActionableItem(item, () => { }));
 
-		var nonActionable = new ISearchItem[]
-		{
-			new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance", new List<string>(), null)
-		};
-
-		_items = actionable.Concat(nonActionable).ToList();
+		_items = actionable.ToList();
 	}
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => new(new ObservableCollection<SearchItemGroup>(_items

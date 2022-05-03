@@ -2,6 +2,7 @@ using Moq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -184,5 +185,32 @@ public class RoundStateUpdaterTests
 
 		// We are expecting output registration phase but the round unexpectedly ends.
 		await Assert.ThrowsAsync<UnexpectedRoundPhaseException>(async () => await roundORTask);
+	}
+
+	[Fact]
+	public async Task CancelAsync()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
+
+		var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
+		mockApiClient
+			.Setup(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(
+				() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } },
+				Array.Empty<CoinJoinFeeRateMedian>()));
+
+		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), mockApiClient.Object);
+		try
+		{
+			await roundStatusUpdater.StartAsync(CancellationToken.None);
+			using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+
+			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+				await roundStatusUpdater.CreateRoundAwaiter(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
+		}
+		finally
+		{
+			await roundStatusUpdater.StopAsync(CancellationToken.None);
+		}
 	}
 }
