@@ -37,10 +37,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = isReplacement;
 		_walletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		_walletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
-
-		_walletVirtualInputs = new Lazy<HashSet<WalletVirtualInput>>(() => GetWalletVirtualInputs(), true);
-		_walletVirtualOutputs = new Lazy<HashSet<VirtualOutput>>(() => GetWalletVirtualOutputs(), true);
-		_foreignVirtualOutputs = new Lazy<HashSet<VirtualOutput>>(() => GetForeignVirtualOutputs(), true);
 	}
 
 	#endregion Constructors
@@ -146,6 +142,30 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
+	public IReadOnlyCollection<WalletVirtualInput> WalletVirtualInputs
+	{
+		get
+		{
+			return GetWalletVirtualInputs();
+		}
+	}
+
+	public IReadOnlyCollection<VirtualOutput> WalletVirtualOutputs
+	{
+		get
+		{
+			return GetWalletVirtualOutputs();
+		}
+	}
+
+	public IReadOnlyCollection<VirtualOutput> ForeignVirtualOutputs
+	{
+		get
+		{
+			return GetForeignVirtualOutputs();
+		}
+	}
+
 	private HashSet<IndexedTxIn> _foreignInputs;
 	private HashSet<IndexedTxOut> _foreignOutputs;
 
@@ -159,13 +179,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	private HashSet<SmartCoin> _walletOutputs;
 
-	public HashSet<WalletVirtualInput> WalletVirtualInputs => _walletVirtualInputs.Value;
-	public HashSet<VirtualOutput> WalletVirtualOutputs => _walletVirtualOutputs.Value;
-	public HashSet<VirtualOutput> ForeignVirtualOutputs => _foreignVirtualOutputs.Value;
-
-	private Lazy<HashSet<WalletVirtualInput>> _walletVirtualInputs;
-	private Lazy<HashSet<VirtualOutput>> _walletVirtualOutputs;
-	private Lazy<HashSet<VirtualOutput>> _foreignVirtualOutputs;
+	private HashSet<WalletVirtualInput> _walletVirtualInputs;
+	private HashSet<VirtualOutput> _walletVirtualOutputs;
+	private HashSet<VirtualOutput> _foreignVirtualOutputs;
 
 	#endregion Members
 
