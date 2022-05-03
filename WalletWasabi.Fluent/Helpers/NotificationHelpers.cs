@@ -71,8 +71,7 @@ public static class NotificationHelpers
 				}
 				else if (isSpent && receiveSpentDiff == miningFee)
 				{
-					var fee = miningFee;
-					var feeText = fee.ToFeeDisplayUnitString();
+					var feeText = miningFee.ToFeeDisplayUnitString();
 
 					message = $"Self transfer. Fee: {feeText}";
 				}
@@ -96,8 +95,7 @@ public static class NotificationHelpers
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
-					var fee = miningFee;
-					var feeText = fee.ToFeeDisplayUnitString();
+					var feeText = miningFee.ToFeeDisplayUnitString();
 
 					message = $"Self transfer confirmed. Fee: {feeText}";
 				}
