@@ -70,9 +70,14 @@ public record RoundParameters
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
-	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize!.Value;
-	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee;
-
+	// Limitation of 100kb maximum transaction size had been changed as a function of transaction weight
+	// (MAX_STANDARD_TX_WEIGHT = 400000); but NBitcoin still enforces it as before.
+	// Anyway, it really doesn't matter for us as it is a reasonable limit so, it doesn't affect us
+	// negatively in any way.
+	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
+	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee 
+	                                              ?? new FeeRate(Money.Satoshis(1000));
+		
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		Network network,

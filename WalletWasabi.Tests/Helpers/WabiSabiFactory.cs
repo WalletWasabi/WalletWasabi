@@ -55,7 +55,7 @@ public static class WabiSabiFactory
 			cfg,
 			Network.Main,
 			new FeeRate(100m),
-			cfg.CoordinationFeeRate, // new CoordinationFeeRate(0.003m, Money.Zero),
+			cfg.CoordinationFeeRate,
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
