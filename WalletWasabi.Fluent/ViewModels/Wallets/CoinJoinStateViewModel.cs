@@ -18,18 +18,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
 
-	[AutoNotify] private bool _isAutoWaiting;
-	[AutoNotify] private bool _isAuto;
-	[AutoNotify] private bool _playVisible = true;
-	[AutoNotify] private bool _pauseVisible;
-	[AutoNotify] private bool _stopVisible;
-	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
-	[AutoNotify] private bool _isProgressReversed;
-	[AutoNotify] private double _progressValue;
-	[AutoNotify] private string _elapsedTime;
-	[AutoNotify] private string _remainingTime;
-	[AutoNotify] private bool _isBalanceDisplayed;
-
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
@@ -41,6 +29,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
 
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private balance to coinjoin" };
+
+	[AutoNotify] private bool _isAutoWaiting;
+	[AutoNotify] private bool _isAuto;
+	[AutoNotify] private bool _playVisible = true;
+	[AutoNotify] private bool _pauseVisible;
+	[AutoNotify] private bool _stopVisible;
+	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
+	[AutoNotify] private bool _isProgressReversed;
+	[AutoNotify] private double _progressValue;
+	[AutoNotify] private string _elapsedTime;
+	[AutoNotify] private string _remainingTime;
+	[AutoNotify] private bool _isBalanceDisplayed;
 
 	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
