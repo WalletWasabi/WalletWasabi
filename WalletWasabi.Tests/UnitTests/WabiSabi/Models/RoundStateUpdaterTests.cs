@@ -196,8 +196,9 @@ public class RoundStateUpdaterTests
 		mockApiClient
 			.Setup(apiClient => apiClient.GetStatusAsync(It.IsAny<RoundStateRequest>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(
-				() => new RoundStateResponse(new[] { roundState with { Phase = Phase.InputRegistration } },
-				Array.Empty<CoinJoinFeeRateMedian>()));
+				() => new RoundStateResponse(
+					new[] { roundState with { Phase = Phase.InputRegistration } },
+					Array.Empty<CoinJoinFeeRateMedian>()));
 
 		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), mockApiClient.Object);
 		try
