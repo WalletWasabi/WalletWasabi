@@ -60,7 +60,6 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		{
 			int originalInputCount = transaction.SpentCoins.Count();
 
-			// Use at most 5 coins.
 			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
 
 			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
