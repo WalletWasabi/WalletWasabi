@@ -75,7 +75,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			sum += _data[i] ;
 		}
 
-		if (sum > 0.001f) // Arbitrary zero
+		if (sum > 0.00001f) // Arbitrary zero
 		{
 			Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Background);
 		}
