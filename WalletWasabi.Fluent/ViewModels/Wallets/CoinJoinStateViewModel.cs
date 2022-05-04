@@ -15,42 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
-	private enum State
-	{
-		Invalid = 0,
-		Disabled,
-		AutoCoinJoin,
-		ManualCoinJoin,
-
-		AutoStarting,
-		Paused,
-		AutoPlaying,
-		AutoFinished,
-
-		Stopped,
-		ManualPlaying,
-		ManualFinished,
-	}
-
-	private enum Trigger
-	{
-		Invalid = 0,
-		AutoStartTimeout,
-		AutoCoinJoinOn,
-		AutoCoinJoinOff,
-		AutoCoinJoinEntered,
-		ManualCoinJoinEntered,
-		Pause,
-		Play,
-		Stop,
-		PlebStop,
-		RoundStartFailed,
-		RoundStart,
-		RoundFinished,
-		BalanceChanged,
-		Timer
-	}
-
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
 
@@ -135,6 +99,50 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine.Start();
 	}
+
+	private enum State
+	{
+		Invalid = 0,
+		Disabled,
+		AutoCoinJoin,
+		ManualCoinJoin,
+
+		AutoStarting,
+		Paused,
+		AutoPlaying,
+		AutoFinished,
+
+		Stopped,
+		ManualPlaying,
+		ManualFinished,
+	}
+
+	private enum Trigger
+	{
+		Invalid = 0,
+		AutoStartTimeout,
+		AutoCoinJoinOn,
+		AutoCoinJoinOff,
+		AutoCoinJoinEntered,
+		ManualCoinJoinEntered,
+		Pause,
+		Play,
+		Stop,
+		PlebStop,
+		RoundStartFailed,
+		RoundStart,
+		RoundFinished,
+		BalanceChanged,
+		Timer
+	}
+
+	private bool AutoStartTimedOut => GetRemainingTime() <= TimeSpan.Zero;
+
+	public ICommand PlayCommand { get; }
+
+	public ICommand PauseCommand { get; }
+
+	public ICommand StopCommand { get; }
 
 	private void ConfigureStateMachine(CoinJoinManager coinJoinManager)
 	{
@@ -298,8 +306,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 	}
 
-	private bool AutoStartTimedOut => GetRemainingTime() <= TimeSpan.Zero;
-
 	private void UpdateCountDown()
 	{
 		var format = @"hh\:mm\:ss";
@@ -369,10 +375,4 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
 	}
-
-	public ICommand PlayCommand { get; }
-
-	public ICommand PauseCommand { get; }
-
-	public ICommand StopCommand { get; }
 }
