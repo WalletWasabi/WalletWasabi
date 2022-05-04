@@ -13,6 +13,7 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.Wabisabi.Models;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WebClients.Wasabi;
@@ -30,6 +31,8 @@ public class CoinJoinClient
 	// timings only depends on the input-reg timeout.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
+
+	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged;
 
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
@@ -92,10 +95,10 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, token);
 
 		var roundState = await RoundStatusUpdater
-				.CreateRoundAwaiter(
-					roundState => roundState.BlameOf == blameRoundId,
-					linkedTokenSource.Token)
-				.ConfigureAwait(false);
+			.CreateRoundAwaiter(
+				roundState => roundState.BlameOf == blameRoundId,
+				linkedTokenSource.Token)
+			.ConfigureAwait(false);
 
 		if (roundState.Phase is not Phase.InputRegistration)
 		{
@@ -137,8 +140,7 @@ public class CoinJoinClient
 			}
 
 			break;
-		}
-		while (!cancellationToken.IsCancellationRequested);
+		} while (!cancellationToken.IsCancellationRequested);
 
 		if (coins.IsEmpty)
 		{
@@ -217,6 +219,7 @@ public class CoinJoinClient
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
+
 			InCriticalCoinJoinState = false;
 		}
 	}
@@ -258,21 +261,23 @@ public class CoinJoinClient
 		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
 		roundState.LogDebug($"Input registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
+		OnRoundStateChanged(roundState, roundState.InputRegistrationEnd);
 
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
-			scheduledDates,
-			async (coin, date) =>
-			{
-				var delay = date - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
+				scheduledDates,
+				async (coin, date) =>
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-				}
-				return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
-			})
+					var delay = date - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+
+					return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				})
 			.ToImmutableArray();
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
@@ -311,17 +316,18 @@ public class CoinJoinClient
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(
-			aliceClients,
-			scheduledDates,
-			async (aliceClient, scheduledDate) =>
-			{
-				var delay = scheduledDate - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
+				aliceClients,
+				scheduledDates,
+				async (aliceClient, scheduledDate) =>
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-				}
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-			})
+					var delay = scheduledDate - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+
+					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				})
 			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -332,17 +338,18 @@ public class CoinJoinClient
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = Enumerable.Zip(
-			aliceClients,
-			scheduledDates,
-			async (aliceClient, scheduledDate) =>
-			{
-				var delay = scheduledDate - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
+				aliceClients,
+				scheduledDates,
+				async (aliceClient, scheduledDate) =>
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-				}
-				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
-			})
+					var delay = scheduledDate - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+
+					await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
+				})
 			.ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -457,7 +464,7 @@ public class CoinJoinClient
 		var bestgroup = bestgroups
 			.Select(group =>
 				(Reps: group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1),
-				Group: group))
+					Group: group))
 			.ToShuffled()
 			.MinBy(i => i.Reps).Group;
 
@@ -562,6 +569,7 @@ public class CoinJoinClient
 
 		// Output registration.
 		roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
+		OnRoundStateChanged(roundState, outputRegistrationEndTime);
 
 		var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
 		await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
@@ -585,6 +593,7 @@ public class CoinJoinClient
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		roundState.LogDebug($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
+		OnRoundStateChanged(roundState, signingStateEndTime);
 
 		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
@@ -614,6 +623,19 @@ public class CoinJoinClient
 		var combinedToken = combinedCts.Token;
 
 		// Register coins.
-		return await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
+		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
+
+		if (RoundStatusUpdater.GetRoundState(roundState.Id) is { } updatedRoundState)
+		{
+			var confirmationEndTime = DateTimeOffset.UtcNow + updatedRoundState.ConnectionConfirmationTimeout;
+			OnRoundStateChanged(updatedRoundState, confirmationEndTime);
+		}
+
+		return result;
+	}
+
+	private void OnRoundStateChanged(RoundState roundState, DateTimeOffset phaseEndTime)
+	{
+		RoundStateChanged?.Invoke(this, new RoundStateAndRemainingTimeChangedEventArgs(roundState, phaseEndTime));
 	}
 }

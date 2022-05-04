@@ -19,7 +19,7 @@ public class RoundStateUpdater : PeriodicRunner
 	}
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-	private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
+	private ImmutableDictionary<uint256, RoundState> RoundStates { get; set; } = ImmutableDictionary.Create<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private List<RoundStateAwaiter> Awaiters { get; } = new();
@@ -48,7 +48,7 @@ public class RoundStateUpdater : PeriodicRunner
 		var newRoundStates = statusResponse
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
-		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
+		RoundStates = newRoundStates.Concat(updatedRoundStates).ToImmutableDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
@@ -106,6 +106,9 @@ public class RoundStateUpdater : PeriodicRunner
 				awaiter.Cancel();
 			}
 		}
+
 		return base.StopAsync(cancellationToken);
 	}
+
+	public RoundState? GetRoundState(uint256 id) => RoundStates.TryGetValue(id, out var foundRoundState) ? foundRoundState : null;
 }
