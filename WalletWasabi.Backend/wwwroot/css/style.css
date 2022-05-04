@@ -914,7 +914,7 @@ section:hover .pull-img-to-right, section:hover .pull-img-to-left {
     transform: translate(0, -50%);
 }
 */
-.op-text {
+.system-text {
     font-size: 13px;
     font-weight: bold;
     color: #fff;
