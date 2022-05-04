@@ -90,11 +90,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_wallet = walletVm.Wallet;
 
-		DispatcherTimer.Run(() =>
-		{
-			TimerOnTick();
-			return true;
-		}, TimeSpan.FromSeconds(1));
+		DispatcherTimer.Run(
+			() =>
+			{
+				TimerOnTick();
+				return true;
+			},
+			TimeSpan.FromSeconds(1));
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
@@ -184,10 +186,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () =>
-			{
-				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
-			});
+			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, CancellationToken.None));
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
@@ -245,10 +244,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				}
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnExit(() =>
-			{
-				IsAutoWaiting = false;
-			});
+			.OnExit(() => IsAutoWaiting = false);
 
 		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)

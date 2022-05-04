@@ -18,20 +18,30 @@ public class SearchBarDesignViewModel : ReactiveObject
 		var actionable = new IActionableItem[]
 		{
 			new ActionableItem("Test 1: Short", "Description short", null, "Settings")
-				{Icon = "settings_bitcoin_regular"},
+			{
+				Icon = "settings_bitcoin_regular"
+			},
 			new ActionableItem("Test 2: Loooooooooooong", "Description long", null, "Settings")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 3: Short again", "Description very very loooooooooooong and difficult to read",
-					null,
-					"Settings")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 3", "Another", null, "Settings") {Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 4: Help topics", "Description very very loooooooooooong and difficult to read",
-					null,
-					"Help")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 3", "Another", null, "Help") {Icon = "settings_bitcoin_regular"}
-		}.Select(item => (ISearchItem) new AutocloseActionableItem(item, () => { }));
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 3: Short again", "Description very very loooooooooooong and difficult to read", null, "Settings")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 3", "Another", null, "Settings")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 4: Help topics", "Description very very loooooooooooong and difficult to read", null, "Help")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 3", "Another", null, "Help")
+			{
+				Icon = "settings_bitcoin_regular"
+			}
+		}.Select(item => (ISearchItem)new AutocloseActionableItem(item, () => { }));
 
 		_items = actionable.ToList();
 	}
