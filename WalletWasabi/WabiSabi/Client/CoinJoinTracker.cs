@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Wabisabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -10,6 +11,7 @@ public class CoinJoinTracker : IDisposable
 {
 	private bool _disposedValue;
 
+	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged; 
 	public CoinJoinTracker(
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
@@ -22,6 +24,7 @@ public class CoinJoinTracker : IDisposable
 		CoinCandidates = coinCandidates;
 		RestartAutomatically = restartAutomatically;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		CoinJoinClient.RoundStateChanged += OnRoundStateChanged;
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
 
@@ -37,6 +40,11 @@ public class CoinJoinTracker : IDisposable
 	public bool InCriticalCoinJoinState => CoinJoinClient.InCriticalCoinJoinState;
 	public bool IsStopped { get; private set; }
 
+	private void OnRoundStateChanged(object? sender, RoundStateAndRemainingTimeChangedEventArgs e)
+	{
+		RoundStateChanged?.Invoke(this, e);
+	}
+	
 	public void Stop()
 	{
 		IsStopped = true;
@@ -49,6 +57,7 @@ public class CoinJoinTracker : IDisposable
 		{
 			if (disposing)
 			{
+				CoinJoinClient.RoundStateChanged -= OnRoundStateChanged;
 				CancellationTokenSource.Dispose();
 			}
 
