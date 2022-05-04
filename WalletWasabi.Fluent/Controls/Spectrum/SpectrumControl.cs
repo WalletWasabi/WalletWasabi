@@ -49,7 +49,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		var renderTimer = new UiThreadRenderTimer(120);
+		var renderTimer = new UiThreadRenderTimer(60);
 		renderTimer.Tick += OnTick;
 	}
 

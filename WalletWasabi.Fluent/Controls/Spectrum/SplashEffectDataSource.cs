@@ -4,7 +4,7 @@ public class SplashEffectDataSource : SpectrumDataSource
 {
 	private int _currentEffectIndex;
 
-	public SplashEffectDataSource(int numBins) : base(numBins, 4, TimeSpan.FromSeconds(0.005))
+	public SplashEffectDataSource(int numBins) : base(numBins, 4, 200)
 	{
 	}
 

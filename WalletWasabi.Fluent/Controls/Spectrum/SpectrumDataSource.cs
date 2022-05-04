@@ -1,3 +1,4 @@
+using Avalonia.Rendering;
 using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
@@ -5,15 +6,26 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 public abstract class SpectrumDataSource
 {
 	private float[] _averaged;
-	private DispatcherTimer _timer;
+	private UiThreadRenderTimer _timer;
 
 	public bool ShouldRender { get; set; }
 
-	public SpectrumDataSource(int numBins, int numAverages, TimeSpan mixInterval)
+	public SpectrumDataSource(int numBins, int numAverages, int generateDataFramesPerSecond = 60)
 	{
 		Bins = new float[numBins];
 		_averaged = new float[numBins];
 		NumAverages = numAverages;
+
+		_timer = new UiThreadRenderTimer(generateDataFramesPerSecond);
+		_timer.Tick += TimerOnTick;
+	}
+
+	private void TimerOnTick(TimeSpan obj)
+	{
+		if (ShouldRender)
+		{
+			OnMixData();
+		}
 	}
 
 	public int NumAverages { get; }
@@ -28,8 +40,6 @@ public abstract class SpectrumDataSource
 
 	public void Render(ref float[] data)
 	{
-		OnMixData();
-
 		for (int i = 0; i < NumBins; i++)
 		{
 			_averaged[i] -= _averaged[i] / NumAverages;
