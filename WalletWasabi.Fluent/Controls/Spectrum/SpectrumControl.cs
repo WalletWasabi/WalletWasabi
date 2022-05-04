@@ -49,11 +49,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		var renderTimer = new UiThreadRenderTimer(60);
+		var renderTimer = new UiThreadRenderTimer(120);
 		renderTimer.Tick += OnTick;
 	}
 
-	private void OnTick(TimeSpan obj)
+	private async void OnTick(TimeSpan obj)
 	{
 		for (var i = 0; i < NumBins; i++)
 		{
@@ -77,7 +77,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		if (sum > 0.00001f) // Arbitrary zero
 		{
-			Dispatcher.UIThread.Post(InvalidateVisual, DispatcherPriority.Background);
+			await Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
 		}
 	}
 
