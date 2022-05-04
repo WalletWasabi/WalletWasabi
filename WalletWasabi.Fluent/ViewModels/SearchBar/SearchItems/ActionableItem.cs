@@ -7,10 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class ActionableItem : IActionableItem
 {
-	public Func<Task> OnExecution { get; }
-
-	public ActionableItem(string name, string description, Func<Task> onExecution, string category,
-		IEnumerable<string>? keywords = null)
+	public ActionableItem(string name, string description, Func<Task> onExecution, string category, IEnumerable<string>? keywords = null)
 	{
 		Name = name;
 		Description = description;
@@ -18,6 +15,8 @@ public class ActionableItem : IActionableItem
 		Category = category;
 		Keywords = keywords ?? Enumerable.Empty<string>();
 	}
+
+	public Func<Task> OnExecution { get; }
 
 	public string Name { get; }
 	public string Description { get; }
