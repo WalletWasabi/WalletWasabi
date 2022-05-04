@@ -38,5 +38,5 @@ public record Inmate(
 	}
 
 	public override string ToString()
-		=> $"{Started.ToUnixTimeSeconds()}:{Punishment}:{Utxo.Hash}:{Utxo.N}:{LastDisruptedRoundId}";
+		=> $"{Started.ToUnixTimeSeconds()}:{Punishment}:{Utxo.Hash}:{Utxo.N}:{LastDisruptedRoundId}:{IsLongBan}";
 }
