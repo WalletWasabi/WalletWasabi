@@ -58,12 +58,15 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
+			// Exchange rate can change substantially during computation itself.
+			// Reporting up-to-date exchange rates would just confuse users.
+			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+		
 			int originalInputCount = transaction.SpentCoins.Count();
-
 			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
 
 			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, linkedCts.Token);
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, usdExchangeRate, linkedCts.Token);
 
 			await foreach (var suggestion in suggestions)
 			{

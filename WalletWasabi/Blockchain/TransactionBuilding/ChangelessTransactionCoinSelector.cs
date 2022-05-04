@@ -36,7 +36,7 @@ public static class ChangelessTransactionCoinSelector
 
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount);
 
-		var strategies = new SelectionStrategy[]
+		SelectionStrategy[] strategies = new SelectionStrategy[]
 		{
 			new MoreSelectionStrategy(parameters),
 			new LessSelectionStrategy(parameters)

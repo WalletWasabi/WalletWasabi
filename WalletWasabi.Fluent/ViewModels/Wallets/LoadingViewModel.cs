@@ -46,6 +46,8 @@ public partial class LoadingViewModel : ActivatableViewModel
 			});
 	}
 
+	public string WalletName => _wallet.WalletName;
+
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
 	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;

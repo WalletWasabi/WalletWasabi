@@ -16,7 +16,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
-	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
+	public ChangeAvoidanceSuggestionViewModel(
+		decimal originalAmount,
 		BuildTransactionResult transactionResult,
 		decimal fiatExchangeRate)
 	{
@@ -45,6 +46,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		BitcoinAddress destination,
 		Wallet wallet,
 		int maxInputCount,
+		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
@@ -69,7 +71,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				yield return new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 					transaction,
-					wallet.Synchronizer.UsdExchangeRate);
+					usdExchangeRate);
 			}
 		}
 	}

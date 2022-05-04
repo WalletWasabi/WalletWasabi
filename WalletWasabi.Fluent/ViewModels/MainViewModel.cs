@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusBar;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
@@ -172,7 +173,8 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		SearchBar = new SearchBarViewModel(SearchItemProvider.GetSearchItems());
+		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
+		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
 	public TargettedNavigationStack MainScreen { get; }
