@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,5 +111,5 @@ public class RoundStateUpdater : PeriodicRunner
 		return base.StopAsync(cancellationToken);
 	}
 
-	public RoundState? GetRoundState(uint256 id) => RoundStates.TryGetValue(id, out var foundRoundState) ? foundRoundState : null;
+	public bool TryGetRoundState(uint256 id, [NotNullWhen(true)] out RoundState? foundRoundState) => RoundStates.TryGetValue(id, out foundRoundState);
 }

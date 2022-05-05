@@ -665,7 +665,7 @@ public class CoinJoinClient
 		// Register coins.
 		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
 
-		if (RoundStatusUpdater.GetRoundState(roundState.Id) is { } updatedRoundState)
+		if (RoundStatusUpdater.TryGetRoundState(roundState.Id, out var updatedRoundState))
 		{
 			var confirmationEndTime = DateTimeOffset.UtcNow + updatedRoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 			OnRoundStateChanged(updatedRoundState, confirmationEndTime);
