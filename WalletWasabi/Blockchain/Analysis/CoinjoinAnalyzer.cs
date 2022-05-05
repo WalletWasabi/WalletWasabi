@@ -23,14 +23,23 @@ public class CoinjoinAnalyzer
 	{
 		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
 		{
+			// If we already analyzed the sanction for this output, then return the cached result.
 			if (cachedInputSanctions.ContainsKey(transactionOutput))
 			{
 				return cachedInputSanctions[transactionOutput];
 			}
 
+			// Look at the transaction containing transactionOutput.
+			// We are searching for any transaction inputs of analyzedTransaction that might have come from this transaction.
+			// If we find such remixed outputs, then we determine how much they contributed to our anonymity set.
 			SmartTransaction transaction = transactionOutput.Transaction;
 			decimal sanction = CoinjoinAnalyzer.ComputeAnonymityContribution(transactionOutput, analyzedTransactionPrevOuts);
+
+			// Recursively branch out into all of the transaction inputs' histories and compute the sanction for each branch.
+			// Add the worst-case branch to the resulting sanction.
 			sanction += transaction.WalletInputs.Select(ComputeInputSanctionHelper).DefaultIfEmpty(0).Max();
+
+			// Cache the computed sanction in case we need it later.
 			cachedInputSanctions[transactionOutput] = sanction;
 			return sanction;
 		}
