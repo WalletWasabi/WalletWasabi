@@ -10,8 +10,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinTracker : IDisposable
 {
 	private bool _disposedValue;
-
-	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged; 
 	
 	public CoinJoinTracker(
 		Wallet wallet,
@@ -28,6 +26,8 @@ public class CoinJoinTracker : IDisposable
 		CoinJoinClient.RoundStateChanged += OnRoundStateChanged;
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
+
+	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged; 
 
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
