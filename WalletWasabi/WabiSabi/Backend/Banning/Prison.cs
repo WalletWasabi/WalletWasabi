@@ -43,7 +43,7 @@ public class Prison
 
 	public void Ban(Alice alice, uint256 lastDisruptedRoundId, bool isLongBan = false)
 	{
-		Punish(alice.Coin.Outpoint, Punishment.Banned, lastDisruptedRoundId, isLongBan);
+		Punish(alice.Coin.Outpoint, isLongBan ? Punishment.LongBanned : Punishment.Banned, lastDisruptedRoundId);
 	}
 
 	public void Ban(OutPoint outpoint, uint256 lastDisruptedRoundId)

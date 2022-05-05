@@ -355,9 +355,17 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		OutPoint input = request.Input;
 
-		if (Prison.TryGet(input, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
+		if (Prison.TryGet(input, out var inmate))
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			if (inmate.Punishment == Punishment.LongBanned)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned);
+			}
+
+			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			}
 		}
 
 		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
