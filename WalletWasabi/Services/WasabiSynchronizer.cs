@@ -169,8 +169,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
 
-								// NOT GenSocksServErr
-								BackendStatus = BackendStatus.Connected;
+							// NOT GenSocksServErr
+							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;
 							DoNotGenSocksServFail();
 						}
@@ -188,14 +188,14 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							BackendStatus = BackendStatus.NotConnected;
 							try
 							{
-									// Backend API version might be updated meanwhile. Trying to update the versions.
-									var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
+								// Backend API version might be updated meanwhile. Trying to update the versions.
+								var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
 
-									// If the backend is compatible and the Api version updated then we just used the wrong API.
-									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+								// If the backend is compatible and the Api version updated then we just used the wrong API.
+								if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 								{
-										// Next request will be fine, do not throw exception.
-										ignoreRequestInterval = true;
+									// Next request will be fine, do not throw exception.
+									ignoreRequestInterval = true;
 									continue;
 								}
 								else
@@ -217,8 +217,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							throw;
 						}
 
-							// If it's not fully synced or reorg happened.
-							if (response.Filters.Count() == maxFiltersToSyncAtInitialization || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+						// If it's not fully synced or reorg happened.
+						if (response.Filters.Count() == maxFiltersToSyncAtInitialization || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 						{
 							ignoreRequestInterval = true;
 						}
@@ -247,8 +247,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 					}
 					catch (TorConnectionException ex)
 					{
-							// When stopping, we do not want to wait.
-							if (!IsRunning)
+						// When stopping, we do not want to wait.
+						if (!IsRunning)
 						{
 							Logger.LogTrace(ex);
 							return;
@@ -258,7 +258,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						try
 						{
 							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
-							}
+						}
 						catch (TaskCanceledException ex2)
 						{
 							Logger.LogTrace(ex2);
@@ -280,7 +280,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							{
 								int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
 								await Task.Delay(delay, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
-								}
+							}
 							catch (TaskCanceledException ex)
 							{
 								Logger.LogTrace(ex);
@@ -292,7 +292,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 			finally
 			{
 				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-					Logger.LogTrace("< Wasabi synchronizer thread ends.");
+				Logger.LogTrace("< Wasabi synchronizer thread ends.");
 			}
 		});
 

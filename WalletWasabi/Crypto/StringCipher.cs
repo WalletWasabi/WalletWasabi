@@ -26,12 +26,10 @@ public static class StringCipher
 
 	public static string Encrypt(string plainText, string passPhrase)
 	{
-		using SecureRandom secureRandom = new();
-
 		// Salt is randomly generated each time, but is prepended to encrypted cipher text
 		// so that the same Salt value can be used when decrypting.
-		byte[] iv = secureRandom.GetBytes(AesBlockByteSize);
-		byte[] encryptionKeySalt = secureRandom.GetBytes(PasswordSaltByteSize);
+		byte[] iv = SecureRandom.Instance.GetBytes(AesBlockByteSize);
+		byte[] encryptionKeySalt = SecureRandom.Instance.GetBytes(PasswordSaltByteSize);
 		byte[] encryptionKey = DerivateKey(passPhrase, encryptionKeySalt);
 
 		// Encrypt the plain text.
@@ -40,7 +38,7 @@ public static class StringCipher
 		byte[] cipherTextBytes = aes.EncryptCbc(plainTextBytes, iv);
 
 		// Authenticate.
-		byte[] authKeySalt = secureRandom.GetBytes(PasswordSaltByteSize);
+		byte[] authKeySalt = SecureRandom.Instance.GetBytes(PasswordSaltByteSize);
 		byte[] authKey = DerivateKey(passPhrase, authKeySalt);
 		byte[] result = MergeArrays(additionalCapacity: SignatureByteSize, encryptionKeySalt, iv, authKeySalt, cipherTextBytes);
 
