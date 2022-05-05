@@ -45,6 +45,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		int maxInputCount,
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
@@ -52,6 +53,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.Coins,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
+			maxInputCount,
 			cancellationToken).ConfigureAwait(false);
 
 		await foreach (var selection in selections)
