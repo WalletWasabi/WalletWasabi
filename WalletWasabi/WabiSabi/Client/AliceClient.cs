@@ -25,17 +25,18 @@ public class AliceClient
 		IEnumerable<Credential> issuedVsizeCredentials,
 		bool isPayingZeroCoordinationFee)
 	{
+		var roundParameters = roundState.CoinjoinState.Parameters;
 		AliceId = aliceId;
 		RoundId = roundState.Id;
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
 		OwnershipProof = ownershipProof;
-		FeeRate = roundState.FeeRate;
-		CoordinationFeeRate = roundState.CoordinationFeeRate;
+		FeeRate = roundParameters.MiningFeeRate;
+		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
 		IssuedVsizeCredentials = issuedVsizeCredentials;
-		MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
-		ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
+		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
+		ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
 		IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
 	}
 
