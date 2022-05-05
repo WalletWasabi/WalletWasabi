@@ -31,7 +31,7 @@ public class CoinjoinAnalyzer
 
 			SmartTransaction transaction = transactionOutput.Transaction;
 			decimal sanction = CoinjoinAnalyzer.ComputeAnonymityContribution(transactionOutput, analyzedTransactionPrevOuts);
-			sanction += transaction.WalletInputs.Select(ComputeInputSanctionHelper).Sum();
+			sanction += transaction.WalletInputs.Select(ComputeInputSanctionHelper).DefaultIfEmpty(0).Max();
 			cachedInputSanctions[transactionOutput] = sanction;
 			return sanction;
 		}
