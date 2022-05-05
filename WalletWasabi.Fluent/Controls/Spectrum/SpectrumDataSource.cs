@@ -7,6 +7,8 @@ public abstract class SpectrumDataSource
 	private float[] _averaged;
 	private DispatcherTimer _timer;
 
+	public event EventHandler<bool>? GeneratingDataStateChanged;
+
 	public SpectrumDataSource(int numBins, int numAverages, TimeSpan mixInterval)
 	{
 		Bins = new float[numBins];
@@ -51,10 +53,17 @@ public abstract class SpectrumDataSource
 	public void Start()
 	{
 		_timer.Start();
+		OnGeneratingDataStateChanged(isGenerating: true);
 	}
 
 	public void Stop()
 	{
 		_timer.Stop();
+		OnGeneratingDataStateChanged(isGenerating: false);
+	}
+
+	private void OnGeneratingDataStateChanged(bool isGenerating)
+	{
+		GeneratingDataStateChanged?.Invoke(this, isGenerating);
 	}
 }
