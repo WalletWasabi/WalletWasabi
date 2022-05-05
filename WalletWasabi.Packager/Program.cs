@@ -70,22 +70,17 @@ public static class Program
 
 		ReportStatus();
 
-		if (argsProcessor.IsPublish() || OnlyBinaries)
+		if (argsProcessor.IsPublish() || IsContinuousDelivery || OnlyBinaries)
 		{
 			await PublishAsync().ConfigureAwait(false);
 
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 		}
 
-#pragma warning disable CS0162 // Unreachable code detected
-		if (!OnlyBinaries)
+		if (argsProcessor.IsSign())
 		{
-			if (argsProcessor.IsSign())
-			{
-				await SignAsync().ConfigureAwait(false);
-			}
+			await SignAsync().ConfigureAwait(false);
 		}
-#pragma warning restore CS0162 // Unreachable code detected
 	}
 
 	private static void ReportStatus()
