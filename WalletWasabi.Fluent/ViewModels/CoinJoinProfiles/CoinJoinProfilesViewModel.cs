@@ -7,19 +7,20 @@ using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 [NavigationMetaData(Title = "Coinjoin Strategy")]
-public partial class CoinJoinProfilesViewModel : RoutableViewModel
+public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet = true)
+	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
-		EnableBack = isNewWallet;
+		EnableBack = true;
 
 		var speedyProfile = new SpeedyCoinJoinProfileViewModel();
 
@@ -71,7 +72,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		else
 		{
 			keyManager.ToFile();
-			Navigate().Clear();
+			Close(DialogResultKind.Normal, true);
 		}
 	}
 
