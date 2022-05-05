@@ -32,9 +32,7 @@ public class CoinJoinClient
 	// timings only depends on the input-reg timeout.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
-
-	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged;
-
+	
 	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -57,6 +55,8 @@ public class CoinJoinClient
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
+
+	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged;
 
 	private SecureRandom SecureRandom { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
