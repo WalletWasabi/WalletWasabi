@@ -47,8 +47,6 @@ public class Wallet : BackgroundService
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	public event EventHandler<DequeueResult>? OnDequeue;
-
 	public static event EventHandler<bool>? InitializingChanged;
 
 	public event EventHandler<FilterModel>? NewFilterProcessed;
