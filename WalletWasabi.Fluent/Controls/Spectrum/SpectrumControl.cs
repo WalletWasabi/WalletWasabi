@@ -25,6 +25,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	private float[] _data;
 	private const int NumBins = 250;
 
+	private bool _isAuraActive;
+	private bool _isSplashActive;
+
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
 
@@ -33,9 +36,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	public SpectrumControl()
 	{
+		CheckVisibility();
 		_data = new float[NumBins];
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
+
+		_auraSpectrumDataSource.GeneratingDataStateChanged += OnAuraGeneratingDataStateChanged;
+		_splashEffectDataSource.GeneratingDataStateChanged += OnSplashGeneratingDataStateChanged;
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
@@ -47,6 +54,23 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+	}
+
+	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
+	{
+		_isSplashActive = e;
+		CheckVisibility();
+	}
+
+	private void OnAuraGeneratingDataStateChanged(object? sender, bool e)
+	{
+		_isAuraActive = e;
+		CheckVisibility();
+	}
+
+	private void CheckVisibility()
+	{
+		IsVisible = _isSplashActive || _isAuraActive;
 	}
 
 	private void OnIsActiveChanged()
