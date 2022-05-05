@@ -12,6 +12,7 @@ public class CoinJoinTracker : IDisposable
 	private bool _disposedValue;
 
 	public event EventHandler<RoundStateAndRemainingTimeChangedEventArgs>? RoundStateChanged; 
+	
 	public CoinJoinTracker(
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
