@@ -53,7 +53,9 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			cancellationToken).ConfigureAwait(false);
-		List<Money> amounts = new();
+
+		HashSet<Money> foundSolutionsByAmount = new();
+
 		await foreach (var selection in selections)
 		{
 			if (selection.Any())
@@ -68,9 +70,11 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 				var destinationAmount = transaction.CalculateDestinationAmount();
 
-				if (!amounts.Contains(destinationAmount))
+				// If Bnb solutions become the same transaction somehow, do not show the same suggestion twice.
+				if (!foundSolutionsByAmount.Contains(destinationAmount))
 				{
-					amounts.Add(destinationAmount);
+					foundSolutionsByAmount.Add(destinationAmount);
+
 					yield return new ChangeAvoidanceSuggestionViewModel(
 						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 						transaction,
