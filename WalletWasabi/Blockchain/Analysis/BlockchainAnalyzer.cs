@@ -78,6 +78,7 @@ public class BlockchainAnalyzer
 		{
 			anonsets.Add(virtualInput.SmartCoins.Select(i => Math.Max(1, virtualInput.HdPubKey.AnonymitySet - (int)coinjoinAnalyzer.ComputeInputSanction(i))).Min());
 		}
+
 		// Recompute newInputAnonset using the discounted anonsets.
 		// This result is used as the base for computing the anonymity of this transaction's outputs.
 		sanctionedInputAnonset = Intersect(anonsets, coefficient);
