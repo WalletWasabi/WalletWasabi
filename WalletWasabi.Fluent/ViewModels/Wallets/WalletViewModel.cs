@@ -19,6 +19,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -71,7 +72,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
-				args switch {
+				args switch
+				{
 					StartedEventArgs _ => true,
 					StoppedEventArgs _ => false,
 					CompletedEventArgs => false,
@@ -245,6 +247,10 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 
 		History.Activate(disposables);
+		if (!Wallet.KeyManager.IsCoinjoinProfileSelected)
+		{
+			Navigate(NavigationTarget.FullScreen).To(new CoinJoinProfilesViewModel(Wallet.KeyManager, isNewWallet: false));
+		}
 	}
 
 	public static WalletViewModel Create(Wallet wallet)

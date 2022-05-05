@@ -16,10 +16,10 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	public CoinJoinProfilesViewModel(KeyManager keyManager)
+	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet = true)
 	{
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
-		EnableBack = true;
+		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
+		EnableBack = isNewWallet;
 
 		var speedyProfile = new SpeedyCoinJoinProfileViewModel();
 
@@ -55,15 +55,24 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		}
 	}
 
-	private void OnNext(KeyManager keyManager)
+	private void OnNext(KeyManager keyManager, bool isNewWallet)
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
 		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
+		keyManager.IsCoinjoinProfileSelected = true;
 
-		Navigate().To(new AddedWalletPageViewModel(keyManager));
+		if (isNewWallet)
+		{
+			Navigate().To(new AddedWalletPageViewModel(keyManager));
+		}
+		else
+		{
+			keyManager.ToFile();
+			Navigate().Clear();
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
