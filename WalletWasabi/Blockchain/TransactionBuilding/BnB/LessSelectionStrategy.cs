@@ -11,10 +11,10 @@ public class LessSelectionStrategy : SelectionStrategy
 	public const double MinPaymentThreshold = 0.75;
 
 	/// <inheritdoc/>
-	public LessSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
-		: base(target, inputValues, inputCosts, new CoinSelection(long.MinValue, long.MinValue))
+	public LessSelectionStrategy(StrategyParameters parameters)
+		: base(parameters, new CoinSelection(long.MinValue, long.MinValue))
 	{
-		MinimumTarget = (long)(target * MinPaymentThreshold);
+		MinimumTarget = (long)(parameters.Target * MinPaymentThreshold);
 	}
 
 	/// <summary>Minimum acceptable target (inclusive).</summary>
@@ -24,6 +24,12 @@ public class LessSelectionStrategy : SelectionStrategy
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + CurrentInputCosts;
+
+		if (IncludedCoinsCount > Parameters.MaxInputCount)
+		{
+			// Too many coins in the selection. Cut the branch.
+			return EvaluationResult.SkipBranch;
+		}
 
 		if (sum > Target)
 		{
@@ -41,7 +47,7 @@ public class LessSelectionStrategy : SelectionStrategy
 
 		if (sum > BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
 		{
-			BestSelection.Update(sum, totalCost, selection[0..depth]);
+			BestSelection.Update(sum, totalCost, IncludedCoinsCount, selection[0..depth]);
 		}
 
 		if (depth == selection.Length)

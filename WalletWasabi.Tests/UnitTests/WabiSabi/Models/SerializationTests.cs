@@ -140,7 +140,7 @@ public class SerializationTests
 
 		var state = round.Assert<ConstructionState>();
 		state = state.AddInput(CreateCoin());
-		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
+		round.CoinjoinState = new SigningState(round.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));
 	}
 

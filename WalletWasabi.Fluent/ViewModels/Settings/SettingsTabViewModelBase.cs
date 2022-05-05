@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 public abstract class SettingsTabViewModelBase : RoutableViewModel
 {
-	protected const int ThrottleTime = 500;
+	public const int ThrottleTime = 500;
 
 	protected SettingsTabViewModelBase()
 	{
@@ -42,7 +42,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 						EditConfigOnSave(config);
 						config.ToFile();
 
-						IsRestartNeeded(ConfigOnOpen);
+						OnConfigSaved();
 					}
 				}
 				catch (Exception ex)
@@ -54,18 +54,30 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 
 	protected abstract void EditConfigOnSave(Config config);
 
-	private static void IsRestartNeeded(Config configOnOpen)
+	private static void OnConfigSaved()
 	{
-		var currentConfig = new Config(configOnOpen.FilePath);
-		currentConfig.LoadFile();
-
-		var configChanged = !configOnOpen.AreDeepEqual(currentConfig);
+		var isRestartNeeded = CheckIfRestartIsNeeded();
 
 		RestartNeeded?.Invoke(
 			typeof(SettingsTabViewModelBase),
 			new RestartNeededEventArgs
 			{
-				IsRestartNeeded = configChanged
+				IsRestartNeeded = isRestartNeeded
 			});
+	}
+
+	public static bool CheckIfRestartIsNeeded()
+	{
+		if (ConfigOnOpen is null)
+		{
+			return false;
+		}
+
+		var currentConfig = new Config(ConfigOnOpen.FilePath);
+		currentConfig.LoadFile();
+
+		var isRestartNeeded = !ConfigOnOpen.AreDeepEqual(currentConfig);
+
+		return isRestartNeeded;
 	}
 }

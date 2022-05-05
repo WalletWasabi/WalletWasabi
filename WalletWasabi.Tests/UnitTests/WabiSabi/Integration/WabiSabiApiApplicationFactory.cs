@@ -53,10 +53,11 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		{
 			services.AddHostedService<BackgroundServiceStarter<Arena>>();
 			services.AddSingleton<Arena>();
-			services.AddScoped<Network>(_ => Network.Main);
+			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddScoped<Prison>();
 			services.AddScoped<WabiSabiConfig>();
+			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();

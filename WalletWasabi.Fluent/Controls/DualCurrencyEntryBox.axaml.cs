@@ -372,15 +372,11 @@ public class DualCurrencyEntryBox : UserControl
 
 			if (IsConversionReversed)
 			{
-				_leftEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
-				_rightEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 				grid?.Children.Add(_rightEntryBox);
 				grid?.Children.Add(_leftEntryBox);
 			}
 			else
 			{
-				_leftEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-				_rightEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
 				grid?.Children.Add(_leftEntryBox);
 				grid?.Children.Add(_rightEntryBox);
 			}
