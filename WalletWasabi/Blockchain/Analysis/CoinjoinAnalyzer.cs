@@ -9,17 +9,18 @@ namespace WalletWasabi.Blockchain.Analysis;
 public class CoinjoinAnalyzer
 {
 	private Dictionary<SmartCoin, decimal> cachedInputSanctions = new();
+	private HashSet<OutPoint> analyzedTransactionPrevOuts;
 
 	public CoinjoinAnalyzer(SmartTransaction analyzedTransaction)
 	{
 		AnalyzedTransaction = analyzedTransaction;
+		analyzedTransactionPrevOuts = AnalyzedTransaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
 	}
 
 	public SmartTransaction AnalyzedTransaction { get; }
 
 	public decimal ComputeInputSanction(SmartCoin transactionInput)
 	{
-		HashSet<OutPoint> analyzedTransactionPrevOuts = AnalyzedTransaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
 
 		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
 		{
