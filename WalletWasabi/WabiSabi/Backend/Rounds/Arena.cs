@@ -358,7 +358,7 @@ public partial class Arena : PeriodicRunner
 				RoundParameterFactory.CreateRoundParameter(feeRate, ConnectionConfirmationStartedCounter);
 			Round r = new(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			r.LogInfo($"Created round with params: {nameof(RoundParameters.AllowedInputAmounts.Max)}:'{parameters.AllowedInputAmounts.Max}'.");
+			r.LogInfo($"Created round with params: {nameof(parameters.MaxSuggestedAmount)}:'{parameters.MaxSuggestedAmount}' BTC.");
 		}
 	}
 
