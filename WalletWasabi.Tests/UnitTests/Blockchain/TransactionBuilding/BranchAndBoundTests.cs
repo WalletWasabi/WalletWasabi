@@ -122,7 +122,7 @@ public class BranchAndBoundTests
 	public void MoreSelection_MaxInputCountTest()
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
-		
+
 		long[] inputValues = new long[] { 20, 10, 10, 10, 5, 5, 5, 1, 1 };
 		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
@@ -147,18 +147,18 @@ public class BranchAndBoundTests
 	public void MoreSelection_Cap()
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
-		
-		long[] inputValues = new long[] { 20 };
-		long[] inputCosts = new long[] { 0 };
 
-		long target = 10;
+		// Minimum we can get is 40, but that is more than the allowed maximum (i.e. 25 * 1.25 = 31.25).
+		long[] inputValues = new long[] { 60, 50, 40 };
+		long[] inputCosts = new long[] { 0, 0, 0 };
+
+		long target = 25;
 
 		BranchAndBound algorithm = new();
-		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 2);
 		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
-		// 20 is more than allowed by the "max extra payment" parameter.
 		long[] result = strategy.GetBestSelectionFound()!;
 		Assert.Null(result);
 	}
@@ -271,7 +271,7 @@ public class BranchAndBoundTests
 
 		BranchAndBound algorithm = new();
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
-		LessSelectionStrategy strategy = new(parameters);
+		LessSelectionStrategy strategy = new(parameters, minPaymentThreshold: 0.0);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -287,17 +287,19 @@ public class BranchAndBoundTests
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		long[] inputValues = new long[] { 10 };
-		long[] inputCosts = new long[] { 0 };
+		// BnB is set to allow only two-coin selections, so we get selections summing to 20 as best candidates.
+		// However, taking the minimum payment threshold limit into account (i.e. 40 * 1.75 = 30),
+		// thus we cannot accept any selection lower than 30.
+		long[] inputValues = new long[] { 10, 10, 10, 1, 1, 1, 1, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-		long target = 20;
+		long target = 40;
 
 		BranchAndBound algorithm = new();
-		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 2);
 		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
-		// 10 is more than allowed by the "min payment threshold" parameter.
 		long[] result = strategy.GetBestSelectionFound()!;
 		Assert.Null(result);
 	}
