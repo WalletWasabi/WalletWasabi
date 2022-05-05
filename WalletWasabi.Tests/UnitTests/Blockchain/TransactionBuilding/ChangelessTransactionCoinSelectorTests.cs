@@ -37,7 +37,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		MoreSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
@@ -61,7 +61,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, inputEffectiveValues.Values.ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins);
 		Assert.True(found);
 
 		long[] solution = selectedCoins!.Select(x => x.Amount.Satoshi).ToArray();
@@ -87,7 +87,7 @@ public class ChangelessTransactionCoinSelectorTests
 		StrategyParameters parameters = new(target, coins.Select(coin => coin.Amount.Satoshi).ToArray(), inputCosts);
 		LessSelectionStrategy strategy = new(parameters);
 
-		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, target, inputEffectiveValues, out var selectedCoins);
+		bool found = ChangelessTransactionCoinSelector.TryGetCoins(strategy, inputEffectiveValues, out var selectedCoins);
 		Assert.False(found);
 	}
 
