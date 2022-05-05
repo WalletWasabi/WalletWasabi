@@ -667,7 +667,7 @@ public class CoinJoinClient
 
 		if (RoundStatusUpdater.GetRoundState(roundState.Id) is { } updatedRoundState)
 		{
-			var confirmationEndTime = DateTimeOffset.UtcNow + updatedRoundState.ConnectionConfirmationTimeout;
+			var confirmationEndTime = DateTimeOffset.UtcNow + updatedRoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 			OnRoundStateChanged(updatedRoundState, confirmationEndTime);
 		}
 
