@@ -46,7 +46,8 @@
                                       IsApproximate="False"
                                       Grid.Column="{TemplateBinding LeftColumn}"
                                       Background="Transparent"
-                                      BorderThickness="0"/>
+                                      BorderThickness="0"
+                                      IsRightSide="{TemplateBinding IsConversionReversed}"/>
 
                   <Button x:Name="PART_SwapButton" Focusable="False"
                           HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
@@ -65,7 +66,8 @@
                                       IsApproximate="{TemplateBinding IsConversionApproximate}"
                                       Grid.Column="{TemplateBinding RightColumn}"
                                       Background="Transparent"
-                                      BorderThickness="0"/>
+                                      BorderThickness="0"
+                                      IsRightSide="{TemplateBinding IsConversionReversed, Converter={x:Static BoolConverters.Not}}"/>
                 </Grid>
               </Panel>
             </Panel>

@@ -2,20 +2,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public static class SearchItemProvider
+public class ActionsSource : ISearchItemSource
 {
-	public static IObservable<ISearchItem> GetSearchItems()
-	{
-		return GetItemsFromMetadata()
-			.ToObservable();
-	}
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes => GetItemsFromMetadata()
+		.ToObservable()
+		.ToObservableChangeSet(x => x.Key);
 
-	private static IEnumerable<ActionableItem> GetItemsFromMetadata()
+	private static IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{
 		return NavigationManager.MetaData
 			.Where(m => m.Searchable)
@@ -24,7 +25,8 @@ public static class SearchItemProvider
 				var onActivate = CreateOnActivateFunction(m);
 				var searchItem = new ActionableItem(m.Title, m.Caption, onActivate, m.Category ?? "No category", m.Keywords)
 				{
-					Icon = m.IconName
+					Icon = m.IconName,
+					IsDefault = true,
 				};
 				return searchItem;
 			});

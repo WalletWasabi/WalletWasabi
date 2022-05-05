@@ -1,12 +1,10 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionBuilding.BnB;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -18,7 +16,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
-	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
+	public ChangeAvoidanceSuggestionViewModel(
+		decimal originalAmount,
 		BuildTransactionResult transactionResult,
 		decimal fiatExchangeRate)
 	{
@@ -46,6 +45,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
@@ -69,7 +69,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				yield return new ChangeAvoidanceSuggestionViewModel(
 					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 					transaction,
-					wallet.Synchronizer.UsdExchangeRate);
+					usdExchangeRate);
 			}
 		}
 	}
