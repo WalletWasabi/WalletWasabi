@@ -35,7 +35,6 @@ public class CoinjoinAnalyzer
 			return sanction;
 		}
 
-
 		return ComputeInputSanctionHelper(transactionInput);
 	}
 
