@@ -24,8 +24,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Authors>nopara73;lontivero;danwalmsley</Authors>
-		<Company>zkSNACKs</Company>
+		<Authors>zkSNACKs Ltd</Authors>
+		<Company>zkSNACKs Ltd</Company>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
 		<Description>

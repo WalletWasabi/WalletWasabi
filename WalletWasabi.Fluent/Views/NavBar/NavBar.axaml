@@ -138,7 +138,7 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right">
+            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right" Cursor="Hand">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
@@ -160,7 +160,7 @@
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}">
+            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}" Cursor="Hand">
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />

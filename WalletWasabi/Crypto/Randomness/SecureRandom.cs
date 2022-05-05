@@ -4,6 +4,8 @@ namespace WalletWasabi.Crypto.Randomness;
 
 public class SecureRandom : WasabiRandom
 {
+	public static readonly SecureRandom Instance = new();
+
 	public SecureRandom()
 	{
 	}

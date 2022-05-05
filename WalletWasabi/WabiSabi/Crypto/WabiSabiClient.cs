@@ -15,7 +15,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 namespace WalletWasabi.WabiSabi.Crypto;
 
 /// <summary>
-/// Provides the methods for creating <see cref="CredentialsRequest">unified WabiSabi credential registration request messages</see>
+/// Provides the methods for creating <see cref="ICredentialsRequest">unified WabiSabi credential registration request messages</see>
 /// and for handling the <see cref="CredentialsResponse">credential registration responses</see> received from the coordinator.
 /// </summary>
 public class WabiSabiClient
@@ -39,7 +39,7 @@ public class WabiSabiClient
 	private WasabiRandom RandomNumberGenerator { get; }
 
 	/// <summary>
-	/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
+	/// Creates a <see cref="ICredentialsRequest">credential registration request messages</see>
 	/// for requesting `k` zero-value credentials.
 	/// </summary>
 	/// <remarks>
