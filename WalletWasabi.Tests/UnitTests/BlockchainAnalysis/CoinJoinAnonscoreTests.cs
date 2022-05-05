@@ -220,4 +220,23 @@ public class CoinJoinAnonScoreTests
 		// to the inherited anonymity, getting an anonymity set of 1 + 2/2 = 2.
 		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
 	}
+
+	[Fact]
+	public void InputMergePunishmentNoInheritance()
+	{
+		// Input merging results in worse inherited anonset, but does not punish gains from output indistinguishability.
+		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var tx = BitcoinFactory.CreateSmartTransaction(
+			9,
+			Enumerable.Repeat(Money.Coins(1m), 9),
+			new[] { (Money.Coins(1.1m), 1), (Money.Coins(1.2m), 1), (Money.Coins(1.3m), 1), (Money.Coins(1.4m), 1) },
+			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+
+		analyser.Analyze(tx);
+
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+
+		// 10 participants, 1 is you, your anonset would be 10 normally and now too:
+		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+	}
 }
