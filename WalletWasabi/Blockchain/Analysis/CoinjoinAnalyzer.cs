@@ -21,7 +21,6 @@ public class CoinjoinAnalyzer
 
 	public decimal ComputeInputSanction(SmartCoin transactionInput)
 	{
-
 		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
 		{
 			if (cachedInputSanctions.ContainsKey(transactionOutput))
