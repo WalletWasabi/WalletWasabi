@@ -55,8 +55,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public void AddWalletInput(SmartCoin input)
 	{
 		_walletInputs.Add(input);
-		recomputeForeignInputs = true;
-		recomputeWalletVirtualInputs = true;
+		_foreignInputs = null;
+		_walletVirtualInputs = null;
 	}
 
 	public IReadOnlyCollection<SmartCoin> WalletOutputs
@@ -70,9 +70,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public void AddWalletOutput(SmartCoin output)
 	{
 		_walletOutputs.Add(output);
-		recomputeForeignOutputs = true;
-		recomputeWalletVirtualOutputs = true;
-		recomputeForeignVirtualOutputs = true;
+		_foreignOutputs = null;
+		_walletVirtualOutputs = null;
+		_foreignVirtualOutputs = null;
 	}
 
 	public void RemoveWalletOutput(SmartCoin output)
@@ -143,12 +143,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (recomputeForeignInputs)
-			{
-				_foreignInputs = GetForeignInputs();
-				recomputeForeignInputs = false;
-			}
-			return _foreignInputs;
+			return _foreignInputs ??= GetForeignInputs();
 		}
 	}
 
@@ -156,12 +151,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (recomputeForeignOutputs)
-			{
-				_foreignOutputs = GetForeignOutputs();
-				recomputeForeignOutputs = false;
-			}
-			return _foreignOutputs;
+			return _foreignOutputs ??= GetForeignOutputs();
 		}
 	}
 
@@ -169,12 +159,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (recomputeWalletVirtualInputs)
-			{
-				_walletVirtualInputs = GetWalletVirtualInputs();
-				recomputeWalletVirtualInputs = false;
-			}
-			return _walletVirtualInputs;
+			return _walletVirtualInputs ??= GetWalletVirtualInputs();
 		}
 	}
 
@@ -182,12 +167,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (recomputeWalletVirtualOutputs)
-			{
-				_walletVirtualOutputs = GetWalletVirtualOutputs();
-				recomputeWalletVirtualOutputs = false;
-			}
-			return _walletVirtualOutputs;
+			return _walletVirtualOutputs ??= GetWalletVirtualOutputs();
 		}
 
 	}
@@ -196,17 +176,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (recomputeForeignVirtualOutputs)
-			{
-				_foreignVirtualOutputs = GetForeignVirtualOutputs();
-				recomputeForeignVirtualOutputs = false;
-			}
-			return _foreignVirtualOutputs;
+			return _foreignVirtualOutputs ??= GetForeignVirtualOutputs();
 		}
 	}
 
-	private HashSet<IndexedTxIn> _foreignInputs;
-	private HashSet<IndexedTxOut> _foreignOutputs;
+	private HashSet<IndexedTxIn>? _foreignInputs = null;
+	private HashSet<IndexedTxOut>? _foreignOutputs = null;
 
 	/// <summary>
 	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
@@ -218,16 +193,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	private HashSet<SmartCoin> _walletOutputs;
 
-	private HashSet<WalletVirtualInput> _walletVirtualInputs;
-	private HashSet<WalletVirtualOutput> _walletVirtualOutputs;
-	private HashSet<ForeignVirtualOutput> _foreignVirtualOutputs;
-
-	private bool recomputeForeignInputs = true;
-	private bool recomputeForeignOutputs = true;
-
-	private bool recomputeWalletVirtualInputs = true;
-	private bool recomputeWalletVirtualOutputs = true;
-	private bool recomputeForeignVirtualOutputs = true;
+	private HashSet<WalletVirtualInput>? _walletVirtualInputs = null;
+	private HashSet<WalletVirtualOutput>? _walletVirtualOutputs = null;
+	private HashSet<ForeignVirtualOutput>? _foreignVirtualOutputs = null;
 
 	#endregion Members
 
