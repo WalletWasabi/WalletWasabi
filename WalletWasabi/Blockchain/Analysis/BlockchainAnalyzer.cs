@@ -69,12 +69,17 @@ public class BlockchainAnalyzer
 
 		newInputAnonset = Intersect(tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet), coefficient);
 
+		// If we remix with siblings from earlier CoinJoins, then we must avoid double-counting their contribution to our anonymity set.
+		// Search the history of each input to find any siblings with which we are remixing in the current transaction.
+		// Discount the anonymity gain that we got from them earlier and are now losing due to the remix.
 		CoinjoinAnalyzer coinjoinAnalyzer = new(tx);
 		List<int> anonsets = new();
 		foreach (var virtualInput in tx.WalletVirtualInputs)
 		{
 			anonsets.Add(virtualInput.SmartCoins.Select(i => Math.Max(1, virtualInput.HdPubKey.AnonymitySet - (int)coinjoinAnalyzer.ComputeInputSanction(i))).Min());
 		}
+		// Recompute newInputAnonset using the discounted anonsets.
+		// This result is used as the base for computing the anonymity of this transaction's outputs.
 		sanctionedInputAnonset = Intersect(anonsets, coefficient);
 	}
 
@@ -110,7 +115,6 @@ public class BlockchainAnalyzer
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			// Anonset gain cannot be larger than others' input count.
-			// Picking randomly an output would make our anonset: total/ours.
 			var anonset = Math.Min((int)CoinjoinAnalyzer.ComputeAnonymityContribution(newCoin), foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
