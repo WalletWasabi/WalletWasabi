@@ -35,18 +35,19 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(state3.Outputs, diffd30.Outputs);
 
 		// Only one event is missing
-		var diffd32 = state3.GetStateFrom(2);
+		var diffd32 = state3.GetStateFrom(3);
 		var input = Assert.Single(diffd32.Inputs);
 		Assert.Equal(coin3.Outpoint, input.Outpoint);
 
 		// Two events are missing
-		var diffd31 = state3.GetStateFrom(1);
-		Assert.Collection(diffd31.Inputs,
+		var diffd31 = state3.GetStateFrom(2);
+		Assert.Collection(
+			diffd31.Inputs,
 			x => Assert.Equal(coin2.Outpoint, x.Outpoint),
 			x => Assert.Equal(coin3.Outpoint, x.Outpoint));
 
 		// No event is missing (already updated)
-		var diffd33 = state3.GetStateFrom(3);
+		var diffd33 = state3.GetStateFrom(4);
 		Assert.Empty(diffd33.Inputs);
 		Assert.Empty(diffd33.Outputs);
 
@@ -65,7 +66,7 @@ public class MultipartyTransactionStateTests
 		var diff21 = state2.GetStateFrom(1);
 		var diff32 = state3.GetStateFrom(2);
 		var clientState1 = state1;
-		var clientState3 = state3.GetStateFrom(1).AddPreviousStates(clientState1);
+		var clientState3 = state3.GetStateFrom(2).AddPreviousStates(clientState1);
 		Assert.Equal(state3.Inputs, clientState3.Inputs);
 		Assert.Equal(state3.Outputs, clientState3.Outputs);
 		Assert.Equal(clientState3.Inputs, state3.Inputs);

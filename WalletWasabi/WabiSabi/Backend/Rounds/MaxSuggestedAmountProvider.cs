@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
-internal class MaxSuggestedAmountProvider
+public class MaxSuggestedAmountProvider
 {
 	public MaxSuggestedAmountProvider(WabiSabiConfig config)
 	{
