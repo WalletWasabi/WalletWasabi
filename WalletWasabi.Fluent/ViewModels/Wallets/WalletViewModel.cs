@@ -247,10 +247,6 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 
 		History.Activate(disposables);
-		if (!Wallet.KeyManager.IsCoinjoinProfileSelected)
-		{
-			Navigate(NavigationTarget.FullScreen).To(new CoinJoinProfilesViewModel(Wallet.KeyManager, isNewWallet: false));
-		}
 	}
 
 	public static WalletViewModel Create(Wallet wallet)
