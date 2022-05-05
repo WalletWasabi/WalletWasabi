@@ -172,7 +172,7 @@ video::-webkit-media-controls {
     color: var(--green);
 }
 .floating-title {
-    font-size: 50px;
+    font-size: 60px;
     font-weight: bold;
     line-height: 1.2em;
     position: absolute;
