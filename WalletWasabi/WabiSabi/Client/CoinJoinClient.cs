@@ -527,12 +527,15 @@ public class CoinJoinClient
 	/// <returns>Desired input count.</returns>
 	private static int GetInputTarget(int utxoCount, WasabiRandom rnd)
 	{
+		var minUtxoCountTarget = 21;
+		var maxUtxoCountTarget = 100;
+
 		int targetInputCount;
-		if (utxoCount < 35)
+		if (utxoCount < minUtxoCountTarget)
 		{
 			targetInputCount = 1;
 		}
-		else if (utxoCount > 150)
+		else if (utxoCount > maxUtxoCountTarget)
 		{
 			targetInputCount = MaxInputsRegistrableByWallet;
 		}
@@ -541,7 +544,7 @@ public class CoinJoinClient
 			var min = 2;
 			var max = MaxInputsRegistrableByWallet - 1;
 
-			var percent = (double)(utxoCount - 35) / (150 - 35);
+			var percent = (double)(utxoCount - minUtxoCountTarget) / (maxUtxoCountTarget - minUtxoCountTarget);
 			targetInputCount = (int)Math.Round((max - min) * percent + min);
 		}
 
