@@ -8,9 +8,9 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class CoinSelection
 {
-	public CoinSelection(long sum, long sumWithCosts)
+	public CoinSelection(long paymentAmount, long sumWithCosts)
 	{
-		PaymentAmount = sum;
+		PaymentAmount = paymentAmount;
 		TotalCosts = sumWithCosts;
 		IncludedCoinsCount = 0;
 	}
