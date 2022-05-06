@@ -9,7 +9,8 @@ public record Inmate(
 	OutPoint Utxo,
 	Punishment Punishment,
 	DateTimeOffset Started,
-	uint256 LastDisruptedRoundId)
+	uint256 LastDisruptedRoundId,
+	bool IsLongBan = false)
 {
 	public TimeSpan TimeSpent => DateTimeOffset.UtcNow - Started;
 
@@ -22,15 +23,20 @@ public record Inmate(
 		var utxoHashString = parts[2];
 		var utxoIndexString = parts[3];
 		var disruptedRoundIdString = parts[4];
+		var isLongBan = false;
+		if (parts.Length > 5)
+		{
+			isLongBan = bool.Parse(parts[5]);
+		}
 
 		var started = DateTimeOffset.FromUnixTimeSeconds(long.Parse(startedString));
 		var punishment = Enum.Parse<Punishment>(punishmentString);
 		var utxo = new OutPoint(new uint256(utxoHashString), int.Parse(utxoIndexString));
 		var lastDisruptedRoundId = uint256.Parse(disruptedRoundIdString);
 
-		return new(utxo, punishment, started, lastDisruptedRoundId);
+		return new(utxo, punishment, started, lastDisruptedRoundId, isLongBan);
 	}
 
 	public override string ToString()
-		=> $"{Started.ToUnixTimeSeconds()}:{Punishment}:{Utxo.Hash}:{Utxo.N}:{LastDisruptedRoundId}";
+		=> $"{Started.ToUnixTimeSeconds()}:{Punishment}:{Utxo.Hash}:{Utxo.N}:{LastDisruptedRoundId}:{IsLongBan}";
 }

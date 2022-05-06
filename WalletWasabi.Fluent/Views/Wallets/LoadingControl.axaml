@@ -5,50 +5,72 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingControl">
-  <DockPanel Margin="0 0 0 30">
-    <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+  <controls:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <controls:ContentArea.Title>
+      <StackPanel>
+        <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
+        <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" />
+      </StackPanel>
+    </controls:ContentArea.Title>
 
-      <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
-                 DockPanel.Dock="Bottom" />
-      <TextBlock
-        Text="This is done over an untraceable network making your activity appear from random locations throughout the world."
-        TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+    <DockPanel Margin="0 0 0 30">
+      <DockPanel.Styles>
+        <Style Selector="DockPanel.small > Panel#WorldMap">
+          <Setter Property="IsVisible" Value="False" />
+        </Style>
+      </DockPanel.Styles>
 
-      <TextBlock
-        Text="This process may take some time depending on the size of your wallet. Grab a coffee or watch a movie."
-        TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+      <i:Interaction.Behaviors>
+        <ir:AdaptiveBehavior>
+          <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="350" ClassName="small" />
+        </ir:AdaptiveBehavior>
+      </i:Interaction.Behaviors>
 
-      <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
-      <TextBlock Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6" />
-    </StackPanel>
+      <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+        <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
+                   DockPanel.Dock="Bottom" />
+        <TextBlock
+          Text="Wasabi does this without any third party knowing about your balance and financial activity."
+          TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
-    <Panel Margin="80 40">
-      <Viewbox>
-        <Viewbox.Styles>
-          <Style Selector=":is(Control).City">
-            <Setter Property="Opacity" Value="0"></Setter>
-            <Setter Property="Transitions">
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
-              </Transitions>
-            </Setter>
-          </Style>
-        </Viewbox.Styles>
-        <Canvas Width="1042" Height="474" Name="WorldCanvas">
-          <i:Interaction.Behaviors>
-            <behaviors:RandomizedWorldPointsBehavior />
-          </i:Interaction.Behaviors>
-          <Image Source="{StaticResource loading_control_world_map}"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-          <Image Source="{StaticResource loading_control_city_marker}" Classes="City"/>
-         </Canvas>
-      </Viewbox>
-    </Panel>
-  </DockPanel>
+        <TextBlock
+          Text="This process may take some time depending on the size of your wallet."
+          TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+
+        <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
+        <TextBlock Text="{Binding StatusText, StringFormat={}{0}⠀}" TextAlignment="Center" Opacity="0.6" />
+      </StackPanel>
+
+      <Panel Margin="80 40" x:Name="WorldMap">
+        <Viewbox>
+          <Viewbox.Styles>
+            <Style Selector=":is(Control).City">
+              <Setter Property="Opacity" Value="0" />
+              <Setter Property="Transitions">
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
+                </Transitions>
+              </Setter>
+            </Style>
+          </Viewbox.Styles>
+          <Canvas Width="1042" Height="474" Name="WorldCanvas">
+            <i:Interaction.Behaviors>
+              <behaviors:RandomizedWorldPointsBehavior />
+            </i:Interaction.Behaviors>
+            <Image Source="{StaticResource loading_control_world_map}" />
+            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+          </Canvas>
+        </Viewbox>
+      </Panel>
+    </DockPanel>
+  </controls:ContentArea>
 </UserControl>

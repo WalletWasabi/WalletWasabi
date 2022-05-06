@@ -4,4 +4,5 @@ public class StatusResponse
 {
 	public bool FilterCreationActive { get; set; }
 	public bool CoinJoinCreationActive { get; set; }
+	public bool WabiSabiCoinJoinCreationActive { get; set; }
 }

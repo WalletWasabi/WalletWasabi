@@ -11,12 +11,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login;
 
-[NavigationMetaData(Title = "Open")]
+[NavigationMetaData(Title = "")]
 public partial class LoginViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _password;
 	[AutoNotify] private bool _isPasswordNeeded;
 	[AutoNotify] private string _errorMessage;
+	[AutoNotify] private bool _isForgotPasswordVisible;
 
 	public LoginViewModel(ClosedWalletViewModel closedWalletViewModel)
 	{
@@ -52,6 +53,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (!isPasswordCorrect)
 		{
+			IsForgotPasswordVisible = true;
 			ErrorMessage = "The password is incorrect! Try Again.";
 			return;
 		}

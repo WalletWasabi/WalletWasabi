@@ -14,15 +14,20 @@ public class UiConfig : ConfigBase
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
 	private bool _autocopy;
-	private int _feeDisplayFormat;
+	private int _feeDisplayUnit;
 	private bool _darkModeEnabled;
 	private string? _lastSelectedWallet;
 	private string _windowState = "Normal";
+	private int? _windowX;
+	private int? _windowY;
+	private double? _windowWidth;
+	private double? _windowHeight;
 	private bool _runOnSystemStartup;
 	private bool _oobe;
 	private bool _hideOnClose;
 	private bool _autoPaste;
 	private int _feeTarget;
+	private bool _sendAmountConversionReversed;
 
 	public UiConfig() : base()
 	{
@@ -35,7 +40,7 @@ public class UiConfig : ConfigBase
 				x => x.AutoPaste,
 				x => x.IsCustomChangeAddress,
 				x => x.DarkModeEnabled,
-				x => x.FeeDisplayFormat,
+				x => x.FeeDisplayUnit,
 				x => x.LastSelectedWallet,
 				x => x.WindowState,
 				x => x.Oobe,
@@ -46,7 +51,25 @@ public class UiConfig : ConfigBase
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(x => x.SendAmountConversionReversed)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(
+				x => x.WindowState,
+				x => x.WindowX,
+				x => x.WindowY,
+				x => x.WindowWidth,
+				x => x.WindowHeight,
+				(_, _, _, _, _) => Unit.Default)
+			.Throttle(TimeSpan.FromMilliseconds(750))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
@@ -66,6 +89,34 @@ public class UiConfig : ConfigBase
 		internal set => RaiseAndSetIfChanged(ref _windowState, value);
 	}
 
+	[JsonProperty(PropertyName = "WindowX")]
+	public int? WindowX
+	{
+		get => _windowX;
+		internal set => RaiseAndSetIfChanged(ref _windowX, value);
+	}
+
+	[JsonProperty(PropertyName = "WindowY")]
+	public int? WindowY
+	{
+		get => _windowY;
+		internal set => RaiseAndSetIfChanged(ref _windowY, value);
+	}
+
+	[JsonProperty(PropertyName = "WindowWidth")]
+	public double? WindowWidth
+	{
+		get => _windowWidth;
+		internal set => RaiseAndSetIfChanged(ref _windowWidth, value);
+	}
+
+	[JsonProperty(PropertyName = "WindowHeight")]
+	public double? WindowHeight
+	{
+		get => _windowHeight;
+		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
 	[DefaultValue(2)]
 	[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int FeeTarget
@@ -75,11 +126,11 @@ public class UiConfig : ConfigBase
 	}
 
 	[DefaultValue(0)]
-	[JsonProperty(PropertyName = "FeeDisplayFormat", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int FeeDisplayFormat
+	[JsonProperty(PropertyName = "FeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int FeeDisplayUnit
 	{
-		get => _feeDisplayFormat;
-		set => RaiseAndSetIfChanged(ref _feeDisplayFormat, value);
+		get => _feeDisplayUnit;
+		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value);
 	}
 
 	[DefaultValue(true)]
@@ -144,5 +195,13 @@ public class UiConfig : ConfigBase
 	{
 		get => _hideOnClose;
 		set => RaiseAndSetIfChanged(ref _hideOnClose, value);
+	}
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "SendAmountConversionReversed", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool SendAmountConversionReversed
+	{
+		get => _sendAmountConversionReversed;
+		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value);
 	}
 }

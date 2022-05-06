@@ -6,7 +6,7 @@ public static class RandomString
 {
 	public static string FromCharacters(int length, string characters, bool secureRandom = false)
 	{
-		using WasabiRandom random = secureRandom ? new SecureRandom() : new InsecureRandom();
+		WasabiRandom random = secureRandom ? SecureRandom.Instance : InsecureRandom.Instance;
 
 		var res = random.GetString(length, characters);
 		return res;

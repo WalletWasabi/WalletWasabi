@@ -5,7 +5,7 @@ using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Tor.Control;
+namespace WalletWasabi.Tests.UnitTests.Tor.Control.Messages;
 
 /// <summary>
 /// Tests for <see cref="GetInfoCircuitStatusReply"/> class.

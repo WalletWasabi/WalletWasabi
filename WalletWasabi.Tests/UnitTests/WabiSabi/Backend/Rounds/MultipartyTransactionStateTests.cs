@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
@@ -34,18 +35,19 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(state3.Outputs, diffd30.Outputs);
 
 		// Only one event is missing
-		var diffd32 = state3.GetStateFrom(2);
+		var diffd32 = state3.GetStateFrom(3);
 		var input = Assert.Single(diffd32.Inputs);
 		Assert.Equal(coin3.Outpoint, input.Outpoint);
 
 		// Two events are missing
-		var diffd31 = state3.GetStateFrom(1);
-		Assert.Collection(diffd31.Inputs,
+		var diffd31 = state3.GetStateFrom(2);
+		Assert.Collection(
+			diffd31.Inputs,
 			x => Assert.Equal(coin2.Outpoint, x.Outpoint),
 			x => Assert.Equal(coin3.Outpoint, x.Outpoint));
 
 		// No event is missing (already updated)
-		var diffd33 = state3.GetStateFrom(3);
+		var diffd33 = state3.GetStateFrom(4);
 		Assert.Empty(diffd33.Inputs);
 		Assert.Empty(diffd33.Outputs);
 
@@ -64,10 +66,32 @@ public class MultipartyTransactionStateTests
 		var diff21 = state2.GetStateFrom(1);
 		var diff32 = state3.GetStateFrom(2);
 		var clientState1 = state1;
-		var clientState3 = state3.GetStateFrom(1).AddPreviousStates(clientState1);
+		var clientState3 = state3.GetStateFrom(2).AddPreviousStates(clientState1);
 		Assert.Equal(state3.Inputs, clientState3.Inputs);
 		Assert.Equal(state3.Outputs, clientState3.Outputs);
 		Assert.Equal(clientState3.Inputs, state3.Inputs);
 		Assert.Equal(clientState3.Outputs, state3.Outputs);
+	}
+
+	[Theory]
+	[InlineData(32, "1343.75")]
+	[InlineData(32 + 32, "1343.75")]
+	[InlineData(16, "1000")]
+	[InlineData(16 + 32, "1000")]
+	[InlineData(8, "100")]
+	[InlineData(8 + 32, "100")]
+	[InlineData(4, "10")]
+	[InlineData(4 + 32, "10")]
+	[InlineData(2, "1")]
+	[InlineData(2 + 32, "1")]
+	[InlineData(1, "0.1")]
+	[InlineData(1 + 32, "0.1")]
+	[InlineData(0, "0.1")]
+	public void GetSuggestedAmountsTest(int roundCounter, string amount)
+	{
+		WabiSabiConfig config = new();
+		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
+		var expected = Money.Coins(decimal.Parse(amount));
+		Assert.Equal(expected, maxSuggestedAmountProvider.GetMaxSuggestedAmount(roundCounter));
 	}
 }

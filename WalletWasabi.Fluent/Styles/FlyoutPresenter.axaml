@@ -1,0 +1,72 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <FlyoutPresenter>
+        <StackPanel>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+          <TextBlock>Hi, I'm inside a FlyoutPresenter</TextBlock>
+        </StackPanel>
+      </FlyoutPresenter>
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="FlyoutPresenter">
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TileBorderColor}" />
+    <Setter Property="BorderThickness" Value="1 1 1 1" />
+    <Setter Property="Padding" Value="{DynamicResource FlyoutContentThemePadding}" />
+    <Setter Property="MinWidth" Value="{DynamicResource FlyoutThemeMinWidth}" />
+    <Setter Property="MaxWidth" Value="{DynamicResource FlyoutThemeMaxWidth}" />
+    <Setter Property="MinHeight" Value="{DynamicResource FlyoutThemeMinHeight}" />
+    <Setter Property="MaxHeight" Value="{DynamicResource FlyoutThemeMaxHeight}" />
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    <Setter Property="CornerRadius" Value="8 8 8 8" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel MaxHeight="500">
+          <Border Name="LayoutRoot" Margin="3 20 3 0"
+                  Classes.IsActive="{Binding IsActive, FallbackValue=false}"
+                  BoxShadow="0 0 5 0 #7F000000"
+                  Background="Transparent"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  Padding="{DynamicResource FlyoutBorderThemePadding}"
+                  CornerRadius="{TemplateBinding CornerRadius}" ClipToBounds="True">
+            <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
+              <Panel>
+                <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                  <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                                 TintColor="{DynamicResource AcrylicTrimBackground}"
+                                                 TintOpacity="1"
+                                                 FallbackColor="{DynamicResource AcrylicTrimBackground}"
+                                                 MaterialOpacity="0.9" />
+                  </ExperimentalAcrylicBorder.Material>
+                </ExperimentalAcrylicBorder>
+                <Panel Background="{DynamicResource AcrylicTrimBackground}" Opacity="0.5" />
+
+                <ScrollViewer Margin="{TemplateBinding Padding}"
+                              HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                              VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                  <ContentPresenter Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch" />
+                </ScrollViewer>
+              </Panel>
+            </Border>
+          </Border>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

@@ -1,3 +1,4 @@
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -17,4 +18,6 @@ public class Pocket
 	public Money Amount => Coins.TotalAmount();
 
 	public ICoinsView Coins { get; }
+
+	public static Pocket Empty => new((SmartLabel.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
 }

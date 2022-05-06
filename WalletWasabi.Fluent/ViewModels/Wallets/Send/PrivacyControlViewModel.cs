@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -19,14 +20,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent, Money? targetAmount = null)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(_transactionInfo.Amount);
+		LabelSelection = new LabelSelectionViewModel(targetAmount ?? _transactionInfo.Amount);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -45,8 +46,10 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void InitializeLabels()
 	{
-		LabelSelection.Reset(_wallet.Coins.GetPockets(_wallet.KeyManager.MinAnonScoreTarget).Select(x => new Pocket(x)).ToArray());
-		LabelSelection.SetUsedLabel(_usedCoins);
+		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+
+		LabelSelection.Reset(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
+		LabelSelection.SetUsedLabel(_usedCoins, privateThreshold);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -66,21 +69,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var safeToUsePockets = LabelSelection.GetSafeToUsePockets();
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets(_transactionInfo.UserLabels);
 
-			if (safeToUsePockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.PrivateFundsText) is { } privatePocket &&
-			    privatePocket.Amount >= _transactionInfo.Amount)
-			{
-				Complete(safeToUsePockets.Where(x => x.Labels == CoinPocketHelper.PrivateFundsText));
-			}
-			else if (safeToUsePockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText).Sum(x => x.Amount) >= _transactionInfo.Amount)
-			{
-				Complete(safeToUsePockets.Where(x => x.Labels != CoinPocketHelper.PrivateFundsText));
-			}
-			else
-			{
-				Complete(safeToUsePockets);
-			}
+			Complete(autoSelectedPockets);
 		}
 	}
 }

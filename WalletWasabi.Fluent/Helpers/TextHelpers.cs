@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NBitcoin;
+using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -80,4 +81,9 @@ public static class TextHelpers
 	}
 
 	public static string ParseLabel(this string text) => Regex.Replace(text, @"\s+", " ").Trim();
+
+	public static string GetPrivacyMask(int repeatCount)
+	{
+		return new string(UIConstants.PrivacyChar, repeatCount);
+	}
 }

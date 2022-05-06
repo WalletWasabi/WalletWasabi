@@ -38,8 +38,7 @@ public class KnowledgeOfDLogTests
 			var generator = Generators.G;
 			var publicPoint = secret * generator;
 			var statement = new Statement(publicPoint, Generators.G);
-			using var rand = new SecureRandom();
-			var proof = ProofSystemHelpers.Prove(statement, secret, rand);
+			var proof = ProofSystemHelpers.Prove(statement, secret, SecureRandom.Instance);
 			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
 	}
@@ -47,7 +46,7 @@ public class KnowledgeOfDLogTests
 	[Fact]
 	public void End2EndVerificationLargeScalar()
 	{
-		using var random = new SecureRandom();
+		var random = SecureRandom.Instance;
 		uint val = int.MaxValue;
 		var gen = new Scalar(4) * Generators.G;
 

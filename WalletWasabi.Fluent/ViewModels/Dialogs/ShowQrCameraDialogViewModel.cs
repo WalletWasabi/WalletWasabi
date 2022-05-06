@@ -6,6 +6,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -50,7 +51,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccurred))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(async args =>
+			.SubscribeAsync(async args =>
 			{
 				Close();
 				await ShowErrorAsync(

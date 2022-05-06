@@ -1,11 +1,10 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -17,10 +16,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
-	public ChangeAvoidanceSuggestionViewModel(decimal originalAmount,
+	public ChangeAvoidanceSuggestionViewModel(
+		decimal originalAmount,
 		BuildTransactionResult transactionResult,
-		decimal fiatExchangeRate,
-		bool isOriginal)
+		decimal fiatExchangeRate)
 	{
 		TransactionResult = transactionResult;
 
@@ -28,17 +27,14 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 
-		if (!isOriginal)
-		{
-			var fiatTotal = total * fiatExchangeRate;
-			var fiatOriginal = originalAmount * fiatExchangeRate;
-			var fiatDifference = fiatTotal - fiatOriginal;
+		var fiatTotal = total * fiatExchangeRate;
+		var fiatOriginal = originalAmount * fiatExchangeRate;
+		var fiatDifference = fiatTotal - fiatOriginal;
 
-			_differenceFiat = (fiatDifference > 0
-					? $"{fiatDifference.GenerateFiatText("USD")} More"
-					: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
-				.Replace("(", "").Replace(")", "");
-		}
+		_differenceFiat = (fiatDifference > 0
+				? $"{fiatDifference.GenerateFiatText("USD")} More"
+				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{total} BTC";
 	}
@@ -46,11 +42,25 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	public BuildTransactionResult TransactionResult { get; }
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
-		TransactionInfo transactionInfo, BitcoinAddress destination, Wallet wallet, [EnumeratorCancellation] CancellationToken cancellationToken)
+		TransactionInfo transactionInfo,
+		BitcoinAddress destination,
+		Wallet wallet,
+		int maxInputCount,
+		decimal usdExchangeRate,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		Task<ChangeAvoidanceSuggestionViewModel?> bnbSuggestionTask = Task.Run(() =>
+		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
+			transactionInfo.Coins,
+			transactionInfo.FeeRate,
+			new TxOut(transactionInfo.Amount, destination),
+			maxInputCount,
+			cancellationToken).ConfigureAwait(false);
+
+		HashSet<Money> foundSolutionsByAmount = new();
+
+		await foreach (var selection in selections)
 		{
-			if (ChangelessTransactionCoinSelector.TryGetCoins(transactionInfo.Coins, transactionInfo.FeeRate, new TxOut(transactionInfo.Amount, destination), out IEnumerable<SmartCoin>? selection, cancellationToken))
+			if (selection.Any())
 			{
 				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
 					wallet,
@@ -60,21 +70,19 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					selection,
 					tryToSign: false);
 
-				return new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-					transaction,
-					wallet.Synchronizer.UsdExchangeRate,
-					isOriginal: false);
+				var destinationAmount = transaction.CalculateDestinationAmount();
+
+				// If Bnb solutions become the same transaction somehow, do not show the same suggestion twice.
+				if (!foundSolutionsByAmount.Contains(destinationAmount))
+				{
+					foundSolutionsByAmount.Add(destinationAmount);
+
+					yield return new ChangeAvoidanceSuggestionViewModel(
+						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+						transaction,
+						wallet.Synchronizer.UsdExchangeRate);
+				}
 			}
-
-			return null;
-		});
-
-		ChangeAvoidanceSuggestionViewModel? bnbSuggestion = await bnbSuggestionTask;
-
-		if (bnbSuggestion is not null)
-		{
-			yield return bnbSuggestion;
 		}
 	}
 }
