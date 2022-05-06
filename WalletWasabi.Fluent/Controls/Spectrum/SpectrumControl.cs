@@ -49,6 +49,18 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		};
 	}
 
+	public bool IsActive
+	{
+		get => GetValue(IsActiveProperty);
+		set => SetValue(IsActiveProperty, value);
+	}
+
+	public bool IsDockEffectVisible
+	{
+		get => GetValue(IsDockEffectVisibleProperty);
+		set => SetValue(IsDockEffectVisibleProperty, value);
+	}
+
 	private void OnIsActiveChanged()
 	{
 		_auraSpectrumDataSource.IsActive = IsActive;
@@ -79,18 +91,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			_lineBrush = Foreground ?? Brushes.Magenta;
 			InvalidateArrange();
 		}
-	}
-
-	public bool IsActive
-	{
-		get => GetValue(IsActiveProperty);
-		set => SetValue(IsActiveProperty, value);
-	}
-
-	public bool IsDockEffectVisible
-	{
-		get => GetValue(IsDockEffectVisibleProperty);
-		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
@@ -130,7 +130,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
 
-			context.DrawLine(_linePen, new Point(x, Bounds.Height),
+			context.DrawLine(
+				_linePen,
+				new Point(x, Bounds.Height),
 				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
 
 			x += thickness;
