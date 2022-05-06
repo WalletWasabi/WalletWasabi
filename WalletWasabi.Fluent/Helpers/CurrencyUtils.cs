@@ -42,8 +42,8 @@ public static class CurrencyUtils
 		return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
 	}
 
-	public static string FormattedFiat(this decimal amount)
+	public static string FormattedFiat(this decimal amount, string format = "N2")
 	{
-		return string.Format(FormatInfo, "{0:N2}", amount).Trim();
+		return amount.ToString(format, FormatInfo).Trim();
 	}
 }

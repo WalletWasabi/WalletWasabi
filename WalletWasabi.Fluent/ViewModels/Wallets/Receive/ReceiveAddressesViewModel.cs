@@ -76,7 +76,9 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 					options: new ColumnOptions<AddressViewModel>
 					{
 						CanUserResizeColumn = false,
-						CanUserSortColumn = false
+						CanUserSortColumn = true,
+						CompareAscending = AddressViewModel.SortAscending(x => x.Label),
+						CompareDescending = AddressViewModel.SortDescending(x => x.Label)
 					},
 					width: new GridLength(210, GridUnitType.Pixel))
 			}

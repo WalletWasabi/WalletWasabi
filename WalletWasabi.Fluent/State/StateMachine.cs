@@ -64,7 +64,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		_currentState.Enter();
 	}
 
-
 	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
 	{
 		if (_states.ContainsKey(state))
@@ -121,7 +120,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			if (StateId.Equals(state))
 			{
-				throw new InvalidOperationException("Configuring state re-entry is not allowed");
+				throw new InvalidOperationException("Configuring state re-entry is not allowed.");
 			}
 
 			_permittedTransitions[trigger] = state;

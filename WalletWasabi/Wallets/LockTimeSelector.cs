@@ -10,7 +10,7 @@ public class LockTimeSelector
 {
 	static LockTimeSelector()
 	{
-		Instance = new LockTimeSelector(new Random());
+		Instance = new LockTimeSelector(Random.Shared);
 	}
 
 	public LockTimeSelector(Random random)

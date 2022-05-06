@@ -1,5 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -52,9 +51,9 @@ public static class HwiParser
 			return false;
 		}
 
-		var errToken = token["error"];
-		var codeToken = token["code"];
-		var successToken = token["success"];
+		JToken? errToken = token["error"];
+		JToken? codeToken = token["code"];
+		JToken? successToken = token["success"];
 
 		string err = "";
 		if (errToken is { })
@@ -63,10 +62,12 @@ public static class HwiParser
 		}
 
 		HwiErrorCode? code = null;
-		if (TryParseErrorCode(codeToken, out HwiErrorCode c))
+
+		if (codeToken is not null && TryParseErrorCode(codeToken, out HwiErrorCode? c))
 		{
 			code = c;
 		}
+
 		// HWI bug: it does not give error code.
 		// https://github.com/bitcoin-core/HWI/issues/216
 		else if (err == "Not initialized")
@@ -90,14 +91,9 @@ public static class HwiParser
 		return error is not null;
 	}
 
-	public static bool TryParseErrorCode(JToken codeToken, out HwiErrorCode code)
+	private static bool TryParseErrorCode(JToken codeToken, [NotNullWhen(true)] out HwiErrorCode? code)
 	{
 		code = default;
-
-		if (codeToken is null)
-		{
-			return false;
-		}
 
 		try
 		{
@@ -116,7 +112,7 @@ public static class HwiParser
 		return false;
 	}
 
-	public static bool TryParseHardwareWalletVendor(JToken? token, out HardwareWalletModels vendor)
+	private static bool TryParseHardwareWalletVendor(JToken? token, out HardwareWalletModels vendor)
 	{
 		vendor = HardwareWalletModels.Unknown;
 
@@ -160,9 +156,10 @@ public static class HwiParser
 	{
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
-			var extPubKeyString = token["xpub"]?.ToString().Trim();
-			var extPubKey = string.IsNullOrWhiteSpace(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
-			return extPubKey;
+			string? extPubKeyString = token["xpub"]?.ToString().Trim()
+				?? throw new ArgumentNullException("xpub is null.");
+
+			return NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 		}
 		else
 		{
@@ -180,7 +177,9 @@ public static class HwiParser
 
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
-			var addressString = token["address"]?.ToString()?.Trim() ?? null;
+			string? addressString = token["address"]?.ToString().Trim()
+				?? throw new ArgumentNullException("Address is null.");
+
 			try
 			{
 				var address = BitcoinAddress.Create(addressString, network);
@@ -208,9 +207,10 @@ public static class HwiParser
 
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
-			var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
-			var psbt = PSBT.Parse(psbtString, network);
-			return psbt;
+			string? psbtString = token["psbt"]?.ToString()?.Trim()
+				?? throw new ArgumentNullException("PSBT string is null.");
+
+			return PSBT.Parse(psbtString, network);
 		}
 		else
 		{
@@ -218,7 +218,7 @@ public static class HwiParser
 		}
 	}
 
-	public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
+	private static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 	{
 		JToken? modelToken = json["model"]
 			?? throw new ArgumentNullException($"{nameof(modelToken)} can't be null;");
@@ -362,15 +362,17 @@ public static class HwiParser
 				return $"{optionString} \"{x.Arguments}\"";
 			}
 		}));
+
 		optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
 		var argumentBuilder = new StringBuilder(optionsString);
-		if (command is { })
+
+		if (command is not null)
 		{
 			if (argumentBuilder.Length != 0)
 			{
 				argumentBuilder.Append(' ');
 			}
-			argumentBuilder.Append(command.ToString().ToLowerInvariant());
+			argumentBuilder.Append(command.Value.ToString().ToLowerInvariant());
 		}
 
 		commandArguments = Guard.Correct(commandArguments);

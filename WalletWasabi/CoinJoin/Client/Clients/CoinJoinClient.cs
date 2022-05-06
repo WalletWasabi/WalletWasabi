@@ -156,12 +156,12 @@ public class CoinJoinClient
 							// if mixing >= connConf
 							if (State.GetActivelyMixingRounds().Any())
 							{
-								int delaySeconds = new Random().Next(2, 7);
+								int delaySeconds = Random.Shared.Next(2, 7);
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 							}
 							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 							{
-								double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
+								double rand = double.Parse($"0.{Random.Shared.Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
 								int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
 
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
@@ -250,7 +250,7 @@ public class CoinJoinClient
 			}
 			StateUpdated?.Invoke(this, null);
 
-			int delaySeconds = new Random().Next(0, 7); // delay the response to defend timing attack privacy.
+			int delaySeconds = Random.Shared.Next(0, 7); // delay the response to defend timing attack privacy.
 
 			if (Network == Network.RegTest)
 			{

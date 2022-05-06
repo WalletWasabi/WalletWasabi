@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -126,7 +127,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(60)
+					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
+					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				}
 
 				);
@@ -237,7 +239,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
 				OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
-				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount)
+				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
+				MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 			});
 		})).CreateClient();
 
@@ -334,7 +337,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
 						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
 						OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
-						TransactionSigningTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber)
+						TransactionSigningTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
+						MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 					});
 				}));
 

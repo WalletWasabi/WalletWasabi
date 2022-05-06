@@ -6,13 +6,21 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
 public class MultipartyTransactionTests
 {
-	private static MoneyRange DefaultAllowedAmounts = new(Money.Zero, Money.Coins(1));
-	private static MultipartyTransactionParameters DefaultParameters = new(FeeRate.Zero, CoordinationFeeRate.Zero, DefaultAllowedAmounts, DefaultAllowedAmounts, Network.Main);
+	private static readonly MoneyRange DefaultAllowedAmounts = new(Money.Zero, Money.Coins(1));
+
+	private static readonly RoundParameters DefaultParameters = WabiSabiFactory.CreateRoundParameters(new()
+	{
+		MinRegistrableAmount = DefaultAllowedAmounts.Min,
+		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
+		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
+	}) with { MiningFeeRate = new FeeRate(0m)};
 
 	private static void ThrowsProtocolException(WabiSabiProtocolErrorCode expectedError, Action action) =>
 		Assert.Equal(expectedError, Assert.Throws<WabiSabiProtocolException>(action).ErrorCode);
@@ -177,7 +185,7 @@ public class MultipartyTransactionTests
 		var alice1Coin = CreateCoin(script: key1.PubKey.WitHash.ScriptPubKey);
 		var alice2Coin = CreateCoin(script: key2.PubKey.WitHash.ScriptPubKey);
 
-		var state = new ConstructionState(DefaultParameters with { FeeRate = feeRate })
+		var state = new ConstructionState(DefaultParameters with { MiningFeeRate = feeRate })
 			.AddInput(alice1Coin)
 			.AddInput(alice2Coin);
 
@@ -273,7 +281,7 @@ public class MultipartyTransactionTests
 		var feeRate = new FeeRate(new Money((1_000_000L + inputVsize - 1) / inputVsize));
 		Assert.Equal(new Money(1000L), feeRate.GetFee(alice1Coin.ScriptPubKey.EstimateInputVsize()));
 
-		var state = new ConstructionState(DefaultParameters with { FeeRate = feeRate });
+		var state = new ConstructionState(DefaultParameters with { MiningFeeRate = feeRate });
 
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput, () => state.AddInput(alice1Coin));
 

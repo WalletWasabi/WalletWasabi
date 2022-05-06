@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -49,17 +50,22 @@ public static class WabiSabiFactory
 		return new OwnershipIdentifier(identificationKey, scriptPubKey);
 	}
 
-	public static Round CreateRound(WabiSabiConfig cfg)
-	{
-		Round round = new(new RoundParameters(
+	public static RoundParameters CreateRoundParameters(WabiSabiConfig cfg) =>
+		RoundParameters.Create(
 			cfg,
 			Network.Main,
-			new InsecureRandom(),
 			new FeeRate(100m),
-			new CoordinationFeeRate(0.003m, Money.Zero)));
-		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
-		return round;
-	}
+			cfg.CoordinationFeeRate,
+			Money.Coins(Constants.MaximumNumberOfBitcoins));
+
+	public static Round CreateRound(RoundParameters parameters) =>
+		new(parameters,	new InsecureRandom());
+
+	public static Round CreateRound(WabiSabiConfig cfg) =>
+		CreateRound(CreateRoundParameters(cfg) with
+		{
+			MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead
+		});
 
 	public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 	{
@@ -194,11 +200,11 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
 			amZeroCredentials,
 			CancellationToken.None);
 		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-			new[] { vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice) },
+			new[] { vsize ?? alice.CalculateRemainingVsizeCredentials(round.Parameters.MaxVsizeAllocationPerAlice) },
 			vsZeroCredentials,
 			CancellationToken.None);
 
@@ -228,10 +234,10 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
-			new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi },
+			new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
 			CancellationToken.None);
-		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice);
+		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.Parameters.MaxVsizeAllocationPerAlice);
 		var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
 			new[] { startingVsizeCredentialAmount },
 			vsZeroCredentials, // FIXME doesn't make much sense
@@ -259,7 +265,7 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(new(cfg, round.Network, new InsecureRandom(), round.FeeRate, round.CoordinationFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet());
+		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
@@ -306,5 +312,23 @@ public static class WabiSabiFactory
 		mock.CallBase = true;
 
 		return mock.Object;
+	}
+
+	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
+	{
+		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
+		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<int>()))
+			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
+				with
+				{
+					MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
+				});
+		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
+			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
+				with
+				{
+					MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
+				});
+		return mockRoundParameterFactory.Object;
 	}
 }

@@ -7,48 +7,43 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Models;
 
-public record RoundState(
+public record RoundState(uint256 Id,
 	uint256 BlameOf,
 	CredentialIssuerParameters AmountCredentialIssuerParameters,
 	CredentialIssuerParameters VsizeCredentialIssuerParameters,
-	FeeRate FeeRate,
-	CoordinationFeeRate CoordinationFeeRate,
 	Phase Phase,
 	bool WasTransactionBroadcast,
 	DateTimeOffset InputRegistrationStart,
 	TimeSpan InputRegistrationTimeout,
-	TimeSpan ConnectionConfirmationTimeout,
-	TimeSpan OutputRegistrationTimeout,
-	TimeSpan TransactionSigningTimeout,
-	long MaxAmountCredentialValue,
-	long MaxVsizeCredentialValue,
-	long MaxVsizeAllocationPerAlice,
 	MultipartyTransactionState CoinjoinState)
 {
-	private uint256 _id;
-
-	public uint256 Id => _id ??= CalculateHash();
-
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
 	public static RoundState FromRound(Round round, int stateId = 0) =>
 		new(
+			round.Id,
 			round is BlameRound blameRound ? blameRound.BlameOf.Id : uint256.Zero,
 			round.AmountCredentialIssuerParameters,
 			round.VsizeCredentialIssuerParameters,
-			round.FeeRate,
-			round.CoordinationFeeRate,
 			round.Phase,
 			round.WasTransactionBroadcast,
 			round.InputRegistrationTimeFrame.StartTime,
 			round.InputRegistrationTimeFrame.Duration,
-			round.ConnectionConfirmationTimeFrame.Duration,
-			round.OutputRegistrationTimeFrame.Duration,
-			round.TransactionSigningTimeFrame.Duration,
-			round.MaxAmountCredentialValue,
-			round.MaxVsizeCredentialValue,
-			round.MaxVsizeAllocationPerAlice,
-			round.CoinjoinState.GetStateFrom(stateId));
+			round.CoinjoinState.GetStateFrom(stateId)
+			);
+
+	public RoundState GetSubState(int skipFromBaseState) =>
+		new(
+			Id,
+			BlameOf,
+			AmountCredentialIssuerParameters,
+			VsizeCredentialIssuerParameters,
+			Phase,
+			WasTransactionBroadcast,
+			InputRegistrationStart,
+			InputRegistrationTimeout,
+			CoinjoinState.GetStateFrom(skipFromBaseState)
+			);
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -58,30 +53,8 @@ public record RoundState(
 		};
 
 	public WabiSabiClient CreateAmountCredentialClient(WasabiRandom random) =>
-		new(AmountCredentialIssuerParameters, random, MaxAmountCredentialValue);
+		new(AmountCredentialIssuerParameters, random, CoinjoinState.Parameters.MaxAmountCredentialValue);
 
 	public WabiSabiClient CreateVsizeCredentialClient(WasabiRandom random) =>
-		new(VsizeCredentialIssuerParameters, random, MaxVsizeCredentialValue);
-
-	private uint256 CalculateHash() =>
-		RoundHasher.CalculateHash(
-			InputRegistrationStart,
-			InputRegistrationTimeout,
-			ConnectionConfirmationTimeout,
-			OutputRegistrationTimeout,
-			TransactionSigningTimeout,
-			CoinjoinState.Parameters.AllowedInputAmounts,
-			CoinjoinState.Parameters.AllowedInputTypes,
-			CoinjoinState.Parameters.AllowedOutputAmounts,
-			CoinjoinState.Parameters.AllowedOutputTypes,
-			CoinjoinState.Parameters.Network,
-			CoinjoinState.Parameters.FeeRate.FeePerK,
-			CoinjoinState.Parameters.CoordinationFeeRate,
-			CoinjoinState.Parameters.MaxTransactionSize,
-			CoinjoinState.Parameters.MinRelayTxFee.FeePerK,
-			MaxAmountCredentialValue,
-			MaxVsizeCredentialValue,
-			MaxVsizeAllocationPerAlice,
-			AmountCredentialIssuerParameters,
-			VsizeCredentialIssuerParameters);
+		new(VsizeCredentialIssuerParameters, random, CoinjoinState.Parameters.MaxVsizeCredentialValue);
 }

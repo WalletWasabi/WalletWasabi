@@ -3,7 +3,7 @@ namespace WalletWasabi.WabiSabi;
 public static class ProtocolConstants
 {
 	public const int CredentialNumber = 2;
-	public const long MaxAmountPerAlice = 4_300_000_000_000L;
+	public const long MaxAmountPerAlice = 4_300_000_000_000L >> 5; // Use 5 bits less than initially
 	public const long MaxVsizeCredentialValue = 255;
 
 	public const string WabiSabiProtocolIdentifier = "WabiSabi_v1.0";
@@ -11,6 +11,7 @@ public static class ProtocolConstants
 
 	// Round hashing labels
 	public const string RoundStrobeDomain = "round-parameters";
+
 	public const string RoundAllowedInputAmountsStrobeLabel = "allowed-input-amounts";
 	public const string RoundAllowedOutputAmountsStrobeLabel = "allowed-output-amounts";
 	public const string RoundAllowedInputTypesStrobeLabel = "allowed-input-types";
@@ -31,9 +32,11 @@ public static class ProtocolConstants
 	public const string RoundConnectionConfirmationTimeoutStrobeLabel = "connection-confirmation-timeout";
 	public const string RoundOutputRegistrationTimeoutStrobeLabel = "output-registration-timeout";
 	public const string RoundTransactionSigningTimeoutStrobeLabel = "transaction-signing-timeout";
+	public const string RoundMaxSuggestedAmountLabel = "maximum-suggested-amount";
 
 	// Alice hashing labels
 	public const string AliceStrobeDomain = "alice-parameters";
+
 	public const string AliceCoinTxOutStrobeLabel = "coin-txout";
 	public const string AliceCoinOutpointStrobeLabel = "coin-outpoint";
 	public const string AliceOwnershipProofStrobeLabel = "ownership-proof";

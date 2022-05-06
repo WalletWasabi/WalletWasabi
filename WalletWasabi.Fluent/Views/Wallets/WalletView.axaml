@@ -5,17 +5,15 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" HeaderBackground="{DynamicResource HeaderRegionColor}" IsBusy="{Binding !History.IsInitialized}">
+  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" IsBusy="{Binding !History.IsInitialized}">
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>

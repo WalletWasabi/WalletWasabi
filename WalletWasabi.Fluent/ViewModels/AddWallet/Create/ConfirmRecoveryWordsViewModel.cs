@@ -52,7 +52,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Subscribe();
 
 		// Select random words to confirm.
-		_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => new Random().NextDouble()).Take(3));
+		_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => Random.Shared.NextDouble()).Take(3));
 	}
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;

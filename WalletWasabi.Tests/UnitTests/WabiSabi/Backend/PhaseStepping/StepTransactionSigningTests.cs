@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -15,6 +16,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
@@ -26,7 +28,8 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5
+			MinInputCountByRoundMultiplier = 0.5,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -57,7 +60,8 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5
+			MinInputCountByRoundMultiplier = 0.5,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -67,7 +71,6 @@ public class StepTransactionSigningTests
 
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -95,7 +98,8 @@ public class StepTransactionSigningTests
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
-			MinInputCountByRoundMultiplier = 0.5
+			MinInputCountByRoundMultiplier = 0.5,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
@@ -139,7 +143,8 @@ public class StepTransactionSigningTests
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 1,
-			TransactionSigningTimeout = TimeSpan.Zero
+			TransactionSigningTimeout = TimeSpan.Zero,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -149,7 +154,6 @@ public class StepTransactionSigningTests
 
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -178,7 +182,8 @@ public class StepTransactionSigningTests
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 1,
 			TransactionSigningTimeout = TimeSpan.Zero,
-			OutputRegistrationTimeout = TimeSpan.Zero
+			OutputRegistrationTimeout = TimeSpan.Zero,
+			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
@@ -188,7 +193,6 @@ public class StepTransactionSigningTests
 
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		// Make sure not all alices signed.
@@ -228,7 +232,6 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		var round = Assert.Single(arena.Rounds);
-		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		// Register Alices.

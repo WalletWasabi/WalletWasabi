@@ -14,7 +14,7 @@
       <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasBalance}">
         <Separator />
         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-          <controls:PrivacyContentControl Classes="h9 bold" NumberOfPrivacyChars="9" Margin="4"
+          <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9" Margin="4"
                                           VerticalAlignment="Center"
                                           Opacity="0.8"
                                           Content="{Binding BalanceFiat}" />
