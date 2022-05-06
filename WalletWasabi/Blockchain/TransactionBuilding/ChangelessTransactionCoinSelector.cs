@@ -43,17 +43,17 @@ public static class ChangelessTransactionCoinSelector
 		};
 
 		var tasks = strategies
-			.Select(strategy => Task.Run
-			(() =>
-			{
-				if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+			.Select(strategy => Task.Run(
+				() =>
 				{
-					return coins;
-				}
+					if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+					{
+						return coins;
+					}
 
-				return Enumerable.Empty<SmartCoin>();
-			},
-			cancellationToken))
+					return Enumerable.Empty<SmartCoin>();
+				},
+				cancellationToken))
 			.ToArray();
 
 		foreach (var task in tasks)
