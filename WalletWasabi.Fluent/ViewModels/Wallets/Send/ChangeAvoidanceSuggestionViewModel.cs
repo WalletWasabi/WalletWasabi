@@ -45,6 +45,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		int maxInputCount,
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
@@ -52,7 +53,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			transactionInfo.Coins,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
+			maxInputCount,
 			cancellationToken).ConfigureAwait(false);
+
+		HashSet<Money> foundSolutionsByAmount = new();
 
 		await foreach (var selection in selections)
 		{
@@ -66,10 +70,18 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					selection,
 					tryToSign: false);
 
-				yield return new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-					transaction,
-					usdExchangeRate);
+				var destinationAmount = transaction.CalculateDestinationAmount();
+
+				// If Bnb solutions become the same transaction somehow, do not show the same suggestion twice.
+				if (!foundSolutionsByAmount.Contains(destinationAmount))
+				{
+					foundSolutionsByAmount.Add(destinationAmount);
+
+					yield return new ChangeAvoidanceSuggestionViewModel(
+						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+						transaction,
+						wallet.Synchronizer.UsdExchangeRate);
+				}
 			}
 		}
 	}

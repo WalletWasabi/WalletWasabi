@@ -1,13 +1,13 @@
+using NBitcoin;
+using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -61,9 +61,12 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			// Exchange rate can change substantially during computation itself.
 			// Reporting up-to-date exchange rates would just confuse users.
 			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+		
+			int originalInputCount = transaction.SpentCoins.Count();
+			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
 
-			var suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, usdExchangeRate, linkedCts.Token);
+			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, usdExchangeRate, linkedCts.Token);
 
 			await foreach (var suggestion in suggestions)
 			{

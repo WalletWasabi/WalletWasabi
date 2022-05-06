@@ -222,26 +222,6 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
-	public void InputMergePunishment()
-	{
-		// Input merging results in worse inherited anonset.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(
-			9,
-			Enumerable.Repeat(Money.Coins(1m), 9),
-			new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) },
-			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
-
-		analyser.Analyze(tx);
-
-		Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 100));
-
-		// 10 participants, 1 is you, your added anonset would be 10.
-		// Smallest input anonset is 100 so your anonset would be 109 normally, but 4 inputs are merged so it should be worse.
-		Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 109);
-	}
-
-	[Fact]
 	public void InputMergePunishmentNoInheritance()
 	{
 		// Input merging results in worse inherited anonset, but does not punish gains from output indistinguishability.
@@ -258,68 +238,5 @@ public class CoinJoinAnonScoreTests
 
 		// 10 participants, 1 is you, your anonset would be 10 normally and now too:
 		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
-	}
-
-	[Fact]
-	public void InputMergeProportionalPunishment()
-	{
-		// Input merging more coins results in worse anonset.
-		// In this test tx1 consolidates less inputs than tx2.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
-
-		var othersInputCount = 9;
-		var othersOutputs = Enumerable.Repeat(Money.Coins(1m), 9);
-		var ownInputs1 = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) };
-		var ownInputs2 = ownInputs1.Concat(new[] { (Money.Coins(1.5m), 100) });
-		var ownOutputs = new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) };
-
-		var tx1 = BitcoinFactory.CreateSmartTransaction(
-			othersInputCount,
-			othersOutputs,
-			ownInputs1,
-			ownOutputs);
-
-		var tx2 = BitcoinFactory.CreateSmartTransaction(
-			othersInputCount,
-			othersOutputs,
-			ownInputs2,
-			ownOutputs);
-
-		analyser.Analyze(tx1);
-		analyser.Analyze(tx2);
-
-		Assert.All(tx1.WalletInputs, x => Assert.All(tx2.WalletInputs, y => Assert.True(x.HdPubKey.AnonymitySet > y.HdPubKey.AnonymitySet)));
-		Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
-	}
-
-	[Fact]
-	public void InputMergePunishmentDependsOnCjSize()
-	{
-		// Input merging in larger coinjoin results in less punishmnent.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
-
-		var othersInputCount1 = 10;
-		var othersInputCount2 = 9;
-		var othersOutputs = Enumerable.Repeat(Money.Coins(1m), 9);
-		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 200), (Money.Coins(1.3m), 300), (Money.Coins(1.4m), 400) };
-		var ownOutputs = new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) };
-
-		var tx1 = BitcoinFactory.CreateSmartTransaction(
-			othersInputCount1,
-			othersOutputs,
-			ownInputs,
-			ownOutputs);
-
-		var tx2 = BitcoinFactory.CreateSmartTransaction(
-			othersInputCount2,
-			othersOutputs,
-			ownInputs,
-			ownOutputs);
-
-		analyser.Analyze(tx1);
-		analyser.Analyze(tx2);
-
-		Assert.All(tx1.WalletInputs, x => Assert.All(tx2.WalletInputs, y => Assert.True(x.HdPubKey.AnonymitySet > y.HdPubKey.AnonymitySet)));
-		Assert.True(tx1.WalletOutputs.First().HdPubKey.AnonymitySet > tx2.WalletOutputs.First().HdPubKey.AnonymitySet);
 	}
 }
