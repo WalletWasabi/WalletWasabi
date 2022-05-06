@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
+using System;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -355,9 +356,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		OutPoint input = request.Input;
 
-		if (Prison.TryGet(input, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
+		if (Prison.TryGet(input, out var inmate))
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			var bannedUntil = inmate.Punishment == Punishment.LongBanned ? inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan : inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
+
+			var message = $"Input banned until: {bannedUntil}";
+
+			if (inmate.Punishment == Punishment.LongBanned)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, message);
+			}
+
+			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, message);
+			}
 		}
 
 		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
