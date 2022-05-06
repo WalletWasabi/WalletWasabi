@@ -2,6 +2,27 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
+public enum StopReason
+{
+	WalletUnloaded
+}
+
+public enum CompletionStatus
+{
+	Success,
+	Canceled,
+	Failed,
+	Unknown
+}
+
+public enum CoinjoinError
+{
+	NoCoinsToMix,
+	AutoConjoinDisabled,
+	UserInSendWorkflow,
+	NotEnoughUnprivateBalance
+}
+
 public class StatusChangedEventArgs : EventArgs
 {
 	public StatusChangedEventArgs(Wallet wallet)
@@ -62,25 +83,4 @@ public class StartErrorEventArgs : StatusChangedEventArgs
 	}
 
 	public CoinjoinError Error { get; }
-}
-
-public enum StopReason
-{
-	WalletUnloaded
-}
-
-public enum CompletionStatus
-{
-	Success,
-	Canceled,
-	Failed,
-	Unknown
-}
-
-public enum CoinjoinError
-{
-	NoCoinsToMix,
-	AutoConjoinDisabled,
-	UserInSendWorkflow,
-	NotEnoughUnprivateBalance
 }
