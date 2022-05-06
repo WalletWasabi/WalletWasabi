@@ -4,25 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
-             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Shell.ShellView">
   <Panel>
-    <Panel x:Name="Background" IsHitTestVisible="False">
-      <ExperimentalAcrylicBorder>
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                       TintColor="Transparent"
-                                       TintOpacity="0"
-                                       FallbackColor="{DynamicResource AcrylicTrimBackground}"
-                                       MaterialOpacity="0" />
-        </ExperimentalAcrylicBorder.Material>
-      </ExperimentalAcrylicBorder>
-      <Panel Background="{DynamicResource AcrylicTrimBackground}" />
-    </Panel>
+    <shell:BackgroundView />
     <shell:MainView x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
     <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     <shell:DialogsView />
