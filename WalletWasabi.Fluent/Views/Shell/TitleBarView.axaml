@@ -24,17 +24,17 @@
       </Viewbox>
     </DockPanel>
 
-    <WrapPanel Grid.Column="{ext:Platform 1, Osx=2}" IsHitTestVisible="False" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" x:Name="Title" VerticalAlignment="Center" Margin="8">
-      <WrapPanel.Styles>
+    <DockPanel Grid.Column="{ext:Platform 1, Osx=2}" IsHitTestVisible="False" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" x:Name="Title" VerticalAlignment="Center" Margin="8">
+      <DockPanel.Styles>
         <Style Selector="TextBlock">
           <Setter Property="Margin" Value="3 0" />
           <Setter Property="VerticalAlignment" Value="Center" />
           <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
         </Style>
-      </WrapPanel.Styles>
+      </DockPanel.Styles>
       <TextBlock Classes="h8" Text="Wasabi Wallet" />
-      <TextBlock Classes="h8" Opacity="0.6" Text="TESTNET PREVIEW" />
-    </WrapPanel>
+      <TextBlock Classes="h8" Opacity="0.6" Text="TESTNET PREVIEW" TextTrimming="CharacterEllipsis" />
+    </DockPanel>
 
     <searchBar:SearchBar DataContext="{Binding SearchBar}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                          Grid.Row="0" Grid.Column="3" Margin="5"
