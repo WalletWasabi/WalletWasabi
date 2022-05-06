@@ -544,7 +544,7 @@ public class CoinJoinClient
 			var min = 2;
 			var max = MaxInputsRegistrableByWallet - 1;
 
-			var percent = (double)(utxoCount - 35) / (150 - 35);
+			var percent = (double)(utxoCount - minUtxoCountTarget) / (maxUtxoCountTarget - minUtxoCountTarget);
 			targetInputCount = (int)Math.Round((max - min) * percent + min);
 		}
 
