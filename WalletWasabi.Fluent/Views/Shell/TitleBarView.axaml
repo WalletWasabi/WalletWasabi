@@ -18,13 +18,13 @@
       <ColumnDefinition Width="140" />
     </Grid.ColumnDefinitions>
 
-    <DockPanel x:Name="Logo" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <DockPanel Grid.Column="{ext:Platform 0, Osx=1}" x:Name="Logo" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Viewbox Height="18" Width="18" IsHitTestVisible="False">
         <Image Source="{DynamicResource wasabi_logo_dynamic}" />
       </Viewbox>
     </DockPanel>
 
-    <WrapPanel Grid.Column="1" IsHitTestVisible="False" Grid.ColumnSpan="2" x:Name="Title" VerticalAlignment="Center" Margin="8">
+    <WrapPanel Grid.Column="{ext:Platform 1, Osx=2}" IsHitTestVisible="False" Grid.ColumnSpan="{ext:Platform 2, Osx=1}" x:Name="Title" VerticalAlignment="Center" Margin="8">
       <WrapPanel.Styles>
         <Style Selector="TextBlock">
           <Setter Property="Margin" Value="3 0" />
