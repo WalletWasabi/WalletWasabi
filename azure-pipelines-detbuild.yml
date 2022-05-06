@@ -34,6 +34,9 @@ steps:
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*macOS-arm64.zip" | Expand-Archive -DestinationPath temp\osx-arm64
       Get-ChildItem -Recurse -Path WalletWasabiClone\WalletWasabi.Fluent.Desktop\bin\dist\cdelivery -Filter "*win7-x64.zip" | Expand-Archive -DestinationPath temp\win7-x64
 
+      icacls WalletWasabi\WalletWasabi.Fluent.Desktop\bin\dist\* /grant Everyone:F
+      icacls temp\* /grant Everyone:F
+
       git diff --no-index WalletWasabi\WalletWasabi.Fluent.Desktop\bin\dist temp
       if (0 -eq $LASTEXITCODE)
       {
