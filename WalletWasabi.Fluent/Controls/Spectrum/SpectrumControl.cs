@@ -14,16 +14,17 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private ImmutablePen? _linePen;
-	private IBrush? _lineBrush;
+	private const int NumBins = 250;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
 
 	private readonly SpectrumDataSource[] _sources;
 
+	private ImmutablePen? _linePen;
+	private IBrush? _lineBrush;
+
 	private float[] _data;
-	private const int NumBins = 250;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
