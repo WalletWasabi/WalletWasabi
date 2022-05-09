@@ -56,7 +56,7 @@ public partial class AboutViewModel : RoutableViewModel
 				{
 					Link = TorLink,
 					Description = "Website (Tor)",
-					IsClickable = false
+					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel()
