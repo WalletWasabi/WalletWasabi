@@ -241,6 +241,7 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 	}
 
+	[Fact]
 	public void SiblingCoinjoinDoesntContributeToAnonScore()
 	{
 		var tx1 = new AnalyzedTransaction();
@@ -255,7 +256,7 @@ public class CoinJoinAnonScoreTests
 		tx2.AddForeignOutput();
 		var F = tx2.AddWalletOutput();
 
-		tx1.AnalyzeRecursively();
+		tx2.AnalyzeRecursively();
 
 		Assert.Equal(2, B.Anonymity);
 		Assert.Equal(2, F.Anonymity);
