@@ -114,6 +114,12 @@ public class AliceClient
 						Logger.LogInfo($"{coin.Coin.Outpoint} is banned.");
 						break;
 
+					case WabiSabiProtocolErrorCode.InputLongBanned:
+						coin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(31); // TODO: Date should be inside the exc. (backend)
+						coin.SetIsBanned();
+						Logger.LogInfo($"{coin.Coin.Outpoint} is long banned.");
+						break;
+
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
 						coin.SpentAccordingToBackend = false;
 						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
