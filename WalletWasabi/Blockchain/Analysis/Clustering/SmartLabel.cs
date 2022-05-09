@@ -18,7 +18,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 			   .Select(x => x.Trim())
 			   .Where(x => x.Length != 0)
 			   .Distinct(StringComparer.OrdinalIgnoreCase)
-			   .OrderBy(x => x)
+			   .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
 			   .ToArray();
 
 		IsEmpty = !Labels.Any();
