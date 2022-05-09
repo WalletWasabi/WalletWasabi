@@ -64,13 +64,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 		keyManager.IsCoinjoinProfileSelected = true;
 
+		keyManager.ToFile();
 		if (isNewWallet)
 		{
 			Navigate().To(new AddedWalletPageViewModel(keyManager));
 		}
 		else
 		{
-			keyManager.ToFile();
 			Close(DialogResultKind.Normal, true);
 		}
 	}
