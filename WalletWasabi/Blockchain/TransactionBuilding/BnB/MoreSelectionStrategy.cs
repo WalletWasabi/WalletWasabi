@@ -11,16 +11,17 @@ public class MoreSelectionStrategy : SelectionStrategy
 	public const double MaxExtraPayment = 1.25;
 
 	/// <inheritdoc/>
-	public MoreSelectionStrategy(StrategyParameters parameters)
+	public MoreSelectionStrategy(StrategyParameters parameters, double maxExtraPayment = MaxExtraPayment)
 		: base(parameters, new CoinSelection(long.MaxValue, long.MaxValue))
 	{
-		MaximumTarget = (long)(parameters.Target * MaxExtraPayment);
+		MaximumTarget = (long)(parameters.Target * maxExtraPayment);
 	}
 
 	/// <summary>Maximum acceptable target (inclusive).</summary>
 	/// <seealso cref="SelectionStrategy.Target"/>
 	public long MaximumTarget { get; }
 
+	/// <inheritdoc/>
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + CurrentInputCosts;

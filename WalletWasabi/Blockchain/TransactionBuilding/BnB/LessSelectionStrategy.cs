@@ -11,16 +11,28 @@ public class LessSelectionStrategy : SelectionStrategy
 	public const double MinPaymentThreshold = 0.75;
 
 	/// <inheritdoc/>
-	public LessSelectionStrategy(StrategyParameters parameters)
+	public LessSelectionStrategy(StrategyParameters parameters, double minPaymentThreshold = MinPaymentThreshold)
 		: base(parameters, new CoinSelection(long.MinValue, long.MinValue))
 	{
-		MinimumTarget = (long)(parameters.Target * MinPaymentThreshold);
+		MinimumTarget = (long)(parameters.Target * minPaymentThreshold);
 	}
 
 	/// <summary>Minimum acceptable target (inclusive).</summary>
 	/// <seealso cref="SelectionStrategy.Target"/>
 	public long MinimumTarget { get; }
 
+	/// <inheritdoc/>
+	public override long[]? GetBestSelectionFound()
+	{
+		if (BestSelection.PaymentAmount < MinimumTarget)
+		{
+			return null;
+		}
+
+		return BestSelection.GetSolutionArray();
+	}
+
+	/// <inheritdoc/>
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + CurrentInputCosts;

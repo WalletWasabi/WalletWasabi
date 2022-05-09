@@ -42,17 +42,19 @@ public static class ChangelessTransactionCoinSelector
 			new LessSelectionStrategy(parameters)
 		};
 
-		var tasks = strategies.Select(
-			   strategy => Task.Run(() =>
-			{
-				if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+		var tasks = strategies
+			.Select(strategy => Task.Run(
+				() =>
 				{
-					return coins;
-				}
+					if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+					{
+						return coins;
+					}
 
-				return Enumerable.Empty<SmartCoin>();
-			},
-			cancellationToken)).ToArray();
+					return Enumerable.Empty<SmartCoin>();
+				},
+				cancellationToken))
+			.ToArray();
 
 		foreach (var task in tasks)
 		{

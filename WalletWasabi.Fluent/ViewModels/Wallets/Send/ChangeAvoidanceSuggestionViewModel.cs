@@ -56,6 +56,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 			maxInputCount,
 			cancellationToken).ConfigureAwait(false);
 
+		HashSet<Money> foundSolutionsByAmount = new();
+
 		await foreach (var selection in selections)
 		{
 			if (selection.Any())
@@ -68,10 +70,18 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					selection,
 					tryToSign: false);
 
-				yield return new ChangeAvoidanceSuggestionViewModel(
-					transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-					transaction,
-					usdExchangeRate);
+				var destinationAmount = transaction.CalculateDestinationAmount();
+
+				// If Bnb solutions become the same transaction somehow, do not show the same suggestion twice.
+				if (!foundSolutionsByAmount.Contains(destinationAmount))
+				{
+					foundSolutionsByAmount.Add(destinationAmount);
+
+					yield return new ChangeAvoidanceSuggestionViewModel(
+						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+						transaction,
+						wallet.Synchronizer.UsdExchangeRate);
+				}
 			}
 		}
 	}

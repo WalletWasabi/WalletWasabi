@@ -41,10 +41,12 @@ public class RoundStateUpdater : PeriodicRunner
 		var updatedRoundStates = statusResponse
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
-			.Select(x => x.NewRoundState with
+			.Select(
+			x => x.NewRoundState with
 			{
 				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
-			}).ToList();
+			})
+			.ToList();
 
 		var newRoundStates = statusResponse
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
