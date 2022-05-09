@@ -1,16 +1,17 @@
 using NBitcoin;
 using System.Collections.Generic;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public class BlameRound : Round
 {
-	public BlameRound(RoundParameters roundParameters, Round blameOf, ISet<OutPoint> blameWhitelist)
-		: base(roundParameters)
+	public BlameRound(RoundParameters parameters, Round blameOf, ISet<OutPoint> blameWhitelist, WasabiRandom random)
+		: base(parameters, random)
 	{
 		BlameOf = blameOf;
 		BlameWhitelist = blameWhitelist;
-		InputRegistrationTimeFrame = TimeFrame.Create(RoundParameters.BlameInputRegistrationTimeout).StartNow();
+		InputRegistrationTimeFrame = TimeFrame.Create(Parameters.BlameInputRegistrationTimeout).StartNow();
 	}
 
 	public Round BlameOf { get; }

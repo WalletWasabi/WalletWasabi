@@ -1,15 +1,12 @@
-using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -147,16 +144,13 @@ public class CoinJoinCoinSelectionTests
 		return mockWasabiRandom.Object;
 	}
 
-	private static MultipartyTransactionParameters CreateMultipartyTransactionParameters()
+	private static RoundParameters CreateMultipartyTransactionParameters()
 	{
-		var reasonableRange = new MoneyRange(Money.Coins(0.0001m), Money.Coins(430));
-		var txParams = new MultipartyTransactionParameters(
-			new FeeRate(5m),
-			CoordinationFeeRate.Zero,
-			reasonableRange,
-			reasonableRange,
-			Network.Main,
-			Money.Coins(Constants.MaximumNumberOfBitcoins));
-		return txParams;
+		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
+		{
+			MinRegistrableAmount = Money.Coins(0.0001m),
+			MaxRegistrableAmount = Money.Coins(430)
+		});
+		return roundParams;
 	}
 }

@@ -26,8 +26,7 @@ public class CredentialReissuanceTest
 		// Step 1. Create credentials
 		var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = WabiSabiFactory.CreateWabiSabiClientsAndIssuers(round);
 
-		var amountsToRequest = new[]
-			{alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate).Satoshi};
+		var amountsToRequest = new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi };
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
 			amountsToRequest,
 			amZeroCredentials, // FIXME doesn't make much sense
@@ -81,8 +80,8 @@ public class CredentialReissuanceTest
 				invalidVsizesToRequest, // we request the double than what we can
 				amountCredentialsToPresent,
 				vsizeCredentialsToPresent,
-				CancellationToken.None
-			));
+				CancellationToken.None));
+
 		await arena.StopAsync(CancellationToken.None);
 	}
 }
