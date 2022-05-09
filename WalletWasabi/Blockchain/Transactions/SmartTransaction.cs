@@ -180,12 +180,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	/// <summary>
-	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// Coins that are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
 	private HashSet<SmartCoin> _walletInputs;
 
 	/// <summary>
-	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// Coins that are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
 	/// </summary>
 	private HashSet<SmartCoin> _walletOutputs;
 
