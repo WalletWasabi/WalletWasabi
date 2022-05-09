@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.WabiSabi.Client.Events;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 

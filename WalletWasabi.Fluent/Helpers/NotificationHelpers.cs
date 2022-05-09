@@ -75,7 +75,7 @@ public static class NotificationHelpers
 				}
 				else if (isSpent && receiveSpentDiff == miningFee)
 				{
-					message = $"Self transfer. Fee: {amountString} BTC";
+					message = $"Self transfer";
 				}
 				else if (incoming > Money.Zero)
 				{
@@ -97,7 +97,7 @@ public static class NotificationHelpers
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
-					message = $"Self transfer confirmed. Fee: {amountString} BTC";
+					message = $"Self transfer confirmed";
 				}
 				else if (incoming > Money.Zero)
 				{
