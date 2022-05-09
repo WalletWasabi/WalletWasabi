@@ -415,8 +415,6 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet < minAnonScoreTarget)
 			.ToArray();
 
-		var largestCoins = nonPrivateFilteredCoins.OrderByDescending(x => x.Amount).Take(3).ToArray();
-
 		// Select a group of coins those are close to each other by Anonimity Score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
@@ -431,24 +429,30 @@ public class CoinJoinClient
 				break;
 			}
 
-			TryAddGroup(groups, group, parameters, largestCoins);
+			TryAddGroup(groups, group, parameters);
 		}
 
 		// We can potentially add a lot more groups to improve results.
-		foreach (var largeCoin in largestCoins)
+		var sw1 = Stopwatch.StartNew();
+		foreach (var coin in nonPrivateFilteredCoins.OrderByDescending(x => x.Amount))
 		{
-			var stopwatch = Stopwatch.StartNew();
-			foreach (var group in filteredCoins.Except(new[] { largeCoin }).CombinationsWithoutRepetition(inputCount - 1))
+			var sw2 = Stopwatch.StartNew();
+			foreach (var group in filteredCoins.Except(new[] { coin }).CombinationsWithoutRepetition(inputCount - 1))
 			{
-				TryAddGroup(groups, group.Concat(new[] { largeCoin }), parameters, largestCoins);
+				TryAddGroup(groups, group.Concat(new[] { coin }), parameters);
 
-				if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+				if (sw2.Elapsed > TimeSpan.FromSeconds(1))
 				{
 					break;
 				}
 			}
 
-			stopwatch.Reset();
+			sw2.Reset();
+
+			if (sw1.Elapsed > TimeSpan.FromSeconds(10))
+			{
+				break;
+			}
 		}
 
 		// Calculate the anonScore cost of input consolidation.
@@ -471,33 +475,31 @@ public class CoinJoinClient
 		}
 
 		var bestCost = anonScoreCosts.Min(g => g.Cost);
-		var bestgroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
+		var bestCostGroups = anonScoreCosts.Where(x => x.Cost == bestCost).Select(x => x.Group);
 
 		// Select the group where the less coins coming from the same tx.
-		var bestgroup = bestgroups
-			.Select(group =>
-				(Reps: group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1),
-				Group: group))
+		var bestRep = bestCostGroups.Select(x => GetReps(x)).Min(x => x);
+		var bestRepGroups = bestCostGroups.Where(x => GetReps(x) == bestRep);
+
+		var bestgroup = bestRepGroups
 			.ToShuffled()
-			.MinBy(i => i.Reps).Group;
+			.MaxBy(x => x.Sum(y => y.Amount))!;
 
 		return bestgroup.ToShuffled().ToImmutableList();
 	}
 
-	private static bool TryAddGroup(IDictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group, RoundParameters parameters, SmartCoin[] largestCoins)
-	{
-		// Only add if one of the largest coin is in the group.
-		// So we won't keep mixing
-		if (group.Any(x => largestCoins.Contains(x)))
-		{
-			var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
-			var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
-			if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
-			{
-				var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
+	private static int GetReps(IEnumerable<SmartCoin> group)
+		=> group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1);
 
-				return CollectionExtensions.TryAdd(groups, k, group);
-			}
+	private static bool TryAddGroup(IDictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group, RoundParameters parameters)
+	{
+		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
+		var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
+		if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
+		{
+			var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
+
+			return CollectionExtensions.TryAdd(groups, k, group);
 		}
 
 		return false;
