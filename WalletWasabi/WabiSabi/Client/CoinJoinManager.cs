@@ -322,8 +322,8 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		if (finishedCoinJoin.RestartAutomatically &&
-		    !finishedCoinJoin.IsStopped &&
-		    !cancellationToken.IsCancellationRequested)
+			!finishedCoinJoin.IsStopped &&
+			!cancellationToken.IsCancellationRequested)
 		{
 			Logger.LogInfo($"{logPrefix} restart automatically.");
 
@@ -339,9 +339,9 @@ public class CoinJoinManager : BackgroundService
 		var hashSet = outputs.ToHashSet();
 
 		foreach (var k in WalletManager
-			         .GetWallets(false)
-			         .Select(w => w.KeyManager)
-			         .SelectMany(k => k.GetKeys(k => hashSet.Contains(k.P2wpkhScript))))
+					 .GetWallets(false)
+					 .Select(w => w.KeyManager)
+					 .SelectMany(k => k.GetKeys(k => hashSet.Contains(k.P2wpkhScript))))
 		{
 			k.SetKeyState(KeyState.Used);
 		}
@@ -354,7 +354,7 @@ public class CoinJoinManager : BackgroundService
 		StatusChanged.SafeInvoke(this, new StartErrorEventArgs(openedWallet, error));
 
 	private void NotifyRoundStateChanged(Wallet openedWallet, RoundStateAndRemainingTimeChangedEventArgs e) =>
-		SafeRaiseEvent(StatusChanged, new RoundStateChangedEventArgs(openedWallet, e.RoundState, e.PhaseEndTime));
+		StatusChanged.SafeInvoke(this, new RoundStateChangedEventArgs(openedWallet, e.RoundState, e.PhaseEndTime));
 
 	private void NotifyMixableWalletUnloaded(Wallet closedWallet) =>
 		StatusChanged.SafeInvoke(this, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
@@ -376,8 +376,8 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started // Only running wallets
-			            && !x.KeyManager.IsWatchOnly // that are not watch-only wallets
-			            && x.Kitchen.HasIngredients)
+						&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
+						&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
@@ -386,7 +386,7 @@ public class CoinJoinManager : BackgroundService
 			.Available()
 			.Confirmed()
 			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget
-			            && !CoinRefrigerator.IsFrozen(x)));
+						&& !CoinRefrigerator.IsFrozen(x)));
 
 		// If a small portion of the wallet isn't private, it's better to wait with mixing.
 		if (GetPrivacyPercentage(coins, openedWallet.KeyManager.MinAnonScoreTarget) > 0.99)
