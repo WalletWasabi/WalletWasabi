@@ -35,7 +35,7 @@
           </c:PrivacyContentControl>
         </DockPanel>
         <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalAlignment="Center">
-          <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" />
+          <c:LabelsListBox Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>
 

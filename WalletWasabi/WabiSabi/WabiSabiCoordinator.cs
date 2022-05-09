@@ -17,27 +17,40 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore)
 	{
 		Parameters = parameters;
 
 		Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
-
+		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
 		CoinJoinFeeRateStatStore.NewStat += FeeRateStatStore_NewStat;
 
-		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
+		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(parameters.CoinJoinScriptStoreFilePath);
+		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
 
-		Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Warden.Prison, inMemoryCoinJoinIdStore, transactionArchiver);
+		RoundParameterFactory roundParameterFactory = new RoundParameterFactory(Config, rpc.Network);
+		Arena = new(
+			parameters.RoundProgressSteppingPeriod,
+			rpc.Network,
+			Config,
+			rpc,
+			Warden.Prison,
+			coinJoinIdStore,
+			roundParameterFactory,
+			transactionArchiver,
+			coinJoinScriptStore);
+
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
 	}
 
 	public ConfigWatcher ConfigWatcher { get; }
+	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }
@@ -46,17 +59,22 @@ public class WabiSabiCoordinator : BackgroundService
 	public CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
 
 	public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
+	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; } = DateTimeOffset.UtcNow;
 
-	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
+	private void Arena_CoinJoinBroadcast(object? sender, Transaction transaction)
 	{
-		var filePath = Parameters.CoinJoinIdStoreFilePath;
+		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
+
+		CoinJoinIdStore.TryAdd(transaction.GetHash());
+
+		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
 		try
 		{
-			File.AppendAllLines(filePath, new[] { e.GetHash().ToString() });
+			File.AppendAllLines(coinJoinScriptStoreFilePath, transaction.Outputs.Select(x => x.ScriptPubKey.ToHex()));
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Could not write file {filePath}.", ex);
+			Logger.LogError($"Could not write file {coinJoinScriptStoreFilePath}.", ex);
 		}
 	}
 

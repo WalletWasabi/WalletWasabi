@@ -46,8 +46,9 @@ public class RegisterOutputTests
 	public async Task ScriptNotAllowedAsync()
 	{
 		WabiSabiConfig cfg = new();
-		var round = WabiSabiFactory.CreateRound(cfg);
-		round.MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead;
+		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
+			with { MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead };
+		var round = WabiSabiFactory.CreateRound(parameters);
 
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		using Key key = new();
@@ -66,8 +67,9 @@ public class RegisterOutputTests
 	public async Task NonStandardOutputAsync()
 	{
 		WabiSabiConfig cfg = new();
-		var round = WabiSabiFactory.CreateRound(cfg);
-		round.MaxVsizeAllocationPerAlice += 13;
+		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
+			with { MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead + 13 };
+		var round = WabiSabiFactory.CreateRound(parameters);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.SetPhase(Phase.OutputRegistration);
@@ -138,10 +140,12 @@ public class RegisterOutputTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = new();
-		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
+		Round round = WabiSabiFactory.CreateRound(cfg);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-		var round = arena.Rounds.First();
-		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
@@ -151,7 +155,7 @@ public class RegisterOutputTests
 			{
 				var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 				round.SetPhase(phase);
-				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
+				var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
 				Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			}
 		}

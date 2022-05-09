@@ -259,7 +259,6 @@ public class TorHttpPool : IDisposable
 	private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 	{
 		TorTcpConnection? connection;
-		string host = GetRequestHost(request);
 
 		try
 		{
@@ -268,17 +267,17 @@ public class TorHttpPool : IDisposable
 		}
 		catch (TorException e)
 		{
-			Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool connection.", e);
+			Logger.LogDebug($"['{request.RequestUri}'][ERROR] Failed to create a new pool connection.", e);
 			throw;
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogTrace($"['{host}'] Operation was canceled.");
+			Logger.LogTrace($"['{request.RequestUri}'] Operation was canceled.");
 			throw;
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"['{host}'][EXCEPTION] {e}");
+			Logger.LogTrace($"['{request.RequestUri}'][EXCEPTION] {e}");
 			throw;
 		}
 
@@ -322,6 +321,29 @@ public class TorHttpPool : IDisposable
 		}
 	}
 
+	/// <summary>Allows to report that a Tor circuit was closed.</summary>
+	/// <param name="circuitName">Name of the circuit. Example is: <c>IK1DG1HZCZFEQUTF86O86</c>.</param>
+	/// <remarks>
+	/// Useful to clean up <see cref="ConnectionPerHost"/> so that we do not exhaust <see cref="MaxConnectionsPerHost"/> limit.
+	/// <para>If client code forgets to dispose <see cref="PersonCircuit"/>, this should help us to recover eventually.</para>
+	/// </remarks>
+	public async Task ReportCircuitClosedAsync(string circuitName, CancellationToken cancellationToken)
+	{
+		using (await ObtainPoolConnectionLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			foreach ((string host, List<TorTcpConnection> tcpConnections) in ConnectionPerHost)
+			{
+				foreach (TorTcpConnection tcpConnection in tcpConnections)
+				{
+					if (tcpConnection.Circuit.Name == circuitName)
+					{
+						tcpConnection.MarkAsToDispose(force: false);
+					}
+				}
+			}
+		}
+	}
+
 	private static string GetRequestHost(HttpRequestMessage request)
 	{
 		return Guard.NotNullOrEmptyOrWhitespace(nameof(request.RequestUri.DnsSafeHost), request.RequestUri!.DnsSafeHost, trim: true);
@@ -331,6 +353,7 @@ public class TorHttpPool : IDisposable
 	/// <param name="host">URI's host value.</param>
 	/// <param name="circuit">Tor circuit for which to get a TCP connection.</param>
 	/// <returns>Whether a connection can be added to <see cref="ConnectionPerHost"/> and reserved connection to use, if any.</returns>
+	/// <remarks>Guarded by <see cref="ObtainPoolConnectionLock"/>.</remarks>
 	private bool GetPoolConnectionNoLock(string host, ICircuit circuit, out TorTcpConnection? connection)
 	{
 		if (!ConnectionPerHost.ContainsKey(host))

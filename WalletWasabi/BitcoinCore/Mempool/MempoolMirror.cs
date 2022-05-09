@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -102,9 +103,10 @@ public class MempoolMirror : PeriodicRunner
 		IEnumerable<uint256> missing;
 		lock (MempoolLock)
 		{
-			missing = mempoolHashes.Except(Mempool.Keys);
+			var mempoolKeys = Mempool.Keys.ToImmutableArray();
+			missing = mempoolHashes.Except(mempoolKeys);
 
-			foreach (var txid in Mempool.Keys.Except(mempoolHashes).ToHashSet())
+			foreach (var txid in mempoolKeys.Except(mempoolHashes).ToHashSet())
 			{
 				Mempool.Remove(txid);
 			}

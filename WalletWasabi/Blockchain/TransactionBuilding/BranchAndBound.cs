@@ -1,7 +1,5 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
@@ -10,22 +8,15 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 /// <seealso href="https://murch.one/wp-content/uploads/2016/11/erhardt2016coinselection.pdf">Section "5.3 Branch and Bound".</seealso>
 public class BranchAndBound
 {
-	private readonly Random _random = new();
-
 	/// <summary>
 	/// Attempts to find a set of values that sum up to the target value.
 	/// </summary>
 	/// <param name="searchStrategy">Search strategy that affects how the algorithm searches through the options.</param>
 	/// <param name="selectedValues">Solution of the search algorithm based on <paramref name="searchStrategy"/> sorted in descending order.</param>
 	/// <returns><c>true</c> when a match is found, <c>false</c> otherwise.</returns>
-	public bool TryGetMatch(CheapestSelectionStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
+	public bool TryGetMatch(SelectionStrategy searchStrategy, [NotNullWhen(true)] out List<long>? selectedValues, CancellationToken cancellationToken = default)
 	{
 		selectedValues = null;
-
-		if (searchStrategy.InputValues.Sum() < searchStrategy.Target)
-		{
-			return false;
-		}
 
 		if (TryFindSolution(searchStrategy, out long[]? solution, cancellationToken))
 		{
@@ -45,7 +36,7 @@ public class BranchAndBound
 		return false;
 	}
 
-	private bool TryFindSolution(CheapestSelectionStrategy searchStrategy, [NotNullWhen(true)] out long[]? selection, CancellationToken cancellationToken = default)
+	private bool TryFindSolution(SelectionStrategy searchStrategy, [NotNullWhen(true)] out long[]? selection, CancellationToken cancellationToken = default)
 	{
 		// Current selection sum.
 		long sum = 0L;
@@ -111,7 +102,7 @@ public class BranchAndBound
 			// Micro optimization: Do not check cancellation token every time as it requires accessing volatile memory.
 			if (i % 10_000 == 0 && cancellationToken.IsCancellationRequested)
 			{
-				return false;
+				cancellationToken.ThrowIfCancellationRequested();
 			}
 		}
 		while (depth >= 0);
@@ -121,7 +112,7 @@ public class BranchAndBound
 
 	private NextAction GetRandomNextAction()
 	{
-		return _random.Next(0, 2) == 1 ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
+		return Random.Shared.Next() > (int.MaxValue / 2) ? NextAction.IncludeFirstThenOmit : NextAction.OmitFirstThenInclude;
 	}
 
 	private static NextAction GetNextStep(NextAction action)

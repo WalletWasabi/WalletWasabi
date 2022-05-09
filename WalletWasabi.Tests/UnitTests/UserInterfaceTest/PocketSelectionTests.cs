@@ -1,113 +1,16 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
-
-internal class TestCoinsView : ICoinsView
-{
-	private Money _total;
-
-	public TestCoinsView(Money total)
-	{
-		_total = total;
-	}
-
-	public IEnumerator<SmartCoin> GetEnumerator()
-	{
-		throw new NotImplementedException();
-	}
-
-	IEnumerator IEnumerable.GetEnumerator()
-	{
-		return GetEnumerator();
-	}
-
-	public ICoinsView AtBlockHeight(Height height)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView Available()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView ChildrenOf(SmartCoin coin)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView CoinJoinInProcess()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView Confirmed()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView DescendantOf(SmartCoin coin)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView DescendantOfAndSelf(SmartCoin coin)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView FilterBy(Func<SmartCoin, bool> expression)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView OutPoints(ISet<OutPoint> outPoints)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView CreatedBy(uint256 txid)
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView SpentBy(uint256 txid)
-	{
-		throw new NotImplementedException();
-	}
-
-	public SmartCoin[] ToArray()
-	{
-		throw new NotImplementedException();
-	}
-
-	public Money TotalAmount() => _total;
-
-	public ICoinsView Unconfirmed()
-	{
-		throw new NotImplementedException();
-	}
-
-	public ICoinsView Unspent()
-	{
-		throw new NotImplementedException();
-	}
-
-	public bool TryGetByOutPoint(OutPoint outpoint, out SmartCoin? coin)
-	{
-		throw new NotImplementedException();
-	}
-}
 
 public class PocketSelectionTests
 {
@@ -444,6 +347,39 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public void StillIncludePrivateFundsAfterSwap()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+		var pockets = new List<Pocket>();
+
+		var privateCoin = LabelTestExtensions.CreateCoin(0.8m, "", 999);
+		var privatePocket = new Pocket((CoinPocketHelper.PrivateFundsText, new CoinsView(new[] { privateCoin })));
+		pockets.Add(privatePocket);
+
+		pockets.AddPocket(0.2M, out var pocket2, "Dan");
+		pockets.AddPocket(0.1M, out var pocket3, "Lucas");
+
+		selection.Reset(pockets.ToArray());
+
+		var usedCoins = new List<SmartCoin>
+		{
+			privateCoin
+		};
+		usedCoins.AddRange(pocket2.Coins);
+
+		selection.SetUsedLabel(usedCoins, 10);
+		var output = selection.GetUsedPockets();
+		Assert.Contains(privatePocket, output);
+		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.True(selection.EnoughSelected);
+
+		selection.SwapLabel(selection.GetLabel("Lucas"));
+		selection.SwapLabel(selection.GetLabel("Lucas"));
+		Assert.True(selection.EnoughSelected);
+	}
+
+	[Fact]
 	public void NotEnoughSelected()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
@@ -461,35 +397,283 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
-	public void UnlabelledPocketUsed()
+	public void AutoSelectOnlyPrivatePocket()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("0.7"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.7M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.6M, out var pocket2, "Dan");
+		pockets.AddPocket(0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.GetSafeToUsePockets();
+		var output = selection.AutoSelectPockets("Dan");
 		Assert.Contains(pocket1, output);
-		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
 	}
 
 	[Fact]
-	public void UnlabelledPocketNotUsed()
+	public void AutoSelectOnlyKnownPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("0.4"));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.1M, out var pocket4, "David", "Lucas");
+		pockets.AddPocket(0.15M, out var pocket5, "David");
+		pockets.AddPocket(0.2M, out var pocket6, "Lucas");
+		pockets.AddPocket(0.3M, out var pocket7, "David", "Lucas", "Dan");
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.GetSafeToUsePockets();
+		var output = selection.AutoSelectPockets(new SmartLabel("David", "Lucas"));
 		Assert.DoesNotContain(pocket1, output);
 		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.Contains(pocket5, output);
+		Assert.Contains(pocket6, output);
+		Assert.Contains(pocket7, output);
+	}
+
+	[Fact]
+	public void AutoSelectOnlyUnknownPocket()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("0.7"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.8M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.Contains(pocket3, output);
+	}
+
+	[Fact]
+	public void AutoSelectKnownAndUnknownPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.5M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.8M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+		Assert.Contains(pocket3, output);
+	}
+
+	[Fact]
+	public void AutoSelectPrivateAndKnownPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(0.4M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.Contains(pocket1, output);
+		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+	}
+
+	[Fact]
+	public void AutoSelectPrivateAndUnknownPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.Contains(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.Contains(pocket3, output);
+	}
+
+	[Fact]
+	public void AutoSelectAllPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.5"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.3M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.Contains(pocket1, output);
+		Assert.Contains(pocket2, output);
+		Assert.Contains(pocket3, output);
+	}
+
+	[Fact]
+	public void AutoSelectOnlyKnownByRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
+		pockets.AddPocket(1.1M, out var pocket5, "David");
+		pockets.AddPocket(1.1M, out var pocket6, "Lucas");
+		pockets.AddPocket(1.1M, out var pocket7, "David", "Lucas", "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets(new SmartLabel("David", "Lucas"));
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.DoesNotContain(pocket5, output);
+		Assert.DoesNotContain(pocket6, output);
+		Assert.DoesNotContain(pocket7, output);
+	}
+
+	[Fact]
+	public void AutoSelectOnlyKnownByRecipientPocketsCaseInsensitive()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(1.1M, out var pocket3, "Lucas", "Dan");
+		pockets.AddPocket(1.1M, out var pocket4, "dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets(new SmartLabel("dAN"));
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+	}
+
+	[Fact]
+	public void AutoSelectKnownByRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("David");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+	}
+
+	[Fact]
+	public void AutoSelectKnownByMultipleRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas", "Dan");
+		pockets.AddPocket(1.1M, out var pocket5, "David");
+		pockets.AddPocket(1.1M, out var pocket6, "Lucas");
+		pockets.AddPocket(1.1M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(1.1M, out var pocket8, "David", "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("David, Lucas");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.DoesNotContain(pocket5, output);
+		Assert.DoesNotContain(pocket6, output);
+		Assert.DoesNotContain(pocket7, output);
+		Assert.DoesNotContain(pocket8, output);
+	}
+
+	[Fact]
+	public void AutoSelectMultipleKnownByMultipleRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.5M, out var pocket4, "David", "Lucas", "Dan");
+		pockets.AddPocket(0.6M, out var pocket5, "David");
+		pockets.AddPocket(0.5M, out var pocket6, "Lucas");
+		pockets.AddPocket(0.5M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(0.5M, out var pocket8, "David", "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("David, Lucas");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.Contains(pocket5, output);
+		Assert.DoesNotContain(pocket6, output);
+		Assert.DoesNotContain(pocket7, output);
+		Assert.DoesNotContain(pocket8, output);
+	}
+
+	[Fact]
+	public void AutoSelectRequiredKnownByRecipientPockets()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(0.4M, out var pocket4, "David");
+		pockets.AddPocket(0.4M, out var pocket5, "David", "Max");
+		pockets.AddPocket(0.6M, out var pocket6, "David", "Lucas", "Dan");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("David");
+		Assert.DoesNotContain(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+		Assert.Contains(pocket4, output);
+		Assert.DoesNotContain(pocket5, output);
+		Assert.Contains(pocket6, output);
 	}
 
 	[Fact]
@@ -511,10 +695,61 @@ public class PocketSelectionTests
 
 		Assert.False(selection.EnoughSelected);
 	}
+
+	[Fact]
+	public void SetUsedLabelIgnoreCase()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, "Dan");
+		pockets.AddPocket(1.0M, out var pocket2, "Lucas");
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+		Assert.Contains(pocket1, output);
+		Assert.DoesNotContain(pocket2, output);
+
+		var hdpk = LabelTestExtensions.NewKey("dan");
+		var usedCoin = BitcoinFactory.CreateSmartCoin(hdpk, 1.0M);
+		selection.SetUsedLabel(new[] { usedCoin }, privateThreshold: 10);
+
+		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsBlackList);
+		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
+	}
+
+	[Fact]
+	public void SetUsedLabelIncludePrivateFunds()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.5"));
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out _, "Dan");
+
+		var privateCoins = new[]
+		{
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+		};
+		var coinsView = new CoinsView(privateCoins.ToArray());
+		var pocket = new Pocket((SmartLabel.Empty, coinsView));
+		pockets.Add(pocket);
+
+		selection.Reset(pockets.ToArray());
+
+		var output = selection.AutoSelectPockets("Dan");
+
+		selection.SetUsedLabel(output.SelectMany(x => x.Coins), privateThreshold: 10);
+
+		Assert.True(selection.EnoughSelected);
+	}
 }
 
 internal static class LabelTestExtensions
 {
+	private static readonly KeyManager KeyManager = ServiceFactory.CreateKeyManager();
+
 	public static LabelViewModel GetLabel(this LabelSelectionViewModel selection, string label)
 	{
 		return selection.AllLabelsViewModel.Single(x => x.Value == label);
@@ -522,7 +757,26 @@ internal static class LabelTestExtensions
 
 	public static void AddPocket(this List<Pocket> pockets, decimal amount, out Pocket pocket, params string[] labels)
 	{
-		pocket = new Pocket(new(new SmartLabel(labels), new TestCoinsView(Money.FromUnit(amount, MoneyUnit.BTC))));
+		var label = new SmartLabel(labels);
+		var coinsView = new CoinsView(new[] { BitcoinFactory.CreateSmartCoin(NewKey(label), amount) });
+		pocket = new Pocket((label, coinsView));
 		pockets.Add(pocket);
+	}
+
+	public static HdPubKey NewKey(string label = "", int anonymitySet = 1)
+	{
+		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true, false);
+		key.SetAnonymitySet(anonymitySet);
+		key.SetLabel(label);
+
+		return key;
+	}
+
+	public static SmartCoin CreateCoin(decimal amount, string label = "", int anonymitySet = 1)
+	{
+		var coin = BitcoinFactory.CreateSmartCoin(NewKey(label: label, anonymitySet: anonymitySet), amount);
+		coin.HdPubKey.SetAnonymitySet(anonymitySet);
+
+		return coin;
 	}
 }

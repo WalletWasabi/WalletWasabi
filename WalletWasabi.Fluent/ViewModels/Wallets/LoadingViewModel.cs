@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -31,10 +32,10 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
-			.Subscribe(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
+			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-			.Subscribe(async _ =>
+			.SubscribeAsync(async _ =>
 			{
 				if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
 				{
@@ -44,6 +45,8 @@ public partial class LoadingViewModel : ActivatableViewModel
 				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
 			});
 	}
+
+	public string WalletName => _wallet.WalletName;
 
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
@@ -146,7 +149,14 @@ public partial class LoadingViewModel : ActivatableViewModel
 		var percentText = $"{Percent}% completed";
 
 		var remainingMilliseconds = (double)_stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
-		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
+		var remainingTimeSpan = TimeSpan.FromMilliseconds(remainingMilliseconds);
+
+		if (remainingTimeSpan > TimeSpan.FromHours(1))
+		{
+ 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+		}
+
+		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);
 		var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
 		StatusText = $"{percentText} {remainingTimeText}";

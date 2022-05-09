@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
@@ -18,21 +19,20 @@ public partial class AddressViewModel : ViewModelBase
 	{
 		_address = model.GetP2wpkhAddress(network).ToString();
 
-		Label = model.Label.Take(1).ToList();
-		FilteredLabel = model.Label.Skip(1).ToList();
+		Label = model.Label;
 
 		CopyAddressCommand =
-				ReactiveCommand.CreateFromTask(async () =>
+			ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (Application.Current is { Clipboard: { } clipboard })
 				{
-					if (Application.Current is { Clipboard: { } clipboard })
-					{
-						await clipboard.SetTextAsync(Address);
-					}
-				});
+					await clipboard.SetTextAsync(Address);
+				}
+			});
 
 		HideAddressCommand =
 			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
-			
+
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
@@ -47,7 +47,51 @@ public partial class AddressViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
-	public List<string> FilteredLabel { get; }
+	public SmartLabel Label { get; }
 
-	public List<string> Label { get; }
+	public static Comparison<AddressViewModel?> SortAscending<T>(Func<AddressViewModel, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return -1;
+			}
+			else if (y is null)
+			{
+				return 1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(x), selector(y));
+			}
+		};
+	}
+
+	public static Comparison<AddressViewModel?> SortDescending<T>(Func<AddressViewModel, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return 1;
+			}
+			else if (y is null)
+			{
+				return -1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(y), selector(x));
+			}
+		};
+	}
 }

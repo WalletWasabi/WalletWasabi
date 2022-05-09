@@ -27,7 +27,7 @@ public class TagsBox : TemplatedControl
 	private IControl? _containerControl;
 	private StringComparison _stringComparison;
 	private bool _isInputEnabled = true;
-	private IEnumerable<string>? _suggestions;
+	private IList<string>? _suggestions;
 	private IEnumerable<string>? _items;
 	private IEnumerable<string>? _topItems;
 	private bool _requestAdd;
@@ -70,8 +70,8 @@ public class TagsBox : TemplatedControl
 			o => o.TopItems,
 			(o, v) => o.TopItems = v);
 
-	public static readonly DirectProperty<TagsBox, IEnumerable<string>?> SuggestionsProperty =
-		AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>?>(
+	public static readonly DirectProperty<TagsBox, IList<string>?> SuggestionsProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, IList<string>?>(
 			nameof(Suggestions),
 			o => o.Suggestions,
 			(o, v) => o.Suggestions = v);
@@ -134,7 +134,7 @@ public class TagsBox : TemplatedControl
 		set => SetValue(TagSeparatorProperty, value);
 	}
 
-	public IEnumerable<string>? Suggestions
+	public IList<string>? Suggestions
 	{
 		get => _suggestions;
 		set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
@@ -273,7 +273,7 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		throw new InvalidOperationException($"Invalid configuration! {nameof(Suggestions)} are not set!");
+		IsCurrentTextValid = false;
 	}
 
 	private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -393,7 +393,6 @@ public class TagsBox : TemplatedControl
 			autoCompleteBox.Text = autoCompleteBox.SearchText;
 			RequestAdd = true;
 			e.Handled = true;
-			return;
 		}
 	}
 
@@ -443,6 +442,8 @@ public class TagsBox : TemplatedControl
 
 	public void AddTag(string tag)
 	{
+		var inputTag = tag;
+
 		if (Items is not IList items)
 		{
 			return;
@@ -458,14 +459,26 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		if (RestrictInputToSuggestions &&
-			Suggestions is { } suggestions &&
-			!suggestions.Any(x => x.Equals(tag, _stringComparison)))
+		if (Suggestions is { } suggestions)
 		{
-			return;
+			if (RestrictInputToSuggestions &&
+			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
+			{
+				return;
+			}
+
+			// When user tries to commit a tag,
+			// check if it's already in the suggestions list
+			// by comparing it case-insensitively.
+			var result = suggestions.FirstOrDefault(x => x.Equals(tag, StringComparison.CurrentCultureIgnoreCase));
+
+			if (result is not null)
+			{
+				inputTag = result;
+			}
 		}
 
-		items.Add(tag);
+		items.Add(inputTag);
 		CheckIsInputEnabled();
 		InvalidateWatermark();
 	}

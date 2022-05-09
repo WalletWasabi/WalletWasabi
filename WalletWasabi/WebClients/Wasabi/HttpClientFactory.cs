@@ -66,7 +66,7 @@ public class HttpClientFactory : IWasabiHttpClientFactory, IDisposable
 	private HttpClient HttpClient { get; }
 
 	/// <summary>Available only when Tor is enabled in User settings.</summary>
-	private TorHttpPool? TorHttpPool { get; }
+	public TorHttpPool? TorHttpPool { get; }
 
 	/// <summary>Backend HTTP client, shared instance.</summary>
 	private IHttpClient BackendHttpClient { get; }

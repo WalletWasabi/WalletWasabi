@@ -40,6 +40,8 @@ public class CoordinatorParameters
 	/// </summary>
 	public string CoinJoinFeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinFeeRateStatStore.txt");
 
+	public string CoinJoinScriptStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinScriptStore.txt");
+
 	/// <summary>
 	/// Runtime adjustable configuration of the coordinator.
 	/// </summary>

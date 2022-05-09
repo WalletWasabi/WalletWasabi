@@ -8,7 +8,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Userfacing;
 using NBitcoin;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Userfacing;
 
 public class PasswordTests
 {

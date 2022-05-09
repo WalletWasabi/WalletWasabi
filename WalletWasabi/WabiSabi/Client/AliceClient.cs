@@ -9,6 +9,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -24,17 +25,18 @@ public class AliceClient
 		IEnumerable<Credential> issuedVsizeCredentials,
 		bool isPayingZeroCoordinationFee)
 	{
+		var roundParameters = roundState.CoinjoinState.Parameters;
 		AliceId = aliceId;
 		RoundId = roundState.Id;
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
 		OwnershipProof = ownershipProof;
-		FeeRate = roundState.FeeRate;
-		CoordinationFeeRate = roundState.CoordinationFeeRate;
+		FeeRate = roundParameters.MiningFeeRate;
+		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
 		IssuedVsizeCredentials = issuedVsizeCredentials;
-		MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
-		ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
+		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
+		ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
 		IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
 	}
 
@@ -65,7 +67,7 @@ public class AliceClient
 			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, cancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
-			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection successfully confirmed.");
+			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
 		catch (OperationCanceledException)
 		{
@@ -179,8 +181,6 @@ public class AliceClient
 		IssuedVsizeCredentials = response.IssuedVsizeCredentials;
 
 		var isConfirmed = response.Value;
-
-		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Connection confirmed.");
 		return isConfirmed;
 	}
 

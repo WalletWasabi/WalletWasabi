@@ -27,6 +27,7 @@ using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients;
+#pragma warning disable
 
 public class CoinJoinClient
 {
@@ -146,27 +147,27 @@ public class CoinJoinClient
 						{
 							await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-								// If stop was requested return.
-								if (!IsRunning)
+							// If stop was requested return.
+							if (!IsRunning)
 							{
 								return;
 							}
 
-								// if mixing >= connConf
-								if (State.GetActivelyMixingRounds().Any())
+							// if mixing >= connConf
+							if (State.GetActivelyMixingRounds().Any())
 							{
-								int delaySeconds = new Random().Next(2, 7);
+								int delaySeconds = Random.Shared.Next(2, 7);
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 							}
 							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 							{
-								double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
-									int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
+								double rand = double.Parse($"0.{Random.Shared.Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
+								int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
 
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 							}
 							else // dormant
-								{
+							{
 								Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
 							}
 						}
@@ -191,7 +192,7 @@ public class CoinJoinClient
 			finally
 			{
 				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				}
+			}
 		});
 	}
 
@@ -249,7 +250,7 @@ public class CoinJoinClient
 			}
 			StateUpdated?.Invoke(this, null);
 
-			int delaySeconds = new Random().Next(0, 7); // delay the response to defend timing attack privacy.
+			int delaySeconds = Random.Shared.Next(0, 7); // delay the response to defend timing attack privacy.
 
 			if (Network == Network.RegTest)
 			{

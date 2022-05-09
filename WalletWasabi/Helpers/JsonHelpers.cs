@@ -1,7 +1,8 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Newtonsoft.Json;
+namespace WalletWasabi.Helpers;
 
 public static class JsonHelpers
 {

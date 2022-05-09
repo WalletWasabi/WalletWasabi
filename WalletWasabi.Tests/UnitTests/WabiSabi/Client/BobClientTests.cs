@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -40,7 +41,7 @@ public class BobClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
-		using var insecureRandom = new InsecureRandom();
+		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),

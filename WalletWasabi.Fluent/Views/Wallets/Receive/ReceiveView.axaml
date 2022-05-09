@@ -22,7 +22,7 @@
       <StackPanel HorizontalAlignment="Stretch" Spacing="10">
         <DockPanel HorizontalAlignment="Left">
           <c:InfoMessage DockPanel.Dock="Right" VerticalAlignment="Center" ToolTip.Tip="Separate with , or by pressing Enter" />
-          <TextBlock TextWrapping="Wrap" Margin="0 0 10 0"  Text="Enter the names of the persons or companies who you will give this address to" HorizontalAlignment="Left"
+          <TextBlock TextWrapping="Wrap" Margin="0 2 10 0"  Text="Enter the names of the persons or companies who you will give this address to" HorizontalAlignment="Left"
                  FontWeight="Normal" />
         </DockPanel>
         <c:TagsBox x:Name="LabelsTbx"

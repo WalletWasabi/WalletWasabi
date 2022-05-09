@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -14,6 +15,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
 public class RoundCreationTests
 {
+	private static Arena CreateArena(WabiSabiConfig cfg, IRPCClient rpc)
+	{
+		var arenaBuilder = ArenaBuilder.From(cfg).With(rpc);
+		arenaBuilder.Period = TimeSpan.FromSeconds(1);
+		return arenaBuilder.Create();
+	}
+
 	[Fact]
 	public async Task InitializesRoundAsync()
 	{
@@ -26,7 +34,7 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
+		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
 		await arena.StartAsync(CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -47,7 +55,7 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
+		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
 		await arena.StartAsync(CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -72,7 +80,7 @@ public class RoundCreationTests
 				FeeRate = new FeeRate(10m)
 			});
 
-		using Arena arena = new(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison(), new InMemoryCoinJoinIdStore());
+		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
 		await arena.StartAsync(CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

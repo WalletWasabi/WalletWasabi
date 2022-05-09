@@ -7,6 +7,7 @@ using Avalonia;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -63,7 +64,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.ToString(fplus: false);
+		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false);
 	}
 
 	private void OnNext()
@@ -76,7 +77,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_updateTrigger
-			.Subscribe(async _ => await UpdateCurrentTransactionAsync())
+			.SubscribeAsync(async _ => await UpdateCurrentTransactionAsync())
 			.DisposeWith(disposables);
 	}
 

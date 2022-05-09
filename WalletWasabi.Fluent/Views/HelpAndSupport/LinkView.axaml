@@ -8,22 +8,14 @@
              x:DataType="vm:LinkViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.LinkView">
-  <UserControl.Styles>
-    <Style Selector="TextBlock.Hyperlink">
-      <Setter Property="TextDecorations" Value="Underline" />
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-  </UserControl.Styles>
   <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-    <Button Classes="plain"
+    <Button Classes="activeHyperLink"
             Command="{Binding OpenBrowserCommand}"
             CommandParameter="{Binding Link}"
-            IsVisible="{Binding IsClickable}">
-      <TextBlock Text="{Binding Description}" Classes="Hyperlink" />
-    </Button>
-    <TextBlock Text="{Binding Description}"
-               IsVisible="{Binding !IsClickable}" />
+            ToolTip.Tip="{Binding Link}"
+            Content="{Binding Description}"
+            IsEnabled="{Binding IsClickable}" />
+
     <controls:AnimatedButton ToolTip.Tip="Copy link"
                              Command="{Binding CopyLinkCommand}"
                              CommandParameter="{Binding Link}"

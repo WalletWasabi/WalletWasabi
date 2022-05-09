@@ -29,12 +29,13 @@ public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		try
 		{
 			var allFeeEstimate = await BlockstreamInfoClient.GetFeeEstimatesAsync(cancel).ConfigureAwait(false);
-
 			LastAllFeeEstimate = allFeeEstimate;
-			if (allFeeEstimate?.Estimations?.Any() is true)
+
+			if (allFeeEstimate.Estimations.Any())
 			{
 				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
 			}
+
 			InError = false;
 		}
 		catch
