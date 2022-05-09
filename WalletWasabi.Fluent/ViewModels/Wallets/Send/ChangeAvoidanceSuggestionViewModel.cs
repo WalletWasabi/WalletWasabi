@@ -80,7 +80,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					yield return new ChangeAvoidanceSuggestionViewModel(
 						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
 						transaction,
-						wallet.Synchronizer.UsdExchangeRate);
+						usdExchangeRate);
 				}
 			}
 		}
