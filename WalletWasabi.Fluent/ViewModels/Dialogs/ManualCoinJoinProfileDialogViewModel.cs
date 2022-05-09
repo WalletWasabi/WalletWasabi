@@ -27,7 +27,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		_showAutomaticCoinjoin = !keyManager.IsWatchOnly;
 		_autoCoinjoin = keyManager.AutoCoinJoin;
 		_plebStopThreshold = plebStopThreshold;
-		_plebStopThresholdFactor = _plebStopThreshold.Split('.')[1].TakeWhile(x => x == '0').Count();
+		_plebStopThresholdFactor = 4 - _plebStopThreshold.Split('.')[1].TakeWhile(x => x == '0').Count();
 
 		_minAnonScoreTarget = current.MinAnonScoreTarget;
 		_maxAnonScoreTarget = current.MaxAnonScoreTarget;
@@ -68,7 +68,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		this.WhenAnyValue(x => x.PlebStopThresholdFactor)
 			.Skip(1)
-			.Subscribe(x => PlebStopThreshold = (1 / (decimal)Math.Pow(10.0, x + 1)).ToString("N5").TrimEnd('0'));
+			.Subscribe(x => PlebStopThreshold = (1 / (decimal)Math.Pow(10.0, 5 - x)).ToString("N5").TrimEnd('0'));
 
 		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
 

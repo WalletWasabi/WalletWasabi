@@ -37,7 +37,7 @@
                               DockPanel.Dock="Bottom"
                               Margin="10 -10 0 0" />
           <Slider Minimum="0" Maximum="4" Value="{Binding PlebStopThresholdFactor}" Margin="10 0 0 0" VerticalAlignment="Center"
-                  TickFrequency="1" IsSnapToTickEnabled="True" IsDirectionReversed="True" />
+                  TickFrequency="1" IsSnapToTickEnabled="True" />
         </DockPanel>
       </StackPanel>
 
