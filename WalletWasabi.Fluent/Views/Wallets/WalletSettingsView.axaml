@@ -5,6 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:cp="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
              x:DataType="wallets:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
@@ -14,45 +15,16 @@
                  EnableBack="{Binding EnableBack}">
     <StackPanel Spacing="20" Margin="0 30">
       <StackPanel Classes="settingsLayout">
+
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
           <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
         </DockPanel>
 
-        <DockPanel IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Automatic coinjoin" />
-          <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
-        </DockPanel>
-
-        <StackPanel Spacing="10"
-                    ToolTip.Tip="No automatic coinjoin if the non-private wallet balance is less than this.">
-          <TextBlock Text="Automatic coinjoin threshold (BTC)" />
-          <TextBox Text="{Binding PlebStopThreshold}" />
-        </StackPanel>
+        <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" />
 
         <Separator />
-
-        <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
-          <TextBlock Text="Privacy threshold" />
-          <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
-                      Data="{StaticResource privacy_minimal}" />
-            <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
-            <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
-          </DockPanel>
-        </StackPanel>
-        <StackPanel Spacing="10" ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached.">
-          <TextBlock Text="Privacy sanity check" />
-          <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
-                      Data="{StaticResource privacy_medium}" />
-            <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
-            <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
-          </DockPanel>
-        </StackPanel>
       </StackPanel>
-
-      <Separator />
 
       <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />

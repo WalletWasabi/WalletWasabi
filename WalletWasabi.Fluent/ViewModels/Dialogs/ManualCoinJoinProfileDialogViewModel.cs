@@ -1,5 +1,7 @@
 using ReactiveUI;
 using System.Linq;
+using System.Reactive.Linq;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -16,10 +18,16 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 	[AutoNotify] private int _maxAnonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
+	[AutoNotify] private bool _showAutomaticCoinjoin;
+	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private int _plebStopThresholdFactor;
 
-	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
+	public ManualCoinJoinProfileDialogViewModel(KeyManager keyManager, CoinJoinProfileViewModelBase current, string plebStopThreshold)
 	{
-		_autoCoinjoin = true;
+		_showAutomaticCoinjoin = !keyManager.IsWatchOnly;
+		_autoCoinjoin = keyManager.AutoCoinJoin;
+		_plebStopThreshold = plebStopThreshold;
+		_plebStopThresholdFactor = _plebStopThreshold.Split('.')[1].TakeWhile(x => x == '0').Count();
 
 		_minAnonScoreTarget = current.MinAnonScoreTarget;
 		_maxAnonScoreTarget = current.MaxAnonScoreTarget;
@@ -58,6 +66,15 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 					}
 				});
 
+		this.WhenAnyValue(x => x.PlebStopThresholdFactor)
+			.Skip(1)
+			.Subscribe(x => PlebStopThreshold = (1 / (decimal)Math.Pow(10.0, x + 1)).ToString("N5").TrimEnd('0'));
+
+		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
+
+		var nextCommandCanExecute =
+			this.WhenAnyValue(x => x.PlebStopThreshold)
+				.Select(x => !Validations.Any);
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
@@ -67,7 +84,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
 			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
-		});
+		}, nextCommandCanExecute);
 	}
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
@@ -75,6 +92,18 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		public override string ToString()
 		{
 			return Name;
+		}
+	}
+
+	private void ValidatePlebStopThreshold(IValidationErrors errors)
+	{
+		if (PlebStopThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+		{
+			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
+		}
+		else if (!decimal.TryParse(PlebStopThreshold, out _))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
 		}
 	}
 }

@@ -1,12 +1,7 @@
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Windows.Input;
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -17,9 +12,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
-	[AutoNotify] private string _plebStopThreshold;
 
 	private Wallet _wallet;
+	private readonly WalletViewModelBase _walletViewModelBase;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
@@ -29,84 +24,42 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		NextCommand = CancelCommand;
+		NextCommand = ReactiveCommand.Create(OnNext);
 
 		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
-
-		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
-			.Skip(1)
-			.Subscribe(value =>
-			{
-				_wallet.KeyManager.PreferPsbtWorkflow = value;
-				_wallet.KeyManager.ToFile();
-				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-			});
-
-		this.WhenAnyValue(x => x.AutoCoinJoin)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Skip(1)
-			.Subscribe(x =>
-			{
-				_wallet.KeyManager.AutoCoinJoin = x;
-				_wallet.KeyManager.ToFile();
-			});
 
 		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
 		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
 
-		this.WhenAnyValue(
-				x => x.MinAnonScoreTarget,
-				x => x.MaxAnonScoreTarget)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget));
-
-		this.WhenAnyValue(x => x.MinAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x >= MaxAnonScoreTarget)
-					{
-						MaxAnonScoreTarget = x + 1;
-					}
-				});
-
-		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x <= MinAnonScoreTarget)
-					{
-						MinAnonScoreTarget = x - 1;
-					}
-				});
-
-		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
-
-		this.WhenAnyValue(x => x.PlebStopThreshold)
-			.Skip(1)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(x =>
-			{
-				if (Money.TryParse(x, out Money result) && result != _wallet.KeyManager.PlebStopThreshold)
-				{
-					_wallet.KeyManager.PlebStopThreshold = result;
-					_wallet.KeyManager.ToFile();
-				}
-			});
+		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
+		_walletViewModelBase = walletViewModelBase;
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private void OnNext()
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
-		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
+		var selected = CoinJoinProfiles.SelectedProfile ?? CoinJoinProfiles.SelectedManualProfile;
+		if (selected is { })
+		{
+			MinAnonScoreTarget = selected.MinAnonScoreTarget;
+			MaxAnonScoreTarget = selected.MaxAnonScoreTarget;
+			AutoCoinJoin = selected.AutoCoinjoin;
+
+			_wallet.KeyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
+			_wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget);
+			_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
+			_wallet.KeyManager.PlebStopThreshold = CoinJoinProfiles.PlebStopThreshold;
+
+			_walletViewModelBase.RaisePropertyChanged(nameof(_walletViewModelBase.PreferPsbtWorkflow));
+		}
+
+		_wallet.KeyManager.ToFile();
+		Navigate().Clear();
 	}
+
+	public CoinJoinProfilesViewModel CoinJoinProfiles { get; }
 
 	public bool IsHardwareWallet { get; }
 
@@ -115,24 +68,4 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public override sealed string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
-
-	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
-		ValidatePlebStopThreshold(errors, PlebStopThreshold);
-
-	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold)
-	{
-		if (string.IsNullOrWhiteSpace(plebStopThreshold) || string.IsNullOrEmpty(plebStopThreshold))
-		{
-			return;
-		}
-
-		if (plebStopThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
-		{
-			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-		}
-		else if (!decimal.TryParse(plebStopThreshold, out _))
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
-		}
-	}
 }

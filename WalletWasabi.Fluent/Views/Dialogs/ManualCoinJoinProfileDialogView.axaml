@@ -13,26 +13,51 @@
     CancelContent="Cancel"
     EnableCancel="{Binding EnableCancel}"
     EnableBack="{Binding EnableBack}"
-    EnableNext="True" NextContent="Done">
+    EnableNext="True" NextContent="Done"
+    Padding="20 0 20 0">
     <StackPanel Classes="settingsLayout">
-      <DockPanel>
+
+      <DockPanel IsVisible="{Binding ShowAutomaticCoinjoin}">
         <TextBlock Text="Automatic Coinjoin" />
         <ToggleSwitch IsChecked="{Binding AutoCoinjoin}" />
       </DockPanel>
 
-      <StackPanel Spacing="10">
-        <TextBlock Text="Privacy Threshold" />
+      <StackPanel Spacing="10" IsVisible="{Binding AutoCoinjoin}">
+        <TextBlock Text="Automatic Coinjoin Threshold" />
         <DockPanel>
-          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
-          <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" />
+          <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
+                    Data="{StaticResource privacy_minimal}"
+                    Margin="0 20 0 0" VerticalAlignment="Top"
+                    ToolTip.Tip="No automatic coinjoin if the non-private wallet balance is less than this." />
+          <DataValidationErrors DockPanel.Dock="Bottom" Owner="{Binding #PlebStopThresholdInput}" MinHeight="21" />
+          <c:CurrencyEntryBox Text="{Binding PlebStopThreshold, Mode=TwoWay}" Name="PlebStopThresholdInput"
+                              CurrencyCode="BTC"
+                              Watermark="0 BTC"
+                              IsApproximate="False"
+                              DockPanel.Dock="Bottom"
+                              Margin="10 -10 0 0" />
+          <Slider Minimum="0" Maximum="4" Value="{Binding PlebStopThresholdFactor}" Margin="10 0 0 0" VerticalAlignment="Center"
+                  TickFrequency="1" IsSnapToTickEnabled="True" IsDirectionReversed="True" />
         </DockPanel>
       </StackPanel>
 
-      <StackPanel Spacing="10">
+      <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
+        <TextBlock Text="Privacy Threshold" />
+        <DockPanel>
+          <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
+                    Data="{StaticResource privacy_minimal}" Margin="0 4 0 0" />
+          <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MinAnonScoreTarget}" VerticalAlignment="Center" />
+          <Slider Minimum="2" Maximum="98" Value="{Binding MinAnonScoreTarget}" Margin="10 0" />
+        </DockPanel>
+      </StackPanel>
+
+      <StackPanel Spacing="10"  ToolTip.Tip="A coin will not be automatically registered for coinjoin after this anonymity score is reached.">
         <TextBlock Text="Privacy Sanity Check" />
         <DockPanel>
+          <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
+                    Data="{StaticResource privacy_medium}" Margin="0 4 0 0" />
           <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding MaxAnonScoreTarget}" VerticalAlignment="Center" />
-          <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" />
+          <Slider Minimum="3" Maximum="99" Value="{Binding MaxAnonScoreTarget}" Margin="10 0" />
         </DockPanel>
       </StackPanel>
 
