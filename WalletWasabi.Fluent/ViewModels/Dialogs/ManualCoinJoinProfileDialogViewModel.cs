@@ -76,7 +76,8 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			this.WhenAnyValue(x => x.PlebStopThreshold)
 				.Select(x => !Validations.Any);
 
-		NextCommand = ReactiveCommand.Create(() =>
+		NextCommand = ReactiveCommand.Create(
+		() =>
 		{
 			var auto = AutoCoinjoin;
 			var min = MinAnonScoreTarget;
@@ -84,15 +85,8 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
 			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
-		}, nextCommandCanExecute);
-	}
-
-	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
-	{
-		public override string ToString()
-		{
-			return Name;
-		}
+		},
+		nextCommandCanExecute);
 	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors)
@@ -104,6 +98,14 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		else if (!decimal.TryParse(PlebStopThreshold, out _))
 		{
 			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
+		}
+	}
+
+	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
+	{
+		public override string ToString()
+		{
+			return Name;
 		}
 	}
 }

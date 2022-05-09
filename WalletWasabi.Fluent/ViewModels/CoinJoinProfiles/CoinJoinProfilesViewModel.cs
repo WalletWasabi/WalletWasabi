@@ -15,10 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "Coinjoin Strategy")]
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
+	private readonly KeyManager _keyManager;
+
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private string _plebStopThreshold;
-
-	private readonly KeyManager _keyManager;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool selectDefaultProfile)
 	{
