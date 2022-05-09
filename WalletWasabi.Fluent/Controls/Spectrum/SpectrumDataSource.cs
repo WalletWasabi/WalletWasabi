@@ -24,11 +24,6 @@ public abstract class SpectrumDataSource
 
 	public event EventHandler<bool>? GeneratingDataStateChanged;
 
-	private void TimerOnTick(object? sender, EventArgs e)
-	{
-		OnMixData();
-	}
-
 	public int NumAverages { get; }
 
 	protected float[] Bins { get; }
@@ -36,6 +31,11 @@ public abstract class SpectrumDataSource
 	protected int NumBins => Bins.Length;
 
 	protected int MidPointBins => NumBins / 2;
+
+	private void TimerOnTick(object? sender, EventArgs e)
+	{
+		OnMixData();
+	}
 
 	protected abstract void OnMixData();
 

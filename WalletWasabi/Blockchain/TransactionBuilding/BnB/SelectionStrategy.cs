@@ -46,8 +46,8 @@ public abstract class SelectionStrategy
 	/// <remarks>Each i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
 	protected long[] RemainingAmounts { get; set; }
 
-	/// <summary>Gets best found selection as an array of effective values, or <c>null</c> if none was found.</summary>
-	public long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
+	/// <summary>Gets best valid found selection as an array of effective values, or <c>null</c> if none was found.</summary>
+	public virtual long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.

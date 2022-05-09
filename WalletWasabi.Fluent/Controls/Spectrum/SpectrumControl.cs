@@ -14,16 +14,17 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private ImmutablePen? _linePen;
-	private IBrush? _lineBrush;
+	private const int NumBins = 250;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
 
 	private readonly SpectrumDataSource[] _sources;
 
+	private ImmutablePen? _linePen;
+	private IBrush? _lineBrush;
+
 	private float[] _data;
-	private const int NumBins = 250;
 
 	private bool _isAuraActive;
 	private bool _isSplashActive;
@@ -54,6 +55,18 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+	}
+
+	public bool IsActive
+	{
+		get => GetValue(IsActiveProperty);
+		set => SetValue(IsActiveProperty, value);
+	}
+
+	public bool IsDockEffectVisible
+	{
+		get => GetValue(IsDockEffectVisibleProperty);
+		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
 	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
@@ -105,18 +118,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
-	public bool IsActive
-	{
-		get => GetValue(IsActiveProperty);
-		set => SetValue(IsActiveProperty, value);
-	}
-
-	public bool IsDockEffectVisible
-	{
-		get => GetValue(IsDockEffectVisibleProperty);
-		set => SetValue(IsDockEffectVisibleProperty, value);
-	}
-
 	protected override Size ArrangeOverride(Size finalSize)
 	{
 		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
@@ -154,7 +155,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
 
-			context.DrawLine(_linePen, new Point(x, Bounds.Height),
+			context.DrawLine(
+				_linePen,
+				new Point(x, Bounds.Height),
 				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
 
 			x += thickness;
