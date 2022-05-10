@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Windows.Input;
@@ -46,6 +47,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
+	private CompositeDisposable? _countdownTimerDisposable;
+
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_elapsedTime = "";
@@ -54,14 +57,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
 		_wallet = walletVm.Wallet;
-
-		DispatcherTimer.Run(
-			() =>
-			{
-				TimerOnTick();
-				return true;
-			},
-			TimeSpan.FromSeconds(1));
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
@@ -239,6 +234,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				StartTimer();
 				PlayVisible = true;
 				IsAutoWaiting = true;
 
@@ -253,7 +249,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				}
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnExit(() => IsAutoWaiting = false);
+			.OnExit(() =>
+			{
+				StopTimer();
+				IsAutoWaiting = false;
+			});
 
 		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
@@ -375,5 +375,26 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private void SetAutoCoinJoin(bool enabled)
 	{
 		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
+	}
+
+	private void StartTimer()
+	{
+		StopTimer();
+		_countdownTimerDisposable = new CompositeDisposable();
+
+		DispatcherTimer.Run(
+			() =>
+			{
+				TimerOnTick();
+				return true;
+			},
+			TimeSpan.FromSeconds(1))
+			.DisposeWith(_countdownTimerDisposable);
+	}
+
+	private void StopTimer()
+	{
+		_countdownTimerDisposable?.Dispose();
+		_countdownTimerDisposable = null;
 	}
 }
