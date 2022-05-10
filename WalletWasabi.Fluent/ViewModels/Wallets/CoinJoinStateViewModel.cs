@@ -19,24 +19,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
 
-	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
-
-	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
-
-	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
-
-	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-
-	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
-
-	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
+	private const string CountDownMessage = "Waiting to auto-start coinjoin";
+	private const string CoinJoiningMessage = "Coinjoining";
+	private const string PauseMessage = "Coinjoin is paused";
+	private const string StoppedMessage = "Coinjoin is stopped";
+	private const string InitialisingMessage = "Coinjoin is initialising";
+	private const string FinishedMessage = "Not enough non-private funds to coinjoin";
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
 	[AutoNotify] private bool _playVisible = true;
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _stopVisible;
-	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
+	[AutoNotify] private string _currentStatus = "";
 	[AutoNotify] private bool _isProgressReversed;
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
@@ -176,7 +171,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
-				CurrentStatus = _stoppedMessage;
+				CurrentStatus = StoppedMessage;
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
@@ -190,7 +185,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				PlayVisible = false;
 				StopVisible = true;
-				CurrentStatus = _coinJoiningMessage;
+				CurrentStatus = CoinJoiningMessage;
 				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
@@ -204,7 +199,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				StopVisible = false;
 				PlayVisible = true;
-				CurrentStatus = _finishedMessage;
+				CurrentStatus = FinishedMessage;
 				ProgressValue = 100;
 				ElapsedTime = "";
 				RemainingTime = "";
@@ -223,7 +218,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = false;
 
-				CurrentStatus = _initialisingMessage;
+				CurrentStatus = InitialisingMessage;
 
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 
@@ -248,7 +243,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				}
 				else
 				{
-					CurrentStatus = _countDownMessage;
+					CurrentStatus = CountDownMessage;
 					UpdateCountDown();
 				}
 			})
@@ -262,7 +257,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				IsAutoWaiting = true;
 
-				CurrentStatus = _pauseMessage;
+				CurrentStatus = PauseMessage;
 				ProgressValue = 0;
 
 				PauseVisible = false;
@@ -281,7 +276,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(async () =>
 			{
-				CurrentStatus = _coinJoiningMessage;
+				CurrentStatus = CoinJoiningMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
@@ -303,7 +298,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				ElapsedTime = "";
 				RemainingTime = "";
 
-				CurrentStatus = _finishedMessage;
+				CurrentStatus = FinishedMessage;
 			});
 	}
 
