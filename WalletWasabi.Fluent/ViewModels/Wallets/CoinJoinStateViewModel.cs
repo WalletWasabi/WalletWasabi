@@ -19,6 +19,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
 	private readonly DispatcherTimer _countdownTimer;
+	private readonly CoinJoinManager _coinJoinManager;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
@@ -43,6 +44,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isBalanceDisplayed;
+	[AutoNotify] private bool _isInCriticalPhase;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
@@ -60,9 +62,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += OnTimerTick;
 
-		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
+		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
-		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
+		Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(_coinJoinManager.StatusChanged))
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -82,7 +84,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine = new StateMachine<State, Trigger>(initialState);
 
-		ConfigureStateMachine(coinJoinManager);
+		ConfigureStateMachine(_coinJoinManager);
 
 		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
@@ -359,6 +361,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartErrorEventArgs:
 				_stateMachine.Fire(Trigger.RoundStartFailed);
+				break;
+
+			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
+				// IsInCriticalPhase = _coinJoinManager.HighestCoinJoinClientState == CoinJoinClientState.InCriticalPhase;
+				IsInCriticalPhase = true;
 				break;
 		}
 	}
