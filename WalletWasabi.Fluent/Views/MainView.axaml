@@ -61,6 +61,11 @@
                       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
                     </Style>
                   </spectrum:SpectrumControl.Styles>
+                  <spectrum:SpectrumControl.Transitions>
+                    <Transitions>
+                      <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}"/>
+                    </Transitions>
+                  </spectrum:SpectrumControl.Transitions>
                 </spectrum:SpectrumControl>
               </Panel>
               <DockPanel>
