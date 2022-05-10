@@ -242,16 +242,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				PlayVisible = true;
 				IsAutoWaiting = true;
-
-				if (AutoStartTimedOut)
-				{
-					_stateMachine.Fire(Trigger.AutoStartTimeout);
-				}
-				else
-				{
-					CurrentStatus = _countDownMessage;
-					UpdateCountDown();
-				}
+				CurrentStatus = _countDownMessage;
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() => IsAutoWaiting = false);
