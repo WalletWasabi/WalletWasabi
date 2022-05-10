@@ -1,6 +1,6 @@
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.WabiSabi.Client.Events;
+namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class StoppedEventArgs : StatusChangedEventArgs
 {
