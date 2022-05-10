@@ -214,8 +214,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.AutoCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
-			.Permit(Trigger.RoundStart, State.AutoPlaying)
-			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(async () =>
 			{
 				IsAuto = true;
