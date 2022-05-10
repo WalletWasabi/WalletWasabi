@@ -115,9 +115,11 @@ public class AliceClient
 						break;
 
 					case WabiSabiProtocolErrorCode.InputLongBanned:
-						coin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(31); // TODO: Date should be inside the exc. (backend)
+						var split = wpe.Message.Split(" ");
+						var bannedUntilUnixSeconds = long.Parse(split[^1]);
+						coin.BannedUntilUtc = DateTimeOffset.FromUnixTimeSeconds(bannedUntilUnixSeconds);
 						coin.SetIsBanned();
-						Logger.LogInfo($"{coin.Coin.Outpoint} is long banned.");
+						Logger.LogInfo($"{coin.Coin.Outpoint} is long banned until {coin.BannedUntilUtc}.");
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:

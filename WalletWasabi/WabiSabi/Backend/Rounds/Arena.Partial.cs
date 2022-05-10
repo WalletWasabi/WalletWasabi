@@ -360,7 +360,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var bannedUntil = inmate.Punishment == Punishment.LongBanned ? inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan : inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
 
-			var message = $"Input banned until: {bannedUntil}";
+			var message = $"Input banned until: {bannedUntil.ToUnixTimeSeconds()}";
 
 			if (inmate.Punishment == Punishment.LongBanned)
 			{
