@@ -19,7 +19,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
 	private readonly DispatcherTimer _countdownTimer;
-	private readonly CoinJoinManager _coinJoinManager;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
@@ -62,9 +61,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += OnTimerTick;
 
-		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
+		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
-		Observable.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(_coinJoinManager.StatusChanged))
+		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -84,7 +83,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine = new StateMachine<State, Trigger>(initialState);
 
-		ConfigureStateMachine(_coinJoinManager);
+		ConfigureStateMachine(coinJoinManager);
 
 		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
@@ -364,7 +363,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
-				IsInCriticalPhase = _coinJoinManager.HighestCoinJoinClientState == CoinJoinClientState.InCriticalPhase;
+				IsInCriticalPhase = coinJoinStatusEventArgs.CoinJoinProgressEventArgs.IsInCriticalPhase;
 				break;
 		}
 	}
