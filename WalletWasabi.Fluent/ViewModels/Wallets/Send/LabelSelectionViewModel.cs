@@ -285,7 +285,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 
 		var labels = SmartLabel.Merge(usedPockets.Select(x => x.Labels));
-		if (labels.Count() == recipient.Count() && labels.All(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase)))
+		if (labels.Equals(recipient, StringComparer.OrdinalIgnoreCase))
 		{
 			return false;
 		}
