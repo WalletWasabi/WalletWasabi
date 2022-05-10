@@ -33,6 +33,7 @@ public class WabiSabiCoordinator : BackgroundService
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(parameters.CoinJoinScriptStoreFilePath);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
 
+		RoundParameterFactory roundParameterFactory = new RoundParameterFactory(Config, rpc.Network);
 		Arena = new(
 			parameters.RoundProgressSteppingPeriod,
 			rpc.Network,
@@ -40,6 +41,7 @@ public class WabiSabiCoordinator : BackgroundService
 			rpc,
 			Warden.Prison,
 			coinJoinIdStore,
+			roundParameterFactory,
 			transactionArchiver,
 			coinJoinScriptStore);
 

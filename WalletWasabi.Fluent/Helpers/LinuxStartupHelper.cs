@@ -17,6 +17,8 @@ public static class LinuxStartupHelper
 		{
 			string pathToExec = EnvironmentHelpers.GetExecutablePath();
 
+			string pathToExecWithArgs = $"{pathToExec} {StartupHelper.SilentArgument}";
+
 			IoHelpers.EnsureFileExists(pathToExec);
 
 			string fileContents = string.Join(
@@ -24,7 +26,7 @@ public static class LinuxStartupHelper
 				"[Desktop Entry]",
 				$"Name={Constants.AppName}",
 				"Type=Application",
-				$"Exec={pathToExec}",
+				$"Exec={pathToExecWithArgs}",
 				"Hidden=false",
 				"Terminal=false",
 				"X-GNOME-Autostart-enabled=true");

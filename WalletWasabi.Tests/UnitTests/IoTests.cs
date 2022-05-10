@@ -112,7 +112,7 @@ public class IoTests
 		Assert.False(ioman1.Exists());
 
 		// Check if directory is empty.
-		var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)).Count();
+		var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)!).Count();
 		Assert.Equal(0, fileCount);
 
 		// TryReplace test.
