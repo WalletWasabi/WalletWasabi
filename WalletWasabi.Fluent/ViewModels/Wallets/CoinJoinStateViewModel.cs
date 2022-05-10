@@ -94,13 +94,11 @@ public partial class CoinJoinStateViewModel : RoutableViewModel
 
 		PlayCommand = ReactiveCommand.Create(async () =>
 		{
-			bool changed = false;
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
 				DialogResult<bool> isProfileSelected = await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
-				changed = isProfileSelected.Result;
 			}
-			if (changed || _wallet.KeyManager.IsCoinjoinProfileSelected)
+			else
 			{
 				_stateMachine.Fire(Trigger.Play);
 			}

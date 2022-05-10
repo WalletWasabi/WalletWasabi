@@ -50,13 +50,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		SetAutoCoinJoin = ReactiveCommand.Create<bool>(async (x) =>
 		{
-			bool changed = false;
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
 				DialogResult<bool> isProfileSelected = await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
-				changed = isProfileSelected.Result;
 			}
-			if (changed)
+
+			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
 				_wallet.KeyManager.AutoCoinJoin = x;
 				_wallet.KeyManager.ToFile();
