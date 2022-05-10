@@ -43,6 +43,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isBalanceDisplayed;
+	[AutoNotify] private bool _isInCriticalPhase;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
@@ -359,6 +360,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartErrorEventArgs:
 				_stateMachine.Fire(Trigger.RoundStartFailed);
+				break;
+
+			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
+				IsInCriticalPhase = coinJoinStatusEventArgs.CoinJoinProgressEventArgs.IsInCriticalPhase;
 				break;
 		}
 	}
