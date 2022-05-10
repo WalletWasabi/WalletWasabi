@@ -44,7 +44,7 @@
                             TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
-          
+
           <Panel IsVisible="{Binding !$parent[c:CurrencyEntryBox].IsReadOnly}">
             <Border
               Name="PART_BorderElement"
@@ -92,7 +92,7 @@
                                      IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                     DockPanel.Dock="Right"/>
+                                     DockPanel.Dock="Right" />
 
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
@@ -107,8 +107,7 @@
                                          SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        
+                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         </DockPanel>
                       </Panel>
                     </DockPanel>
@@ -224,26 +223,43 @@
   </Style>
 
   <Style Selector="c|CurrencyEntryBox">
-    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
   </Style>
-  
+
   <Style Selector="c|CurrencyEntryBox:isrightside">
-    <Setter Property="TextAlignment" Value="Right"/>
-    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+    <Setter Property="TextAlignment" Value="Right" />
+    <Setter Property="HorizontalContentAlignment" Value="Right" />
   </Style>
 
   <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
   <Style Selector="c|CurrencyEntryBox:empty /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="0 0 0 0"/>
+    <Setter Property="Margin" Value="0 0 0 0" />
   </Style>
   <Style Selector="c|CurrencyEntryBox:empty:isfiat /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="13 0 0 0"/>
+    <Setter Property="Margin" Value="13 0 0 0" />
   </Style>
   <Style Selector="c|CurrencyEntryBox:empty:isrightside /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="0 0 40 0"/>
+    <Setter Property="Margin" Value="0 0 40 0" />
   </Style>
   <Style Selector="c|CurrencyEntryBox:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="0 0 63 0"/>
+    <Setter Property="Margin" Value="0 0 63 0" />
   </Style>
-  
+
+  <!-- Standalone style: pointerover border -->
+  <Style Selector="c|CurrencyEntryBox.standalone:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+  </Style>
+
+  <!-- Standalone style: error border -->
+  <Style Selector="c|CurrencyEntryBox.standalone:error /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+  </Style>
+
+  <!-- Standalone style: focus border -->
+  <Style Selector="c|CurrencyEntryBox.standalone:focus-within /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+  </Style>
 </Styles>
