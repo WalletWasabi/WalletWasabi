@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -12,6 +13,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private CoinJoinProfilesViewModel _coinJoinProfiles;
 
 	private Wallet _wallet;
 	private readonly WalletViewModelBase _walletViewModelBase;
@@ -34,8 +36,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
 		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
 
-		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
 		_walletViewModelBase = walletViewModelBase;
+		_coinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
 	}
 
 	private void OnNext()
@@ -59,7 +61,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		Navigate().Clear();
 	}
 
-	public CoinJoinProfilesViewModel CoinJoinProfiles { get; }
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
+	}
 
 	public bool IsHardwareWallet { get; }
 
