@@ -358,18 +358,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 		if (Prison.TryGet(input, out var inmate))
 		{
-			var bannedUntil = inmate.Punishment == Punishment.LongBanned ? inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan : inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
-
-			var message = $"Input banned until: {bannedUntil.ToUnixTimeSeconds()}";
-
 			if (inmate.Punishment == Punishment.LongBanned)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, message);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, $"{Config.ReleaseUtxoFromPrisonAfterLongBan - inmate.TimeSpent}");
 			}
 
 			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, message);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, $"{Config.ReleaseUtxoFromPrisonAfter - inmate.TimeSpent}");
 			}
 		}
 
