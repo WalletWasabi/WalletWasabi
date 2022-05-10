@@ -403,7 +403,6 @@ public class CoinJoinClient
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-			.Where(x => !x.IsBanned)
 			.ToShuffled() // Preshuffle before ordering.
 			.OrderBy(x => x.HdPubKey.AnonymitySet)
 			.ThenByDescending(y => y.Amount)

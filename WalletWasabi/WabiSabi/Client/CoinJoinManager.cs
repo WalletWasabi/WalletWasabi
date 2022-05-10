@@ -376,6 +376,7 @@ public class CoinJoinManager : BackgroundService
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
+			.Where(x => !x.IsBanned)
 			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget
 					&& !CoinRefrigerator.IsFrozen(x)));
 
