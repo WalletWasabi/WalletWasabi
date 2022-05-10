@@ -3,7 +3,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
-internal class CoinJoinStatusEventArgs : StatusChangedEventArgs
+public class CoinJoinStatusEventArgs : StatusChangedEventArgs
 {
 	public CoinJoinStatusEventArgs(Wallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) : base(wallet)
 	{

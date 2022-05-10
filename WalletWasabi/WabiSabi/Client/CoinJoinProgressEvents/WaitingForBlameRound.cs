@@ -2,10 +2,10 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class WaitingForBlameRound : CoinJoinProgressEventArgs
 {
-	public WaitingForBlameRound(DateTimeOffset dateTimeOffset)
+	public WaitingForBlameRound(DateTimeOffset timeoutAt)
 	{
-		DateTimeOffset = dateTimeOffset;
+		TimeoutAt = timeoutAt;
 	}
 
-	public DateTimeOffset DateTimeOffset { get; }
+	public DateTimeOffset TimeoutAt { get; }
 }
