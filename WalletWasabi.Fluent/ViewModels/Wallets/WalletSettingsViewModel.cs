@@ -113,12 +113,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			});
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
-	}
-
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
@@ -128,6 +122,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
+	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
 		ValidatePlebStopThreshold(errors, PlebStopThreshold);
