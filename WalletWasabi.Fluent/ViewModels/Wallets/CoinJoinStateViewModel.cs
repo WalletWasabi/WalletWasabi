@@ -19,6 +19,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
+	private readonly DispatcherTimer _countdownTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
@@ -47,8 +48,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private TimeSpan _autoStartTime;
 	private DateTimeOffset _countDownStarted;
 
-	private CompositeDisposable? _countdownTimerDisposable;
-
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_elapsedTime = "";
@@ -57,6 +56,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
 		_wallet = walletVm.Wallet;
+
+		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+		_countdownTimer.Tick += OnTimerTick;
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
@@ -234,7 +236,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
-				StartTimer();
+				_countdownTimer.Start();
 				PlayVisible = true;
 				IsAutoWaiting = true;
 
@@ -251,7 +253,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() =>
 			{
-				StopTimer();
+				_countdownTimer.Stop();
 				IsAutoWaiting = false;
 			});
 
@@ -328,7 +330,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
-	private void TimerOnTick()
+	private void OnTimerTick(object? sender, EventArgs e)
 	{
 		_stateMachine.Fire(Trigger.Timer);
 	}
@@ -375,26 +377,5 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private void SetAutoCoinJoin(bool enabled)
 	{
 		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
-	}
-
-	private void StartTimer()
-	{
-		StopTimer();
-		_countdownTimerDisposable = new CompositeDisposable();
-
-		DispatcherTimer.Run(
-			() =>
-			{
-				TimerOnTick();
-				return true;
-			},
-			TimeSpan.FromSeconds(1))
-			.DisposeWith(_countdownTimerDisposable);
-	}
-
-	private void StopTimer()
-	{
-		_countdownTimerDisposable?.Dispose();
-		_countdownTimerDisposable = null;
 	}
 }
