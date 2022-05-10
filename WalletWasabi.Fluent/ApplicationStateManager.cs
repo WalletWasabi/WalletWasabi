@@ -160,8 +160,9 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				_stateMachine.Fire(Trigger.ShutdownPrevented);
 			}
-			else
+			else if (sender is MainWindow w)
 			{
+				w.Closing -= MainWindowOnClosing;
 				_stateMachine.Fire(Trigger.ShutdownRequested);
 			}
 		}
