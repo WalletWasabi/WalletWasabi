@@ -364,8 +364,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
-				// IsInCriticalPhase = _coinJoinManager.HighestCoinJoinClientState == CoinJoinClientState.InCriticalPhase;
-				IsInCriticalPhase = true;
+				IsInCriticalPhase = _coinJoinManager.HighestCoinJoinClientState == CoinJoinClientState.InCriticalPhase;
 				break;
 		}
 	}
