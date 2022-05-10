@@ -55,7 +55,7 @@
                                           Classes.fireEffect="{Binding MusicControls.CurrentWallet.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
                   <spectrum:SpectrumControl.Styles>
                     <Style Selector="spectrum|SpectrumControl.fireEffect">
-                      <Setter Property="Foreground" Value="Red" />
+                      <Setter Property="Foreground" Value="Orange" />
                     </Style>
                     <Style Selector="spectrum|SpectrumControl">
                       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
