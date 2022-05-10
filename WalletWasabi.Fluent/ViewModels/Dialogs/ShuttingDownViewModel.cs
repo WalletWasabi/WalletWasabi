@@ -6,21 +6,14 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-public class ShuttingDownViewModel : DialogViewModelBase<Unit>
+[NavigationMetaData(Title = "Wasabi is shutting down...")]
+public partial class ShuttingDownViewModel : DialogViewModelBase<Unit>
 {
 	private readonly ApplicationViewModel _applicationViewModel;
-	private string _title;
 
 	public ShuttingDownViewModel(ApplicationViewModel applicationViewModel)
 	{
-		_title = "Wasabi is shutting down...";
 		_applicationViewModel = applicationViewModel;
-	}
-
-	public override string Title
-	{
-		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
