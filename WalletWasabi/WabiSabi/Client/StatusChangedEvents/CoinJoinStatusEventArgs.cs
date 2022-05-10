@@ -1,7 +1,7 @@
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.WabiSabi.Client.Events;
+namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 internal class CoinJoinStatusEventArgs : StatusChangedEventArgs
 {
