@@ -23,7 +23,8 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		Assert.Equal(new long[] { 11, 7, 5, 3, 2 }, strategy.GetBestSelectionFound());
@@ -40,7 +41,8 @@ public class BranchAndBoundTests
 		long target = 27;
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -66,12 +68,13 @@ public class BranchAndBoundTests
 		long target = 27; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Selection (35) costs us 35 + 1 = 36.
 		// Selection (17, 10) is actually more expensive: (17 + 10) + (10 + 1) = 38, but
-		// we use that selection sa 27 is exactly the amount a payee expects.
+		// we use that selection as 27 is exactly the amount a payee expects.
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
 		Assert.NotNull(actualSelection);
 
@@ -91,8 +94,7 @@ public class BranchAndBoundTests
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		List<long> inputValues = new();
-		inputValues.Add(1_000_000);
+		List<long> inputValues = new() { 1_000_000 };
 
 		for (int i = 0; i < 1000; i++)
 		{
@@ -105,7 +107,8 @@ public class BranchAndBoundTests
 		long target = 999_999; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		MoreSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		StrategyParameters parameters = new(target, inputValues.ToArray(), inputCosts);
+		MoreSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Assert that we get expected best solution.
@@ -116,12 +119,56 @@ public class BranchAndBoundTests
 	}
 
 	[Fact]
+	public void MoreSelection_MaxInputCountTest()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 20, 10, 10, 10, 5, 5, 5, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		long target = 52;
+
+		BranchAndBound algorithm = new();
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
+		MoreSelectionStrategy strategy = new(parameters);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] result = strategy.GetBestSelectionFound()!;
+
+		Assert.NotNull(result);
+
+		// BnB should have chosen { 20, 10, 10, 10, 1, 1 } but with the MaxInputCount this is the best we can get.
+		Assert.Equal(new long[] { 20, 10, 10, 10, 5 }, result);
+		Assert.Equal(5, result.Length);
+	}
+
+	/// <summary>Tests that <see cref="MoreSelectionStrategy.MaxExtraPayment"/> is taken into account.</summary>
+	[Fact]
+	public void MoreSelection_Cap()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		// Minimum we can get is 40, but that is more than the allowed maximum (i.e. 25 * 1.25 = 31.25).
+		long[] inputValues = new long[] { 60, 50, 40 };
+		long[] inputCosts = new long[] { 0, 0, 0 };
+
+		long target = 25;
+
+		BranchAndBound algorithm = new();
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 2);
+		MoreSelectionStrategy strategy = new(parameters);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] result = strategy.GetBestSelectionFound()!;
+		Assert.Null(result);
+	}
+
+	[Fact]
 	public void LessSelection_RemainingAmountOptimization()
 	{
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
-		List<long> inputValues = new();
-		inputValues.Add(999_999);
+		List<long> inputValues = new() { 999_999 };
 
 		for (int i = 0; i < 1000; i++)
 		{
@@ -134,7 +181,8 @@ public class BranchAndBoundTests
 		long target = 1_000_000; // Target that we cannot get as a sum of input values.
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues.ToArray(), inputCosts);
+		StrategyParameters parameters = new(target, inputValues.ToArray(), inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		// Assert that we get expected best solution.
@@ -153,7 +201,8 @@ public class BranchAndBoundTests
 		long target = 16;
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -172,7 +221,8 @@ public class BranchAndBoundTests
 		long target = 26;
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -195,7 +245,8 @@ public class BranchAndBoundTests
 		long target = 33;
 
 		BranchAndBound algorithm = new();
-		LessSelectionStrategy strategy = new(target, inputValues, inputCosts);
+		StrategyParameters parameters = new(target, inputValues, inputCosts);
+		LessSelectionStrategy strategy = new(parameters);
 		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
 
 		long[] actualSelection = strategy.GetBestSelectionFound()!;
@@ -206,5 +257,50 @@ public class BranchAndBoundTests
 		// Total costs: (17 + 2) + (10 + 3) + (5 + 3) = 40
 		// Total costs: (17 + 2) + (10 + 3) + (3 + 1) + (2 + 1) = 39
 		Assert.Equal(new long[] { 17, 10, 3, 2 }, actualSelection);
+	}
+
+	[Fact]
+	public void LesserSelection_MaxInputCountTest()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		long[] inputValues = new long[] { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		long target = 9;
+
+		BranchAndBound algorithm = new();
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 5);
+		LessSelectionStrategy strategy = new(parameters, minPaymentThreshold: 0.0);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] actualSelection = strategy.GetBestSelectionFound()!;
+
+		Assert.NotNull(actualSelection);
+		Assert.Equal(new long[] { 1, 1, 1, 1, 1, }, actualSelection);
+		Assert.Equal(5, actualSelection.Length);
+	}
+
+	/// <summary>Tests that <see cref="LessSelectionStrategy.MinPaymentThreshold"/> is taken into account.</summary>
+	[Fact]
+	public void LesserSelection_Cap()
+	{
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+
+		// BnB is set to allow only two-coin selections, so we get selections summing to 20 as best candidates.
+		// However, taking the minimum payment threshold limit into account (i.e. 40 * 1.75 = 30),
+		// thus we cannot accept any selection lower than 30.
+		long[] inputValues = new long[] { 10, 10, 10, 1, 1, 1, 1, 1, 1 };
+		long[] inputCosts = new long[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+		long target = 40;
+
+		BranchAndBound algorithm = new();
+		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount: 2);
+		LessSelectionStrategy strategy = new(parameters);
+		_ = algorithm.TryGetMatch(strategy, out _, cts.Token);
+
+		long[] result = strategy.GetBestSelectionFound()!;
+		Assert.Null(result);
 	}
 }
