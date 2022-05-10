@@ -4,12 +4,12 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class RoundStateChanged : CoinJoinProgressEventArgs
 {
-	public RoundStateChanged(RoundState roundState, DateTimeOffset timeout)
+	public RoundStateChanged(RoundState roundState, DateTimeOffset timeoutAt)
 	{
 		RoundState = roundState;
-		Timeout = timeout;
+		TimeoutAt = timeoutAt;
 	}
 
 	public RoundState RoundState { get; }
-	public DateTimeOffset Timeout { get; }
+	public DateTimeOffset TimeoutAt { get; }
 }
