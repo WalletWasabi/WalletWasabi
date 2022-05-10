@@ -43,17 +43,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isBalanceDisplayed;
 
-	private TimeSpan _autoStartTime;
-	private DateTimeOffset _countDownStarted;
+	private DateTimeOffset _countDownStartTime;
+	private DateTimeOffset _countDownEndTime;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
+		_wallet = walletVm.Wallet;
 		_elapsedTime = "";
 		_remainingTime = "";
-		_countDownStarted = DateTimeOffset.Now;
-		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
-		_wallet = walletVm.Wallet;
+		var now = DateTimeOffset.UtcNow;
+		_countDownStartTime = now;
+		_countDownEndTime = now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
 		DispatcherTimer.Run(
 			() =>
@@ -285,8 +286,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
-				_autoStartTime = TimeSpan.Zero;
-				_countDownStarted = DateTimeOffset.Now;
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
@@ -320,11 +319,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 	}
 
-	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStarted;
+	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStartTime;
 
-	private TimeSpan GetRemainingTime() => (_countDownStarted + _autoStartTime) - DateTimeOffset.Now;
+	private TimeSpan GetRemainingTime() => _countDownEndTime - DateTimeOffset.Now;
 
-	private TimeSpan GetTotalTime() => _autoStartTime;
+	private TimeSpan GetTotalTime() => _countDownEndTime - _countDownStartTime;
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
