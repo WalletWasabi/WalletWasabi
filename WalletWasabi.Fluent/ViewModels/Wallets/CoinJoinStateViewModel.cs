@@ -18,6 +18,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
+	private readonly DispatcherTimer _countdownTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
@@ -56,13 +57,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countDownStartTime = now;
 		_countDownEndTime = now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
-		DispatcherTimer.Run(
-			() =>
-			{
-				TimerOnTick();
-				return true;
-			},
-			TimeSpan.FromSeconds(1));
+		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+		_countdownTimer.Tick += OnTimerTick;
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
@@ -240,12 +236,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				_countdownTimer.Start();
 				PlayVisible = true;
 				IsAutoWaiting = true;
 				CurrentStatus = _countDownMessage;
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnExit(() => IsAutoWaiting = false);
+			.OnExit(() =>
+			{
+				_countdownTimer.Stop();
+				IsAutoWaiting = false;
+			});
 
 		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
@@ -318,7 +319,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
-	private void TimerOnTick()
+	private void OnTimerTick(object? sender, EventArgs e)
 	{
 		_stateMachine.Fire(Trigger.Timer);
 	}
