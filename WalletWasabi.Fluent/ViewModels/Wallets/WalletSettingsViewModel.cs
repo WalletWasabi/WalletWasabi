@@ -53,7 +53,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		{
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				DialogResult<bool> isProfileSelected = await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
 			}
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)

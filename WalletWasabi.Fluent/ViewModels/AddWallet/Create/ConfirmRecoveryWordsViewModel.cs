@@ -34,7 +34,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.Create(() => OnNextAsync(keyManager), nextCommandCanExecute);
 
 		if (_isSkipEnable)
 		{
@@ -57,9 +57,9 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private void OnNext(KeyManager keyManager)
+	private async void OnNextAsync(KeyManager keyManager)
 	{
-		Navigate().To(new CoinJoinProfilesViewModel(keyManager, true));
+		await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
 	}
 
 	private void OnCancel()

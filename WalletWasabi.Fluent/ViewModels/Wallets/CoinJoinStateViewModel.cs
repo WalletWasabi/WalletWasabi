@@ -96,7 +96,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				var response = await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
 			}
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
