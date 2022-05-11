@@ -181,13 +181,13 @@ public class CoinJoinClient
 		// Because of the nature of the protocol, the inputreg and the connconfirm phases are done subsequently thus having a merged timeout.
 		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.Now) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
-		using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource combinedTimeUntilOutputRegCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
-
 		try
 		{
 			try
 			{
+				using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
+				using CancellationTokenSource combinedTimeUntilOutputRegCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+
 				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, combinedTimeUntilOutputRegCts.Token).ConfigureAwait(false);
 			}
 			catch (UnexpectedRoundPhaseException ex)
