@@ -112,8 +112,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Merge(_walletViewModel.WhenAnyValue(w => w.IsCoinJoining)
 			.Select(_ => Unit.Default))
 			.Subscribe(_ => Update()));
-
-		disposables.Add(_coinsSourceList);
 	}
 
 	private void Update()
