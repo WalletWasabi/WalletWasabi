@@ -171,7 +171,7 @@ public class CoinJoinManager : BackgroundService
 			trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
-			Logger.LogDebug($"Coinjoin client started for wallet '{walletToStart.WalletName}'.");
+			Logger.LogDebug($"Coinjoin client started for wallet '{walletToStart.WalletName}' auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
