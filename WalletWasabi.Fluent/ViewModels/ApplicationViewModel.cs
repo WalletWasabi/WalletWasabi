@@ -55,18 +55,8 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 					};
 				}));
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
-
-			TrayIcon = new WindowIcon(bitmap);
-		}
-		else
-		{
-			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
-
-			TrayIcon = new WindowIcon(bitmap);
-		}
+		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+		TrayIcon = new WindowIcon(bitmap);
 	}
 
 	public WindowIcon TrayIcon { get; }
