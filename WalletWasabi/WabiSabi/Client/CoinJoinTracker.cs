@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -19,11 +20,15 @@ public class CoinJoinTracker : IDisposable
 	{
 		Wallet = wallet;
 		CoinJoinClient = coinJoinClient;
+		CoinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
+
 		CoinCandidates = coinCandidates;
 		RestartAutomatically = restartAutomatically;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token);
 	}
+
+	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
 
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
@@ -43,12 +48,19 @@ public class CoinJoinTracker : IDisposable
 		CancellationTokenSource.Cancel();
 	}
 
+	private void CoinJoinClient_CoinJoinClientProgress(object? sender, CoinJoinProgressEventArgs coinJoinProgressEventArgs)
+	{
+		coinJoinProgressEventArgs.IsInCriticalPhase = InCriticalCoinJoinState;
+		WalletCoinJoinProgressChanged?.Invoke(Wallet, coinJoinProgressEventArgs);
+	}
+
 	protected virtual void Dispose(bool disposing)
 	{
 		if (!_disposedValue)
 		{
 			if (disposing)
 			{
+				CoinJoinClient.CoinJoinClientProgress -= CoinJoinClient_CoinJoinClientProgress;
 				CancellationTokenSource.Dispose();
 			}
 

@@ -9,7 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Client.Events;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -18,6 +18,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
+	private readonly DispatcherTimer _countdownTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 
@@ -42,26 +43,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isBalanceDisplayed;
+	[AutoNotify] private bool _isInCriticalPhase;
 
-	private TimeSpan _autoStartTime;
-	private DateTimeOffset _countDownStarted;
+	private DateTimeOffset _countDownStartTime;
+	private DateTimeOffset _countDownEndTime;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
+		_wallet = walletVm.Wallet;
 		_elapsedTime = "";
 		_remainingTime = "";
-		_countDownStarted = DateTimeOffset.Now;
-		_autoStartTime = TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
-		_wallet = walletVm.Wallet;
+		var now = DateTimeOffset.UtcNow;
+		_countDownStartTime = now;
+		_countDownEndTime = now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
-		DispatcherTimer.Run(
-			() =>
-			{
-				TimerOnTick();
-				return true;
-			},
-			TimeSpan.FromSeconds(1));
+		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+		_countdownTimer.Tick += OnTimerTick;
 
 		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
@@ -237,21 +235,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
+				_countdownTimer.Start();
 				PlayVisible = true;
 				IsAutoWaiting = true;
-
-				if (AutoStartTimedOut)
-				{
-					_stateMachine.Fire(Trigger.AutoStartTimeout);
-				}
-				else
-				{
-					CurrentStatus = _countDownMessage;
-					UpdateCountDown();
-				}
+				CurrentStatus = _countDownMessage;
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnExit(() => IsAutoWaiting = false);
+			.OnExit(() =>
+			{
+				_countdownTimer.Stop();
+				IsAutoWaiting = false;
+			});
 
 		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
@@ -284,8 +278,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
-				_autoStartTime = TimeSpan.Zero;
-				_countDownStarted = DateTimeOffset.Now;
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
@@ -319,15 +311,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 	}
 
-	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStarted;
+	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStartTime;
 
-	private TimeSpan GetRemainingTime() => (_countDownStarted + _autoStartTime) - DateTimeOffset.Now;
+	private TimeSpan GetRemainingTime() => _countDownEndTime - DateTimeOffset.Now;
 
-	private TimeSpan GetTotalTime() => _autoStartTime;
+	private TimeSpan GetTotalTime() => _countDownEndTime - _countDownStartTime;
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
-	private void TimerOnTick()
+	private void OnTimerTick(object? sender, EventArgs e)
 	{
 		_stateMachine.Fire(Trigger.Timer);
 	}
@@ -367,6 +359,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartErrorEventArgs:
 				_stateMachine.Fire(Trigger.RoundStartFailed);
+				break;
+
+			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
+				IsInCriticalPhase = coinJoinStatusEventArgs.CoinJoinProgressEventArgs.IsInCriticalPhase;
 				break;
 		}
 	}
