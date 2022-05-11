@@ -318,8 +318,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// and the countdown has finished but the client hasn't received any new phase changed message.
 		if (IsCountDownDelayHappening)
 		{
-			// Show the balance and an indeterminate progress bar.
-			UpdateAndShowWalletMixedProgress();
+			ElapsedTime = "Waiting for response";
+			RemainingTime = "";
 			return;
 		}
 
@@ -336,11 +336,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private TimeSpan GetTotalTime() => _countDownEndTime - _countDownStartTime;
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
-
-	private void OnTimerTick(object? sender, EventArgs e)
-	{
-		_stateMachine.Fire(Trigger.Timer);
-	}
 
 	private void UpdateAndShowWalletMixedProgress()
 	{
@@ -392,7 +387,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (coinJoinProgress)
 		{
 			case RoundEnded:
-				// TODO: CompletedEventArgs?
+				CurrentStatus = _roundEndedMessage;
 				StopCountDown();
 				break;
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
@@ -425,13 +420,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		CurrentStatus = message;
 		_countDownStartTime = start;
 		_countDownEndTime = end;
+		UpdateCountDown(); // force the UI to apply the changes at the same time.
 		_countdownTimer.Start();
 	}
 
 	private void StopCountDown()
 	{
 		_countdownTimer.Stop();
+		_countDownStartTime = DateTimeOffset.MinValue;
+		_countDownEndTime = DateTimeOffset.MinValue;
 		UpdateAndShowWalletMixedProgress();
+	}
+
+	private void OnTimerTick(object? sender, EventArgs e)
+	{
+		_stateMachine.Fire(Trigger.Timer);
 	}
 
 	private void SetAutoCoinJoin(bool enabled)
