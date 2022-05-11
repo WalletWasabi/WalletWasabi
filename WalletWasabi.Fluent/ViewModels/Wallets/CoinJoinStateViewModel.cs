@@ -133,7 +133,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Timer
 	}
 
-	private bool AutoStartTimedOut => GetRemainingTime() <= TimeSpan.Zero;
+	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
 
 	public ICommand PlayCommand { get; }
 
@@ -241,7 +241,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var now = DateTimeOffset.UtcNow;
 				StartCountDown(_countDownMessage, start: now, end: now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60)));
 			})
-			.OnTrigger(Trigger.Timer, UpdateCountDown)
+			.OnTrigger(Trigger.Timer, () =>
+			{
+				UpdateCountDown();
+
+				if (IsCountDownFinished)
+				{
+					_stateMachine.Fire(Trigger.AutoStartTimeout);
+				}
+			})
 			.OnExit(() =>
 			{
 				StopCountDown();
@@ -305,11 +313,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
 		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
 		ProgressValue = GetPercentage();
-
-		if (AutoStartTimedOut)
-		{
-			_stateMachine.Fire(Trigger.AutoStartTimeout);
-		}
 	}
 
 	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStartTime;
