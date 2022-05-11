@@ -33,6 +33,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Transaction signing" };
 	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for the blame round" };
 	private readonly MusicStatusMessageViewModel _waitingRoundMessage = new() { Message = "Waiting for a round" };
+	private readonly MusicStatusMessageViewModel _connectionConfirmationMessage = new() { Message = "Connection confirmation" };
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -415,6 +416,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case WaitingForRound:
 				CurrentStatus = _waitingRoundMessage;
 				StopCountDown();
+				break;
+			case EnteringConnectionConfirmationPhase enteringConnectionConfirmationPhase:
+				StartCountDown(
+					message: _connectionConfirmationMessage,
+					start: enteringConnectionConfirmationPhase.TimeoutAt - enteringConnectionConfirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
+					end: enteringConnectionConfirmationPhase.TimeoutAt);
 				break;
 		}
 	}
