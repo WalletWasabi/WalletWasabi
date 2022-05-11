@@ -107,13 +107,14 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		Observable.Merge(
-			_balanceChanged.Select(_ => Unit.Default),
-			_walletViewModel.WhenAnyValue(w => w.IsCoinJoining).Select(_ => Unit.Default))
+		disposables.Add(_balanceChanged
+			.Select(_ => Unit.Default)
+			.Merge(_walletViewModel.WhenAnyValue(w => w.IsCoinJoining)
+			.Select(_ => Unit.Default))
 			.Subscribe(_ =>
 			{
 				Update();
-			});
+			}));
 
 		disposables.Add(_coinsSourceList);
 	}
