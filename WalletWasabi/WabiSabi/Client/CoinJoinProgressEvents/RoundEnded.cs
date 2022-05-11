@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class RoundEnded : CoinJoinProgressEventArgs
 {
-	public RoundEnded(RoundState roundState)
+	public RoundEnded(RoundState roundState, bool isInCriticalPhase) : base(isInCriticalPhase)
 	{
 		RoundState = roundState;
 	}

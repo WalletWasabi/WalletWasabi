@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class EnteringOutputRegistrationPhase : RoundStateChanged
 {
-	public EnteringOutputRegistrationPhase(RoundState roundState, DateTimeOffset timeoutAt) : base(roundState, timeoutAt)
+	public EnteringOutputRegistrationPhase(RoundState roundState, DateTimeOffset timeoutAt, bool isInCriticalPhase) : base(roundState, timeoutAt, isInCriticalPhase)
 	{
 	}
 }

@@ -78,7 +78,7 @@ public class CoinJoinClient
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
-		CoinJoinClientProgress.SafeInvoke(this, new WaitingForRound());
+		CoinJoinClientProgress.SafeInvoke(this, new WaitingForRound(InCriticalCoinJoinState));
 		return await RoundStatusUpdater
 			.CreateRoundAwaiter(
 				roundState =>
@@ -95,7 +95,7 @@ public class CoinJoinClient
 	private async Task<RoundState> WaitForBlameRoundAsync(uint256 blameRoundId, CancellationToken token)
 	{
 		var timeout = TimeSpan.FromMinutes(5);
-		CoinJoinClientProgress.SafeInvoke(this, new WaitingForBlameRound(DateTimeOffset.UtcNow + timeout));
+		CoinJoinClientProgress.SafeInvoke(this, new WaitingForBlameRound(DateTimeOffset.UtcNow + timeout, InCriticalCoinJoinState));
 
 		using CancellationTokenSource waitForBlameRound = new(timeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, token);
@@ -207,7 +207,7 @@ public class CoinJoinClient
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState, InCriticalCoinJoinState));
 
 			var wasTxBroadcast = finalRoundState.WasTransactionBroadcast
 				? $"'{finalRoundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
@@ -591,7 +591,7 @@ public class CoinJoinClient
 		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
 		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
 
-		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
+		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime, InCriticalCoinJoinState));
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
@@ -643,7 +643,7 @@ public class CoinJoinClient
 		var remainingTime = roundState.CoinjoinState.Parameters.TransactionSigningTimeout - RoundStatusUpdater.Period;
 		var signingStateEndTime = DateTimeOffset.UtcNow + remainingTime;
 
-		CoinJoinClientProgress.SafeInvoke(this, new EnteringSigningPhase(roundState, signingStateEndTime));
+		CoinJoinClientProgress.SafeInvoke(this, new EnteringSigningPhase(roundState, signingStateEndTime, InCriticalCoinJoinState));
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
@@ -677,7 +677,7 @@ public class CoinJoinClient
 		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 		var combinedToken = combinedCts.Token;
 
-		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
+		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd, InCriticalCoinJoinState));
 
 		// Register coins.
 		return await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);

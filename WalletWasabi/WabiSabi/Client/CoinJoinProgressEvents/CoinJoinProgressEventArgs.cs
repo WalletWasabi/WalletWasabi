@@ -2,5 +2,10 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class CoinJoinProgressEventArgs : EventArgs
 {
-	public bool IsInCriticalPhase { get; set; }
+	public CoinJoinProgressEventArgs(bool isInCriticalPhase)
+	{
+		IsInCriticalPhase = isInCriticalPhase;
+	}
+	
+	public bool IsInCriticalPhase { get; }
 }

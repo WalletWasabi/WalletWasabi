@@ -50,7 +50,6 @@ public class CoinJoinTracker : IDisposable
 
 	private void CoinJoinClient_CoinJoinClientProgress(object? sender, CoinJoinProgressEventArgs coinJoinProgressEventArgs)
 	{
-		coinJoinProgressEventArgs.IsInCriticalPhase = InCriticalCoinJoinState;
 		WalletCoinJoinProgressChanged?.Invoke(Wallet, coinJoinProgressEventArgs);
 	}
 
