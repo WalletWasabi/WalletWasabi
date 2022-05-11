@@ -22,7 +22,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly DispatcherTimer _countdownTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
-	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
+	private readonly MusicStatusMessageViewModel _serverMessage = new() { Message = "Waiting for the server" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
@@ -160,8 +160,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				_stateMachine.Fire(Trigger.ManualCoinJoinEntered);
 			})
-			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
+			.OnEntry(UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
 
 		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
@@ -175,8 +175,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _stoppedMessage;
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
-			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
+			.OnEntry(UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
 
 		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
@@ -186,11 +186,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				PlayVisible = false;
 				StopVisible = true;
-				CurrentStatus = _coinJoiningMessage;
+				CurrentStatus = _serverMessage;
 				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
 			})
-			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
+			.OnEntry(UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown);
 
@@ -263,8 +263,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
-			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
+			.OnEntry(UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoPlaying)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
@@ -274,14 +274,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(async () =>
 			{
-				CurrentStatus = _coinJoiningMessage;
+				CurrentStatus = _serverMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
 			})
-			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
+			.OnEntry(UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.Timer, UpdateCountDown);
 
 		_stateMachine.Configure(State.AutoFinished)
@@ -325,7 +325,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Fire(Trigger.Timer);
 	}
 
-	private void UpdateWalletMixedProgress()
+	private void UpdateAndShowWalletMixedProgress()
 	{
 		if (!_wallet.Coins.Any())
 		{
@@ -413,8 +413,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private void StopCountDown()
 	{
 		_countdownTimer.Stop();
-		ElapsedTime = "";
-		RemainingTime = "";
+		UpdateAndShowWalletMixedProgress();
 	}
 
 	private void SetAutoCoinJoin(bool enabled)
