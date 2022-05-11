@@ -135,6 +135,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
 
+	private bool IsCounting => _countdownTimer.IsEnabled;
+
 	public ICommand PlayCommand { get; }
 
 	public ICommand PauseCommand { get; }
@@ -330,7 +332,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateAndShowWalletMixedProgress()
 	{
-		if (!_wallet.Coins.Any())
+		if (!_wallet.Coins.Any() || IsCounting)
 		{
 			return;
 		}
