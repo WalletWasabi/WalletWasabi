@@ -21,13 +21,13 @@
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="{DynamicResource AcrylicTrimBackground}"
-                                         TintOpacity="1"
+                                         TintColor="Transparent"
+                                         TintOpacity="0"
                                          FallbackColor="{DynamicResource AcrylicTrimBackground}"
-                                         MaterialOpacity="0.9" />
+                                         MaterialOpacity="0" />
           </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
-        <Panel IsHitTestVisible="False" Background="{DynamicResource AcrylicTrimOverlayBackground}"/>
+        <Panel IsHitTestVisible="False" Background="{DynamicResource AcrylicTrimBackground}"/>
 
         <Grid ColumnDefinitions="68, *, 150" RowDefinitions="48, *">
 
@@ -50,8 +50,23 @@
               <Border CornerRadius="10 0 0 0" Background="{DynamicResource RegionColor}" ClipToBounds="True" IsHitTestVisible="False" />
               <Panel VerticalAlignment="Bottom"
                      Height="100">
-                <spectrum:SpectrumControl Foreground="{DynamicResource SystemAccentColor}" Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
-                                          IsDockEffectVisible="{Binding MusicControls.IsActive}" />
+                <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
+                                          IsDockEffectVisible="{Binding MusicControls.IsActive}"
+                                          Classes.fireEffect="{Binding MusicControls.CurrentWallet.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
+                  <spectrum:SpectrumControl.Styles>
+                    <Style Selector="spectrum|SpectrumControl.fireEffect">
+                      <Setter Property="Foreground" Value="{StaticResource OrangeCoinColor}" />
+                    </Style>
+                    <Style Selector="spectrum|SpectrumControl">
+                      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+                    </Style>
+                  </spectrum:SpectrumControl.Styles>
+                  <spectrum:SpectrumControl.Transitions>
+                    <Transitions>
+                      <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}"/>
+                    </Transitions>
+                  </spectrum:SpectrumControl.Transitions>
+                </spectrum:SpectrumControl>
               </Panel>
               <DockPanel>
                 <DockPanel.Styles>
