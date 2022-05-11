@@ -46,6 +46,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isBalanceDisplayed;
 	[AutoNotify] private bool _isInCriticalPhase;
+	[AutoNotify] private bool _isCountDownDelayHappening;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
@@ -311,6 +312,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void UpdateCountDown()
 	{
+		IsCountDownDelayHappening = IsCounting && IsCountDownFinished;
+
+		// This case mostly happens when there is some delay between the client and the server,
+		// and the countdown has finished but the client hasn't received any new phase changed message.
+		if (IsCountDownDelayHappening)
+		{
+			// Show the balance and an indeterminate progress bar.
+			UpdateAndShowWalletMixedProgress();
+			return;
+		}
+
 		var format = @"hh\:mm\:ss";
 		ElapsedTime = $"{GetElapsedTime().ToString(format)}";
 		RemainingTime = $"-{GetRemainingTime().ToString(format)}";
