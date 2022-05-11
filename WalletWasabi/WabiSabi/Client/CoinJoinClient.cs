@@ -473,7 +473,7 @@ public class CoinJoinClient
 			.Where(x => x.OrderByDescending(x => x.Amount).First() == largestAmount)
 			.RandomElement();
 
-		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty; ;
+		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
 	}
 
 	private static int GetReps(IEnumerable<SmartCoin> group)
