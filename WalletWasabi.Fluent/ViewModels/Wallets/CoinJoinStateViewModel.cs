@@ -17,7 +17,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class CoinJoinStateViewModel : RoutableViewModel
+public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly Wallet _wallet;
@@ -96,9 +96,10 @@ public partial class CoinJoinStateViewModel : RoutableViewModel
 		{
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				DialogResult<bool> isProfileSelected = await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				var response = await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
 			}
-			else
+
+			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
 				_stateMachine.Fire(Trigger.Play);
 			}
@@ -157,7 +158,6 @@ public partial class CoinJoinStateViewModel : RoutableViewModel
 	public ICommand PauseCommand { get; }
 
 	public ICommand StopCommand { get; }
-	public override string Title { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
 
 	private void ConfigureStateMachine(CoinJoinManager coinJoinManager)
 	{
