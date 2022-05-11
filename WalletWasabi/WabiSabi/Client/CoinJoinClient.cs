@@ -178,7 +178,7 @@ public class CoinJoinClient
 
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 
-		// Because the nature of protocol the inputreg and the connconfirm phases done subsequently thus having a merged timeout.
+		// Because of the nature of the protocol, the inputreg and the connconfirm phases are done subsequently thus having a merged timeout.
 		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.Now) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
 		using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
