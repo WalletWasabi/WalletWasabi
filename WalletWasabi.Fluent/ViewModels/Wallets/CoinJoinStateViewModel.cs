@@ -244,7 +244,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var now = DateTimeOffset.UtcNow;
 				StartCountDown(_countDownMessage, start: now, end: now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60)));
 			})
-			.OnTrigger(Trigger.Timer, () =>
+			.OnTrigger(Trigger.Timer,
+				() =>
 			{
 				UpdateCountDown();
 
@@ -391,17 +392,20 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopCountDown();
 				break;
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
-				StartCountDown(message: _outputRegistrationMessage,
+				StartCountDown(
+					message: _outputRegistrationMessage,
 					start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
 					end: enteringOutputRegistrationPhase.TimeoutAt);
 				break;
 			case EnteringSigningPhase enteringSigningPhase:
-				StartCountDown(message: _transactionSigningMessage,
+				StartCountDown(
+					message: _transactionSigningMessage,
 					start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
 					end: enteringSigningPhase.TimeoutAt);
 				break;
 			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
-				StartCountDown(message: _inputRegistrationMessage,
+				StartCountDown(
+					message: _inputRegistrationMessage,
 					start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
 					end: enteringInputRegistrationPhase.TimeoutAt);
 				break;
