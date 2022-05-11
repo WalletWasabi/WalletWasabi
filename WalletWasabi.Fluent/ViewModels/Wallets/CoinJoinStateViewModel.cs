@@ -245,16 +245,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var now = DateTimeOffset.UtcNow;
 				StartCountDown(_countDownMessage, start: now, end: now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60)));
 			})
-			.OnTrigger(Trigger.Timer,
-				() =>
-			{
-				UpdateCountDown();
-
-				if (IsCountDownFinished)
-				{
-					_stateMachine.Fire(Trigger.AutoStartTimeout);
-				}
-			})
+			.OnTrigger(Trigger.Timer, UpdateAutoStartCountDown)
 			.OnExit(() =>
 			{
 				StopCountDown();
@@ -310,6 +301,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _finishedMessage;
 			});
+	}
+
+	private void UpdateAutoStartCountDown()
+	{
+		UpdateCountDown();
+
+		if (IsCountDownFinished)
+		{
+			_stateMachine.Fire(Trigger.AutoStartTimeout);
+		}
 	}
 
 	private void UpdateCountDown()
