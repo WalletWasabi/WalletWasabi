@@ -98,7 +98,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		};
 
 		Source.RowSelection!.SingleSelect = true;
-
 	}
 
 	public FlatTreeDataGridSource<WalletCoinViewModel> Source { get; }
