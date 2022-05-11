@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
@@ -21,16 +22,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly DispatcherTimer _countdownTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
-
 	private readonly MusicStatusMessageViewModel _coinJoiningMessage = new() { Message = "Coinjoining" };
-
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
-
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
-
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
+	private readonly MusicStatusMessageViewModel _roundEndedMessage = new() { Message = "Round ended" };
+	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Output registration" };
+	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Input registration" };
+	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Transaction signing" };
+	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for blame round" };
+	private readonly MusicStatusMessageViewModel _waitingRoundMessage = new() { Message = "Waiting for round" };
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -53,10 +55,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_wallet = walletVm.Wallet;
 		_elapsedTime = "";
 		_remainingTime = "";
-
-		var now = DateTimeOffset.UtcNow;
-		_countDownStartTime = now;
-		_countDownEndTime = now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60));
 
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += OnTimerTick;
@@ -193,7 +191,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, CancellationToken.None));
+			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, CancellationToken.None))
+			.OnTrigger(Trigger.Timer, UpdateCountDown);
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
@@ -237,15 +236,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(() =>
 			{
-				_countdownTimer.Start();
 				PlayVisible = true;
 				IsAutoWaiting = true;
-				CurrentStatus = _countDownMessage;
+				var now = DateTimeOffset.UtcNow;
+				StartCountDown(_countDownMessage, start: now, end: now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60)));
 			})
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnExit(() =>
 			{
-				_countdownTimer.Stop();
+				StopCountDown();
 				IsAutoWaiting = false;
 			});
 
@@ -282,7 +281,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
+			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
+			.OnTrigger(Trigger.Timer, UpdateCountDown);
 
 		_stateMachine.Configure(State.AutoFinished)
 			.SubstateOf(State.AutoCoinJoin)
@@ -363,9 +363,58 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
-				IsInCriticalPhase = coinJoinStatusEventArgs.CoinJoinProgressEventArgs.IsInCriticalPhase;
+				OnCoinJoinPhaseChanged(coinJoinStatusEventArgs.CoinJoinProgressEventArgs);
 				break;
 		}
+	}
+
+	private void OnCoinJoinPhaseChanged(CoinJoinProgressEventArgs coinJoinProgress)
+	{
+		StopCountDown();
+		IsInCriticalPhase = coinJoinProgress.IsInCriticalPhase;
+
+		switch (coinJoinProgress)
+		{
+			case RoundEnded:
+				// TODO: CompletedEventArgs?
+				break;
+			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
+				StartCountDown(message: _outputRegistrationMessage,
+					start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
+					end: enteringOutputRegistrationPhase.TimeoutAt);
+				break;
+			case EnteringSigningPhase enteringSigningPhase:
+				StartCountDown(message: _transactionSigningMessage,
+					start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
+					end: enteringSigningPhase.TimeoutAt);
+				break;
+			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
+				StartCountDown(message: _inputRegistrationMessage,
+					start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
+					end: enteringInputRegistrationPhase.TimeoutAt);
+				break;
+			case WaitingForBlameRound waitingForBlameRound:
+				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
+				break;
+			case WaitingForRound:
+				CurrentStatus = _waitingRoundMessage;
+				break;
+		}
+	}
+
+	private void StartCountDown(MusicStatusMessageViewModel message, DateTimeOffset start, DateTimeOffset end)
+	{
+		CurrentStatus = message;
+		_countDownStartTime = start;
+		_countDownEndTime = end;
+		_countdownTimer.Start();
+	}
+
+	private void StopCountDown()
+	{
+		_countdownTimer.Stop();
+		ElapsedTime = "";
+		RemainingTime = "";
 	}
 
 	private void SetAutoCoinJoin(bool enabled)
