@@ -36,6 +36,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_coins)
+			.DisposeMany()
 			.Subscribe();
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
@@ -105,6 +106,12 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	public FlatTreeDataGridSource<WalletCoinViewModel> Source { get; }
 
+	private IObservable<Unit> CoinsUpdated => _balanceChanged
+		.ToSignal()
+		.Merge(_walletViewModel
+			.WhenAnyValue(w => w.IsCoinJoining)
+			.ToSignal());
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
@@ -114,12 +121,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe(RefreshCoinsList)
 			.DisposeWith(disposables);
 	}
-
-	private IObservable<Unit> CoinsUpdated => _balanceChanged
-		.ToSignal()
-		.Merge(_walletViewModel
-			.WhenAnyValue(w => w.IsCoinJoining)
-			.ToSignal());
 
 	private ICoinsView GetCoins()
 	{
