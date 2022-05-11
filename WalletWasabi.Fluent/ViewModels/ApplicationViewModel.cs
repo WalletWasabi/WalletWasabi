@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
@@ -31,10 +32,11 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 				// Show the window if it was hidden.
 				ShowRequested?.Invoke(this, EventArgs.Empty);
 
-				await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-					"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
-					"Warning",
-					"Unable to close right now"));
+				await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(
+					new Dialogs.ShowErrorDialogViewModel(
+						"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
+						"Warning",
+						"Unable to close right now"));
 			}
 		});
 
@@ -45,15 +47,7 @@ public class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		AboutCommand = ReactiveCommand.Create(
 			() => dialogScreen.To(new AboutViewModel(navigateBack: dialogScreen.CurrentPage is not null)),
 			canExecute: dialogScreen.WhenAnyValue(x => x.CurrentPage)
-				.SelectMany(x =>
-				{
-					return x switch
-					{
-						null => Observable.Return(true),
-						AboutViewModel => Observable.Return(false),
-						_ => x.WhenAnyValue(page => page.IsBusy).Select(isBusy => !isBusy)
-					};
-				}));
+				.Select(x => x is null));
 
 		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 		TrayIcon = new WindowIcon(bitmap);
