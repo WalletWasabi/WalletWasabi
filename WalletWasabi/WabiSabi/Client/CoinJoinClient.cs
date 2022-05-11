@@ -680,6 +680,17 @@ public class CoinJoinClient
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
 
 		// Register coins.
-		return await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
+		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
+
+		if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
+		{
+			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
+		}
+
+		// Be aware: at this point we are already in conn-confirm and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+		var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+		CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
+
+		return result;
 	}
 }
