@@ -370,13 +370,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void OnCoinJoinPhaseChanged(CoinJoinProgressEventArgs coinJoinProgress)
 	{
-		StopCountDown();
 		IsInCriticalPhase = coinJoinProgress.IsInCriticalPhase;
 
 		switch (coinJoinProgress)
 		{
 			case RoundEnded:
 				// TODO: CompletedEventArgs?
+				StopCountDown();
 				break;
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
 				StartCountDown(message: _outputRegistrationMessage,
@@ -398,6 +398,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 			case WaitingForRound:
 				CurrentStatus = _waitingRoundMessage;
+				StopCountDown();
 				break;
 		}
 	}
