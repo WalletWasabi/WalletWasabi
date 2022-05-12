@@ -13,7 +13,7 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 	[AutoNotify] private string? _confirmPassword;
 	[AutoNotify] private string? _password;
 
-	public CreatePasswordDialogViewModel(string title, string caption, bool enableEmpty = true)
+	public CreatePasswordDialogViewModel(string title, string caption = "", bool enableEmpty = true)
 	{
 		Title = title;
 		Caption = caption;
@@ -36,8 +36,8 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 				x => x.ConfirmPassword,
 				delegate
 				{
-						// This will fire validations before return canExecute value.
-						this.RaisePropertyChanged(nameof(Password));
+					// This will fire validations before return canExecute value.
+					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
 					return IsDialogOpen &&
@@ -55,7 +55,7 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
 	}
 
-	public sealed override string Title { get; protected set; }
+	public override sealed string Title { get; protected set; }
 
 	public string Caption { get; }
 

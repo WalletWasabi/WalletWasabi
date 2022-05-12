@@ -32,6 +32,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	}
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";
+	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
 
 	public ICommand? NextCommand { get; protected set; }
 
@@ -137,7 +138,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
 		=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
+	public static async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialogTask = dialog.GetDialogResultAsync();
 

@@ -29,6 +29,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
+	[DefaultValueTimeSpan("31d 0h 0m 0s")]
+	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfterLongBan", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ReleaseUtxoFromPrisonAfterLongBan { get; set; } = TimeSpan.FromDays(31);
+
 	[DefaultValueMoneyBtc("0.00005")]
 	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
@@ -37,10 +41,10 @@ public class WabiSabiConfig : ConfigBase
 	/// <summary>
 	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
-	[DefaultValueMoneyBtc("43000")]
+	[DefaultValueMoneyBtc("1343.75")]
 	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
+	public Money MaxRegistrableAmount { get; set; } = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -91,6 +95,11 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
+	[DefaultValueMoneyBtc("0.1")]
+	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
@@ -98,6 +107,9 @@ public class WabiSabiConfig : ConfigBase
 	public void MakeNextCoordinatorScriptDirty()
 	{
 		CoordinatorExtPubKeyCurrentDepth++;
-		ToFile();
+		if (FilePath is { })
+		{
+			ToFile();
+		}
 	}
 }

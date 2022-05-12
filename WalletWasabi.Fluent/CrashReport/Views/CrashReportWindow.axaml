@@ -52,7 +52,7 @@
     </controls:ContentArea>
     <Viewbox Width="300" Height="300" Opacity="0.1" VerticalAlignment="Center"
              HorizontalAlignment="Right" IsHitTestVisible="False">
-      <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+      <Image Source="{DynamicResource wasabi_logo_dynamic}" />
     </Viewbox>
   </Panel>
 </Window>

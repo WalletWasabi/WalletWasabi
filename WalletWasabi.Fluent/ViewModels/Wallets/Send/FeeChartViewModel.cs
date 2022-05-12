@@ -12,8 +12,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class FeeChartViewModel : ViewModelBase
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMinimum;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private int _sliderMaximum;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private int _sliderMinimum;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private int _sliderMaximum;
+
 	[AutoNotify] private int _sliderValue;
 	[AutoNotify] private string[]? _satoshiPerByteLabels;
 	[AutoNotify] private double[]? _satoshiPerByteValues;
@@ -28,7 +32,6 @@ public partial class FeeChartViewModel : ViewModelBase
 	{
 		_sliderMinimum = 0;
 		_sliderMaximum = 9;
-		_currentConfirmationTarget = Services.UiConfig.FeeTarget;
 		_currentConfirmationTargetString = "";
 
 		this.WhenAnyValue(x => x.CurrentConfirmationTarget)
@@ -44,7 +47,7 @@ public partial class FeeChartViewModel : ViewModelBase
 			.Subscribe(SetXAxisCurrentValue);
 
 		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
-		MoveSliderLeftCommand  = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
+		MoveSliderLeftCommand = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));
 	}
 
 	public ICommand MoveSliderRightCommand { get; }
@@ -53,7 +56,9 @@ public partial class FeeChartViewModel : ViewModelBase
 	private void UpdateFeeAndEstimate(double confirmationTarget)
 	{
 		CurrentSatoshiPerByte = GetSatoshiPerByte(confirmationTarget);
-		CurrentConfirmationTargetString = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTarget), " minutes", " hour", " hours", " day", " days");
+		var targetBlock = (int)Math.Ceiling(confirmationTarget);
+		var estimatedTime = TransactionFeeHelper.CalculateConfirmationTime(targetBlock);
+		CurrentConfirmationTargetString = ConfirmationTimeLabel.SliderLabel(estimatedTime);
 	}
 
 	private void SetSliderValue(double confirmationTarget)
@@ -155,6 +160,7 @@ public partial class FeeChartViewModel : ViewModelBase
 				{
 					return (decimal)ys[0];
 				}
+
 				var slope = (ys[1] - ys[0]) / (xs[1] - xs[0]);
 				var interpolated = (decimal)(ys[0] + (t - xs[0]) * slope);
 				return Math.Clamp(interpolated, (decimal)ys[^1], (decimal)ys[0]);
@@ -169,17 +175,28 @@ public partial class FeeChartViewModel : ViewModelBase
 		return SliderMaximum;
 	}
 
-	public double GetConfirmationTarget(FeeRate feeRate)
+	public bool TryGetConfirmationTarget(FeeRate feeRate, out double target)
 	{
+		target = -1;
+
 		if (SatoshiPerByteValues is null || ConfirmationTargetValues is null) // Should not happen
 		{
-			return 1;
+			return false;
 		}
 
-		var closestValue = SatoshiPerByteValues.OrderBy(x => Math.Abs((decimal)x - feeRate.SatoshiPerByte)).First();
-		var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
+		try
+		{
+			var closestValue = SatoshiPerByteValues.Last(x => new FeeRate((decimal)x) <= feeRate);
+			var indexOfClosestValue = SatoshiPerByteValues.LastIndexOf(closestValue);
 
-		return ConfirmationTargetValues[indexOfClosestValue];
+			target = ConfirmationTargetValues[indexOfClosestValue];
+		}
+		catch (Exception)
+		{
+			// Ignored.
+		}
+
+		return target > -1;
 	}
 
 	private int GetSliderValue(double x, double[] xs)
@@ -233,7 +250,8 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		SliderMinimum = 0;
 		SliderMaximum = confirmationTargetValues.Length - 1;
-		CurrentConfirmationTarget = Math.Clamp(CurrentConfirmationTarget, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
+		var confirmationTargetCandidate = ConfirmationTargetValues.LastOrDefault(x => Services.UiConfig.FeeTarget <= x);
+		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());
 		SliderValue = GetSliderValue(CurrentConfirmationTarget, ConfirmationTargetValues);
 		UpdateFeeAndEstimate(CurrentConfirmationTarget);
 
@@ -263,7 +281,8 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		for (int i = 0; i < blockTargetCount; i += interval)
 		{
-			var label = FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets[i]), "m", "h", "h", "d", "d");
+			var targetBlock = (int)Math.Ceiling(confirmationTargets[i]);
+			var label = ConfirmationTimeLabel.AxisLabel(TransactionFeeHelper.CalculateConfirmationTime(targetBlock));
 
 			if (i + interval <= blockTargetCount)
 			{
@@ -273,13 +292,14 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		if (interval != 1)
 		{
-			yield return FeeTargetTimeConverter.Convert((int)Math.Ceiling(confirmationTargets.Last()), "m", "h", "h", "d", "d");
+			var targetBlock = (int)Math.Ceiling(confirmationTargets.Last());
+			yield return ConfirmationTimeLabel.AxisLabel(TransactionFeeHelper.CalculateConfirmationTime(targetBlock));
 		}
 	}
 
 	public void InitCurrentConfirmationTarget(FeeRate feeRate)
 	{
-		CurrentConfirmationTarget = GetConfirmationTarget(feeRate);
+		CurrentConfirmationTarget = TryGetConfirmationTarget(feeRate, out var target) ? target : 1;
 	}
 
 	public Dictionary<double, double> GetValues()

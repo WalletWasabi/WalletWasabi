@@ -3,11 +3,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -16,23 +18,24 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
 	private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
+	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 	[AutoNotify] private bool _isSkipEnable;
 
 	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager)
 	{
-		var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 
 		var nextCommandCanExecute =
-			confirmationWordsSourceList
+			_confirmationWordsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+			.Select(_ => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(keyManager), nextCommandCanExecute);
 
 		if (_isSkipEnable)
 		{
@@ -41,7 +44,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 
-		confirmationWordsSourceList
+		_confirmationWordsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.OnItemAdded(x => x.Reset())
@@ -50,14 +53,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Subscribe();
 
 		// Select random words to confirm.
-		confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => new Random().NextDouble()).Take(3));
+		_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => Random.Shared.NextDouble()).Take(3));
 	}
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private void OnNext(KeyManager keyManager)
+	private async Task OnNextAsync(KeyManager keyManager)
 	{
-		Navigate().To(new AddedWalletPageViewModel(keyManager));
+		await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
 	}
 
 	private void OnCancel()
@@ -71,5 +74,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+		if (!isInHistory)
+		{
+			_confirmationWordsSourceList.Dispose();
+		}
 	}
 }

@@ -10,6 +10,8 @@
     <sys:Double x:Key="FontSizeH6">16</sys:Double>
     <sys:Double x:Key="FontSizeH7">14</sys:Double>
     <sys:Double x:Key="FontSizeH8">12</sys:Double>
+    <sys:Double x:Key="FontSizeH9">10</sys:Double>
+    <sys:Double x:Key="FontSizeH10">8</sys:Double>
   </Styles.Resources>
 
   <Style Selector=":is(Control).h1">
@@ -36,6 +38,13 @@
   <Style Selector=":is(Control).h8">
     <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH8}" />
   </Style>
+  <Style Selector=":is(Control).h9">
+    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH9}" />
+  </Style>
+  <Style Selector=":is(Control).h10">
+    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH10}" />
+  </Style>
+
   <Style Selector=":is(Control).bold">
     <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
   </Style>

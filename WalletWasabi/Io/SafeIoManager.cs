@@ -126,7 +126,7 @@ public class SafeIoManager : IoManager
 
 	public new async Task WriteAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
 	{
-		if (lines is null || !lines.Any())
+		if (!lines.Any())
 		{
 			return;
 		}
@@ -152,23 +152,24 @@ public class SafeIoManager : IoManager
 
 	public new async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 	{
-		var filePath = FilePath;
-		if (TryGetSafestFileVersion(out string? safestFilePath))
-		{
-			filePath = safestFilePath;
-		}
-		return await ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
+		return await ReadAllLinesAsync(GetSafestFilePath(), cancellationToken).ConfigureAwait(false);
 	}
 
 	public string ReadAllText(Encoding encoding)
 	{
-		var filePath = FilePath;
+		return File.ReadAllText(GetSafestFilePath(), encoding);
+	}
+
+	public string GetSafestFilePath()
+	{
+		string filePath = FilePath;
+
 		if (TryGetSafestFileVersion(out string? safestFilePath))
 		{
 			filePath = safestFilePath;
 		}
 
-		return File.ReadAllText(filePath, encoding);
+		return filePath;
 	}
 
 	/// <summary>
@@ -179,13 +180,7 @@ public class SafeIoManager : IoManager
 	/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
 	public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
 	{
-		var filePath = FilePath;
-		if (TryGetSafestFileVersion(out string? safestFilePath))
-		{
-			filePath = safestFilePath;
-		}
-
-		return OpenText(filePath, bufferSize);
+		return OpenText(GetSafestFilePath(), bufferSize);
 	}
 
 	#endregion IoOperations

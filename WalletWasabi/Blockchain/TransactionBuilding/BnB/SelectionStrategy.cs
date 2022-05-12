@@ -2,40 +2,52 @@ using System.Linq;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
-/// <summary>
-/// Strategy that searches search-space and caches every found selection that minimizes
-/// waste of user's fund by looking for a selection that minimizes inputs' spending costs
-/// and extra cost of paying more than specified target.
-/// </summary>
 public abstract class SelectionStrategy
 {
-	public SelectionStrategy(long target, long[] inputValues, long[] inputCosts)
+	/// <param name="parameters">Parameters of the strategy specifying input coins, the target and final selection restrictions.</param>
+	/// <param name="bestSelection">Best selection so far.</param>
+	public SelectionStrategy(StrategyParameters parameters, CoinSelection bestSelection)
 	{
-		InputCosts = inputCosts;
-		InputValues = inputValues;
-		Target = target;
+		Parameters = parameters;
+		BestSelection = bestSelection;
+
+		RemainingAmounts = new long[InputValues.Length];
+		long accumulator = InputValues.Sum();
+
+		for (int i = 0; i < InputValues.Length; i++)
+		{
+			accumulator -= InputValues[i];
+			RemainingAmounts[i] = accumulator;
+		}
 	}
 
-	/// <summary>Costs corresponding to <see cref="InputValues"/> values.</summary>
-	public long[] InputCosts { get; }
+	public StrategyParameters Parameters { get; }
 
-	/// <summary>Target value we want to, ideally, sum up from the input values.</summary>
-	public long Target { get; }
+	/// <inheritdoc cref="StrategyParameters.InputCosts"/>
+	public long[] InputCosts => Parameters.InputCosts;
 
-	/// <summary>Input values sorted in descending orders.</summary>
-	public long[] InputValues { get; }
+	/// <inheritdoc cref="StrategyParameters.Target"/>
+	public long Target => Parameters.Target;
 
-	/// <summary>Gives lowest found value selection whose sum is larger than or equal to <see cref="Target"/>.</summary>
-	public long[]? GetBestSelectionFound() => BestSelectionSoFar?.Where(x => x > 0).ToArray();
+	/// <inheritdoc cref="StrategyParameters.InputValues"/>
+	public long[] InputValues => Parameters.InputValues;
+
+	/// <summary>Number of coins included in current selection.</summary>
+	/// <remarks>Range of values is <c>0</c> to <see cref="InputValues"/> size.</remarks>
+	protected int IncludedCoinsCount { get; set; } = 0;
+
+	/// <summary>Holds best coin selection found so far with some metadata to improve performance.</summary>
+	protected CoinSelection BestSelection { get; }
 
 	/// <summary>Input cost(s) of the current selection.</summary>
 	protected long CurrentInputCosts { get; set; } = 0;
 
-	/// <summary>Sum of the best found selection.</summary>
-	protected long BestTargetSoFar { get; set; }
+	/// <summary>Sums of the remaining coins.</summary>
+	/// <remarks>Each i-th element represents a sum of all <c>i+1, i+2, ..., n</c> input values.</remarks>
+	protected long[] RemainingAmounts { get; set; }
 
-	/// <summary>Best coin selection so far.</summary>
-	protected long[]? BestSelectionSoFar { get; set; }
+	/// <summary>Gets best valid found selection as an array of effective values, or <c>null</c> if none was found.</summary>
+	public virtual long[]? GetBestSelectionFound() => BestSelection.GetSolutionArray();
 
 	/// <summary>
 	/// Modifies selection sum so that we don't need to recompute it.
@@ -56,6 +68,7 @@ public abstract class SelectionStrategy
 				CurrentInputCosts += InputCosts[depth];
 			}
 
+			IncludedCoinsCount++;
 			selection[depth] = InputValues[depth];
 			newSum = oldSum + selection[depth];
 		}
@@ -63,6 +76,7 @@ public abstract class SelectionStrategy
 		{
 			if (selection[depth] > 0)
 			{
+				IncludedCoinsCount--;
 				CurrentInputCosts -= InputCosts[depth];
 			}
 

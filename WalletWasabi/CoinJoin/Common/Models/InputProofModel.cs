@@ -12,8 +12,6 @@ public class InputProofModel
 	public OutPoint Input { get; set; }
 
 	[Required]
-	[MinLength(65, ErrorMessage = "Provided proof is invalid")] // Bitcoin compact signatures are 65 bytes length
-	[MaxLength(65, ErrorMessage = "Provided proof is invalid")] // Bitcoin compact signatures are 65 bytes length
-	[JsonConverter(typeof(ByteArrayJsonConverter))]
-	public byte[] Proof { get; set; }
+	[JsonConverter(typeof(CompactSignatureJsonConverter))]
+	public CompactSignature Proof { get; set; }
 }

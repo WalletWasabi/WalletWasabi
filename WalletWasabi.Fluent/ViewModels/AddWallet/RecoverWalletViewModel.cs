@@ -16,10 +16,11 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
-[NavigationMetaData(Title = "Enter Recovery Words")]
+[NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -56,7 +57,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	private async Task OnNextAsync(string? walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Password", "Type the password of the wallet if there is one.")
+			new CreatePasswordDialogViewModel("Add Password", "Type the password of the wallet if there is one")
 			, NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
@@ -85,7 +86,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 						return result;
 					});
 
-				Navigate().To(new AddedWalletPageViewModel(keyManager));
+				await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
 			}
 			catch (Exception ex)
 			{
@@ -122,7 +123,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
 
-	private int MinGapLimit { get; set; } = 63;
+	private int MinGapLimit { get; set; } = 100;
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 

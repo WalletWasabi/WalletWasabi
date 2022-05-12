@@ -11,25 +11,24 @@
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<InvariantGlobalization>true</InvariantGlobalization>
-		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent</PathMap>
-		<AvaloniaVersion>0.10.12</AvaloniaVersion>
+		<AvaloniaVersion>0.10.999-cibuild0020340-beta</AvaloniaVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
 	</PropertyGroup>
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="0.10.10" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.11.5" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.13.1" />
+		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
-		<PackageReference Include="DataBox" Version="0.10.11.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />

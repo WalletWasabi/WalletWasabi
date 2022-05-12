@@ -596,7 +596,47 @@ public partial class LineChart : Control
 
 	private void DrawXAxisTitle(DrawingContext context, LineChartState state)
 	{
-		// TODO: Draw XAxis title.
+		var foreground = XAxisTitleForeground;
+		if (foreground is null)
+		{
+			return;
+		}
+
+		if (state.AreaWidth <= 0
+			|| state.AreaHeight <= 0
+			|| state.AreaWidth < XAxisMinViableWidth
+			|| state.AreaHeight < XAxisMinViableHeight)
+		{
+			return;
+		}
+
+		var opacity = XAxisTitleOpacity;
+		var fontFamily = XAxisTitleFontFamily;
+		var fontStyle = XAxisTitleFontStyle;
+		var fontWeight = XAxisTitleFontWeight;
+		var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
+		var fontSize = XAxisTitleFontSize;
+		var offset = XAxisTitleOffset;
+		var size = new Size(state.AreaWidth, XAxisTitleSize.Height);
+		var angleRadians = Math.PI / 180.0 * XAxisTitleAngle;
+		var alignment = XAxisTitleAlignment;
+		var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
+		var origin = new Point(state.AreaMargin.Left, state.AreaHeight + state.AreaMargin.Bottom);
+		var constraint = new Size(size.Width, size.Height);
+		var formattedText = CreateFormattedText(XAxisTitle, typeface, alignment, fontSize, constraint);
+		var xPosition = origin.X + size.Width / 2;
+		var yPosition = origin.Y + size.Height / 2;
+
+		var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
+					 * Matrix.CreateRotation(angleRadians)
+					 * Matrix.CreateTranslation(xPosition, yPosition);
+		var labelTransform = context.PushPreTransform(matrix);
+		var offsetCenter = new Point(0, 0);
+		var opacityState = context.PushOpacity(opacity);
+		context.DrawText(foreground, origin + offsetCenter, formattedText);
+		opacityState.Dispose();
+		labelTransform.Dispose();
+		offsetTransform.Dispose();
 	}
 
 	private void DrawYAxis(DrawingContext context, LineChartState state)

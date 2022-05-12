@@ -1,13 +1,13 @@
+using NBitcoin;
+using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -54,28 +54,26 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var loadingRing = new LoadingSuggestionViewModel();
 		Suggestions.Add(loadingRing);
 
-		try
+		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
+		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
-			var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+			// Exchange rate can change substantially during computation itself.
+			// Reporting up-to-date exchange rates would just confuse users.
+			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+		
+			int originalInputCount = transaction.SpentCoins.Count();
+			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
 
-			if (hasChange && !isFixedAmount && !info.IsPayJoin)
+			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, usdExchangeRate, linkedCts.Token);
+
+			await foreach (var suggestion in suggestions)
 			{
-				var suggestions =
-					ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
-
-				await foreach (var suggestion in suggestions)
-				{
-					Suggestions.Insert(Suggestions.Count - 1, suggestion);
-				}
+				Suggestions.Insert(Suggestions.Count - 1, suggestion);
 			}
 		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogWarning("Computing privacy suggestions was cancelled or timed out.");
-		}
-		finally
-		{
-			Suggestions.Remove(loadingRing);
-		}
+
+		Suggestions.Remove(loadingRing);
 	}
 }

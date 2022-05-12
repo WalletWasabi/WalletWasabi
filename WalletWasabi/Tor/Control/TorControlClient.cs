@@ -219,8 +219,10 @@ public class TorControlClient : IAsyncDisposable
 		{
 			lock (AsyncChannelsLock)
 			{
-				newList = new(AsyncChannels);
-				newList.Add(channel);
+				newList = new(AsyncChannels)
+				{
+					channel
+				};
 
 				AsyncChannels = newList;
 			}

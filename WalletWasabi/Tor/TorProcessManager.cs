@@ -51,16 +51,38 @@ public class TorProcessManager : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
 	private TorControlClient? TorControlClient { get; set; }
 
+	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
+	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
+	{		
+		return StartAsync(attempts: 1, cancellationToken);
+	}
+
 	/// <summary>Starts loop which makes sure that Tor process is started.</summary>
 	/// <param name="cancellationToken">Application lifetime cancellation token.</param>
 	/// <returns>Cancellation token which is canceled once Tor process terminates (either forcefully or gracefully).</returns>
 	/// <remarks>This method must be called exactly once.</remarks>		
-	/// <exception cref="OperationCanceledException"/>
-	public async Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
+	/// <exception cref="OperationCanceledException">When all attempts are tried.</exception>
+	public async Task<(CancellationToken, TorControlClient)> StartAsync(int attempts, CancellationToken cancellationToken = default)
 	{
 		LoopTask = RestartingLoopAsync(cancellationToken);
 
-		return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+		for (int i = 0; i < attempts; i++)
+		{
+			try
+			{
+				Logger.LogDebug($"Attempt #{i} to start Tor.");
+				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				if (cancellationToken.IsCancellationRequested)
+				{
+					throw;
+				}
+			}
+		}
+
+		throw new OperationCanceledException("No attempt to start Tor was successful.");
 	}
 
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
@@ -137,6 +159,35 @@ public class TorProcessManager : IAsyncDisposable
 				Logger.LogDebug("User canceled operation.");
 				setNewTcs = false;
 				break;
+			}
+			catch (TorControlException ex)
+			{
+				Logger.LogDebug("Tor control failed to initialize. Attempt to recover by killing Tor process.", ex);
+
+				// If Tor control fails to initialize, we want to try to start Tor again and initialize Tor control again.
+				if (process is not null)
+				{
+					process.Kill();
+				}
+				else
+				{
+					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
+					foreach (Process torProcess in Process.GetProcessesByName(TorSettings.TorBinaryFileName))
+					{
+						try
+						{
+							// This throws if we can't access MainModule of an elevated process from a non elevated one.
+							if (torProcess.MainModule?.FileName == Settings.TorBinaryFilePath)
+							{
+								Logger.LogInfo("Kill running Tor process to restart it again.");
+								torProcess.Kill();
+							}
+						}
+						catch
+						{
+						}						
+					}
+				}
 			}
 			catch (Exception ex)
 			{
@@ -233,7 +284,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo("Starting Tor process ...");
+		Logger.LogInfo("Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
@@ -245,6 +296,12 @@ public class TorProcessManager : IAsyncDisposable
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
 	{
+		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
+		if (!File.Exists(Settings.CookieAuthFilePath))
+		{
+			throw new TorControlException("Cookie file does not exist.");
+		}
+
 		// Get cookie.
 		string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
 

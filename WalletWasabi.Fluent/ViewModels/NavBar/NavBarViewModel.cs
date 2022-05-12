@@ -77,11 +77,11 @@ public partial class NavBarViewModel : ViewModelBase
 			});
 
 		this.WhenAnyValue(x => x.IsHidden)
-			.Subscribe( x =>
-			{
-				CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
-				CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
-			});
+			.Subscribe(x =>
+		   {
+			   CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
+			   CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
+		   });
 
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
 			.WhereNotNull()

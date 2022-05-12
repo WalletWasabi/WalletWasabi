@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	Category = "Help & Support",
 	Keywords = new[]
 	{
-			"Support", "Website", "Docs", "Documentation", "Guide"
+			"User", "Support", "Website", "Docs", "Documentation", "Guide"
 	},
 	IconName = "book_question_mark_regular")]
 public partial class DocsLinkViewModel : TriggerCommandViewModel

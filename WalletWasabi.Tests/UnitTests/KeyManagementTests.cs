@@ -117,13 +117,11 @@ public class KeyManagementTests
 
 		manager.ToFile(); // assert it does not throw
 
-		var random = new Random();
-
 		for (int i = 0; i < 1000; i++)
 		{
-			var isInternal = random.Next(2) == 0;
+			var isInternal = Random.Shared.Next(2) == 0;
 			var label = RandomString.AlphaNumeric(21);
-			var keyState = (KeyState)random.Next(3);
+			var keyState = (KeyState)Random.Shared.Next(3);
 			manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
 		}
 		manager.ToFile();
@@ -146,8 +144,6 @@ public class KeyManagementTests
 		var network = Network.Main;
 		var manager = KeyManager.CreateNew(out _, password, network);
 
-		var random = new Random();
-
 		var k1 = manager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true);
 		var k2 = manager.GenerateNewKey(label: null!, KeyState.Clean, true);
 		Assert.Equal(SmartLabel.Empty, k1.Label);
@@ -155,9 +151,9 @@ public class KeyManagementTests
 
 		for (int i = 0; i < 1000; i++)
 		{
-			var isInternal = random.Next(2) == 0;
+			var isInternal = Random.Shared.Next(2) == 0;
 			var label = RandomString.AlphaNumeric(21);
-			var keyState = (KeyState)random.Next(3);
+			var keyState = (KeyState)Random.Shared.Next(3);
 			var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
 
 			Assert.Equal(isInternal, generatedKey.IsInternal);
