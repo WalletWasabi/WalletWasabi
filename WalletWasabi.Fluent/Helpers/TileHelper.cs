@@ -18,8 +18,8 @@ public static class TileHelper
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
 						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Large),
+						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Large)
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -29,8 +29,8 @@ public static class TileHelper
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Large),
+						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Large),
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -40,8 +40,8 @@ public static class TileHelper
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
 						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
-						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Large),
+						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Large),
 					},
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
@@ -90,7 +90,7 @@ public static class TileHelper
 	{
 		return new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", columnDefinitions: "316,316,316", rowDefinitions: "150"),
+				new("Small", columnDefinitions: "230,170,120", rowDefinitions: "60"),
 				new("Normal", columnDefinitions: "316,316,316", rowDefinitions: "150"),
 				new("Wide", columnDefinitions: "316,316,316", rowDefinitions: "150")
 			};

@@ -71,7 +71,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
-				args switch {
+				args switch
+				{
 					StartedEventArgs _ => true,
 					StoppedEventArgs _ => false,
 					CompletedEventArgs => false,
@@ -90,7 +91,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
 			.Subscribe(x => IsEmptyWallet = x);
 
-		_smallLayoutHeightBreakpoint = double.MaxValue;
+		_smallLayoutHeightBreakpoint = 400;
 		_wideLayoutWidthBreakpoint = double.MaxValue;
 
 		_smallLayoutIndex = 0;

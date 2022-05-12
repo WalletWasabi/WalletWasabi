@@ -8,22 +8,40 @@
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
+    <!-- Medium size -->
+    <StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+        <TextBlock Text="BALANCE:" Classes="h8 bold" HorizontalAlignment="Center" />
 
-    <DockPanel>
-      <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
-      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasBalance}">
-        <Separator />
-        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-          <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9" Margin="4"
-                                          VerticalAlignment="Center"
-                                          Opacity="0.8"
-                                          Content="{Binding BalanceFiat}" />
-        </StackPanel>
+        <controls:PrivacyContentControl NumberOfPrivacyChars="9"
+                                        VerticalAlignment="Top"
+                                        Content="{Binding BalanceBtc}" Classes="h8" />
       </StackPanel>
+      <controls:PrivacyContentControl Classes="h8" NumberOfPrivacyChars="9"
+                                      VerticalAlignment="Top" HorizontalAlignment="Center"
+                                      Opacity="0.6"
+                                      Content="{Binding BalanceFiat}"
+                                      IsVisible="{Binding HasBalance}" />
+    </StackPanel>
 
-      <controls:PrivacyContentControl Margin="0 3" NumberOfPrivacyChars="9"
-                                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                                      Content="{Binding BalanceBtc}" Classes="h2" />
-    </DockPanel>
+    <!-- Large size-->
+    <controls:TileControl.LargeSizeContent>
+      <DockPanel>
+        <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
+        <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasBalance}">
+          <Separator />
+          <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9" Margin="4"
+                                            VerticalAlignment="Center"
+                                            Opacity="0.8"
+                                            Content="{Binding BalanceFiat}" />
+          </StackPanel>
+        </StackPanel>
+
+        <controls:PrivacyContentControl Margin="0 3" NumberOfPrivacyChars="9"
+                                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Content="{Binding BalanceBtc}" Classes="h2" />
+      </DockPanel>
+    </controls:TileControl.LargeSizeContent>
   </controls:TileControl>
 </UserControl>

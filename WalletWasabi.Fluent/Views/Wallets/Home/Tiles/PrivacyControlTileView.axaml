@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -8,31 +8,47 @@
              x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
   <controls:TileControl TileSize="{Binding CurrentTileSize}">
-    <DockPanel>
-      <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
-      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
-        <Separator />
-        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
-                  BorderBrush="{StaticResource ButtonForeground}">
-            <TextBlock
-              Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
-          </Border>
-          <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9"
-                                          VerticalAlignment="Center"
+    <!-- Medium Size-->
+    <StackPanel>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5">
+        <TextBlock Text="PRIVACY LEVEL:" Classes="h8 bold" HorizontalAlignment="Center" />
+        <TextBlock VerticalAlignment="Top" Text="{Binding PercentText}" Classes="h8" />
+      </StackPanel>
+      <controls:PrivacyContentControl Classes="h8" NumberOfPrivacyChars="9"
+                                      VerticalAlignment="Top" HorizontalAlignment="Center"
+                                      Opacity="0.6"
+                                      Content="{Binding BalancePrivateBtc}"
+                                      IsVisible="{Binding HasPrivateBalance}" />
+    </StackPanel>
 
-                                          Content="{Binding BalancePrivateBtc}" />
+    <!-- Large Size-->
+    <controls:TileControl.LargeSizeContent>
+      <DockPanel>
+        <TextBlock Text="PRIVACY LEVEL" DockPanel.Dock="Top" Classes="h8 bold" />
+        <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
+          <Separator />
+          <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                    BorderBrush="{StaticResource ButtonForeground}">
+              <TextBlock
+                Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </Border>
+            <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9"
+                                            VerticalAlignment="Center"
+
+                                            Content="{Binding BalancePrivateBtc}" />
+          </StackPanel>
         </StackPanel>
-      </StackPanel>
 
-      <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
-        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
-               Source="{StaticResource privacy_indicator_good}" />
-        <TextBlock
-          VerticalAlignment="Center" HorizontalAlignment="Center"
-          TextAlignment="Center"
-          Text="{Binding PercentText}" Classes="h2" />
-      </StackPanel>
-    </DockPanel>
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
+          <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
+                 Source="{StaticResource privacy_indicator_good}" />
+          <TextBlock
+            VerticalAlignment="Center" HorizontalAlignment="Center"
+            TextAlignment="Center"
+            Text="{Binding PercentText}" Classes="h2" />
+        </StackPanel>
+      </DockPanel>
+    </controls:TileControl.LargeSizeContent>
   </controls:TileControl>
 </UserControl>

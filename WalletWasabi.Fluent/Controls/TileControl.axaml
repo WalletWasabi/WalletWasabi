@@ -24,7 +24,7 @@
                 Background="{DynamicResource TileRegionColor}"
                 BorderBrush="{DynamicResource TileBorderColor}">
           <Panel>
-            <Border Padding="16">
+            <Border Name="PART_InnerBorder">
               <ContentPresenter Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 Padding="{TemplateBinding Padding}"
@@ -35,5 +35,13 @@
         </Border>
       </ControlTemplate>
     </Setter>
+  </Style>
+
+  <Style Selector="controls|TileControl:medium /template/ Border#PART_InnerBorder">
+    <Setter Property="Padding" Value="5" />
+  </Style>
+
+  <Style Selector="controls|TileControl /template/ Border#PART_InnerBorder">
+    <Setter Property="Padding" Value="16" />
   </Style>
 </Styles>

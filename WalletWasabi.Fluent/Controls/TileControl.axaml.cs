@@ -43,6 +43,10 @@ public class TileControl : ContentControl
 		{
 			_contentPresenter.Content = GetClosestSizedContent();
 		}
+
+		PseudoClasses.Set(":medium", TileSize == TileSize.Medium);
+		PseudoClasses.Set(":large", TileSize == TileSize.Large);
+		PseudoClasses.Set(":wide", TileSize == TileSize.Wide);
 	}
 
 	private object GetClosestSizedContent()
@@ -68,7 +72,6 @@ public class TileControl : ContentControl
 						return LargeSizeContent;
 					}
 					break;
-
 			}
 
 			currentSize--;
