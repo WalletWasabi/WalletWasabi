@@ -100,6 +100,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
 			.Subscribe(SetAutoCoinJoin);
 
+		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
+			.Subscribe(x => _stateMachine.Fire(Trigger.PlebStopChanged));
+
 		_stateMachine.Start();
 	}
 
