@@ -70,24 +70,23 @@ public partial class LoginViewModel : RoutableViewModel
 		if (legalResult)
 		{
 			var km = closedWalletViewModel.Wallet.KeyManager;
+			bool shouldSelectProfile = !km.IsCoinjoinProfileSelected && km.AutoCoinJoin;
+			bool isProfileSelected = false;
 
 			// This should be impossible, this is just a sanity check
-			if (!km.IsCoinjoinProfileSelected && km.AutoCoinJoin)
+			if (shouldSelectProfile)
 			{
-				DialogResult<bool> isProfileSelected = await NavigateDialogAsync(new CoinJoinProfilesViewModel(closedWalletViewModel.Wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				DialogResult<bool> profileDialogResult = await NavigateDialogAsync(new CoinJoinProfilesViewModel(closedWalletViewModel.Wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				isProfileSelected = profileDialogResult.Result;
+			}
 
-				if (isProfileSelected.Result)
-				{
-					LoginWallet(closedWalletViewModel);
-				}
-				else
-				{
-					wallet.Logout();
-				}
+			if (isProfileSelected || !shouldSelectProfile)
+			{
+				LoginWallet(closedWalletViewModel);
 			}
 			else
 			{
-				LoginWallet(closedWalletViewModel);
+				wallet.Logout();
 			}
 		}
 		else
