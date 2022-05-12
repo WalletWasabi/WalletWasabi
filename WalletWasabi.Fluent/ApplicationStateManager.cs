@@ -145,6 +145,8 @@ public class ApplicationStateManager : IMainWindowService
 		{
 			_stateMachine.Fire(Trigger.Loaded);
 		}
+
+		ApplicationViewModel = new ApplicationViewModel(this);
 	}
 
 	private void MainWindowOnClosing(object? sender, CancelEventArgs e)
@@ -260,5 +262,5 @@ public class ApplicationStateManager : IMainWindowService
 		}
 	}
 
-	internal ApplicationViewModel? ApplicationViewModel { get; set; }
+	internal ApplicationViewModel? ApplicationViewModel { get; }
 }
