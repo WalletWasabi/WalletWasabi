@@ -230,12 +230,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.BalanceChanged, State.ManualPlaying)
 			.Permit(Trigger.PlebStopChanged, State.ManualPlaying)
 			.Permit(Trigger.OverridePlebStop, State.ManualPlaying)
+			.Permit(Trigger.Stop, State.Stopped)
 			.OnEntry(() =>
 			{
 				CurrentStatus = _plebStopMessage;
 				ProgressValue = 0;
 
-				StopVisible = false;
+				StopVisible = true;
 				PauseVisible = false;
 				PlayVisible = true;
 			})
