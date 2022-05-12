@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -42,7 +43,7 @@ public class ApplicationStateManager : IMainWindowService
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
-	private IDisposable? _subscriptions;
+	private CompositeDisposable? _compositeDisposable;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
@@ -204,7 +205,10 @@ public class ApplicationStateManager : IMainWindowService
 
 		result.Closing += MainWindowOnClosing;
 
-		_subscriptions = result.WhenAnyValue(x => x.WindowState)
+		_compositeDisposable?.Dispose();
+		_compositeDisposable = new();
+
+		result.WhenAnyValue(x => x.WindowState)
 			.Subscribe(x =>
 			{
 				if (x == WindowState.Minimized)
@@ -215,17 +219,19 @@ public class ApplicationStateManager : IMainWindowService
 				{
 					_stateMachine.Fire(Trigger.Restored);
 				}
-			});
+			})
+			.DisposeWith(_compositeDisposable);
 
 		Observable.FromEventPattern(result, nameof(result.Closed))
 			.Take(1)
 			.Subscribe(x =>
 			{
-				_subscriptions?.Dispose();
-				_subscriptions = null;
+				_compositeDisposable?.Dispose();
+				_compositeDisposable = null;
 				result.Closing -= MainWindowOnClosing;
 				_stateMachine.Fire(Trigger.MainWindowClosed);
-			});
+			})
+			.DisposeWith(_compositeDisposable);
 
 		_lifetime.MainWindow = result;
 
