@@ -72,7 +72,7 @@ public static class HttpResponseMessageExtensions
 			var innerException = error switch
 			{
 				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
-					? new WabiSabiProtocolException(code, error.Description)
+					? new WabiSabiProtocolException(code, error.Description, exceptionData: JsonConvert.DeserializeObject<InputBannedExceptionData>(error.Data))
 					: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
 				{ Type: "unknown" } => new Exception(error.Description),
 				_ => null
