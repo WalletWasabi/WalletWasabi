@@ -25,7 +25,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(1);
 
@@ -66,12 +65,6 @@ public class CoinJoinClient
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-
-	public bool InCriticalCoinJoinState
-	{
-		get => _inCriticalCoinJoinState;
-		private set => _inCriticalCoinJoinState = value;
-	}
 
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -205,8 +198,6 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			InCriticalCoinJoinState = true;
-
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
@@ -235,12 +226,15 @@ public class CoinJoinClient
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
-			InCriticalCoinJoinState = false;
+			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 		}
 	}
 
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
+		bool alreadyEnteredToCritical = false;
+		object alreadyEnteredToCriticalLock = new();
+
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
 			PersonCircuit? personCircuit = null;
@@ -257,6 +251,19 @@ public class CoinJoinClient
 					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+
+				// Right after the first real-cred confirmation happened we entered into critical phase.
+				if (!alreadyEnteredToCritical)
+				{
+					lock (alreadyEnteredToCriticalLock)
+					{
+						if (!alreadyEnteredToCritical)
+						{
+							CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
+							alreadyEnteredToCritical = true;
+						}
+					}
+				}
 
 				return (aliceClient, personCircuit);
 			}
