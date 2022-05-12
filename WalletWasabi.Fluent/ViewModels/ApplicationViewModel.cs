@@ -44,25 +44,10 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		AboutCommand = ReactiveCommand.Create(
 			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
 			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage)
-				.SelectMany(x => x switch
-					{
-						null => Observable.Return(true),
-						AboutViewModel => Observable.Return(false),
-						_ => x.WhenAnyValue(page => page.IsBusy).Select(isBusy => !isBusy)
-					}));
+				.SelectMany(x => x is null));
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico");
-
-			TrayIcon = new WindowIcon(bitmap);
-		}
-		else
-		{
-			using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
-
-			TrayIcon = new WindowIcon(bitmap);
-		}
+		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+		TrayIcon = new WindowIcon(bitmap);
 	}
 
 	public WindowIcon TrayIcon { get; }
