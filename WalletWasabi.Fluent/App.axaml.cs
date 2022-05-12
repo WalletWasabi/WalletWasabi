@@ -41,8 +41,6 @@ public class App : Application
 				_applicationStateManager =
 					new ApplicationStateManager(desktop, _startInBg);
 
-				_applicationStateManager.ApplicationViewModel = new ApplicationViewModel(_applicationStateManager);
-
 				DataContext = _applicationStateManager.ApplicationViewModel;
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
