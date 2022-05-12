@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -34,7 +35,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => OnNextAsync(keyManager), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(keyManager), nextCommandCanExecute);
 
 		if (_isSkipEnable)
 		{
@@ -57,7 +58,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private async void OnNextAsync(KeyManager keyManager)
+	private async Task OnNextAsync(KeyManager keyManager)
 	{
 		await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
 	}

@@ -92,11 +92,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
-		PlayCommand = ReactiveCommand.Create(async () =>
+		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
 			}
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)

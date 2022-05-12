@@ -17,7 +17,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private bool _autoCoinJoinValue;
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
@@ -29,7 +28,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_wallet = walletViewModelBase.Wallet;
 		Title = $"{_wallet.WalletName} - Wallet Settings";
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
-		_autoCoinJoinValue = _wallet.KeyManager.AutoCoinJoin;
+		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
@@ -49,7 +48,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 			});
 
-		SetAutoCoinJoin = ReactiveCommand.Create(async () =>
+		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
@@ -58,13 +57,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				AutoCoinJoin = AutoCoinJoinValue;
-				_wallet.KeyManager.AutoCoinJoin = !_wallet.KeyManager.AutoCoinJoin;
+				AutoCoinJoin = !AutoCoinJoin;
+				_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
 				_wallet.KeyManager.ToFile();
 			}
 			else
 			{
-				AutoCoinJoinValue = false;
+				AutoCoinJoin = false;
 			}
 		});
 
