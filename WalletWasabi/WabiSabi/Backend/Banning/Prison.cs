@@ -100,7 +100,7 @@ public class Prison
 
 			foreach (var inmate in Inmates.Values.ToList())
 			{
-				var banPeriod = inmate.IsLongBan ? longBanPeriod : normalBanPeriod;
+				var banPeriod = inmate.Punishment is Punishment.LongBanned ? longBanPeriod : normalBanPeriod;
 				if (inmate.TimeSpent > banPeriod)
 				{
 					Inmates.Remove(inmate.Utxo);
