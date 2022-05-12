@@ -90,8 +90,12 @@ public class MainWindowBindPositionBehavior : DisposingBehavior<Window>
 			vm.WindowState = WindowState.Maximized;
 			AssociatedObject.Position = PixelPoint.Origin;
 			currentScreen = AssociatedObject.Screens.ScreenFromPoint(AssociatedObject.Position);
-			vm.WindowHeight = currentScreen.WorkingArea.Height;
-			vm.WindowWidth = currentScreen.WorkingArea.Width;
+
+			if (currentScreen is { })
+			{
+				vm.WindowHeight = currentScreen.WorkingArea.Height;
+				vm.WindowWidth = currentScreen.WorkingArea.Width;
+			}
 		}
 	}
 }

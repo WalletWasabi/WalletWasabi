@@ -30,7 +30,6 @@
   </Window.Styles>
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
-    <behaviors:HideShowBehavior />
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Key1="LeftCtrl" Key2="D" Key3="C" />
     <behaviors:MainWindowBindPositionBehavior/>
   </i:Interaction.Behaviors>

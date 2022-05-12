@@ -9,9 +9,12 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -163,6 +166,7 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically);
+			coinJoinTracker.WalletCoinJoinProgressChanged += CoinJoinTracker_WalletCoinJoinProgressChanged;
 
 			trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
 			var registrationTimeout = TimeSpan.MaxValue;
@@ -258,6 +262,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		else
 		{
+			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
 			finishedCoinJoin.Dispose();
 		}
 
@@ -330,19 +335,19 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
-		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
+		StatusChanged.SafeInvoke(this, new StartedEventArgs(openedWallet, registrationTimeout));
 
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
-		SafeRaiseEvent(StatusChanged, new StartErrorEventArgs(openedWallet, error));
+		StatusChanged.SafeInvoke(this, new StartErrorEventArgs(openedWallet, error));
 
 	private void NotifyMixableWalletUnloaded(Wallet closedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
+		StatusChanged.SafeInvoke(this, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
 
 	private void NotifyMixableWalletLoaded(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new LoadedEventArgs(openedWallet));
+		StatusChanged.SafeInvoke(this, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
-		SafeRaiseEvent(StatusChanged, new CompletedEventArgs(
+		StatusChanged.SafeInvoke(this, new CompletedEventArgs(
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
@@ -352,24 +357,17 @@ public class CoinJoinManager : BackgroundService
 				_ => CompletionStatus.Unknown,
 			}));
 
+	private void NotifyCoinJoinStatusChanged(Wallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) =>
+		StatusChanged.SafeInvoke(this, new CoinJoinStatusEventArgs(
+			wallet,
+			coinJoinProgressEventArgs));
+
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
 			.Where(x => x.State == WalletState.Started // Only running wallets
 					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
 					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
-
-	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
-	{
-		try
-		{
-			evnt?.Invoke(this, args);
-		}
-		catch (Exception e)
-		{
-			Logger.LogError(e);
-		}
-	}
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
@@ -419,5 +417,15 @@ public class CoinJoinManager : BackgroundService
 				Logger.LogInfo($"Task '{logPrefix}' finished but with an error: '{ex}'.");
 			}
 		}
+	}
+
+	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
+	{
+		if (sender is not Wallet wallet)
+		{
+			throw new InvalidOperationException("Sender must be a wallet.");
+		}
+
+		NotifyCoinJoinStatusChanged(wallet, e);
 	}
 }

@@ -10,7 +10,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -19,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -71,7 +71,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
-				args switch {
+				args switch
+				{
 					StartedEventArgs _ => true,
 					StoppedEventArgs _ => false,
 					CompletedEventArgs => false,
