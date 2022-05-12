@@ -1,11 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
