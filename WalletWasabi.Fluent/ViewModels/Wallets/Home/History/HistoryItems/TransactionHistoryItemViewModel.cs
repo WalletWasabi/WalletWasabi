@@ -37,10 +37,12 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 
-		SpeedUpTransactionCommand = ReactiveCommand.Create(() =>
-		{
-			// TODO: Show speed up transaction dialog.
-		}, this.WhenAnyValue(x => !x.IsConfirmed));
+		SpeedUpTransactionCommand = ReactiveCommand.Create(
+			() =>
+			{
+				// TODO: Show speed up transaction dialog.
+			},
+			this.WhenAnyValue(x => !x.IsConfirmed));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}
