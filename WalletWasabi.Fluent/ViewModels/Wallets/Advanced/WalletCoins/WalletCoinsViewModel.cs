@@ -17,12 +17,13 @@ using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 [NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
-public partial class WalletCoinsViewModel : RoutableViewModel
+public partial class WalletCoinsViewModel : RoutableViewModel, IDisposable
 {
 	private readonly WalletViewModel _walletViewModel;
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
 	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
+	private readonly CompositeDisposable _disposables = new();
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -37,14 +38,19 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_coins)
 			.DisposeMany()
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		CoinsUpdated
+			.Select(_ => GetCoins())
+			.Subscribe(RefreshCoinsList)
+			.DisposeWith(_disposables);
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymitySet		AnonymityColumnView		<custom>	40			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			false
-
 		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
 		{
 			Columns =
@@ -112,16 +118,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.WhenAnyValue(w => w.IsCoinJoining)
 			.ToSignal());
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		CoinsUpdated
-			.Select(_ => GetCoins())
-			.Subscribe(RefreshCoinsList)
-			.DisposeWith(disposables);
-	}
-
 	private ICoinsView GetCoins()
 	{
 		return _walletViewModel.Wallet.Coins;
@@ -134,5 +130,12 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			x.Clear();
 			x.AddRange(items.Select(coin => new WalletCoinViewModel(coin)));
 		});
+	}
+
+	public void Dispose()
+	{
+		_coinsSourceList.Dispose();
+		_disposables.Dispose();
+		Source.Dispose();
 	}
 }
