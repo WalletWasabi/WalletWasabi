@@ -97,13 +97,13 @@ public class CoinJoinClient
 		var timeout = TimeSpan.FromMinutes(5);
 		CoinJoinClientProgress.SafeInvoke(this, new WaitingForBlameRound(DateTimeOffset.UtcNow + timeout));
 
-		using CancellationTokenSource waitForBlameRound = new(timeout);
-		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRound.Token, token);
+		using CancellationTokenSource waitForBlameRoundCts = new(timeout);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRoundCts.Token, token);
 
 		var roundState = await RoundStatusUpdater
 				.CreateRoundAwaiter(
 					roundState => roundState.BlameOf == blameRoundId,
-					linkedTokenSource.Token)
+					linkedCts.Token)
 				.ConfigureAwait(false);
 
 		if (roundState.Phase is not Phase.InputRegistration)
@@ -187,9 +187,9 @@ public class CoinJoinClient
 			try
 			{
 				using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-				using CancellationTokenSource combinedTimeUntilOutputRegCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
 
-				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, combinedTimeUntilOutputRegCts.Token).ConfigureAwait(false);
+				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, linkedCts.Token).ConfigureAwait(false);
 			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
@@ -600,7 +600,7 @@ public class CoinJoinClient
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 		var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
@@ -625,7 +625,7 @@ public class CoinJoinClient
 		// Re-issuances.
 		var bobClient = CreateBobClient(roundState);
 		roundState.LogInfo("Starting reissuances.");
-		var combinedToken = combinedCts.Token;
+		var combinedToken = linkedCts.Token;
 		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
 
 		// Output registration.
@@ -652,7 +652,7 @@ public class CoinJoinClient
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringSigningPhase(roundState, signingStateEndTime));
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		roundState.LogDebug($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
@@ -668,7 +668,7 @@ public class CoinJoinClient
 		}
 
 		// Send signature.
-		var combinedToken = combinedCts.Token;
+		var combinedToken = linkedCts.Token;
 		await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) have signed the coinjoin tx.");
 
@@ -680,8 +680,8 @@ public class CoinJoinClient
 		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
-		var combinedToken = combinedCts.Token;
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
+		var combinedToken = linkedCts.Token;
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
 
@@ -693,7 +693,7 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
 		}
 
-		// Be aware: at this point we are already in conn-confirm and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+		// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
 		var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
 
