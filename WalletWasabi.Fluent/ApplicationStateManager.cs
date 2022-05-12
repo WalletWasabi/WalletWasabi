@@ -116,17 +116,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		Services.UiConfig.WhenAnyValue(x => x.HideOnClose)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(backgroundMode =>
-			{
-				if (backgroundMode)
-				{
-					_stateMachine.Fire(Trigger.BackgroundModeOn);
-				}
-				else
-				{
-					_stateMachine.Fire(Trigger.BackgroundModeOff);
-				}
-			});
+			.Subscribe(backgroundMode => _stateMachine.Fire(backgroundMode ? Trigger.BackgroundModeOn : Trigger.BackgroundModeOff));
 
 		_stateMachine.Start();
 
@@ -164,14 +154,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
-		if (e.Cancel)
-		{
-			_stateMachine.Fire(Trigger.ShutdownPrevented);
-		}
-		else
-		{
-			_stateMachine.Fire(Trigger.ShutdownRequested);
-		}
+		_stateMachine.Fire(e.Cancel ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 	}
 
 	private void CreateAndShowMainWindow()
@@ -192,17 +175,7 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		result.WhenAnyValue(x => x.WindowState)
-			.Subscribe(x =>
-			{
-				if (x == WindowState.Minimized)
-				{
-					_stateMachine.Fire(Trigger.Minimised);
-				}
-				else
-				{
-					_stateMachine.Fire(Trigger.Restored);
-				}
-			})
+			.Subscribe(windowState => _stateMachine.Fire(windowState == WindowState.Minimized ? Trigger.Minimised : Trigger.Restored))
 			.DisposeWith(_compositeDisposable);
 
 		Observable.FromEventPattern(result, nameof(result.Closed))
@@ -235,13 +208,6 @@ public class ApplicationStateManager : IMainWindowService
 
 	void IMainWindowService.Shutdown()
 	{
-		if (ApplicationViewModel.CanShutdown())
-		{
-			_stateMachine.Fire(Trigger.ShutdownRequested);
-		}
-		else
-		{
-			_stateMachine.Fire(Trigger.ShutdownPrevented);
-		}
+		_stateMachine.Fire(ApplicationViewModel.CanShutdown() ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }
