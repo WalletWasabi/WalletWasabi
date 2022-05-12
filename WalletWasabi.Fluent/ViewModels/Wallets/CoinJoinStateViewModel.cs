@@ -22,18 +22,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly DispatcherTimer _countdownTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
-	private readonly MusicStatusMessageViewModel _coordinatorMessage = new() { Message = "Waiting for the coordinator" };
+	private readonly MusicStatusMessageViewModel _waitingMessage = new() { Message = "Waiting for coinjoin" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
-	private readonly MusicStatusMessageViewModel _roundEndedMessage = new() { Message = "The round has been finished" };
-	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Output registration" };
-	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Input registration" };
-	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Transaction signing" };
+	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin" };
+	private readonly MusicStatusMessageViewModel _roundFailedMessage = new() { Message = "Coinjoin failed, retrying..." };
+	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
+	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for others" };
+	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Finalizing coinjoin" };
 	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for the blame round" };
 	private readonly MusicStatusMessageViewModel _waitingRoundMessage = new() { Message = "Waiting for a round" };
-	private readonly MusicStatusMessageViewModel _connectionConfirmationMessage = new() { Message = "Connection confirmation" };
+	private readonly MusicStatusMessageViewModel _connectionConfirmationMessage = new() { Message = "Preparing coinjoin" };
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -190,7 +191,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				PlayVisible = false;
 				StopVisible = true;
-				CurrentStatus = _coordinatorMessage;
+				CurrentStatus = _waitingMessage;
 				await coinJoinManager.StartAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
@@ -278,7 +279,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(async () =>
 			{
-				CurrentStatus = _coordinatorMessage;
+				CurrentStatus = _waitingMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
@@ -389,8 +390,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		switch (coinJoinProgress)
 		{
-			case RoundEnded:
-				CurrentStatus = _roundEndedMessage;
+			case RoundEnded roundEnded:
+				CurrentStatus = roundEnded.RoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
 				StopCountDown();
 				break;
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
