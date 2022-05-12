@@ -48,14 +48,13 @@ public class ApplicationStateManager : IMainWindowService
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
 		_lifetime = lifetime;
-
-		_stateMachine =
-			new StateMachine<State, Trigger>(Services.UiConfig.HideOnClose ? State.BackgroundMode : State.StandardMode);
+		_stateMachine = new StateMachine<State, Trigger>(Services.UiConfig.HideOnClose ? State.BackgroundMode : State.StandardMode);
+		ApplicationViewModel = new ApplicationViewModel(this);
 
 		_stateMachine.Configure(State.BackgroundMode)
 			.OnEntry(() => _stateMachine.Fire(Trigger.Initialise))
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
-			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel?.OnShutdownPrevented())
+			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented())
 			.Permit(Trigger.BackgroundModeOff, State.StandardMode)
 			.Permit(Trigger.Initialise, State.Closed);
 
@@ -64,11 +63,7 @@ public class ApplicationStateManager : IMainWindowService
 			.OnEntry(() =>
 			{
 				_lifetime.MainWindow = null;
-
-				if (ApplicationViewModel is { })
-				{
-					ApplicationViewModel.IsMainWindowShown = false;
-				}
+				ApplicationViewModel.IsMainWindowShown = false;
 			})
 			.Permit(Trigger.Show, State.Open)
 			.Permit(Trigger.ShutdownPrevented, State.Open)
@@ -83,7 +78,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		_stateMachine.Configure(State.StandardMode)
 			.OnEntry(() => _stateMachine.Fire(Trigger.Initialise))
-			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel?.OnShutdownPrevented())
+			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented())
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
 			.Permit(Trigger.BackgroundModeOn, State.BackgroundMode)
 			.Permit(Trigger.Initialise, State.Shown);
@@ -103,10 +98,7 @@ public class ApplicationStateManager : IMainWindowService
 					_lifetime.MainWindow.WindowState = WindowState.Normal;
 				}
 
-				if (ApplicationViewModel is { })
-				{
-					ApplicationViewModel.IsMainWindowShown = true;
-				}
+				ApplicationViewModel.IsMainWindowShown = true;
 			});
 
 		_stateMachine.Configure(State.Hidden)
@@ -117,11 +109,7 @@ public class ApplicationStateManager : IMainWindowService
 			.OnEntry(() =>
 			{
 				_lifetime.MainWindow.WindowState = WindowState.Minimized;
-
-				if (ApplicationViewModel is { })
-				{
-					ApplicationViewModel.IsMainWindowShown = false;
-				}
+				ApplicationViewModel.IsMainWindowShown = false;
 			});
 
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
@@ -147,17 +135,15 @@ public class ApplicationStateManager : IMainWindowService
 			_stateMachine.Fire(Trigger.Loaded);
 		}
 
-		ApplicationViewModel = new ApplicationViewModel(this);
 	}
+
+	internal ApplicationViewModel ApplicationViewModel { get; }
 
 	private void MainWindowOnClosing(object? sender, CancelEventArgs e)
 	{
 		if (_stateMachine.IsInState(State.StandardMode))
 		{
-			if (ApplicationViewModel is { })
-			{
-				e.Cancel = !ApplicationViewModel.CanShutdown();
-			}
+			e.Cancel = !ApplicationViewModel.CanShutdown();
 
 			if (e.Cancel)
 			{
@@ -173,13 +159,10 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
-		if (ApplicationViewModel is { })
-		{
-			// Shutdown prevention will only work if you directly run the executable.
-			e.Cancel = !ApplicationViewModel.CanShutdown();
+		// Shutdown prevention will only work if you directly run the executable.
+		e.Cancel = !ApplicationViewModel.CanShutdown();
 
-			Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
-		}
+		Logger.LogDebug($"Cancellation of the shutdown set to: {e.Cancel}.");
 
 		if (e.Cancel)
 		{
@@ -237,10 +220,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		result.Show();
 
-		if (ApplicationViewModel is { })
-		{
-			ApplicationViewModel.IsMainWindowShown = true;
-		}
+		ApplicationViewModel.IsMainWindowShown = true;
 	}
 
 	void IMainWindowService.Show()
@@ -255,18 +235,13 @@ public class ApplicationStateManager : IMainWindowService
 
 	void IMainWindowService.Shutdown()
 	{
-		if (ApplicationViewModel is { })
+		if (ApplicationViewModel.CanShutdown())
 		{
-			if (ApplicationViewModel.CanShutdown())
-			{
-				_stateMachine.Fire(Trigger.ShutdownRequested);
-			}
-			else
-			{
-				_stateMachine.Fire(Trigger.ShutdownPrevented);
-			}
+			_stateMachine.Fire(Trigger.ShutdownRequested);
+		}
+		else
+		{
+			_stateMachine.Fire(Trigger.ShutdownPrevented);
 		}
 	}
-
-	internal ApplicationViewModel? ApplicationViewModel { get; }
 }
