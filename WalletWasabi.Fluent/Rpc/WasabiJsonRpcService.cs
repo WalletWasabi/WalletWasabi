@@ -55,7 +55,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-		var coinRegistry = activeWallet.Coins as CoinsRegistry;
+		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
+		{
+			return Array.Empty<SmartCoin>();
+		}
 		return coinRegistry.AsAllCoinsView().Select(x => new
 		{
 			txid = x.TransactionId.ToString(),
