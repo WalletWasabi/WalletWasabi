@@ -26,7 +26,7 @@
             <ControlTemplate>
                 <Panel>
                     <Panel IsHitTestVisible="False" Background="{TemplateBinding Background}" />
-                    <c:ProgressRing Name="LoadingRing" IsIndeterminate="{Binding $self.IsVisible}" IsVisible="{TemplateBinding IsBusy}" />
+                    <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
                     <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
 
                         <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
