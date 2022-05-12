@@ -101,6 +101,19 @@ public partial class MainViewModel : ViewModelBase
 
 				Services.UiConfig.WindowWidth = width;
 				Services.UiConfig.WindowHeight = height;
+
+				switch (state)
+				{
+					case WindowState.Normal:
+					case WindowState.Maximized:
+					case WindowState.FullScreen:
+						if (Application.Current?.DataContext is ApplicationViewModel avm)
+						{
+							avm.IsMainWindowShown = true;
+						}
+
+						break;
+				}
 			});
 
 		this.WhenAnyValue(

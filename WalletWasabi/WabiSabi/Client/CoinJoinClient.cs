@@ -179,11 +179,17 @@ public class CoinJoinClient
 
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 
+		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
+		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.Now) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+
 		try
 		{
 			try
 			{
-				registeredAliceClientAndCircuits = await ProceedWithInputRegistrationPhaseAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+				using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
+				using CancellationTokenSource combinedTimeUntilOutputRegCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+
+				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, combinedTimeUntilOutputRegCts.Token).ConfigureAwait(false);
 			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
@@ -207,7 +213,7 @@ public class CoinJoinClient
 
 			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(finalRoundState));
 
 			var wasTxBroadcast = finalRoundState.WasTransactionBroadcast
 				? $"'{finalRoundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
@@ -669,7 +675,7 @@ public class CoinJoinClient
 		return unsignedCoinJoin;
 	}
 
-	private async Task<ImmutableArray<(AliceClient, PersonCircuit)>> ProceedWithInputRegistrationPhaseAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<(AliceClient, PersonCircuit)>> ProceedWithInputRegAndConfirmAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
