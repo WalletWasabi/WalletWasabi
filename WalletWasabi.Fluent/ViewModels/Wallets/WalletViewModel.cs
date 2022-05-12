@@ -30,6 +30,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	private readonly int _smallLayoutIndex;
 	private readonly int _normalLayoutIndex;
 	private readonly int _wideLayoutIndex;
+	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private IList<TileViewModel> _tiles;
 	[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 	[AutoNotify] private int _layoutIndex;
@@ -44,10 +45,6 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
-		Disposables = Disposables is null
-			? new CompositeDisposable()
-			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
 		Settings = new WalletSettingsViewModel(this);
 
 		var balanceChanged =
@@ -67,7 +64,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		balanceChanged
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
-			.DisposeWith(Disposables);
+			.DisposeWith(_disposables);
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
@@ -85,7 +82,7 @@ public partial class WalletViewModel : WalletViewModelBase
 				.Where(e => e.Wallet == Wallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e => IsCoinJoining = MaybeCoinjoining(e) ?? IsCoinJoining)
-				.DisposeWith(Disposables);
+				.DisposeWith(_disposables);
 		}
 
 		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
@@ -171,8 +168,6 @@ public partial class WalletViewModel : WalletViewModelBase
 	public ICommand WalletStatisticsCommand { get; }
 
 	public ICommand WalletCoinsCommand { get; }
-
-	private CompositeDisposable Disposables { get; set; }
 
 	public HistoryViewModel History { get; }
 
