@@ -186,7 +186,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
 				_overridePlebStop = false;
-				
+
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
@@ -338,6 +338,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				PauseVisible = false;
+				PlayVisible = false;
 
 				ProgressValue = 100;
 				ElapsedTime = "";
@@ -348,6 +349,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine.Configure(State.AutoFinishedPlebStop)
 			.SubstateOf(State.AutoFinished)
+			.Permit(Trigger.Play, State.AutoPlaying)
 			.Permit(Trigger.PlebStopChanged, State.AutoPlaying)
 			.Permit(Trigger.Pause, State.Paused)
 			.OnEntry(() =>
