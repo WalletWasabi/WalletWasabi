@@ -49,6 +49,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
+	private bool _overridePlebStop;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -113,12 +114,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Paused,
 		AutoPlaying,
 		AutoFinished,
+		AutoFinishedPlebStop,
 
 		Stopped,
 		ManualPlaying,
 		ManualFinished,
-		AutoPlebStop,
-		ManualPlebStop,
+
+		ManualFinishedPlebStop,
 	}
 
 	private enum Trigger
@@ -152,15 +154,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void ConfigureStateMachine(CoinJoinManager coinJoinManager)
 	{
-		bool overridePlebStop = false;
-
 		// See diagram in the developer docs.
 		_stateMachine.Configure(State.Disabled);
 
 		// Manual Cj State
 		_stateMachine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
-			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped)
+			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped) // TODO remove hack
 			.OnEntry(() =>
 			{
 				IsAuto = false;
@@ -193,20 +193,20 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
 			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
-			.Permit(Trigger.PlebStop, State.ManualPlebStop)
+			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
 			.OnEntry(async () =>
 			{
 				PlayVisible = false;
 				StopVisible = true;
 				CurrentStatus = _coinJoiningMessage;
 
-				if (overridePlebStop && !_wallet.IsUnderPlebStop)
+				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
 				{
 					// If we are not below the threshold anymore, we turn off the override.
-					overridePlebStop = false;
+					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAsync(_wallet, overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
@@ -225,12 +225,30 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				RemainingTime = "";
 			});
 
+		_stateMachine.Configure(State.ManualFinishedPlebStop)
+			.SubstateOf(State.ManualFinished)
+			.Permit(Trigger.BalanceChanged, State.ManualPlaying)
+			.Permit(Trigger.PlebStopChanged, State.ManualPlaying)
+			.Permit(Trigger.OverridePlebStop, State.ManualPlaying)
+			.OnEntry(() =>
+			{
+				CurrentStatus = _plebStopMessage;
+				ProgressValue = 0;
+
+				StopVisible = false;
+				PauseVisible = false;
+				PlayVisible = true;
+			})
+			.OnTrigger(Trigger.Play, () =>
+			{
+				_overridePlebStop = true;
+				_stateMachine.Fire(Trigger.OverridePlebStop);
+			});
+
 		// AutoCj State
 		_stateMachine.Configure(State.AutoCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
-			.Permit(Trigger.RoundStart, State.AutoPlaying)
-			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting) // TODO remove hack
 			.OnEntry(async () =>
 			{
 				IsAuto = true;
@@ -249,9 +267,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
-			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
+			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(() =>
 			{
 				_countdownTimer.Start();
@@ -285,10 +303,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoPlaying)
-			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting)
+			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
-			.Permit(Trigger.PlebStop, State.AutoPlebStop)
+			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.OnEntry(async () =>
 			{
@@ -297,13 +314,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = true;
 				PlayVisible = false;
 
-				if (overridePlebStop && !_wallet.IsUnderPlebStop)
+				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
 				{
 					// If we are not below the threshold anymore, we turn off the override.
-					overridePlebStop = false;
+					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress);
@@ -311,6 +328,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.AutoFinished)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
+			.Permit(Trigger.BalanceChanged, State.AutoPlaying)
 			.OnEntry(() =>
 			{
 				PauseVisible = false;
@@ -322,44 +340,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _finishedMessage;
 			});
 
-		_stateMachine.Configure(State.AutoPlebStop)
-			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.Permit(Trigger.RoundStart, State.AutoPlaying)
-			.Permit(Trigger.BalanceChanged, State.AutoPlaying)
+		_stateMachine.Configure(State.AutoFinishedPlebStop)
+			.SubstateOf(State.AutoFinished)
 			.Permit(Trigger.PlebStopChanged, State.AutoPlaying)
 			.Permit(Trigger.OverridePlebStop, State.AutoPlaying)
+			.Permit(Trigger.Pause, State.Paused)
 			.OnEntry(() =>
 			{
 				CurrentStatus = _plebStopMessage;
 				ProgressValue = 0;
 
 				StopVisible = false;
-				PauseVisible = false;
+				PauseVisible = true;
 				PlayVisible = true;
 			})
 			.OnTrigger(Trigger.Play, () =>
 			{
-				overridePlebStop = true;
-				_stateMachine.Fire(Trigger.OverridePlebStop);
-			});
-
-		_stateMachine.Configure(State.ManualPlebStop)
-			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
-			.Permit(Trigger.BalanceChanged, State.ManualPlaying)
-			.Permit(Trigger.PlebStopChanged, State.ManualPlaying)
-			.Permit(Trigger.OverridePlebStop, State.ManualPlaying)
-			.OnEntry(() =>
-			{
-				CurrentStatus = _plebStopMessage;
-				ProgressValue = 0;
-
-				StopVisible = false;
-				PauseVisible = false;
-				PlayVisible = true;
-			})
-			.OnTrigger(Trigger.Play, () =>
-			{
-				overridePlebStop = true;
+				_overridePlebStop = true;
 				_stateMachine.Fire(Trigger.OverridePlebStop);
 			});
 	}
