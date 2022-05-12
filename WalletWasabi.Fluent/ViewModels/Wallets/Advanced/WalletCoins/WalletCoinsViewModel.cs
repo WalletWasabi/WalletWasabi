@@ -23,6 +23,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
 	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
+	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -31,13 +32,25 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
 		_coins = new ObservableCollectionExtended<WalletCoinViewModel>();
+	}
+
+	private IObservable<Unit> CoinsUpdated => _balanceChanged
+		.ToSignal()
+		.Merge(_walletViewModel
+			.WhenAnyValue(w => w.IsCoinJoining)
+			.ToSignal());
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
 		_coinsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_coins)
 			.DisposeMany()
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
@@ -101,20 +114,9 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			}
 		};
 
+		Source.DisposeWith(disposables);
+
 		Source.RowSelection!.SingleSelect = true;
-	}
-
-	public FlatTreeDataGridSource<WalletCoinViewModel> Source { get; }
-
-	private IObservable<Unit> CoinsUpdated => _balanceChanged
-		.ToSignal()
-		.Merge(_walletViewModel
-			.WhenAnyValue(w => w.IsCoinJoining)
-			.ToSignal());
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
 
 		CoinsUpdated
 			.Select(_ => GetCoins())
