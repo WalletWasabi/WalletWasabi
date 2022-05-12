@@ -43,8 +43,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		AboutCommand = ReactiveCommand.Create(
 			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
-			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage)
-				.SelectMany(x => x is null));
+			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage).Select(x => x is null));
 
 		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 		TrayIcon = new WindowIcon(bitmap);
