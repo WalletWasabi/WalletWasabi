@@ -93,6 +93,7 @@
           <Setter Property="ContextMenu">
             <Setter.Value>
               <ContextMenu x:DataType="historyItems:HistoryItemViewModelBase">
+                <!-- TODO: Show speed up transaction dialog.
                 <MenuItem Header="Speed-up transaction"
                           IsVisible="{Binding !IsConfirmed}"
                           Command="{Binding SpeedUpTransactionCommand}">
@@ -100,6 +101,7 @@
                     <PathIcon Data="{StaticResource rocket_regular}" />
                   </MenuItem.Icon>
                 </MenuItem>
+                -->
                 <MenuItem Header="Show details"
                           Command="{Binding ShowDetailsCommand}">
                   <MenuItem.Icon>
