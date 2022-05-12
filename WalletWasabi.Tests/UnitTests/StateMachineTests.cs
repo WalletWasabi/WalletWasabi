@@ -260,6 +260,33 @@ public class StateMachineTests
 		Assert.False(sut.IsInState(JukeBoxState.PausedChild));
 	}
 
+	[Fact]
+	public void OnTriggers_Are_Handled_Before_Transitions()
+	{
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
+			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+
+		sut.Configure(JukeBoxState.Playing)
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
+
+		bool onTriggerCalled = false;
+
+		sut.Configure(JukeBoxState.Paused)
+			.Permit(JukeBoxTrigger.Play, JukeBoxState.Playing)
+			.OnTrigger(JukeBoxTrigger.Play, () =>
+			{
+				onTriggerCalled = true;
+			});
+
+		sut.Start();
+
+		sut.Fire(JukeBoxTrigger.Play);
+
+		Assert.Equal(JukeBoxState.Playing, sut.State);
+		Assert.True(sut.IsInState(JukeBoxState.Playing));
+		Assert.True(onTriggerCalled);
+	}
+
 	private enum PhoneState
 	{
 		Disconnected,
