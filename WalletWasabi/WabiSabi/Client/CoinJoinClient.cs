@@ -693,7 +693,7 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
 		}
 
-		// Be aware: at this point we are already in conn-confirm and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+		// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
 		var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
 
