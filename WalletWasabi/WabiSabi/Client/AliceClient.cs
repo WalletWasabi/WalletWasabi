@@ -110,7 +110,11 @@ public class AliceClient
 
 					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
 						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
-						coin.BannedUntilUtc = DateTimeOffset.FromUnixTimeSeconds(inputBannedExData.BannedUntil);
+						if (inputBannedExData is null)
+						{
+							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+						}
+						coin.BannedUntilUtc =inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
 						Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 						break;
 

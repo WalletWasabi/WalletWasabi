@@ -362,12 +362,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			if (inmate.Punishment == Punishment.LongBanned)
 			{
 				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil.ToUnixTimeSeconds()));
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
 			}
 			else if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
 			{
 				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil.ToUnixTimeSeconds()));
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
 			}
 		}
 
