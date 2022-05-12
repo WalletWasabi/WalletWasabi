@@ -146,7 +146,7 @@ public class StateMachineTests
 		Assert.Equal(3, count);
 	}
 
-	
+
 	[Fact]
 	public void Firing_special_trigger_executes_correct_action()
 	{
@@ -176,6 +176,90 @@ public class StateMachineTests
 		Assert.Throws<InvalidOperationException>(ConfigureForReEntry);
 	}
 
+	[Fact]
+	public void Transition_direct_to_child_state_enters_via_parent()
+	{
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
+			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Playing);
+
+		sut.Configure(JukeBoxState.Playing)
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
+
+		bool pausedEntered = false;
+		bool pausedChildEntered = false;
+		int enteredPausedCount = 0;
+
+		sut.Configure(JukeBoxState.Paused)
+			.Permit(JukeBoxTrigger.Play, JukeBoxState.Playing)
+			.OnEntry(() =>
+			{
+				pausedEntered = true;
+				enteredPausedCount++;
+			});
+
+		sut.Configure(JukeBoxState.PausedChild)
+			.SubstateOf(JukeBoxState.Paused)
+			.OnEntry(() =>
+			{
+				pausedChildEntered = true;
+				enteredPausedCount++;
+			});
+
+		sut.Start();
+
+		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(JukeBoxState.PausedChild, sut.State);
+		Assert.True(sut.IsInState(JukeBoxState.Paused));
+
+		Assert.True(pausedEntered);
+		Assert.True(pausedChildEntered);
+		Assert.Equal(2, enteredPausedCount);
+	}
+
+	[Fact]
+	public void Transition_direct_to_parent_state_exits_parents()
+	{
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
+			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Playing);
+
+		sut.Configure(JukeBoxState.Playing)
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
+
+		bool pausedExited = false;
+		bool pausedChildExited = false;
+		int exitedPausedCount = 0;
+
+		sut.Configure(JukeBoxState.Paused)
+			.Permit(JukeBoxTrigger.Play, JukeBoxState.Playing)
+			.OnExit(() =>
+			{
+				pausedExited = true;
+				exitedPausedCount++;
+			});
+
+		sut.Configure(JukeBoxState.PausedChild)
+			.SubstateOf(JukeBoxState.Paused)
+			.OnExit(() =>
+			{
+				pausedChildExited = true;
+				exitedPausedCount++;
+			});
+
+		sut.Start();
+
+		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(JukeBoxState.PausedChild, sut.State);
+		Assert.True(sut.IsInState(JukeBoxState.Paused));
+
+		sut.Fire(JukeBoxTrigger.Play);
+
+		Assert.Equal(JukeBoxState.Playing, sut.State);
+		Assert.False(sut.IsInState(JukeBoxState.Paused));
+		Assert.False(sut.IsInState(JukeBoxState.PausedChild));
+	}
+
 	private enum PhoneState
 	{
 		Disconnected,
@@ -190,4 +274,18 @@ public class StateMachineTests
 		ReleaseOnHold,
 		Ping
 	}
+
+	private enum JukeBoxTrigger
+	{
+		Play,
+		Pause
+	}
+
+	private enum JukeBoxState
+	{
+		Playing,
+		Paused,
+		PausedChild
+	}
+
 }

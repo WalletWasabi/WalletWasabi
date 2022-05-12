@@ -37,6 +37,35 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		return this;
 	}
 
+	public bool IsAncestorOf(TState state, TState parent)
+	{
+		if (_states.ContainsKey(state))
+		{
+			StateContext current = _states[state];
+
+			while (true)
+			{
+				if (current.StateId.Equals(parent))
+				{
+					return true;
+				}
+
+				if (current.Parent is { })
+				{
+					current = current.Parent;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public bool IsInState(TState state) => IsAncestorOf(State, state);
+
 	public StateContext Configure(TState state)
 	{
 		return _states[state];
@@ -46,7 +75,14 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	{
 		if (_currentState.CanTransit(trigger))
 		{
-			Goto(trigger, _currentState.GetDestination(trigger));
+			var destination = _currentState.GetDestination(trigger);
+
+			if (_states.ContainsKey(destination) && _states[destination].Parent is { } parent && !IsInState(parent.StateId))
+			{
+				Goto(trigger, parent.StateId);
+			}
+
+			Goto(trigger, destination);
 		}
 		else if (_currentState.Parent is { } && _currentState.Parent.CanTransit(trigger))
 		{
@@ -68,7 +104,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	{
 		if (_states.ContainsKey(state))
 		{
-			if (exit)
+			if (exit && !IsAncestorOf(state, _currentState.StateId))
 			{
 				_currentState.Exit();
 			}
