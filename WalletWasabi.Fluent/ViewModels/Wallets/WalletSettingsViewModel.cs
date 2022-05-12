@@ -1,4 +1,4 @@
-using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -13,10 +13,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _minAnonScoreTarget;
 	[AutoNotify] private int _maxAnonScoreTarget;
-	[AutoNotify] private CoinJoinProfilesViewModel _coinJoinProfiles;
 
 	private Wallet _wallet;
-	private readonly WalletViewModelBase _walletViewModelBase;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
@@ -27,45 +25,28 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
 
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = CancelCommand;
 
 		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
 
 		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
 		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
 
-		_walletViewModelBase = walletViewModelBase;
-		_coinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
-	}
-
-	private void OnNext()
-	{
-		var selected = CoinJoinProfiles.SelectedProfile ?? CoinJoinProfiles.SelectedManualProfile;
-		if (selected is { })
-		{
-			MinAnonScoreTarget = selected.MinAnonScoreTarget;
-			MaxAnonScoreTarget = selected.MaxAnonScoreTarget;
-			AutoCoinJoin = selected.AutoCoinjoin;
-
-			_wallet.KeyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
-			_wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget);
-			_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
-			_wallet.KeyManager.PlebStopThreshold = CoinJoinProfiles.PlebStopThreshold;
-
-			_walletViewModelBase.RaisePropertyChanged(nameof(_walletViewModelBase.PreferPsbtWorkflow));
-		}
-
-		_wallet.KeyManager.ToFile();
-		Navigate().Clear();
-	}
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
 		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
+
+		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
+			.Skip(1)
+			.Subscribe(value =>
+			{
+				_wallet.KeyManager.PreferPsbtWorkflow = value;
+				_wallet.KeyManager.ToFile();
+				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
+			});
 	}
+
+	public CoinJoinProfilesViewModel CoinJoinProfiles { get; }
 
 	public bool IsHardwareWallet { get; }
 

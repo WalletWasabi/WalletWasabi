@@ -25,7 +25,7 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		_keyManager = keyManager;
 		_plebStopThreshold = (keyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString()).TrimEnd('0');
 
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
+		NextCommand = ReactiveCommand.Create(OnNext);
 		EnableBack = true;
 
 		Profiles = new()
@@ -51,6 +51,9 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 			SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AutoCoinJoin, keyManager.MinAnonScoreTarget, keyManager.MaxAnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
 		}
 
+		this.WhenAnyValue(x => x.SelectedProfile, x => x.SelectedManualProfile)
+			.Subscribe(_ => ApplyChanges());
+
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
 	}
 
@@ -72,23 +75,30 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 			SelectedProfile = null;
 			SelectedManualProfile = profile;
 			_plebStopThreshold = dialog.PlebStopThreshold;
+			ApplyChanges();
 		}
 	}
 
-	private void OnNext(KeyManager keyManager)
+	private void OnNext()
+	{
+		ApplyChanges();
+		Navigate().To(new AddedWalletPageViewModel(_keyManager));
+	}
+
+	private void ApplyChanges()
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
-		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
-		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
+		_keyManager.AutoCoinJoin = selected.AutoCoinjoin;
+		_keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
+		_keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 
 		if (Money.TryParse(_plebStopThreshold, out Money result) && result != _keyManager.PlebStopThreshold)
 		{
 			_keyManager.PlebStopThreshold = result;
 		}
 
-		Navigate().To(new AddedWalletPageViewModel(keyManager));
+		_keyManager.ToFile();
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
