@@ -5,6 +5,8 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -46,14 +48,24 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 			});
 
-		this.WhenAnyValue(x => x.AutoCoinJoin)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Skip(1)
-			.Subscribe(x =>
+		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				_wallet.KeyManager.AutoCoinJoin = x;
+				await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+			}
+
+			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
+			{
+				AutoCoinJoin = !AutoCoinJoin;
+				_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
 				_wallet.KeyManager.ToFile();
-			});
+			}
+			else
+			{
+				AutoCoinJoin = false;
+			}
+		});
 
 		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
 		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
@@ -102,19 +114,21 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			});
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
-	}
-
 	public bool IsHardwareWallet { get; }
 
 	public bool IsWatchOnly { get; }
 
 	public override sealed string Title { get; protected set; }
 
+	public ICommand SetAutoCoinJoin { get; }
+
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
+	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
 		ValidatePlebStopThreshold(errors, PlebStopThreshold);

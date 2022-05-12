@@ -110,4 +110,25 @@ public class SmartLabelTests
 		Assert.Equal(4, label.Labels.Count());
 		Assert.Equal("bar, buz, foo, qux", label);
 	}
+
+	[Fact]
+	public void CaseSensitivityTests()
+	{
+		var smartLabel = new SmartLabel("Foo");
+		var smartLabelToCheck = new SmartLabel("fOO");
+		var stringLabelToCheck = "fOO";
+		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
+		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
+		Assert.True(smartLabel.Equals(stringLabelToCheck, StringComparison.OrdinalIgnoreCase));
+		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.Ordinal));
+
+		smartLabel = new SmartLabel("bAr, FOO, Buz");
+		smartLabelToCheck = new SmartLabel("buZ, BaR, fOo");
+		stringLabelToCheck = "buZ, BaR, fOo";
+		Assert.True(smartLabel.Equals(smartLabelToCheck, StringComparer.OrdinalIgnoreCase));
+		Assert.False(smartLabel.Equals(smartLabelToCheck, StringComparer.Ordinal));
+		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.OrdinalIgnoreCase)); // stringLabelToCheck is a string, the order of the element is different, this should be False.
+		Assert.True(smartLabel.Equals(smartLabelToCheck.ToString(), StringComparison.OrdinalIgnoreCase)); // SmartLabel.cs sorts the elements, this should be True.
+		Assert.False(smartLabel.Equals(stringLabelToCheck, StringComparison.Ordinal));
+	}
 }

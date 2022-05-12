@@ -4,7 +4,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary>
-
           <Color x:Key="SystemAccentColor">#FF5E96ED</Color>
           <Color x:Key="SystemAltHighColor">#FF000000</Color>
           <Color x:Key="SystemAltLowColor">#FF000000</Color>
@@ -73,8 +72,7 @@
     <Color x:Key="TileRegionColor">#21252D</Color>
     <Color x:Key="TileBorderColor">#66757575</Color>
     <Color x:Key="AcrylicTrimForeground">White</Color>
-    <Color x:Key="AcrylicTrimBackground">#232A33</Color>
-    <Color x:Key="AcrylicTrimOverlayBackground">Transparent</Color>
+    <Color x:Key="AcrylicTrimBackground">#A0202020</Color>
 
     <Color x:Key="WelcomeScreenButtonBackground">#1D273E</Color>
     <Color x:Key="WelcomeScreenButtonBackgroundPressed">#141B2A</Color>
