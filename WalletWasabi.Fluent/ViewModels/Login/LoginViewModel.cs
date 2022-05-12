@@ -3,6 +3,8 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -67,7 +69,25 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (legalResult)
 		{
-			LoginWallet(closedWalletViewModel);
+			var km = closedWalletViewModel.Wallet.KeyManager;
+			bool shouldSelectProfile = !km.IsCoinjoinProfileSelected && km.AutoCoinJoin;
+			bool isProfileSelected = false;
+
+			// This should be impossible, this is just a sanity check
+			if (shouldSelectProfile)
+			{
+				DialogResult<bool> profileDialogResult = await NavigateDialogAsync(new CoinJoinProfilesViewModel(closedWalletViewModel.Wallet.KeyManager, false), NavigationTarget.DialogScreen);
+				isProfileSelected = profileDialogResult.Result;
+			}
+
+			if (isProfileSelected || !shouldSelectProfile)
+			{
+				LoginWallet(closedWalletViewModel);
+			}
+			else
+			{
+				wallet.Logout();
+			}
 		}
 		else
 		{

@@ -8,6 +8,9 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
@@ -87,7 +90,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
-		PlayCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Play));
+		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
+			{
+				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
+			}
+
+			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
+			{
+				_stateMachine.Fire(Trigger.Play);
+			}
+		});
 
 		PauseCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Pause));
 
