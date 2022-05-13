@@ -34,7 +34,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
 		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
 
-		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, false);
+		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, selectDefaultProfile: false, saveToFile: true);
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)

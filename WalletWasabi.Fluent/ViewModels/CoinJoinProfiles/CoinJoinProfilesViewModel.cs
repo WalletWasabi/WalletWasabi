@@ -16,13 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 public partial class CoinJoinProfilesViewModel : RoutableViewModel
 {
 	private readonly KeyManager _keyManager;
-
+	private readonly bool _saveToFile;
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private string _plebStopThreshold;
 
-	public CoinJoinProfilesViewModel(KeyManager keyManager, bool selectDefaultProfile)
+	public CoinJoinProfilesViewModel(KeyManager keyManager, bool selectDefaultProfile = true, bool saveToFile = false)
 	{
 		_keyManager = keyManager;
+		_saveToFile = saveToFile;
 		_plebStopThreshold = (keyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString()).TrimEnd('0');
 		if (_plebStopThreshold.EndsWith('.'))
 		{
@@ -102,7 +103,10 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 			_keyManager.PlebStopThreshold = result;
 		}
 
-		_keyManager.ToFile();
+		if (_saveToFile)
+		{
+			_keyManager.ToFile();
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

@@ -59,7 +59,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private void OnNext(KeyManager keyManager)
 	{
-		Navigate().To(new CoinJoinProfilesViewModel(keyManager, true));
+		Navigate().To(new CoinJoinProfilesViewModel(keyManager));
 	}
 
 	private void OnCancel()
