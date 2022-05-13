@@ -237,8 +237,8 @@ public class CoinJoinManager : BackgroundService
 			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
-				NotifyCoinJoinCompletion(finishedCoinJoin);
 				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
+				NotifyCoinJoinCompletion(finishedCoinJoin);
 			}
 			// Updates the highest coinjoin client state.
 			var inProgress = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
@@ -256,15 +256,6 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
 	{
 		var walletToRemove = finishedCoinJoin.Wallet;
-		if (!trackedCoinJoins.TryRemove(walletToRemove.WalletName, out _))
-		{
-			Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
-		}
-		else
-		{
-			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
-			finishedCoinJoin.Dispose();
-		}
 
 		var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
 
@@ -301,6 +292,16 @@ public class CoinJoinManager : BackgroundService
 		catch (Exception e)
 		{
 			Logger.LogError($"{logPrefix} failed with exception:", e);
+		}
+
+		if (!trackedCoinJoins.TryRemove(walletToRemove.WalletName, out _))
+		{
+			Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+		}
+		else
+		{
+			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
+			finishedCoinJoin.Dispose();
 		}
 
 		if (finishedCoinJoin.RestartAutomatically &&
