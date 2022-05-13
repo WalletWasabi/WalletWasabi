@@ -2,4 +2,4 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.WabiSabi.Backend.Models;
 
-public record InputBannedExceptionData([JsonProperty(PropertyName = "BannedUntil")] DateTimeOffset BannedUntil) : ExceptionData;
+public record InputBannedExceptionData(DateTimeOffset BannedUntil) : ExceptionData;
