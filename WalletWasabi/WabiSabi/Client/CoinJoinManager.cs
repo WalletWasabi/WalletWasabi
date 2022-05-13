@@ -303,11 +303,6 @@ public class CoinJoinManager : BackgroundService
 			Logger.LogError($"{logPrefix} failed with exception:", e);
 		}
 
-		foreach (var coins in finishedCoinJoin.CoinCandidates)
-		{
-			coins.CoinJoinInProgress = false;
-		}
-
 		if (finishedCoinJoin.RestartAutomatically &&
 			!finishedCoinJoin.IsStopped &&
 			!cancellationToken.IsCancellationRequested)
