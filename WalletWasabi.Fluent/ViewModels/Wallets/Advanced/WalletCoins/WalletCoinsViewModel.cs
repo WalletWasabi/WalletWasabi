@@ -23,7 +23,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
 	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
-	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source;
+	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel>? _source;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
