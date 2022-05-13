@@ -237,16 +237,25 @@ public class CoinJoinClient
 
 		void ReportProgressOnce()
 		{
-			if (!alreadyEnteredToCritical)
+			if (alreadyEnteredToCritical)
 			{
-				lock (alreadyEnteredToCriticalLock)
+				return;
+			}
+
+			// Helper to not invoke event inside the lock.
+			bool reportProgress = false;
+			lock (alreadyEnteredToCriticalLock)
+			{
+				if (alreadyEnteredToCritical)
 				{
-					if (!alreadyEnteredToCritical)
-					{
-						CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
-						alreadyEnteredToCritical = true;
-					}
+					return;
 				}
+				reportProgress = true;
+				alreadyEnteredToCritical = true;
+			}
+			if (reportProgress)
+			{
+				CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
 			}
 		}
 
