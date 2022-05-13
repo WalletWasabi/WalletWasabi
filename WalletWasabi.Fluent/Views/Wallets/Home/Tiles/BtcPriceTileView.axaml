@@ -12,9 +12,10 @@
     <DockPanel>
       <TextBlock Text="EXCHANGE RATE" DockPanel.Dock="Top" Classes="h8 bold" />
       <TextBlock Margin="0 3"
+                 Classes="h2 monoSpaced"
                  VerticalAlignment="Center" HorizontalAlignment="Center"
                  TextAlignment="Center"
-                 Text="{Binding BtcPrice, FallbackValue='53 540.00'}" Classes="h2" />
+                 Text="{Binding BtcPrice, FallbackValue='53 540.00'}" />
     </DockPanel>
   </controls:TileControl>
 
