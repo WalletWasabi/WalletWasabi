@@ -6,6 +6,5 @@ public class EnteringOutputRegistrationPhase : RoundStateChanged
 {
 	public EnteringOutputRegistrationPhase(RoundState roundState, DateTimeOffset timeoutAt) : base(roundState, timeoutAt)
 	{
-		IsInCriticalPhase = true;
 	}
 }

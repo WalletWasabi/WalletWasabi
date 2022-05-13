@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views;
+namespace WalletWasabi.Fluent.Views.Shell;
 
-public class MainView : UserControl
+public class ShellView : UserControl
 {
-	public MainView()
+	public ShellView()
 	{
 		InitializeComponent();
 	}

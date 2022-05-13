@@ -8,22 +8,22 @@ using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 [NavigationMetaData(Title = "Coinjoin Strategy")]
-public partial class CoinJoinProfilesViewModel : RoutableViewModel
+public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	private readonly KeyManager _keyManager;
-	private readonly bool _saveToFile;
+	private readonly bool _isNewWallet;
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private string _plebStopThreshold;
 
-	public CoinJoinProfilesViewModel(KeyManager keyManager, bool selectDefaultProfile = true, bool saveToFile = false)
+	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		_keyManager = keyManager;
-		_saveToFile = saveToFile;
+		_isNewWallet = isNewWallet;
 		_plebStopThreshold = (keyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString()).TrimEnd('0');
 		if (_plebStopThreshold.EndsWith('.'))
 		{
@@ -46,9 +46,10 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 					.Where(x => x.FeeRateMedianTimeFrameHours == keyManager.FeeRateMedianTimeFrameHours)
 					.FirstOrDefault();
 
-		if (_selectedProfile == null && selectDefaultProfile)
+		if (_selectedProfile == null && isNewWallet)
 		{
-			_selectedProfile = Profiles[1];
+			var defaultProfile = Profiles[1];
+			_selectedProfile = defaultProfile;
 		}
 
 		if (_selectedProfile == null)
@@ -87,7 +88,16 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 	private void OnNext()
 	{
 		ApplyChanges();
-		Navigate().To(new AddedWalletPageViewModel(_keyManager));
+
+		if (_isNewWallet)
+		{
+			Navigate().To(new AddedWalletPageViewModel(_keyManager));
+		}
+		else
+		{
+			_keyManager.ToFile();
+			Close(DialogResultKind.Normal, true);
+		}
 	}
 
 	private void ApplyChanges()
@@ -97,13 +107,14 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		_keyManager.AutoCoinJoin = selected.AutoCoinjoin;
 		_keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
 		_keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
+		_keyManager.IsCoinjoinProfileSelected = true;
 
 		if (Money.TryParse(_plebStopThreshold, out Money result) && result != _keyManager.PlebStopThreshold)
 		{
 			_keyManager.PlebStopThreshold = result;
 		}
 
-		if (_saveToFile)
+		if (!_isNewWallet)
 		{
 			_keyManager.ToFile();
 		}

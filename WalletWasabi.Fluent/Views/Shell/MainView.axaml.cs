@@ -1,12 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views;
+namespace WalletWasabi.Fluent.Views.Shell;
 
-public class MainWindow : Window
+public class MainView : UserControl
 {
-	public MainWindow()
+	public MainView()
 	{
 		InitializeComponent();
 	}
@@ -14,8 +13,5 @@ public class MainWindow : Window
 	private void InitializeComponent()
 	{
 		AvaloniaXamlLoader.Load(this);
-#if DEBUG
-		this.AttachDevTools();
-#endif
 	}
 }

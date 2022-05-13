@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -34,7 +35,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
 		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
 
-		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, selectDefaultProfile: false, saveToFile: true);
+		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, isNewWallet: false);
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
@@ -44,6 +45,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				_wallet.KeyManager.ToFile();
 				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 			});
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	public CoinJoinProfilesViewModel CoinJoinProfiles { get; }
