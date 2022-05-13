@@ -24,6 +24,10 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 	{
 		_keyManager = keyManager;
 		_plebStopThreshold = (keyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString()).TrimEnd('0');
+		if (_plebStopThreshold.EndsWith('.'))
+		{
+			_plebStopThreshold = _plebStopThreshold.TrimEnd('.');
+		}
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 		EnableBack = true;
