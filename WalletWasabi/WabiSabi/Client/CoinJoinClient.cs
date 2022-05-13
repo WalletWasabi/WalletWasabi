@@ -202,31 +202,35 @@ public class CoinJoinClient
 
 			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
-			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(finalRoundState));
-
-			var wasTxBroadcast = finalRoundState.WasTransactionBroadcast
-				? $"'{finalRoundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
-				: $"'{finalRoundState.WasTransactionBroadcast}'";
+			var wasTxBroadcast = roundState.WasTransactionBroadcast
+				? $"'{roundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
+				: $"'{roundState.WasTransactionBroadcast}'";
 			roundState.LogDebug($"Ended - WasTransactionBroadcast: {wasTxBroadcast}.");
 
-			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, finalRoundState);
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			return new CoinJoinResult(
-				GoForBlameRound: !finalRoundState.WasTransactionBroadcast,
-				SuccessfulBroadcast: finalRoundState.WasTransactionBroadcast,
+				GoForBlameRound: !roundState.WasTransactionBroadcast,
+				SuccessfulBroadcast: roundState.WasTransactionBroadcast,
 				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
 		finally
 		{
+			foreach (var coins in smartCoins)
+			{
+				coins.CoinJoinInProgress = false;
+			}
+
 			foreach (var aliceClientAndCircuit in registeredAliceClientAndCircuits)
 			{
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
 	}
 
