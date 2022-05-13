@@ -23,7 +23,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
 		_cluster = new Cluster(this);
-		Label = label;
+		Label = label ?? SmartLabel.Empty;
 		Cluster.UpdateLabels();
 		KeyState = keyState;
 
