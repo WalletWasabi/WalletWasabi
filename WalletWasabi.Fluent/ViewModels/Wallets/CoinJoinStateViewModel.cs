@@ -32,7 +32,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
 
-	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Below the threshold. Press play to override." };
+	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Below the threshold. Play to override." };
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -216,7 +216,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnEntry(UpdateWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, false, CancellationToken.None));
+			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None));
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
