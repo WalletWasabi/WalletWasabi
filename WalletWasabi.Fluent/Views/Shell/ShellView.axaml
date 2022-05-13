@@ -5,6 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -12,7 +13,7 @@
   <Panel>
     <shell:BackgroundView />
     <shell:MainView x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
-    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="{Binding $parent[Window].OffScreenMargin, Converter={x:Static converters:ThicknessConverters.Negate}}" />
     <shell:DialogsView />
   </Panel>
 </UserControl>
