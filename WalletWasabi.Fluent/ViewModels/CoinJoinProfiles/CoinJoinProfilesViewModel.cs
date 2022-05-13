@@ -3,6 +3,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
@@ -58,6 +59,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		}
 
 		this.WhenAnyValue(x => x.SelectedProfile, x => x.SelectedManualProfile)
+			.Skip(1)
 			.Subscribe(_ => ApplyChanges());
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
