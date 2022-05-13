@@ -13,6 +13,7 @@ public enum WabiSabiProtocolErrorCode
 	TooMuchFunds,
 	NonUniqueInputs,
 	InputBanned,
+	InputLongBanned,
 	InputNotWhitelisted,
 	AliceNotFound,
 	IncorrectRequestedVsizeCredentials,
@@ -34,8 +35,7 @@ public enum WabiSabiProtocolErrorCode
 	CryptoException,
 	AliceAlreadySignalled,
 	AliceAlreadyConfirmedConnection,
-	AlreadyRegisteredScript,
-	InputLongBanned
+	AlreadyRegisteredScript
 }
 
 public static class WabiSabiProtocolErrorCodeExtension
