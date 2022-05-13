@@ -21,7 +21,7 @@
 
         <DockPanel IsVisible="{Binding !IsWatchOnly}">
           <TextBlock Text="Automatic coinjoin" />
-          <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
+          <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
         </DockPanel>
 
         <StackPanel Spacing="10"

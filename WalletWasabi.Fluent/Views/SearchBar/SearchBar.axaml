@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
-             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="1000"
+             mc:Ignorable="d" 
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
@@ -132,8 +132,8 @@
 
   </UserControl.Styles>
 
-  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Left"
-           Text="{Binding SearchText, Mode=TwoWay}" Width="400" VerticalAlignment="Center">
+  <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Stretch"
+           Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
@@ -150,7 +150,7 @@
 
   <FlyoutBase.AttachedFlyout>
     <Flyout Placement="Bottom" ShowMode="Transient">
-      <s:SearchBarDropdown Width="400" x:Name="SearchBarDropdown" />
+      <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
     </Flyout>
   </FlyoutBase.AttachedFlyout>
 

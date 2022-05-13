@@ -156,7 +156,7 @@ public class CoinJoinManager : BackgroundService
 			var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
 			if (coinCandidates.Length == 0)
 			{
-				Logger.LogDebug($"No Coins to mix for wallet '{walletToStart.WalletName}'.");
+				Logger.LogDebug($"No candidate coins available to mix for wallet '{walletToStart.WalletName}'.");
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
 				if (startCommand.RestartAutomatically)
 				{
