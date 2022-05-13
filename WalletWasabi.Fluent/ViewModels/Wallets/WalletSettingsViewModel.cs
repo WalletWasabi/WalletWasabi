@@ -47,11 +47,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			});
 	}
 
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
 	public CoinJoinProfilesViewModel CoinJoinProfiles { get; }
 
 	public bool IsHardwareWallet { get; }
@@ -61,4 +56,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public override sealed string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+	}
 }
