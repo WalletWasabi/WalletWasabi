@@ -57,7 +57,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
 		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
 		{
-			return Array.Empty<SmartCoin>();
+			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
 		}
 		return coinRegistry.AsAllCoinsView().Select(x => new
 		{
