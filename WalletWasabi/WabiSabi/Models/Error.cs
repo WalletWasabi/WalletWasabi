@@ -6,5 +6,5 @@ public record Error(
 	string Type,
 	string ErrorCode,
 	string Description,
-	ExceptionData? ExceptionData
+	ExceptionData ExceptionData
 );
