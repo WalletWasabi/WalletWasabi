@@ -235,6 +235,21 @@ public class CoinJoinClient
 		bool alreadyEnteredToCritical = false;
 		object alreadyEnteredToCriticalLock = new();
 
+		void ReportProgressOnce()
+		{
+			if (!alreadyEnteredToCritical)
+			{
+				lock (alreadyEnteredToCriticalLock)
+				{
+					if (!alreadyEnteredToCritical)
+					{
+						CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
+						alreadyEnteredToCritical = true;
+					}
+				}
+			}
+		}
+
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
 			PersonCircuit? personCircuit = null;
@@ -253,17 +268,7 @@ public class CoinJoinClient
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
-				if (!alreadyEnteredToCritical)
-				{
-					lock (alreadyEnteredToCriticalLock)
-					{
-						if (!alreadyEnteredToCritical)
-						{
-							CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
-							alreadyEnteredToCritical = true;
-						}
-					}
-				}
+				ReportProgressOnce();
 
 				return (aliceClient, personCircuit);
 			}
