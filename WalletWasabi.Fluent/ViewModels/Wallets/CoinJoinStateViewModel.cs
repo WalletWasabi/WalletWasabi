@@ -400,44 +400,56 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void OnCoinJoinPhaseChanged(CoinJoinProgressEventArgs coinJoinProgress)
 	{
-		IsInCriticalPhase = coinJoinProgress.IsInCriticalPhase;
-
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
 				CurrentStatus = roundEnded.RoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
 				StopCountDown();
 				break;
+
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
 				StartCountDown(
 					message: _outputRegistrationMessage,
 					start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
 					end: enteringOutputRegistrationPhase.TimeoutAt);
 				break;
+
 			case EnteringSigningPhase enteringSigningPhase:
 				StartCountDown(
 					message: _transactionSigningMessage,
 					start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
 					end: enteringSigningPhase.TimeoutAt);
 				break;
+
 			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
 				StartCountDown(
 					message: _inputRegistrationMessage,
 					start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
 					end: enteringInputRegistrationPhase.TimeoutAt);
 				break;
+
 			case WaitingForBlameRound waitingForBlameRound:
 				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
 				break;
+
 			case WaitingForRound:
 				CurrentStatus = _waitingRoundMessage;
 				StopCountDown();
 				break;
+
 			case EnteringConnectionConfirmationPhase enteringConnectionConfirmationPhase:
 				StartCountDown(
 					message: _connectionConfirmationMessage,
 					start: enteringConnectionConfirmationPhase.TimeoutAt - enteringConnectionConfirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
 					end: enteringConnectionConfirmationPhase.TimeoutAt);
+				break;
+
+			case EnteringCriticalPhase:
+				IsInCriticalPhase = true;
+				break;
+
+			case LeavingCriticalPhase:
+				IsInCriticalPhase = false;
 				break;
 		}
 	}
