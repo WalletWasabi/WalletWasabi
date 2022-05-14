@@ -42,13 +42,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#region Members
 
-	public IReadOnlyCollection<SmartCoin> WalletInputs
-	{
-		get
-		{
-			return _walletInputs;
-		}
-	}
+	public IReadOnlyCollection<SmartCoin> WalletInputs => _walletInputs;
 
 	public void AddWalletInput(SmartCoin input)
 	{
@@ -57,13 +51,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		_walletVirtualInputs = null;
 	}
 
-	public IReadOnlyCollection<SmartCoin> WalletOutputs
-	{
-		get
-		{
-			return _walletOutputs;
-		}
-	}
+	public IReadOnlyCollection<SmartCoin> WalletOutputs => _walletOutputs;
 
 	public void AddWalletOutput(SmartCoin output)
 	{
@@ -137,46 +125,15 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
-	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
-	{
-		get
-		{
-			return _foreignInputs ??= GetForeignInputs();
-		}
-	}
+	public IReadOnlyCollection<IndexedTxIn> ForeignInputs => _foreignInputs ??= GetForeignInputs();
 
-	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
-	{
-		get
-		{
-			return _foreignOutputs ??= GetForeignOutputs();
-		}
-	}
+	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs => _foreignOutputs ??= GetForeignOutputs();
 
-	public IReadOnlyCollection<WalletVirtualInput> WalletVirtualInputs
-	{
-		get
-		{
-			return _walletVirtualInputs ??= GetWalletVirtualInputs();
-		}
-	}
+	public IReadOnlyCollection<WalletVirtualInput> WalletVirtualInputs => _walletVirtualInputs ??= GetWalletVirtualInputs();
 
-	public IReadOnlyCollection<WalletVirtualOutput> WalletVirtualOutputs
-	{
-		get
-		{
-			return _walletVirtualOutputs ??= GetWalletVirtualOutputs();
-		}
+	public IReadOnlyCollection<WalletVirtualOutput> WalletVirtualOutputs => _walletVirtualOutputs ??= GetWalletVirtualOutputs();
 
-	}
-
-	public IReadOnlyCollection<ForeignVirtualOutput> ForeignVirtualOutputs
-	{
-		get
-		{
-			return _foreignVirtualOutputs ??= GetForeignVirtualOutputs();
-		}
-	}
+	public IReadOnlyCollection<ForeignVirtualOutput> ForeignVirtualOutputs => _foreignVirtualOutputs ??= GetForeignVirtualOutputs();
 
 	/// <summary>
 	/// Coins that are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
@@ -228,7 +185,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public HashSet<WalletVirtualOutput> GetWalletVirtualOutputs()
 	{
-
 		var transactionHash = GetHash();
 		Func<IGrouping<byte[], SmartCoin>, WalletVirtualOutput> groupToVirtualOutput = g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(transactionHash, o.Index)).ToHashSet());
 		return WalletOutputs.GroupBy(o => ExtractKeyId(o.HdPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualOutput).ToHashSet();
@@ -236,7 +192,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public HashSet<ForeignVirtualOutput> GetForeignVirtualOutputs()
 	{
-
 		var transactionHash = GetHash();
 		Func<IGrouping<byte[], IndexedTxOut>, ForeignVirtualOutput> groupToVirtualOutput = g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(transactionHash, o.N)).ToHashSet());
 		return ForeignOutputs.GroupBy(o => ExtractKeyId(o.TxOut.ScriptPubKey), new ByteArrayEqualityComparer()).Select(groupToVirtualOutput).ToHashSet();
