@@ -31,12 +31,14 @@ public class AnalyzedTransaction : SmartTransaction
 
 	private static Script CreateScript(string? label = null)
 	{
-		return CreateKey(label).PubKey.WitHash.ScriptPubKey;
+		using var k = CreateKey(label);
+		return k.PubKey.WitHash.ScriptPubKey;
 	}
 
 	private static HdPubKey CreateHdPubKey(string? label = null)
 	{
-		return new HdPubKey(CreateKey(label).PubKey, new KeyPath("0/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
+		using var k = CreateKey(label);
+		return new(k.PubKey, new KeyPath("0/0/0/0/0"), SmartLabel.Empty, KeyState.Clean);
 	}
 
 	public void AddForeignInput(ForeignOutput output)
@@ -82,8 +84,8 @@ public class AnalyzedTransaction : SmartTransaction
 
 	public ForeignOutput AddForeignOutput(decimal amount = 1, string? label = null)
 	{
-		uint index = (uint)Transaction.Outputs.Count();
-		TxOut txOut = Transaction.Outputs.Add(new Money(amount, MoneyUnit.BTC), CreateScript(label));
+		uint index = (uint)Transaction.Outputs.Count;
+		Transaction.Outputs.Add(new Money(amount, MoneyUnit.BTC), CreateScript(label));
 		return new ForeignOutput(Transaction, index);
 	}
 
