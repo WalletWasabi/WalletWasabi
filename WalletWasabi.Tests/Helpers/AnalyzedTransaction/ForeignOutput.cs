@@ -3,21 +3,9 @@ using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 
-public record ForeignOutput
+public record ForeignOutput(Transaction Transaction, uint Index)
 {
-	public Transaction Transaction;
-	public uint Index;
-
-	public ForeignOutput(Transaction transaction, uint index)
-	{
-		Transaction = transaction;
-		Index = index;
-	}
-
-	public OutPoint ToOutPoint()
-	{
-		return new OutPoint(Transaction, Index);
-	}
+	public OutPoint ToOutPoint() => new OutPoint(Transaction, Index);
 
 	public static ForeignOutput Create(Money amount, Script scriptPubKey)
 	{

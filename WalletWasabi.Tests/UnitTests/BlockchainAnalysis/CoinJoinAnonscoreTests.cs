@@ -264,19 +264,19 @@ public class CoinJoinAnonScoreTests
 		var tx1 = new AnalyzedTransaction();
 		tx1.AddForeignInput();
 		tx1.AddWalletInput();
-		var A = tx1.AddForeignOutput();
-		var B = tx1.AddWalletOutput();
+		var a = tx1.AddForeignOutput();
+		var b = tx1.AddWalletOutput();
 
 		var tx2 = new AnalyzedTransaction();
-		tx2.AddForeignInput(A);
-		tx2.AddWalletInput(B);
+		tx2.AddForeignInput(a);
+		tx2.AddWalletInput(b);
 		tx2.AddForeignOutput();
-		var F = tx2.AddWalletOutput();
+		var f = tx2.AddWalletOutput();
 
 		tx2.AnalyzeRecursively();
 
-		Assert.Equal(2, B.Anonymity);
-		Assert.Equal(2, F.Anonymity);
+		Assert.Equal(2, b.Anonymity);
+		Assert.Equal(2, f.Anonymity);
 	}
 
 	[Fact]
@@ -285,30 +285,30 @@ public class CoinJoinAnonScoreTests
 		var tx1 = new AnalyzedTransaction();
 		tx1.AddForeignInput();
 		tx1.AddWalletInput();
-		var A = tx1.AddForeignOutput();
-		var B = tx1.AddWalletOutput();
+		var a = tx1.AddForeignOutput();
+		var b = tx1.AddWalletOutput();
 
 		var tx2 = new AnalyzedTransaction();
 		tx2.AddForeignInput();
-		tx2.AddWalletInput(B);
-		var C = tx2.AddForeignOutput();
-		var D = tx2.AddWalletOutput();
-		var E = tx2.AddWalletOutput();
+		tx2.AddWalletInput(b);
+		var c = tx2.AddForeignOutput();
+		var d = tx2.AddWalletOutput();
+		var e = tx2.AddWalletOutput();
 
 		var tx3 = new AnalyzedTransaction();
-		tx3.AddForeignInput(A);
-		tx3.AddForeignInput(C);
-		tx3.AddWalletInput(D);
+		tx3.AddForeignInput(a);
+		tx3.AddForeignInput(c);
+		tx3.AddWalletInput(d);
 		tx3.AddForeignOutput();
 		tx3.AddForeignOutput();
 		tx3.AddForeignOutput();
-		var L = tx3.AddWalletOutput();
+		var l = tx3.AddWalletOutput();
 
 		tx3.AnalyzeRecursively();
 
-		Assert.Equal(2, B.Anonymity);
-		Assert.Equal(2, D.Anonymity);
-		Assert.Equal(2, E.Anonymity);
-		Assert.Equal(3, L.Anonymity);
+		Assert.Equal(2, b.Anonymity);
+		Assert.Equal(2, d.Anonymity);
+		Assert.Equal(2, e.Anonymity);
+		Assert.Equal(3, l.Anonymity);
 	}
 }

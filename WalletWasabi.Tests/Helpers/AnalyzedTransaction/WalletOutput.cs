@@ -5,32 +5,22 @@ using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 
-public record WalletOutput
+public record WalletOutput(SmartCoin Coin)
 {
-	public SmartCoin SmartCoin;
+	public int Anonymity => Coin.HdPubKey.AnonymitySet;
 
-	public WalletOutput(SmartCoin smartCoin)
-	{
-		SmartCoin = smartCoin;
-	}
-
-	public int Anonymity => SmartCoin.HdPubKey.AnonymitySet;
-
-	public SmartCoin ToSmartCoin()
-	{
-		return SmartCoin;
-	}
+	public SmartCoin ToSmartCoin() => Coin;
 
 	public ForeignOutput ToForeignOutput()
 	{
-		return new ForeignOutput(SmartCoin.Transaction.Transaction, SmartCoin.Index);
+		return new ForeignOutput(Coin.Transaction.Transaction, Coin.Index);
 	}
 
 	public static WalletOutput Create(Money amount, HdPubKey hdPubKey)
 	{
 		ForeignOutput output = ForeignOutput.Create(amount, hdPubKey.P2wpkhScript);
-		SmartTransaction smartTransaction = new SmartTransaction(output.Transaction, 0);
-		SmartCoin smartCoin = new SmartCoin(smartTransaction, output.Index, hdPubKey);
+		SmartTransaction smartTransaction = new(output.Transaction, 0);
+		SmartCoin smartCoin = new(smartTransaction, output.Index, hdPubKey);
 		smartTransaction.AddWalletOutput(smartCoin);
 		return new WalletOutput(smartCoin);
 	}
