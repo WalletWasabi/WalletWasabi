@@ -75,7 +75,7 @@ public class AnalyzedTransaction : SmartTransaction
 
 	public WalletOutput AddWalletInput(decimal amount = 1, string? label = null, int anonymity = 1)
 	{
-		AnalyzedTransaction coinjoinTransaction = AnalyzedTransaction.CreateCoinjoin(anonymity - 1, anonymity - 1);
+		AnalyzedTransaction coinjoinTransaction = CreateCoinjoin(anonymity - 1, anonymity - 1);
 		coinjoinTransaction.AddWalletInput(WalletOutput.Create(new Money(amount, MoneyUnit.BTC), CreateHdPubKey()));
 		WalletOutput walletOutput = coinjoinTransaction.AddWalletOutput(amount, label);
 		AddWalletInput(walletOutput);
