@@ -143,7 +143,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new size24" />
+                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
               </DockPanel>
             </Panel>
           </DataTemplate>
@@ -168,7 +168,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <PathIcon Classes="new size24" />
+                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
               </DockPanel>
             </Panel>
           </DataTemplate>
