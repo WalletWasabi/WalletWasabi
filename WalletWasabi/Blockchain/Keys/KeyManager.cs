@@ -92,7 +92,7 @@ public class KeyManager
 	}
 
 	[OnDeserialized]
-	internal void OnDeserializedMethod(StreamingContext context)
+	private void OnDeserializedMethod(StreamingContext context)
 	{
 		// This should be impossible but in any case, coinjoin can only happen,
 		// if a profile is selected. Otherwise, the user's money can be drained.
