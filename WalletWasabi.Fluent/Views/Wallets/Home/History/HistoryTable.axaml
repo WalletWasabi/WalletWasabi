@@ -22,6 +22,13 @@
           <PathIcon Data="{StaticResource transaction_id}" />
         </MenuItem.Icon>
       </MenuItem>
+      <MenuItem Header="Copy Label"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding Label, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource entities_regular}" />
+        </MenuItem.Icon>
+      </MenuItem>
       <!-- TODO: Show speed up transaction dialog.
       <MenuItem Header="Speed-up transaction"
                 IsVisible="{Binding !IsConfirmed}"
