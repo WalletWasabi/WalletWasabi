@@ -238,8 +238,6 @@ public partial class WalletViewModel : WalletViewModelBase
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		disposables.Add(MainViewModel.Instance.MusicControls.SetWallet(this));
-
 		foreach (var tile in _tiles)
 		{
 			tile.Activate(disposables);
