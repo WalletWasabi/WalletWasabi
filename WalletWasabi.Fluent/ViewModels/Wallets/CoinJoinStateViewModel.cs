@@ -241,6 +241,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
+			.OnTrigger(Trigger.RoundEndedMessage, () =>
+			{
+				CurrentStatus = _roundSucceedMessage;
+				StopCountDown();
+			})
+			.OnTrigger(Trigger.RoundFailedMessage, () =>
+			{
+				CurrentStatus = _roundFailedMessage;
+				StopCountDown();
+			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
@@ -344,6 +354,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.OnTrigger(Trigger.RoundEndedMessage, () =>
+			{
+				CurrentStatus = _roundSucceedMessage;
+				StopCountDown();
+			})
+			.OnTrigger(Trigger.RoundFailedMessage, () =>
+			{
+				CurrentStatus = _roundFailedMessage;
+				StopCountDown();
+			})
 			.OnEntry(async () =>
 			{
 				CurrentStatus = _waitingMessage;
@@ -481,12 +501,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				OnCoinJoinPhaseChanged(coinJoinStatusEventArgs.CoinJoinProgressEventArgs);
 				break;
 		}
-	}
-
-	private void HandleRoundEndedMessage()
-	{
-		//CurrentStatus = roundEnded.LastRoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
-		//StopCountDown();
 	}
 
 	private void OnCoinJoinPhaseChanged(CoinJoinProgressEventArgs coinJoinProgress)
