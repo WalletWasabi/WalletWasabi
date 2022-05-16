@@ -36,7 +36,7 @@
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
     <FlyoutBase.AttachedFlyout>
-      <Flyout Placement="BottomEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
+      <Flyout Placement="TopEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
