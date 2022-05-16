@@ -37,7 +37,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	public SpectrumControl()
 	{
-		CheckVisibility();
+		SetVisibility();
 		_data = new float[NumBins];
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
@@ -72,16 +72,16 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
 	{
 		_isSplashActive = e;
-		CheckVisibility();
+		SetVisibility();
 	}
 
 	private void OnAuraGeneratingDataStateChanged(object? sender, bool e)
 	{
 		_isAuraActive = e;
-		CheckVisibility();
+		SetVisibility();
 	}
 
-	private void CheckVisibility()
+	private void SetVisibility()
 	{
 		IsVisible = _isSplashActive || _isAuraActive;
 	}
