@@ -42,7 +42,7 @@
     </c:PrivacyContentControl>
 
     <Panel Background="Transparent">
-      <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
+      <Button Classes="plain" ToolTip.Tip="Show Details"
               Command="{Binding ShowDetailsCommand}">
         <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
       </Button>
