@@ -15,6 +15,13 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <UserControl.Resources>
     <ContextMenu x:Key="TransactionContextMenu" x:DataType="historyItems:TransactionHistoryItemViewModel">
+      <MenuItem Header="Copy Transaction ID"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding Id, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource transaction_id}" />
+        </MenuItem.Icon>
+      </MenuItem>
       <!-- TODO: Show speed up transaction dialog.
       <MenuItem Header="Speed-up transaction"
                 IsVisible="{Binding !IsConfirmed}"
