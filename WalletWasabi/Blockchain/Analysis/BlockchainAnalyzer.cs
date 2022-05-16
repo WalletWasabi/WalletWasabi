@@ -36,15 +36,20 @@ public class BlockchainAnalyzer
 		}
 		else
 		{
-			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int startingOutputAnonset);
+			int startingOutputAnonset;
+			var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
 
 			if (inputCount == ownInputCount)
 			{
-				AnalyzeSelfSpend(tx, startingOutputAnonset);
+				startingOutputAnonset = AnalyzeSelfSpendWalletInputs(distinctWalletInputPubKeys);
+
+				AnalyzeSelfSpendWalletOutputs(tx, startingOutputAnonset);
 			}
 			else
 			{
-				AnalyzeCoinjoin(tx, startingOutputAnonset, distinctWalletInputPubKeys);
+				startingOutputAnonset = AnalyzeCoinjoinWalletInputs(tx);
+
+				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, distinctWalletInputPubKeys);
 			}
 
 			AdjustWalletInputs(tx, distinctWalletInputPubKeys, startingOutputAnonset);
@@ -53,34 +58,23 @@ public class BlockchainAnalyzer
 		AnalyzeClusters(tx);
 	}
 
-	/// <param name="startingOutputAnonset">The new anonymity set of the inputs.</param>
-	private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int startingOutputAnonset)
+	private static int AnalyzeCoinjoinWalletInputs(SmartTransaction tx)
 	{
-		// We want to weaken the punishment if the input merge happens in coinjoins.
-		// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
-		// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
-		// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
-		// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
-		distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
-		var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
-		var pubKeyReuseCount = tx.WalletInputs.Count - distinctWalletInputPubKeyCount;
-		double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
-
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
-		if (coefficient < 1)
+		// Calculate weighted average.
+		return (int)(tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount) / tx.WalletInputs.Sum(x => x.Amount));
+	}
+
+	private int AnalyzeSelfSpendWalletInputs(HashSet<HdPubKey> distinctWalletInputPubKeys)
+	{
+		int startingOutputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet));
+		foreach (var key in distinctWalletInputPubKeys)
 		{
-			// Calculate weighted average.
-			startingOutputAnonset = (int)(tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount) / tx.WalletInputs.Sum(x => x.Amount));
+			key.SetAnonymitySet(startingOutputAnonset);
 		}
-		else
-		{
-			startingOutputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet));
-			foreach (var key in distinctWalletInputPubKeys)
-			{
-				key.SetAnonymitySet(startingOutputAnonset);
-			}
-		}
+
+		return startingOutputAnonset;
 	}
 
 	/// <summary>
@@ -107,7 +101,7 @@ public class BlockchainAnalyzer
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoin(SmartTransaction tx, int startingOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
+	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, int startingOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
 	{
 		var indistinguishableWalletOutputs = tx
 			.WalletOutputs.GroupBy(x => x.Amount)
@@ -199,7 +193,7 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private void AnalyzeSelfSpend(SmartTransaction tx, int startingOutputAnonset)
+	private void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, int startingOutputAnonset)
 	{
 		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 		{
