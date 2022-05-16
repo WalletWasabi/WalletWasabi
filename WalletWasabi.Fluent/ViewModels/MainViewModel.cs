@@ -41,6 +41,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private double _windowWidth;
 	[AutoNotify] private double _windowHeight;
 	[AutoNotify] private PixelPoint? _windowPosition;
+	[AutoNotify] private WalletViewModel? _currentWallet;
 
 	public MainViewModel()
 	{
@@ -76,8 +77,6 @@ public partial class MainViewModel : ViewModelBase
 		_settingsPage = new SettingsPageViewModel();
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
-
-		MusicControls = new MusicControlsViewModel();
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
@@ -168,6 +167,11 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
+		this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>()
+			.Subscribe(wallet => CurrentWallet = wallet);
+
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -191,8 +195,6 @@ public partial class MainViewModel : ViewModelBase
 	}
 
 	public TargettedNavigationStack MainScreen { get; }
-
-	public MusicControlsViewModel MusicControls { get; }
 
 	public SearchBarViewModel SearchBar { get; }
 

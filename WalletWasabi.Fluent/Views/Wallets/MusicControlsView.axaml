@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             x:DataType="wallets:MusicControlsViewModel"
+             x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
@@ -31,14 +31,20 @@
     </Style>
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
-          Classes.IsActive="{Binding IsActive, FallbackValue=false}"
           TextBlock.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
+    <Classes.IsActive>
+      <MultiBinding Converter="{x:Static BoolConverters.And}">
+        <Binding Path="IsActive" FallbackValue="False" />
+        <Binding Path="IsWalletBalanceZero" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
+        <Binding Path="Wallet.KeyManager.IsWatchOnly" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
+      </MultiBinding>
+    </Classes.IsActive>
     <Border ClipToBounds="True"
             CornerRadius="4 4 0 0"
             BorderBrush="{DynamicResource GlassEdgeColor}"
             BorderThickness="1,1,1,0">
-      <Panel DataContext="{Binding CurrentWallet.CoinJoinStateViewModel}">
+      <Panel DataContext="{Binding CoinJoinStateViewModel}">
         <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
