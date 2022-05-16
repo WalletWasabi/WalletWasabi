@@ -4,15 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusBar"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
+             xmlns:sb="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
+             xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusIcon"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
-             x:DataType="statusBar:StatusBarViewModel"
+             x:DataType="statusIcon:StatusIconViewModel"
              x:CompileBindings="True"
              Foreground="{DynamicResource AcrylicTrimForeground}"
-             x:Class="WalletWasabi.Fluent.Views.StatusBar.StatusBar">
+             x:Class="WalletWasabi.Fluent.Views.StatusIcon.StatusIcon">
   <UserControl.Styles>
 
     <Style Selector="PathIcon">
@@ -40,11 +40,11 @@
     </Style>
 
     <Style Selector="AccessText">
-      <Setter Property="Foreground" Value="{Binding $parent[sb:StatusBar].Foreground}" />
+      <Setter Property="Foreground" Value="{Binding $parent[sb:StatusIcon].Foreground}" />
     </Style>
 
     <Style Selector="PathIcon">
-      <Setter Property="Foreground" Value="{Binding $parent[sb:StatusBar].Foreground}" />
+      <Setter Property="Foreground" Value="{Binding $parent[sb:StatusIcon].Foreground}" />
     </Style>
 
   </UserControl.Styles>
@@ -64,7 +64,7 @@
 
           <!-- Warning message TODO: use InfoMessage control-->
           <DockPanel
-            IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}">
+            IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.ConnectionIssueDetected}}">
             <PathIcon Data="{StaticResource info_regular}"
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
@@ -126,31 +126,31 @@
 
     <!--Update available-->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}"
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.UpdateAvailable}}"
       Data="{StaticResource arrow_clockwise_with_elipse}"
       Foreground="Goldenrod" />
 
     <!--Critical update available-->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}"
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.CriticalUpdateAvailable}}"
       Data="{StaticResource critical_update}"
       Foreground="{DynamicResource SystemErrorTextColor}" />
 
     <!-- Ready -->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}"
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Ready}}"
       Data="{StaticResource checkmark_circle_filled}" />
 
     <!-- Connection issue -->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}"
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.ConnectionIssueDetected}}"
       Data="{StaticResource warning_filled}"
       Foreground="Gold"
       VerticalAlignment="Center" HorizontalAlignment="Right" />
 
     <!-- Loading -->
     <PathIcon
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Loading}}"
       Data="{StaticResource arrow_sync_regular}"
       Classes.rotate="{Binding $self.IsVisible}" />
 
