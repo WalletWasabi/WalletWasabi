@@ -5,6 +5,34 @@ namespace WalletWasabi.Tests.UnitTests;
 
 public class StateMachineTests
 {
+	private enum PhoneState
+	{
+		Disconnected,
+		OnHold,
+		Connected
+	}
+
+	private enum PhoneTrigger
+	{
+		Connect,
+		PutOnHold,
+		ReleaseOnHold,
+		Ping
+	}
+
+	private enum JukeBoxTrigger
+	{
+		Play,
+		Pause
+	}
+
+	private enum JukeBoxState
+	{
+		Playing,
+		Paused,
+		PausedChild
+	}
+
 	[Fact]
 	public void Initialization_has_initial_state()
 	{
@@ -273,10 +301,7 @@ public class StateMachineTests
 
 		sut.Configure(JukeBoxState.Paused)
 			.Permit(JukeBoxTrigger.Play, JukeBoxState.Playing)
-			.OnTrigger(JukeBoxTrigger.Play, () =>
-			{
-				onTriggerCalled = true;
-			});
+			.OnTrigger(JukeBoxTrigger.Play, () => { onTriggerCalled = true; });
 
 		sut.Start();
 
@@ -286,33 +311,4 @@ public class StateMachineTests
 		Assert.True(sut.IsInState(JukeBoxState.Playing));
 		Assert.True(onTriggerCalled);
 	}
-
-	private enum PhoneState
-	{
-		Disconnected,
-		OnHold,
-		Connected
-	}
-
-	private enum PhoneTrigger
-	{
-		Connect,
-		PutOnHold,
-		ReleaseOnHold,
-		Ping
-	}
-
-	private enum JukeBoxTrigger
-	{
-		Play,
-		Pause
-	}
-
-	private enum JukeBoxState
-	{
-		Playing,
-		Paused,
-		PausedChild
-	}
-
 }
