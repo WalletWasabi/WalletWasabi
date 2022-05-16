@@ -15,7 +15,7 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		AssociatedObject.ChildIndexChanged += OnChildIndexChanged;
+		AssociatedObject.LayoutUpdated += AssociatedObjectOnLayoutUpdated;
 	}
 
 	protected override void OnDetachedFromVisualTree()
@@ -25,36 +25,53 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 			return;
 		}
 
-		AssociatedObject.ChildIndexChanged -= OnChildIndexChanged;
+		AssociatedObject.LayoutUpdated -= AssociatedObjectOnLayoutUpdated;
 	}
 
-	private void OnChildIndexChanged(object? sender, ChildIndexChangedEventArgs e)
+	private void AssociatedObjectOnLayoutUpdated(object? sender, EventArgs e)
 	{
-		if (AssociatedObject is { } presenter && e.Child is {} currentItem)
+		if (AssociatedObject is { } presenter)
 		{
-			var index = AssociatedObject.GetChildIndex(currentItem);
-
-			if (currentItem is IControl currentControl && currentControl.DataContext is HistoryItemViewModelBase currentHistoryItem)
+			foreach (var child in ((IPanel)AssociatedObject).Children)
 			{
-				if (!currentHistoryItem.IsConfirmed)
+				if (child is { })
 				{
-					if (presenter.Items is { } items && items.Count > index + 1)
-					{
-						var nextItem = presenter.Items[index + 1];
-						if (nextItem.Model is HistoryItemViewModelBase nextHistoryItem)
-						{
-							if (nextHistoryItem.IsConfirmed)
-							{
-								var classes = currentControl.Classes;
-								classes.Set("separator", true);
-							}
-						}
-					}
+					InvalidateSeparator(child, presenter);
 				}
-				else
+			}
+		}
+	}
+
+	private void InvalidateSeparator(IControl control, TreeDataGridRowsPresenter presenter)
+	{
+		if (control.DataContext is not HistoryItemViewModelBase currentHistoryItem)
+		{
+			return;
+		}
+
+		var className = "separator";
+
+		if (currentHistoryItem.IsConfirmed)
+		{
+			if (control.Classes.Contains(className))
+			{
+				control.Classes.Set(className, false);
+			}
+		}
+		else
+		{
+			var index = presenter.GetChildIndex(control);
+			if (presenter.Items is { } items
+			    && items.Count > index + 1
+			    && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true })
+			{
+				control.Classes.Set(className, true);
+			}
+			else
+			{
+				if (control.Classes.Contains(className))
 				{
-					var classes = currentControl.Classes;
-					classes.Set("separator", false);
+					control.Classes.Set(className, false);
 				}
 			}
 		}
