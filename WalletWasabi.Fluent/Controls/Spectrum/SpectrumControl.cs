@@ -75,6 +75,18 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			});
 	}
 
+	public bool IsActive
+	{
+		get => GetValue(IsActiveProperty);
+		set => SetValue(IsActiveProperty, value);
+	}
+
+	public bool IsDockEffectVisible
+	{
+		get => GetValue(IsDockEffectVisibleProperty);
+		set => SetValue(IsDockEffectVisibleProperty, value);
+	}
+
 	private void OnTimerTick(object? sender, EventArgs e)
 	{
 		for (int i = 0; i < NumBins; i++)
@@ -87,19 +99,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			source.Render(ref _data);
 		}
 
-		Dispatcher.UIThread.Post(InvalidateVisual);
-	}
-
-	public bool IsActive
-	{
-		get => GetValue(IsActiveProperty);
-		set => SetValue(IsActiveProperty, value);
-	}
-
-	public bool IsDockEffectVisible
-	{
-		get => GetValue(IsDockEffectVisibleProperty);
-		set => SetValue(IsDockEffectVisibleProperty, value);
+		InvalidateVisual();
 	}
 
 	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
