@@ -308,8 +308,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _initialisingMessage;
 
-				_overridePlebStop = false;
-
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 
 				_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
