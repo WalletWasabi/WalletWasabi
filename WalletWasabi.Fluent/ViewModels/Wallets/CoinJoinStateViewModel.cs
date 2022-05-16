@@ -210,6 +210,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(async () =>
 			{
 				ProgressValue = 0;
+				ElapsedTime = "";
+				RemainingTime = "";
 				StopVisible = false;
 				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
@@ -328,6 +330,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				CurrentStatus = _pauseMessage;
 				ProgressValue = 0;
+				ElapsedTime = "";
+				RemainingTime = "";
 
 				PauseVisible = false;
 				PlayVisible = true;
