@@ -7,7 +7,6 @@
              xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusBar"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="statusBar:StatusBarViewModel"
              x:CompileBindings="True"
@@ -130,9 +129,7 @@
     <!-- Ready -->
     <PathIcon
       IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}"
-      Data="{StaticResource checkmark_circle_filled}"
-      Foreground="{Binding $parent[sb:StatusBar].Foreground}"
-      VerticalAlignment="Center" HorizontalAlignment="Right" />
+      Data="{StaticResource checkmark_circle_filled}" />
 
     <!-- Connection issue -->
     <PathIcon
@@ -145,7 +142,6 @@
     <PathIcon
       IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
       Data="{StaticResource arrow_sync_regular}"
-      Foreground="{Binding $parent[sb:StatusBar].Foreground}"
       Classes.rotate="{Binding $self.IsVisible}" />
 
   </Panel>
