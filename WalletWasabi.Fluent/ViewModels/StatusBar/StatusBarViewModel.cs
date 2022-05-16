@@ -155,7 +155,7 @@ public partial class StatusBarViewModel : IDisposable
 			{
 				var updateStatus = e.EventArgs;
 
-				UpdateAvailable = !updateStatus.ClientUpToDate;
+				UpdateAvailable = !false;
 				CriticalUpdateAvailable = !updateStatus.BackendCompatible;
 
 				if (CriticalUpdateAvailable)

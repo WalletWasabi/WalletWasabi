@@ -13,6 +13,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar.StatusBar">
   <UserControl.Styles>
+
+    <Style Selector="PathIcon">
+      <Setter Property="Width" Value="25" />
+      <Setter Property="Height" Value="25" />
+    </Style>
+
     <Style Selector="PathIcon.rotate">
       <Style.Animations>
         <Animation Duration="0:0:2" IterationCount="Infinite">
@@ -25,16 +31,20 @@
         </Animation>
       </Style.Animations>
     </Style>
+
     <Style Selector="FlyoutPresenter">
-      <Setter Property="Background" Value="{DynamicResource SystemControlTransientBackgroundBrush}"/>
-      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
-      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+      <Setter Property="Background" Value="{DynamicResource SystemControlTransientBackgroundBrush}" />
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
+
   </UserControl.Styles>
-  <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">
+  <Panel>
+
     <Interaction.Behaviors>
       <behaviors:ShowFlyoutOnPointerOverBehavior />
     </Interaction.Behaviors>
+
     <FlyoutBase.AttachedFlyout>
       <Flyout Placement="TopEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
         <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
@@ -50,7 +60,9 @@
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
                       Height="30" />
-            <TextBlock DockPanel.Dock="Bottom" Text="Wasabi was unable to connect to the server, some features may be unavailable, the reported balance could also be inaccurate. Retrying to connect." TextWrapping="Wrap"
+            <TextBlock DockPanel.Dock="Bottom"
+                       Text="Wasabi was unable to connect to the server, some features may be unavailable, the reported balance could also be inaccurate. Retrying to connect."
+                       TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
 
@@ -87,14 +99,14 @@
                           StatusText="{Binding VersionText}" />
             <Button Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
-                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13"/>
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
                 <AccessText Text="Update now" />
               </StackPanel>
             </Button>
 
             <Button Classes="activeHyperLink" Command="{Binding AskMeLaterCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
-                <PathIcon Data="{StaticResource clock_regular}" Height="13"/>
+                <PathIcon Data="{StaticResource clock_regular}" Height="13" />
                 <AccessText Text="Ask me later" />
               </StackPanel>
             </Button>
@@ -103,65 +115,38 @@
       </Flyout>
     </FlyoutBase.AttachedFlyout>
 
-    <Panel.Styles>
+    <!--Update available-->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}"
+      Data="{StaticResource arrow_clockwise_with_elipse}"
+      Foreground="Goldenrod" />
 
-      <Style Selector="DockPanel > TextBlock">
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-        <Setter Property="Margin" Value="5" />
-        <Setter Property="FontSize" Value="14" />
-      </Style>
-
-      <Style Selector="DockPanel > PathIcon">
-        <Setter Property="Height" Value="30" />
-        <Setter Property="Margin" Value="5" />
-        <Setter Property="(DockPanel.Dock)" Value="Right" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-      </Style>
-
-    </Panel.Styles>
-
-     <!--Update available--> 
-    <DockPanel IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}">
-      <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
-                Foreground="Goldenrod" />
-      <TextBlock Text="Update available" Foreground="Goldenrod" />
-    </DockPanel>
-
-     <!--Critical update available--> 
-    <DockPanel
-      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}">
-
-      <PathIcon Data="{StaticResource critical_update}"
-                Foreground="{DynamicResource SystemErrorTextColor}" />
-      <TextBlock Text="Critical update available" Foreground="IndianRed" />
-      
-    </DockPanel>
+    <!--Critical update available-->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}"
+      Data="{StaticResource critical_update}"
+      Foreground="{DynamicResource SystemErrorTextColor}" />
 
     <!-- Ready -->
-    <PathIcon Data="{StaticResource checkmark_circle_filled}"
-              Foreground="{Binding $parent[sb:StatusBar].Foreground}"
-              VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="40"
-              Margin="10 0"
-              IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}" />
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Ready}}"
+      Data="{StaticResource checkmark_circle_filled}"
+      Foreground="{Binding $parent[sb:StatusBar].Foreground}"
+      VerticalAlignment="Center" HorizontalAlignment="Right" />
 
     <!-- Connection issue -->
-    <PathIcon Data="{StaticResource warning_filled}"
-              Foreground="Gold"
-              VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="30"
-              Margin="10 0"
-              IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}" />
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.ConnectionIssueDetected}}"
+      Data="{StaticResource warning_filled}"
+      Foreground="Gold"
+      VerticalAlignment="Center" HorizontalAlignment="Right" />
 
     <!-- Loading -->
-    <PathIcon Data="{StaticResource arrow_sync_regular}"
-              Foreground="{Binding $parent[sb:StatusBar].Foreground}"
-              VerticalAlignment="Center" HorizontalAlignment="Right"
-              Height="40"
-              Margin="10 0"
-              IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
-              Classes.rotate="{Binding $self.IsVisible}" />
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.Loading}}"
+      Data="{StaticResource arrow_sync_regular}"
+      Foreground="{Binding $parent[sb:StatusBar].Foreground}"
+      Classes.rotate="{Binding $self.IsVisible}" />
 
   </Panel>
 </UserControl>
