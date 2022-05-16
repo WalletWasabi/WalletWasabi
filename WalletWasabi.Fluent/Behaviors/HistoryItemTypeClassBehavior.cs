@@ -12,17 +12,17 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<TreeDat
 		AssociatedObject?.WhenAnyValue(x => x.DataContext)
 			.Subscribe(x =>
 			{
-				if (x is TransactionHistoryItemViewModel)
+				switch (x)
 				{
-					AssociatedObject.Classes.Add("Transaction");
-				}
-				else if (x is CoinJoinHistoryItemViewModel)
-				{
-					AssociatedObject.Classes.Add("CoinJoin");
-				}
-				else if (x is CoinJoinsHistoryItemViewModel)
-				{
-					AssociatedObject.Classes.Add("CoinJoins");
+					case TransactionHistoryItemViewModel:
+						AssociatedObject.Classes.Add("Transaction");
+						break;
+					case CoinJoinHistoryItemViewModel:
+						AssociatedObject.Classes.Add("CoinJoin");
+						break;
+					case CoinJoinsHistoryItemViewModel:
+						AssociatedObject.Classes.Add("CoinJoins");
+						break;
 				}
 			})
 			.DisposeWith(disposable);
