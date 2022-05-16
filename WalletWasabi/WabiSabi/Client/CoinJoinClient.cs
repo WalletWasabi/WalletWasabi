@@ -449,7 +449,9 @@ public class CoinJoinClient
 			.ToArray();
 
 		// How many inputs do we want to provide to the mix?
-		int inputCount = consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd);
+		int inputCount = Math.Min(
+			filteredCoins.Length,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd));
 
 		var nonPrivateFilteredCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
