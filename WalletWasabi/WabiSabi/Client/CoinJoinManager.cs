@@ -367,9 +367,14 @@ public class CoinJoinManager : BackgroundService
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
 	{
+		if (openedWallet.Synchronizer.LastResponse is not { } synchronizerResponse)
+		{
+			return Enumerable.Empty<SmartCoin>();
+		}
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
+			.Where(x => x.Height < synchronizerResponse.BestHeight -  100)
 			.Where(x => !x.IsBanned)
 			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget
 					&& !CoinRefrigerator.IsFrozen(x)));
