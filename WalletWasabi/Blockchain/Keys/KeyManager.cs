@@ -88,6 +88,7 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+		ToFileLock = new object();
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
