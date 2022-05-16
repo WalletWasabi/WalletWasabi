@@ -13,7 +13,9 @@
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
+
   <UserControl.Resources>
+
     <ContextMenu x:Key="TransactionContextMenu" x:DataType="historyItems:TransactionHistoryItemViewModel">
       <MenuItem Header="Copy Transaction ID"
                 Command="{Binding ClipboardCopyCommand}"
@@ -53,7 +55,27 @@
         </MenuItem.Icon>
       </MenuItem>
     </ContextMenu>
+
+    <ContextMenu x:Key="CoinJoinContextMenu" x:DataType="historyItems:CoinJoinHistoryItemViewModel">
+      <MenuItem Header="Show details"
+                Command="{Binding ShowDetailsCommand}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource details_regular}" />
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
+
+    <ContextMenu x:Key="CoinJoinsTransactionContextMenu" x:DataType="historyItems:CoinJoinsHistoryItemViewModel">
+      <MenuItem Header="Show details"
+                Command="{Binding ShowDetailsCommand}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource details_regular}" />
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
+
   </UserControl.Resources>
+
   <Panel>
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
@@ -131,8 +153,18 @@
               </DockPanel>
             </ControlTemplate>
           </Setter>
+        </Style>
+
+        <Style Selector="TreeDataGridRow.Transaction">
           <Setter Property="ContextMenu" Value="{StaticResource TransactionContextMenu}" />
         </Style>
+        <Style Selector="TreeDataGridRow.CoinJoin">
+          <Setter Property="ContextMenu" Value="{StaticResource CoinJoinContextMenu}" />
+        </Style>
+        <Style Selector="TreeDataGridRow.CoinJoins">
+          <Setter Property="ContextMenu" Value="{StaticResource CoinJoinsTransactionContextMenu}" />
+        </Style>
+
         <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
           <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
           <Setter Property="Opacity" Value="0" />
@@ -188,6 +220,7 @@
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:HistoryItemDetailsBehavior />
+                <behaviors:HistoryItemTypeClassBehavior />
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
