@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -208,7 +209,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 			SelectedItem.IsFlashing = true;
 
 			var index = _transactions.IndexOf(SelectedItem);
-			Source.RowSelection!.SelectedIndex = new IndexPath(index);
+			Dispatcher.UIThread.Post(() =>
+			{
+				Source.RowSelection!.SelectedIndex = new IndexPath(index);
+			});
 		}
 	}
 
