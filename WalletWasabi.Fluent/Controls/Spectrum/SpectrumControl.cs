@@ -7,6 +7,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
+using ReactiveUI;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
@@ -42,6 +43,10 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
 
+		var animationRenderFPS = 60;
+		var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000f / animationRenderFPS) };
+		timer.Tick += OnTimerTick;
+
 		_auraSpectrumDataSource.GeneratingDataStateChanged += OnAuraGeneratingDataStateChanged;
 		_splashEffectDataSource.GeneratingDataStateChanged += OnSplashGeneratingDataStateChanged;
 
@@ -55,6 +60,34 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+
+		this.WhenAnyValue(x => x.IsVisible)
+			.Subscribe(x =>
+			{
+				if (x)
+				{
+					timer.Start();
+				}
+				else
+				{
+					timer.Stop();
+				}
+			});
+	}
+
+	private void OnTimerTick(object? sender, EventArgs e)
+	{
+		for (int i = 0; i < NumBins; i++)
+		{
+			_data[i] = 0;
+		}
+
+		foreach (var source in _sources)
+		{
+			source.Render(ref _data);
+		}
+
+		Dispatcher.UIThread.Post(InvalidateVisual);
 	}
 
 	public bool IsActive
@@ -128,19 +161,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		base.Render(context);
 
-		for (int i = 0; i < NumBins; i++)
-		{
-			_data[i] = 0;
-		}
-
-		foreach (var source in _sources)
-		{
-			source.Render(ref _data);
-		}
-
 		context.Custom(this);
-
-		Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
 
 	private void RenderBars(IDrawingContextImpl context)
