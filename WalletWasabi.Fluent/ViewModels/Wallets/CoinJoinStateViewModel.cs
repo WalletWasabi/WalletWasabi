@@ -403,7 +403,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
-				CurrentStatus = roundEnded.RoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
+				CurrentStatus = roundEnded.LastRoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
 				StopCountDown();
 				break;
 
