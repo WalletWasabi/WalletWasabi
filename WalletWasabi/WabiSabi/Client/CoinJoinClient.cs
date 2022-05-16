@@ -496,6 +496,11 @@ public class CoinJoinClient
 			}
 		}
 
+		if (!groups.Any())
+		{
+			return ImmutableList<SmartCoin>.Empty;
+		}
+
 		// Select the group where the less coins coming from the same tx.
 		var bestRep = groups.Values.Select(x => GetReps(x)).Min(x => x);
 		var bestRepGroups = groups.Values.Where(x => GetReps(x) == bestRep);
