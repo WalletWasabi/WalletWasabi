@@ -393,7 +393,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> NavigateConfirmLabelsDialogAsync(BuildTransactionResult transaction)
 	{
-		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget)));
+		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.AnonScoreTarget)));
 		var suggestionViewModel = new PocketSuggestionViewModel(labels);
 		var dialog = new ConfirmLabelsDialogViewModel(suggestionViewModel);
 
