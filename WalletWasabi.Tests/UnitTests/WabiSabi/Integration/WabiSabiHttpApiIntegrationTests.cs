@@ -66,6 +66,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[Fact]
 	public async Task RegisterBannedCoinAsync()
 	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
+
 		var bannedOutPoint = BitcoinFactory.CreateOutPoint();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -76,7 +78,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			})).CreateClient();
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
-		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
+		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, timeoutCts.Token)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
 		// If an output is not in the utxo dataset then it is not unspent, this
@@ -85,7 +87,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 
 		var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
-			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, CancellationToken.None));
+			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, timeoutCts.Token));
 
 		var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, wex.ErrorCode);
