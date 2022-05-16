@@ -27,7 +27,6 @@
           </Style>
         </DockPanel.Styles>
         <TextBlock Classes="h8" Text="Wasabi Wallet" />
-        <TextBlock Classes="h8" Opacity="0.6" Text="TESTNET PREVIEW" TextTrimming="CharacterEllipsis" />
       </DockPanel>
     </DataTemplate>
 
