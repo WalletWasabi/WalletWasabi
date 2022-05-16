@@ -46,11 +46,21 @@
 
     <FlyoutBase.AttachedFlyout>
       <Flyout Placement="TopEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
-        <StackPanel TextBlock.Foreground="{DynamicResource TextControlForeground}"
+
+        <StackPanel TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}"
                     TextBlock.FontSize="14"
                     MaxWidth="160"
                     ClipToBounds="False"
                     Spacing="16">
+
+          <StackPanel.Styles>
+            <Style Selector="PathIcon">
+              <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+            <Style Selector="AccessText">
+              <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+          </StackPanel.Styles>
 
           <!-- Warning message TODO: use InfoMessage control-->
           <DockPanel
