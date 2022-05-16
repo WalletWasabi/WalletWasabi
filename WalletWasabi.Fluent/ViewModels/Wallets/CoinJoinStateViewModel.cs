@@ -17,7 +17,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -117,7 +116,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Subscribe(SetAutoCoinJoin);
 
 		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
-			.Subscribe(x => _stateMachine.Fire(Trigger.PlebStopChanged));
+			.Subscribe(_ => _stateMachine.Fire(Trigger.PlebStopChanged));
 
 		_stateMachine.Start();
 	}
