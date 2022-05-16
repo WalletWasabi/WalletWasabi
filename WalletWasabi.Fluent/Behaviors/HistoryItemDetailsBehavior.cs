@@ -87,9 +87,9 @@ public class HistoryItemDetailsBehavior : DisposingBehavior<TreeDataGridRow>
 			Row = to
 		};
 
-		var setLogicalParent = (ISetLogicalParent) adorner;
+		var setLogicalParent = (ISetLogicalParent)adorner;
 		setLogicalParent.SetParent(to);
-		layer.Children.Add(adorner);
+		layer?.Children.Add(adorner);
 		return adorner;
 	}
 }
