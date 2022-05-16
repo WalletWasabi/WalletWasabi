@@ -496,7 +496,7 @@ public class CoinJoinClient
 
 		var bestgroup = bestRepGroups
 			.ToShuffled()
-			.MaxBy(x => x.Sum(y => y.Amount))!;
+			.MaxBy(x => x.Sum(y => y.Amount));
 
 		return bestgroup?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
 	}
