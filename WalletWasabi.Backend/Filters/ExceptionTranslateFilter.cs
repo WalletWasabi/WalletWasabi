@@ -21,7 +21,7 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 				Type: ProtocolConstants.ProtocolViolationType,
 				ErrorCode: e.ErrorCode.ToString(),
 				Description: e.Message,
-				ExceptionData: e.ExceptionData ?? new EmptyExceptionData()))
+				ExceptionData: e.ExceptionData ?? EmptyExceptionData.Instance))
 			{
 				StatusCode = (int)HttpStatusCode.InternalServerError
 			},
@@ -29,7 +29,7 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 				Type: ProtocolConstants.ProtocolViolationType,
 				ErrorCode: WabiSabiProtocolErrorCode.CryptoException.ToString(),
 				Description: e.Message,
-				ExceptionData: new EmptyExceptionData()))
+				ExceptionData: EmptyExceptionData.Instance))
 			{
 				StatusCode = (int)HttpStatusCode.InternalServerError
 			},
