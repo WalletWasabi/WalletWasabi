@@ -9,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -17,6 +16,7 @@ using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
+
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
@@ -58,6 +58,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 	private bool _overridePlebStop;
+	private CoinJoinProgressEventArgs? _lastStatusMessage;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -160,7 +161,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Timer,
 		PlebStopChanged,
 		RoundEndedMessage,
-		RoundFailedMessage,
 		OutputRegistrationMessage,
 		SigningPhaseMessage,
 		InputRegistrationMessage,
@@ -241,16 +241,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
-			.OnTrigger(Trigger.RoundEndedMessage, () =>
-			{
-				CurrentStatus = _roundSucceedMessage;
-				StopCountDown();
-			})
-			.OnTrigger(Trigger.RoundFailedMessage, () =>
-			{
-				CurrentStatus = _roundFailedMessage;
-				StopCountDown();
-			})
+			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
@@ -354,16 +345,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.OnTrigger(Trigger.RoundEndedMessage, () =>
-			{
-				CurrentStatus = _roundSucceedMessage;
-				StopCountDown();
-			})
-			.OnTrigger(Trigger.RoundFailedMessage, () =>
-			{
-				CurrentStatus = _roundFailedMessage;
-				StopCountDown();
-			})
 			.OnEntry(async () =>
 			{
 				CurrentStatus = _waitingMessage;
@@ -379,6 +360,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
+			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.Timer, UpdateCountDown);
@@ -508,58 +490,37 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
-				_stateMachine.Fire(roundEnded.LastRoundState.WasTransactionBroadcast
-					? Trigger.RoundEndedMessage
-					: Trigger.RoundFailedMessage);
+				_lastStatusMessage = roundEnded;
+				_stateMachine.Fire(Trigger.RoundEndedMessage);
 				break;
 
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
+				_lastStatusMessage = enteringOutputRegistrationPhase;
 				_stateMachine.Fire(Trigger.OutputRegistrationMessage);
-
-				StartCountDown(
-					message: _outputRegistrationMessage,
-					start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
-					end: enteringOutputRegistrationPhase.TimeoutAt);
 				break;
 
 			case EnteringSigningPhase enteringSigningPhase:
+				_lastStatusMessage = enteringSigningPhase;
 				_stateMachine.Fire(Trigger.SigningPhaseMessage);
-
-				StartCountDown(
-					message: _transactionSigningMessage,
-					start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
-					end: enteringSigningPhase.TimeoutAt);
 				break;
 
 			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
+				_lastStatusMessage = enteringInputRegistrationPhase;
 				_stateMachine.Fire(Trigger.InputRegistrationMessage);
-
-				StartCountDown(
-					message: _inputRegistrationMessage,
-					start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
-					end: enteringInputRegistrationPhase.TimeoutAt);
 				break;
 
 			case WaitingForBlameRound waitingForBlameRound:
+				_lastStatusMessage = waitingForBlameRound;
 				_stateMachine.Fire(Trigger.WaitingForBlameRoundMessage);
-
-				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
 				break;
 
 			case WaitingForRound:
 				_stateMachine.Fire(Trigger.WaitingForRoundMessage);
-
-				CurrentStatus = _waitingRoundMessage;
-				StopCountDown();
 				break;
 
-			case EnteringConnectionConfirmationPhase enteringConnectionConfirmationPhase:
+			case EnteringConnectionConfirmationPhase:
+				_lastStatusMessage = coinJoinProgress;
 				_stateMachine.Fire(Trigger.ConnectionConfirmationPhaseMessage);
-
-				StartCountDown(
-					message: _connectionConfirmationMessage,
-					start: enteringConnectionConfirmationPhase.TimeoutAt - enteringConnectionConfirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
-					end: enteringConnectionConfirmationPhase.TimeoutAt);
 				break;
 
 			case EnteringCriticalPhase:
@@ -572,6 +533,85 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsInCriticalPhase = false;
 				break;
 		}
+	}
+
+	private StateMachine<State, Trigger>.StateContext HandleMessages(StateMachine<State, Trigger>.StateContext context)
+	{
+		return context.OnTrigger(Trigger.RoundEndedMessage, () =>
+			{
+				if (_lastStatusMessage is RoundEnded roundEnded)
+				{
+					CurrentStatus = roundEnded.LastRoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
+					StopCountDown();
+				}
+			})
+			.OnTrigger(Trigger.InputRegistrationMessage, () =>
+			{
+				if (_lastStatusMessage is EnteringInputRegistrationPhase enteringInputRegistrationPhase)
+				{
+					StartCountDown(
+						message: _inputRegistrationMessage,
+						start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState
+							.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
+						end: enteringInputRegistrationPhase.TimeoutAt);
+
+					_lastStatusMessage = null;
+				}
+			})
+			.OnTrigger(Trigger.OutputRegistrationMessage, () =>
+			{
+				if (_lastStatusMessage is EnteringOutputRegistrationPhase enteringOutputRegistrationPhase)
+				{
+					StartCountDown(
+						message: _outputRegistrationMessage,
+						start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState
+							.CoinjoinState.Parameters.OutputRegistrationTimeout,
+						end: enteringOutputRegistrationPhase.TimeoutAt);
+
+					_lastStatusMessage = null;
+				}
+			})
+			.OnTrigger(Trigger.SigningPhaseMessage, () =>
+			{
+				if (_lastStatusMessage is EnteringSigningPhase enteringSigningPhase)
+				{
+					StartCountDown(
+						message: _transactionSigningMessage,
+						start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters
+							.TransactionSigningTimeout,
+						end: enteringSigningPhase.TimeoutAt);
+
+					_lastStatusMessage = null;
+				}
+			})
+			.OnTrigger(Trigger.ConnectionConfirmationPhaseMessage, () =>
+			{
+				if (_lastStatusMessage is EnteringConnectionConfirmationPhase confirmationPhaseArgs)
+				{
+					StartCountDown(
+						message: _connectionConfirmationMessage,
+						start: confirmationPhaseArgs.TimeoutAt - confirmationPhaseArgs
+							.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
+						end: confirmationPhaseArgs.TimeoutAt);
+
+					_lastStatusMessage = null;
+				}
+			})
+			.OnTrigger(Trigger.WaitingForBlameRoundMessage, () =>
+			{
+				if (_lastStatusMessage is WaitingForBlameRound waitingForBlameRound)
+				{
+					StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow,
+						end: waitingForBlameRound.TimeoutAt);
+
+					_lastStatusMessage = null;
+				}
+			})
+			.OnTrigger(Trigger.WaitingForRoundMessage, () =>
+			{
+				CurrentStatus = _waitingRoundMessage;
+				StopCountDown();
+			});
 	}
 
 	private void StartCountDown(MusicStatusMessageViewModel message, DateTimeOffset start, DateTimeOffset end)
