@@ -468,31 +468,32 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var sw2 = Stopwatch.StartNew();
-			foreach (var group in filteredCoins
-				.Except(new[] { coin })
-				.CombinationsWithoutRepetition(inputCount - 1)
-				.Select(x => x.Concat(new[] { coin })))
+			if (inputCount == 1)
 			{
-				var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
-				var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
-				if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
+				TryAddGroup(parameters, groups, new[] { coin });
+			}
+			else
+			{
+				var sw2 = Stopwatch.StartNew();
+				foreach (var group in filteredCoins
+					.Except(new[] { coin })
+					.CombinationsWithoutRepetition(inputCount - 1)
+					.Select(x => x.Concat(new[] { coin })))
 				{
-					var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
-					groups.TryAdd(k, group);
+					TryAddGroup(parameters, groups, group);
+
+					if (sw2.Elapsed > TimeSpan.FromSeconds(1))
+					{
+						break;
+					}
 				}
 
-				if (sw2.Elapsed > TimeSpan.FromSeconds(1))
+				sw2.Reset();
+
+				if (sw1.Elapsed > TimeSpan.FromSeconds(10))
 				{
 					break;
 				}
-			}
-
-			sw2.Reset();
-
-			if (sw1.Elapsed > TimeSpan.FromSeconds(10))
-			{
-				break;
 			}
 		}
 
@@ -514,6 +515,19 @@ public class CoinJoinClient
 			.RandomElement();
 
 		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static bool TryAddGroup(RoundParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)
+	{
+		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
+		var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
+		if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
+		{
+			var k = HashCode.Combine(group.OrderBy(x => x.TransactionId).ThenBy(x => x.Index));
+			return groups.TryAdd(k, group);
+		}
+
+		return false;
 	}
 
 	private static int GetReps(IEnumerable<SmartCoin> group)
