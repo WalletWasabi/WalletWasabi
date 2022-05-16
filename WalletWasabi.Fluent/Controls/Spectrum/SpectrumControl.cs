@@ -82,7 +82,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 		else if (change.Property == IsDockEffectVisibleProperty)
 		{
-			if (change.NewValue.GetValueOrDefault<bool>())
+			if (change.NewValue.GetValueOrDefault<bool>() && !IsActive)
 			{
 				_splashEffectDataSource.Start();
 			}
