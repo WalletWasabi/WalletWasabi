@@ -158,7 +158,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		RoundFinished,
 		BalanceChanged,
 		Timer,
-		PlebStopChanged
+		PlebStopChanged,
+		RoundEndedMessage,
+		RoundFailedMessage,
+		OutputRegistrationMessage,
+		SigningPhaseMessage,
+		InputRegistrationMessage,
+		WaitingForBlameRoundMessage,
+		WaitingForRoundMessage,
+		ConnectionConfirmationPhaseMessage,
+		EnterCriticalPhaseMessage,
+		ExitCriticalPhaseMessage
 	}
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
@@ -473,16 +483,25 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 	}
 
+	private void HandleRoundEndedMessage()
+	{
+		//CurrentStatus = roundEnded.LastRoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
+		//StopCountDown();
+	}
+
 	private void OnCoinJoinPhaseChanged(CoinJoinProgressEventArgs coinJoinProgress)
 	{
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
-				CurrentStatus = roundEnded.LastRoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
-				StopCountDown();
+				_stateMachine.Fire(roundEnded.LastRoundState.WasTransactionBroadcast
+					? Trigger.RoundEndedMessage
+					: Trigger.RoundFailedMessage);
 				break;
 
 			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
+				_stateMachine.Fire(Trigger.OutputRegistrationMessage);
+
 				StartCountDown(
 					message: _outputRegistrationMessage,
 					start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
@@ -490,6 +509,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case EnteringSigningPhase enteringSigningPhase:
+				_stateMachine.Fire(Trigger.SigningPhaseMessage);
+
 				StartCountDown(
 					message: _transactionSigningMessage,
 					start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
@@ -497,6 +518,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
+				_stateMachine.Fire(Trigger.InputRegistrationMessage);
+
 				StartCountDown(
 					message: _inputRegistrationMessage,
 					start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
@@ -504,15 +527,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case WaitingForBlameRound waitingForBlameRound:
+				_stateMachine.Fire(Trigger.WaitingForBlameRoundMessage);
+
 				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
 				break;
 
 			case WaitingForRound:
+				_stateMachine.Fire(Trigger.WaitingForRoundMessage);
+
 				CurrentStatus = _waitingRoundMessage;
 				StopCountDown();
 				break;
 
 			case EnteringConnectionConfirmationPhase enteringConnectionConfirmationPhase:
+				_stateMachine.Fire(Trigger.ConnectionConfirmationPhaseMessage);
+
 				StartCountDown(
 					message: _connectionConfirmationMessage,
 					start: enteringConnectionConfirmationPhase.TimeoutAt - enteringConnectionConfirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
@@ -520,10 +549,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case EnteringCriticalPhase:
+				_stateMachine.Fire(Trigger.EnterCriticalPhaseMessage);
 				IsInCriticalPhase = true;
 				break;
 
 			case LeavingCriticalPhase:
+				_stateMachine.Fire(Trigger.ExitCriticalPhaseMessage);
 				IsInCriticalPhase = false;
 				break;
 		}
