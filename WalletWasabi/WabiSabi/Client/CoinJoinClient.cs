@@ -33,14 +33,14 @@ public class CoinJoinClient
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
-	/// <param name="minAnonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
+	/// <param name="anonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
-		int minAnonScoreTarget = int.MaxValue,
+		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
@@ -49,7 +49,7 @@ public class CoinJoinClient
 		KeyChain = keyChain;
 		DestinationProvider = destinationProvider;
 		RoundStatusUpdater = roundStatusUpdater;
-		MinAnonScoreTarget = minAnonScoreTarget;
+		AnonScoreTarget = anonScoreTarget;
 		ConsolidationMode = consolidationMode;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
@@ -63,7 +63,7 @@ public class CoinJoinClient
 	private IKeyChain KeyChain { get; }
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	public int MinAnonScoreTarget { get; }
+	public int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool ConsolidationMode { get; private set; }
@@ -129,7 +129,7 @@ public class CoinJoinClient
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, MinAnonScoreTarget, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, SecureRandom);
 
 			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
 			{
@@ -439,7 +439,7 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, RoundParameters parameters, bool consolidationMode, int minAnonScoreTarget, WasabiRandom rnd)
+	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, RoundParameters parameters, bool consolidationMode, int anonScoreTarget, WasabiRandom rnd)
 	{
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -452,7 +452,7 @@ public class CoinJoinClient
 		int inputCount = consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd);
 
 		var nonPrivateFilteredCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < minAnonScoreTarget)
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
 			.ToArray();
 
 		// Always have the top largest amounts playing to not participate with insignificant amounts and fragment needlessly.
