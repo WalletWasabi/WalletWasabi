@@ -176,6 +176,9 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 			Logger.LogDebug($"Coinjoin client started for wallet '{walletToStart.WalletName}' auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
+
+			// In case there was another start scheduled just remove it.
+			trackedAutoStarts.TryRemove(walletToStart, out _);
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
