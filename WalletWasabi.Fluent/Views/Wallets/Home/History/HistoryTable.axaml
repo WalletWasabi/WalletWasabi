@@ -14,7 +14,7 @@
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <UserControl.Resources>
-    <ContextMenu x:Key="TransactionContextMenu" x:DataType="historyItems:HistoryItemViewModelBase">
+    <ContextMenu x:Key="TransactionContextMenu" x:DataType="historyItems:TransactionHistoryItemViewModel">
       <!-- TODO: Show speed up transaction dialog.
       <MenuItem Header="Speed-up transaction"
                 IsVisible="{Binding !IsConfirmed}"
