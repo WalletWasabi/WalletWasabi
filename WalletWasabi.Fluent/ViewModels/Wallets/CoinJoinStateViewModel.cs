@@ -131,11 +131,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoStarting,
 		Paused,
 		AutoPlaying,
+		AutoPlayingCritical,
 		AutoFinished,
 		AutoFinishedPlebStop,
 
 		Stopped,
 		ManualPlaying,
+		ManualPlayingCritical,
 		ManualFinished,
 
 		ManualFinishedPlebStop,
@@ -228,6 +230,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Stop, State.Stopped)
 			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
 			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
+			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
 			.OnEntry(async () =>
 			{
 				PlayVisible = false;
@@ -247,6 +250,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown);
+
+		_stateMachine.Configure(State.ManualPlayingCritical)
+			.SubstateOf(State.ManualPlaying)
+			.Permit(Trigger.ExitCriticalPhaseMessage, State.ManualPlaying)
+			.OnEntry(() =>
+			{
+				StopVisible = false;
+			})
+			.OnExit(() =>
+			{
+				StopVisible = true;
+			});
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.ManualCoinJoin)
@@ -307,6 +322,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.EnterCriticalPhaseMessage, State.AutoPlayingCritical)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -319,6 +335,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				StopCountDown();
 				IsAutoWaiting = false;
+			});
+
+		_stateMachine.Configure(State.AutoPlayingCritical)
+			.SubstateOf(State.AutoPlaying)
+			.Permit(Trigger.ExitCriticalPhaseMessage, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				PauseVisible = false;
+			})
+			.OnExit(() =>
+			{
+				PauseVisible = true;
 			});
 
 		_stateMachine.Configure(State.Paused)
