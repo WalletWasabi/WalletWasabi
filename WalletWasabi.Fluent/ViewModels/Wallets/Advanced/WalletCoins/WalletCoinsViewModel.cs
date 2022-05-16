@@ -114,6 +114,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			}
 		};
 
+		disposables.Add(Disposable.Create(() => _coins.Clear()));
+
 		Source.DisposeWith(disposables);
 
 		Source.RowSelection!.SingleSelect = true;
