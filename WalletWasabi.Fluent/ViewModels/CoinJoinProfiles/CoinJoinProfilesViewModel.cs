@@ -7,18 +7,18 @@ using System.Windows.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 [NavigationMetaData(Title = "Coinjoin Strategy")]
-public partial class CoinJoinProfilesViewModel : RoutableViewModel
+public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 
-	public CoinJoinProfilesViewModel(KeyManager keyManager)
+	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
+		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
 
 		var speedyProfile = new SpeedyCoinJoinProfileViewModel();
@@ -55,15 +55,24 @@ public partial class CoinJoinProfilesViewModel : RoutableViewModel
 		}
 	}
 
-	private void OnNext(KeyManager keyManager)
+	private void OnNext(KeyManager keyManager, bool isNewWallet)
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
 		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
 		keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
+		keyManager.IsCoinjoinProfileSelected = true;
 
-		Navigate().To(new AddedWalletPageViewModel(keyManager));
+		if (isNewWallet)
+		{
+			Navigate().To(new AddedWalletPageViewModel(keyManager));
+		}
+		else
+		{
+			keyManager.ToFile();
+			Close(DialogResultKind.Normal, true);
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

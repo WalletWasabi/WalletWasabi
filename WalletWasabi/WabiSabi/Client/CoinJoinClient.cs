@@ -25,7 +25,6 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private volatile bool _inCriticalCoinJoinState;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(1);
 
@@ -66,12 +65,6 @@ public class CoinJoinClient
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public int MinAnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
-
-	public bool InCriticalCoinJoinState
-	{
-		get => _inCriticalCoinJoinState;
-		private set => _inCriticalCoinJoinState = value;
-	}
 
 	public bool ConsolidationMode { get; private set; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
@@ -205,42 +198,71 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			InCriticalCoinJoinState = true;
-
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
-			var finalRoundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(finalRoundState));
-
-			var wasTxBroadcast = finalRoundState.WasTransactionBroadcast
-				? $"'{finalRoundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
-				: $"'{finalRoundState.WasTransactionBroadcast}'";
+			var wasTxBroadcast = roundState.WasTransactionBroadcast
+				? $"'{roundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
+				: $"'{roundState.WasTransactionBroadcast}'";
 			roundState.LogDebug($"Ended - WasTransactionBroadcast: {wasTxBroadcast}.");
 
-			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, finalRoundState);
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			return new CoinJoinResult(
-				GoForBlameRound: !finalRoundState.WasTransactionBroadcast,
-				SuccessfulBroadcast: finalRoundState.WasTransactionBroadcast,
+				GoForBlameRound: !roundState.WasTransactionBroadcast,
+				SuccessfulBroadcast: roundState.WasTransactionBroadcast,
 				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
 		finally
 		{
+			foreach (var coins in smartCoins)
+			{
+				coins.CoinJoinInProgress = false;
+			}
+
 			foreach (var aliceClientAndCircuit in registeredAliceClientAndCircuits)
 			{
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
-			InCriticalCoinJoinState = false;
+			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
 	}
 
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
+		bool alreadyEnteredToCritical = false;
+		object alreadyEnteredToCriticalLock = new();
+
+		void ReportProgressOnce()
+		{
+			if (alreadyEnteredToCritical)
+			{
+				return;
+			}
+
+			// Helper to not invoke event inside the lock.
+			bool reportProgress = false;
+			lock (alreadyEnteredToCriticalLock)
+			{
+				if (alreadyEnteredToCritical)
+				{
+					return;
+				}
+				reportProgress = true;
+				alreadyEnteredToCritical = true;
+			}
+			if (reportProgress)
+			{
+				CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
+			}
+		}
+
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
 			PersonCircuit? personCircuit = null;
@@ -257,6 +279,9 @@ public class CoinJoinClient
 					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+
+				// Right after the first real-cred confirmation happened we entered into critical phase.
+				ReportProgressOnce();
 
 				return (aliceClient, personCircuit);
 			}

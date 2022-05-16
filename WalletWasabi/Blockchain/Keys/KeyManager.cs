@@ -88,6 +88,7 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+		ToFileLock = new object();
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
@@ -164,6 +165,9 @@ public class KeyManager
 
 	[JsonProperty(Order = 15, PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
+
+	[JsonProperty(Order = 16, PropertyName = "IsCoinjoinProfileSelected")]
+	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
