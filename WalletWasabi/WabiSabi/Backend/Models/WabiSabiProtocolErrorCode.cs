@@ -13,6 +13,7 @@ public enum WabiSabiProtocolErrorCode
 	TooMuchFunds,
 	NonUniqueInputs,
 	InputBanned,
+	InputLongBanned,
 	InputNotWhitelisted,
 	AliceNotFound,
 	IncorrectRequestedVsizeCredentials,
