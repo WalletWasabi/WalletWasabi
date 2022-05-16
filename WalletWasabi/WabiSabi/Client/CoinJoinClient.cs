@@ -455,12 +455,18 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet < minAnonScoreTarget)
 			.ToArray();
 
+		// Always have the top largest amounts playing to not participate with insignificant amounts and fragment needlessly.
+		var largestAmounts = nonPrivateFilteredCoins
+			.OrderByDescending(x => x.Amount)
+			.Take(3)
+			.ToArray();
+
 		// Select a group of coins those are close to each other by Anonimity Score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
 		// We can potentially add a lot more groups to improve results.
 		var sw1 = Stopwatch.StartNew();
-		foreach (var coin in nonPrivateFilteredCoins.OrderByDescending(x => x.Amount))
+		foreach (var coin in largestAmounts)
 		{
 			var sw2 = Stopwatch.StartNew();
 			foreach (var group in filteredCoins
@@ -494,11 +500,15 @@ public class CoinJoinClient
 		var bestRep = groups.Values.Select(x => GetReps(x)).Min(x => x);
 		var bestRepGroups = groups.Values.Where(x => GetReps(x) == bestRep);
 
-		var bestgroup = bestRepGroups
-			.ToShuffled()
-			.MaxBy(x => x.Sum(y => y.Amount));
+		var remainingLargestAmounts = bestRepGroups
+			.Select(x => x.OrderByDescending(x => x.Amount).First())
+			.ToHashSet();
+		var largestAmount = remainingLargestAmounts.RandomElement();
+		var finalCandidate = bestRepGroups
+			.Where(x => x.OrderByDescending(x => x.Amount).First() == largestAmount)
+			.RandomElement();
 
-		return bestgroup?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
 	}
 
 	private static int GetReps(IEnumerable<SmartCoin> group)
