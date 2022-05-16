@@ -137,6 +137,7 @@
 
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
+      <behaviors:SwallowEnterKeyBehavior />
     </i:Interaction.Behaviors>
 
     <TextBox.InnerLeftContent>
