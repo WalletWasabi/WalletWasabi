@@ -320,7 +320,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.Permit(Trigger.EnterCriticalPhaseMessage, State.AutoPlayingCritical)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -333,18 +332,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				StopCountDown();
 				IsAutoWaiting = false;
-			});
-
-		_stateMachine.Configure(State.AutoPlayingCritical)
-			.SubstateOf(State.AutoPlaying)
-			.Permit(Trigger.ExitCriticalPhaseMessage, State.AutoPlaying)
-			.OnEntry(() =>
-			{
-				PauseVisible = false;
-			})
-			.OnExit(() =>
-			{
-				PauseVisible = true;
 			});
 
 		_stateMachine.Configure(State.Paused)
@@ -374,6 +361,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.Permit(Trigger.EnterCriticalPhaseMessage, State.AutoPlayingCritical)
 			.OnEntry(async () =>
 			{
 				CurrentStatus = _waitingMessage;
@@ -393,6 +381,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.Timer, UpdateCountDown);
+
+		_stateMachine.Configure(State.AutoPlayingCritical)
+			.SubstateOf(State.AutoPlaying)
+			.Permit(Trigger.ExitCriticalPhaseMessage, State.AutoPlaying)
+			.OnEntry(() =>
+			{
+				PauseVisible = false;
+			})
+			.OnExit(() =>
+			{
+				PauseVisible = true;
+			});
 
 		_stateMachine.Configure(State.AutoFinished)
 			.SubstateOf(State.AutoCoinJoin)
