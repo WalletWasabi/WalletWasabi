@@ -236,32 +236,11 @@ public class CoinJoinClient
 
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		bool alreadyEnteredToCritical = false;
-		object alreadyEnteredToCriticalLock = new();
-
-		void ReportProgressOnce()
+		Lazy<bool> invokeEventOnce = new(() =>
 		{
-			if (alreadyEnteredToCritical)
-			{
-				return;
-			}
-
-			// Helper to not invoke event inside the lock.
-			bool reportProgress = false;
-			lock (alreadyEnteredToCriticalLock)
-			{
-				if (alreadyEnteredToCritical)
-				{
-					return;
-				}
-				reportProgress = true;
-				alreadyEnteredToCritical = true;
-			}
-			if (reportProgress)
-			{
-				CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
-			}
-		}
+			CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
+			return true;
+		});
 
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
 		{
@@ -281,7 +260,7 @@ public class CoinJoinClient
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
-				ReportProgressOnce();
+				_ = invokeEventOnce.Value;
 
 				return (aliceClient, personCircuit);
 			}
