@@ -83,15 +83,6 @@
     </ContextMenu>
 
     <ContextMenu x:Key="CoinJoinsTransactionContextMenu" x:DataType="historyItems:CoinJoinsHistoryItemViewModel">
-      <MenuItem Header="Copy Amount"
-                Command="{Binding  ClipboardCopyCommand}"
-                CommandParameter="{Binding OutgoingAmount, StringFormat={}{0}}"
-                IsVisible="{Binding OutgoingAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <MenuItem.Icon>
-          <PathIcon Data="{StaticResource btc_logo}" />
-        </MenuItem.Icon>
-      </MenuItem>
-      <Separator />
       <MenuItem Header="Show details"
                 Command="{Binding ShowDetailsCommand}">
         <MenuItem.Icon>
