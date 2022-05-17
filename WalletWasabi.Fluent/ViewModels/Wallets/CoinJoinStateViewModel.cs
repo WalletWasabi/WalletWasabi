@@ -36,11 +36,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for others" };
 	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Finalizing coinjoin" };
-	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for the blame round" };
+	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for the fallback round" };
 	private readonly MusicStatusMessageViewModel _waitingRoundMessage = new() { Message = "Waiting for a round" };
 	private readonly MusicStatusMessageViewModel _connectionConfirmationMessage = new() { Message = "Preparing coinjoin" };
-
-	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Below the threshold. Play to override." };
+	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Coinjoining is uneconomical" };
+	private readonly MusicStatusMessageViewModel _plebStopMessageBelow = new() { Message = "Receive more funds or press play to bypass" };
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _isAuto;
@@ -292,6 +292,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				CurrentStatus = _plebStopMessage;
+				ElapsedTime = _plebStopMessageBelow.Message ?? "";
 				ProgressValue = 0;
 
 				StopVisible = true;
@@ -426,6 +427,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnEntry(() =>
 			{
 				CurrentStatus = _plebStopMessage;
+				ElapsedTime = _plebStopMessageBelow.Message ?? "";
 				ProgressValue = 0;
 
 				StopVisible = false;
