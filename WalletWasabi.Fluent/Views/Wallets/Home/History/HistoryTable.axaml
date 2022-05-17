@@ -66,6 +66,13 @@
     </ContextMenu>
 
     <ContextMenu x:Key="CoinJoinContextMenu" x:DataType="historyItems:CoinJoinHistoryItemViewModel">
+      <MenuItem Header="Copy Transaction ID"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding Id, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource transaction_id}" />
+        </MenuItem.Icon>
+      </MenuItem>
       <MenuItem Header="Copy Amount"
                 Command="{Binding  ClipboardCopyCommand}"
                 CommandParameter="{Binding IncomingAmount, StringFormat={}{0}}"
