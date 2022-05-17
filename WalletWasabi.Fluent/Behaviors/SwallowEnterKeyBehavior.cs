@@ -15,6 +15,7 @@ internal class SwallowEnterKeyBehavior : AttachedToVisualTreeBehavior<InputEleme
 
 		Observable
 			.FromEventPattern<KeyEventArgs>(AssociatedObject, nameof(InputElement.KeyDown))
+			.Where(args => args.EventArgs.Key == Key.Enter)
 			.Subscribe(r => r.EventArgs.Handled = true)
 			.DisposeWith(disposable);
 	}
