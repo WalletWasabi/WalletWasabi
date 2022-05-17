@@ -55,7 +55,7 @@ public class KeyManager
 		MasterFingerprint = masterFingerprint;
 		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
-		IsNewlyCreated = isNewlyCreated;
+		IsNewlyCreated = isNewlyCreated ?? false;
 		SetMinGapLimit(minGapLimit);
 
 		BlockchainState = blockchainState;
@@ -132,7 +132,7 @@ public class KeyManager
 	[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 	public ExtPubKey ExtPubKey { get; }
 
-	[JsonProperty(Order = 5)] public bool? IsNewlyCreated { get; private set; }
+	[JsonProperty(Order = 5)] public bool IsNewlyCreated { get; set; }
 
 	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
@@ -265,9 +265,6 @@ public class KeyManager
 				km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
 			}
 		}
-
-		// Backwards compatibility:
-		km.IsNewlyCreated ??= false;
 
 		return km;
 	}
@@ -411,12 +408,6 @@ public class KeyManager
 				return HdPubKeys.Where(wherePredicate).ToList();
 			}
 		}
-	}
-
-	public void SetIsNewlyCreated()
-	{
-		IsNewlyCreated = false;
-		ToFile();
 	}
 
 	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
