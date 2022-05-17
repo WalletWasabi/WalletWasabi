@@ -10,11 +10,18 @@
              x:DataType="historyItems:HistoryItemViewModelBase">
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
+    <Panel Background="Transparent">
+      <Button Classes="plain" ToolTip.Tip="Show Details"
+              Command="{Binding ShowDetailsCommand}">
+        <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6"
+                  Foreground="{DynamicResource SystemAccentColor}"/>
+      </Button>
+    </Panel>
+
     <Panel>
       <!-- Confirmed -->
       <PathIcon IsVisible="{Binding IsConfirmed}"
                 Data="{StaticResource checkmark_filled}"
-                Foreground="{DynamicResource SystemAccentColor}"
                 Height="11"
                 ToolTip.Tip="Confirmed" />
       <!-- Pending -->
@@ -40,13 +47,6 @@
                   IsVisible="{Binding IsCoinJoin}" />
       </Panel>
     </c:PrivacyContentControl>
-
-    <Panel Background="Transparent">
-      <Button Classes="plain" ToolTip.Tip="Show Details"
-              Command="{Binding ShowDetailsCommand}">
-        <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
-      </Button>
-    </Panel>
 
   </StackPanel>
 </UserControl>
