@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -403,7 +404,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
-				CurrentStatus = roundEnded.LastRoundState.WasTransactionBroadcast ? _roundSucceedMessage : _roundFailedMessage;
+				CurrentStatus = roundEnded.LastRoundState.EndRoundState == EndRoundState.TransactionBroadcasted
+					? _roundSucceedMessage
+					: _roundFailedMessage;
 				StopCountDown();
 				break;
 

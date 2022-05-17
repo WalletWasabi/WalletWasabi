@@ -107,7 +107,7 @@ public partial class Arena : PeriodicRunner
 					{
 						continue;
 					}
-					round.SetPhase(Phase.Ended);
+					round.EndRound(EndRoundState.AbortedNoEnoughAlices);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}).");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
@@ -118,7 +118,7 @@ public partial class Arena : PeriodicRunner
 			}
 			catch (Exception ex)
 			{
-				round.SetPhase(Phase.Ended);
+				round.EndRound(EndRoundState.AbortedWithError);
 				round.LogError(ex.Message);
 			}
 		}
@@ -161,7 +161,7 @@ public partial class Arena : PeriodicRunner
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
-						round.SetPhase(Phase.Ended);
+						round.EndRound(EndRoundState.AbortedNoEnoughAlices);
 						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
 					}
 					else
@@ -172,7 +172,7 @@ public partial class Arena : PeriodicRunner
 			}
 			catch (Exception ex)
 			{
-				round.SetPhase(Phase.Ended);
+				round.EndRound(EndRoundState.AbortedWithError);
 				round.LogError(ex.Message);
 			}
 		}
@@ -205,7 +205,7 @@ public partial class Arena : PeriodicRunner
 			}
 			catch (Exception ex)
 			{
-				round.SetPhase(Phase.Ended);
+				round.EndRound(EndRoundState.AbortedWithError);
 				round.LogError(ex.Message);
 			}
 		}
@@ -230,7 +230,8 @@ public partial class Arena : PeriodicRunner
 					uint256 roundId = round.Id;
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
 					round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
-					round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+					round.LogInfo(
+						$"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
 					round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
 					round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
 					round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
@@ -240,7 +241,9 @@ public partial class Arena : PeriodicRunner
 					{
 						round.LogInfo($"There are {count} occurrences of {value.ToString(true, false)} outputs.");
 					}
-					round.LogInfo($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
+
+					round.LogInfo(
+						$"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
 
 					// Store transaction.
 					if (TransactionArchiver is not null)
@@ -250,7 +253,6 @@ public partial class Arena : PeriodicRunner
 
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
-					round.WasTransactionBroadcast = true;
 
 					var coordinatorScriptPubKey = Config.GetNextCleanCoordinatorScript();
 					if (round.CoordinatorScript == coordinatorScriptPubKey)
@@ -259,12 +261,13 @@ public partial class Arena : PeriodicRunner
 					}
 
 					foreach (var address in coinjoin.Outputs
-						.Select(x => x.ScriptPubKey)
-						.Where(script => CoinJoinScriptStore?.Contains(script) is true))
+						         .Select(x => x.ScriptPubKey)
+						         .Where(script => CoinJoinScriptStore?.Contains(script) is true))
 					{
 						if (address == round.CoordinatorScript)
 						{
-							round.LogError($"Coordinator script pub key reuse detected: {round.CoordinatorScript.ToHex()}");
+							round.LogError(
+								$"Coordinator script pub key reuse detected: {round.CoordinatorScript.ToHex()}");
 						}
 						else
 						{
@@ -272,7 +275,7 @@ public partial class Arena : PeriodicRunner
 						}
 					}
 
-					round.SetPhase(Phase.Ended);
+					round.EndRound(EndRoundState.TransactionBroadcasted);
 					round.LogInfo($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.");
 
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
@@ -280,8 +283,14 @@ public partial class Arena : PeriodicRunner
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
-					throw new TimeoutException($"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
+					throw new TimeoutException(
+						$"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
 				}
+			}
+			catch (RPCException ex)
+			{
+				round.LogWarning($"Transaction broadcasting failed: '{ex}'.");
+				round.EndRound(EndRoundState.TransactionBroadcastFailed);
 			}
 			catch (Exception ex)
 			{
@@ -327,11 +336,15 @@ public partial class Arena : PeriodicRunner
 		}
 
 		round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
-		round.SetPhase(Phase.Ended);
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
+			round.EndRound(EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+		}
+		else
+		{
+			round.EndRound(EndRoundState.AbortedNoEnoughAlicesSigned);
 		}
 	}
 
