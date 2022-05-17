@@ -60,7 +60,7 @@ public class Global : IDisposable
 
 		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
 
-		if (roundConfig.FilePath is { })
+		if (!string.IsNullOrWhiteSpace(roundConfig.FilePath))
 		{
 			HostedServices.Register<ConfigWatcher>(() =>
 			   new ConfigWatcher(
