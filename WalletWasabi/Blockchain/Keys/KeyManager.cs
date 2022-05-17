@@ -40,7 +40,7 @@ public class KeyManager
 	private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
 
 	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
+	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? isNewlyCreated, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 	{
 		HdPubKeys = new List<HdPubKey>();
 		HdPubKeyScriptBytes = new List<byte[]>();
@@ -55,7 +55,7 @@ public class KeyManager
 		MasterFingerprint = masterFingerprint;
 		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
-		PasswordVerified = passwordVerified;
+		IsNewlyCreated = isNewlyCreated;
 		SetMinGapLimit(minGapLimit);
 
 		BlockchainState = blockchainState;
@@ -132,8 +132,7 @@ public class KeyManager
 	[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 	public ExtPubKey ExtPubKey { get; }
 
-	[JsonProperty(Order = 5)]
-	public bool? PasswordVerified { get; private set; }
+	[JsonProperty(Order = 5)] public bool? IsNewlyCreated { get; private set; }
 
 	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
@@ -268,7 +267,7 @@ public class KeyManager
 		}
 
 		// Backwards compatibility:
-		km.PasswordVerified ??= true;
+		km.IsNewlyCreated ??= false;
 
 		return km;
 	}
@@ -414,9 +413,9 @@ public class KeyManager
 		}
 	}
 
-	public void SetPasswordVerified()
+	public void SetIsNewlyCreated()
 	{
-		PasswordVerified = true;
+		IsNewlyCreated = false;
 		ToFile();
 	}
 
