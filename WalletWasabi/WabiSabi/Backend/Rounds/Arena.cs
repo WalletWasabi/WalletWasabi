@@ -333,6 +333,10 @@ public partial class Arena : PeriodicRunner
 		{
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 		}
+		else
+		{
+			round.LogInfo($"Not enough inputs to create Blame round.");
+		}
 	}
 
 	private async Task CreateBlameRoundAsync(Round round, CancellationToken cancellationToken)
