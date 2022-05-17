@@ -30,7 +30,7 @@ public class CoinJoinTrackerFactory
 			new KeyChain(wallet.KeyManager, wallet.Kitchen),
 			new InternalDestinationProvider(wallet.KeyManager),
 			RoundStatusUpdater,
-			wallet.KeyManager.MinAnonScoreTarget,
+			wallet.KeyManager.AnonScoreTarget,
 			feeRateMedianTimeFrame: TimeSpan.FromHours(wallet.KeyManager.FeeRateMedianTimeFrameHours),
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
