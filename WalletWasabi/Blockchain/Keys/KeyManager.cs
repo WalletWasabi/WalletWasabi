@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -88,6 +89,17 @@ public class KeyManager
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 		ToFileLock = new object();
+	}
+
+	[OnDeserialized]
+	private void OnDeserializedMethod(StreamingContext context)
+	{
+		// This should be impossible but in any case, coinjoin can only happen,
+		// if a profile is selected. Otherwise, the user's money can be drained.
+		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		{
+			AutoCoinJoin = false;
+		}
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
