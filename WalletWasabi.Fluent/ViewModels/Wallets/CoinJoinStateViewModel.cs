@@ -362,7 +362,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			return;
 		}
 
-		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 
 		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
 		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();

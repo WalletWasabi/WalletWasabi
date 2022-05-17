@@ -12,8 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
 {
 	[AutoNotify] private bool _autoCoinjoin;
-	[AutoNotify] private int _minAnonScoreTarget;
-	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
@@ -21,8 +20,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 	{
 		_autoCoinjoin = true;
 
-		_minAnonScoreTarget = current.MinAnonScoreTarget;
-		_maxAnonScoreTarget = current.MaxAnonScoreTarget;
+		_anonScoreTarget = current.AnonScoreTarget;
 
 		_timeFrames = new[]
 		{
@@ -38,35 +36,13 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		EnableBack = false;
 
-		this.WhenAnyValue(x => x.MinAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x >= MaxAnonScoreTarget)
-					{
-						MaxAnonScoreTarget = x + 1;
-					}
-				});
-
-		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x <= MinAnonScoreTarget)
-					{
-						MinAnonScoreTarget = x - 1;
-					}
-				});
-
-
 		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var auto = AutoCoinjoin;
-			var min = MinAnonScoreTarget;
-			var max = MaxAnonScoreTarget;
+			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, target, hours));
 		});
 	}
 
