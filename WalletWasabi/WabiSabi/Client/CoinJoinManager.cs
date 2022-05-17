@@ -186,6 +186,11 @@ public class CoinJoinManager : BackgroundService
 			var walletToStop = stopCommand.Wallet;
 			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 			{
+				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
+				{
+					Logger.LogWarning($"CoinJoin is in critical phase in wallet '{walletToStop.WalletName}', it cannot be stopped.");
+					return;
+				}
 				coinJoinTrackerToStop.Stop();
 			}
 		}
