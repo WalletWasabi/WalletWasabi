@@ -35,7 +35,8 @@
                   <c:LabelsPanel.EllipsisControl>
                     <Button Classes="labelFlyout"
                             Content="..."
-                            Margin="0 0 0 0">
+                            Margin="0 0 0 0"
+                            ToolTip.Placement="Right">
                       <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
                           <c:TagsBox IsReadOnly="True"
