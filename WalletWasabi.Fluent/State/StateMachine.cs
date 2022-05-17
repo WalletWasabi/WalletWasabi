@@ -13,6 +13,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public TState State => _currentState.StateId;
 
+	public bool IsInState(TState state)
+	{
+		return _currentState.StateId.Equals(state) || (_currentState.Parent?.StateId.Equals(state) ?? false);
+	}
+
 	public StateMachine(TState initialState)
 	{
 		_states = new Dictionary<TState, StateContext>();
@@ -44,6 +49,8 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public void Fire(TTrigger trigger)
 	{
+		_currentState.Process(trigger);
+
 		if (_currentState.CanTransit(trigger))
 		{
 			Goto(trigger, _currentState.GetDestination(trigger));
@@ -52,10 +59,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			Goto(trigger, _currentState.Parent.StateId, true, false);
 			Goto(trigger, _currentState.GetDestination(trigger));
-		}
-		else
-		{
-			_currentState.Process(trigger);
 		}
 	}
 
@@ -180,6 +183,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 				{
 					action();
 				}
+			}
+
+			if (Parent is { })
+			{
+				Parent.Process(trigger);
 			}
 		}
 

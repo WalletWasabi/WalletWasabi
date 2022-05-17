@@ -156,7 +156,7 @@ public class CoinJoinManager : BackgroundService
 			var coinCandidates = SelectCandidateCoins(walletToStart).ToArray();
 			if (coinCandidates.Length == 0)
 			{
-				Logger.LogDebug($"No Coins to mix for wallet '{walletToStart.WalletName}'.");
+				Logger.LogDebug($"No candidate coins available to mix for wallet '{walletToStart.WalletName}'.");
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
 				if (startCommand.RestartAutomatically)
 				{
@@ -237,8 +237,8 @@ public class CoinJoinManager : BackgroundService
 			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
-				NotifyCoinJoinCompletion(finishedCoinJoin);
 				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
+				NotifyCoinJoinCompletion(finishedCoinJoin);
 			}
 			// Updates the highest coinjoin client state.
 			var inProgress = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
@@ -256,15 +256,6 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
 	{
 		var walletToRemove = finishedCoinJoin.Wallet;
-		if (!trackedCoinJoins.TryRemove(walletToRemove.WalletName, out _))
-		{
-			Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
-		}
-		else
-		{
-			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
-			finishedCoinJoin.Dispose();
-		}
 
 		var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
 
@@ -303,9 +294,14 @@ public class CoinJoinManager : BackgroundService
 			Logger.LogError($"{logPrefix} failed with exception:", e);
 		}
 
-		foreach (var coins in finishedCoinJoin.CoinCandidates)
+		if (!trackedCoinJoins.TryRemove(walletToRemove.WalletName, out _))
 		{
-			coins.CoinJoinInProgress = false;
+			Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
+		}
+		else
+		{
+			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
+			finishedCoinJoin.Dispose();
 		}
 
 		if (finishedCoinJoin.RestartAutomatically &&
@@ -374,6 +370,7 @@ public class CoinJoinManager : BackgroundService
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
+			.Where(x => !x.IsBanned)
 			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget
 					&& !CoinRefrigerator.IsFrozen(x)));
 

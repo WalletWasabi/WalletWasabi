@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -35,9 +36,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private bool _isInitialized;
-
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
 		_walletViewModel = walletViewModel;
@@ -52,7 +50,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		_transactionSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Sort(SortExpressionComparer<HistoryItemViewModelBase>.Descending(x => x.OrderIndex))
+			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
+				.Ascending(x => x.IsConfirmed)
+				.ThenByDescending(x => x.OrderIndex))
 			.Bind(_unfilteredTransactions)
 			.Bind(_transactions)
 			.Subscribe();
@@ -206,7 +206,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 			SelectedItem.IsFlashing = true;
 
 			var index = _transactions.IndexOf(SelectedItem);
-			Source.RowSelection!.SelectedIndex = new IndexPath(index);
+			Dispatcher.UIThread.Post(() =>
+			{
+				Source.RowSelection!.SelectedIndex = new IndexPath(index);
+			});
 		}
 	}
 
@@ -232,11 +235,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
-
-			if (!IsInitialized)
-			{
-				IsInitialized = true;
-			}
 		}
 		catch (Exception ex)
 		{

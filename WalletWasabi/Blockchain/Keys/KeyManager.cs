@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -88,6 +89,18 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+		ToFileLock = new object();
+	}
+
+	[OnDeserialized]
+	private void OnDeserializedMethod(StreamingContext context)
+	{
+		// This should be impossible but in any case, coinjoin can only happen,
+		// if a profile is selected. Otherwise, the user's money can be drained.
+		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		{
+			AutoCoinJoin = false;
+		}
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
@@ -164,6 +177,9 @@ public class KeyManager
 
 	[JsonProperty(Order = 15, PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
+
+	[JsonProperty(Order = 16, PropertyName = "IsCoinjoinProfileSelected")]
+	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }

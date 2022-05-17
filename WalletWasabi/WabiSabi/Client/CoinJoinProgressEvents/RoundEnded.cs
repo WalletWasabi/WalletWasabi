@@ -4,10 +4,10 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class RoundEnded : CoinJoinProgressEventArgs
 {
-	public RoundEnded(RoundState roundState)
+	public RoundEnded(RoundState lastRoundState)
 	{
-		RoundState = roundState;
+		LastRoundState = lastRoundState;
 	}
 
-	public RoundState RoundState { get; }
+	public RoundState LastRoundState { get; }
 }

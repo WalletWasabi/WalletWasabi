@@ -3,9 +3,10 @@
              xmlns:local="using:WalletWasabi.Fluent"
              xmlns:models="using:WalletWasabi.Models"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.App" CanShutdownProvider="{Binding .}">
+             x:Class="WalletWasabi.Fluent.App">
   <Application.DataTemplates>
     <local:ViewLocator />
     <DataTemplate DataType="models:ErrorDescriptor" x:DataType="models:ErrorDescriptor">
@@ -15,6 +16,7 @@
 
   <Application.Resources>
     <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
+    <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
   </Application.Resources>
 
   <Application.Styles>
@@ -49,10 +51,10 @@
   </NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="{Binding TrayIcon}" Clicked="TrayIcon_OnClicked" ToolTipText="Wasabi Wallet">
+      <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
         <NativeMenu.Menu>
           <NativeMenu>
-            <NativeMenuItem Header="Show" Command="{Binding ShowCommand} " />
+            <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand} " />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>

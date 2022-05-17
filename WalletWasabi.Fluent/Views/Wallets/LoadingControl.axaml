@@ -33,7 +33,7 @@
       </i:Interaction.Behaviors>
 
       <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-        <TextBlock Text="Downloading and processing blockchain data" TextAlignment="Center" FontSize="22"
+        <TextBlock Text="Downloading and processing Bitcoin network data" TextAlignment="Center" FontSize="22"
                    DockPanel.Dock="Bottom" />
         <TextBlock
           Text="Wasabi does this without any third party knowing about your balance and financial activity."

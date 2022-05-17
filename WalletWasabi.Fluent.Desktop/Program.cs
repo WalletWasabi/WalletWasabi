@@ -35,7 +35,7 @@ public class Program
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 		bool runGui = true;
-		bool runGuiMinimized = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
+		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -75,7 +75,7 @@ public class Program
 				Services.Initialize(Global, singleInstanceChecker);
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
-				BuildAvaloniaApp()
+				BuildAvaloniaApp(runGuiInBackground)
 					.AfterSetup(_ =>
 					{
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
@@ -189,7 +189,7 @@ public class Program
 	}
 
 	// Avalonia configuration, don't remove; also used by visual designer.
-	private static AppBuilder BuildAvaloniaApp()
+	private static AppBuilder BuildAvaloniaApp(bool startInBg)
 	{
 		bool useGpuLinux = true;
 
@@ -199,7 +199,7 @@ public class Program
 				{
 					await global.InitializeNoWalletAsync(TerminateService);
 				}
-			}))
+			}, startInBg))
 			.UseReactiveUI();
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
