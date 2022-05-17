@@ -33,9 +33,9 @@ public partial class StatusIconViewModel : IDisposable
 		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
 
 		UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
-		AskMeLaterCommand = ReactiveCommand.Create<bool>(() => UpdateAvailable = false);
+		AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
 
-		this.WhenAnyValue<StatusIconViewModel, TorStatus, BackendStatus, int, RpcStatus?, bool, bool, bool>(
+		this.WhenAnyValue(
 				x => x.TorStatus,
 				x => x.BackendStatus,
 				x => x.Peers,
