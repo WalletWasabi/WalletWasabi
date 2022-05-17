@@ -96,7 +96,7 @@ public class Wallet : BackgroundService
 	public Kitchen Kitchen { get; } = new();
 	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
 
-	public bool IsUnderPlebStop => NonPrivateCoins.TotalAmount() <= KeyManager.PlebStopThreshold;
+	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
