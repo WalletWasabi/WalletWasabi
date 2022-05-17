@@ -6,18 +6,16 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
-             xmlns:sb="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusIcon"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="statusIcon:StatusIconViewModel"
              x:CompileBindings="True"
-             Foreground="{DynamicResource AcrylicTrimForeground}"
              x:Class="WalletWasabi.Fluent.Views.StatusIcon.StatusIcon">
   <UserControl.Styles>
 
     <Style Selector="PathIcon">
-      <Setter Property="Width" Value="25" />
-      <Setter Property="Height" Value="25" />
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
     </Style>
 
     <Style Selector="PathIcon.rotate">
@@ -39,14 +37,6 @@
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
 
-    <Style Selector="AccessText">
-      <Setter Property="Foreground" Value="{Binding $parent[sb:StatusIcon].Foreground}" />
-    </Style>
-
-    <Style Selector="PathIcon">
-      <Setter Property="Foreground" Value="{Binding $parent[sb:StatusIcon].Foreground}" />
-    </Style>
-
   </UserControl.Styles>
   <Panel>
 
@@ -61,6 +51,16 @@
                     MaxWidth="160"
                     ClipToBounds="False"
                     Spacing="16">
+
+          <StackPanel.Styles>
+            <Style Selector="AccessText">
+              <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+
+            <Style Selector="PathIcon">
+              <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+          </StackPanel.Styles>
 
           <!-- Warning message TODO: use InfoMessage control-->
           <DockPanel
