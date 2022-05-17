@@ -457,7 +457,7 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
 			.ToArray();
 
-		// Always have the top largest amounts playing to not participate with insignificant amounts and fragment needlessly.
+		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestAmounts = nonPrivateFilteredCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
