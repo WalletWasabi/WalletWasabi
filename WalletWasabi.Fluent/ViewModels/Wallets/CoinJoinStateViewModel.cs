@@ -2,10 +2,12 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -116,7 +118,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Subscribe(SetAutoCoinJoin);
 
 		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
-			.Subscribe(_ => _stateMachine.Fire(Trigger.PlebStopChanged));
+			.SubscribeAsync(async _ =>
+			{
+				// Hack: we take the value from KeyManager but it is saved later.
+				// https://github.com/molnard/WalletWasabi/blob/master/WalletWasabi.Fluent/ViewModels/Wallets/WalletSettingsViewModel.cs#L105
+				await Task.Delay(1500);
+				_stateMachine.Fire(Trigger.PlebStopChanged);
+			});
 
 		_stateMachine.Start();
 	}
