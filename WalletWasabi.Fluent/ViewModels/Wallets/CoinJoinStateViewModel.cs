@@ -207,8 +207,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 				PauseVisible = false;
 
-				_overridePlebStop = false;
-
 				_stateMachine.Fire(Trigger.ManualCoinJoinEntered);
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
