@@ -155,7 +155,7 @@ public partial class StatusIconViewModel : IDisposable
 			{
 				var updateStatus = e.EventArgs;
 
-				UpdateAvailable = !false;
+				UpdateAvailable = !updateStatus.ClientUpToDate;
 				CriticalUpdateAvailable = !updateStatus.BackendCompatible;
 
 				if (CriticalUpdateAvailable)
