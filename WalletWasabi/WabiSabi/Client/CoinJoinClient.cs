@@ -628,14 +628,15 @@ public class CoinJoinClient
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="redCoinIsolation">If true, coins under anonscore 2 will not be selected together.</param>
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	internal static ImmutableList<SmartCoin> SelectCoinsForRound(
-		IEnumerable<SmartCoin> coins,
+	internal static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
+		IEnumerable<TCoin> coins,
 		RoundParameters parameters,
 		bool consolidationMode,
 		int anonScoreTarget,
 		bool redCoinIsolation,
 		Money liquidityClue,
 		WasabiRandom rnd)
+		where TCoin : class, ISmartCoin
 	{
 		// Sanity check.
 		if (liquidityClue <= Money.Zero)
@@ -645,24 +646,24 @@ public class CoinJoinClient
 
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+			.Where(x => parameters.AllowedInputTypes.Contains(x.ScriptType))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
 		var privateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
+			.Where(x => x.AnonymitySet >= anonScoreTarget)
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= 2)
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < 2)
+			.Where(x => x.AnonymitySet < 2)
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
 			// Let's not mess up the logs when this function gets called many times.
-			return ImmutableList<SmartCoin>.Empty;
+			return ImmutableList<TCoin>.Empty;
 		}
 
 		Logger.LogDebug($"Coin selection started:");
@@ -727,7 +728,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Select a group of coins those are close to each other by anonymity score.
-		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
+		Dictionary<int, IEnumerable<TCoin>> groups = new();
 
 		// Create a bunch of combinations.
 		var sw1 = Stopwatch.StartNew();
@@ -739,7 +740,7 @@ public class CoinJoinClient
 
 			var sw2 = Stopwatch.StartNew();
 			foreach (var group in orderedAllowedCoins
-				.Except(new[] { coin })
+				.Except(new TCoin[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))
 			{
@@ -762,7 +763,7 @@ public class CoinJoinClient
 		if (!groups.Any())
 		{
 			Logger.LogDebug($"Couldn't create any combinations, ending.");
-			return ImmutableList<SmartCoin>.Empty;
+			return ImmutableList<TCoin>.Empty;
 		}
 		Logger.LogDebug($"Created {groups.Count} combinations within {(int)sw1.Elapsed.TotalSeconds} seconds.");
 
@@ -788,7 +789,7 @@ public class CoinJoinClient
 		if (selectedNonPrivateCoin is null)
 		{
 			Logger.LogDebug($"Couldn't select largest non-private coin, ending.");
-			return ImmutableList<SmartCoin>.Empty;
+			return ImmutableList<TCoin>.Empty;
 		}
 		Logger.LogDebug($"Randomly selected large non-private coin: {selectedNonPrivateCoin.Amount.ToString(false, true)}.");
 
@@ -798,7 +799,7 @@ public class CoinJoinClient
 		if (finalCandidate is null)
 		{
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
-			return ImmutableList<SmartCoin>.Empty;
+			return ImmutableList<TCoin>.Empty;
 		}
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
@@ -837,9 +838,9 @@ public class CoinJoinClient
 
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
-		var winner = new List<SmartCoin>();
+		var winner = new List<TCoin>();
 		foreach (var coin in finalCandidate
-			.OrderBy(x => x.HdPubKey.AnonymitySet)
+			.OrderBy(x => x.AnonymitySet)
 			.ThenByDescending(x => x.Amount))
 		{
 			// If the coin is coming from same tx, then check our allowance.
@@ -864,7 +865,7 @@ public class CoinJoinClient
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
-		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<TCoin>.Empty;
 	}
 
 	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
@@ -880,17 +881,18 @@ public class CoinJoinClient
 		return 0;
 	}
 
-	private static IEnumerable<SmartCoin> AnonScoreTxSourceBiasedShuffle(SmartCoin[] coins)
+	private static IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins)
+		where TCoin : ISmartCoin
 	{
-		var orderedCoins = new List<SmartCoin>();
+		var orderedCoins = new List<TCoin>();
 		for (int i = 0; i < coins.Length; i++)
 		{
 			// Order by anonscore first.
-			var remaining = coins.Except(orderedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
+			var remaining = coins.Except(orderedCoins).OrderBy(x => x.AnonymitySet);
 
 			// Then manipulate the list so repeating tx sources go to the end.
-			var alternating = new List<SmartCoin>();
-			var skipped = new List<SmartCoin>();
+			var alternating = new List<TCoin>();
+			var skipped = new List<TCoin>();
 			foreach (var c in remaining)
 			{
 				if (alternating.Any(x => x.TransactionId == c.TransactionId) || orderedCoins.Any(x => x.TransactionId == c.TransactionId))
@@ -915,7 +917,8 @@ public class CoinJoinClient
 		}
 	}
 
-	private static bool TryAddGroup(RoundParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)
+	private static bool TryAddGroup<TCoin>(RoundParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
+		where TCoin : ISmartCoin
 	{
 		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
 		var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
@@ -928,7 +931,8 @@ public class CoinJoinClient
 		return false;
 	}
 
-	private static int GetReps(IEnumerable<SmartCoin> group)
+	private static int GetReps<TCoin>(IEnumerable<TCoin> group)
+		where TCoin : ISmartCoin
 		=> group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1);
 
 	public bool IsRoundEconomic(FeeRate roundFeeRate)
