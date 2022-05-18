@@ -165,7 +165,6 @@ public class Program
 	/// </summary>
 	private static async Task TerminateApplicationAsync()
 	{
-		MainViewModel.Instance.StatusIcon.Dispose();
 		Logger.LogSoftwareStopped("Wasabi GUI");
 
 		if (Global is { } global)
@@ -177,6 +176,7 @@ public class Program
 	private static void TerminateApplication()
 	{
 		MainViewModel.Instance.ClearStacks();
+		MainViewModel.Instance.StatusIcon.Dispose();
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
