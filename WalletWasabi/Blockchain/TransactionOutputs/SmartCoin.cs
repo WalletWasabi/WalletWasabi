@@ -142,7 +142,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
 	}
 
-	public bool IsInmature(int bestHeight)
+	public bool IsImmature(int bestHeight)
 	{
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
 	}
