@@ -1,7 +1,10 @@
 namespace WalletWasabi.Crypto.Randomness;
 
+/// <seealso href="https://devblogs.microsoft.com/pfxteam/getting-random-numbers-in-a-thread-safe-way/"/>>
 public class InsecureRandom : WasabiRandom
 {
+	public static readonly InsecureRandom Instance = new();
+
 	public InsecureRandom()
 	{
 		Random = Random.Shared;

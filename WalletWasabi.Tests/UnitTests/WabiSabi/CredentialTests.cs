@@ -11,7 +11,7 @@ public class CredentialTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CorrectRangeProof()
 	{
-		using var rnd = new SecureRandom();
+		SecureRandom rnd = SecureRandom.Instance;
 		var sk = new CredentialIssuerSecretKey(rnd);
 
 		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);

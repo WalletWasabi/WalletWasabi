@@ -14,8 +14,7 @@
             CommandParameter="{Binding Link}"
             ToolTip.Tip="{Binding Link}"
             Content="{Binding Description}"
-            IsEnabled="{Binding IsClickable}">
-    </Button>
+            IsEnabled="{Binding IsClickable}" />
 
     <controls:AnimatedButton ToolTip.Tip="Copy link"
                              Command="{Binding CopyLinkCommand}"

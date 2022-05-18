@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -22,8 +23,7 @@ namespace WalletWasabi.Blockchain.Keys;
 [JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
-	public const int DefaultMinAnonScoreTarget = 5;
-	public const int DefaultMaxAnonScoreTarget = 10;
+	public const int DefaultAnonScoreTarget = 5;
 	public const bool DefaultAutoCoinjoin = false;
 	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
@@ -88,6 +88,18 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+		ToFileLock = new object();
+	}
+
+	[OnDeserialized]
+	private void OnDeserializedMethod(StreamingContext context)
+	{
+		// This should be impossible but in any case, coinjoin can only happen,
+		// if a profile is selected. Otherwise, the user's money can be drained.
+		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		{
+			AutoCoinJoin = false;
+		}
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
@@ -156,14 +168,14 @@ public class KeyManager
 	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
 
-	[JsonProperty(Order = 13, PropertyName = "MinAnonScoreTarget")]
-	public int MinAnonScoreTarget { get; private set; } = DefaultMinAnonScoreTarget;
+	[JsonProperty(Order = 13, PropertyName = "AnonScoreTarget")]
+	public int AnonScoreTarget { get; private set; } = DefaultAnonScoreTarget;
 
-	[JsonProperty(Order = 14, PropertyName = "MaxAnonScoreTarget")]
-	public int MaxAnonScoreTarget { get; private set; } = DefaultMaxAnonScoreTarget;
-
-	[JsonProperty(Order = 15, PropertyName = "FeeRateMedianTimeFrameHours")]
+	[JsonProperty(Order = 14, PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
+
+	[JsonProperty(Order = 15, PropertyName = "IsCoinjoinProfileSelected")]
+	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
@@ -699,15 +711,9 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetAnonScoreTargets(int minAnonScoreTarget, int maxAnonScoreTarget, bool toFile = true)
+	public void SetAnonScoreTarget(int anonScoreTarget, bool toFile = true)
 	{
-		if (maxAnonScoreTarget <= minAnonScoreTarget)
-		{
-			throw new ArgumentException($"{nameof(maxAnonScoreTarget)} should be greater than {nameof(minAnonScoreTarget)}.", nameof(maxAnonScoreTarget));
-		}
-
-		MinAnonScoreTarget = minAnonScoreTarget;
-		MaxAnonScoreTarget = maxAnonScoreTarget;
+		AnonScoreTarget = anonScoreTarget;
 		if (toFile)
 		{
 			ToFile();

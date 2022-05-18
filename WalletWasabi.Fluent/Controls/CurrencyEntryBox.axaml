@@ -74,14 +74,26 @@
                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <StackPanel Orientation="Horizontal">
+                        <DockPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
                           <TextBlock Text="≈"
                                      IsVisible="{TemplateBinding IsApproximate}"
                                      Margin="0 0 5 0"
                                      Opacity="0.5"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                     DockPanel.Dock="Left">
                           </TextBlock>
+
+                          <!-- Current Currency Code -->
+                          <TextBlock Name="PART_CurrencyCode"
+                                     Opacity="0.5"
+                                     Margin="5 0 0 0"
+                                     Text="{TemplateBinding CurrencyCode}"
+                                     IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                     DockPanel.Dock="Right"/>
+
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
                                          CaretIndex="{TemplateBinding CaretIndex}"
@@ -95,16 +107,9 @@
                                          SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                          <!-- Current Currency Code -->
-                          <TextBlock Name="PART_CurrencyCode"
-                                     Opacity="0.5"
-                                     Margin="5 0 0 0"
-                                     Text="{TemplateBinding CurrencyCode}"
-                                     IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        </StackPanel>
+                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        
+                        </DockPanel>
                       </Panel>
                     </DockPanel>
                   </ScrollViewer>
@@ -214,8 +219,31 @@
     <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
   </Style>
 
-  <Style
-    Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
+  <Style Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
     <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
   </Style>
+
+  <Style Selector="c|CurrencyEntryBox">
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+  </Style>
+  
+  <Style Selector="c|CurrencyEntryBox:isrightside">
+    <Setter Property="TextAlignment" Value="Right"/>
+    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+  </Style>
+
+  <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
+  <Style Selector="c|CurrencyEntryBox:empty /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="0 0 0 0"/>
+  </Style>
+  <Style Selector="c|CurrencyEntryBox:empty:isfiat /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="13 0 0 0"/>
+  </Style>
+  <Style Selector="c|CurrencyEntryBox:empty:isrightside /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="0 0 40 0"/>
+  </Style>
+  <Style Selector="c|CurrencyEntryBox:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
+    <Setter Property="Margin" Value="0 0 63 0"/>
+  </Style>
+  
 </Styles>

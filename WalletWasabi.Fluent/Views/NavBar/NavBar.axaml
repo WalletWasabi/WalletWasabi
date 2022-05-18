@@ -3,8 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
@@ -53,7 +51,7 @@
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel > Panel">
+    <Style Selector=":is(Panel).NavBarItemPanel DockPanel > PathIcon">
       <Setter Property="Width" Value="24" />
       <Setter Property="Height" Value="24" />
       <Setter Property="Background" Value="Transparent" />
@@ -108,14 +106,23 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextAlignment" Value="Center"></Setter>
-      <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
       <Setter Property="Opacity" Value="0" />
     </Style>
+
+    <Style Selector="c|NavBarItem PathIcon" x:CompileBindings="False">
+      <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
+
+    <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
+      <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+    </Style>
+
   </UserControl.Styles>
   <DockPanel Margin="0 -4 0 4">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
@@ -131,14 +138,12 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}">
+            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right" Cursor="Hand">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
                 </LayoutTransformControl>
-                <Panel>
-                  <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-                </Panel>
+                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
               </DockPanel>
             </Panel>
           </DataTemplate>
@@ -155,7 +160,7 @@
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}">
+            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}" Cursor="Hand">
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />
@@ -163,9 +168,7 @@
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title, Converter={x:Static conv:WalletTitleAcronymConverter.Instance}}" />
                 </LayoutTransformControl>
-                <Panel>
-                  <Image Source="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-                </Panel>
+                <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Classes="new size24" />
               </DockPanel>
             </Panel>
           </DataTemplate>

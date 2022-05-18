@@ -26,7 +26,10 @@ public class CurrencyEntryBox : TextBox
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsApproximate));
 
 	public static readonly StyledProperty<decimal> ConversionRateProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(ConversionRate));
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(ConversionRate));
+
+	public static readonly StyledProperty<bool> IsRightSideProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsRightSide));
 
 	private readonly CultureInfo _customCultureInfo;
 	private readonly char _decimalSeparator = '.';
@@ -69,11 +72,16 @@ public class CurrencyEntryBox : TextBox
 				$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 
 		PseudoClasses.Set(":noexchangerate", true);
+		PseudoClasses.Set(":isrightside", false);
+
+		this.GetObservable(IsRightSideProperty)
+			.Subscribe(x => PseudoClasses.Set(":isrightside", x));
 
 		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
 
 	public ICommand ModifiedPaste { get; }
+
 	public decimal ConversionRate
 	{
 		get => GetValue(ConversionRateProperty);
@@ -96,6 +104,12 @@ public class CurrencyEntryBox : TextBox
 	{
 		get => GetValue(IsApproximateProperty);
 		set => SetValue(IsApproximateProperty, value);
+	}
+
+	public bool IsRightSide
+	{
+		get => GetValue(IsRightSideProperty);
+		set => SetValue(IsRightSideProperty, value);
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
@@ -292,6 +306,10 @@ public class CurrencyEntryBox : TextBox
 		else if (change.Property == ConversionRateProperty)
 		{
 			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+		}
+		else if (change.Property == IsFiatProperty)
+		{
+			PseudoClasses.Set(":isfiat", change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 }

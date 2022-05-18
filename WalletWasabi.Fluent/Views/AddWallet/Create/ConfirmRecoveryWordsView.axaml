@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              xmlns:validation="clr-namespace:WalletWasabi.Fluent.Validation"

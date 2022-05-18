@@ -382,15 +382,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 		}
 
-		await ShowErrorAsync("Transaction Building", "The transaction cannot be sent at the moment.",
-			"Wasabi was unable to create your transaction.");
+		var errorMessage = maximumPossibleFeeRate == FeeRate.Zero
+			? "There are not enough funds to cover the transaction fee."
+			: "The transaction cannot be sent at the moment.";
 
+		await ShowErrorAsync("Transaction Building", errorMessage,
+			"Wasabi was unable to create your transaction.");
 		return false;
 	}
 
 	private async Task<bool> NavigateConfirmLabelsDialogAsync(BuildTransactionResult transaction)
 	{
-		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.MinAnonScoreTarget)));
+		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.AnonScoreTarget)));
 		var suggestionViewModel = new PocketSuggestionViewModel(labels);
 		var dialog = new ConfirmLabelsDialogViewModel(suggestionViewModel);
 
@@ -484,11 +487,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
 		var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget, NavigationMode.Clear);
-
-		if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
-		{
-			await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
-		}
 
 		return authDialogResult.Result;
 	}

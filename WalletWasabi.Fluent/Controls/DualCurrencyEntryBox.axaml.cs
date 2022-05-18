@@ -84,7 +84,7 @@ public class DualCurrencyEntryBox : UserControl
 
 		this.GetObservable(TextProperty).Subscribe(InputText);
 		this.GetObservable(ConversionTextProperty).Subscribe(InputConversionText);
-		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
+		this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(true));
 		this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
 		this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
@@ -372,15 +372,11 @@ public class DualCurrencyEntryBox : UserControl
 
 			if (IsConversionReversed)
 			{
-				_leftEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
-				_rightEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 				grid?.Children.Add(_rightEntryBox);
 				grid?.Children.Add(_leftEntryBox);
 			}
 			else
 			{
-				_leftEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-				_rightEntryBox.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
 				grid?.Children.Add(_leftEntryBox);
 				grid?.Children.Add(_rightEntryBox);
 			}

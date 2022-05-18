@@ -56,10 +56,15 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
-		BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
-			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+		var fiatAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
+		var fiatFormat =
+			fiatAmount >= 10
+			? "N0"
+			: "N2";
 
-		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		BalanceFiat = fiatAmount.GenerateFiatText("USD", fiatFormat);
+
+		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 

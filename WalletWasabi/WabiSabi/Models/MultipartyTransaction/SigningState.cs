@@ -5,12 +5,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 public record SigningState : MultipartyTransactionState
 {
-	public SigningState(MultipartyTransactionParameters parameters, IEnumerable<IEvent> events)
+	public SigningState(RoundParameters parameters, IEnumerable<IEvent> events)
 		: base(parameters)
 	{
 		Events = events.ToImmutableList();

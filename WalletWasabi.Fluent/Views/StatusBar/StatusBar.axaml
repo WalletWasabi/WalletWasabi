@@ -103,23 +103,40 @@
       </Flyout>
     </FlyoutBase.AttachedFlyout>
 
-    <!-- Update available -->
-    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
-                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}">
-      <TextBlock Text="Update available" VerticalAlignment="Center" FontSize="14" Foreground="Goldenrod" />
-      <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
-                Foreground="Goldenrod"
-                Height="30" />
-    </StackPanel>
+    <Panel.Styles>
 
-    <!-- Critical update available -->
-    <StackPanel Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" Margin="10 0"
-                IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}">
-      <TextBlock Text="Critical update available" VerticalAlignment="Center" FontSize="14" Foreground="IndianRed" />
+      <Style Selector="DockPanel > TextBlock">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="FontSize" Value="14" />
+      </Style>
+
+      <Style Selector="DockPanel > PathIcon">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="(DockPanel.Dock)" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+
+    </Panel.Styles>
+
+     <!--Update available--> 
+    <DockPanel IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.UpdateAvailable}}">
+      <PathIcon Data="{StaticResource arrow_clockwise_with_elipse}"
+                Foreground="Goldenrod" />
+      <TextBlock Text="Update available" Foreground="Goldenrod" />
+    </DockPanel>
+
+     <!--Critical update available--> 
+    <DockPanel
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusBarStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusBarState.CriticalUpdateAvailable}}">
+
       <PathIcon Data="{StaticResource critical_update}"
-                Foreground="{DynamicResource SystemErrorTextColor}"
-                Height="30" />
-    </StackPanel>
+                Foreground="{DynamicResource SystemErrorTextColor}" />
+      <TextBlock Text="Critical update available" Foreground="IndianRed" />
+      
+    </DockPanel>
 
     <!-- Ready -->
     <PathIcon Data="{StaticResource checkmark_circle_filled}"

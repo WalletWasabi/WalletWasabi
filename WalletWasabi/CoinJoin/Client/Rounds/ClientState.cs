@@ -241,16 +241,16 @@ public class ClientState
 					{
 						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
 						// The best selection's anonset should not be lowered by this merge.
-						int bestMinAnonset = bestSet.Min(x => x.HdPubKey.AnonymitySet);
+						int bestAnonset = bestSet.Min(x => x.HdPubKey.AnonymitySet);
 						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
 
 						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
-							&& bestMinAnonset > 1) // Red coins should never be merged.
+							&& bestAnonset > 1) // Red coins should never be merged.
 						{
 							IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
 								.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
 								.Where(x =>
-									x.HdPubKey.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
+									x.HdPubKey.AnonymitySet >= bestAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
 									&& x.HdPubKey.AnonymitySet > 1 // Red coins should never be merged.
 									&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
 									&& bestSum + x.Amount > amountNeeded) // Sanity check that the amount added do not ruin the registration.

@@ -13,17 +13,18 @@
       <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
       <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasBalance}">
         <Separator />
-        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-          <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9" Margin="4"
-                                          VerticalAlignment="Center"
-                                          Opacity="0.8"
-                                          Content="{Binding BalanceFiat}" />
-        </StackPanel>
+        <controls:PrivacyContentControl Classes="bold monoSpaced" NumberOfPrivacyChars="9" Margin="4"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Opacity="0.8"
+                                        Content="{Binding BalanceFiat}" />
       </StackPanel>
 
-      <controls:PrivacyContentControl Margin="0 3" NumberOfPrivacyChars="9"
-                                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                                      Content="{Binding BalanceBtc}" Classes="h2" />
+      <Viewbox Margin="0 3" VerticalAlignment="Center" HorizontalAlignment="Center" MaxHeight="40">
+        <controls:PrivacyContentControl NumberOfPrivacyChars="9"
+                                        Classes="h2 monoSpaced"
+                                        Content="{Binding BalanceBtc}" />
+      </Viewbox>
     </DockPanel>
   </controls:TileControl>
 </UserControl>

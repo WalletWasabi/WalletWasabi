@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 
@@ -36,7 +37,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public List<string>? Label { get; protected set; }
+	public SmartLabel Label { get; protected set; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -49,6 +50,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public Money? IncomingAmount { get; protected set; }
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
+
+	public ICommand? SpeedUpTransactionCommand { get; protected set; }
 
 	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
@@ -73,6 +76,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			}
 			else
 			{
+				if (!x.IsConfirmed && y.IsConfirmed)
+				{
+					return -1;
+				}
+				else if (x.IsConfirmed && !y.IsConfirmed)
+				{
+					return 1;
+				}
 				return Comparer<T>.Default.Compare(selector(x), selector(y));
 			}
 		};
@@ -96,6 +107,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			}
 			else
 			{
+				if (!x.IsConfirmed && y.IsConfirmed)
+				{
+					return -1;
+				}
+				else if (x.IsConfirmed && !y.IsConfirmed)
+				{
+					return 1;
+				}
 				return Comparer<T>.Default.Compare(selector(y), selector(x));
 			}
 		};

@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -36,9 +36,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private bool _isInitialized;
-
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
 		_walletViewModel = walletViewModel;
@@ -53,18 +50,20 @@ public partial class HistoryViewModel : ActivatableViewModel
 		_transactionSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Sort(SortExpressionComparer<HistoryItemViewModelBase>.Descending(x => x.OrderIndex))
+			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
+				.Ascending(x => x.IsConfirmed)
+				.ThenByDescending(x => x.OrderIndex))
 			.Bind(_unfilteredTransactions)
 			.Bind(_transactions)
 			.Subscribe();
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Indicators		IndicatorsColumnView		-				Auto		80				-			false
+		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
-		// Labels			LabelsColumnView			Labels			*			75				-			false
+		// Labels			LabelsColumnView			Labels			*			75				-			true
 		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		130				150			true
 		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		130				150			true
-		// Balance			BalanceColumnView			Balance (BTC)		Auto		130				150			true
+		// Balance			BalanceColumnView			Balance (BTC)	Auto		130				150			true
 
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
@@ -119,7 +118,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
-						CanUserSortColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Label),
+						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Label),
 						MinWidth = new GridLength(100, GridUnitType.Pixel)
 					},
 					width: new GridLength(1, GridUnitType.Star)),
@@ -205,7 +206,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 			SelectedItem.IsFlashing = true;
 
 			var index = _transactions.IndexOf(SelectedItem);
-			Source.RowSelection!.SelectedIndex = new IndexPath(index);
+			Dispatcher.UIThread.Post(() =>
+			{
+				Source.RowSelection!.SelectedIndex = new IndexPath(index);
+			});
 		}
 	}
 
@@ -231,11 +235,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
-
-			if (!IsInitialized)
-			{
-				IsInitialized = true;
-			}
 		}
 		catch (Exception ex)
 		{

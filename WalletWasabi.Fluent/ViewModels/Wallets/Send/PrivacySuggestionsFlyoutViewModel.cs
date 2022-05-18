@@ -1,13 +1,13 @@
+using NBitcoin;
+using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -48,7 +48,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (!info.IsPrivate)
 		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(wallet.KeyManager.MinAnonScoreTarget)))));
+			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(wallet.KeyManager.AnonScoreTarget)))));
 		}
 
 		var loadingRing = new LoadingSuggestionViewModel();
@@ -58,8 +58,15 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
-			var suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
+			// Exchange rate can change substantially during computation itself.
+			// Reporting up-to-date exchange rates would just confuse users.
+			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+		
+			int originalInputCount = transaction.SpentCoins.Count();
+			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
+
+			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, usdExchangeRate, linkedCts.Token);
 
 			await foreach (var suggestion in suggestions)
 			{
