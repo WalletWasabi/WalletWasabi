@@ -100,8 +100,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 					return walletGenerator.GenerateWallet(walletName, password);
 				});
 
-			km.IsNewlyCreated = true;
-
 			Navigate().To(new RecoveryWordsViewModel(km, mnemonic));
 
 			IsBusy = false;
