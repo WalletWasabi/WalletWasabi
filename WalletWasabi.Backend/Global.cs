@@ -62,7 +62,7 @@ public class Global : IDisposable
 		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, p2pNode), "Full Node Mempool Mirror");
 
 		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
-		if (roundConfig.FilePath is { })
+		if (!string.IsNullOrWhiteSpace(roundConfig.FilePath))
 		{
 			HostedServices.Register<ConfigWatcher>(() =>
 			   new ConfigWatcher(
