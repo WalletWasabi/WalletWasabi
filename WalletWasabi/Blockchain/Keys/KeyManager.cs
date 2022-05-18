@@ -407,6 +407,12 @@ public class KeyManager
 		}
 	}
 
+	public void SetNonNewlyCreated()
+	{
+		IsNewlyCreated = false;
+		ToFile();
+	}
+
 	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
 	{
 		if (keyState is null)
