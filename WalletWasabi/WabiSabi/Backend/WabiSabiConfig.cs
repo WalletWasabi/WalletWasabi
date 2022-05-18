@@ -107,7 +107,7 @@ public class WabiSabiConfig : ConfigBase
 	public void MakeNextCoordinatorScriptDirty()
 	{
 		CoordinatorExtPubKeyCurrentDepth++;
-		if (FilePath is { })
+		if (!string.IsNullOrWhiteSpace(FilePath))
 		{
 			ToFile();
 		}
