@@ -14,6 +14,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -60,6 +61,38 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 		Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
+	}
+
+	[Fact]
+	public async Task RegisterBannedCoinAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
+
+		var bannedOutPoint = BitcoinFactory.CreateOutPoint();
+
+		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			builder.ConfigureServices(services =>
+			{
+				var inmate = new Inmate(bannedOutPoint, Punishment.LongBanned, DateTimeOffset.UtcNow, uint256.One);
+				services.AddScoped<Prison>(_ => new Prison(new[] {inmate}));
+			})).CreateClient();
+
+		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
+		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, timeoutCts.Token)).RoundStates;
+		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+
+		// If an output is not in the utxo dataset then it is not unspent, this
+		// means that the output is spent or simply doesn't even exist.
+		using var signingKey = new Key();
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
+
+		var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, timeoutCts.Token));
+
+		var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
+		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, wex.ErrorCode);
+		var inputBannedData = Assert.IsType<InputBannedExceptionData>(wex.ExceptionData);
+		Assert.True(inputBannedData.BannedUntil > DateTimeOffset.UtcNow);
 	}
 
 	[Theory]

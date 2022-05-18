@@ -15,9 +15,9 @@ public partial class TransactionInfo
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo(int minAnonScoreTarget)
+	public TransactionInfo(int anonScoreTarget)
 	{
-		_privateCoinThreshold = minAnonScoreTarget;
+		_privateCoinThreshold = anonScoreTarget;
 
 		this.WhenAnyValue(x => x.FeeRate)
 			.Subscribe(_ => OnFeeChanged());

@@ -56,7 +56,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
+		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;

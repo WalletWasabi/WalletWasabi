@@ -17,8 +17,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private int _minAnonScoreTarget;
-	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
 
 	private Wallet _wallet;
@@ -67,36 +66,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			}
 		});
 
-		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
-		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
+		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 
-		this.WhenAnyValue(
-				x => x.MinAnonScoreTarget,
-				x => x.MaxAnonScoreTarget)
+		this.WhenAnyValue(x => x.AnonScoreTarget)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTargets(MinAnonScoreTarget, MaxAnonScoreTarget));
-
-		this.WhenAnyValue(x => x.MinAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x >= MaxAnonScoreTarget)
-					{
-						MaxAnonScoreTarget = x + 1;
-					}
-				});
-
-		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x <= MinAnonScoreTarget)
-					{
-						MinAnonScoreTarget = x - 1;
-					}
-				});
+			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
 
 		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
 
