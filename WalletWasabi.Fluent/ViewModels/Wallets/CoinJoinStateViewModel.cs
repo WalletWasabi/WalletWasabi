@@ -662,6 +662,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private void StopCountDown()
 	{
 		_countdownTimer.Stop();
+		IsCountDownDelayHappening = false;
 		_countDownStartTime = DateTimeOffset.MinValue;
 		_countDownEndTime = DateTimeOffset.MinValue;
 		UpdateAndShowWalletMixedProgress();
