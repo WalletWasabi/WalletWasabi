@@ -61,7 +61,7 @@ public class WalletManager
 	private AsyncLock StartStopWalletLock { get; } = new();
 
 	private BitcoinStore BitcoinStore { get; set; }
-	private WasabiSynchronizer Synchronizer { get; set; }
+	public WasabiSynchronizer? Synchronizer { get; private set; }
 	private ServiceConfiguration ServiceConfiguration { get; set; }
 	private bool IsInitialized { get; set; }
 

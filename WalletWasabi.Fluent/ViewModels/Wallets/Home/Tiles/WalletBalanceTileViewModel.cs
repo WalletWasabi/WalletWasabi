@@ -64,7 +64,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceFiat = fiatAmount.GenerateFiatText("USD", fiatFormat);
 
-		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 
