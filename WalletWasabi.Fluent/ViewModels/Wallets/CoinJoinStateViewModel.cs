@@ -196,7 +196,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// Manual Cj State
 		_stateMachine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
-			.TransitionOnEntryTo(State.Stopped)
+			.InitialTransition(State.Stopped)
 			.OnEntry(() =>
 			{
 				IsAuto = false;
@@ -300,7 +300,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		// AutoCj State
 		_stateMachine.Configure(State.AutoCoinJoin)
-			.TransitionOnEntryTo(State.AutoStarting)
+			.InitialTransition(State.AutoStarting)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
 			.OnEntry(async () =>
 			{
