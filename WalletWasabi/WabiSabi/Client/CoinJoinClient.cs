@@ -578,9 +578,9 @@ public class CoinJoinClient
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="redCoinIsolation">If true, coins under anonscore 2 will not be selected together.</param>
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	internal static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
+	public static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
 		IEnumerable<TCoin> coins,
-		RoundParameters parameters,
+		IUtxoSelectionParameters parameters,
 		bool consolidationMode,
 		int anonScoreTarget,
 		bool redCoinIsolation,
@@ -596,7 +596,7 @@ public class CoinJoinClient
 
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-			.Where(x => parameters.AllowedInputTypes.Contains(x.ScriptType))
+			.Where(x => parameters.AllowedInputScriptTypes.Contains(x.ScriptType))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
@@ -906,7 +906,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private static bool TryAddGroup<TCoin>(RoundParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
+	private static bool TryAddGroup<TCoin>(IUtxoSelectionParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
 		where TCoin : ISmartCoin
 	{
 		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));

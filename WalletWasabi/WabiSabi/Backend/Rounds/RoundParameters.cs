@@ -6,7 +6,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
-public record RoundParameters
+public record RoundParameters : IUtxoSelectionParameters
 {
 	public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create(ScriptType.P2WPKH);
 
@@ -66,6 +66,7 @@ public record RoundParameters
 	public TimeSpan TransactionSigningTimeout { get; init; }
 	public TimeSpan BlameInputRegistrationTimeout { get; init; }
 
+	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes => AllowedInputTypes;
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
 	public Money MaxAmountCredentialValue => AllowedInputAmounts.Max;
 
