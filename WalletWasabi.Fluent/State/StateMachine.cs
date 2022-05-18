@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Fluent.State;
 
+/// <summary>
+/// StateMachine - api based on: https://github.com/dotnet-state-machine/stateless
+/// </summary>
 public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : struct, Enum
 {
 	private StateContext _currentState;
