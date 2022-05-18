@@ -330,5 +330,7 @@ public class StateMachineTests
 		sut.Start();
 
 		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(1, entryCallCount);
 	}
 }
