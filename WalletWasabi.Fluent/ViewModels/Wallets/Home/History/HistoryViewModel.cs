@@ -58,12 +58,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 			.Subscribe();
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Indicators		IndicatorsColumnView		-				Auto		80				-			false
+		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
-		// Labels			LabelsColumnView			Labels			*			75				-			false
+		// Labels			LabelsColumnView			Labels			*			75				-			true
 		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		130				150			true
 		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		130				150			true
-		// Balance			BalanceColumnView			Balance (BTC)		Auto		130				150			true
+		// Balance			BalanceColumnView			Balance (BTC)	Auto		130				150			true
 
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{

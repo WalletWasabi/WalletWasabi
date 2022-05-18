@@ -21,7 +21,7 @@ public class CoinJoinCoinSelectionTests
 			coins: Enumerable.Empty<SmartCoin>(),
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
-			minAnonScoreTarget: 10,
+			anonScoreTarget: 10,
 			ConfigureRng(5));
 
 		Assert.Empty(coins);
@@ -31,18 +31,18 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNothingFromFullyPrivateSetOfCoins()
 	{
 		// This test is to make sure no coins are selected when all coins are private.
-		const int MinAnonimitySet = 10;
+		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet + 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
-			minAnonScoreTarget: MinAnonimitySet,
+			anonScoreTarget: AnonymitySet,
 			ConfigureRng(5));
 
 		Assert.Empty(coins);
@@ -52,12 +52,12 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNonPrivateCoinFromOneNonPrivateCoinInBigSetOfCoinsConsolidationMode()
 	{
 		// This test is to make sure that we select the non-private coin in the set.
-		const int MinAnonimitySet = 10;
+		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1);
+		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet + 1))
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet + 1))
 			.Prepend(smallerAnonCoin)
 			.ToList();
 
@@ -65,7 +65,7 @@ public class CoinJoinCoinSelectionTests
 			coins: coinsToSelectFrom,
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: true,
-			minAnonScoreTarget: MinAnonimitySet,
+			anonScoreTarget: AnonymitySet,
 			ConfigureRng(5));
 
 		Assert.Contains(smallerAnonCoin, coins);
@@ -76,18 +76,18 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNonPrivateCoinFromOneCoinSetOfCoins()
 	{
 		// This test is to make sure that we select the only non-private coin when it is the only coin in the wallet.
-		const int MinAnonimitySet = 10;
+		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
-			minAnonScoreTarget: MinAnonimitySet,
+			anonScoreTarget: AnonymitySet,
 			ConfigureRng(1));
 
 		Assert.Single(coins);
@@ -97,19 +97,19 @@ public class CoinJoinCoinSelectionTests
 	public void SelectOneNonPrivateCoinFromTwoCoinsSetOfCoins()
 	{
 		// This test is to make sure that we select only one non-private coin.
-		const int MinAnonimitySet = 10;
+		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
-			minAnonScoreTarget: MinAnonimitySet,
+			anonScoreTarget: AnonymitySet,
 			ConfigureRng(1));
 
 		Assert.Single(coins);
@@ -119,19 +119,19 @@ public class CoinJoinCoinSelectionTests
 	public void SelectTwoNonPrivateCoinsFromTwoCoinsSetOfCoinsConsolidationMode()
 	{
 		// This test is to make sure that we select more than one non-private coin.
-		const int MinAnonimitySet = 10;
+		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
-			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: MinAnonimitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
+			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), 0, anonymitySet: AnonymitySet - 1))
 			.ToList();
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: true,
-			minAnonScoreTarget: MinAnonimitySet,
+			anonScoreTarget: AnonymitySet,
 			ConfigureRng(1));
 
 		Assert.Equal(2, coins.Count);

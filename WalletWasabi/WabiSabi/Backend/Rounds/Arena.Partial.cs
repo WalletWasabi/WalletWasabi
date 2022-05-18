@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
+using System;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -39,7 +40,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 
-			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast))
+			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
 
 			if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
@@ -355,9 +356,20 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		OutPoint input = request.Input;
 
-		if (Prison.TryGet(input, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
+		if (Prison.TryGet(input, out var inmate))
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			DateTimeOffset bannedUntil;
+			if (inmate.Punishment == Punishment.LongBanned)
+			{
+				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan;
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
+			}
+
+			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
+			{
+				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
+			}
 		}
 
 		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
