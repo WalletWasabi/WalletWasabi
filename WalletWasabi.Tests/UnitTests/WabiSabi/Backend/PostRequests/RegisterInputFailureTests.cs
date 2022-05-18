@@ -131,6 +131,34 @@ public class RegisterInputFailureTests
 			async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None));
 
 		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+		Assert.IsAssignableFrom<InputBannedExceptionData>(ex.ExceptionData);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
+	public async Task InputLongBannedAsync()
+	{
+		using Key key = new();
+		var outpoint = BitcoinFactory.CreateOutPoint();
+
+		WabiSabiConfig cfg = new();
+		var round = WabiSabiFactory.CreateRound(cfg);
+
+		Prison prison = new();
+		using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
+
+		prison.Punish(outpoint, Punishment.LongBanned, uint256.One);
+
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key);
+
+		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+			async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None));
+
+		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, ex.ErrorCode);
+		Assert.IsAssignableFrom<InputBannedExceptionData>(ex.ExceptionData);
 
 		await arena.StopAsync(CancellationToken.None);
 	}

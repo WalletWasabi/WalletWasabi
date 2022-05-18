@@ -104,7 +104,7 @@ public class UtxoPrisonTests
 		var utxo = BitcoinFactory.CreateOutPoint();
 		var past = DateTimeOffset.UtcNow - TimeSpan.FromDays(40);
 
-		p.Punish(new Inmate(utxo, Punishment.Banned, past, id1, IsLongBan: true));
+		p.Punish(new Inmate(utxo, Punishment.LongBanned, past, id1));
 
 		Assert.Single(p.GetInmates());
 

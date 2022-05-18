@@ -9,6 +9,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Tor.Http.Extensions;
 
@@ -67,12 +68,13 @@ public static class HttpResponseMessageExtensions
 			var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 			var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
 			{
+				Converters = JsonSerializationOptions.Default.Settings.Converters,
 				Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
 			});
 			var innerException = error switch
 			{
 				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
-					? new WabiSabiProtocolException(code, error.Description)
+					? new WabiSabiProtocolException(code, error.Description, exceptionData: error.ExceptionData)
 					: new NotSupportedException($"Received WabiSabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
 				{ Type: "unknown" } => new Exception(error.Description),
 				_ => null
