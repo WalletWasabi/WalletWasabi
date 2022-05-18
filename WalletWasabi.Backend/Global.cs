@@ -61,6 +61,15 @@ public class Global : IDisposable
 		var p2pNode = Guard.NotNull(nameof(P2pNode), P2pNode);
 		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, p2pNode), "Full Node Mempool Mirror");
 
+		// Initialize index building
+		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
+		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var blockNotifier = HostedServices.Get<BlockNotifier>();
+
+		CoordinatorParameters coordinatorParameters = new(DataDir);
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+
 		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
 		if (!string.IsNullOrWhiteSpace(roundConfig.FilePath))
 		{
@@ -83,15 +92,6 @@ public class Global : IDisposable
 				   }),
 				"Config Watcher");
 		}
-
-		// Initialize index building
-		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
-		var blockNotifier = HostedServices.Get<BlockNotifier>();
-
-		CoordinatorParameters coordinatorParameters = new(DataDir);
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
-		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
 		CoinJoinIdStore = CoinJoinIdStore.Create(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
 
