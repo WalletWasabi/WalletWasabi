@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DynamicData;
 using ReactiveUI;
 using System.Linq;
@@ -8,6 +9,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData.Binding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
@@ -20,6 +23,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
 	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
+	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel>? _source;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -28,12 +32,25 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
 		_coins = new ObservableCollectionExtended<WalletCoinViewModel>();
+	}
+
+	private IObservable<Unit> CoinsUpdated => _balanceChanged
+		.ToSignal()
+		.Merge(_walletViewModel
+			.WhenAnyValue(w => w.IsCoinJoining)
+			.ToSignal());
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
 
 		_coinsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_coins)
-			.Subscribe();
+			.DisposeMany()
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
@@ -97,35 +114,29 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			}
 		};
 
+		disposables.Add(Disposable.Create(() => _coins.Clear()));
+
+		Source.DisposeWith(disposables);
+
 		Source.RowSelection!.SingleSelect = true;
 
+		CoinsUpdated
+			.Select(_ => GetCoins())
+			.Subscribe(RefreshCoinsList)
+			.DisposeWith(disposables);
 	}
 
-	public FlatTreeDataGridSource<WalletCoinViewModel> Source { get; }
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private ICoinsView GetCoins()
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		Observable.Merge(
-			_balanceChanged.Select(_ => Unit.Default),
-			_walletViewModel.WhenAnyValue(w => w.IsCoinJoining).Select(_ => Unit.Default))
-			.Subscribe(_ =>
-			{
-				Update();
-			});
-
-		disposables.Add(_coinsSourceList);
+		return _walletViewModel.Wallet.Coins;
 	}
 
-	private void Update()
+	private void RefreshCoinsList(ICoinsView items)
 	{
-		var coins = _walletViewModel.Wallet.Coins.Select(c => new WalletCoinViewModel(c));
-
 		_coinsSourceList.Edit(x =>
 		{
 			x.Clear();
-			x.AddRange(coins);
+			x.AddRange(items.Select(coin => new WalletCoinViewModel(coin)));
 		});
 	}
 }

@@ -1,62 +1,80 @@
 ﻿using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.LogicalTree;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
 public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<TreeDataGridRowsPresenter>
 {
+	private const string ClassName = "separator";
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is null)
+		if (AssociatedObject is { })
 		{
-			return;
+			AssociatedObject.LayoutUpdated += AssociatedObjectOnLayoutUpdated;
 		}
-
-		AssociatedObject.ChildIndexChanged += OnChildIndexChanged;
 	}
 
 	protected override void OnDetachedFromVisualTree()
 	{
-		if (AssociatedObject is null)
+		if (AssociatedObject is { })
+		{
+			AssociatedObject.LayoutUpdated -= AssociatedObjectOnLayoutUpdated;
+		}
+	}
+
+	private void AssociatedObjectOnLayoutUpdated(object? sender, EventArgs e)
+	{
+		if (AssociatedObject is not { } presenter)
 		{
 			return;
 		}
 
-		AssociatedObject.ChildIndexChanged -= OnChildIndexChanged;
+		foreach (var child in ((IPanel)AssociatedObject).Children)
+		{
+			if (child is { })
+			{
+				InvalidateSeparator(child, presenter);
+			}
+		}
 	}
 
-	private void OnChildIndexChanged(object? sender, ChildIndexChangedEventArgs e)
+	private void InvalidateSeparator(IControl control, TreeDataGridRowsPresenter presenter)
 	{
-		if (AssociatedObject is { } presenter && e.Child is {} currentItem)
+		if (control.DataContext is not HistoryItemViewModelBase currentHistoryItem)
 		{
-			var index = AssociatedObject.GetChildIndex(currentItem);
+			return;
+		}
 
-			if (currentItem is IControl currentControl && currentControl.DataContext is HistoryItemViewModelBase currentHistoryItem)
+		if (currentHistoryItem.IsConfirmed)
+		{
+			if (control.Classes.Contains(ClassName))
 			{
-				if (!currentHistoryItem.IsConfirmed)
+				control.Classes.Set(ClassName, false);
+			}
+		}
+		else
+		{
+			if (IsSeparator(presenter, presenter.GetChildIndex(control)))
+			{
+				control.Classes.Set(ClassName, true);
+			}
+			else
+			{
+				if (control.Classes.Contains(ClassName))
 				{
-					if (presenter.Items is { } items && items.Count > index + 1)
-					{
-						var nextItem = presenter.Items[index + 1];
-						if (nextItem.Model is HistoryItemViewModelBase nextHistoryItem)
-						{
-							if (nextHistoryItem.IsConfirmed)
-							{
-								var classes = currentControl.Classes;
-								classes.Set("separator", true);
-							}
-						}
-					}
-				}
-				else
-				{
-					var classes = currentControl.Classes;
-					classes.Set("separator", false);
+					control.Classes.Set(ClassName, false);
 				}
 			}
+		}
+
+		static bool IsSeparator(TreeDataGridRowsPresenter presenter, int index)
+		{
+			return presenter.Items is { } items
+			       && items.Count > index + 1
+			       && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true };
 		}
 	}
 }

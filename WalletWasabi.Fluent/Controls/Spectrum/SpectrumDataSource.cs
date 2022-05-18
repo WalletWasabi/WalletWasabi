@@ -22,6 +22,8 @@ public abstract class SpectrumDataSource
 		NumAverages = numAverages;
 	}
 
+	public event EventHandler<bool>? GeneratingDataStateChanged;
+
 	public int NumAverages { get; }
 
 	protected float[] Bins { get; }
@@ -51,10 +53,17 @@ public abstract class SpectrumDataSource
 	public void Start()
 	{
 		_timer.Start();
+		OnGeneratingDataStateChanged(isGenerating: true);
 	}
 
 	public void Stop()
 	{
 		_timer.Stop();
+		OnGeneratingDataStateChanged(isGenerating: false);
+	}
+
+	private void OnGeneratingDataStateChanged(bool isGenerating)
+	{
+		GeneratingDataStateChanged?.Invoke(this, isGenerating);
 	}
 }

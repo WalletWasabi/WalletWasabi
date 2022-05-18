@@ -193,7 +193,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	public bool IsOwnCoinjoin()
-	   => WalletInputs.Any() // We must be a participant in order to be this transaction our coinjoin.
+	   => WalletInputs.Any() // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
 	#region LineSerialization

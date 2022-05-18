@@ -23,14 +23,14 @@
             <Panel.RenderTransform>
               <RotateTransform Angle="180"/>
             </Panel.RenderTransform>
-            <c:ProgressRingArc Classes="IndeterminateRing"
+            <c:ProgressRingArc Classes.IndeterminateRing="{TemplateBinding IsVisible}"
                                Percentage="0.20"
                                StrokeThickness="{TemplateBinding StrokeThickness}"
                                SegmentColor="{TemplateBinding Foreground}" />
           </Panel>
 
           <c:ProgressRingArc IsVisible="{TemplateBinding IsIndeterminate}"
-                             Classes="IndeterminateRing"
+                             Classes.IndeterminateRing="{TemplateBinding IsVisible}"
                              Percentage="0.20"
                              StrokeThickness="{TemplateBinding StrokeThickness}"
                              SegmentColor="{TemplateBinding Foreground}" />

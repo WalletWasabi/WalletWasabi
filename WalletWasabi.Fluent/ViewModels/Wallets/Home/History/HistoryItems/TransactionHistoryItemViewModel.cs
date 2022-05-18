@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -36,6 +37,17 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+
+		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
+			.Select(x => !x)
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+		SpeedUpTransactionCommand = ReactiveCommand.Create(
+			() =>
+			{
+				// TODO: Show speed up transaction dialog.
+			},
+			speedUpTransactionCommandCanExecute);
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}

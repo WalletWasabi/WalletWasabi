@@ -9,6 +9,17 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
+public enum EndRoundState
+{
+	None,
+	AbortedWithError,
+	AbortedNotEnoughAlices,
+	TransactionBroadcastFailed,
+	TransactionBroadcasted,
+	NotAllAlicesSign,
+	AbortedNotEnoughAlicesSigned
+}
+
 public class Round
 {
 	public Round(RoundParameters parameters, WasabiRandom random)
@@ -26,7 +37,7 @@ public class Round
 		ConnectionConfirmationTimeFrame = TimeFrame.Create(Parameters.ConnectionConfirmationTimeout);
 		OutputRegistrationTimeFrame = TimeFrame.Create(Parameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
-		
+
 		Id = CalculateHash();
 	}
 
@@ -47,7 +58,7 @@ public class Round
 	public TimeFrame OutputRegistrationTimeFrame { get; private set; }
 	public TimeFrame TransactionSigningTimeFrame { get; private set; }
 	public DateTimeOffset End { get; private set; }
-	public bool WasTransactionBroadcast { get; set; }
+	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
 
 	public RoundParameters Parameters { get; }
@@ -86,6 +97,12 @@ public class Round
 		{
 			End = DateTimeOffset.UtcNow;
 		}
+	}
+
+	public void EndRound(EndRoundState finalState)
+	{
+		SetPhase(Phase.Ended);
+		EndRoundState = finalState;
 	}
 
 	public virtual bool IsInputRegistrationEnded(int maxInputCount)

@@ -18,7 +18,7 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 			   .Select(x => x.Trim())
 			   .Where(x => x.Length != 0)
 			   .Distinct(StringComparer.OrdinalIgnoreCase)
-			   .OrderBy(x => x)
+			   .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
 			   .ToArray();
 
 		IsEmpty = !Labels.Any();
@@ -63,16 +63,20 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 
 		return string.Compare(this, other, StringComparison.OrdinalIgnoreCase);
 	}
-
+	
 	public override bool Equals(object? obj) => Equals(obj as SmartLabel) || Equals(obj as string);
 
-	public bool Equals(SmartLabel? other) => this == other;
+	public bool Equals(SmartLabel? other) => AreEquivalent(this, other);
 
-	public bool Equals(string? other) => this == other;
+	public bool Equals(string? other) => AreEquivalent(other, this);
+
+	public bool Equals(string? other, StringComparison comparison) => AreEquivalent(other, this, comparison);
+
+	public bool Equals(SmartLabel? other, IEqualityComparer<string> comparer) => AreEquivalent(this, other, comparer);
 
 	public override int GetHashCode() => ((IStructuralEquatable)Labels).GetHashCode(EqualityComparer<string>.Default);
 
-	public static bool operator ==(SmartLabel? x, SmartLabel? y)
+	private static bool AreEquivalent(SmartLabel? x, SmartLabel? y, IEqualityComparer<string>? comparer = null)
 	{
 		if (x is null)
 		{
@@ -93,12 +97,12 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 			}
 			else
 			{
-				return x.Labels.SequenceEqual(y.Labels);
+				return x.Labels.SequenceEqual(y.Labels, comparer);
 			}
 		}
 	}
 
-	public static bool operator ==(string? x, SmartLabel? y)
+	private static bool AreEquivalent(string? x, SmartLabel? y, StringComparison? comparison = null)
 	{
 		if (x is null)
 		{
@@ -119,10 +123,19 @@ public class SmartLabel : IEquatable<SmartLabel>, IEquatable<string>, IEnumerabl
 			}
 			else
 			{
+				if (comparison is { })
+				{
+					return string.Equals(x, y.LabelString, comparison.Value);
+				}
+				
 				return x == y.LabelString;
 			}
 		}
 	}
+
+	public static bool operator ==(SmartLabel? x, SmartLabel? y) => AreEquivalent(x, y);
+
+	public static bool operator ==(string? x, SmartLabel? y) => AreEquivalent(x, y);
 
 	public static bool operator ==(SmartLabel? x, string? y) => y == x;
 

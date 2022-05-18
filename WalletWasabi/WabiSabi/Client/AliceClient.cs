@@ -108,10 +108,14 @@ public class AliceClient
 						Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 						break;
 
-					case WabiSabiProtocolErrorCode.InputBanned:
-						coin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
-						coin.SetIsBanned();
-						Logger.LogInfo($"{coin.Coin.Outpoint} is banned.");
+					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+						if (inputBannedExData is null)
+						{
+							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+						}
+						coin.BannedUntilUtc =inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
