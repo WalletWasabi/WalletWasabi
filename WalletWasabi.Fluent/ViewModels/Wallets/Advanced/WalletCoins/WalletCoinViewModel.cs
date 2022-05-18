@@ -28,7 +28,6 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
 		coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 		coin.WhenAnyValue(c => c.BannedUntilUtc).Subscribe(x => BannedUntilUtc = x).DisposeWith(_disposables);
-
 	}
 
 	public static Comparison<WalletCoinViewModel?> SortAscending<T>(Func<WalletCoinViewModel, T> selector)

@@ -114,17 +114,17 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					width: new GridLength(1, GridUnitType.Star)),
 
 				// Banned
-				new TemplateColumn<WalletCoinViewModel>("Banned?",
-				new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IsBannedColumnView(), true),
-				options: new ColumnOptions<WalletCoinViewModel>
-				{
+				new TemplateColumn<WalletCoinViewModel>(
+					"Banned?",
+					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IsBannedColumnView(), true),
+					options: new ColumnOptions<WalletCoinViewModel>
+					{
 					CanUserResizeColumn = false,
 					CanUserSortColumn = true,
 					CompareAscending = WalletCoinViewModel.SortAscending(x => x.IsBanned),
 					CompareDescending = WalletCoinViewModel.SortDescending(x => x.IsBanned)
-				},
-				width: new GridLength(0, GridUnitType.Auto))
-
+					},
+					width: new GridLength(0, GridUnitType.Auto))
 			}
 		};
 
