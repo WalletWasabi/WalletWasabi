@@ -57,7 +57,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymitySet		AnonymityColumnView		<custom>	40			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			false
-		// Banned			IsBannedColumnView		Banned?		Auto		-				-			false
+		// Banned			IsBannedColumnView		Banned?		Auto		-				-			true
 
 		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
 		{
