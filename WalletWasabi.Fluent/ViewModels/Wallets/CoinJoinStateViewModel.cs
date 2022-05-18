@@ -157,8 +157,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoStartTimeout,
 		AutoCoinJoinOn,
 		AutoCoinJoinOff,
-		AutoCoinJoinEntered,
-		ManualCoinJoinEntered,
 		Pause,
 		Play,
 		Stop,
@@ -198,7 +196,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// Manual Cj State
 		_stateMachine.Configure(State.ManualCoinJoin)
 			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
-			.Permit(Trigger.ManualCoinJoinEntered, State.Stopped) // TODO remove hack
+			.TransitionOnEntryTo(State.Stopped)
 			.OnEntry(() =>
 			{
 				IsAuto = false;
@@ -206,8 +204,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				StopVisible = false;
 				PauseVisible = false;
-
-				_stateMachine.Fire(Trigger.ManualCoinJoinEntered);
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
@@ -304,8 +300,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		// AutoCj State
 		_stateMachine.Configure(State.AutoCoinJoin)
+			.TransitionOnEntryTo(State.AutoStarting)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.Permit(Trigger.AutoCoinJoinEntered, State.AutoStarting) // TODO remove hack
 			.OnEntry(async () =>
 			{
 				IsAuto = true;
@@ -316,8 +312,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _initialisingMessage;
 
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
-
-				_stateMachine.Fire(Trigger.AutoCoinJoinEntered);
 			});
 
 		_stateMachine.Configure(State.AutoStarting)

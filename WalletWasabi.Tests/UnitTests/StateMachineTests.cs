@@ -311,4 +311,26 @@ public class StateMachineTests
 		Assert.True(sut.IsInState(JukeBoxState.Playing));
 		Assert.True(onTriggerCalled);
 	}
+
+	[Fact]
+	public void OnEntry_Isnt_Called_For_Parent_State_If_We_Enter_Another_Child()
+	{
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
+			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+
+		int entryCallCount = 0;
+
+		sut.Configure(JukeBoxState.Paused)
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild)
+			.OnEntry(() =>
+			{
+				entryCallCount++;
+			});
+
+		sut.Start();
+
+		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(1, entryCallCount);
+	}
 }
