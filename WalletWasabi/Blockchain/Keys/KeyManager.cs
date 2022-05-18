@@ -131,7 +131,8 @@ public class KeyManager
 	[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 	public ExtPubKey ExtPubKey { get; }
 
-	[JsonProperty(Order = 5)] public bool IsNewlyCreated { get; set; }
+	[JsonProperty(Order = 5)]
+	public bool IsNewlyCreated { get; set; } = false;
 
 	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
