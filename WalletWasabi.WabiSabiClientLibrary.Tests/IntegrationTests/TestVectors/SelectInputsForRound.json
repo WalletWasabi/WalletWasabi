@@ -1,0 +1,48 @@
+[
+  {
+    "name": "",
+    "request": {
+      "miningFeeRate": 129000,
+      "coordinationFeeRate": {
+        "rate": 0.003,
+        "plebsDontPayThreshold": 1000000
+      },
+      "allowedInputAmounts": {
+        "min": 5000,
+        "max": 4300000000000
+      },
+      "allowedOutputAmounts": {
+        "min": 5000,
+        "max": 4300000000000
+      },
+      "allowedInputTypes": [
+        4,
+        7
+      ],
+      "utxos": [
+        {
+          "outpoint": "bfd12966dcf309b9a8ecceb58970f4ea30b6a6dd9a76628af5bbed32cf95a5fc00000000",
+          "amount": 20000000,
+          "scriptPubKey": "51207dd17022d0288f10baf1ec6420473f6a0523e4521c155f4056845ca983d0f26f",
+          "anonymitySet": 1
+        },
+        {
+          "outpoint": "e8ef00a14d0493168ff4d398dcb5a91a34627ad8cc6accc54bf4a74e97a1b08f00000000",
+          "amount": 1000000000,
+          "scriptPubKey": "51207dd17022d0288f10baf1ec6420473f6a0523e4521c155f4056845ca983d0f26f",
+          "anonymitySet": 1
+        }
+      ],
+      "anonScoreTarget": 5,
+      "liquidityClue": 4300000000000,
+      "semiPrivateThreshold": 2,
+      "consolidationMode": false
+    },
+    "expectedResponse": {
+      "indices": [
+        1,
+        0
+      ]
+    }
+  }
+]
