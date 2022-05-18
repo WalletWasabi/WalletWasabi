@@ -22,6 +22,16 @@ public class Controller : ControllerBase, IDisposable
 	}
 
 	/// <summary>
+	/// Given a set of unspent transaction outputs, choose a subset of the outputs that are best to register in a single CoinJoin round according to the given strategy.
+	/// </summary>
+	/// <seealso cref="CoinJoinClient.SelectCoinsForRound"/>
+	[HttpPost("select-inputs-for-round")]
+	public SelectInputsForRoundResponse SelectInputsForRound(SelectInputsForRoundRequest request)
+	{
+		return SelectInputsForRoundHelper.SelectInputsForRound(request, _random);
+	}
+
+	/// <summary>
 	/// Given a set of effective input amounts registered by a participant and a set of effective input amounts
 	/// registered by other participants, decompose the amounts registered by the participant into output amounts.
 	/// </summary>
