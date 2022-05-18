@@ -162,15 +162,6 @@
         <Style Selector="PathIcon.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
-        <Style Selector="TreeDataGridRow">
-          <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-              <i:BehaviorCollection>
-                <behaviors:HistoryItemDetailsBehavior />
-              </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
-          </Setter>
-        </Style>
 
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Template">
@@ -194,23 +185,6 @@
           </Setter>
         </Style>
 
-        <Style Selector="c|TreeDataGridItemDetailsAdorner">
-          <Setter Property="Margin" Value="-31,0,0,0" />
-          <Setter Property="HorizontalAlignment" Value="Left" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="ClipToBounds" Value="False" />
-          <Setter Property="IsHitTestVisible" Value="True" />
-          <Setter Property="Template">
-            <ControlTemplate>
-              <Panel Background="Transparent">
-                <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
-                        Command="{Binding ShowDetailsCommand}">
-                  <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
-                </Button>
-              </Panel>
-            </ControlTemplate>
-          </Setter>
-        </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">

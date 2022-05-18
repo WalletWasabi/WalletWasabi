@@ -12,7 +12,6 @@
   <Panel>
     <shell:BackgroundView />
     <shell:MainView x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
-    <c:AdornerCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     <shell:DialogsView />
   </Panel>
 </UserControl>
