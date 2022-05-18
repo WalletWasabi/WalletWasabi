@@ -100,7 +100,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.IsNewlyCreated)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
