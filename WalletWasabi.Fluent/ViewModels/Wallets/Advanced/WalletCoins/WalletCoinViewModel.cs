@@ -15,6 +15,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private SmartLabel _smartLabel = "";
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
+	[AutoNotify] private bool _isBanned;
 	
 	public WalletCoinViewModel(SmartCoin coin)
 	{
@@ -24,6 +25,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = x).DisposeWith(_disposables);
 		coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
+		coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 	}
 
 	public static Comparison<WalletCoinViewModel?> SortAscending<T>(Func<WalletCoinViewModel, T> selector)
