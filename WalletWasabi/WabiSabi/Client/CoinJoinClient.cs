@@ -444,18 +444,13 @@ public class CoinJoinClient
 		// Select a group of coins those are close to each other by Anonimity Score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
-		if (inputCount == 1)
-		{
-			foreach (var coin in largestAmounts)
-			{
-				TryAddGroup(parameters, groups, new[] { coin });
-			}
-		}
-
 		// Create a bunch of combinations.
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
+			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount).Concat(new[] { coin });
+			TryAddGroup(parameters, groups, baseGroup);
+
 			var sw2 = Stopwatch.StartNew();
 			foreach (var group in filteredCoins
 				.Except(new[] { coin })
