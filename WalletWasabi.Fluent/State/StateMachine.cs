@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace WalletWasabi.Fluent.State;
 
@@ -9,7 +8,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	private readonly Dictionary<TState, StateContext> _states;
 	private OnTransitionedDelegate? _onTransitioned;
 
-	public delegate void OnTransitionedDelegate(TTrigger trigger, TState from, TState to);
+	public delegate void OnTransitionedDelegate(TState from, TState to);
 
 	public TState State => _currentState.StateId;
 
@@ -84,15 +83,15 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			if (_states.ContainsKey(destination) && _states[destination].Parent is { } parent && !IsInState(parent.StateId))
 			{
-				Goto(trigger, parent.StateId);
+				Goto(parent.StateId);
 			}
 
-			Goto(trigger, destination);
+			Goto(destination);
 		}
 		else if (_currentState.Parent is { } && _currentState.Parent.CanTransit(trigger))
 		{
-			Goto(trigger, _currentState.Parent.StateId, true, false);
-			Goto(trigger, _currentState.GetDestination(trigger));
+			Goto(_currentState.Parent.StateId, true, false);
+			Goto(_currentState.GetDestination(trigger));
 		}
 	}
 
@@ -101,7 +100,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		_currentState.Enter();
 	}
 
-	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
+	public void Goto(TState state, bool exit = true, bool enter = true)
 	{
 		if (_states.ContainsKey(state))
 		{
@@ -114,7 +113,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			_currentState = _states[state];
 
-			_onTransitioned?.Invoke(trigger, old, _currentState.StateId);
+			_onTransitioned?.Invoke(old, _currentState.StateId);
 
 			if (enter)
 			{
