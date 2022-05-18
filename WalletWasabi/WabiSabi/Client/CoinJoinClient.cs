@@ -464,7 +464,7 @@ public class CoinJoinClient
 			{
 				TryAddGroup(parameters, groups, group);
 
-				if (sw2.Elapsed > TimeSpan.FromSeconds(1))
+				if (sw2.Elapsed > TimeSpan.FromSeconds(1) && groups.Any())
 				{
 					break;
 				}
