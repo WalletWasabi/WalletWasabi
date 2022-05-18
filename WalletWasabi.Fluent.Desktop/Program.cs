@@ -25,7 +25,7 @@ public class Program
 {
 	private static Global? Global;
 
-	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
+	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync, TerminateApplication);
 
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -165,7 +165,6 @@ public class Program
 	/// </summary>
 	private static async Task TerminateApplicationAsync()
 	{
-		MainViewModel.Instance.ClearStacks();
 		MainViewModel.Instance.StatusIcon.Dispose();
 		Logger.LogSoftwareStopped("Wasabi GUI");
 
@@ -173,6 +172,11 @@ public class Program
 		{
 			await global.DisposeAsync().ConfigureAwait(false);
 		}
+	}
+
+	private static void TerminateApplication()
+	{
+		MainViewModel.Instance.ClearStacks();
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
