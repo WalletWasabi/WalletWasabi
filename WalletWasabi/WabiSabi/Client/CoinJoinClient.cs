@@ -145,7 +145,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins.");
+			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {coinCandidates.Sum(c => c.Amount)} BTC.");
 		}
 
 		for (var tries = 0; tries < tryLimit; tries++)
@@ -159,7 +159,7 @@ public class CoinJoinClient
 			// Only use successfully registered coins in the blame round.
 			coins = result.RegisteredCoins;
 
-			currentRoundState.LogInfo($"Waiting for the blame round.");
+			currentRoundState.LogInfo("Waiting for the blame round.");
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
@@ -406,7 +406,7 @@ public class CoinJoinClient
 
 		string[] summary = new string[]
 		{
-			$"",
+			"",
 			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
 			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
 			$"\tTotal diff : {totalDifference.ToString(true, false)}",
@@ -444,18 +444,13 @@ public class CoinJoinClient
 		// Select a group of coins those are close to each other by Anonimity Score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
-		if (largestAmounts.Length == 1 || inputCount == 1)
-		{
-			foreach (var coin in largestAmounts)
-			{
-				TryAddGroup(parameters, groups, new[] { coin });
-			}
-		}
-
 		// Create a bunch of combinations.
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
+			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			TryAddGroup(parameters, groups, baseGroup);
+
 			var sw2 = Stopwatch.StartNew();
 			foreach (var group in filteredCoins
 				.Except(new[] { coin })
