@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Rpc;
@@ -32,6 +33,7 @@ public class JsonRpcRequestHandler<TService>
 
 	public JsonRpcRequestHandler(TService service)
 	{
+		service = Guard.NotNull(nameof(service), service);
 		Service = service;
 		MetadataProvider = new JsonRpcServiceMetadataProvider(service.GetType());
 	}
@@ -90,12 +92,15 @@ public class JsonRpcRequestHandler<TService>
 				for (int i = 0; i < methodParameters.Count; i++)
 				{
 					var param = methodParameters[i];
-					if (!jobj.ContainsKey(param.name))
+					if (!jobj.TryGetValue(param.name, out var name))
 					{
 						return Error(JsonRpcErrorCodes.InvalidParams,
 							$"A value for the '{param.name}' is missing.", jsonRpcRequest.Id);
 					}
-					parameters.Add(jobj[param.name].ToObject(param.type, DefaultSerializer));
+
+					var item = name.ToObject(param.type, DefaultSerializer)
+						?? throw new InvalidOperationException($"Parameter `{param.name}` is null.");
+					parameters.Add(item);
 				}
 			}
 
@@ -129,12 +134,18 @@ public class JsonRpcRequestHandler<TService>
 			{
 				if (!prodecureMetadata.MethodInfo.ReturnType.IsGenericType)
 				{
-					await ((Task)result).ConfigureAwait(false);
+					var task = result as Task
+						?? throw new InvalidOperationException($"{nameof(result)} should be type of a '{nameof(Task)}'.");
+
+					await task.ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, null);
 				}
 				else
 				{
-					var ret = await ((dynamic)result).ConfigureAwait(false);
+					var task = result as dynamic
+						?? throw new InvalidOperationException($"{nameof(result)} cannot be null.");
+
+					var ret = await task.ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
 				}
 			}
