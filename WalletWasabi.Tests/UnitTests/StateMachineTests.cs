@@ -313,7 +313,7 @@ public class StateMachineTests
 	}
 
 	[Fact]
-	public void OnEntry_Isnt_Called_For_Parent_State_Is_We_Enter_Another_Child()
+	public void OnEntry_Isnt_Called_For_Parent_State_If_We_Enter_Another_Child()
 	{
 		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
 			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
