@@ -12,7 +12,7 @@
         x:DataType="viewModels:MainViewModel"
         x:Name="MainWindow"
         x:CompileBindings="True"
-        MinWidth="640" MinHeight="480"
+        MinWidth="720" MinHeight="480"
         Width="{Binding WindowWidth, Mode=TwoWay}"
         Height="{Binding WindowHeight, Mode=TwoWay}"
         WindowStartupLocation="Manual"
@@ -32,7 +32,7 @@
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Key1="LeftCtrl" Key2="D" Key3="C" />
-    <behaviors:MainWindowBindPositionBehavior/>
+    <behaviors:MainWindowBindPositionBehavior />
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
