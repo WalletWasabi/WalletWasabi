@@ -448,7 +448,7 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount).Concat(new[] { coin });
+			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
 
 			var sw2 = Stopwatch.StartNew();
