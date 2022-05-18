@@ -167,7 +167,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.Equal(EndRoundState.AbortedNoEnoughAlicesSigned, round.EndRoundState);
+		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
 		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
 		Assert.Contains(aliceClient2.SmartCoin.OutPoint, prison.GetInmates().Select(x => x.Utxo));
 

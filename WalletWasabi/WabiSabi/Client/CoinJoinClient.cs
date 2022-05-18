@@ -209,8 +209,8 @@ public class CoinJoinClient
 				EndRoundState.TransactionBroadcasted => $"Broadcasted. Coinjoin TxId: ({unsignedCoinJoin.GetHash()})",
 				EndRoundState.TransactionBroadcastFailed => $"Failed to broadcast. Coinjoin TxId: ({unsignedCoinJoin.GetHash()})",
 				EndRoundState.AbortedWithError => "Round abnormally finished.",
-				EndRoundState.AbortedNoEnoughAlices => "Aborted. Not enough participants.",
-				EndRoundState.AbortedNoEnoughAlicesSigned => "Aborted. Not enough participants signed the coinjoin transaction.",
+				EndRoundState.AbortedNotEnoughAlices => "Aborted. Not enough participants.",
+				EndRoundState.AbortedNotEnoughAlicesSigned => "Aborted. Not enough participants signed the coinjoin transaction.",
 				EndRoundState.NotAllAlicesSign => "Aborted. Some Alices didn't sign. Go to blame round.",
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()

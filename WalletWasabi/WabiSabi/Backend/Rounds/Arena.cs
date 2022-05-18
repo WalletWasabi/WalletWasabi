@@ -107,7 +107,7 @@ public partial class Arena : PeriodicRunner
 					{
 						continue;
 					}
-					round.EndRound(EndRoundState.AbortedNoEnoughAlices);
+					round.EndRound(EndRoundState.AbortedNotEnoughAlices);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}).");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
@@ -161,7 +161,7 @@ public partial class Arena : PeriodicRunner
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
-						round.EndRound(EndRoundState.AbortedNoEnoughAlices);
+						round.EndRound(EndRoundState.AbortedNotEnoughAlices);
 						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase. The minimum is ({Config.MinInputCountByRound}).");
 					}
 					else
@@ -344,7 +344,7 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			round.EndRound(EndRoundState.AbortedNoEnoughAlicesSigned);
+			round.EndRound(EndRoundState.AbortedNotEnoughAlicesSigned);
 		}
 	}
 

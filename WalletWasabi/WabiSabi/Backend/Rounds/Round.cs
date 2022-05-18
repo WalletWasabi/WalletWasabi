@@ -13,11 +13,11 @@ public enum EndRoundState
 {
 	None,
 	AbortedWithError,
-	AbortedNoEnoughAlices,
+	AbortedNotEnoughAlices,
 	TransactionBroadcastFailed,
 	TransactionBroadcasted,
 	NotAllAlicesSign,
-	AbortedNoEnoughAlicesSigned
+	AbortedNotEnoughAlicesSigned
 };
 
 public class Round
@@ -37,7 +37,7 @@ public class Round
 		ConnectionConfirmationTimeFrame = TimeFrame.Create(Parameters.ConnectionConfirmationTimeout);
 		OutputRegistrationTimeFrame = TimeFrame.Create(Parameters.OutputRegistrationTimeout);
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
-		
+
 		Id = CalculateHash();
 	}
 
@@ -104,7 +104,7 @@ public class Round
 		SetPhase(Phase.Ended);
 		EndRoundState = finalState;
 	}
-	
+
 	public virtual bool IsInputRegistrationEnded(int maxInputCount)
 	{
 		if (Phase > Phase.InputRegistration)
