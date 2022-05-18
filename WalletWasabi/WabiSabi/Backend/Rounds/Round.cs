@@ -18,7 +18,7 @@ public enum EndRoundState
 	TransactionBroadcasted,
 	NotAllAlicesSign,
 	AbortedNotEnoughAlicesSigned
-};
+}
 
 public class Round
 {
