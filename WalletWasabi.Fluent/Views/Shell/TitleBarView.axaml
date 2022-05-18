@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ext="using:WalletWasabi.Fluent.Helpers"
-             xmlns:statusBar="clr-namespace:WalletWasabi.Fluent.Views.StatusBar"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -36,13 +35,6 @@
                            IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
     </DataTemplate>
 
-    <DataTemplate x:Key="StatusBar">
-      <statusBar:StatusBar Foreground="{DynamicResource AcrylicTrimForeground}"
-                           DataContext="{Binding #UserControl.DataContext.StatusBar}"
-                           HorizontalAlignment="Right" VerticalAlignment="Center"
-                           IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
-    </DataTemplate>
-
     <DataTemplate x:Key="WindowsAndLinuxLayout">
       <Grid>
 
@@ -58,7 +50,6 @@
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
         <ContentControl Grid.Column="1" Grid.ColumnSpan="2" ContentTemplate="{StaticResource Title}" />
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
-        <ContentControl Grid.Column="4" ContentTemplate="{StaticResource StatusBar}" />
 
       </Grid>
     </DataTemplate>
@@ -79,8 +70,6 @@
           <ContentControl ContentTemplate="{StaticResource Title}" />
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
-        <ContentControl Grid.Column="3" Grid.ColumnSpan="2" ContentTemplate="{StaticResource StatusBar}" />
-
       </Grid>
     </DataTemplate>
 
