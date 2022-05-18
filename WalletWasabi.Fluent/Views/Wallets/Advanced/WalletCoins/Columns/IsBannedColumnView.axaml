@@ -10,5 +10,6 @@
   <TextBlock Text="{Binding IsBanned}"
              Margin="5 0"
              VerticalAlignment="Center"
-             HorizontalAlignment="Center" />
+             HorizontalAlignment="Center"
+             ToolTip.Tip="{Binding BannedUntilUtc}"/>
 </UserControl>
