@@ -56,7 +56,7 @@ public class ApplicationStateManager : IMainWindowService
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
 			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented())
 			.Permit(Trigger.BackgroundModeOff, State.StandardMode)
-			.Permit(Trigger.Initialise, State.Closed);
+			.Permit(Trigger.Initialise, State.Open);
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.BackgroundMode)

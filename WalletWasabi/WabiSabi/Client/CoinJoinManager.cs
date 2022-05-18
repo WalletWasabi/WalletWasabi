@@ -399,7 +399,7 @@ public class CoinJoinManager : BackgroundService
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
-			.Where(x => !x.IsInmature(bestHeight))
+			.Where(x => !x.IsImmature(bestHeight))
 			.Where(x => !x.IsBanned)
 			.Where(x => !CoinRefrigerator.IsFrozen(x)));
 
