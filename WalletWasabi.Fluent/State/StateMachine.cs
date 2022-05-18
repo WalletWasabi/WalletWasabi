@@ -97,10 +97,20 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public void Start()
 	{
-		_currentState.Enter();
+		Enter();
 	}
 
-	public void Goto(TState state, bool exit = true, bool enter = true)
+	private void Enter()
+	{
+		_currentState.Enter();
+
+		if (_currentState.WillTransitionTo is { } state)
+		{
+			Goto(state);
+		}
+	}
+
+	private void Goto(TState state, bool exit = true, bool enter = true)
 	{
 		if (_states.ContainsKey(state))
 		{
@@ -117,7 +127,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			if (enter)
 			{
-				_currentState.Enter();
+				Enter();
 			}
 		}
 	}
@@ -134,6 +144,8 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		public StateContext? Parent { get; private set; }
 
+		internal TState? WillTransitionTo { get; private set; }
+
 		public StateContext(StateMachine<TState, TTrigger> owner, TState state)
 		{
 			_owner = owner;
@@ -143,6 +155,13 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_exitActions = new();
 			_triggerActions = new();
 			_permittedTransitions = new();
+		}
+
+		public StateContext TransitionOnEntryTo(TState? state)
+		{
+			WillTransitionTo = state;
+
+			return this;
 		}
 
 		public StateContext SubstateOf(TState parent)
