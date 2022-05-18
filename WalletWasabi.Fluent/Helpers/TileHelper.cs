@@ -90,7 +90,7 @@ public static class TileHelper
 	{
 		return new ObservableCollection<TileLayoutViewModel>()
 			{
-				new("Small", columnDefinitions: "230,170,120", rowDefinitions: "60"),
+				new("Small", columnDefinitions: "230,170,130", rowDefinitions: "60"),
 				new("Normal", columnDefinitions: "316,316,316", rowDefinitions: "150"),
 				new("Wide", columnDefinitions: "316,316,316", rowDefinitions: "150")
 			};
