@@ -311,8 +311,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 
 				CurrentStatus = _initialisingMessage;
-
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			});
 
 		_stateMachine.Configure(State.AutoStarting)
