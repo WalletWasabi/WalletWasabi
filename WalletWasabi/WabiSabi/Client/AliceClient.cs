@@ -167,13 +167,6 @@ public class AliceClient
 
 	private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 	{
-		var effectiveAmount = EffectiveValue;
-
-		if (effectiveAmount <= Money.Zero)
-		{
-			throw new InvalidOperationException($"Round({RoundId}), Alice({AliceId}): Adding this input is uneconomical.");
-		}
-
 		var response = await ArenaClient
 			.ConfirmConnectionAsync(
 				RoundId,
