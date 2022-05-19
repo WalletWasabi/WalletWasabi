@@ -51,7 +51,9 @@
                             Padding="{TemplateBinding Padding}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Border Name="SelectionIndicator" Margin="1,0,0,0" />
+          <!-- NOTE: This margin value is to force the dirty rect in Avalonia's Deferred Renderer
+                     to be rounded up so that it doesnt show up the artifacts when animated on high-res displays.  -->
+          <Border Name="SelectionIndicator" Margin="0.5,0,0,0" />
         </Panel>
       </ControlTemplate>
     </Setter>
