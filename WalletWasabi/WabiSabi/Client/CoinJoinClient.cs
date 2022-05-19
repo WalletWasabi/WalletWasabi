@@ -143,6 +143,8 @@ public class CoinJoinClient
 		}
 		while (!cancellationToken.IsCancellationRequested);
 
+		// Once we know the mining fee we can filter out the uneconomical inputs.
+		coins = coins.Where(x => x.EffectiveValue(currentRoundState.CoinjoinState.Parameters.MiningFeeRate) > Money.Zero).ToImmutableList();
 		if (coins.IsEmpty)
 		{
 			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
