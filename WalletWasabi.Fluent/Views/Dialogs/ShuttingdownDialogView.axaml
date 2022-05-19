@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="dialog:ShuttingDownViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.ShuttingDownView">
+  <c:ContentArea Title="{Binding Title}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel VerticalAlignment="Center">
+      <TextBlock Text="This may take a few minutes."
+                 DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" Margin="20 0" />
+      <Viewbox MaxHeight="100" Margin="40">
+        <c:ProgressRing IsIndeterminate="True" Height="100" Width="100" />
+      </Viewbox>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>

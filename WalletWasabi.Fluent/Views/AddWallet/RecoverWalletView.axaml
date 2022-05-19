@@ -15,7 +15,7 @@
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Finish"
+                 EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
       <DockPanel DockPanel.Dock="Top">

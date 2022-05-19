@@ -10,7 +10,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -59,7 +58,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					.Select(_ => Unit.Default))
 				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.Merge(Settings.WhenAnyValue(x => x.MinAnonScoreTarget, x => x.MaxAnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
+				.Merge(Settings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.ObserveOn(RxApp.MainThreadScheduler));
 
@@ -72,7 +71,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
 		{
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
-				args switch {
+				args switch
+				{
 					StartedEventArgs _ => true,
 					StoppedEventArgs _ => false,
 					CompletedEventArgs => false,

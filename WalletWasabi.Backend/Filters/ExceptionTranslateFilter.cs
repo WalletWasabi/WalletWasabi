@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
@@ -19,14 +20,16 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 			WabiSabiProtocolException e => new JsonResult(new Error(
 				Type: ProtocolConstants.ProtocolViolationType,
 				ErrorCode: e.ErrorCode.ToString(),
-				Description: e.Message))
+				Description: e.Message,
+				ExceptionData: e.ExceptionData ?? EmptyExceptionData.Instance))
 			{
 				StatusCode = (int)HttpStatusCode.InternalServerError
 			},
 			WabiSabiCryptoException e => new JsonResult(new Error(
 				Type: ProtocolConstants.ProtocolViolationType,
 				ErrorCode: WabiSabiProtocolErrorCode.CryptoException.ToString(),
-				Description: e.Message))
+				Description: e.Message,
+				ExceptionData: EmptyExceptionData.Instance))
 			{
 				StatusCode = (int)HttpStatusCode.InternalServerError
 			},

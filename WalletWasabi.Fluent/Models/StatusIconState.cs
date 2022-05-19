@@ -1,6 +1,6 @@
 namespace WalletWasabi.Fluent.Models;
 
-public enum StatusBarState
+public enum StatusIconState
 {
 	Loading,
 	Ready,
