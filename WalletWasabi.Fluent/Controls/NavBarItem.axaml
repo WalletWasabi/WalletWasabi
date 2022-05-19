@@ -51,7 +51,7 @@
                             Padding="{TemplateBinding Padding}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Border Name="SelectionIndicator" />
+          <Border Name="SelectionIndicator" Margin="1,0,0,0" />
         </Panel>
       </ControlTemplate>
     </Setter>
