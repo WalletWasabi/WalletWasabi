@@ -250,7 +250,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
 
