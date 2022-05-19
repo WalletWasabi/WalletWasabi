@@ -33,9 +33,8 @@ public class BlockchainController : ControllerBase
 		Global = global;
 	}
 
-	private IRPCClient RpcClient => Global.RpcClient;
-	private Network Network => Global.Config.Network;
-
+	private IRPCClient RpcClient => Guard.NotNull(nameof(Global.RpcClient), Global.RpcClient);
+	private Network Network => Guard.NotNull(nameof(Global.Config.Network), Global.Config?.Network);
 	public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
 	public static object TransactionHexCacheLock { get; } = new object();
 
@@ -120,7 +119,7 @@ public class BlockchainController : ControllerBase
 
 	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
 	{
-		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+		uint256[] transactionHashes = await RpcClient.GetRawMempoolAsync();
 		return transactionHashes.Select(x => x.ToString());
 	}
 
@@ -285,7 +284,10 @@ public class BlockchainController : ControllerBase
 		}
 
 		var knownHash = new uint256(bestKnownBlockHash);
-
+		if (Global.IndexBuilderService is null)
+		{
+			throw new ArgumentNullException($"Couldn't get filters, {nameof(Global.IndexBuilderService)} was null.");
+		}
 		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
@@ -330,6 +332,15 @@ public class BlockchainController : ControllerBase
 
 	private async Task<StatusResponse> FetchStatusAsync()
 	{
+		if (Global.IndexBuilderService is null)
+		{
+			throw new ArgumentNullException($"Couldn't get status, {nameof(Global.IndexBuilderService)} was null.");
+		}
+		if (Global.Coordinator is null)
+		{
+			throw new ArgumentNullException($"Couldn't get status, {nameof(Global.Coordinator)} was null.");
+		}
+
 		StatusResponse status = new();
 
 		// Updating the status of the filters.
