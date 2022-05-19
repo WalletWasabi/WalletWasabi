@@ -304,8 +304,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (InvalidOperationException ioe)
 		{
-			Logger.LogError(ioe);
-			await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+			Logger.LogWarning(ioe);
 		}
 		catch (OperationCanceledException)
 		{
