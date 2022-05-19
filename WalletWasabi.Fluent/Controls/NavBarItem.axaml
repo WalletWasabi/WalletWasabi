@@ -35,7 +35,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <!-- The margin here should be compensated with the same amount in the NavBar's topmost content-->
-        <Panel Margin="5"
+        <Panel Margin="5,5,5,0"
                Height="{TemplateBinding Height}"
                Width="{TemplateBinding Width}"
                ClipToBounds="False">
