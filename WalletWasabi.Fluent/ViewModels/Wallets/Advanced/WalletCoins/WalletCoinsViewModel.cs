@@ -61,6 +61,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		info.Amount = selectedSmartCoins.Sum(x => x.Amount);
 		info.SubtractFee = true;
 		info.UserLabels = label;
+		info.IsSelectedCoinModificationEnabled = false;
 
 		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, isFixedAmount: true));
 	}

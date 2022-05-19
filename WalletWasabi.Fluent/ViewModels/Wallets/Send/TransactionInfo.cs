@@ -48,6 +48,8 @@ public partial class TransactionInfo
 
 	public bool SubtractFee { get; set; }
 
+	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
+
 	public void Reset()
 	{
 		Amount = Money.Zero;
