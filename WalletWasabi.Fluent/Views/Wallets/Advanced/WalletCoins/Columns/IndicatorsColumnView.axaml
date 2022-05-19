@@ -39,5 +39,20 @@
                 ToolTip.Tip="Not Coinjoining" />
     </Panel>
 
+    <Panel>
+      <!-- Banned -->
+      <PathIcon IsVisible="{Binding IsBanned}"
+                Data="{StaticResource warning_regular}"
+                Foreground="{DynamicResource SystemAccentColor}"
+                Height="14"
+                ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
+      <!-- Clean -->
+      <PathIcon IsVisible="{Binding !IsBanned}"
+                Data="{StaticResource info_tip}"
+                Height="14"
+                Opacity="0.6"
+                ToolTip.Tip="UTXO is clean according to the backend" />
+    </Panel>
+
   </StackPanel>
 </UserControl>

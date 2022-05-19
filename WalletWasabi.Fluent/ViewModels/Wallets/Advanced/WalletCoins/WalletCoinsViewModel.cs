@@ -57,7 +57,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymitySet		AnonymityColumnView		<custom>	40			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			false
-		// Banned			IsBannedColumnView		Banned?		Auto		-				-			true
 
 		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
 		{
@@ -112,19 +111,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
 					},
 					width: new GridLength(1, GridUnitType.Star)),
-
-				// Banned
-				new TemplateColumn<WalletCoinViewModel>(
-					"Banned?",
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IsBannedColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-					CanUserResizeColumn = false,
-					CanUserSortColumn = true,
-					CompareAscending = WalletCoinViewModel.SortAscending(x => x.IsBanned),
-					CompareDescending = WalletCoinViewModel.SortDescending(x => x.IsBanned)
-					},
-					width: new GridLength(0, GridUnitType.Auto))
 			}
 		};
 
