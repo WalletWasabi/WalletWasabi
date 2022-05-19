@@ -141,7 +141,7 @@ public class CoinJoinManager : BackgroundService
 			var walletToStart = startCommand.Wallet;
 			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker))
 			{
-				walletToStart.LogDebug("Cannot start coinjoin, bacause it is already running.");
+				walletToStart.LogDebug("Cannot start coinjoin, because it is already running.");
 				return;
 			}
 
