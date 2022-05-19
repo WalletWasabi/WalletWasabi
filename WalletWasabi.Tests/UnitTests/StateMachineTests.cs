@@ -367,4 +367,48 @@ public class StateMachineTests
 		Assert.Equal(2, entryCallCount);
 		Assert.True(sut.IsInState(JukeBoxState.Paused));
 	}
+
+	[Fact]
+	public void Parent_Entry_Isnt_Called_Entering_Child_Child_States()
+	{
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
+			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+
+		int entryCallCount = 0;
+		int pausedEntryCount = 0;
+
+		sut.Configure(JukeBoxState.Paused)
+			.OnEntry(() =>
+			{
+				pausedEntryCount++;
+			})
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
+
+		sut.Configure(JukeBoxState.PausedChild)
+			.SubstateOf(JukeBoxState.Paused)
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild2)
+			.OnEntry(() => entryCallCount++);
+
+		sut.Configure(JukeBoxState.PausedChild2)
+			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild)
+			.SubstateOf(JukeBoxState.PausedChild)
+			.OnEntry(() => entryCallCount++);
+
+		sut.Start();
+
+		Assert.Equal(1, pausedEntryCount);
+
+		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(1, entryCallCount);
+
+		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(2, entryCallCount);
+
+		sut.Fire(JukeBoxTrigger.Pause);
+
+		Assert.Equal(1, pausedEntryCount);
+		Assert.Equal(3, entryCallCount);
+	}
 }
