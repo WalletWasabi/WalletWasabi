@@ -38,6 +38,10 @@ public class BatchController : ControllerBase
 	[HttpGet("synchronize")]
 	public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
 	{
+		if (Global.IndexBuilderService is null)
+		{
+			throw new ArgumentNullException($"Can't synchronize, {nameof(Global.IndexBuilderService)} was null.");
+		}
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
 		if (estimateSmartFee)
