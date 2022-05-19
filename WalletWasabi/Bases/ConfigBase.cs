@@ -20,10 +20,17 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		SetFilePath(filePath);
 	}
 
-	/// <inheritdoc />
+	/// <remarks>
+	/// Guards both storing to <see cref="FilePath"/> and retrieving contents of <see cref="FilePath"/>.
+	/// <para>Otherwise, we risk concurrent read and write operations on <see cref="FilePath"/>.</para>
+	/// </remarks>
+	protected object FileLock { get; } = new();
+
+	/// <inheritdoc/>
+	/// <remarks>Use <see cref="ReadFile"/> and <see cref="WriteFile(string)"/> for I/O operations (<see cref="File.Exists(string?)"/> does not require locking).</remarks>
 	public string FilePath { get; private set; } = "";
 
-	/// <inheritdoc />
+	/// <inheritdoc/>
 	public void AssertFilePathSet()
 	{
 		if (string.IsNullOrWhiteSpace(FilePath))
@@ -32,7 +39,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		}
 	}
 
-	/// <inheritdoc />
+	/// <inheritdoc/>
 	public bool CheckFileChange()
 	{
 		AssertFilePathSet();
@@ -42,9 +49,8 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
 		}
 
-		string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
-
-		var newConfigObject = Activator.CreateInstance(GetType())!;
+		string jsonString = ReadFile();
+		object newConfigObject = Activator.CreateInstance(GetType())!;
 		JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
 		return !AreDeepEqual(newConfigObject);
@@ -79,7 +85,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public virtual void LoadFile()
 	{
-		var jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
+		string jsonString = ReadFile();
 
 		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
 
@@ -110,7 +116,23 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		AssertFilePathSet();
 
 		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSerializationOptions.Default.Settings);
-		File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
+		WriteFile(jsonString);
+	}
+
+	protected void WriteFile(string contents)
+	{
+		lock (FileLock)
+		{
+			File.WriteAllText(FilePath, contents, Encoding.UTF8);
+		}
+	}
+
+	protected string ReadFile()
+	{
+		lock (FileLock)
+		{
+			return File.ReadAllText(FilePath, Encoding.UTF8);
+		}
 	}
 
 	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
