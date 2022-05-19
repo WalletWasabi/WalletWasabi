@@ -40,7 +40,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public SmartLabel Label { get; protected set; } = SmartLabel.Empty;
+	public SmartLabel Label { get; init; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
 

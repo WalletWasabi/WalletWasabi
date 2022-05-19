@@ -13,6 +13,7 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -274,8 +275,20 @@ public partial class HistoryViewModel : ActivatableViewModel
 			    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
 			     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 			{
-				cjg.SetBalance(balance);
-				yield return cjg;
+				if (cjg.CoinJoinTransactions.Count == 1)
+				{
+					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletViewModel, balance, _updateTrigger)
+					{
+						Label = new SmartLabel("Coinjoin")
+					};
+					yield return singleCjItem;
+				}
+				else
+				{
+					cjg.SetBalance(balance);
+					yield return cjg;
+				}
+
 				coinJoinGroup = null;
 			}
 		}
