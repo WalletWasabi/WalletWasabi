@@ -14,7 +14,7 @@ using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Logging;
@@ -33,7 +33,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
-	[AutoNotify] private StatusBarViewModel _statusBar;
+	[AutoNotify] private StatusIconViewModel _statusIcon;
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
@@ -68,7 +68,7 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusBar = new StatusBarViewModel();
+		_statusIcon = new StatusIconViewModel();
 
 		UiServices.Initialize();
 
@@ -214,7 +214,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void Initialize()
 	{
-		StatusBar.Initialize();
+		StatusIcon.Initialize();
 
 		if (Services.Config.Network != Network.Main)
 		{

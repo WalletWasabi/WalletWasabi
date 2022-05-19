@@ -145,7 +145,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins.");
+			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		for (var tries = 0; tries < tryLimit; tries++)
@@ -159,7 +159,7 @@ public class CoinJoinClient
 			// Only use successfully registered coins in the blame round.
 			coins = result.RegisteredCoins;
 
-			currentRoundState.LogInfo($"Waiting for the blame round.");
+			currentRoundState.LogInfo("Waiting for the blame round.");
 			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
@@ -204,16 +204,24 @@ public class CoinJoinClient
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
-			var wasTxBroadcast = roundState.WasTransactionBroadcast
-				? $"'{roundState.WasTransactionBroadcast}', Coinjoin TxId: ({unsignedCoinJoin.GetHash()})"
-				: $"'{roundState.WasTransactionBroadcast}'";
-			roundState.LogDebug($"Ended - WasTransactionBroadcast: {wasTxBroadcast}.");
+			var msg = roundState.EndRoundState switch
+			{
+				EndRoundState.TransactionBroadcasted => $"Broadcasted. Coinjoin TxId: ({unsignedCoinJoin.GetHash()})",
+				EndRoundState.TransactionBroadcastFailed => $"Failed to broadcast. Coinjoin TxId: ({unsignedCoinJoin.GetHash()})",
+				EndRoundState.AbortedWithError => "Round abnormally finished.",
+				EndRoundState.AbortedNotEnoughAlices => "Aborted. Not enough participants.",
+				EndRoundState.AbortedNotEnoughAlicesSigned => "Aborted. Not enough participants signed the coinjoin transaction.",
+				EndRoundState.NotAllAlicesSign => "Aborted. Some Alices didn't sign. Go to blame round.",
+				EndRoundState.None => "Unknown.",
+				_ => throw new ArgumentOutOfRangeException()
+			};
+			roundState.LogDebug(msg);
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			return new CoinJoinResult(
-				GoForBlameRound: !roundState.WasTransactionBroadcast,
-				SuccessfulBroadcast: roundState.WasTransactionBroadcast,
+				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
+				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
 				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
@@ -406,7 +414,7 @@ public class CoinJoinClient
 
 		string[] summary = new string[]
 		{
-			$"",
+			"",
 			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
 			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
 			$"\tTotal diff : {totalDifference.ToString(true, false)}",
@@ -444,18 +452,13 @@ public class CoinJoinClient
 		// Select a group of coins those are close to each other by Anonimity Score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
-		if (largestAmounts.Length == 1 || inputCount == 1)
-		{
-			foreach (var coin in largestAmounts)
-			{
-				TryAddGroup(parameters, groups, new[] { coin });
-			}
-		}
-
 		// Create a bunch of combinations.
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
+			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			TryAddGroup(parameters, groups, baseGroup);
+
 			var sw2 = Stopwatch.StartNew();
 			foreach (var group in filteredCoins
 				.Except(new[] { coin })

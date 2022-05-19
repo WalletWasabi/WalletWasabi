@@ -29,7 +29,7 @@ public class KeyManager
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
-	public static Money DefaultPlebStopThreshold = Money.Coins(0.0001m);
+	public static Money DefaultPlebStopThreshold = Money.Coins(0.001m);
 
 	// BIP84-ish derivation scheme
 	// m / purpose' / coin_type' / account' / change / address_index
@@ -39,7 +39,7 @@ public class KeyManager
 	private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
 
 	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
+	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool isNewlyCreated, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 	{
 		HdPubKeys = new List<HdPubKey>();
 		HdPubKeyScriptBytes = new List<byte[]>();
@@ -54,7 +54,7 @@ public class KeyManager
 		MasterFingerprint = masterFingerprint;
 		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
-		PasswordVerified = passwordVerified;
+		IsNewlyCreated = isNewlyCreated;
 		SetMinGapLimit(minGapLimit);
 
 		BlockchainState = blockchainState;
@@ -132,7 +132,7 @@ public class KeyManager
 	public ExtPubKey ExtPubKey { get; }
 
 	[JsonProperty(Order = 5)]
-	public bool? PasswordVerified { get; private set; }
+	public bool IsNewlyCreated { get; private set; } = false;
 
 	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
@@ -206,17 +206,17 @@ public class KeyManager
 		BlockchainState blockchainState = new(network);
 		KeyPath keyPath = GetAccountKeyPath(network);
 		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, isNewlyCreated: true, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
 	}
 
 	public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string? filePath = null)
 	{
-		return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, extPubKey, isNewlyCreated: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
 	{
-		return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
+		return new KeyManager(null, null, masterFingerprint, extPubKey, isNewlyCreated: false, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 	}
 
 	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
@@ -231,7 +231,7 @@ public class KeyManager
 
 		KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(network), filePath, keyPath);
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, isNewlyCreated: false, minGapLimit, new BlockchainState(network), filePath, keyPath);
 	}
 
 	public static KeyManager FromFile(string filePath)
@@ -262,9 +262,6 @@ public class KeyManager
 				km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
 			}
 		}
-
-		// Backwards compatibility:
-		km.PasswordVerified ??= true;
 
 		return km;
 	}
@@ -410,9 +407,9 @@ public class KeyManager
 		}
 	}
 
-	public void SetPasswordVerified()
+	public void SetNonNewlyCreated()
 	{
-		PasswordVerified = true;
+		IsNewlyCreated = false;
 		ToFile();
 	}
 

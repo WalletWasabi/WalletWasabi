@@ -12,11 +12,11 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Fluent.ViewModels.StatusBar;
+namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
-public partial class StatusBarViewModel : IDisposable
+public partial class StatusIconViewModel : IDisposable
 {
-	[AutoNotify] private StatusBarState _currentState;
+	[AutoNotify] private StatusIconState _currentState;
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private BackendStatus _backendStatus;
 	[AutoNotify] private RpcStatus? _bitcoinCoreStatus;
@@ -26,7 +26,7 @@ public partial class StatusBarViewModel : IDisposable
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private string? _versionText;
 
-	public StatusBarViewModel()
+	public StatusIconViewModel()
 	{
 		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
@@ -52,7 +52,7 @@ public partial class StatusBarViewModel : IDisposable
 					IsConnectionIssueDetected = false;
 				}
 
-				SetStatusBarState();
+				SetStatusIconState();
 			});
 	}
 
@@ -68,23 +68,23 @@ public partial class StatusBarViewModel : IDisposable
 
 	public string BitcoinCoreName => Constants.BuiltinBitcoinNodeName;
 
-	private void SetStatusBarState()
+	private void SetStatusIconState()
 	{
 		if (IsConnectionIssueDetected)
 		{
-			CurrentState = StatusBarState.ConnectionIssueDetected;
+			CurrentState = StatusIconState.ConnectionIssueDetected;
 			return;
 		}
 
 		if (CriticalUpdateAvailable)
 		{
-			CurrentState = StatusBarState.CriticalUpdateAvailable;
+			CurrentState = StatusIconState.CriticalUpdateAvailable;
 			return;
 		}
 
 		if (UpdateAvailable)
 		{
-			CurrentState = StatusBarState.UpdateAvailable;
+			CurrentState = StatusIconState.UpdateAvailable;
 			return;
 		}
 
@@ -94,11 +94,11 @@ public partial class StatusBarViewModel : IDisposable
 
 		if (torConnected && BackendStatus == BackendStatus.Connected && p2pConnected)
 		{
-			CurrentState = StatusBarState.Ready;
+			CurrentState = StatusIconState.Ready;
 			return;
 		}
 
-		CurrentState = StatusBarState.Loading;
+		CurrentState = StatusIconState.Loading;
 	}
 
 	public void Initialize()
