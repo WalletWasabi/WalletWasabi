@@ -17,7 +17,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public bool IsInState(TState state)
 	{
-		return _currentState.StateId.Equals(state) || (_currentState.Parent?.StateId.Equals(state) ?? false);
+		return IsAncestorOf(_currentState.StateId, state);
 	}
 
 	public StateMachine(TState initialState)
@@ -44,7 +44,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		return this;
 	}
 
-	public bool IsAncestorOf(TState state, TState parent)
+	private bool IsAncestorOf(TState state, TState parent)
 	{
 		if (_states.ContainsKey(state))
 		{
