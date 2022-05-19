@@ -173,7 +173,7 @@ public class CoinJoinClient
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
-		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.Now) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
 		try
 		{
@@ -195,6 +195,8 @@ public class CoinJoinClient
 				roundState.LogInfo("There are no available Alices to participate with.");
 				return new CoinJoinResult(false);
 			}
+
+			roundState.LogDebug($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
@@ -286,7 +288,7 @@ public class CoinJoinClient
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
-		roundState.LogDebug($"Input registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
+		roundState.LogDebug($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd);
 
@@ -430,6 +432,7 @@ public class CoinJoinClient
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToShuffled() // Preshuffle before ordering.
 			.OrderByDescending(y => y.Amount)
 			.ToArray();
