@@ -298,7 +298,7 @@ public class CoinJoinManager : BackgroundService
 			}
 			else
 			{
-				wallet.LogInfo($"Coinjoin client finished. Transaction not broadcasted.");
+				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Transaction not broadcasted.");
 			}
 		}
 		catch (InvalidOperationException ioe)
