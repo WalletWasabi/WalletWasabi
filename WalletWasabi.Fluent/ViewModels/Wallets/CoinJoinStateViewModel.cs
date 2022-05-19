@@ -311,7 +311,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 
 				CurrentStatus = _initialisingMessage;
-			});
+			})
+			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None).ConfigureAwait(false))
+			.OnTrigger(Trigger.AutoStartTimeout, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None).ConfigureAwait(false));
 
 		_stateMachine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
@@ -371,9 +373,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				{
 					// If we are not below the threshold anymore, we turn off the override.
 					_overridePlebStop = false;
+					await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 				}
-
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
