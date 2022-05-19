@@ -196,6 +196,8 @@ public class CoinJoinClient
 				return new CoinJoinResult(false);
 			}
 
+			roundState.LogDebug($"Successfully registered {registeredAliceClientAndCircuits.Length} number of inputs.");
+
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
