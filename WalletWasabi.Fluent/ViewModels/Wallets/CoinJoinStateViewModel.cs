@@ -303,7 +303,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.AutoCoinJoin)
 			.InitialTransition(State.AutoStarting)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.OnEntry(async () =>
+			.OnEntry(() =>
 			{
 				IsAuto = true;
 				StopVisible = false;
