@@ -24,7 +24,7 @@
                 ToolTip.Tip="Pending" />
     </Panel>
 
-    <Panel>
+    <StackPanel>
       <!-- CJ active -->
       <PathIcon IsVisible="{Binding CoinJoinInProgress}"
                 Data="{StaticResource link_filled}"
@@ -32,27 +32,18 @@
                 Height="9"
                 ToolTip.Tip="Coinjoining" />
       <!-- Pending -->
-      <PathIcon IsVisible="{Binding !CoinJoinInProgress}"
+      <PathIcon IsVisible="{Binding CoinJoinIdle}"
                 Data="{StaticResource link_filled}"
                 Height="9"
                 Opacity="0.3"
                 ToolTip.Tip="Not Coinjoining" />
-    </Panel>
-
-    <Panel>
       <!-- Banned -->
       <PathIcon IsVisible="{Binding IsBanned}"
-                Data="{StaticResource warning_regular}"
-                Foreground="{DynamicResource SystemAccentColor}"
+                Data="{StaticResource warning_filled}"
+                Foreground="Yellow"
                 Height="14"
                 ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
-      <!-- Clean -->
-      <PathIcon IsVisible="{Binding !IsBanned}"
-                Data="{StaticResource info_tip}"
-                Height="14"
-                Opacity="0.6"
-                ToolTip.Tip="UTXO is clean according to the backend" />
-    </Panel>
+    </StackPanel>
 
   </StackPanel>
 </UserControl>
