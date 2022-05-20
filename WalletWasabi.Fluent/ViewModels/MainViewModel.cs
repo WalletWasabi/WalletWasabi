@@ -38,21 +38,10 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
-	[AutoNotify] private double _windowWidth;
-	[AutoNotify] private double _windowHeight;
-	[AutoNotify] private PixelPoint? _windowPosition;
 
 	public MainViewModel()
 	{
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
-		_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
-		_windowHeight = Services.UiConfig.WindowHeight ?? 960;
-
-		var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
-		if (x != null && y != null)
-		{
-			_windowPosition = new PixelPoint(x.Value, y.Value);
-		}
 
 		_dialogScreen = new DialogScreenViewModel();
 
@@ -84,23 +73,11 @@ public partial class MainViewModel : ViewModelBase
 
 		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
-			.Where(x => x.Item1 != WindowState.Minimized)
-			.Where(x => x.Item2 != new PixelPoint(-32000, -32000)) // value when minimized
+		this.WhenAnyValue(x => x.WindowState)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(t =>
+			.Subscribe(state =>
 			{
-				var (state, position, width, height) = t;
-
 				Services.UiConfig.WindowState = state.ToString();
-				if (position is { })
-				{
-					Services.UiConfig.WindowX = position.Value.X;
-					Services.UiConfig.WindowY = position.Value.Y;
-				}
-
-				Services.UiConfig.WindowWidth = width;
-				Services.UiConfig.WindowHeight = height;
 
 				switch (state)
 				{
