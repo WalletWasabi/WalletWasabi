@@ -461,9 +461,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ProgressValue = GetPercentage();
 	}
 
-	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStartTime;
+	private TimeSpan GetElapsedTime() => DateTimeOffset.UtcNow - _countDownStartTime;
 
-	private TimeSpan GetRemainingTime() => _countDownEndTime - DateTimeOffset.Now;
+	private TimeSpan GetRemainingTime() => _countDownEndTime - DateTimeOffset.UtcNow;
 
 	private TimeSpan GetTotalTime() => _countDownEndTime - _countDownStartTime;
 
