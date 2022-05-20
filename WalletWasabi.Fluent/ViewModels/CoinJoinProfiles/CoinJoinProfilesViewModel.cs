@@ -106,10 +106,10 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		_keyManager.AutoCoinJoin = selected.AutoCoinjoin;
-		_keyManager.SetAnonScoreTargets(selected.MinAnonScoreTarget, selected.MaxAnonScoreTarget, toFile: false);
-		_keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
-		_keyManager.IsCoinjoinProfileSelected = true;
+		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
+		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
+		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
+		keyManager.IsCoinjoinProfileSelected = true;
 
 		if (Money.TryParse(_plebStopThreshold, out Money result) && result != _keyManager.PlebStopThreshold)
 		{

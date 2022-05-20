@@ -1,4 +1,6 @@
-﻿namespace WalletWasabi.Fluent.Controls.Spectrum;
+﻿using System.Linq;
+
+namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class AuraSpectrumDataSource : SpectrumDataSource
 {
@@ -15,7 +17,12 @@ public class AuraSpectrumDataSource : SpectrumDataSource
 	{
 		for (int i = 0; i < NumBins; i++)
 		{
-			Bins[i] = IsActive ? _random.NextSingle() : 0;
+			Bins[i] = IsActive ? _random.NextSingle() : Bins[i] - 0.1F;
+		}
+
+		if (!IsActive && Bins.All(f => f <= 0))
+		{
+			Stop();
 		}
 	}
 }

@@ -1,12 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Send;
+namespace WalletWasabi.Fluent.Views.StatusIcon;
 
-public class ConfirmLabelsDialogView : UserControl
+public class StatusIcon : UserControl
 {
-	public ConfirmLabelsDialogView()
+	public StatusIcon()
 	{
 		InitializeComponent();
 	}

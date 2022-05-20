@@ -12,8 +12,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private int _minAnonScoreTarget;
-	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private int _anonScoreTarget;
 
 	private Wallet _wallet;
 

@@ -139,6 +139,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public async Task LoadWalletAsync(Wallet wallet)
 	{
+		wallet.KeyManager.SetNonNewlyCreated();
+
 		if (wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");

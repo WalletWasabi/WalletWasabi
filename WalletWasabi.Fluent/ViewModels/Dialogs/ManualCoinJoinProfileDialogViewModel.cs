@@ -14,8 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
 {
 	[AutoNotify] private bool _autoCoinjoin;
-	[AutoNotify] private int _minAnonScoreTarget;
-	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 	[AutoNotify] private bool _showAutomaticCoinjoin;
@@ -32,8 +31,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			? 4 - _plebStopThreshold.Split('.')[1].TakeWhile(x => x == '0').Count()
 			: 4;
 
-		_minAnonScoreTarget = current.MinAnonScoreTarget;
-		_maxAnonScoreTarget = current.MaxAnonScoreTarget;
+		_anonScoreTarget = current.AnonScoreTarget;
 
 		_timeFrames = new[]
 		{
@@ -49,59 +47,14 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		EnableBack = false;
 
-		this.WhenAnyValue(x => x.MinAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x >= MaxAnonScoreTarget)
-					{
-						MaxAnonScoreTarget = x + 1;
-					}
-				});
-
-		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x <= MinAnonScoreTarget)
-					{
-						MinAnonScoreTarget = x - 1;
-					}
-				});
-
-		this.WhenAnyValue(x => x.PlebStopThresholdFactor)
-			.Skip(1)
-			.Subscribe(x => PlebStopThreshold = (1 / (decimal)Math.Pow(10.0, 5 - x)).ToString("N5").TrimEnd('0'));
-
-		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
-
-		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.PlebStopThreshold)
-				.Select(x => !Validations.Any);
-
-		NextCommand = ReactiveCommand.Create(
-		() =>
+		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var auto = AutoCoinjoin;
-			var min = MinAnonScoreTarget;
-			var max = MaxAnonScoreTarget;
+			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
-		},
-		nextCommandCanExecute);
-	}
-
-	private void ValidatePlebStopThreshold(IValidationErrors errors)
-	{
-		if (PlebStopThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
-		{
-			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-		}
-		else if (!decimal.TryParse(PlebStopThreshold, out _))
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
-		}
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, target, hours));
+		});
 	}
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)

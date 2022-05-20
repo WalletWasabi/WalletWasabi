@@ -17,7 +17,6 @@ public class ApplicationStateManager : IMainWindowService
 	private enum Trigger
 	{
 		Invalid = 0,
-		Initialise,
 		Hide,
 		Show,
 		Loaded,
@@ -52,11 +51,10 @@ public class ApplicationStateManager : IMainWindowService
 		ApplicationViewModel = new ApplicationViewModel(this);
 
 		_stateMachine.Configure(State.BackgroundMode)
-			.OnEntry(() => _stateMachine.Fire(Trigger.Initialise))
+			.InitialTransition(State.Open)
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
 			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented())
-			.Permit(Trigger.BackgroundModeOff, State.StandardMode)
-			.Permit(Trigger.Initialise, State.Closed);
+			.Permit(Trigger.BackgroundModeOff, State.StandardMode);
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.BackgroundMode)
@@ -77,11 +75,10 @@ public class ApplicationStateManager : IMainWindowService
 			.Permit(Trigger.MainWindowClosed, State.Closed);
 
 		_stateMachine.Configure(State.StandardMode)
-			.OnEntry(() => _stateMachine.Fire(Trigger.Initialise))
+			.InitialTransition(State.Shown)
 			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented())
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
-			.Permit(Trigger.BackgroundModeOn, State.BackgroundMode)
-			.Permit(Trigger.Initialise, State.Shown);
+			.Permit(Trigger.BackgroundModeOn, State.BackgroundMode);
 
 		_stateMachine.Configure(State.Shown)
 			.SubstateOf(State.StandardMode)
