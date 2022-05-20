@@ -61,9 +61,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
 		// Date				DateColumnView				Date / Time		Auto		150				-			true
 		// Labels			LabelsColumnView			Labels			*			75				-			true
-		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		130				150			true
-		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		130				150			true
-		// Balance			BalanceColumnView			Balance (BTC)	Auto		130				150			true
+		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		145				210			true
+		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		145				210			true
+		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
@@ -135,8 +135,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.IncomingAmount),
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.IncomingAmount),
-						MinWidth = new GridLength(130, GridUnitType.Pixel),
-						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+						MinWidth = new GridLength(145, GridUnitType.Pixel),
+						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -151,8 +151,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.OutgoingAmount),
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.OutgoingAmount),
-						MinWidth = new GridLength(130, GridUnitType.Pixel),
-						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+						MinWidth = new GridLength(145, GridUnitType.Pixel),
+						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -167,8 +167,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Balance),
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Balance),
-						MinWidth = new GridLength(130, GridUnitType.Pixel),
-						MaxWidth = new GridLength(150, GridUnitType.Pixel)
+						MinWidth = new GridLength(145, GridUnitType.Pixel),
+						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
