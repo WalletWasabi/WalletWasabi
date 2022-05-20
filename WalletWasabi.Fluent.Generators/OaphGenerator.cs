@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace WalletWasabi.Fluent.Generators;
@@ -11,7 +9,7 @@ namespace WalletWasabi.Fluent.Generators;
 [Generator]
 public class OapthGenerator : ISourceGenerator
 {
-	private const string OaphAttributeDisplayString = "WalletWasabi.Fluent.OaphAttribute";
+	internal const string OaphAttributeDisplayString = "WalletWasabi.Fluent.OaphAttribute";
 
 	private const string ReactiveObjectDisplayString = "ReactiveUI.ReactiveObject";
 
@@ -42,12 +40,12 @@ namespace WalletWasabi.Fluent
 			i.AddSource("OaphAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 		});
 
-		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+		context.RegisterForSyntaxNotifications(() => new OaphSyntaxReceiver());
 	}
 
 	public void Execute(GeneratorExecutionContext context)
 	{
-		if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
+		if (context.SyntaxContextReceiver is not OaphSyntaxReceiver receiver)
 		{
 			return;
 		}
@@ -154,7 +152,7 @@ namespace {namespaceName}
 		var fieldType = fieldSymbol.Type;
 		var attributeData = fieldSymbol.GetAttributes().Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
 		var overridenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
-		var propertyName = ChooseName(fieldName, overridenNameOpt);
+		var propertyName = TypedStringHelpers.ChoosePropertyName(fieldName, overridenNameOpt);
 
 		if (propertyName is null || propertyName.Length == 0 || propertyName == fieldName)
 		{
@@ -176,54 +174,5 @@ namespace {namespaceName}
 
 		source.Append($@"
         public {fieldNamedType.TypeArguments[0]} {propertyName} => {fieldName}.Value;");
-
-		static string? ChooseName(string fieldName, TypedConstant overridenNameOpt)
-		{
-			if (!overridenNameOpt.IsNull)
-			{
-				return overridenNameOpt.Value?.ToString();
-			}
-
-			fieldName = fieldName.TrimStart('_');
-			if (fieldName.Length == 0)
-			{
-				return string.Empty;
-			}
-
-			if (fieldName.Length == 1)
-			{
-				return fieldName.ToUpper();
-			}
-
-#pragma warning disable IDE0057 // Use range operator
-			return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
-#pragma warning restore IDE0057 // Use range operator
-		}
-	}
-
-	private class SyntaxReceiver : ISyntaxContextReceiver
-	{
-		public List<IFieldSymbol> FieldSymbols { get; } = new();
-
-		public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
-		{
-			if (context.Node is FieldDeclarationSyntax fieldDeclarationSyntax
-				&& fieldDeclarationSyntax.AttributeLists.Count > 0)
-			{
-				foreach (VariableDeclaratorSyntax variable in fieldDeclarationSyntax.Declaration.Variables)
-				{
-					if (context.SemanticModel.GetDeclaredSymbol(variable) is not IFieldSymbol fieldSymbol)
-					{
-						continue;
-					}
-
-					var attributes = fieldSymbol.GetAttributes();
-					if (attributes.Any(ad => ad?.AttributeClass?.ToDisplayString() == OaphAttributeDisplayString))
-					{
-						FieldSymbols.Add(fieldSymbol);
-					}
-				}
-			}
-		}
 	}
 }
