@@ -139,9 +139,9 @@ public class CoinJoinManager : BackgroundService
 		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
-			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker) && !tracker.IsCompleted)
+			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker))
 			{
-				walletToStart.LogDebug("Cannot start coinjoin for wallet, bacause it is already running.");
+				walletToStart.LogDebug("Cannot start coinjoin, because it is already running.");
 				return;
 			}
 
@@ -192,9 +192,18 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically, startCommand.OverridePlebStop);
+
+			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
+			{
+				// This should never happen.
+				walletToStart.LogError($"{nameof(CoinJoinTracker)} was already added.");
+				coinJoinTracker.Stop();
+				coinJoinTracker.Dispose();
+				return;
+			}
+
 			coinJoinTracker.WalletCoinJoinProgressChanged += CoinJoinTracker_WalletCoinJoinProgressChanged;
 
-			trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
