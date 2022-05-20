@@ -14,11 +14,13 @@ public class TerminateService
 	private const long TerminateStatusInProgress = 1;
 	private const long TerminateStatusFinished = 2;
 	private readonly Func<Task> _terminateApplicationAsync;
+	private readonly Action _terminateApplication;
 	private long _terminateStatus;
 
-	public TerminateService(Func<Task> terminateApplicationAsync)
+	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
 	{
 		_terminateApplicationAsync = terminateApplicationAsync;
+		_terminateApplication = terminateApplication;
 		AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 		Console.CancelKeyPress += Console_CancelKeyPress;
 		AssemblyLoadContext.Default.Unloading += Default_Unloading;
@@ -100,6 +102,8 @@ public class TerminateService
 
 		// First caller starts the terminate procedure.
 		Logger.LogDebug("Start shutting down the application.");
+
+		_terminateApplication();
 
 		// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
 		// We still need to block the caller so Wait applied.

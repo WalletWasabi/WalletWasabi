@@ -16,6 +16,8 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
 	[AutoNotify] private bool _isSelected;
+	[AutoNotify] private bool _isBanned;
+	[AutoNotify] private string? _bannedUntilUtcToolTip;
 
 	public WalletCoinViewModel(SmartCoin coin)
 	{
@@ -26,6 +28,8 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.BannedUntilUtc).Subscribe(x => BannedUntilUtcToolTip = $"Banned until: {x}").DisposeWith(_disposables);
 	}
 
 	public SmartCoin Coin { get; }

@@ -161,7 +161,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
 						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
 					},
-					width: new GridLength(1, GridUnitType.Star))
+					width: new GridLength(1, GridUnitType.Star)),
 			}
 		};
 
