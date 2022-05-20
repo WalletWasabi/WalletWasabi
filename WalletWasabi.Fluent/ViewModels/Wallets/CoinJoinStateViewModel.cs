@@ -229,14 +229,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.Play, async () =>
 			{
-				// Start automatic mixing but in manual mode there will be a stop condition.
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, stopWhenMixed: true, _overridePlebStop, CancellationToken.None);
 			});
 
 		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
-			.Permit(Trigger.AllCoinsPrivate, State.Stopped)
+			.Permit(Trigger.AllCoinsPrivate, State.ManualFinished)
 			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
 			.OnEntry(async () =>
@@ -249,7 +248,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				{
 					// If we are not below the threshold anymore, we turn off the override.
 					_overridePlebStop = false;
-					await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+					await coinJoinManager.StartAsync(_wallet, stopWhenMixed: true, _overridePlebStop, CancellationToken.None);
 				}
 			})
 			.Custom(HandleMessages)
@@ -301,7 +300,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.Play, async () =>
 			{
 				_overridePlebStop = true;
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, stopWhenMixed: true, _overridePlebStop, CancellationToken.None);
 			});
 
 		// AutoCj State
@@ -380,7 +379,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, stopWhenMixed: false, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
