@@ -19,17 +19,12 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 	[AutoNotify] private bool _showAutomaticCoinjoin;
 	[AutoNotify] private string _plebStopThreshold;
-	[AutoNotify] private int _plebStopThresholdFactor;
 
-	public ManualCoinJoinProfileDialogViewModel(KeyManager keyManager, CoinJoinProfileViewModelBase current, string plebStopThreshold)
+	public ManualCoinJoinProfileDialogViewModel(KeyManager keyManager, CoinJoinProfileViewModelBase current, string plebStopThreshold, bool showAutoCoinjoinToggle)
 	{
-		_showAutomaticCoinjoin = !keyManager.IsWatchOnly;
+		_showAutomaticCoinjoin = showAutoCoinjoinToggle && !keyManager.IsWatchOnly;
 		_autoCoinjoin = keyManager.AutoCoinJoin;
 		_plebStopThreshold = plebStopThreshold;
-		_plebStopThresholdFactor =
-			_plebStopThreshold.Contains('.')
-			? 4 - _plebStopThreshold.Split('.')[1].TakeWhile(x => x == '0').Count()
-			: 4;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
@@ -47,6 +42,12 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		EnableBack = false;
 
+		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
+
+		var nextCommandCanExecute =
+			this.WhenAnyValue(x => x.PlebStopThreshold)
+				.Select(x => !Validations.Any);
+
 		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var auto = AutoCoinjoin;
@@ -54,7 +55,19 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
 			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, target, hours));
-		});
+		}, nextCommandCanExecute);
+	}
+
+	private void ValidatePlebStopThreshold(IValidationErrors errors)
+	{
+		if (PlebStopThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+		{
+			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
+		}
+		else if (!decimal.TryParse(PlebStopThreshold, out _))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
+		}
 	}
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)

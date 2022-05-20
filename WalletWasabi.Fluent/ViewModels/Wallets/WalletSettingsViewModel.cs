@@ -11,14 +11,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
+	[AutoNotify] private bool _showAutomaticCoinjoin;
 	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private int _anonScoreTarget;
 
 	private Wallet _wallet;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
 		_wallet = walletViewModelBase.Wallet;
+		_showAutomaticCoinjoin = !_wallet.KeyManager.IsWatchOnly;
 		Title = $"{_wallet.WalletName} - Wallet Settings";
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
@@ -31,18 +32,22 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
 
-		_minAnonScoreTarget = _wallet.KeyManager.MinAnonScoreTarget;
-		_maxAnonScoreTarget = _wallet.KeyManager.MaxAnonScoreTarget;
-
 		CoinJoinProfiles = new CoinJoinProfilesViewModel(_wallet.KeyManager, isNewWallet: false);
 
-		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
+		this.WhenAnyValue(x => x.PreferPsbtWorkflow, x => x.AutoCoinJoin)
 			.Skip(1)
-			.Subscribe(value =>
+			.Subscribe(x =>
 			{
-				_wallet.KeyManager.PreferPsbtWorkflow = value;
+				var (preferPsbt, autoCoinjoin) = x;
+				_wallet.KeyManager.PreferPsbtWorkflow = preferPsbt;
+				_wallet.KeyManager.AutoCoinJoin = autoCoinjoin;
 				_wallet.KeyManager.ToFile();
 				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
+
+				if (autoCoinjoin && !_wallet.KeyManager.IsCoinjoinProfileSelected)
+				{
+					CoinJoinProfiles.SelectDefaultProfile();
+				}
 			});
 	}
 
@@ -55,9 +60,4 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public override sealed string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-	}
 }

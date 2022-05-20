@@ -20,11 +20,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private readonly bool _isNewWallet;
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private int _anonScoreTarget;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		_keyManager = keyManager;
 		_isNewWallet = isNewWallet;
+		_anonScoreTarget = keyManager.AnonScoreTarget;
 		_plebStopThreshold = (keyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString()).TrimEnd('0');
 		if (_plebStopThreshold.EndsWith('.'))
 		{
@@ -42,8 +44,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		};
 
 		_selectedProfile =
-			Profiles.Where(x => x.MinAnonScoreTarget == keyManager.MinAnonScoreTarget)
-					.Where(x => x.MaxAnonScoreTarget == keyManager.MaxAnonScoreTarget)
+			Profiles.Where(x => x.AnonScoreTarget == keyManager.AnonScoreTarget)
 					.Where(x => x.FeeRateMedianTimeFrameHours == keyManager.FeeRateMedianTimeFrameHours)
 					.FirstOrDefault();
 
@@ -55,7 +56,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (_selectedProfile == null)
 		{
-			SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AutoCoinJoin, keyManager.MinAnonScoreTarget, keyManager.MaxAnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
+			SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AutoCoinJoin, keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
 		}
 
 		this.WhenAnyValue(x => x.SelectedProfile, x => x.SelectedManualProfile)
@@ -63,6 +64,12 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 			.Subscribe(_ => ApplyChanges());
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
+	}
+
+	public void SelectDefaultProfile()
+	{
+		var defaultProfile = Profiles[1];
+		SelectedProfile = defaultProfile;
 	}
 
 	public ICommand ManualSetupCommand { get; }
@@ -74,7 +81,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private async Task OnManualSetupAsync()
 	{
 		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
-		var dialog = new ManualCoinJoinProfileDialogViewModel(_keyManager, current, _plebStopThreshold);
+		var dialog = new ManualCoinJoinProfileDialogViewModel(_keyManager, current, _plebStopThreshold, _isNewWallet);
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
@@ -82,7 +89,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		{
 			SelectedProfile = null;
 			SelectedManualProfile = profile;
-			_plebStopThreshold = dialog.PlebStopThreshold;
+			PlebStopThreshold = dialog.PlebStopThreshold;
 			ApplyChanges();
 		}
 	}
@@ -106,10 +113,12 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
-		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
-		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
-		keyManager.IsCoinjoinProfileSelected = true;
+		AnonScoreTarget = selected.AnonScoreTarget;
+
+		_keyManager.AutoCoinJoin = selected.AutoCoinjoin;
+		_keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
+		_keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
+		_keyManager.IsCoinjoinProfileSelected = true;
 
 		if (Money.TryParse(_plebStopThreshold, out Money result) && result != _keyManager.PlebStopThreshold)
 		{

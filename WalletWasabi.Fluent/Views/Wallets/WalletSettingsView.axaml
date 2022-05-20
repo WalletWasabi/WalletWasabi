@@ -15,13 +15,19 @@
                  EnableBack="{Binding EnableBack}">
     <StackPanel Spacing="20" Margin="0 30">
       <StackPanel Classes="settingsLayout">
+        <DockPanel IsVisible="{Binding ShowAutomaticCoinjoin}">
+          <TextBlock Text="Automatic Coinjoin" />
+          <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
+        </DockPanel>
 
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
           <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
         </DockPanel>
 
-        <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" />
+        <Panel IsVisible="{Binding AutoCoinJoin}">
+          <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" />
+        </Panel>
 
         <Separator />
       </StackPanel>
