@@ -17,7 +17,7 @@ public class AutoNotifyGeneratorTests
 	public void SimpleGeneratorTest()
 	{
 		// Input for our generator.
-		Compilation inputCompilation = CreateCompilation(@"
+		Compilation inputCompilation = CompilationHelpers.CreateCompilation(@"
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class TestViewModel2
@@ -93,18 +93,5 @@ namespace WalletWasabi.Fluent.ViewModels
 }".Trim();
 
 		Assert.Equal(expectedGeneratedSourceCode, generatorResult.GeneratedSources[2].SourceText.ToString());
-	}
-
-	private static Compilation CreateCompilation(string source)
-	{
-		SyntaxTree[] syntaxTrees = new[] { CSharpSyntaxTree.ParseText(source) };
-		CSharpCompilationOptions options = new(OutputKind.ConsoleApplication);
-		PortableExecutableReference[] references = new[]
-		{
-				MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(ReactiveUI.ReactiveObject).GetTypeInfo().Assembly.Location),
-			};
-
-		return CSharpCompilation.Create("compilation", syntaxTrees, references, options);
 	}
 }
