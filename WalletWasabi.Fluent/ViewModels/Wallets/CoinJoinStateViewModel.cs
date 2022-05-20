@@ -176,7 +176,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		WaitingForRoundMessage,
 		ConnectionConfirmationPhaseMessage,
 		EnterCriticalPhaseMessage,
-		ExitCriticalPhaseMessage
+		ExitCriticalPhaseMessage,
+		AllCoinsPrivate,
 	}
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
@@ -225,12 +226,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.Play, async () =>
+			{
+				// Start automatic mixing but in manual mode there will be a stop condition.
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+			});
 
 		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
-			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
+			.Permit(Trigger.AllCoinsPrivate, State.Stopped)
 			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
 			.OnEntry(async () =>
@@ -243,14 +249,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				{
 					// If we are not below the threshold anymore, we turn off the override.
 					_overridePlebStop = false;
+					await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 				}
-
-				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
 
@@ -294,9 +298,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = true;
 			})
-			.OnTrigger(Trigger.Play, () =>
+			.OnTrigger(Trigger.Play, async () =>
 			{
 				_overridePlebStop = true;
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			});
 
 		// AutoCj State
@@ -504,6 +509,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
 				_stateMachine.Fire(Trigger.PlebStop);
+				break;
+
+			case StartErrorEventArgs start when start.Error is CoinjoinError.AllCoinsPrivate:
+				_stateMachine.Fire(Trigger.AllCoinsPrivate);
 				break;
 
 			case StartErrorEventArgs:
