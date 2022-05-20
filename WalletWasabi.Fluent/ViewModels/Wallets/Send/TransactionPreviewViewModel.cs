@@ -88,10 +88,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
 				}
-				else if (x is PocketSuggestionViewModel)
-				{
-					await OnChangePocketsAsync();
-				}
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
@@ -145,6 +141,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, previous.Item1, _isFixedAmount, _cancellationTokenSource.Token);
 			}
 		});
+
+		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -158,6 +156,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 
 	public ICommand AdjustFeeCommand { get; }
+
+	public ICommand ChangePocketCommand { get; }
 
 	public ICommand UndoCommand { get; }
 
@@ -194,6 +194,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			_transaction = transaction;
+			CheckChangePocketAvailable(_transaction);
 			_currentTransactionInfo = _info.Clone();
 		}
 
@@ -329,7 +330,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, Money targetAmount, BuildTransactionReason reason)
+	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, Money minimumRequiredAmount, BuildTransactionReason reason)
 	{
 		var maximumPossibleFeeRate =
 			TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate)
@@ -367,9 +368,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		else
 		{
 			var doSilentPocketSelection = reason == BuildTransactionReason.Initialization;
+			_info.MinimumRequiredAmount = minimumRequiredAmount;
 
 			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: _transaction?.SpentCoins, isSilent: doSilentPocketSelection, targetAmount: targetAmount));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: _transaction?.SpentCoins, isSilent: doSilentPocketSelection));
 
 			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 			{
@@ -391,29 +393,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return false;
 	}
 
-	private async Task<bool> NavigateConfirmLabelsDialogAsync(BuildTransactionResult transaction)
-	{
-		var labels = SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(_wallet.KeyManager.AnonScoreTarget)));
-		var suggestionViewModel = new PocketSuggestionViewModel(labels);
-		var dialog = new ConfirmLabelsDialogViewModel(suggestionViewModel);
-
-		return (await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen)).Result;
-	}
-
 	private async Task InitialiseViewModelAsync()
 	{
 		if (await BuildTransactionAsync(BuildTransactionReason.Initialization) is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			var suggestionTask = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
-
-			if (CurrentTransactionSummary.TransactionHasPockets && await NavigateConfirmLabelsDialogAsync(initialTransaction))
-			{
-				await OnChangePocketsAsync();
-			}
-
-			await suggestionTask;
+			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 		else
 		{
@@ -523,5 +509,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_undoHistory.Push((_transaction, _currentTransactionInfo));
 			CanUndo = true;
 		}
+	}
+
+	private void CheckChangePocketAvailable(BuildTransactionResult transaction)
+	{
+		var usedCoins = transaction.SpentCoins;
+		var pockets = _wallet.GetPockets().ToArray();
+		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
+		var labelSelection = new LabelSelectionViewModel(amount);
+		labelSelection.Reset(pockets);
+
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
 	}
 }
