@@ -28,8 +28,8 @@
               <spectrum:SpectrumControl.IsDockEffectVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="CurrentWallet.IsActive" FallbackValue="False" />
-                  <Binding Path="CurrentWallet.IsWalletBalanceZero" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
-                  <Binding Path="CurrentWallet.Wallet.KeyManager.IsWatchOnly" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
+                  <Binding Path="!CurrentWallet.IsWalletBalanceZero" FallbackValue="False" />
+                  <Binding Path="!CurrentWallet.Wallet.KeyManager.IsWatchOnly" FallbackValue="False" />
                 </MultiBinding>
               </spectrum:SpectrumControl.IsDockEffectVisible>
               <spectrum:SpectrumControl.Styles>

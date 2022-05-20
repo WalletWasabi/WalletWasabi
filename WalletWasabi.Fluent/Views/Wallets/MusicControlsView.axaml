@@ -36,8 +36,8 @@
     <Classes.IsActive>
       <MultiBinding Converter="{x:Static BoolConverters.And}">
         <Binding Path="IsActive" FallbackValue="False" />
-        <Binding Path="IsWalletBalanceZero" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
-        <Binding Path="Wallet.KeyManager.IsWatchOnly" FallbackValue="False" Converter="{x:Static BoolConverters.Not}" />
+        <Binding Path="!IsWalletBalanceZero" FallbackValue="False" />
+        <Binding Path="!Wallet.KeyManager.IsWatchOnly" FallbackValue="False" />
       </MultiBinding>
     </Classes.IsActive>
     <Border ClipToBounds="True"
