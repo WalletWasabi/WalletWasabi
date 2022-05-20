@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -16,7 +15,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -287,23 +285,21 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination, tryToSign: false));
 		}
+		catch (NotEnoughFundsException ex)
+		{
+			// TODO: Any other scenario when this exception happens?
+			var totalFee = _info.Amount + (Money)ex.Missing;
+			var percentage = ((decimal)totalFee.Satoshi / _info.Amount.Satoshi) * 100;
+
+			var result = await TryAdjustTransactionFeeAsync(percentage);
+
+			return result ? await BuildTransactionAsync(reason) : null;
+		}
 		catch (TransactionFeeOverpaymentException ex)
 		{
-			var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(ex.PercentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
+			var result = await TryAdjustTransactionFeeAsync(ex.PercentageOfOverpayment);
 
-			if (!result)
-			{
-				await ShowErrorAsync("Transaction Building", "The transaction cannot be sent because its fee is more than the payment amount.",
-					"Wasabi was unable to create your transaction.");
-
-				return null;
-			}
-
-			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-			_info.FeeRate = maximumPossibleFeeRate;
-			_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
-
-			return await BuildTransactionAsync(reason);
+			return result ? await BuildTransactionAsync(reason) : null;
 		}
 		catch (InsufficientBalanceException ex)
 		{
@@ -328,6 +324,25 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = false;
 		}
+	}
+
+	private async Task<bool> TryAdjustTransactionFeeAsync(decimal percentageOfOverpayment)
+	{
+		var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(percentageOfOverpayment, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
+
+		if (!result)
+		{
+			await ShowErrorAsync("Transaction Building", "The transaction cannot be sent because its fee is more than the payment amount.",
+				"Wasabi was unable to create your transaction.");
+
+			return false;
+		}
+
+		_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+		_info.FeeRate = maximumPossibleFeeRate;
+		_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
+
+		return true;
 	}
 
 	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, Money minimumRequiredAmount, BuildTransactionReason reason)
@@ -513,6 +528,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private void CheckChangePocketAvailable(BuildTransactionResult transaction)
 	{
+		if (!_info.IsSelectedCoinModificationEnabled)
+		{
+			_info.IsOtherPocketSelectionPossible = false;
+			return;
+		}
+
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
