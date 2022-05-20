@@ -16,7 +16,7 @@ public class SmartCoinBanReleaser : PeriodicRunner
 
 	protected override Task ActionAsync(CancellationToken cancel)
 	{
-		foreach (var coins in WalletManager.GetWallets(refreshWalletList: false).Select(wallet => wallet.Coins).ToList())
+		foreach (var coins in WalletManager.GetWallets(refreshWalletList: false).Select(wallet => wallet.Coins))
 		{
 			coins?.CheckCoinsReleaseTime();
 		}
