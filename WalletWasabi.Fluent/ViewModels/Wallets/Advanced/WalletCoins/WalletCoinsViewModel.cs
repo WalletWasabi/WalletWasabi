@@ -55,8 +55,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
-		// AnonymityScore	AnonymityColumnView		<custom>	50			-				490			true
-		// Labels			LabelsColumnView		Labels		*			-				-			true
+		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
+		// Labels			LabelsColumnView		Labels		*			-				490			true
 
 		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
 		{
