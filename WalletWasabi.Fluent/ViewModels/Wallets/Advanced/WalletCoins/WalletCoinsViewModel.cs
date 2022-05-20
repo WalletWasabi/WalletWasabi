@@ -47,8 +47,12 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var selectedSmartCoins = _coins.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
-		// TODO: Ask for address
-		var address = BitcoinAddress.Create("tb1qmmsk4y4guxl0q2f5e7t485ssq4f7ju899tk6pj", wallet.Network);
+		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
+		var addressResult = await NavigateDialogAsync(addressDialog, NavigationTarget.CompactDialogScreen);
+		if (addressResult.Result is not { } address)
+		{
+			return;
+		}
 
 		var labelDialog = new LabelEntryDialogViewModel(wallet, info);
 		var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
