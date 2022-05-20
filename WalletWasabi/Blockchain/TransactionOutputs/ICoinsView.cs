@@ -37,5 +37,6 @@ public interface ICoinsView : IEnumerable<SmartCoin>
 
 	ICoinsView Unspent();
 
+	void CheckCoinsReleaseTime();
 	bool TryGetByOutPoint(OutPoint outpoint, [NotNullWhen(true)] out SmartCoin? coin);
 }

@@ -83,6 +83,14 @@ public class CoinsView : ICoinsView
 		}
 	}
 
+	public void CheckCoinsReleaseTime()
+	{
+		foreach(var coin in Coins.Where(coin => coin.IsBanned))
+		{
+			coin.SetIsBanned();
+		}
+	}
+
 	public Money TotalAmount() => Coins.Sum(x => x.Amount);
 
 	public SmartCoin[] ToArray() => Coins.ToArray();

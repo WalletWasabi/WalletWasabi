@@ -266,4 +266,12 @@ public class CoinsRegistry : ICoinsView
 	public ICoinsView Unspent() => AsCoinsView().Unspent();
 
 	IEnumerator IEnumerable.GetEnumerator() => AsCoinsView().GetEnumerator();
+
+	public void CheckCoinsReleaseTime()
+	{
+		foreach (var coin in Coins.Where(coin => coin.IsBanned))
+		{
+			coin.SetIsBanned();
+		}
+	}
 }
