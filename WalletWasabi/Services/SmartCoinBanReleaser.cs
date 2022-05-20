@@ -5,9 +5,9 @@ using WalletWasabi.Bases;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Services;
-public class SmartCoinReleaser : PeriodicRunner
+public class SmartCoinBanReleaser : PeriodicRunner
 {
-	public SmartCoinReleaser(TimeSpan period, WalletManager walletManager) : base(period)
+	public SmartCoinBanReleaser(TimeSpan period, WalletManager walletManager) : base(period)
 	{
 		WalletManager = walletManager;
 	}
