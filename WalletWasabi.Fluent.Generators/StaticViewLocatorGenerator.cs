@@ -33,12 +33,12 @@ namespace WalletWasabi.Fluent
 		// System.Diagnostics.Debugger.Launch();
 		context.RegisterForPostInitialization((i) => i.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8)));
 
-		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+		context.RegisterForSyntaxNotifications(() => new StaticViewLocatorSyntaxReceiver());
 	}
 
 	public void Execute(GeneratorExecutionContext context)
 	{
-		if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
+		if (context.SyntaxContextReceiver is not StaticViewLocatorSyntaxReceiver receiver)
 		{
 			return;
 		}
@@ -118,7 +118,7 @@ namespace {namespaceNameLocator}
 		return source.ToString();
 	}
 
-	private class SyntaxReceiver : ISyntaxContextReceiver
+	private class StaticViewLocatorSyntaxReceiver : ISyntaxContextReceiver
 	{
 		public List<INamedTypeSymbol> NamedTypeSymbolLocators { get; } = new();
 
