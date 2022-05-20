@@ -432,6 +432,7 @@ public class CoinJoinClient
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToShuffled() // Preshuffle before ordering.
 			.OrderByDescending(y => y.Amount)
 			.ToArray();
