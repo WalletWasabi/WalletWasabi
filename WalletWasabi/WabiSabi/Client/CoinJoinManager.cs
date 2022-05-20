@@ -341,10 +341,9 @@ public class CoinJoinManager : BackgroundService
 			finishedCoinJoin.Dispose();
 		}
 
-		if (!finishedCoinJoin.IsStopped &&
-			!cancellationToken.IsCancellationRequested)
+		// This will keep restarting until stop or cancellation is received.
+		if (!finishedCoinJoin.IsStopped && !cancellationToken.IsCancellationRequested)
 		{
-			// This will keep restarting until stop or cancellation is received.
 			wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 			await StartAsync(finishedCoinJoin.Wallet, finishedCoinJoin.StopWhenMixed, finishedCoinJoin.OverridePlebStop, cancellationToken).ConfigureAwait(false);
 		}
