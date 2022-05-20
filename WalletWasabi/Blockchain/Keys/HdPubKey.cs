@@ -11,15 +11,18 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Blockchain.Keys;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class HdPubKey : IEquatable<HdPubKey>
+public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
+
+	private int _anonymitySet = DefaultHighAnonymitySet;
+	private Cluster _cluster;
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 	{
 		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
-		Cluster = new Cluster(this);
+		_cluster = new Cluster(this);
 		SetLabel(label, null);
 		KeyState = keyState;
 
@@ -49,11 +52,19 @@ public class HdPubKey : IEquatable<HdPubKey>
 		}
 	}
 
-	public Cluster Cluster { get; set; }
+	public Cluster Cluster
+	{
+		get => _cluster;
+		set => RaiseAndSetIfChanged(ref _cluster, value);
+	}
 
 	public HashSet<uint256> OutputAnonSetReasons { get; } = new();
 
-	public int AnonymitySet { get; set; } = DefaultHighAnonymitySet;
+	public int AnonymitySet
+	{
+		get => _anonymitySet;
+		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
+	}
 
 	public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
 
