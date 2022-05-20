@@ -21,7 +21,8 @@ public enum CoinjoinError
 	AutoConjoinDisabled,
 	UserInSendWorkflow,
 	NotEnoughUnprivateBalance,
-	BackendNotSynchronized
+	BackendNotSynchronized,
+	AllCoinsPrivate,
 }
 
 public class StatusChangedEventArgs : EventArgs
