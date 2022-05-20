@@ -46,6 +46,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public void AddWalletInput(SmartCoin input)
 	{
+		// When a wallet input is added, foreign inputs and wallet virtual inputs has to be recalculated.
+		// Instead of doing it immediately, we mark them invalid and recalculate them only when they are needed.
 		_walletInputs.Add(input);
 		_foreignInputs = null;
 		_walletVirtualInputs = null;
@@ -55,6 +57,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public void AddWalletOutput(SmartCoin output)
 	{
+		// When a wallet output is added, foreign outputs, wallet virtual outputs and foreign virtual outputs has to be recalculated.
+		// Instead of doing it immediately, we mark them invalid and recalculate them only when they are needed.
 		_walletOutputs.Add(output);
 		_foreignOutputs = null;
 		_walletVirtualOutputs = null;
@@ -63,6 +67,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public void RemoveWalletOutput(SmartCoin output)
 	{
+		// When a wallet output is removed, foreign outputs, wallet virtual outputs and foreign virtual outputs has to be recalculated.
+		// Instead of doing it immediately, we mark them invalid and recalculate them only when they are needed.
 		_walletOutputs.Remove(output);
 		_foreignOutputs = null;
 		_walletVirtualOutputs = null;
