@@ -192,6 +192,11 @@ public class Program
 		}
 	}
 
+	private static AppBuilder BuildAvaloniaApp()
+	{
+		return BuildAvaloniaApp(false);
+	}
+
 	// Avalonia configuration, don't remove; also used by visual designer.
 	private static AppBuilder BuildAvaloniaApp(bool startInBg)
 	{
