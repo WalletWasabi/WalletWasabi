@@ -171,7 +171,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
 
-				// In AutoCoinJoin mode we are keep watching.
+				// In AutoCoinJoin mode we keep watching.
 				if (startCommand.RestartAutomatically)
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
