@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace WalletWasabi.Fluent.Generators;
 
 [Generator]
-public class OapthGenerator : ISourceGenerator
+public class OaphGenerator : ISourceGenerator
 {
 	internal const string OaphAttributeDisplayString = "WalletWasabi.Fluent.OaphAttribute";
 

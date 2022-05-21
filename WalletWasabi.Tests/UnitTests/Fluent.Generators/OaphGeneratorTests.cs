@@ -7,10 +7,10 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Fluent.Generators;
 
 /// <summary>
-/// Tests for <see cref="OapthGenerator"/>.
+/// Tests for <see cref="OaphGenerator"/>.
 /// </summary>
 /// <seealso href="https://github.com/dotnet/roslyn/blob/master/docs/features/source-generators.cookbook.md#unit-testing-of-generators"/>
-public class OapthGeneratorTests
+public class OaphGeneratorTests
 {
 	[Fact]
 	public void SimpleGeneratorTest()
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 }
 ");
 
-		OapthGenerator generator = new();
+		OaphGenerator generator = new();
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
 		// Run the generation pass
