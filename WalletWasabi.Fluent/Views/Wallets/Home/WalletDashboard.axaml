@@ -2,15 +2,50 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="wallets:WalletViewModel"
-             x:CompileBindings="True"
+             xmlns:objectModel="clr-namespace:System.Collections.ObjectModel;assembly=System.Runtime"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletDashboard">
 
-    <Panel DataContext="{Binding Dashboard}">
-      <StackPanel>
-          <TextBlock Text="{Binding BtcPrice}"></TextBlock>
-      </StackPanel>
-    </Panel>
+  <UserControl.DataContext>
+    <objectModel:Collection x:TypeArguments="x:Object">
+      <fluent:FakeTile Value="Hey!" Icon="info_regular" />
+      <fluent:FakeTile Value="I'm" Icon="info_regular"  />
+      <fluent:FakeTile Value="Here!" Icon="info_regular" />
+    </objectModel:Collection>
+  </UserControl.DataContext>
+
+  <Design.DataContext>
+    <objectModel:Collection x:TypeArguments="x:Object">
+      <fluent:FakeTile Value="Hey!" Icon="info_regular" />
+      <fluent:FakeTile Value="I'm" Icon="info_regular"  />
+      <fluent:FakeTile Value="Here!" Icon="info_regular" />
+    </objectModel:Collection>
+  </Design.DataContext>
+
+  <ItemsControl Items="{Binding}">
+    <ItemsControl.ItemsPanel>
+      <ItemsPanelTemplate>
+        <UniformGrid Rows="1" />
+      </ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+    <ItemsControl.ItemTemplate>
+      <DataTemplate>
+        <DockPanel>
+          <DockPanel.Styles>
+            <Style Selector=":is(Control)">
+              <Style.Setters>
+                <Setter Property="Margin" Value="2" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+              </Style.Setters>
+            </Style>
+          </DockPanel.Styles>
+          <PathIcon Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}" />
+          <TextBlock Text="{Binding Value}" />
+          <TextBlock Text="{Binding Value}" />
+        </DockPanel>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
 </UserControl>
