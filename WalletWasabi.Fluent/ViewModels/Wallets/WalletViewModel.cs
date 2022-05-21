@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -40,6 +41,8 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
+
+	[AutoNotify] private DashboardViewModel _dashboard;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
@@ -107,6 +110,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		_tiles = wallet.KeyManager.IsWatchOnly
 			? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
 			: TileHelper.GetNormalWalletTiles(this, balanceChanged);
+
+		Dashboard = new DashboardViewModel(this, balanceChanged);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
 			.Subscribe(x =>
@@ -246,6 +251,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 
 		History.Activate(disposables);
+
+		Dashboard.Activate(disposables);
 	}
 
 	public static WalletViewModel Create(Wallet wallet)

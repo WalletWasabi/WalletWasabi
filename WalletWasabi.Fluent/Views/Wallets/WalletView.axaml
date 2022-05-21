@@ -109,7 +109,7 @@
             <Setter Property="VerticalAlignment" Value="Stretch" />
           </Style>
         </Panel.Styles>
-        <home:WalletTiles />
+        <home:WalletDashboard />
       </Panel>
       <history:HistoryTable Name="HistoryTable"
                             DataContext="{Binding History}"
