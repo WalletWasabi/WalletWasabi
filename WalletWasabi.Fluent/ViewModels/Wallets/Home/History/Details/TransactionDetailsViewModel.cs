@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 [NavigationMetaData(Title = "Transaction Details")]
 public partial class TransactionDetailsViewModel : RoutableViewModel

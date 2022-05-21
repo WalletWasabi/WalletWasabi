@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -10,22 +8,22 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 [NavigationMetaData(Title = "Coinjoin Details")]
-public partial class CoinJoinsDetailsViewModel : RoutableViewModel
+public partial class CoinJoinDetailsViewModel : RoutableViewModel
 {
-	private readonly CoinJoinsHistoryItemViewModel _coinJoinGroup;
+	private readonly CoinJoinHistoryItemViewModel _coinJoin;
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
 	[AutoNotify] private Money? _coinJoinFee;
 	[AutoNotify] private string _coinJoinFeeString = "";
-	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
+	[AutoNotify] private uint256? _transactionId;
 
-	public CoinJoinsDetailsViewModel(CoinJoinsHistoryItemViewModel coinJoinGroup)
+	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin)
 	{
-		_coinJoinGroup = coinJoinGroup;
+		_coinJoin = coinJoin;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
@@ -48,7 +46,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		Observable
-			.FromEventPattern(_coinJoinGroup, nameof(PropertyChanged))
+			.FromEventPattern(_coinJoin, nameof(PropertyChanged))
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
@@ -56,11 +54,11 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		Date = _coinJoinGroup.DateString;
-		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFee = _coinJoinGroup.OutgoingAmount;
+		Date = _coinJoin.DateString;
+		Status = _coinJoin.IsConfirmed ? "Confirmed" : "Pending";
+		CoinJoinFee = _coinJoin.OutgoingAmount;
 		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
 
-		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.TransactionId));
+		TransactionId = _coinJoin.CoinJoinTransaction.TransactionId;
 	}
 }
