@@ -42,7 +42,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
-	[AutoNotify] private DashboardViewModel _dashboard;
+	[AutoNotify] private WalletDashboardViewModel _walletDashboard;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{
@@ -111,7 +111,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
 			: TileHelper.GetNormalWalletTiles(this, balanceChanged);
 
-		Dashboard = new DashboardViewModel(this, balanceChanged);
+		WalletDashboard = new WalletDashboardViewModel(this, balanceChanged);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
 			.Subscribe(x =>
@@ -247,7 +247,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		History.Activate(disposables);
 
-		Dashboard.Activate(disposables);
+		WalletDashboard.Activate(disposables);
 	}
 
 	public static WalletViewModel Create(Wallet wallet)

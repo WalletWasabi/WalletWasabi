@@ -2,50 +2,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:objectModel="clr-namespace:System.Collections.ObjectModel;assembly=System.Runtime"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:design="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.Design"
              mc:Ignorable="d" d:DesignWidth="800"
+             x:DataType="design:IWalletDashboardViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletDashboard">
 
-  <UserControl.DataContext>
-    <objectModel:Collection x:TypeArguments="x:Object">
-      <fluent:FakeTile Value="Hey!" Icon="info_regular" />
-      <fluent:FakeTile Value="I'm" Icon="info_regular"  />
-      <fluent:FakeTile Value="Here!" Icon="info_regular" />
-    </objectModel:Collection>
-  </UserControl.DataContext>
-
   <Design.DataContext>
-    <objectModel:Collection x:TypeArguments="x:Object">
-      <fluent:FakeTile Value="Hey!" Icon="info_regular" />
-      <fluent:FakeTile Value="I'm" Icon="info_regular"  />
-      <fluent:FakeTile Value="Here!" Icon="info_regular" />
-    </objectModel:Collection>
+    <design:WalletDashboardViewModelDesign>
+      <design:WalletDashboardViewModelDesign.Children>
+        <design:FakeTileViewModel Title="Balance" Value="0.01234 BTC" Icon="info_regular" />
+        <design:FakeTileViewModel Title="Privacy level" Value="40%" Icon="shield_regular" />
+        <design:FakeTileViewModel Title="Exchange rate" Value="100000 USD" Icon="normal_transaction" />
+      </design:WalletDashboardViewModelDesign.Children>
+    </design:WalletDashboardViewModelDesign>
   </Design.DataContext>
 
-  <ItemsControl Items="{Binding}">
+  <ItemsControl Items="{Binding Children}">
     <ItemsControl.ItemsPanel>
       <ItemsPanelTemplate>
         <UniformGrid Rows="1" />
       </ItemsPanelTemplate>
     </ItemsControl.ItemsPanel>
-    <ItemsControl.ItemTemplate>
-      <DataTemplate>
-        <DockPanel>
-          <DockPanel.Styles>
-            <Style Selector=":is(Control)">
-              <Style.Setters>
-                <Setter Property="Margin" Value="2" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-              </Style.Setters>
-            </Style>
-          </DockPanel.Styles>
-          <PathIcon Data="{Binding Icon, Converter={x:Static converters:NavBarIconConverter.Instance}}" />
-          <TextBlock Text="{Binding Value}" />
-          <TextBlock Text="{Binding Value}" />
-        </DockPanel>
-      </DataTemplate>
-    </ItemsControl.ItemTemplate>
   </ItemsControl>
 </UserControl>

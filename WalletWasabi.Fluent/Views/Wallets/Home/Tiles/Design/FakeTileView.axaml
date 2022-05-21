@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:design="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.Design"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" 
+             x:DataType="design:FakeTileViewModel"
+             x:CompileBindings="True"
+             d:DesignWidth="300"
+             d:DesignHeight="200"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.Design.FakeTileView">
+
+  <Design.DataContext>
+    <design:FakeTileViewModel Title="Balance" Value="0.01234 BTC" Icon="btc_logo" />
+  </Design.DataContext>
+
+  <UserControl.Styles>
+
+    <Style Selector="TextBlock">
+      <Style.Setters>
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style.Setters>
+    </Style>
+
+    <Style Selector="c|PreviewItem" x:CompileBindings="False">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <DockPanel Background="Transparent">
+            <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
+                      Data="{TemplateBinding Icon}"
+                      DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <TextBlock Classes="h8" Name="PART_Text" Text="{TemplateBinding Label}" />
+            <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
+              <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+                                     ToolTip.Tip="Copy"
+                                     DockPanel.Dock="Right" Width="30"
+                                     Text="{TemplateBinding TextValue}"
+                                     IsVisible="{TemplateBinding IsCopyButtonVisible}" />
+              <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                TextBlock.FontSize="{StaticResource FontSizeH8}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
+              <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}" />
+
+            </DockPanel>
+
+          </DockPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+  </UserControl.Styles>
+
+  <c:PreviewItem Label="{Binding Title}" Icon="{StaticResource btc_logo}" TextValue="{Binding Value}">
+    <c:PreviewItem.Content>
+      <c:PrivacyContentControl Content="{Binding Value}" />
+    </c:PreviewItem.Content>
+  </c:PreviewItem>
+
+</UserControl>
