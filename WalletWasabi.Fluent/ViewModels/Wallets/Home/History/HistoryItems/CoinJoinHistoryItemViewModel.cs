@@ -23,6 +23,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
 		IsCoinJoin = true;
+		CoinJoinTransaction = transactionSummary;
 
 		var amount = transactionSummary.Amount;
 		if (amount < Money.Zero)
@@ -36,10 +37,13 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+				new CoinJoinDetailsViewModel(this)));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}
 
 	public bool IsCoinJoinTransaction => true;
+
+	public TransactionSummary CoinJoinTransaction { get; private set; }
+
 }

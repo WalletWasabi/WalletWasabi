@@ -29,7 +29,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		CoinJoinTransactions = new List<TransactionSummary>();
 		IsCoinJoin = true;
 
-		ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new CoinJoinDetailsViewModel(this)));
+		ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new CoinJoinsDetailsViewModel(this)));
 
 		Add(firstItem);
 	}

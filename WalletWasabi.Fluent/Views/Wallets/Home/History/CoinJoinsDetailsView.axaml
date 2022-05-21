@@ -5,9 +5,9 @@
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="history:CoinJoinDetailsViewModel"
+             x:DataType="history:CoinJoinsDetailsViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.CoinJoinDetailsView"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.CoinJoinsDetailsView"
              Name="CoinJoinDetails">
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
@@ -26,11 +26,17 @@
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID">
-        <c:PreviewItem DataContext="{Binding TransactionId}" TextValue="{Binding }">
-            <c:PrivacyContentControl NumberOfPrivacyChars="48">
-              <TextBlock Text="{Binding }" Classes="monoSpaced" />
-            </c:PrivacyContentControl>
-          </c:PreviewItem>
+        <ItemsRepeater Items="{Binding TransactionIds}">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+              <c:PreviewItem TextValue="{Binding }">
+                <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
       </c:PreviewItem>
 
       <Separator />
