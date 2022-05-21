@@ -245,11 +245,6 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		disposables.Add(MainViewModel.Instance.MusicControls.SetWallet(this));
 
-		foreach (var tile in _tiles)
-		{
-			tile.Activate(disposables);
-		}
-
 		History.Activate(disposables);
 
 		Dashboard.Activate(disposables);
