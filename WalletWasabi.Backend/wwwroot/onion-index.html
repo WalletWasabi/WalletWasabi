@@ -52,18 +52,8 @@
                     <li class="nav-item">
                         <a class="nav-link" href="https://blog.wasabiwallet.io" target="_blank">Blog</a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#">Help</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="faq.html">FAQ</a>
-                            </li>
-                            <li><a class="dropdown-item" href="https://github.com/zkSNACKs/WalletWasabi/discussions" target="_blank">Support Forum</a>
-                            </li>
-                            <li><a class="dropdown-item" href="https://docs.wasabiwallet.io" target="_blank">Documentation</a>
-                            </li>
-                            <li><a class="dropdown-item" href="https://www.bitcoinsupport.com/" target="_blank">Bitcoin Support</a>
-                            </li>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="faq.html">Help</a>
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-primary" href="index.html#download">Download</a>
@@ -75,14 +65,14 @@
 
     <div class="content">
         <section class="video-homepage">
-            <video autoplay muted playsinline class="d-none d-md-block" poster="img/video_bg.png">
+            <video autoplay=autoplay muted=muted playsinline=playsinline class="d-none d-md-block" poster="img/video_bg.png">
                 <source src="img/homepage_anim.mp4" type="video/mp4" />
             </video>
             <img class="mobile_video_bg d-block d-md-none" src="img/video_bg.png" alt="Wasabi Wallet - video" />
 
             <div class="download-btn-area">
                 <div class="home-text-area">
-                    <h1>Effortless privacy <span class="green-text d-block">by default</span></h1>
+                    <h1>Privacy <span class="green-text d-block">by default</span></h1>
                     <p>
                         Open-source, non-custodial
                         <br /><strong>Bitcoin Wallet</strong> for desktop
@@ -98,7 +88,7 @@
                 <div class="row align-items-center position-relative">
                     <div class="col-lg-12">
                         <div class="text-center">
-                            <div class="epic-text title-lined mb-5"><strong>Privacy is</strong> the <strong>ability</strong> to <strong>selectively reveal</strong> yourself to the world</div>
+                            <div class="epic-text title-lined mb-5"><strong>Privacy is</strong> your <strong>ability</strong> to <strong>selectively reveal</strong> yourself to the world</div>
                         </div>
                         <div class="row">
                             <div class="col-lg-8 offset-lg-2">
@@ -106,8 +96,8 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-xl-10 offset-xl-1">
-                                <img src="img/screenshots/MainPage_montage.png" class="w-100" />
+                            <div class="col-xl-12">
+                                <img src="img/screenshots/webpage_ui_compilation-02.png" class="w-100" />
                             </div>
                         </div>
                     </div>
@@ -119,7 +109,7 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-xl-8 offset-xl-2 text-center">
-                        <h2 class="title-small title-lined my-5">Why Wasabi is the best Bitcoin privacy wallet</h2>
+                        <h2 class="title-small title-lined my-5">Why Wasabi Wallet?</h2>
                     </div>
                 </div>
                 <div class="row align-items-center">
@@ -141,26 +131,26 @@
                         </ul>
                     </div>
                     <div class="col-md-6 offset-md-1 position-relative">
-                        <img src="img/screenshots/PreviewYourTransaction.png" class="pull-img pull-img-to-right" />
+                        <img src="img/screenshots/webpage_ui_compilation-05.png" class="pull-img pull-img-to-right" />
                     </div>
                 </div>
                 <div class="row align-items-center p-100 m-100">
                     <div class="col-md-5 position-relative">
-                        <img src="img/screenshots/PreviewYourTransaction.png" class="pull-img pull-img-to-left" />
+                        <img src="img/screenshots/webpage_ui_compilation-04.png" class="pull-img pull-img-to-left" />
                     </div>
                     <div class="col-md-6 offset-md-1">
                         <ul class="feature-list">
                             <li>
                                 <h2 class="title">Easy To Use</h2>
-                                <p>Wasabi is designed to be a <a href="https://www.researchgate.net/publication/228348285_Anonymity_loves_company_Usability_and_the_network_effect" target="_blank">user friendly</a> Bitcoin wallet, that handles users privacy automatically under the hood, including network connections, <a href="https://en.bitcoin.it/wiki/Transaction#Input" target="_blank">input</a> selection and coinjoining.</p>
+                                <p>Wasabi is designed to be a <a href="https://www.researchgate.net/publication/228348285_Anonymity_loves_company_Usability_and_the_network_effect" target="_blank">user friendly</a> Bitcoin wallet, that handles its users' privacy automatically under the hood, including network connections, <a href="https://en.bitcoin.it/wiki/Transaction#Input" target="_blank">input</a> selection and coinjoining.</p>
                             </li>
                             <li>
                                 <h2 class="title">Comprehensive</h2>
-                                <p>The wallet uses <a href="https://github.com/zkSNACKs/WabiSabi/" target="_blank">WabiSabi</a>, an anonymous credential scheme that was designed to enable much more accessible and efficient coinjoins. It allows users to utilize the best privacy tool without the requirement of having a high amount of bitcoin in the wallet.</p>
+                                <p>The wallet uses <a href="https://github.com/zkSNACKs/WabiSabi/" target="_blank">WabiSabi</a>, an anonymous credential scheme that was designed to enable more accessible and efficient coinjoins. It allows users to utilize the best privacy tool without requiring a large amount of bitcoin in the wallet.</p>
                             </li>
                             <li>
                                 <h2 class="title">Affordable</h2>
-                                <p>Coinjoining coins with value above 0.01 BTC costs 0,3% as a <a href="https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Backend" target="_blank">coordinator</a> fee + <a href="https://mempool.space/" target="_blank">transaction fees</a>. Inputs of 0.01 BTC or below don't pay coordinator fees, neither remixes, even after one hop. Thus, a payment made with coinjoined funds allows the sender and the recipient to remix their coins without paying any coordinator fees.</p>
+                                <p>Coinjoining coins with a value above 0.01 BTC costs 0.3% as a <a href="https://github.com/zkSNACKs/WalletWasabi/tree/master/WalletWasabi.Backend" target="_blank">coordinator</a> fee + <a href="https://mempool.space/" target="_blank">mining fees</a>. Inputs of 0.01 BTC or below don't pay coordinator fees, nor remixes, even after one transaction. Thus, a payment made with coinjoined funds allows the sender and the recipient to remix their coins without paying any coordinator fees.</p>
                             </li>
                         </ul>
                     </div>

@@ -351,7 +351,7 @@ footer .white-text {
 }
 .feature-box {
     background: rgba(0, 0, 0, 0.2);
-    padding: 40px;
+    padding: 20px;
     color: #fff;
     position: relative;
     border: 2px solid rgba(73, 88, 107, 0.3);
@@ -360,7 +360,7 @@ footer .white-text {
     margin-bottom: 20px;
 }
 .feature-box .title {
-    font-size: 22px;
+    font-size: 20px;
 }
 .scale-svg {
     width: 100%;
