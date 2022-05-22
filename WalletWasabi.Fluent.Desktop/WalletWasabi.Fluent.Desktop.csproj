@@ -24,8 +24,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Authors>nopara73;lontivero;danwalmsley</Authors>
-		<Company>zkSNACKs</Company>
+		<Authors>zkSNACKs Ltd</Authors>
+		<Company>zkSNACKs Ltd</Company>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
 		<Description>
@@ -44,7 +44,7 @@
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
-		<AvaloniaVersion>0.10.999-cibuild0019263-beta</AvaloniaVersion>
+		<AvaloniaVersion>0.10.999-cibuild0020476-beta</AvaloniaVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

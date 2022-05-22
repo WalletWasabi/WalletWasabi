@@ -2,8 +2,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
@@ -13,30 +16,37 @@ public class SearchBarDesignViewModel : ReactiveObject
 
 	public SearchBarDesignViewModel()
 	{
+		static Task PreventExecution() => Task.Run(() => { });
+
 		var actionable = new IActionableItem[]
 		{
-			new ActionableItem("Test 1: Short", "Description short", null, "Settings")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 2: Loooooooooooong", "Description long", null, "Settings")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 3: Short again", "Description very very loooooooooooong and difficult to read",
-					null,
-					"Settings")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 3", "Another", null, "Settings") {Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 4: Help topics", "Description very very loooooooooooong and difficult to read",
-					null,
-					"Help")
-				{Icon = "settings_bitcoin_regular"},
-			new ActionableItem("Test 3", "Another", null, "Help") {Icon = "settings_bitcoin_regular"}
-		}.Select(item => (ISearchItem) new AutocloseActionableItem(item, () => { }));
+			new ActionableItem("Test 1: Short", "Description short", PreventExecution, "Settings")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 2: Loooooooooooong", "Description long", PreventExecution, "Settings")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 3: Short again", "Description very very loooooooooooong and difficult to read", PreventExecution, "Settings")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 3", "Another", PreventExecution, "Settings")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 4: Help topics", "Description very very loooooooooooong and difficult to read", PreventExecution, "Help")
+			{
+				Icon = "settings_bitcoin_regular"
+			},
+			new ActionableItem("Test 3", "Another", PreventExecution, "Help")
+			{
+				Icon = "settings_bitcoin_regular"
+			}
+		}.Select(item => (ISearchItem)new AutocloseActionableItem(item, () => { }));
 
-		var nonActionable = new ISearchItem[]
-		{
-			new NonActionableSearchItem(new DarkThemeSelector(), "Dark theme", "Appearance", new List<string>(), null)
-		};
-
-		_items = actionable.Concat(nonActionable).ToList();
+		_items = actionable.ToList();
 	}
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => new(new ObservableCollection<SearchItemGroup>(_items

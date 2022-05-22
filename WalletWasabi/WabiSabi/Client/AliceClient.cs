@@ -25,17 +25,18 @@ public class AliceClient
 		IEnumerable<Credential> issuedVsizeCredentials,
 		bool isPayingZeroCoordinationFee)
 	{
+		var roundParameters = roundState.CoinjoinState.Parameters;
 		AliceId = aliceId;
 		RoundId = roundState.Id;
 		ArenaClient = arenaClient;
 		SmartCoin = coin;
 		OwnershipProof = ownershipProof;
-		FeeRate = roundState.FeeRate;
-		CoordinationFeeRate = roundState.CoordinationFeeRate;
+		FeeRate = roundParameters.MiningFeeRate;
+		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
 		IssuedVsizeCredentials = issuedVsizeCredentials;
-		MaxVsizeAllocationPerAlice = roundState.MaxVsizeAllocationPerAlice;
-		ConfirmationTimeout = roundState.ConnectionConfirmationTimeout / 2;
+		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
+		ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
 		IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
 	}
 
@@ -107,10 +108,14 @@ public class AliceClient
 						Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 						break;
 
-					case WabiSabiProtocolErrorCode.InputBanned:
-						coin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
-						coin.SetIsBanned();
-						Logger.LogInfo($"{coin.Coin.Outpoint} is banned.");
+					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+						if (inputBannedExData is null)
+						{
+							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+						}
+						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+						Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
@@ -120,6 +125,10 @@ public class AliceClient
 
 					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
 						Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
+						break;
+
+					default:
+						Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
 						break;
 				}
 			}
@@ -158,13 +167,6 @@ public class AliceClient
 
 	private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 	{
-		var effectiveAmount = EffectiveValue;
-
-		if (effectiveAmount <= Money.Zero)
-		{
-			throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Adding this input is uneconomical.");
-		}
-
 		var response = await ArenaClient
 			.ConfirmConnectionAsync(
 				RoundId,

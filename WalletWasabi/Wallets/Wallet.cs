@@ -47,8 +47,6 @@ public class Wallet : BackgroundService
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	public event EventHandler<DequeueResult>? OnDequeue;
-
 	public static event EventHandler<bool>? InitializingChanged;
 
 	public event EventHandler<FilterModel>? NewFilterProcessed;
@@ -96,7 +94,9 @@ public class Wallet : BackgroundService
 	public bool AllowManualCoinJoin { get; set; }
 
 	public Kitchen Kitchen { get; } = new();
-	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.MinAnonScoreTarget));
+	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
+
+	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
@@ -141,7 +141,7 @@ public class Wallet : BackgroundService
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, KeyManager.MinAnonScoreTarget);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, KeyManager.AnonScoreTarget);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;

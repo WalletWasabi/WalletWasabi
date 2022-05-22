@@ -21,7 +21,7 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Run in background when closed" />
+      <TextBlock Text="Run in background when window closed" />
       <ToggleSwitch IsChecked="{Binding HideOnClose}" />
     </DockPanel>
 

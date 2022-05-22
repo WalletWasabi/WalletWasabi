@@ -1,0 +1,158 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="using:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
+             xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusIcon"
+             mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
+             x:DataType="statusIcon:StatusIconViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.StatusIcon.StatusIcon">
+  <UserControl.Styles>
+
+    <Style Selector="PathIcon">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+    </Style>
+
+    <Style Selector="PathIcon.rotate">
+      <Style.Animations>
+        <Animation Duration="0:0:2" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="(RotateTransform.Angle)" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="(RotateTransform.Angle)" Value="-360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlTransientBackgroundBrush}" />
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+  </UserControl.Styles>
+  <Panel>
+
+    <Interaction.Behaviors>
+      <behaviors:ShowFlyoutOnPointerOverBehavior />
+    </Interaction.Behaviors>
+
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="TopEdgeAlignedRight" ShowMode="TransientWithDismissOnPointerMoveAway">
+
+        <StackPanel TextBlock.FontSize="14"
+                    MaxWidth="160"
+                    ClipToBounds="False"
+                    Spacing="16">
+
+          <StackPanel.Styles>
+            <Style Selector="AccessText">
+              <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+
+            <Style Selector="PathIcon">
+              <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+            </Style>
+          </StackPanel.Styles>
+
+          <!-- Warning message TODO: use InfoMessage control-->
+          <DockPanel
+            IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.ConnectionIssueDetected}}">
+            <PathIcon Data="{StaticResource info_regular}"
+                      DockPanel.Dock="Top"
+                      HorizontalAlignment="Center"
+                      Height="30" />
+            <TextBlock DockPanel.Dock="Bottom"
+                       Text="Wasabi was unable to connect to the server, some features may be unavailable, the reported balance could also be inaccurate. Retrying to connect."
+                       TextWrapping="Wrap"
+                       TextAlignment="Center" />
+          </DockPanel>
+
+          <!-- Status -->
+          <StackPanel Spacing="16">
+            <c:StatusItem Icon="{StaticResource tor_icon}"
+                          Title="Tor"
+                          StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}" />
+            <c:StatusItem Icon="{StaticResource connector_regular}"
+                          Title="Backend"
+                          StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />
+            <c:StatusItem Icon="{StaticResource entities_regular}"
+                          Title="Peers"
+                          StatusText="{Binding Peers, Mode=OneWay, StringFormat={}{0} connected}" />
+            <c:StatusItem Icon="{StaticResource btc_logo}"
+                          Title="{Binding BitcoinCoreName}"
+                          StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
+                          IsVisible="{Binding UseBitcoinCore}" />
+          </StackPanel>
+
+          <!-- Update -->
+          <StackPanel Spacing="10">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="UpdateAvailable" />
+                <Binding Path="CriticalUpdateAvailable" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
+
+            <Separator Margin="-12 0 -12 6" />
+
+            <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
+                          Title="Update available"
+                          StatusText="{Binding VersionText}" />
+            <Button Classes="activeHyperLink" Command="{Binding UpdateCommand}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
+                <AccessText Text="Update now" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="activeHyperLink" Command="{Binding AskMeLaterCommand}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource clock_regular}" Height="13" />
+                <AccessText Text="Ask me later" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
+
+    <!--Update available-->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.UpdateAvailable}}"
+      Data="{StaticResource arrow_clockwise_with_elipse}"
+      Foreground="Goldenrod" />
+
+    <!--Critical update available-->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.CriticalUpdateAvailable}}"
+      Data="{StaticResource critical_update}"
+      Foreground="{DynamicResource SystemErrorTextColor}" />
+
+    <!-- Ready -->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Ready}}"
+      Data="{StaticResource checkmark_circle_filled}" />
+
+    <!-- Connection issue -->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.ConnectionIssueDetected}}"
+      Data="{StaticResource warning_filled}"
+      Foreground="Gold"
+      VerticalAlignment="Center" HorizontalAlignment="Right" />
+
+    <!-- Loading -->
+    <PathIcon
+      IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Loading}}"
+      Data="{StaticResource arrow_sync_regular}"
+      Classes.rotate="{Binding $self.IsVisible}" />
+
+  </Panel>
+</UserControl>

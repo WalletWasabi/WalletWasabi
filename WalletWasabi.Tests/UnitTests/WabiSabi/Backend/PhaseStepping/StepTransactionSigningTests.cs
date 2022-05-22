@@ -16,6 +16,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
@@ -70,7 +71,6 @@ public class StepTransactionSigningTests
 
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -86,7 +86,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.False(round.WasTransactionBroadcast);
+		Assert.Equal(EndRoundState.TransactionBroadcastFailed, round.EndRoundState);
 		Assert.Empty(prison.GetInmates());
 
 		await arena.StopAsync(CancellationToken.None);
@@ -126,7 +126,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.False(round.WasTransactionBroadcast);
+		Assert.Equal(EndRoundState.TransactionBroadcastFailed, round.EndRoundState);
 
 		// There should be no inmate, because we aren't punishing spenders with banning
 		// as there's no reason to ban already spent UTXOs,
@@ -154,7 +154,6 @@ public class StepTransactionSigningTests
 
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await aliceClient1.ReadyToSignAsync(CancellationToken.None);
@@ -168,7 +167,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.False(round.WasTransactionBroadcast);
+		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
 		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
 		Assert.Contains(aliceClient2.SmartCoin.OutPoint, prison.GetInmates().Select(x => x.Utxo));
 
@@ -194,7 +193,6 @@ public class StepTransactionSigningTests
 
 		Prison prison = new();
 		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		// Make sure not all alices signed.
@@ -234,7 +232,6 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		var round = Assert.Single(arena.Rounds);
-		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		// Register Alices.

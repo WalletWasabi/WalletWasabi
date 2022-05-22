@@ -142,6 +142,11 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
 	}
 
+	public bool IsImmature(int bestHeight)
+	{
+		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
+	}
+
 	public void SetIsBanned()
 	{
 		IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;

@@ -39,7 +39,6 @@
             BorderBrush="{DynamicResource GlassEdgeColor}"
             BorderThickness="1,1,1,0">
       <Panel DataContext="{Binding CurrentWallet.CoinJoinStateViewModel}">
-        <controls:BlurBehind BlurRadius="10,10" />
         <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
@@ -64,7 +63,7 @@
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
 
-            <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressValue}" Foreground="White" />
+            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}" Foreground="White" />
 
           <DockPanel LastChildFill="False">
             <TextBlock Text="{Binding ElapsedTime}" />

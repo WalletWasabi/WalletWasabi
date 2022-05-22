@@ -32,4 +32,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Slider.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ToolTip.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/FlyoutPresenter.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ToggleSwitch.axaml" />
 </Styles>

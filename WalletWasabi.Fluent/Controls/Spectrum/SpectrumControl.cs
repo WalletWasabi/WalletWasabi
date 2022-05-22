@@ -14,16 +14,20 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private ImmutablePen? _linePen;
-	private IBrush? _lineBrush;
+	private const int NumBins = 250;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
 
 	private readonly SpectrumDataSource[] _sources;
 
+	private ImmutablePen? _linePen;
+	private IBrush? _lineBrush;
+
 	private float[] _data;
-	private const int NumBins = 250;
+
+	private bool _isAuraActive;
+	private bool _isSplashActive;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
@@ -33,9 +37,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	public SpectrumControl()
 	{
+		SetVisibility();
 		_data = new float[NumBins];
 		_auraSpectrumDataSource = new AuraSpectrumDataSource(NumBins);
 		_splashEffectDataSource = new SplashEffectDataSource(NumBins);
+
+		_auraSpectrumDataSource.GeneratingDataStateChanged += OnAuraGeneratingDataStateChanged;
+		_splashEffectDataSource.GeneratingDataStateChanged += OnSplashGeneratingDataStateChanged;
 
 		_sources = new SpectrumDataSource[] { _auraSpectrumDataSource, _splashEffectDataSource };
 
@@ -47,6 +55,35 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+	}
+
+	public bool IsActive
+	{
+		get => GetValue(IsActiveProperty);
+		set => SetValue(IsActiveProperty, value);
+	}
+
+	public bool IsDockEffectVisible
+	{
+		get => GetValue(IsDockEffectVisibleProperty);
+		set => SetValue(IsDockEffectVisibleProperty, value);
+	}
+
+	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
+	{
+		_isSplashActive = e;
+		SetVisibility();
+	}
+
+	private void OnAuraGeneratingDataStateChanged(object? sender, bool e)
+	{
+		_isAuraActive = e;
+		SetVisibility();
+	}
+
+	private void SetVisibility()
+	{
+		IsVisible = _isSplashActive || _isAuraActive;
 	}
 
 	private void OnIsActiveChanged()
@@ -79,18 +116,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			_lineBrush = Foreground ?? Brushes.Magenta;
 			InvalidateArrange();
 		}
-	}
-
-	public bool IsActive
-	{
-		get => GetValue(IsActiveProperty);
-		set => SetValue(IsActiveProperty, value);
-	}
-
-	public bool IsDockEffectVisible
-	{
-		get => GetValue(IsDockEffectVisibleProperty);
-		set => SetValue(IsDockEffectVisibleProperty, value);
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
@@ -130,7 +155,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
 
-			context.DrawLine(_linePen, new Point(x, Bounds.Height),
+			context.DrawLine(
+				_linePen,
+				new Point(x, Bounds.Height),
 				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
 
 			x += thickness;

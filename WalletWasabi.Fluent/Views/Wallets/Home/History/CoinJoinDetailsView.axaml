@@ -26,20 +26,17 @@
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID">
-          <ItemsRepeater Items="{Binding TransactionIds}">
-            <ItemsRepeater.ItemTemplate>
-              <DataTemplate>
-                <c:PreviewItem TextValue="{Binding }">
-                  <c:PrivacyContentControl NumberOfPrivacyChars="48">
-                    <TextBlock Text="{Binding }" Classes="monoSpaced"/>
-                  </c:PrivacyContentControl>
-                </c:PreviewItem>
-              </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-            <ItemsRepeater.Layout>
-              <StackLayout />
-            </ItemsRepeater.Layout>
-          </ItemsRepeater>
+        <ItemsRepeater Items="{Binding TransactionIds}">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+              <c:PreviewItem TextValue="{Binding }">
+                <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
       </c:PreviewItem>
 
       <Separator />
@@ -54,11 +51,10 @@
 
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Coinjoin fee:"
+                     Label="Fees:"
                      TextValue="{Binding CoinJoinFee}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
-
     </StackPanel>
   </c:ContentArea>
 </UserControl>
