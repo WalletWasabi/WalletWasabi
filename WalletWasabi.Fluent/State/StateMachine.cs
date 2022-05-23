@@ -1,17 +1,24 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace WalletWasabi.Fluent.State;
 
+/// <summary>
+/// StateMachine - api based on: https://github.com/dotnet-state-machine/stateless
+/// </summary>
 public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState : struct, Enum
 {
 	private StateContext _currentState;
 	private readonly Dictionary<TState, StateContext> _states;
 	private OnTransitionedDelegate? _onTransitioned;
 
-	public delegate void OnTransitionedDelegate(TTrigger trigger, TState from, TState to);
+	public delegate void OnTransitionedDelegate(TState from, TState to);
 
 	public TState State => _currentState.StateId;
+
+	public bool IsInState(TState state)
+	{
+		return IsAncestorOf(_currentState.StateId, state);
+	}
 
 	public StateMachine(TState initialState)
 	{
@@ -37,6 +44,33 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		return this;
 	}
 
+	private bool IsAncestorOf(TState state, TState parent)
+	{
+		if (_states.ContainsKey(state))
+		{
+			StateContext current = _states[state];
+
+			while (true)
+			{
+				if (current.StateId.Equals(parent))
+				{
+					return true;
+				}
+
+				if (current.Parent is { })
+				{
+					current = current.Parent;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public StateContext Configure(TState state)
 	{
 		return _states[state];
@@ -44,31 +78,46 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public void Fire(TTrigger trigger)
 	{
+		_currentState.Process(trigger);
+
 		if (_currentState.CanTransit(trigger))
 		{
-			Goto(trigger, _currentState.GetDestination(trigger));
+			var destination = _currentState.GetDestination(trigger);
+
+			if (_states.ContainsKey(destination) && _states[destination].Parent is { } parent && !IsInState(parent.StateId))
+			{
+				Goto(parent.StateId);
+			}
+
+			Goto(destination);
 		}
 		else if (_currentState.Parent is { } && _currentState.Parent.CanTransit(trigger))
 		{
-			Goto(trigger, _currentState.Parent.StateId, true, false);
-			Goto(trigger, _currentState.GetDestination(trigger));
-		}
-		else
-		{
-			_currentState.Process(trigger);
+			Goto(_currentState.Parent.StateId, true, false);
+			Goto(_currentState.GetDestination(trigger));
 		}
 	}
 
 	public void Start()
 	{
-		_currentState.Enter();
+		Enter();
 	}
 
-	private void Goto(TTrigger trigger, TState state, bool exit = true, bool enter = true)
+	private void Enter()
+	{
+		_currentState.Enter();
+
+		if (_currentState.InitialTransitionTo is { } state)
+		{
+			Goto(state);
+		}
+	}
+
+	private void Goto(TState state, bool exit = true, bool enter = true)
 	{
 		if (_states.ContainsKey(state))
 		{
-			if (exit)
+			if (exit && !IsAncestorOf(state, _currentState.StateId))
 			{
 				_currentState.Exit();
 			}
@@ -77,11 +126,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 			_currentState = _states[state];
 
-			_onTransitioned?.Invoke(trigger, old, _currentState.StateId);
+			_onTransitioned?.Invoke(old, _currentState.StateId);
 
 			if (enter)
 			{
-				_currentState.Enter();
+				Enter();
 			}
 		}
 	}
@@ -98,6 +147,8 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		public StateContext? Parent { get; private set; }
 
+		internal TState? InitialTransitionTo { get; private set; }
+
 		public StateContext(StateMachine<TState, TTrigger> owner, TState state)
 		{
 			_owner = owner;
@@ -107,6 +158,13 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_exitActions = new();
 			_triggerActions = new();
 			_permittedTransitions = new();
+		}
+
+		public StateContext InitialTransition(TState? state)
+		{
+			InitialTransitionTo = state;
+
+			return this;
 		}
 
 		public StateContext SubstateOf(TState parent)
@@ -133,6 +191,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			_entryActions.Add(action);
 
 			return this;
+		}
+
+		public StateContext Custom(Func<StateContext, StateContext> custom)
+		{
+			return custom(this);
 		}
 
 		public StateContext OnTrigger(TTrigger trigger, Action action)
@@ -180,6 +243,11 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 				{
 					action();
 				}
+			}
+
+			if (Parent is { })
+			{
+				Parent.Process(trigger);
 			}
 		}
 

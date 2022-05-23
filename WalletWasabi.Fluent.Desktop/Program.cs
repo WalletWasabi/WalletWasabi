@@ -25,7 +25,7 @@ public class Program
 {
 	private static Global? Global;
 
-	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
+	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync, TerminateApplication);
 
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -35,7 +35,7 @@ public class Program
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 		bool runGui = true;
-		bool runGuiMinimized = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
+		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
@@ -75,7 +75,7 @@ public class Program
 				Services.Initialize(Global, singleInstanceChecker);
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
-				BuildAvaloniaApp()
+				BuildAvaloniaApp(runGuiInBackground)
 					.AfterSetup(_ =>
 					{
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
@@ -165,14 +165,18 @@ public class Program
 	/// </summary>
 	private static async Task TerminateApplicationAsync()
 	{
-		MainViewModel.Instance.ClearStacks();
-		MainViewModel.Instance.StatusBar.Dispose();
 		Logger.LogSoftwareStopped("Wasabi GUI");
 
 		if (Global is { } global)
 		{
 			await global.DisposeAsync().ConfigureAwait(false);
 		}
+	}
+
+	private static void TerminateApplication()
+	{
+		MainViewModel.Instance.ClearStacks();
+		MainViewModel.Instance.StatusIcon.Dispose();
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
@@ -189,7 +193,7 @@ public class Program
 	}
 
 	// Avalonia configuration, don't remove; also used by visual designer.
-	private static AppBuilder BuildAvaloniaApp()
+	private static AppBuilder BuildAvaloniaApp(bool startInBg)
 	{
 		bool useGpuLinux = true;
 
@@ -199,7 +203,7 @@ public class Program
 				{
 					await global.InitializeNoWalletAsync(TerminateService);
 				}
-			}))
+			}, startInBg))
 			.UseReactiveUI();
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

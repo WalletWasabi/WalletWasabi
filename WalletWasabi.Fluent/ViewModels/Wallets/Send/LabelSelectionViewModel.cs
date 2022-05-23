@@ -41,12 +41,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
 		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
 		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
-		var onlyKnownByRecipientPockets =
-			knownByRecipientPockets
-				.Where(pocket =>
-					pocket.Labels.Count() == recipient.Count() &&
-					pocket.Labels.All(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase)))
-				.ToArray();
+		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
 
 		if (onlyKnownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
 		{
@@ -262,5 +257,34 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 
 		OnSelectionChanged();
+	}
+
+	public bool IsOtherSelectionPossible(IEnumerable<SmartCoin> usedCoins, SmartLabel recipient)
+	{
+		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
+		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
+
+		if (!usedPockets.Contains(_privatePocket)) // Private pocket hasn't been used. Don't deal with it then.
+		{
+			remainingUsablePockets.Remove(_privatePocket);
+		}
+
+		if (usedPockets.Length == 1 && usedPockets.First() == _privatePocket)
+		{
+			return false;
+		}
+
+		if (!remainingUsablePockets.Any())
+		{
+			return false;
+		}
+
+		var labels = SmartLabel.Merge(usedPockets.Select(x => x.Labels));
+		if (labels.Equals(recipient, StringComparer.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		return true;
 	}
 }

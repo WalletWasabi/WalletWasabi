@@ -21,10 +21,25 @@
         <treeDataGrid:CustomElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
+        <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
+          <Setter Property="(i:Interaction.Behaviors)">
+            <i:BehaviorCollectionTemplate>
+              <i:BehaviorCollection>
+                <behaviors:PendingHistoryItemSeparatorBehavior />
+              </i:BehaviorCollection>
+            </i:BehaviorCollectionTemplate>
+          </Setter>
+        </Style>
         <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />
+        </Style>
+        <Style Selector="TreeDataGridRow /template/ Rectangle#PART_Separator">
+          <Setter Property="Fill" Value="Transparent" />
+        </Style>
+        <Style Selector="TreeDataGridRow.separator /template/ Rectangle#PART_Separator">
+          <Setter Property="Fill" Value="{DynamicResource TreeDataGridGridLinesBrush}" />
         </Style>
         <Style Selector="PathIcon">
           <Setter Property="Height" Value="13" />
@@ -65,9 +80,36 @@
                                               Rows="{TemplateBinding Rows}"
                                               Classes.coinJoinTransaction="{Binding IsCoinJoinTransaction}"
                                               x:CompileBindings="False"/>
+                  <Rectangle Name="PART_Separator"
+                             Margin="-2,0,0,0"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Bottom"
+                             IsHitTestVisible="False"
+                             Height="1"/>
                 </Panel>
               </DockPanel>
             </ControlTemplate>
+          </Setter>
+          <Setter Property="ContextMenu">
+            <Setter.Value>
+              <ContextMenu x:DataType="historyItems:HistoryItemViewModelBase">
+                <!-- TODO: Show speed up transaction dialog.
+                <MenuItem Header="Speed-up transaction"
+                          IsVisible="{Binding !IsConfirmed}"
+                          Command="{Binding SpeedUpTransactionCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource rocket_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                -->
+                <MenuItem Header="Show details"
+                          Command="{Binding ShowDetailsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource details_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </Setter.Value>
           </Setter>
         </Style>
         <Style Selector="TreeDataGridRow /template/ Rectangle#BackgroundRectangle.selectAnimation">
@@ -120,15 +162,6 @@
         <Style Selector="PathIcon.hidden">
           <Setter Property="IsVisible" Value="False" />
         </Style>
-        <Style Selector="TreeDataGridRow">
-          <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-              <i:BehaviorCollection>
-                <behaviors:HistoryItemDetailsBehavior />
-              </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
-          </Setter>
-        </Style>
 
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Template">
@@ -152,23 +185,6 @@
           </Setter>
         </Style>
 
-        <Style Selector="c|TreeDataGridItemDetailsAdorner">
-          <Setter Property="Margin" Value="-31,0,0,0" />
-          <Setter Property="HorizontalAlignment" Value="Left" />
-          <Setter Property="VerticalAlignment" Value="Top" />
-          <Setter Property="ClipToBounds" Value="False" />
-          <Setter Property="IsHitTestVisible" Value="True" />
-          <Setter Property="Template">
-            <ControlTemplate>
-              <Panel Background="Transparent">
-                <Button x:DataType="historyItems:HistoryItemViewModelBase" Classes="plain" ToolTip.Tip="Show Details"
-                        Command="{Binding ShowDetailsCommand}">
-                  <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
-                </Button>
-              </Panel>
-            </ControlTemplate>
-          </Setter>
-        </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
