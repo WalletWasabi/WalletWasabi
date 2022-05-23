@@ -208,12 +208,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
+			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
+			.OnTrigger(Trigger.Stop, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
+			.OnTrigger(Trigger.AutoCoinJoinOn, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
 
 		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Play, State.ManualPlaying)
-			.OnEntry(async () =>
+			.OnEntry(() =>
 			{
 				ProgressValue = 0;
 				ElapsedTime = "";
@@ -222,8 +225,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
-
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
@@ -234,18 +235,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AllCoinsPrivate, State.ManualFinished)
 			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
-			.OnEntry(async () =>
+			.OnEntry(() =>
 			{
 				PlayVisible = false;
 				StopVisible = true;
 				CurrentStatus = _waitingMessage;
-
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false)
 			.OnTrigger(Trigger.AllCoinsPrivate, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
@@ -299,7 +297,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.AutoCoinJoin)
 			.InitialTransition(State.AutoStarting)
 			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.OnEntry(async () =>
+			.OnEntry(() =>
 			{
 				IsAuto = true;
 				StopVisible = false;
@@ -307,10 +305,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 
 				CurrentStatus = _initialisingMessage;
-
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
-			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None));
+			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
+			.OnTrigger(Trigger.Pause, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
+			.OnTrigger(Trigger.AutoCoinJoinOff, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
 
 		_stateMachine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
@@ -336,7 +334,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.Paused)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Play, State.AutoPlaying)
-			.OnEntry(async () =>
+			.OnEntry(() =>
 			{
 				IsAutoWaiting = true;
 
@@ -347,8 +345,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				PauseVisible = false;
 				PlayVisible = true;
-
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
