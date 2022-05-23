@@ -155,34 +155,36 @@ public class CoinJoinManager : BackgroundService
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
 				walletToStart.LogDebug("PlebStop preventing coinjoin.");
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 
 				if (startCommand.RestartAutomatically)
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
 				}
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 				return;
 			}
 
 			if (WalletManager.Synchronizer?.LastResponse is not { } synchronizerResponse)
 			{
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
 				if (startCommand.RestartAutomatically)
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
 				}
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
 				return;
 			}
 
 			if (IsWalletPrivate(walletToStart))
 			{
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
+				walletToStart.LogDebug("All mixed!");
 
 				// In AutoCoinJoin mode we keep watching.
 				if (startCommand.RestartAutomatically)
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
 				}
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
 				return;
 			}
 
@@ -190,11 +192,13 @@ public class CoinJoinManager : BackgroundService
 			if (coinCandidates.Length == 0)
 			{
 				walletToStart.LogDebug("No candidate coins available to mix.");
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
+
 				if (startCommand.RestartAutomatically)
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
 				}
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
 				return;
 			}
 
@@ -217,16 +221,14 @@ public class CoinJoinManager : BackgroundService
 			walletToStart.LogDebug($"Coinjoin client started, auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
-			if (trackedAutoStarts.TryRemove(walletToStart, out var trackedAutoStart))
-			{
-				trackedAutoStart.CancellationTokenSource.Cancel();
-				trackedAutoStart.CancellationTokenSource.Dispose();
-			}
+			TryRemoveTrackedAutoStart(walletToStart);
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
 		{
 			var walletToStop = stopCommand.Wallet;
+
+			TryRemoveTrackedAutoStart(walletToStop);
 			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 			{
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
@@ -278,6 +280,15 @@ public class CoinJoinManager : BackgroundService
 			if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
 			{
 				walletToStart.LogInfo($"AutoCoinJoin task was already added.");
+			}
+		}
+
+		void TryRemoveTrackedAutoStart(Wallet wallet)
+		{
+			if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
+			{
+				trackedAutoStart.CancellationTokenSource.Cancel();
+				trackedAutoStart.CancellationTokenSource.Dispose();
 			}
 		}
 
@@ -443,7 +454,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coins = new CoinsView(wallet.Coins);
 
-		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1 || IsAllMixed)
 		{
 			return true;
 		}
