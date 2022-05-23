@@ -454,7 +454,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coins = new CoinsView(wallet.Coins);
 
-		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1 || IsAllMixed)
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
 		{
 			return true;
 		}
