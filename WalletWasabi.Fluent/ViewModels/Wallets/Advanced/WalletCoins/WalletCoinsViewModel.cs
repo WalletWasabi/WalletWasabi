@@ -97,6 +97,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
+		// Selection		SelectionColumnView		-			Auto		-				-			false
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymitySet		AnonymityColumnView		<custom>	40			-				-			true
@@ -106,7 +107,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		{
 			Columns =
 			{
-				// Indicators
+				// Selection
 				new TemplateColumn<WalletCoinViewModel>(
 					null,
 					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
