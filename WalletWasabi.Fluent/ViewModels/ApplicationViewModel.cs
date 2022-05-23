@@ -57,8 +57,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented()
 	{
-		RxApp.MainThreadScheduler.Schedule(async () =>
-			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShuttingDownViewModel(this)));
+		RxApp.MainThreadScheduler.Schedule(() => MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this)));
 	}
 
 	public bool CanShutdown()
