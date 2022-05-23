@@ -284,7 +284,7 @@ public class CoinJoinAnonScoreTests
 	{
 		var tx1 = new AnalyzedTransaction();
 		tx1.AddForeignInput();
-		tx1.AddWalletInput();
+		tx1.AddWalletInput(anonymity: 10);
 		var a = tx1.AddForeignOutput();
 		var b = tx1.AddWalletOutput();
 
@@ -306,9 +306,9 @@ public class CoinJoinAnonScoreTests
 
 		tx3.AnalyzeRecursively();
 
-		Assert.Equal(2, b.Anonymity);
-		Assert.Equal(2, d.Anonymity);
-		Assert.Equal(2, e.Anonymity);
-		Assert.Equal(3, l.Anonymity);
+		Assert.Equal(11, b.Anonymity);
+		Assert.Equal(11, d.Anonymity);
+		Assert.Equal(11, e.Anonymity);
+		Assert.Equal(12, l.Anonymity);
 	}
 }
