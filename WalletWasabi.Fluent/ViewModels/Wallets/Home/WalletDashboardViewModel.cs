@@ -16,7 +16,7 @@ public partial class WalletDashboardViewModel : ActivatableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 
 	private readonly Wallet _wallet;
-	[AutoNotify] private string _btcPrice;
+	private ObservableAsPropertyHelper<string> _btcPrice = ObservableAsPropertyHelper<string>.Default();
 	[AutoNotify] private string _percentText = "";
 	[AutoNotify] private string _balancePrivateBtc = "";
 
@@ -37,8 +37,6 @@ public partial class WalletDashboardViewModel : ActivatableViewModel
 		_walletVm = walletVM;
 		_wallet = _walletVm.Wallet;
 		_balanceChanged = balanceChanged;
-
-		_btcPrice = "";
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)
@@ -46,8 +44,9 @@ public partial class WalletDashboardViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+			.Select(usd => usd.FormattedFiat("N0") + " USD")
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(usd => BtcPrice = usd.FormattedFiat("N0") + " USD")
+			.ToProperty(this, x => x.BtcPrice, out _btcPrice)
 			.DisposeWith(disposables);
 
 		_balanceChanged
@@ -56,6 +55,8 @@ public partial class WalletDashboardViewModel : ActivatableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
+
+	public string BtcPrice => _btcPrice.Value;
 
 	private void UpdatePrivacyStats()
 	{
