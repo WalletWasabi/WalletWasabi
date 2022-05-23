@@ -16,7 +16,7 @@
           <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
                     Data="{TemplateBinding Icon}"
                     Opacity="0.5"
-                    Margin="12"
+                    Margin="0 0 20 0"
                     Foreground="{StaticResource SystemAccentColor}"
                     DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <DockPanel>
