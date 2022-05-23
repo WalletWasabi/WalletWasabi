@@ -167,6 +167,18 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
+			if (IsWalletPrivate(walletToStart))
+			{
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
+
+				// In AutoCoinJoin mode we keep watching.
+				if (startCommand.RestartAutomatically)
+				{
+					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
+				}
+				return;
+			}
+
 			var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight).ToArray();
 			if (coinCandidates.Length == 0)
 			{
@@ -400,6 +412,18 @@ public class CoinJoinManager : BackgroundService
 					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
 					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
+
+	private bool IsWalletPrivate(Wallet wallet)
+	{
+		var coins = new CoinsView(wallet.Coins);
+
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
+		{
+			return true;
+		}
+
+		return false;
+	}
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet, int bestHeight)
 	{
