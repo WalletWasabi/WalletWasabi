@@ -12,7 +12,7 @@
 
   <StackPanel Orientation="Horizontal" Spacing="40" Margin="0 15 0 5">
     <StackPanel IsVisible="{Binding HasBalance}">
-      <TextBlock Classes="bold h7">BALANCE</TextBlock>
+      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">BALANCE</TextBlock>
       <TextBlock  Classes="monoSpaced"
                   Text="{Binding BalanceBtc}"  />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
@@ -21,7 +21,7 @@
     </StackPanel>
 
     <StackPanel>
-      <TextBlock Classes="bold h7">PRIVATE</TextBlock>
+      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVATE</TextBlock>
       <TextBlock  Classes="monoSpaced"
                   Text="{Binding PercentText}"  />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
@@ -30,7 +30,7 @@
     </StackPanel>
 
     <StackPanel>
-      <TextBlock Classes="bold h7">EXCHANGE RATE</TextBlock>
+      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">EXCHANGE RATE</TextBlock>
       <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcPrice}" />
     </StackPanel>
   </StackPanel>
