@@ -67,7 +67,18 @@ public class BlockchainAnalyzer
 		// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
 		double coefficient = (double)tx.WalletVirtualInputs.Count / (tx.ForeignInputs.Count + tx.WalletVirtualInputs.Count);
 
-		newInputAnonset = Intersect(tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet), coefficient);
+		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
+		// because coinjoins are an exception from common input ownership heuristic.
+		if (coefficient < 1)
+		{
+			// Calculate weighted average.
+			var weightedAverage = (int)(tx.WalletVirtualInputs.Sum(x => x.HdPubKey.AnonymitySet * x.SmartCoins.Sum(y => y.Amount)) / tx.WalletVirtualInputs.Sum(x => x.SmartCoins.Sum(y => y.Amount)));
+			newInputAnonset = (int)(weightedAverage - (weightedAverage * coefficient));
+		}
+		else
+		{
+			newInputAnonset = Intersect(tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet), coefficient);
+		}
 
 		// If we remix with siblings from earlier CoinJoins, then we must avoid double-counting their contribution to our anonymity set.
 		// Search the history of each input to find any siblings with which we are remixing in the current transaction.
