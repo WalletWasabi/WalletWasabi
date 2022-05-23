@@ -195,7 +195,7 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogDebug($"Coinjoin client started, auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
+			walletToStart.LogDebug($"Coinjoin client started, AutoStartCoinjoin:'{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
 			trackedAutoStarts.TryRemove(walletToStart, out _);
@@ -208,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
-					walletToStop.LogWarning($"CoinJoin is in critical phase, it cannot be stopped.");
+					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped.");
 					return;
 				}
 				coinJoinTrackerToStop.Stop();
