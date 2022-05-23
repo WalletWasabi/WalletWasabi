@@ -277,7 +277,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
-					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletViewModel, balance, _updateTrigger);
+					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletViewModel, balance, _updateTrigger, true);
 					yield return singleCjItem;
 				}
 				else

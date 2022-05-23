@@ -54,7 +54,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 				item,
 				_walletViewModel,
 				balance,
-				_updateTrigger);
+				_updateTrigger,
+				false);
 
 			balance -= item.Amount;
 

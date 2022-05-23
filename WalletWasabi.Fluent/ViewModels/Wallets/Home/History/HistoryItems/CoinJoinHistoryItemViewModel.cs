@@ -15,7 +15,8 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		TransactionSummary transactionSummary,
 		WalletViewModel walletViewModel,
 		Money balance,
-		IObservable<Unit> updateTrigger)
+		IObservable<Unit> updateTrigger,
+		bool isSingleCoinJoinTransaction)
 		: base(orderIndex, transactionSummary)
 	{
 		IsConfirmed = transactionSummary.IsConfirmed();
@@ -23,6 +24,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		Balance = balance;
 		IsCoinJoin = true;
 		CoinJoinTransaction = transactionSummary;
+		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
 
 		var amount = transactionSummary.Amount;
 		if (amount < Money.Zero)
@@ -41,7 +43,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}
 
-	public bool IsCoinJoinTransaction => true;
+	public bool IsSingleCoinJoinTransaction { get; }
 
 	public TransactionSummary CoinJoinTransaction { get; private set; }
 

@@ -158,7 +158,7 @@
                                               ElementFactory="{TemplateBinding ElementFactory}"
                                               Items="{TemplateBinding Columns}"
                                               Rows="{TemplateBinding Rows}"
-                                              Classes.coinJoinTransaction="{Binding IsCoinJoinTransaction}"
+                                              Classes.coinJoinTransaction="{Binding !IsSingleCoinJoinTransaction}"
                                               x:CompileBindings="False"/>
                   <Rectangle Name="PART_Separator"
                              Margin="-2,0,0,0"
