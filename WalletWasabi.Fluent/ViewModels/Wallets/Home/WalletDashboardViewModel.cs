@@ -1,103 +1,119 @@
-using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
-using System.Linq;
-using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home;
 
-public partial class WalletDashboardViewModel : ActivatableViewModel
+public class WalletDashboardViewModel : ActivatableViewModel
 {
-	private readonly WalletViewModel _walletVm;
 	private readonly IObservable<Unit> _balanceChanged;
-
 	private readonly Wallet _wallet;
+	private ObservableAsPropertyHelper<string> _balanceBtc = ObservableAsPropertyHelper<string>.Default();
+
+	private ObservableAsPropertyHelper<string> _balancePrivateBtc = ObservableAsPropertyHelper<string>.Default();
+	private ObservableAsPropertyHelper<string> _balanceUsd = ObservableAsPropertyHelper<string>.Default();
 	private ObservableAsPropertyHelper<string> _btcPrice = ObservableAsPropertyHelper<string>.Default();
-	[AutoNotify] private string _percentText = "";
-	[AutoNotify] private string _balancePrivateBtc = "";
+	private ObservableAsPropertyHelper<bool> _hasBalance = ObservableAsPropertyHelper<bool>.Default();
+	private ObservableAsPropertyHelper<double> _privateScore = ObservableAsPropertyHelper<double>.Default();
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private bool _hasBalance;
-
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private string? _balanceBtc;
-
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private string? _balanceFiat;
-
-	[AutoNotify] private bool _fullyMixed;
-	[AutoNotify] private bool _hasPrivateBalance;
-
-	public WalletDashboardViewModel(WalletViewModel walletVM, IObservable<Unit> balanceChanged)
+	public WalletDashboardViewModel(WalletViewModelBase wallet, IObservable<Unit> balanceChanged)
 	{
-		_walletVm = walletVM;
-		_wallet = _walletVm.Wallet;
+		_wallet = wallet.Wallet;
 		_balanceChanged = balanceChanged;
 	}
+
+	public string BalanceUsd => _balanceUsd.Value;
+	public string BalanceBtc => _balanceBtc.Value;
+	public bool HasBalance => _hasBalance.Value;
+	public string BalancePrivateBtc => _balancePrivateBtc.Value;
+	public string BtcToUsdExchangeRate => _btcPrice.Value;
+
+	public double PrivacyScore => _privateScore.Value;
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
 
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+		var usdExchangeRate = _wallet.Synchronizer
+			.WhenAnyValue(x => x.UsdExchangeRate);
+
+		var totalAmount = _balanceChanged
+			.Select(_ => _wallet.Coins.TotalAmount());
+
+		var usdBalance = totalAmount
+			.CombineLatest(usdExchangeRate, (btc, usd) => btc.ToDecimal(MoneyUnit.BTC) * usd);
+
+		var privateScore = _balanceChanged
+			.Select(_ => GetPrivateScore());
+		
+		var privateAmount = _balanceChanged
+			.Select(_ => GetPrivateBtcAmount());
+
+		usdExchangeRate
 			.Select(usd => usd.FormattedFiat("N0") + " USD")
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.BtcPrice, out _btcPrice)
+			.ToProperty(this, x => x.BtcToUsdExchangeRate, out _btcPrice)
 			.DisposeWith(disposables);
 
-		_balanceChanged
-			.Do(_ => UpdatePrivacyStats())
-			.Do(_ => UpdateBalance())
-			.Subscribe()
+		totalAmount
+			.Select(x => x.ToFormattedString() + " BTC")
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, x => x.BalanceBtc, out _balanceBtc)
+			.DisposeWith(disposables);
+
+		totalAmount
+			.Select(x => x > Money.Zero)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, x => x.HasBalance, out _hasBalance)
+			.DisposeWith(disposables);
+
+		usdBalance
+			.Select(GenerateFiatText)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, x => x.BalanceUsd, out _balanceUsd)
+			.DisposeWith(disposables);
+
+		privateScore
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, x => x.PrivacyScore, out _privateScore)
+			.DisposeWith(disposables);
+
+		privateAmount
+			.Select(x => x.ToFormattedString() + " BTC")
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, x => x.BalancePrivateBtc, out _balancePrivateBtc)
 			.DisposeWith(disposables);
 	}
 
-	public string BtcPrice => _btcPrice.Value;
-
-	private void UpdatePrivacyStats()
+	private static string GenerateFiatText(decimal usdAmount)
 	{
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
-
-		var currentPrivacyScore = _wallet.Coins.Sum(x =>
-			x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
-		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);
-		var pcPrivate = maxPrivacyScore == 0M ? 100 : (int) (currentPrivacyScore * 100 / maxPrivacyScore);
-
-		PercentText = $"{pcPrivate} %";
-
-		FullyMixed = pcPrivate >= 100;
-
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		HasPrivateBalance = privateAmount > Money.Zero;
-		BalancePrivateBtc = $"{privateAmount.ToFormattedString()} BTC";
-	}
-
-	private void UpdateBalance()
-	{
-		var totalAmount = _wallet.Coins.TotalAmount();
-
-		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
-
-		var fiatAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
 		var fiatFormat =
-			fiatAmount >= 10
+			usdAmount >= 10
 				? "N0"
 				: "N2";
 
-		BalanceFiat = fiatAmount.GenerateFiatText("USD", fiatFormat);
+		return usdAmount.GenerateFiatText("USD", fiatFormat);
+	}
 
+	private Money GetPrivateBtcAmount()
+	{
 		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
-		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
+		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		return privateAmount;
+	}
 
-		var privateDecimalAmount = privateCoins.TotalAmount();
-
-		HasBalance = totalAmount > Money.Zero;
-
-		BalancePrivateBtc = privateDecimalAmount
-			.FormattedBtc() + " BTC";
+	private double GetPrivateScore()
+	{
+		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
+		var currentPrivacyScore = _wallet.Coins.Sum(x =>
+			x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
+		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);
+		var privacyScore = maxPrivacyScore == 0 ? 1 : (double) currentPrivacyScore / maxPrivacyScore;
+		return privacyScore;
 	}
 }

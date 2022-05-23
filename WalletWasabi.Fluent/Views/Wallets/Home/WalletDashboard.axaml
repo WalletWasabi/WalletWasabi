@@ -17,13 +17,13 @@
                   Text="{Binding BalanceBtc}"  />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
                                       NumberOfPrivacyChars="9"
-                                      Content="{Binding BalanceFiat}" />
+                                      Content="{Binding BalanceUsd}" />
     </StackPanel>
 
     <StackPanel>
       <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVATE</TextBlock>
       <TextBlock  Classes="monoSpaced"
-                  Text="{Binding PercentText}"  />
+                  Text="{Binding PrivacyScore, StringFormat='{}{0:P0}'}"  />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
                                       NumberOfPrivacyChars="9"
                                       Content="{Binding BalancePrivateBtc}" />
@@ -31,7 +31,7 @@
 
     <StackPanel>
       <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">EXCHANGE RATE</TextBlock>
-      <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcPrice}" />
+      <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcToUsdExchangeRate}" />
     </StackPanel>
   </StackPanel>
 </UserControl>
