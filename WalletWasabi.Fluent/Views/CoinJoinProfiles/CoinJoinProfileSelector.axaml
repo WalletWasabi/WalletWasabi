@@ -12,7 +12,8 @@
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:CoinJoinProfilesViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileSelector">
+             x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileSelector"
+             x:Name="Selector">
   <DockPanel>
 
     <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
@@ -80,7 +81,7 @@
       <ListBox.DataTemplates>
         <DataTemplate>
           <c:SuggestionItem MaxHeight="280">
-            <prof:CoinJoinProfileControl />
+            <prof:CoinJoinProfileControl Classes.isSmall="{Binding IsSmall, ElementName=Selector}" />
           </c:SuggestionItem>
         </DataTemplate>
       </ListBox.DataTemplates>

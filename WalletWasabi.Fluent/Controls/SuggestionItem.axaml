@@ -9,8 +9,8 @@
     <!-- Set Defaults -->
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel>
-          <Border Name="PART_DecorationBorderUnselected" >
+        <Panel Margin="10 0 10 20">
+          <Border Name="PART_DecorationBorderUnselected">
             <Border.Transitions>
               <Transitions>
                 <DoubleTransition Property="Opacity"
@@ -19,7 +19,7 @@
               </Transitions>
             </Border.Transitions>
           </Border>
-          <Border Name="PART_DecorationBorderHover" >
+          <Border Name="PART_DecorationBorderHover">
             <Border.Transitions>
               <Transitions>
                 <DoubleTransition Property="Opacity"

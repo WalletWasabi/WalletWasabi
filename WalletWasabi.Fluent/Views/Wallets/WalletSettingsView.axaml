@@ -26,7 +26,7 @@
         </DockPanel>
 
         <Panel IsVisible="{Binding AutoCoinJoin}">
-          <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" />
+          <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" IsSmall="True" Height="290" />
         </Panel>
 
         <Separator />
