@@ -408,7 +408,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coins = new CoinsView(wallet.Coins);
 
-		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) > 0.99)
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
 		{
 			return true;
 		}
