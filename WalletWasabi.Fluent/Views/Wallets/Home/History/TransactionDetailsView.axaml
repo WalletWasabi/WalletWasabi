@@ -54,7 +54,7 @@
 
       <!-- Block hash -->
       <c:PreviewItem Icon="{StaticResource block_id}"
-                     Label="Block ID"
+                     Label="Block hash"
                      TextValue="{Binding BlockHash}"
                      IsVisible="{Binding IsConfirmed}">
         <TextBlock Text="{Binding BlockHash}" />
