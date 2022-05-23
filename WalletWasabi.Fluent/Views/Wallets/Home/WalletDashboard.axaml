@@ -10,21 +10,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletDashboard">
 
-  <StackPanel Orientation="Horizontal" Spacing="40" Margin="0 10 0 0">
-    <StackPanel>
-      <TextBlock Classes="bold h7">BITCOIN PRICE</TextBlock>
-      <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcPrice}" />
-    </StackPanel>
-    <StackPanel>
-      <TextBlock Classes="bold h7">PRIVATE</TextBlock>
-      <TextBlock  Classes="monoSpaced"
-                  Text="{Binding PercentText}"  />
-      <controls:PrivacyContentControl Classes="monoSpaced h8"
-                                      NumberOfPrivacyChars="9"
-                                      Content="{Binding BalancePrivateBtc}" />
-    </StackPanel>
-
-
+  <StackPanel Orientation="Horizontal" Spacing="40" Margin="0 15 0 5">
     <StackPanel IsVisible="{Binding HasBalance}">
       <TextBlock Classes="bold h7">BALANCE</TextBlock>
       <TextBlock  Classes="monoSpaced"
@@ -34,6 +20,18 @@
                                       Content="{Binding BalanceFiat}" />
     </StackPanel>
 
+    <StackPanel>
+      <TextBlock Classes="bold h7">PRIVATE</TextBlock>
+      <TextBlock  Classes="monoSpaced"
+                  Text="{Binding PercentText}"  />
+      <controls:PrivacyContentControl Classes="monoSpaced h8"
+                                      NumberOfPrivacyChars="9"
+                                      Content="{Binding BalancePrivateBtc}" />
+    </StackPanel>
 
+    <StackPanel>
+      <TextBlock Classes="bold h7">EXCHANGE RATE</TextBlock>
+      <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcPrice}" />
+    </StackPanel>
   </StackPanel>
 </UserControl>
