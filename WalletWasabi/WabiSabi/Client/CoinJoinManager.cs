@@ -246,7 +246,10 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
 			var restartTask = Task.Run(async () =>
 			{
 				try
@@ -257,6 +260,11 @@ public class CoinJoinManager : BackgroundService
 				{
 					return;
 				}
+				finally
+				{
+					linkedCts.Dispose();
+				}
+
 				if (trackedAutoStarts.TryRemove(walletToStart, out _))
 				{
 					await StartAutomaticallyAsync(walletToStart, overridePlebStop, stoppingToken).ConfigureAwait(false);
@@ -265,7 +273,6 @@ public class CoinJoinManager : BackgroundService
 				{
 					walletToStart.LogInfo($"AutoStart was already handled.");
 				}
-				linkedCts.Dispose();
 			}, linkedCts.Token);
 
 			if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
