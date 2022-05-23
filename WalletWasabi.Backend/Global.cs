@@ -22,48 +22,53 @@ public class Global : IDisposable
 {
 	private bool _disposedValue;
 
-	public Global(string dataDir)
+	public Global(string dataDir, IRPCClient rpcClient, Config config)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		RpcClient = rpcClient;
+		Config = config;
 		HostedServices = new();
+
+		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
+		P2pNode = new(config.Network, config.GetBitcoinP2pEndPoint(), new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
+
+		// Initialize index building
+		string indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
+		string indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 	}
 
 	public string DataDir { get; }
 
-	public IRPCClient? RpcClient { get; private set; }
+	public IRPCClient RpcClient { get; }
 
-	public P2pNode? P2pNode { get; private set; }
+	public P2pNode P2pNode { get; }
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService? IndexBuilderService { get; private set; }
+	public IndexBuilderService IndexBuilderService { get; }
 
 	public Coordinator? Coordinator { get; private set; }
 
-	public Config? Config { get; private set; }
+	public Config Config { get; }
 
 	public CoordinatorRoundConfig? RoundConfig { get; private set; }
 	public CoinJoinIdStore? CoinJoinIdStore { get; private set; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 
-	public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
+	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
 	{
-		Config = Guard.NotNull(nameof(config), config);
 		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 		// Make sure RPC works.
 		await AssertRpcNodeFullyInitializedAsync(cancel);
 
 		// Make sure P2P works.
-		await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
+		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
-		var p2pNode = Guard.NotNull(nameof(P2pNode), P2pNode);
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, p2pNode), "Full Node Mempool Mirror");
+		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
 
-		// Initialize index building
-		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
@@ -101,7 +106,6 @@ public class Global : IDisposable
 
 		await HostedServices.StartAllAsync(cancel);
 
-		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
@@ -109,18 +113,6 @@ public class Global : IDisposable
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
 	{
 		CoinJoinIdStore!.TryAdd(transaction.GetHash());
-	}
-
-	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
-	{
-		Guard.NotNull(nameof(network), network);
-		Guard.NotNull(nameof(endPoint), endPoint);
-		var rpcClient = Guard.NotNull(nameof(RpcClient), RpcClient);
-
-		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-		P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
-		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
