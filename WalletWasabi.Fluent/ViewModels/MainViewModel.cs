@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
+	private readonly ObservableAsPropertyHelper<WalletViewModel?> _currentWallet;
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
@@ -65,8 +66,6 @@ public partial class MainViewModel : ViewModelBase
 		_settingsPage = new SettingsPageViewModel();
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
-
-		MusicControls = new MusicControlsViewModel();
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
@@ -145,6 +144,12 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
+		_currentWallet =
+			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>()
+			.ToProperty(this, x => x.CurrentWallet);
+
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -167,9 +172,9 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
-	public TargettedNavigationStack MainScreen { get; }
+	public WalletViewModel? CurrentWallet => _currentWallet.Value;
 
-	public MusicControlsViewModel MusicControls { get; }
+	public TargettedNavigationStack MainScreen { get; }
 
 	public SearchBarViewModel SearchBar { get; }
 
