@@ -146,6 +146,7 @@
     <DockPanel Background="Transparent">
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       ReSelectSelectedItem="False"
                        Name="ItemsListBox"
                        Classes="vertical draggable narrowItemPadding"
                        VerticalAlignment="Stretch">

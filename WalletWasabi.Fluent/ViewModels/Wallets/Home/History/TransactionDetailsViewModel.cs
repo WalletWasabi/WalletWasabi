@@ -27,6 +27,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
+	[AutoNotify] private string? _blockHash;
 
 	public TransactionDetailsViewModel(TransactionSummary transactionSummary, Wallet wallet, IObservable<Unit> updateTrigger)
 	{
@@ -65,6 +66,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 		IsConfirmed = Confirmations > 0;
 		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false);
+		BlockHash = transactionSummary.BlockHash?.ToString();
 	}
 
 	private void OnNext()

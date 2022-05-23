@@ -40,9 +40,9 @@
       </StackPanel>
 
       <StackPanel ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
-        <TextBlock Text="Anonymity Score Target" />
+        <TextBlock Text="Anonymity score target" />
         <DockPanel>
-          <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMediumBrush}"
+          <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelMinimalBrush}"
                     Data="{StaticResource privacy_minimal}" />
           <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding AnonScoreTarget}" VerticalAlignment="Center" />
           <Slider Minimum="2" Maximum="150" Value="{Binding AnonScoreTarget}" Margin="10 0" />
