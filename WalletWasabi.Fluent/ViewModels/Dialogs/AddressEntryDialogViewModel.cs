@@ -35,6 +35,8 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 		_info = info;
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
 		this.ValidateProperty(x => x.To, ValidateToField);
 
 		this.WhenAnyValue(x => x.To)
