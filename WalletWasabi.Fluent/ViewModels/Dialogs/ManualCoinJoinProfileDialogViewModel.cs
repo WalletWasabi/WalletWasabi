@@ -11,14 +11,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 [NavigationMetaData(Title = "Coinjoin Settings")]
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
 {
-	[AutoNotify] private bool _autoStartCoinjoin;
+	[AutoNotify] private bool _autoCoinjoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
-		_autoStartCoinjoin = true;
+		_autoCoinjoin = true;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
@@ -38,7 +38,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
-			var auto = AutoStartCoinjoin;
+			var auto = AutoCoinjoin;
 			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 

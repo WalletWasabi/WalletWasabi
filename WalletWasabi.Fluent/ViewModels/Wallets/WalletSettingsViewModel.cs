@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _preferPsbtWorkflow;
-	[AutoNotify] private bool _autoStartCoinJoin;
+	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
 
@@ -27,7 +27,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_wallet = walletViewModelBase.Wallet;
 		Title = $"{_wallet.WalletName} - Wallet Settings";
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
-		_autoStartCoinJoin = _wallet.KeyManager.AutoStartCoinJoin;
+		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
@@ -47,7 +47,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 			});
 
-		SetAutoStartCoinJoin = ReactiveCommand.CreateFromTask(async () =>
+		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
@@ -56,13 +56,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				AutoStartCoinJoin = !AutoStartCoinJoin;
-				_wallet.KeyManager.AutoStartCoinJoin = AutoStartCoinJoin;
+				AutoCoinJoin = !AutoCoinJoin;
+				_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
 				_wallet.KeyManager.ToFile();
 			}
 			else
 			{
-				AutoStartCoinJoin = false;
+				AutoCoinJoin = false;
 			}
 		});
 
@@ -96,7 +96,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public override sealed string Title { get; protected set; }
 
-	public ICommand SetAutoStartCoinJoin { get; }
+	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
 

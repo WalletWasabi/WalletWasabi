@@ -2,9 +2,9 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	public ManualCoinJoinProfileViewModel(bool autoStartCoinjoin, int anonScoreTarget, int feeRateMedianTimeFrameHours)
+	public ManualCoinJoinProfileViewModel(bool autoCoinjoin, int anonScoreTarget, int feeRateMedianTimeFrameHours)
 	{
-		AutoStartCoinjoin = autoStartCoinjoin;
+		AutoCoinjoin = autoCoinjoin;
 		AnonScoreTarget = anonScoreTarget;
 		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
 	}
@@ -13,7 +13,7 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override string Description => "";
 
-	public override bool AutoStartCoinjoin { get; }
+	public override bool AutoCoinjoin { get; }
 
 	public override int AnonScoreTarget { get; }
 
