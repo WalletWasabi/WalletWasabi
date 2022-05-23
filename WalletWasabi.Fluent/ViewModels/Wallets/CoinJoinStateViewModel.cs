@@ -176,7 +176,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		WaitingForRoundMessage,
 		ConnectionConfirmationPhaseMessage,
 		EnterCriticalPhaseMessage,
-		ExitCriticalPhaseMessage
+		ExitCriticalPhaseMessage,
+		AllCoinsPrivate
 	}
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
@@ -230,7 +231,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
-			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
+			.Permit(Trigger.AllCoinsPrivate, State.ManualFinished)
 			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
 			.OnEntry(async () =>
@@ -500,6 +501,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case StartedEventArgs:
 				_stateMachine.Fire(Trigger.RoundStart);
+				break;
+
+			case StartErrorEventArgs start when start.Error is CoinjoinError.AllCoinsPrivate:
+				_stateMachine.Fire(Trigger.AllCoinsPrivate);
 				break;
 
 			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
