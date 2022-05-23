@@ -141,7 +141,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken stoppingToken)
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, stoppingToken);
-		var trackedAutoStarts = new ConcurrentDictionary<Wallet, Task>();
+		var trackedAutoStarts = new ConcurrentDictionary<Wallet, TrackedAutoStart>();
 
 		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -217,7 +217,11 @@ public class CoinJoinManager : BackgroundService
 			walletToStart.LogDebug($"Coinjoin client started, auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
-			trackedAutoStarts.TryRemove(walletToStart, out _);
+			if (trackedAutoStarts.TryRemove(walletToStart, out var trackedAutoStart))
+			{
+				trackedAutoStart.CancellationTokenSource.Cancel();
+				trackedAutoStart.CancellationTokenSource.Dispose();
+			}
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
@@ -242,9 +246,17 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
+			var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 			var restartTask = Task.Run(async () =>
 			{
-				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
+				try
+				{
+					await Task.Delay(TimeSpan.FromSeconds(30), linkedCts.Token).ConfigureAwait(false);
+				}
+				catch (OperationCanceledException)
+				{
+					return;
+				}
 				if (trackedAutoStarts.TryRemove(walletToStart, out _))
 				{
 					await StartAutomaticallyAsync(walletToStart, overridePlebStop, stoppingToken).ConfigureAwait(false);
@@ -253,9 +265,10 @@ public class CoinJoinManager : BackgroundService
 				{
 					walletToStart.LogInfo($"AutoStart was already handled.");
 				}
-			}, stoppingToken);
+				linkedCts.Dispose();
+			}, linkedCts.Token);
 
-			if (!trackedAutoStarts.TryAdd(walletToStart, restartTask))
+			if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
 			{
 				walletToStart.LogInfo($"AutoCoinJoin task was already added.");
 			}
@@ -277,7 +290,13 @@ public class CoinJoinManager : BackgroundService
 			}
 		}
 
-		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.ToArray()).ConfigureAwait(false);
+		foreach (var trackedAutoStart in trackedAutoStarts.Values)
+		{
+			trackedAutoStart.CancellationTokenSource.Cancel();
+			trackedAutoStart.CancellationTokenSource.Dispose();
+		}
+
+		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task MonitorAndHandlingCoinJoinFinallizationAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken stoppingToken)
@@ -485,4 +504,6 @@ public class CoinJoinManager : BackgroundService
 
 		NotifyCoinJoinStatusChanged(wallet, e);
 	}
+
+	private record TrackedAutoStart(Task Task, CancellationTokenSource CancellationTokenSource);
 }
