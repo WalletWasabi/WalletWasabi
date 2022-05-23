@@ -69,9 +69,7 @@
           </StackPanel>
           <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
         </DockPanel>
-        <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 10" HorizontalAlignment="Stretch" />
         <home:WalletDashboard DataContext="{Binding WalletDashboard}" />
-        <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 10" HorizontalAlignment="Stretch" />
       </StackPanel>
     </c:ContentArea.Title>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">

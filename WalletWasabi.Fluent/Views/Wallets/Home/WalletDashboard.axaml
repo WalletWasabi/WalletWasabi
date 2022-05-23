@@ -2,26 +2,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:design="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.Design"
-             mc:Ignorable="d" d:DesignWidth="800"
-             x:DataType="design:IWalletDashboardViewModel"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:home="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="home:WalletDashboardViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletDashboard">
 
-  <Design.DataContext>
-    <design:WalletDashboardViewModelDesign>
-      <design:WalletDashboardViewModelDesign.Children>
-        <design:FakeTileViewModel Title="Balance" Value="0.01234 BTC" Icon="info_regular" />
-        <design:FakeTileViewModel Title="Privacy level" Value="40%" Icon="shield_regular" />
-        <design:FakeTileViewModel Title="Exchange rate" Value="100000 USD" Icon="normal_transaction" />
-      </design:WalletDashboardViewModelDesign.Children>
-    </design:WalletDashboardViewModelDesign>
-  </Design.DataContext>
+  <StackPanel Orientation="Horizontal" Spacing="40" Margin="0 10 0 0">
+    <StackPanel>
+      <TextBlock Classes="bold h7">BITCOIN PRICE</TextBlock>
+      <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcPrice}" />
+    </StackPanel>
+    <StackPanel>
+      <TextBlock Classes="bold h7">PRIVATE</TextBlock>
+      <TextBlock  Classes="monoSpaced"
+                  Text="{Binding PercentText}"  />
+      <controls:PrivacyContentControl Classes="monoSpaced h8"
+                                      NumberOfPrivacyChars="9"
+                                      Content="{Binding BalancePrivateBtc}" />
+    </StackPanel>
 
-  <ItemsControl Items="{Binding Children}">
-    <ItemsControl.ItemsPanel>
-      <ItemsPanelTemplate>
-        <UniformGrid Rows="1" />
-      </ItemsPanelTemplate>
-    </ItemsControl.ItemsPanel>
-  </ItemsControl>
+
+    <StackPanel IsVisible="{Binding HasBalance}">
+      <TextBlock Classes="bold h7">BALANCE</TextBlock>
+      <TextBlock  Classes="monoSpaced"
+                  Text="{Binding BalanceBtc}"  />
+      <controls:PrivacyContentControl Classes="monoSpaced h8"
+                                      NumberOfPrivacyChars="9"
+                                      Content="{Binding BalanceFiat}" />
+    </StackPanel>
+
+
+  </StackPanel>
 </UserControl>
