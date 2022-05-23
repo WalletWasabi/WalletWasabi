@@ -36,7 +36,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinDetailsViewModel(this)));
+				new CoinJoinDetailsViewModel(this, updateTrigger)));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
 	}

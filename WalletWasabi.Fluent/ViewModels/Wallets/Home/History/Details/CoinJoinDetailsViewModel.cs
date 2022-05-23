@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -14,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class CoinJoinDetailsViewModel : RoutableViewModel
 {
 	private readonly CoinJoinHistoryItemViewModel _coinJoin;
+	private readonly IObservable<Unit> _updateTrigger;
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
@@ -21,9 +23,10 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private uint256? _transactionId;
 
-	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin)
+	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
 	{
 		_coinJoin = coinJoin;
+		_updateTrigger = updateTrigger;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
@@ -45,9 +48,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		Observable
-			.FromEventPattern(_coinJoin, nameof(PropertyChanged))
-			.Throttle(TimeSpan.FromMilliseconds(100))
+		_updateTrigger
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
 	}
