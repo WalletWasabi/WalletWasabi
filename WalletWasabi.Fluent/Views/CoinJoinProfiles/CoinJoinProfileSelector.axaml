@@ -14,11 +14,22 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinJoinProfiles.CoinJoinProfileSelector"
              x:Name="Selector">
+  <UserControl.Styles>
+    <Style Selector="Button.noMargin">
+      <Setter Property="Margin" Value="0 -10 0 0" />
+    </Style>
+
+    <Style Selector="Button.Margin">
+      <Setter Property="Margin" Value="0 10 0 0" />
+    </Style>
+  </UserControl.Styles>
   <DockPanel>
 
     <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
 
-    <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+    <Button Classes="h8 plain activeHyperLink"
+            Classes.noMargin="{Binding IsSmall, ElementName=Selector}"
+            Classes.Margin="{Binding !IsSmall, ElementName=Selector}"
             DockPanel.Dock="Bottom"
             Command="{Binding ManualSetupCommand}"
             HorizontalAlignment="Center"
@@ -30,6 +41,7 @@
       <ListBox.Styles>
         <Style Selector="ListBoxItem">
           <Setter Property="Cursor" Value="Hand" />
+          <Setter Property="Padding" Value="0" />
         </Style>
         <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
           <Setter Property="Background" Value="Transparent" />

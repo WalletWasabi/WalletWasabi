@@ -15,7 +15,7 @@
         <ControlTemplate>
           <DockPanel MaxWidth="180">
             <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top" />
-            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20" Height="90" x:Name="Description" />
+            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" HorizontalAlignment="Center" DockPanel.Dock="Bottom" x:Name="Description" />
             <Viewbox HorizontalAlignment="Center" Margin="0 10 0 10" MaxHeight="70">
               <ContentControl Content="{Binding .}">
                 <ContentControl.DataTemplates>
@@ -42,6 +42,12 @@
     <Style Selector="c|CoinJoinProfileControl.isSmall /template/ TextBlock#Description">
       <Setter Property="FontSize" Value="12" />
       <Setter Property="Height" Value="70" />
+      <Setter Property="Margin" Value="0 0 0 5" />
+    </Style>
+
+    <Style Selector="c|CoinJoinProfileControl /template/ TextBlock#Description">
+      <Setter Property="Height" Value="90" />
+      <Setter Property="Margin" Value="0 0 0 20" />
     </Style>
   </UserControl.Styles>
 </UserControl>
