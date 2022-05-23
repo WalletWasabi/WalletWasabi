@@ -57,6 +57,13 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task StartAsync(Wallet wallet, bool restartAutomatically, bool overridePlebStop, CancellationToken cancellationToken)
 	{
+		if (overridePlebStop && !wallet.IsUnderPlebStop)
+		{
+			// Turn off overriding if we went above the threshold meanwhile.
+			overridePlebStop = false;
+			wallet.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
+		}
+
 		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, restartAutomatically, overridePlebStop), cancellationToken).ConfigureAwait(false);
 	}
 
@@ -240,12 +247,7 @@ public class CoinJoinManager : BackgroundService
 				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
 				if (trackedAutoStarts.TryRemove(walletToStart, out _))
 				{
-					if (overridePlebStop && !walletToStart.IsUnderPlebStop)
-					{
-						// Turn off overriding if we went above the threshold meanwhile.
-						overridePlebStop = false;
-						walletToStart.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
-					}
+
 
 					await StartAutomaticallyAsync(walletToStart, overridePlebStop, stoppingToken).ConfigureAwait(false);
 				}

@@ -240,20 +240,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = true;
 				CurrentStatus = _waitingMessage;
 
-				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
-				{
-					// If we are not below the threshold anymore, we turn off the override.
-					_overridePlebStop = false;
-				}
-
-				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
+			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
+			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false)
+			.OnTrigger(Trigger.AllCoinsPrivate, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
 
 		_stateMachine.Configure(State.ManualPlayingCritical)
 			.SubstateOf(State.ManualPlaying)
@@ -314,7 +309,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _initialisingMessage;
 
 				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
-			});
+			})
+			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None));
 
 		_stateMachine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
@@ -363,20 +359,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.AutoPlayingCritical)
-			.OnEntry(async () =>
+			.OnEntry(() =>
 			{
 				CurrentStatus = _waitingMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
-
-				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
-				{
-					// If we are not below the threshold anymore, we turn off the override.
-					_overridePlebStop = false;
-				}
-
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
@@ -649,6 +637,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				CurrentStatus = _waitingRoundMessage;
 				StopCountDown();
+			})
+			.OnTrigger(Trigger.BalanceChanged, () =>
+			{
+				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
+				{
+					// If we are not below the threshold anymore, we turn off the override.
+					_overridePlebStop = false;
+				}
 			});
 	}
 
