@@ -744,6 +744,35 @@ public class PocketSelectionTests
 
 		Assert.True(selection.EnoughSelected);
 	}
+
+	[Fact]
+	public void IsOtherSelectionPossibleCases()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("0.5"));
+		var pockets = new List<Pocket>();
+
+		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan"));
+		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan, Lucas"));
+		selection.Reset(pockets.ToArray());
+
+		// Other pocket can be used case.
+		var recipient = "Lucas";
+		var output = selection.AutoSelectPockets(recipient);
+		Assert.True(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+
+		// Exact match. Recipient == pocket, no better selection.
+		recipient = "Dan";
+		output = selection.AutoSelectPockets(recipient);
+		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+
+		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, anonSet: 999));
+		selection.Reset(pockets.ToArray());
+
+		// Private funds are enough for the payment, no better selection.
+		recipient = "Doesn't matter, it will use private coins";
+		output = selection.AutoSelectPockets(recipient);
+		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+	}
 }
 
 internal static class LabelTestExtensions
@@ -778,5 +807,18 @@ internal static class LabelTestExtensions
 		coin.HdPubKey.SetAnonymitySet(anonymitySet);
 
 		return coin;
+	}
+
+	public static Pocket CreateSingleCoinPocket(decimal amount, string label = "", int anonSet = 0)
+	{
+		var coins = new[]
+		{
+			CreateCoin(amount, label, anonSet)
+		};
+
+		var coinsView = new CoinsView(coins.ToArray());
+		var pocket = new Pocket((label, coinsView));
+
+		return pocket;
 	}
 }

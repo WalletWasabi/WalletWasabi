@@ -72,10 +72,10 @@
           <DoubleTransition Property="Opacity"
                             Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
-          <!-- TODO: Find out why this is a bit glitchy when clicking/focusing on the control. -->
-          <!-- <ThicknessTransition Property="Margin" -->
-          <!--                      Duration="0:0:0.127" -->
-          <!--                      Easing="{StaticResource FluentEasing}" /> -->
+           <!--NOTE: This was previously reported to cause a glitchy transition. This is likely because of a bug in Avalonia. --> 
+           <ThicknessTransition Property="Margin" 
+                                Duration="0:0:0.127" 
+                                Easing="{StaticResource FluentEasing}" /> 
         </Transitions>
       </Setter>
     </Style>

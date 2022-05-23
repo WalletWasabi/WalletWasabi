@@ -32,23 +32,13 @@
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel" x:DataType="vmw:WalletViewModelBase">
-      <Setter Property="Width" Value="64" />
-      <Setter Property="Height" Value="64" />
+      <Setter Property="Width" Value="52" />
+      <Setter Property="Height" Value="36" />
       <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel">
-      <Setter Property="Width" Value="64" />
-      <Setter Property="Margin" Value="4" />
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="HorizontalAlignment" Value="Center" />
-    </Style>
-
-    <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
-      <Setter Property="TextAlignment" Value="Center" />
-      <Setter Property="Margin" Value="8,5,8, 0" />
-      <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
     </Style>
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel > PathIcon">
@@ -95,8 +85,8 @@
 
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
-      <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="1, 0" />
+       <Setter Property="Opacity" Value="1" />
+      <Setter Property="Margin" Value="-8, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
@@ -107,8 +97,8 @@
 
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
       <Setter Property="TextAlignment" Value="Center" />
-      <Setter Property="HorizontalAlignment" Value="Stretch" />
-    </Style>
+      <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
+     </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
@@ -124,7 +114,7 @@
     </Style>
 
   </UserControl.Styles>
-  <DockPanel Margin="0 -4 0 4">
+  <DockPanel Margin="0 -5 0 5">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
@@ -138,7 +128,8 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right" Cursor="Hand">
+            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right"
+                   Cursor="Hand">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
                   <c:FadeOutTextBlock Text="{Binding Title}" />
@@ -155,6 +146,7 @@
     <DockPanel Background="Transparent">
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       ReSelectSelectedItem="False"
                        Name="ItemsListBox"
                        Classes="vertical draggable narrowItemPadding"
                        VerticalAlignment="Stretch">

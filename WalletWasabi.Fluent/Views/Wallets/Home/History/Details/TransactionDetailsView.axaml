@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="history:TransactionDetailsViewModel"
+             x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.TransactionDetailsView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.TransactionDetailsView">
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
@@ -17,7 +17,7 @@
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Label="Date / Time"
                      TextValue="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}">
-        <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}"  Classes="monoSpaced"/>
+        <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}"  Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
 
@@ -26,11 +26,11 @@
                      Label="Transaction ID"
                      TextValue="{Binding TransactionId}">
         <c:PrivacyContentControl NumberOfPrivacyChars="48">
-          <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced"/>
+          <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
-        <Separator />
+      <Separator />
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource status_regular}"
@@ -51,6 +51,15 @@
       </c:PreviewItem>
 
       <Separator />
+
+      <!-- Block hash -->
+      <c:PreviewItem Icon="{StaticResource block_id}"
+                     Label="Block ID"
+                     TextValue="{Binding BlockHash}"
+                     IsVisible="{Binding IsConfirmed}">
+        <TextBlock Text="{Binding BlockHash}" />
+      </c:PreviewItem>
+      <Separator IsVisible="{Binding IsConfirmed}" />
 
       <!-- Block height -->
       <c:PreviewItem Icon="{StaticResource block_height}"

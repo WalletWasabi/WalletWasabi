@@ -1,12 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Send;
+namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Details;
 
-public class ConfirmLabelsDialogView : UserControl
+public class CoinJoinDetailsView : UserControl
 {
-	public ConfirmLabelsDialogView()
+	public CoinJoinDetailsView()
 	{
 		InitializeComponent();
 	}

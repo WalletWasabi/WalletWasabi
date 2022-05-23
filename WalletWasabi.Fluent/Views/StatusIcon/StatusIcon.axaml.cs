@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.History;
+namespace WalletWasabi.Fluent.Views.StatusIcon;
 
-public class CoinJoinDetailsView : UserControl
+public class StatusIcon : UserControl
 {
-	public CoinJoinDetailsView()
+	public StatusIcon()
 	{
 		InitializeComponent();
 	}

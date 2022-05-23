@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.StatusBar;
+namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Details;
 
-public class StatusBar : UserControl
+public class TransactionDetailsView : UserControl
 {
-	public StatusBar()
+	public TransactionDetailsView()
 	{
 		InitializeComponent();
 	}
