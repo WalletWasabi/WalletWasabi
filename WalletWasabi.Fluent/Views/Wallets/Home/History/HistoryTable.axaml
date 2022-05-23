@@ -84,15 +84,6 @@
     </ContextMenu>
 
     <ContextMenu x:Key="CoinJoinsTransactionContextMenu" x:DataType="historyItems:CoinJoinsHistoryItemViewModel">
-      <MenuItem Header="Copy Transaction ID"
-                Command="{Binding ClipboardCopyCommand}"
-                CommandParameter="{Binding CoinJoinTransactions[0].TransactionId, StringFormat={}{0}}"
-                IsVisible="{Binding CoinJoinTransactions.Count, Converter={x:Static conv:ListCountConverters.IsSingleItem}}">
-        <MenuItem.Icon>
-          <PathIcon Data="{StaticResource transaction_id}" />
-        </MenuItem.Icon>
-      </MenuItem>
-      <Separator IsVisible="{Binding CoinJoinTransactions.Count, Converter={x:Static conv:ListCountConverters.IsSingleItem}}"/>
       <MenuItem Header="Show details"
                 Command="{Binding ShowDetailsCommand}">
         <MenuItem.Icon>
