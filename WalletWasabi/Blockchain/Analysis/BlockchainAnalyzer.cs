@@ -99,12 +99,6 @@ public class BlockchainAnalyzer
 		// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
 		var smallestAnon = anonsets.Min();
 
-		// Consolidation in coinjoins is the only type of consolidation that's acceptable.
-		if (coefficient < 1)
-		{
-			return smallestAnon;
-		}
-
 		// Punish intersection exponentially.
 		// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
 		var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
