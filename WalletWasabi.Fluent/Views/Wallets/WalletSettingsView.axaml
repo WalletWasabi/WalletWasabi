@@ -20,13 +20,13 @@
         </DockPanel>
 
         <DockPanel IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Automatic coinjoin" />
-          <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
+          <TextBlock Text="Automatically start coinjoin" />
+          <ToggleSwitch IsChecked="{Binding AutoStartCoinJoin, Mode=OneWay}" Command="{Binding SetAutoStartCoinJoin}" />
         </DockPanel>
 
         <StackPanel Spacing="10"
-                    ToolTip.Tip="No automatic coinjoin if the non-private wallet balance is less than this.">
-          <TextBlock Text="Automatic coinjoin threshold (BTC)" />
+                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this.">
+          <TextBlock Text="Auto-start coinjoin threshold (BTC)" />
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
 

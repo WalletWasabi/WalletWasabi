@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.Keys;
 public class KeyManager
 {
 	public const int DefaultAnonScoreTarget = 5;
-	public const bool DefaultAutoCoinjoin = false;
+	public const bool DefaultAutoStartCoinjoin = false;
 	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
 	public const int AbsoluteMinGapLimit = 21;
@@ -96,9 +96,9 @@ public class KeyManager
 	{
 		// This should be impossible but in any case, coinjoin can only happen,
 		// if a profile is selected. Otherwise, the user's money can be drained.
-		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		if (AutoStartCoinJoin && !IsCoinjoinProfileSelected)
 		{
-			AutoCoinJoin = false;
+			AutoStartCoinJoin = false;
 		}
 	}
 
@@ -155,11 +155,11 @@ public class KeyManager
 	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin")]
-	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
+	[JsonProperty(Order = 10, PropertyName = "AutoStartCoinJoin")]
+	public bool AutoStartCoinJoin { get; set; } = DefaultAutoStartCoinjoin;
 
 	/// <summary>
-	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
+	/// Won't automatically start coinjoin  if there are less than this much non-private coins in the wallet.
 	/// </summary>
 	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]

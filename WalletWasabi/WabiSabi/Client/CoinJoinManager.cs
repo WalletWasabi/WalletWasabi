@@ -245,7 +245,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (!trackedAutoStarts.TryAdd(walletToStart, restartTask))
 			{
-				walletToStart.LogInfo($"AutoCoinJoin task was already added.");
+				walletToStart.LogInfo($"AutoStartCoinJoin task was already added.");
 			}
 		}
 

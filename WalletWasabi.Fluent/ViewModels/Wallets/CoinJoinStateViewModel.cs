@@ -83,8 +83,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.RemainingTime)
 			.Subscribe(text => IsBalanceDisplayed = text.Contains("BTC"));
 
-		var initialState = walletVm.Settings.AutoCoinJoin
-			? State.AutoCoinJoin
+		var initialState = walletVm.Settings.AutoStartCoinJoin
+			? State.AutoStartCoinJoin
 			: State.ManualCoinJoin;
 
 		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
@@ -115,8 +115,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		StopCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Stop));
 
-		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
-			.Subscribe(SetAutoCoinJoin);
+		walletVm.Settings.WhenAnyValue(x => x.AutoStartCoinJoin)
+			.Subscribe(SetAutoStartCoinJoin);
 
 		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
 			.SubscribeAsync(async _ =>
@@ -134,7 +134,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		Disabled,
-		AutoCoinJoin,
+		AutoStartCoinJoin,
 		ManualCoinJoin,
 
 		AutoStarting,
@@ -156,8 +156,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		AutoStartTimeout,
-		AutoCoinJoinOn,
-		AutoCoinJoinOff,
+		AutoStartCoinJoinOn,
+		AutoStartCoinJoinOff,
 		Pause,
 		Play,
 		Stop,
@@ -196,7 +196,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		// Manual Cj State
 		_stateMachine.Configure(State.ManualCoinJoin)
-			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
+			.Permit(Trigger.AutoStartCoinJoinOn, State.AutoStartCoinJoin)
 			.InitialTransition(State.Stopped)
 			.OnEntry(() =>
 			{
@@ -299,10 +299,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_overridePlebStop = true;
 			});
 
-		// AutoCj State
-		_stateMachine.Configure(State.AutoCoinJoin)
+		// AutoStartCoinJoin State
+		_stateMachine.Configure(State.AutoStartCoinJoin)
 			.InitialTransition(State.AutoStarting)
-			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
+			.Permit(Trigger.AutoStartCoinJoinOff, State.ManualCoinJoin)
 			.OnEntry(async () =>
 			{
 				IsAuto = true;
@@ -316,7 +316,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 
 		_stateMachine.Configure(State.AutoStarting)
-			.SubstateOf(State.AutoCoinJoin)
+			.SubstateOf(State.AutoStartCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
@@ -337,7 +337,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 
 		_stateMachine.Configure(State.Paused)
-			.SubstateOf(State.AutoCoinJoin)
+			.SubstateOf(State.AutoStartCoinJoin)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.OnEntry(async () =>
 			{
@@ -357,7 +357,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
 
 		_stateMachine.Configure(State.AutoPlaying)
-			.SubstateOf(State.AutoCoinJoin)
+			.SubstateOf(State.AutoStartCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
 			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
@@ -396,7 +396,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 
 		_stateMachine.Configure(State.AutoFinished)
-			.SubstateOf(State.AutoCoinJoin)
+			.SubstateOf(State.AutoStartCoinJoin)
 			.Permit(Trigger.RoundStart, State.AutoPlaying)
 			.Permit(Trigger.BalanceChanged, State.AutoPlaying)
 			.OnEntry(() =>
@@ -670,8 +670,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Fire(Trigger.Timer);
 	}
 
-	private void SetAutoCoinJoin(bool enabled)
+	private void SetAutoStartCoinJoin(bool enabled)
 	{
-		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
+		_stateMachine.Fire(enabled ? Trigger.AutoStartCoinJoinOn : Trigger.AutoStartCoinJoinOff);
 	}
 }

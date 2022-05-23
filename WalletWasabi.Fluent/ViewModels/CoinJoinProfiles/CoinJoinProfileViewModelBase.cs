@@ -6,7 +6,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public abstract string Description { get; }
 
-	public virtual bool AutoCoinjoin { get; } = true;
+	public virtual bool AutoStartCoinjoin { get; } = true;
 
 	public virtual int AnonScoreTarget { get; } = 5;
 
