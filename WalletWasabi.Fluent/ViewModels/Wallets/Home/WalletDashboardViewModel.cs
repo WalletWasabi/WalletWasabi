@@ -13,14 +13,6 @@ public class WalletDashboardViewModel : ActivatableViewModel
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
-	private ObservableAsPropertyHelper<string> _balanceBtc = ObservableAsPropertyHelper<string>.Default();
-	private ObservableAsPropertyHelper<string> _balanceUsd = ObservableAsPropertyHelper<string>.Default();
-	private ObservableAsPropertyHelper<string> _btcPrice = ObservableAsPropertyHelper<string>.Default();
-	private ObservableAsPropertyHelper<double> _privateScore = ObservableAsPropertyHelper<double>.Default();
-
-	private ObservableAsPropertyHelper<bool> _hasBalance = ObservableAsPropertyHelper<bool>.Default();
-	private ObservableAsPropertyHelper<bool> _hasPrivacyScore = ObservableAsPropertyHelper<bool>.Default();
-
 
 	public WalletDashboardViewModel(WalletViewModelBase wallet, IObservable<Unit> balanceChanged)
 	{
@@ -28,12 +20,17 @@ public class WalletDashboardViewModel : ActivatableViewModel
 		_balanceChanged = balanceChanged;
 	}
 
-	public string BalanceUsd => _balanceUsd.Value;
-	public string BalanceBtc => _balanceBtc.Value;
-	public bool HasBalance => _hasBalance.Value;
-	public string BtcToUsdExchangeRate => _btcPrice.Value;
-	public double PrivacyScore => _privateScore.Value;
-	public bool HasPrivacyScore => _hasPrivacyScore.Value;
+	public IObservable<string>? BalanceUsd { get; private set; }
+
+	public IObservable<string>? BalanceBtc { get; private set; }
+
+	public IObservable<bool>? HasBalance { get; private set; }
+
+	public IObservable<string>? BtcToUsdExchangeRate { get; private set; }
+
+	public IObservable<double>? PrivacyScore { get; private set; }
+
+	public IObservable<bool>? HasPrivacyScore { get; private set; }
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
@@ -51,40 +48,28 @@ public class WalletDashboardViewModel : ActivatableViewModel
 		var privateScore = _balanceChanged
 			.Select(_ => GetPrivateScore());
 
-		usdExchangeRate
+		BtcToUsdExchangeRate = usdExchangeRate
 			.Select(usd => usd.FormattedFiat("N0") + " USD")
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.BtcToUsdExchangeRate, out _btcPrice)
-			.DisposeWith(disposables);
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		totalAmount
+		BalanceBtc = totalAmount
 			.Select(x => x.ToFormattedString() + " BTC")
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.BalanceBtc, out _balanceBtc)
-			.DisposeWith(disposables);
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		totalAmount
+		HasBalance = totalAmount
 			.Select(x => x > Money.Zero)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.HasBalance, out _hasBalance)
-			.DisposeWith(disposables);
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		usdBalance
+		BalanceUsd = usdBalance
 			.Select(GenerateFiatText)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.BalanceUsd, out _balanceUsd)
-			.DisposeWith(disposables);
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		privateScore
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.PrivacyScore, out _privateScore)
-			.DisposeWith(disposables);
+		PrivacyScore = privateScore
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-		privateScore
+		HasPrivacyScore = privateScore
 			.Select(x => x > 0d)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.HasPrivacyScore, out _hasPrivacyScore)
-			.DisposeWith(disposables);
+			.ObserveOn(RxApp.MainThreadScheduler);
 	}
 
 	private static string GenerateFiatText(decimal usdAmount)
@@ -96,7 +81,6 @@ public class WalletDashboardViewModel : ActivatableViewModel
 
 		return usdAmount.GenerateFiatText("USD", fiatFormat);
 	}
-
 
 	private double GetPrivateScore()
 	{
