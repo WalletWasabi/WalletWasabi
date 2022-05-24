@@ -20,8 +20,8 @@
                                       Content="{Binding BalanceUsd}" />
     </StackPanel>
 
-    <StackPanel>
-      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVATE</TextBlock>
+    <StackPanel IsVisible="{Binding HasPrivacyScore}">
+      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVACY SCORE</TextBlock>
       <TextBlock  Classes="monoSpaced"
                   Text="{Binding PrivacyScore, StringFormat='{}{0:P0}'}"  />
     </StackPanel>

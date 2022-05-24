@@ -16,8 +16,11 @@ public class WalletDashboardViewModel : ActivatableViewModel
 	private ObservableAsPropertyHelper<string> _balanceBtc = ObservableAsPropertyHelper<string>.Default();
 	private ObservableAsPropertyHelper<string> _balanceUsd = ObservableAsPropertyHelper<string>.Default();
 	private ObservableAsPropertyHelper<string> _btcPrice = ObservableAsPropertyHelper<string>.Default();
-	private ObservableAsPropertyHelper<bool> _hasBalance = ObservableAsPropertyHelper<bool>.Default();
 	private ObservableAsPropertyHelper<double> _privateScore = ObservableAsPropertyHelper<double>.Default();
+
+	private ObservableAsPropertyHelper<bool> _hasBalance = ObservableAsPropertyHelper<bool>.Default();
+	private ObservableAsPropertyHelper<bool> _hasPrivacyScore = ObservableAsPropertyHelper<bool>.Default();
+
 
 	public WalletDashboardViewModel(WalletViewModelBase wallet, IObservable<Unit> balanceChanged)
 	{
@@ -30,6 +33,7 @@ public class WalletDashboardViewModel : ActivatableViewModel
 	public bool HasBalance => _hasBalance.Value;
 	public string BtcToUsdExchangeRate => _btcPrice.Value;
 	public double PrivacyScore => _privateScore.Value;
+	public bool HasPrivacyScore => _hasPrivacyScore.Value;
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
@@ -74,6 +78,13 @@ public class WalletDashboardViewModel : ActivatableViewModel
 		privateScore
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, x => x.PrivacyScore, out _privateScore)
+			.DisposeWith(disposables);
+
+
+		privateScore
+			.Select(x => Math.Floor(x) > 0d)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, x => x.HasPrivacyScore, out _hasPrivacyScore)
 			.DisposeWith(disposables);
 	}
 
