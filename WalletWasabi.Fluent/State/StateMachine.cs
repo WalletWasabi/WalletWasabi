@@ -101,7 +101,10 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			}
 		}
 
-		current.Enter();
+		if (origin is null || !IsAncestorOfInclusive(origin.Value, current.StateId))
+		{
+			current.Enter();
+		}
 
 		return current;
 	}
