@@ -13,8 +13,8 @@
     <Style Selector="Panel#TitlePanel">
       <Setter Property="Transitions">
         <Transitions>
-          <DoubleTransition Property="Opacity" Duration="0:0:0.275" />
-          <TransformOperationsTransition Duration="0:0:0.275" Property="RenderTransform" />
+          <DoubleTransition Property="Opacity" Duration="0:0:0.100" />
+          <TransformOperationsTransition Duration="0:0:0.175" Property="RenderTransform" Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
       <Setter Property="Opacity" Value="1" />
@@ -22,7 +22,7 @@
     </Style>
     <Style Selector="Panel#TitlePanel.minWidth">
       <Setter Property="Opacity" Value="0" />
-      <Setter Property="RenderTransform" Value="translateX(-30px)" />
+      <Setter Property="RenderTransform" Value="translateX(-20px)" />
     </Style>
   </UserControl.Styles>
 
