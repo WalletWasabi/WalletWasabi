@@ -23,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-	private readonly ObservableAsPropertyHelper<WalletViewModel?> _currentWallet;
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
@@ -144,11 +143,10 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
-		_currentWallet =
+		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
 			.WhereNotNull()
-			.OfType<WalletViewModel>()
-			.ToProperty(this, x => x.CurrentWallet);
+			.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
@@ -172,7 +170,7 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
-	public WalletViewModel? CurrentWallet => _currentWallet.Value;
+	public IObservable<WalletViewModel> CurrentWallet { get; }
 
 	public TargettedNavigationStack MainScreen { get; }
 
