@@ -52,6 +52,16 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
+		Observable.Timer(TimeSpan.FromSeconds(30))
+			.Subscribe(_ =>
+			{
+				foreach (var coin in GetCoins())
+				{
+					coin.RefreshAndGetIsBanned();
+				}
+			})
+			.DisposeWith(disposables);
+
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
