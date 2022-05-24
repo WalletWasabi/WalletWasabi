@@ -76,12 +76,6 @@ public class CoinJoinManager : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		if (WalletManager.Network == Network.Main)
-		{
-			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
-			return;
-		}
-
 		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
@@ -218,7 +212,7 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogDebug($"Coinjoin client started, auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
+			walletToStart.LogDebug($"Coinjoin client started, AutoStartCoinjoin:'{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
 			TryRemoveTrackedAutoStart(walletToStart);
@@ -233,7 +227,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
-					walletToStop.LogWarning($"CoinJoin is in critical phase, it cannot be stopped.");
+					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped.");
 					return;
 				}
 				coinJoinTrackerToStop.Stop();
