@@ -30,7 +30,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _waitingMessage = new() { Message = "Waiting for coinjoin" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundFailedMessage = new() { Message = "Coinjoin failed, retrying..." };
@@ -143,7 +142,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoPlaying,
 		AutoPlayingCritical,
 		AutoFinished,
-		AutoFinishedPlebStop,
+		AutoPlebStop,
 
 		Stopped,
 		ManualPlaying,
@@ -318,13 +317,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 				PauseVisible = false;
 				PlayVisible = false;
-
-				CurrentStatus = _initialisingMessage;
-			})
-			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
-			.OnTrigger(Trigger.AutoStartTimeout, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
-			.OnTrigger(Trigger.Pause, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
-			.OnTrigger(Trigger.AutoCoinJoinOff, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
+			});
 
 		_stateMachine.Configure(State.AutoStarting)
 			.SubstateOf(State.AutoCoinJoin)
@@ -333,6 +326,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
+			.OnTrigger(Trigger.Timer, UpdateAutoStartCountDown)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -340,7 +334,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				var now = DateTimeOffset.UtcNow;
 				StartCountDown(_countDownMessage, start: now, end: now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60)));
 			})
-			.OnTrigger(Trigger.Timer, UpdateAutoStartCountDown)
 			.OnExit(() =>
 			{
 				StopCountDown();
@@ -368,16 +361,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.AutoPlaying)
 			.SubstateOf(State.AutoCoinJoin)
 			.Permit(Trigger.Pause, State.Paused)
-			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
+			.Permit(Trigger.PlebStop, State.AutoPlebStop)
 			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.AutoPlayingCritical)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				CurrentStatus = _waitingMessage;
 				IsAutoWaiting = false;
 				PauseVisible = true;
 				PlayVisible = false;
+
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
+			.OnExit(async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
@@ -387,14 +383,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.AutoPlayingCritical)
 			.SubstateOf(State.AutoPlaying)
 			.Permit(Trigger.ExitCriticalPhaseMessage, State.AutoPlaying)
-			.OnEntry(() =>
-			{
-				PauseVisible = false;
-			})
-			.OnExit(() =>
-			{
-				PauseVisible = true;
-			});
+			.OnEntry(() => PauseVisible = false)
+			.OnExit(() => PauseVisible = true);
 
 		_stateMachine.Configure(State.AutoFinished)
 			.SubstateOf(State.AutoCoinJoin)
@@ -412,8 +402,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _finishedMessage;
 			});
 
-		_stateMachine.Configure(State.AutoFinishedPlebStop)
-			.SubstateOf(State.AutoFinished)
+		_stateMachine.Configure(State.AutoPlebStop)
+			.SubstateOf(State.AutoPlaying)
 			.Permit(Trigger.Play, State.AutoPlaying)
 			.Permit(Trigger.PlebStopChanged, State.AutoPlaying)
 			.Permit(Trigger.Pause, State.Paused)
@@ -427,10 +417,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = true;
 				PlayVisible = true;
 			})
-			.OnTrigger(Trigger.Play, () =>
-			{
-				_overridePlebStop = true;
-			});
+			.OnTrigger(Trigger.Play, () => _overridePlebStop = true);
 	}
 
 	private void UpdateAutoStartCountDown()
