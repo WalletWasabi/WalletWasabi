@@ -209,13 +209,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				UpdateAndShowWalletMixedProgress();
 			})
-			.OnExit(() =>
-			{
-				// TODO
-			})
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
-		//.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None));
-		//.OnTrigger(Trigger.AutoCoinJoinOn, async () =>);
 
 		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
@@ -253,10 +247,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
 			})
-			.OnExit(async () =>
-			{
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
-			})
+			.OnExit(async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
 			.Custom(HandleMessages)
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
@@ -264,14 +255,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.ManualPlayingCritical)
 			.SubstateOf(State.ManualPlaying)
 			.Permit(Trigger.ExitCriticalPhaseMessage, State.ManualPlaying)
-			.OnEntry(() =>
-			{
-				StopVisible = false;
-			})
-			.OnExit(() =>
-			{
-				StopVisible = true;
-			});
+			.OnEntry(() => StopVisible = false)
+			.OnExit(() => StopVisible = true);
 
 		_stateMachine.Configure(State.ManualFinished)
 			.SubstateOf(State.Stopped)
@@ -302,10 +287,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PlayVisible = true;
 			})
-			.OnTrigger(Trigger.Play, () =>
-			{
-				_overridePlebStop = true;
-			});
+			.OnTrigger(Trigger.Play, () => _overridePlebStop = true);
 
 		// AutoCj State
 		_stateMachine.Configure(State.AutoCoinJoin)
