@@ -44,7 +44,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
-	[AutoNotify] private WalletDashboardViewModel _walletDashboard;
+	[AutoNotify] private WalletDashboardViewModel? _walletDashboard;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{

@@ -5,11 +5,13 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home;
 
-public class WalletDashboardViewModel : ActivatableViewModel
+public class WalletDashboardViewModel : ActivatableViewModel, IWalletDashboardViewModel
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
@@ -74,11 +76,7 @@ public class WalletDashboardViewModel : ActivatableViewModel
 
 	private static string GenerateFiatText(decimal usdAmount)
 	{
-		var fiatFormat =
-			usdAmount >= 10
-				? "N0"
-				: "N2";
-
+		var fiatFormat = usdAmount >= 10 ? "N0" : "N2";
 		return usdAmount.GenerateFiatText("USD", fiatFormat);
 	}
 

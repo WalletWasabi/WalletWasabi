@@ -2,12 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:home="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:dashboard="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="home:WalletDashboardViewModel"
+             x:DataType="dashboard:IWalletDashboardViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletDashboard">
+
+  <Design.DataContext>
+    <dashboard:WalletDashboardViewModelDesign />
+  </Design.DataContext>
 
   <StackPanel Orientation="Horizontal" Spacing="40" Margin="0 15 0 5">
     <StackPanel IsVisible="{Binding HasBalance^}">
