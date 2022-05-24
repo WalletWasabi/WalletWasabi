@@ -11,7 +11,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	private readonly Dictionary<TState, StateContext> _states;
 	private OnTransitionedDelegate? _onTransitioned;
 
-	public delegate void OnTransitionedDelegate(TState from, TState to);
+	public delegate void OnTransitionedDelegate(TState? from, TState to);
 
 	public TState State => _currentState.StateId;
 
@@ -43,17 +43,6 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		return this;
 	}
-
-	private bool IsAncestorOfExclusive(TState state, TState parent)
-	{
-		if (state.Equals(parent))
-		{
-			return false;
-		}
-
-		return IsAncestorOfInclusive(state, parent);
-	}
-
 
 	private bool IsAncestorOfInclusive(TState state, TState parent)
 	{
@@ -99,23 +88,31 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public void Start()
 	{
-		Enter();
+		Goto(null, _currentState.StateId);
 	}
 
-	private void Enter()
+	private StateContext EnterStates(TState? origin, StateContext current)
 	{
-		_currentState.Enter();
-
-		if (_currentState.InitialTransitionTo is { } state)
+		if (current.Parent is { } parent)
 		{
-			Goto(state);
+			if (origin is null || !IsAncestorOfInclusive(origin.Value, parent.StateId))
+			{
+				EnterStates(origin, parent);
+			}
 		}
+
+		current.Enter();
+
+		return current;
 	}
 
 	private void Goto(TState destination)
 	{
-		var origin = _currentState.StateId;
+		Goto(_currentState.StateId, destination);
+	}
 
+	private void Goto(TState? origin, TState destination)
+	{
 		if (_states.ContainsKey(destination))
 		{
 			StateContext ExitStates(StateContext current)
@@ -133,26 +130,16 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 				return current;
 			}
 
-			StateContext EnterStates(StateContext current)
-			{
-				if (current.Parent is { } parent)
-				{
-					if (!IsAncestorOfInclusive(origin, parent.StateId))
-					{
-						EnterStates(parent);
-					}
-				}
-
-				current.Enter();
-
-				return current;
-			}
-
 			_currentState = ExitStates(_currentState);
 
-			_currentState = EnterStates(_states[destination]);
+			_currentState = EnterStates(origin, _states[destination]);
 
 			_onTransitioned?.Invoke(origin, _currentState.StateId);
+
+			if (_currentState.InitialTransitionTo is { } initial)
+			{
+				Goto(initial);
+			}
 		}
 	}
 
