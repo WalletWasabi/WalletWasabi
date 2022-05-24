@@ -409,7 +409,7 @@ public class StateMachineTests
 		sut.Fire(JukeBoxTrigger.Pause);
 
 		Assert.Equal(1, pausedEntryCount);
-		Assert.Equal(3, entryCallCount);
+		Assert.Equal(2, entryCallCount);
 	}
 
 	[Fact]
