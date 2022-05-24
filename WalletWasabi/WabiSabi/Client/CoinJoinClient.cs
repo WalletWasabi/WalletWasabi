@@ -186,7 +186,14 @@ public class CoinJoinClient
 			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
-				roundState.LogInfo($"Registration phase ended by the coordinator: '{ex.Message}'.");
+				roundState = ex.RoundState;
+				var message = ex.RoundState.EndRoundState switch
+				{
+					EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
+					_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
+				};
+
+				roundState.LogInfo(message);
 				return new CoinJoinResult(false);
 			}
 
@@ -433,21 +440,40 @@ public class CoinJoinClient
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
-			.ToShuffled() // Preshuffle before ordering.
-			.OrderByDescending(y => y.Amount)
+			.ToShuffled()
 			.ToArray();
 
-		// How many inputs do we want to provide to the mix?
-		int inputCount = Math.Min(
-			filteredCoins.Length,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd));
-
-		var nonPrivateFilteredCoins = filteredCoins
+		var privateCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
+			.ToArray();
+		var nonPrivateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
 			.ToArray();
 
+		// Make sure it's ordered by 1 private and 1 non-private coins.
+		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
+		var organizedCoins = new List<SmartCoin>();
+		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Length); i++)
+		{
+			if (i < nonPrivateCoins.Length)
+			{
+				var npc = nonPrivateCoins[i];
+				organizedCoins.Add(npc);
+			}
+			if (i < privateCoins.Length)
+			{
+				var pc = privateCoins[i];
+				organizedCoins.Add(pc);
+			}
+		}
+
+		// How many inputs do we want to provide to the mix?
+		int inputCount = Math.Min(
+			organizedCoins.Count,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(organizedCoins.Count, rnd));
+
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
-		var largestAmounts = nonPrivateFilteredCoins
+		var largestAmounts = nonPrivateCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
@@ -459,11 +485,11 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			var baseGroup = organizedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
 
 			var sw2 = Stopwatch.StartNew();
-			foreach (var group in filteredCoins
+			foreach (var group in organizedCoins
 				.Except(new[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))

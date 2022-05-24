@@ -16,7 +16,7 @@
     EnableNext="True" NextContent="Done">
     <StackPanel Classes="settingsLayout">
       <DockPanel>
-        <TextBlock Text="Automatic Coinjoin" />
+        <TextBlock Text="Automatically Start Coinjoin" />
         <ToggleSwitch IsChecked="{Binding AutoCoinjoin}" />
       </DockPanel>
 
