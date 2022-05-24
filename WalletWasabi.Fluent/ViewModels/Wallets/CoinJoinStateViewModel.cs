@@ -150,7 +150,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ManualPlayingCritical,
 		ManualFinished,
 
-		ManualFinishedPlebStop,
+		ManualPlebStop,
 	}
 
 	private enum Trigger
@@ -207,17 +207,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				StopVisible = false;
 				PauseVisible = false;
+
+				UpdateAndShowWalletMixedProgress();
 			})
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
-			.OnTrigger(Trigger.Stop, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
-			.OnTrigger(Trigger.AutoCoinJoinOn, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
+			.OnExit(() =>
+			{
+				// TODO
+			})
+			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
+		//.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None));
+		//.OnTrigger(Trigger.AutoCoinJoinOn, async () =>);
 
 		_stateMachine.Configure(State.Stopped)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Play, State.ManualPlaying)
-			.OnEntry(() =>
+			.OnEntry(async () =>
 			{
 				ProgressValue = 0;
 				ElapsedTime = "";
@@ -226,28 +230,37 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				_wallet.AllowManualCoinJoin = false;
 				CurrentStatus = _stoppedMessage;
+
+				UpdateAndShowWalletMixedProgress();
+
+				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
+			.OnEntry(UpdateAndShowWalletMixedProgress);
 
 		_stateMachine.Configure(State.ManualPlaying)
 			.SubstateOf(State.ManualCoinJoin)
 			.Permit(Trigger.Stop, State.Stopped)
 			.Permit(Trigger.AllCoinsPrivate, State.ManualFinished)
-			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
+			.Permit(Trigger.PlebStop, State.ManualPlebStop)
 			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
-			.OnEntry(() =>
+			.Permit(Trigger.AllCoinsPrivate, State.Stopped)
+			.OnEntry(async () =>
 			{
 				PlayVisible = false;
 				StopVisible = true;
 				CurrentStatus = _waitingMessage;
+
+				UpdateAndShowWalletMixedProgress();
+
+				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+			})
+			.OnExit(async () =>
+			{
+				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false)
-			.OnTrigger(Trigger.AllCoinsPrivate, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
+			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
 
 		_stateMachine.Configure(State.ManualPlayingCritical)
 			.SubstateOf(State.ManualPlaying)
@@ -262,7 +275,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 
 		_stateMachine.Configure(State.ManualFinished)
-			.SubstateOf(State.ManualCoinJoin)
+			.SubstateOf(State.Stopped)
 			.Permit(Trigger.Play, State.ManualPlaying)
 			.OnEntry(() =>
 			{
@@ -274,11 +287,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				RemainingTime = "";
 			});
 
-		_stateMachine.Configure(State.ManualFinishedPlebStop)
-			.SubstateOf(State.ManualFinished)
+		_stateMachine.Configure(State.ManualPlebStop)
+			.SubstateOf(State.ManualPlaying)
 			.Permit(Trigger.BalanceChanged, State.ManualPlaying)
 			.Permit(Trigger.PlebStopChanged, State.ManualPlaying)
 			.Permit(Trigger.Stop, State.Stopped)
+			.Permit(Trigger.Play, State.ManualPlaying)
 			.OnEntry(() =>
 			{
 				CurrentStatus = _plebStopMessage;
@@ -560,18 +574,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private StateMachine<State, Trigger>.StateContext HandleMessages(StateMachine<State, Trigger>.StateContext context)
 	{
 		return context.OnTrigger(Trigger.RoundEndedMessage, () =>
+		{
+			if (_lastStatusMessage is RoundEnded roundEnded)
 			{
-				if (_lastStatusMessage is RoundEnded roundEnded)
+				CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
 				{
-					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
-					{
-						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
-						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
-						_ => _roundFailedMessage
-					};
-					StopCountDown();
-				}
-			})
+					EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
+					EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
+					_ => _roundFailedMessage
+				};
+				StopCountDown();
+			}
+		})
 			.OnTrigger(Trigger.InputRegistrationMessage, () =>
 			{
 				if (_lastStatusMessage is EnteringInputRegistrationPhase enteringInputRegistrationPhase)
