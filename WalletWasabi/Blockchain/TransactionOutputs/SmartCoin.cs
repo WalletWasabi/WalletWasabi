@@ -1,9 +1,11 @@
 using NBitcoin;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs;
@@ -30,6 +32,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private Lazy<TxOut> _txOut;
 	private Lazy<Coin> _coin;
 	private Lazy<int> _hashCode;
+	private Task? _banExpirationTask = null;
 
 	public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
 	{
@@ -96,16 +99,24 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
 	}
 
-	public DateTimeOffset? BannedUntilUtc
+	public DateTimeOffset? BannedUntilUtc => _bannedUntilUtc;
+
+	public void MarkAsBannedUntil(DateTimeOffset until)
 	{
-		get => _bannedUntilUtc;
-		set
+		if (RaiseAndSetIfChanged(ref _bannedUntilUtc, until))
 		{
-			// ToDo: IsBanned does not get notified when it gets unbanned.
-			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
+			if (_banExpirationTask is not null)
 			{
-				SetIsBanned();
+				Logger.LogDebug("Already marked as banned!");
 			}
+
+			_banExpirationTask = Task.Run(async () => {
+				TimeSpan unbanDelay = until - DateTime.UtcNow;
+				await Task.Delay(unbanDelay).ConfigureAwait(false);
+				IsBanned = BannedUntilUtc is not null && BannedUntilUtc >= DateTimeOffset.UtcNow;
+
+				_banExpirationTask = null;
+			});
 		}
 	}
 
@@ -145,11 +156,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsImmature(int bestHeight)
 	{
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
-	}
-
-	public void SetIsBanned()
-	{
-		IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
 	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]

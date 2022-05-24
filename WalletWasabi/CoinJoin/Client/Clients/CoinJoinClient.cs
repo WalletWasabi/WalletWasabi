@@ -526,7 +526,7 @@ public class CoinJoinClient
 					throw new NotSupportedException("This should never happen.");
 				}
 
-				coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
+				coin.MarkAsBannedUntil(DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt));
 
 				Logger.LogWarning(ex.Message.Split('\n')[1]);
 
