@@ -411,4 +411,33 @@ public class StateMachineTests
 		Assert.Equal(1, pausedEntryCount);
 		Assert.Equal(3, entryCallCount);
 	}
+
+	[Fact]
+	public void Tranistioning_To_State_Exits_All_ChildStates()
+	{
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
+			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.PausedChild2);
+
+		int exitCallCount = 0;
+
+		sut.Configure(JukeBoxState.Playing);
+
+		sut.Configure(JukeBoxState.Paused)
+			.OnExit(() => exitCallCount++)
+			.Permit(JukeBoxTrigger.Play, JukeBoxState.Playing);
+
+		sut.Configure(JukeBoxState.PausedChild)
+			.SubstateOf(JukeBoxState.Paused)
+			.OnExit(() => exitCallCount++);
+
+		sut.Configure(JukeBoxState.PausedChild2)
+			.SubstateOf(JukeBoxState.PausedChild)
+			.OnExit(() => exitCallCount++);
+
+		sut.Start();
+
+		sut.Fire(JukeBoxTrigger.Play);
+
+		Assert.Equal(3, exitCallCount);
+	}
 }
