@@ -74,11 +74,7 @@ public class WalletDashboardViewModel : ActivatableViewModel
 
 	private static string GenerateFiatText(decimal usdAmount)
 	{
-		var fiatFormat =
-			usdAmount >= 10
-				? "N0"
-				: "N2";
-
+		var fiatFormat = usdAmount >= 10 ? "N0" : "N2";
 		return usdAmount.GenerateFiatText("USD", fiatFormat);
 	}
 
