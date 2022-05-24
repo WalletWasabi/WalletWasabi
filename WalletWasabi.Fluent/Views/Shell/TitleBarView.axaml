@@ -4,9 +4,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="100"
              x:Class="WalletWasabi.Fluent.Views.Shell.TitleBarView"
              x:Name="UserControl">
+
+  <UserControl.Styles>
+    <Style Selector="Panel#TitlePanel">
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.100" />
+          <TransformOperationsTransition Duration="0:0:0.175" Property="RenderTransform"
+                                         Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="RenderTransform" Value="translateX(0px)" />
+    </Style>
+    <Style Selector="Panel#TitlePanel.minWidth">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="RenderTransform" Value="translateX(-20px)" />
+    </Style>
+  </UserControl.Styles>
 
   <UserControl.Resources>
 
@@ -50,7 +69,6 @@
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
         <ContentControl Grid.Column="1" Grid.ColumnSpan="2" ContentTemplate="{StaticResource Title}" />
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
-
       </Grid>
     </DataTemplate>
 
@@ -67,7 +85,14 @@
 
         <DockPanel Grid.Column="1">
           <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
-          <ContentControl ContentTemplate="{StaticResource Title}" />
+          <Panel x:Name="TitlePanel">
+            <Interaction.Behaviors>
+              <AdaptiveBehavior>
+                <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
+              </AdaptiveBehavior>
+            </Interaction.Behaviors>
+            <ContentControl ContentTemplate="{StaticResource Title}" />
+          </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
       </Grid>

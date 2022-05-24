@@ -25,8 +25,8 @@
           <Panel VerticalAlignment="Bottom"
                  Height="100">
             <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
-                                      IsDockEffectVisible="{Binding CurrentWallet.IsMusicBoxVisible, FallbackValue=False}"
-                                      Classes.fireEffect="{Binding CurrentWallet.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
+                                      IsDockEffectVisible="{Binding CurrentWallet^.IsMusicBoxVisible^, FallbackValue=False}"
+                                      Classes.fireEffect="{Binding CurrentWallet^.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
               <spectrum:SpectrumControl.Styles>
                 <Style Selector="spectrum|SpectrumControl.fireEffect">
                   <Setter Property="Foreground" Value="{StaticResource OrangeCoinColor}" />
@@ -52,7 +52,7 @@
                 <Setter Property="Margin" Value="31 26 31 0" />
               </Style>
             </DockPanel.Styles>
-            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet}"
+            <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
                                        HorizontalAlignment="Center" Height="66" />
             <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </DockPanel>

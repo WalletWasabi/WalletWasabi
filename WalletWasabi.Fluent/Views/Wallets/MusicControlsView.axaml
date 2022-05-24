@@ -31,7 +31,7 @@
     </Style>
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
-          Classes.IsActive="{Binding IsMusicBoxVisible}"
+          Classes.IsActive="{Binding IsMusicBoxVisible^}"
           TextBlock.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
     <Border ClipToBounds="True"
@@ -63,18 +63,25 @@
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
 
-            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}" Foreground="White" />
+            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}">
+              <ProgressBar.Foreground>
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" />
+              </ProgressBar.Foreground>
+              <ProgressBar.Background>
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" Opacity="0.5" />
+              </ProgressBar.Background>
+            </ProgressBar>
 
-          <DockPanel LastChildFill="False">
-            <TextBlock Text="{Binding ElapsedTime}" />
-            <controls:PrivacyContentControl
-              Content="{Binding RemainingTime}"
-              DockPanel.Dock="Right"
-              ForceShow="{Binding !IsBalanceDisplayed}" />
-          </DockPanel>
-        </StackPanel>
+            <DockPanel LastChildFill="False">
+              <TextBlock Text="{Binding ElapsedTime}" />
+              <controls:PrivacyContentControl
+                Content="{Binding RemainingTime}"
+                DockPanel.Dock="Right"
+                ForceShow="{Binding !IsBalanceDisplayed}" />
+            </DockPanel>
+          </StackPanel>
 
-        <Separator Classes="vertical" />
+          <Separator Classes="vertical" />
 
           <Button Classes="plain"
                   IsVisible="{Binding PlayVisible}"
@@ -100,16 +107,16 @@
             <Ellipse.Styles>
               <Style Selector="Ellipse">
                 <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-                <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Enabled" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Enabled" />
               </Style>
               <Style Selector="Ellipse.waiting">
                 <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
                 <Setter Property="ToolTip.Tip"
-                        Value="Automatic Coinjoin Enabled. Press Play to start immediately." />
+                        Value="Auto-start Coinjoin Enabled. Press Play to start immediately." />
               </Style>
               <Style Selector="Ellipse.disabled">
-                <Setter Property="Fill" Value="#7FFFFFFF" />
-                <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Disabled" />
+                <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Disabled" />
               </Style>
             </Ellipse.Styles>
           </Ellipse>

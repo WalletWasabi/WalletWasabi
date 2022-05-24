@@ -108,6 +108,8 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		{
 			FlyoutBase.ShowAttachedFlyout(AssociatedObject);
 		}
+
+		IsSearchPanelOpen = true;
 	}
 
 	private void AssociatedObjectOnLostFocus()
@@ -127,6 +129,7 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		}
 
 		FlyoutBase.GetAttachedFlyout(AssociatedObject)?.Hide();
+		IsSearchPanelOpen = false;
 	}
 
 	private void OnTopLevelPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -22,8 +22,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletViewModel : WalletViewModelBase
 {
-	private readonly ObservableAsPropertyHelper<bool> _isMusicBoxVisible;
-
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
@@ -85,14 +83,13 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
-		_isMusicBoxVisible =
+		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero)
 				.Select(tuple =>
 				{
 					var (isSelected, isWalletBalanceZero) = tuple;
 					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly;
-				})
-				.ToProperty(this, x => x.IsMusicBoxVisible);
+				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
 
@@ -123,7 +120,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
 
-	public bool IsMusicBoxVisible => _isMusicBoxVisible.Value;
+	public IObservable<bool> IsMusicBoxVisible { get; }
 
 	internal CoinJoinStateViewModel CoinJoinStateViewModel { get; }
 
