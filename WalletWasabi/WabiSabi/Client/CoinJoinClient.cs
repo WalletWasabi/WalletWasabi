@@ -173,7 +173,7 @@ public class CoinJoinClient
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
-		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.Now) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
 		try
 		{
@@ -186,7 +186,14 @@ public class CoinJoinClient
 			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
-				roundState.LogInfo($"Registration phase ended by the coordinator: '{ex.Message}'.");
+				roundState = ex.RoundState;
+				var message = ex.RoundState.EndRoundState switch
+				{
+					EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
+					_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
+				};
+
+				roundState.LogInfo(message);
 				return new CoinJoinResult(false);
 			}
 
@@ -195,6 +202,8 @@ public class CoinJoinClient
 				roundState.LogInfo("There are no available Alices to participate with.");
 				return new CoinJoinResult(false);
 			}
+
+			roundState.LogDebug($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
@@ -286,7 +295,7 @@ public class CoinJoinClient
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
-		roundState.LogDebug($"Input registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
+		roundState.LogDebug($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd);
 
@@ -430,21 +439,41 @@ public class CoinJoinClient
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-			.ToShuffled() // Preshuffle before ordering.
-			.OrderByDescending(y => y.Amount)
+			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
+			.ToShuffled()
 			.ToArray();
 
-		// How many inputs do we want to provide to the mix?
-		int inputCount = Math.Min(
-			filteredCoins.Length,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(filteredCoins.Length, rnd));
-
-		var nonPrivateFilteredCoins = filteredCoins
+		var privateCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
+			.ToArray();
+		var nonPrivateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
 			.ToArray();
 
+		// Make sure it's ordered by 1 private and 1 non-private coins.
+		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
+		var organizedCoins = new List<SmartCoin>();
+		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Length); i++)
+		{
+			if (i < nonPrivateCoins.Length)
+			{
+				var npc = nonPrivateCoins[i];
+				organizedCoins.Add(npc);
+			}
+			if (i < privateCoins.Length)
+			{
+				var pc = privateCoins[i];
+				organizedCoins.Add(pc);
+			}
+		}
+
+		// How many inputs do we want to provide to the mix?
+		int inputCount = Math.Min(
+			organizedCoins.Count,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(organizedCoins.Count, rnd));
+
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
-		var largestAmounts = nonPrivateFilteredCoins
+		var largestAmounts = nonPrivateCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
@@ -456,11 +485,11 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var baseGroup = filteredCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			var baseGroup = organizedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
 
 			var sw2 = Stopwatch.StartNew();
-			foreach (var group in filteredCoins
+			foreach (var group in organizedCoins
 				.Except(new[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))

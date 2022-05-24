@@ -69,12 +69,6 @@ public class CoinJoinManager : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		if (WalletManager.Network == Network.Main)
-		{
-			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
-			return;
-		}
-
 		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
@@ -139,9 +133,9 @@ public class CoinJoinManager : BackgroundService
 		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
-			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker) && !tracker.IsCompleted)
+			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker))
 			{
-				walletToStart.LogDebug("Cannot start coinjoin for wallet, bacause it is already running.");
+				walletToStart.LogDebug("Cannot start coinjoin, because it is already running.");
 				return;
 			}
 
@@ -167,6 +161,18 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
+			if (IsWalletPrivate(walletToStart))
+			{
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
+
+				// In AutoCoinJoin mode we keep watching.
+				if (startCommand.RestartAutomatically)
+				{
+					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
+				}
+				return;
+			}
+
 			var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight).ToArray();
 			if (coinCandidates.Length == 0)
 			{
@@ -180,13 +186,22 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically, startCommand.OverridePlebStop);
+
+			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
+			{
+				// This should never happen.
+				walletToStart.LogError($"{nameof(CoinJoinTracker)} was already added.");
+				coinJoinTracker.Stop();
+				coinJoinTracker.Dispose();
+				return;
+			}
+
 			coinJoinTracker.WalletCoinJoinProgressChanged += CoinJoinTracker_WalletCoinJoinProgressChanged;
 
-			trackedCoinJoins.AddOrUpdate(walletToStart.WalletName, _ => coinJoinTracker, (_, cjt) => cjt);
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogDebug($"Coinjoin client started, auto-coinjoin: '{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
+			walletToStart.LogDebug($"Coinjoin client started, AutoStartCoinjoin:'{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
 			trackedAutoStarts.TryRemove(walletToStart, out _);
@@ -199,7 +214,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
-					walletToStop.LogWarning($"CoinJoin is in critical phase, it cannot be stopped.");
+					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped.");
 					return;
 				}
 				coinJoinTrackerToStop.Stop();
@@ -391,6 +406,18 @@ public class CoinJoinManager : BackgroundService
 					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
 					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
+
+	private bool IsWalletPrivate(Wallet wallet)
+	{
+		var coins = new CoinsView(wallet.Coins);
+
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
+		{
+			return true;
+		}
+
+		return false;
+	}
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet, int bestHeight)
 	{

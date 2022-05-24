@@ -24,20 +24,27 @@
                 ToolTip.Tip="Pending" />
     </Panel>
 
-    <Panel>
+    <Panel IsVisible="{Binding !IsBanned}">
       <!-- CJ active -->
       <PathIcon IsVisible="{Binding CoinJoinInProgress}"
                 Data="{StaticResource link_filled}"
                 Foreground="{DynamicResource SystemAccentColor}"
                 Height="9"
                 ToolTip.Tip="Coinjoining" />
-      <!-- Pending -->
+      <!-- CJ inactive -->
       <PathIcon IsVisible="{Binding !CoinJoinInProgress}"
                 Data="{StaticResource link_filled}"
                 Height="9"
                 Opacity="0.3"
                 ToolTip.Tip="Not Coinjoining" />
     </Panel>
+
+    <!-- Banned -->
+    <PathIcon IsVisible="{Binding IsBanned}"
+              Data="{StaticResource warning_filled}"
+              Foreground="{StaticResource SystemControlErrorTextForegroundBrush}"
+              Height="14"
+              ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
 
   </StackPanel>
 </UserControl>
