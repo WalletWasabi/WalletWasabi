@@ -63,18 +63,25 @@
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
 
-            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}" Foreground="White" />
+            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}">
+              <ProgressBar.Foreground>
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" />
+              </ProgressBar.Foreground>
+              <ProgressBar.Background>
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" Opacity="0.5" />
+              </ProgressBar.Background>
+            </ProgressBar>
 
-          <DockPanel LastChildFill="False">
-            <TextBlock Text="{Binding ElapsedTime}" />
-            <controls:PrivacyContentControl
-              Content="{Binding RemainingTime}"
-              DockPanel.Dock="Right"
-              ForceShow="{Binding !IsBalanceDisplayed}" />
-          </DockPanel>
-        </StackPanel>
+            <DockPanel LastChildFill="False">
+              <TextBlock Text="{Binding ElapsedTime}" />
+              <controls:PrivacyContentControl
+                Content="{Binding RemainingTime}"
+                DockPanel.Dock="Right"
+                ForceShow="{Binding !IsBalanceDisplayed}" />
+            </DockPanel>
+          </StackPanel>
 
-        <Separator Classes="vertical" />
+          <Separator Classes="vertical" />
 
           <Button Classes="plain"
                   IsVisible="{Binding PlayVisible}"
@@ -108,7 +115,7 @@
                         Value="Auto-start Coinjoin Enabled. Press Play to start immediately." />
               </Style>
               <Style Selector="Ellipse.disabled">
-                <Setter Property="Fill" Value="#7FFFFFFF" />
+                <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
                 <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Disabled" />
               </Style>
             </Ellipse.Styles>
