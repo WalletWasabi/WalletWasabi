@@ -175,7 +175,7 @@ public class Global
 					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
 				}
 
-				HostedServices.Register<SmartCoinBanReleaser>(() => new SmartCoinBanReleaser(TimeSpan.FromSeconds(5), WalletManager), "SmartCoin Ban Releaser");
+				//HostedServices.Register<SmartCoinBanReleaser>(() => new SmartCoinBanReleaser(TimeSpan.FromSeconds(5), WalletManager), "SmartCoin Ban Releaser");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 

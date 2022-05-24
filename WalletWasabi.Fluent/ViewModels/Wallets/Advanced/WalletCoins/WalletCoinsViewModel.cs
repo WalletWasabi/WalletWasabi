@@ -136,6 +136,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		_coinsSourceList.Edit(x =>
 		{
 			x.Clear();
+			items.CheckCoinsReleaseTime();
 			x.AddRange(items.Select(coin => new WalletCoinViewModel(coin)));
 		});
 	}

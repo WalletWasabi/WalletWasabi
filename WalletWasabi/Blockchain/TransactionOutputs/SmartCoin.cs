@@ -104,7 +104,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 			// ToDo: IsBanned does not get notified when it gets unbanned.
 			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
 			{
-				SetIsBanned();
+				RefreshBanState();
 			}
 		}
 	}
@@ -138,7 +138,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool IsBanned
 	{
-		get => _isBanned;
+		get => RefreshBanState();
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
 	}
 
@@ -147,9 +147,18 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
 	}
 
-	public void SetIsBanned()
+	public bool RefreshBanState()
 	{
-		IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
+		if(BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
+		{
+			IsBanned = true;
+			return true;
+		}
+		
+		IsBanned = false;
+		BannedUntilUtc = null;
+
+		return false;
 	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]

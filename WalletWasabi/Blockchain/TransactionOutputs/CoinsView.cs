@@ -85,10 +85,8 @@ public class CoinsView : ICoinsView
 
 	public void CheckCoinsReleaseTime()
 	{
-		foreach(var coin in Coins.Where(coin => coin.IsBanned))
-		{
-			coin.SetIsBanned();
-		}
+		Coins.Where(coin => coin.IsBanned).ToList();
+		
 	}
 
 	public Money TotalAmount() => Coins.Sum(x => x.Amount);
