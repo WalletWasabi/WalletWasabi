@@ -11,19 +11,11 @@
 
   <UserControl.Styles>
     <Style Selector="Panel#TitlePanel">
-      <Setter Property="Interaction.Behaviors">
-        <BehaviorCollectionTemplate>
-          <BehaviorCollection>
-            <AdaptiveBehavior>
-              <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
-            </AdaptiveBehavior>
-          </BehaviorCollection>
-        </BehaviorCollectionTemplate>
-      </Setter>
       <Setter Property="Transitions">
         <Transitions>
           <DoubleTransition Property="Opacity" Duration="0:0:0.100" />
-          <TransformOperationsTransition Duration="0:0:0.175" Property="RenderTransform" Easing="{StaticResource FluentEasing}" />
+          <TransformOperationsTransition Duration="0:0:0.175" Property="RenderTransform"
+                                         Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
       <Setter Property="Opacity" Value="1" />
@@ -75,9 +67,7 @@
         </Grid.ColumnDefinitions>
 
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
-        <Panel x:Name="TitlePanel" Grid.Column="1" Grid.ColumnSpan="2">
-           <ContentControl ContentTemplate="{StaticResource Title}" />
-        </Panel>
+        <ContentControl Grid.Column="1" Grid.ColumnSpan="2" ContentTemplate="{StaticResource Title}" />
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
       </Grid>
     </DataTemplate>
@@ -96,6 +86,11 @@
         <DockPanel Grid.Column="1">
           <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
           <Panel x:Name="TitlePanel">
+            <Interaction.Behaviors>
+              <AdaptiveBehavior>
+                <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
+              </AdaptiveBehavior>
+            </Interaction.Behaviors>
             <ContentControl ContentTemplate="{StaticResource Title}" />
           </Panel>
         </DockPanel>
