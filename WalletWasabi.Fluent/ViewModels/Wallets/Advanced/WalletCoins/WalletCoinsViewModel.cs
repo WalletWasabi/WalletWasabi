@@ -55,7 +55,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		Observable.Timer(TimeSpan.FromSeconds(30))
 			.Subscribe(_ =>
 			{
-				foreach(var coin in GetCoins())
+				foreach (var coin in GetCoins())
 				{
 					coin.RefreshAndGetIsBanned();
 				}
