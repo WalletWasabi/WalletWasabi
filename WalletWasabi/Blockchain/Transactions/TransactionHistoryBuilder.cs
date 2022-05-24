@@ -49,6 +49,7 @@ public class TransactionHistoryBuilder
 					Label = containingTransaction.Label,
 					TransactionId = coin.TransactionId,
 					BlockIndex = containingTransaction.BlockIndex,
+					BlockHash = containingTransaction.BlockHash,
 					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin()
 				});
 			}
@@ -74,6 +75,7 @@ public class TransactionHistoryBuilder
 						Label = spenderTransaction.Label,
 						TransactionId = spenderTxId,
 						BlockIndex = spenderTransaction.BlockIndex,
+			BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin()
 					});
 				}

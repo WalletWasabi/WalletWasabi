@@ -69,12 +69,6 @@ public class CoinJoinManager : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		if (WalletManager.Network == Network.Main)
-		{
-			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
-			return;
-		}
-
 		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
@@ -160,6 +154,18 @@ public class CoinJoinManager : BackgroundService
 			if (WalletManager.Synchronizer?.LastResponse is not { } synchronizerResponse)
 			{
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
+				if (startCommand.RestartAutomatically)
+				{
+					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
+				}
+				return;
+			}
+
+			if (IsWalletPrivate(walletToStart))
+			{
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
+
+				// In AutoCoinJoin mode we keep watching.
 				if (startCommand.RestartAutomatically)
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
@@ -400,6 +406,18 @@ public class CoinJoinManager : BackgroundService
 					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
 					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
+
+	private bool IsWalletPrivate(Wallet wallet)
+	{
+		var coins = new CoinsView(wallet.Coins);
+
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
+		{
+			return true;
+		}
+
+		return false;
+	}
 
 	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet, int bestHeight)
 	{

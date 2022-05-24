@@ -46,6 +46,10 @@ public class ActionsSource : ISearchItemSource
 			{
 				item.OpenCommand.Execute(default);
 			}
+			else if (vm is TriggerCommandViewModel triggerCommandViewModel && triggerCommandViewModel.TargetCommand.CanExecute(default))
+			{
+				triggerCommandViewModel.TargetCommand.Execute(default);
+			}
 			else
 			{
 				RoutableViewModel.Navigate(vm.DefaultTarget).To(vm);
