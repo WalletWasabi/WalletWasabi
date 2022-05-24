@@ -53,7 +53,7 @@ public partial class WalletViewModel : WalletViewModelBase
 				.ObserveOn(RxApp.MainThreadScheduler));
 
 		History = new HistoryViewModel(this, balanceChanged);
-		WalletDashboard = new WalletDashboardViewModel(this, balanceChanged);
+		WalletDashboard = new WalletDashboardViewModel(new BalanceViewModel(Wallet, balanceChanged), new PrivacyViewModel(Wallet, balanceChanged));
 
 		balanceChanged
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
