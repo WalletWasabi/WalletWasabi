@@ -24,8 +24,8 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
 using System.Reactive;
 using System.Collections.ObjectModel;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -64,7 +64,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
+		Balance = new BalanceViewModel(wallet, balanceChanged);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -151,7 +151,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	public ICommand AdvancedOptionsCommand { get; }
 
-	public WalletBalanceTileViewModel Balance { get; }
+	public BalanceViewModel Balance { get; }
 
 	private async Task OnAutoPasteAsync()
 	{
