@@ -17,7 +17,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	public bool IsInState(TState state)
 	{
-		return IsAncestorOf(_currentState.StateId, state);
+		return IsAncestorOfInclusive(_currentState.StateId, state);
 	}
 
 	public StateMachine(TState initialState)
@@ -44,7 +44,18 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		return this;
 	}
 
-	private bool IsAncestorOf(TState state, TState parent)
+	private bool IsAncestorOfExclusive(TState state, TState parent)
+	{
+		if (state.Equals(parent))
+		{
+			return false;
+		}
+
+		return IsAncestorOfInclusive(state, parent);
+	}
+
+
+	private bool IsAncestorOfInclusive(TState state, TState parent)
 	{
 		if (_states.ContainsKey(state))
 		{
@@ -80,21 +91,9 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 	{
 		_currentState.Process(trigger);
 
-		if (_currentState.CanTransit(trigger))
+		if (_currentState.GetDestination(trigger) is { } destination)
 		{
-			var destination = _currentState.GetDestination(trigger);
-
-			if (_states.ContainsKey(destination) && _states[destination].Parent is { } parent && !IsInState(parent.StateId))
-			{
-				Goto(parent.StateId);
-			}
-
 			Goto(destination);
-		}
-		else if (_currentState.Parent is { } && _currentState.Parent.CanTransit(trigger))
-		{
-			Goto(_currentState.Parent.StateId, true, false);
-			Goto(_currentState.GetDestination(trigger));
 		}
 	}
 
@@ -113,25 +112,47 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		}
 	}
 
-	private void Goto(TState state, bool exit = true, bool enter = true)
+	private void Goto(TState destination)
 	{
-		if (_states.ContainsKey(state))
+		var origin = _currentState.StateId;
+
+		if (_states.ContainsKey(destination))
 		{
-			if (exit && !IsAncestorOf(state, _currentState.StateId))
+			StateContext ExitStates(StateContext current)
 			{
-				_currentState.Exit();
+				if (!IsAncestorOfInclusive(destination, current.StateId))
+				{
+					current.Exit();
+				}
+
+				if (current.Parent is { } parent)
+				{
+					ExitStates(parent);
+				}
+
+				return current;
 			}
 
-			var old = _currentState.StateId;
-
-			_currentState = _states[state];
-
-			_onTransitioned?.Invoke(old, _currentState.StateId);
-
-			if (enter)
+			StateContext EnterStates(StateContext current)
 			{
-				Enter();
+				if (current.Parent is { } parent)
+				{
+					if (!IsAncestorOfInclusive(origin, parent.StateId))
+					{
+						EnterStates(parent);
+					}
+				}
+
+				current.Enter();
+
+				return current;
 			}
+
+			_currentState = ExitStates(_currentState);
+
+			_currentState = EnterStates(_states[destination]);
+
+			_onTransitioned?.Invoke(origin, _currentState.StateId);
 		}
 	}
 
@@ -251,14 +272,26 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 			}
 		}
 
-		internal bool CanTransit(TTrigger trigger)
+		internal TState? GetDestination(TTrigger trigger)
 		{
-			return _permittedTransitions.ContainsKey(trigger);
-		}
+			StateContext current = this;
 
-		internal TState GetDestination(TTrigger trigger)
-		{
-			return _permittedTransitions[trigger];
+			while (true)
+			{
+				if (current._permittedTransitions.ContainsKey(trigger))
+				{
+					return current._permittedTransitions[trigger];
+				}
+
+				if (current.Parent is { })
+				{
+					current = current.Parent;
+				}
+				else
+				{
+					return null;
+				}
+			}
 		}
 	}
 }
