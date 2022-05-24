@@ -13,21 +13,25 @@
     <dashboard:WalletDashboardViewModelDesign />
   </Design.DataContext>
 
-  <StackPanel Orientation="Horizontal" Spacing="40" Margin="0 15 0 5">
+  <StackPanel Orientation="Horizontal" Margin="0 15 0 5">
     <StackPanel IsVisible="{Binding HasBalance^}">
       <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">BALANCE</TextBlock>
-      <TextBlock  Classes="monoSpaced"
-                  Text="{Binding BalanceBtc^}"  />
+      <TextBlock Classes="monoSpaced"
+                 Text="{Binding BalanceBtc^}" />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
                                       NumberOfPrivacyChars="9"
                                       Content="{Binding BalanceUsd^}" />
     </StackPanel>
 
+    <Separator Classes="vertical" Margin="20 0" />
+
     <StackPanel IsVisible="{Binding HasPrivacyScore^}">
       <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVACY SCORE</TextBlock>
-      <TextBlock  Classes="monoSpaced"
-                  Text="{Binding PrivacyScore^, StringFormat='{}{0:P0}'}"  />
+      <TextBlock Classes="monoSpaced"
+                 Text="{Binding PrivacyScore^, StringFormat='{}{0:P0}'}" />
     </StackPanel>
+
+    <Separator Classes="vertical" Margin="20 0" />
 
     <StackPanel>
       <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">EXCHANGE RATE</TextBlock>
