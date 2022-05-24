@@ -73,15 +73,15 @@
             </ProgressBar>
 
             <DockPanel LastChildFill="False">
-            <TextBlock Text="{Binding ElapsedTime}" />
-            <controls:PrivacyContentControl
-              Content="{Binding RemainingTime}"
-              DockPanel.Dock="Right"
-              ForceShow="{Binding !IsBalanceDisplayed}" />
-          </DockPanel>
-        </StackPanel>
+              <TextBlock Text="{Binding ElapsedTime}" />
+              <controls:PrivacyContentControl
+                Content="{Binding RemainingTime}"
+                DockPanel.Dock="Right"
+                ForceShow="{Binding !IsBalanceDisplayed}" />
+            </DockPanel>
+          </StackPanel>
 
-        <Separator Classes="vertical" />
+          <Separator Classes="vertical" />
 
           <Button Classes="plain"
                   IsVisible="{Binding PlayVisible}"
