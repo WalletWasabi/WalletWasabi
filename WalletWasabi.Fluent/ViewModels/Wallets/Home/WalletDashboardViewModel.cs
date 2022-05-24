@@ -80,9 +80,8 @@ public class WalletDashboardViewModel : ActivatableViewModel
 			.ToProperty(this, x => x.PrivacyScore, out _privateScore)
 			.DisposeWith(disposables);
 
-
 		privateScore
-			.Select(x => Math.Floor(x) > 0d)
+			.Select(x => x > 0d)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, x => x.HasPrivacyScore, out _hasPrivacyScore)
 			.DisposeWith(disposables);
