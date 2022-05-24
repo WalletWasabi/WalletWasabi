@@ -24,9 +24,6 @@
       <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVATE</TextBlock>
       <TextBlock  Classes="monoSpaced"
                   Text="{Binding PrivacyScore, StringFormat='{}{0:P0}'}"  />
-      <controls:PrivacyContentControl Classes="monoSpaced h8"
-                                      NumberOfPrivacyChars="9"
-                                      Content="{Binding BalancePrivateBtc}" />
     </StackPanel>
 
     <StackPanel>

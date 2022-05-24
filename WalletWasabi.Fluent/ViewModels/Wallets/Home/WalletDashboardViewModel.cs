@@ -14,8 +14,6 @@ public class WalletDashboardViewModel : ActivatableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
 	private ObservableAsPropertyHelper<string> _balanceBtc = ObservableAsPropertyHelper<string>.Default();
-
-	private ObservableAsPropertyHelper<string> _balancePrivateBtc = ObservableAsPropertyHelper<string>.Default();
 	private ObservableAsPropertyHelper<string> _balanceUsd = ObservableAsPropertyHelper<string>.Default();
 	private ObservableAsPropertyHelper<string> _btcPrice = ObservableAsPropertyHelper<string>.Default();
 	private ObservableAsPropertyHelper<bool> _hasBalance = ObservableAsPropertyHelper<bool>.Default();
@@ -30,9 +28,7 @@ public class WalletDashboardViewModel : ActivatableViewModel
 	public string BalanceUsd => _balanceUsd.Value;
 	public string BalanceBtc => _balanceBtc.Value;
 	public bool HasBalance => _hasBalance.Value;
-	public string BalancePrivateBtc => _balancePrivateBtc.Value;
 	public string BtcToUsdExchangeRate => _btcPrice.Value;
-
 	public double PrivacyScore => _privateScore.Value;
 
 	protected override void OnActivated(CompositeDisposable disposables)
@@ -50,9 +46,6 @@ public class WalletDashboardViewModel : ActivatableViewModel
 
 		var privateScore = _balanceChanged
 			.Select(_ => GetPrivateScore());
-		
-		var privateAmount = _balanceChanged
-			.Select(_ => GetPrivateBtcAmount());
 
 		usdExchangeRate
 			.Select(usd => usd.FormattedFiat("N0") + " USD")
@@ -82,12 +75,6 @@ public class WalletDashboardViewModel : ActivatableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, x => x.PrivacyScore, out _privateScore)
 			.DisposeWith(disposables);
-
-		privateAmount
-			.Select(x => x.ToFormattedString() + " BTC")
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, x => x.BalancePrivateBtc, out _balancePrivateBtc)
-			.DisposeWith(disposables);
 	}
 
 	private static string GenerateFiatText(decimal usdAmount)
@@ -100,12 +87,6 @@ public class WalletDashboardViewModel : ActivatableViewModel
 		return usdAmount.GenerateFiatText("USD", fiatFormat);
 	}
 
-	private Money GetPrivateBtcAmount()
-	{
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		return privateAmount;
-	}
 
 	private double GetPrivateScore()
 	{
