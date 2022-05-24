@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard;
 

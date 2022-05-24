@@ -5,11 +5,9 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard;
 
 public class WalletDashboardViewModel : ActivatableViewModel, IWalletDashboardViewModel
 {
