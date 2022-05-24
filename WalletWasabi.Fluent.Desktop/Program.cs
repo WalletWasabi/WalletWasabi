@@ -192,7 +192,13 @@ public class Program
 		}
 	}
 
-	// Avalonia configuration, don't remove; also used by visual designer.
+	// This is required to bootstrap Avalonia's Visual Previewer
+	private static AppBuilder BuildAvaloniaApp()
+	{
+		return BuildAvaloniaApp(false);
+	}
+
+	// Avalonia configuration, don't remove
 	private static AppBuilder BuildAvaloniaApp(bool startInBg)
 	{
 		bool useGpuLinux = true;
