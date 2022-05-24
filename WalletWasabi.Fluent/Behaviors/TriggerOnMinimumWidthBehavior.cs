@@ -7,16 +7,6 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 internal class TriggerOnMinimumWidthBehavior : DisposingBehavior<Control>
 {
-
-	public static readonly StyledProperty<Rect> BoundsProperty =
-		AvaloniaProperty.Register<BoundsObserverBehavior, Rect>(nameof(Bounds), defaultBindingMode: BindingMode.OneWay);
-
-	public Rect Bounds
-	{
-		get => GetValue(BoundsProperty);
-		set => SetValue(BoundsProperty, value);
-	}
-
 	public static readonly StyledProperty<double> MinimumWidthProperty = AvaloniaProperty.Register<TriggerOnMinimumWidthBehavior, double>(
 		"MinimumWidth");
 
@@ -41,7 +31,7 @@ internal class TriggerOnMinimumWidthBehavior : DisposingBehavior<Control>
 	{
 		if (AssociatedObject is not null)
 		{
-			disposables.Add(this.GetObservable(BoundsProperty)
+			disposables.Add(AssociatedObject.GetObservable(Visual.BoundsProperty)
 				.Subscribe(bounds =>
 				{
 					if (bounds.Width < MinimumWidth)
@@ -52,7 +42,6 @@ internal class TriggerOnMinimumWidthBehavior : DisposingBehavior<Control>
 					{
 						AssociatedObject.Classes.Remove(ClassName);
 					}
-
 				}));
 		}
 

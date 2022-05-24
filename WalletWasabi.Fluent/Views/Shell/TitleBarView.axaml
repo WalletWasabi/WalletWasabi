@@ -11,6 +11,15 @@
 
   <UserControl.Styles>
     <Style Selector="Panel#TitlePanel">
+      <Setter Property="Interaction.Behaviors">
+        <BehaviorCollectionTemplate>
+          <BehaviorCollection>
+
+            <behaviors:TriggerOnMinimumWidthBehavior MinimumWidth="150"
+                                                     ClassName="minWidth" />
+          </BehaviorCollection>
+        </BehaviorCollectionTemplate>
+      </Setter>
       <Setter Property="Transitions">
         <Transitions>
           <DoubleTransition Property="Opacity" Duration="0:0:0.100" />
@@ -67,12 +76,7 @@
 
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
         <Panel x:Name="TitlePanel" Grid.Column="1" Grid.ColumnSpan="2">
-          <Interaction.Behaviors>
-            <behaviors:TriggerOnMinimumWidthBehavior Bounds="{Binding #TitlePanel.Bounds}"
-                                             MinimumWidth="150"
-                                             ClassName="minWidth" />
-          </Interaction.Behaviors>
-          <ContentControl ContentTemplate="{StaticResource Title}" />
+           <ContentControl ContentTemplate="{StaticResource Title}" />
         </Panel>
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
       </Grid>
@@ -92,11 +96,6 @@
         <DockPanel Grid.Column="1">
           <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
           <Panel x:Name="TitlePanel">
-            <Interaction.Behaviors>
-              <behaviors:TriggerOnMinimumWidthBehavior Bounds="{Binding #TitlePanel.Bounds}"
-                                               MinimumWidth="150"
-                                               ClassName="minWidth" />
-            </Interaction.Behaviors>
             <ContentControl ContentTemplate="{StaticResource Title}" />
           </Panel>
         </DockPanel>
