@@ -308,6 +308,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _initialisingMessage;
 			})
 			.OnTrigger(Trigger.Play, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
+			.OnTrigger(Trigger.AutoStartTimeout, async () => await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Pause, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None))
 			.OnTrigger(Trigger.AutoCoinJoinOff, async () => await coinJoinManager.StopAsync(_wallet, CancellationToken.None));
 
