@@ -14,9 +14,9 @@
       <Setter Property="Interaction.Behaviors">
         <BehaviorCollectionTemplate>
           <BehaviorCollection>
-
-            <behaviors:TriggerOnMinimumWidthBehavior MinimumWidth="150"
-                                                     ClassName="minWidth" />
+            <AdaptiveBehavior>
+              <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
+            </AdaptiveBehavior>
           </BehaviorCollection>
         </BehaviorCollectionTemplate>
       </Setter>
