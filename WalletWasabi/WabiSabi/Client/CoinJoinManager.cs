@@ -154,6 +154,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
 				}
+
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 				return;
 			}
@@ -164,6 +165,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
 				}
+
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
 				return;
 			}
