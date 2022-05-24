@@ -186,7 +186,14 @@ public class CoinJoinClient
 			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
-				roundState.LogInfo($"Registration phase ended by the coordinator: '{ex.Message}'.");
+				roundState = ex.RoundState;
+				var message = ex.RoundState.EndRoundState switch
+				{
+					EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
+					_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
+				};
+
+				roundState.LogInfo(message);
 				return new CoinJoinResult(false);
 			}
 
