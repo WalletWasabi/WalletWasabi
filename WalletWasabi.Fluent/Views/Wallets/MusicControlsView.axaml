@@ -65,10 +65,10 @@
 
             <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}">
               <ProgressBar.Foreground>
-                <SolidColorBrush Color="{DynamicResource SystemAccentColor}" />
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" />
               </ProgressBar.Foreground>
               <ProgressBar.Background>
-                <SolidColorBrush Color="{DynamicResource AcrylicTrimBackground}" Opacity="0.6" />
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" Opacity="0.5" />
               </ProgressBar.Background>
             </ProgressBar>
 
