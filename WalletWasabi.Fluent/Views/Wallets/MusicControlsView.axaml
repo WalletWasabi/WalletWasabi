@@ -63,9 +63,16 @@
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
 
-            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}" Foreground="White" />
+            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}">
+              <ProgressBar.Foreground>
+                <SolidColorBrush Color="{DynamicResource SystemAccentColor}" />
+              </ProgressBar.Foreground>
+              <ProgressBar.Background>
+                <SolidColorBrush Color="{DynamicResource AcrylicTrimBackground}" Opacity="0.6" />
+              </ProgressBar.Background>
+            </ProgressBar>
 
-          <DockPanel LastChildFill="False">
+            <DockPanel LastChildFill="False">
             <TextBlock Text="{Binding ElapsedTime}" />
             <controls:PrivacyContentControl
               Content="{Binding RemainingTime}"
