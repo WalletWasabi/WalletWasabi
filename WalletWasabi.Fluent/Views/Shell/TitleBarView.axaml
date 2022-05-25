@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="100"
              x:Class="WalletWasabi.Fluent.Views.Shell.TitleBarView"
              x:Name="UserControl">
@@ -47,10 +48,14 @@
     </DataTemplate>
 
     <DataTemplate x:Key="SearchBar">
-      <searchBar:SearchBar DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
+      <searchBar:SearchBar x:CompileBindings="False" DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
                            HorizontalAlignment="Stretch"
                            Margin="5"
                            IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ExchangeRate">
+      <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Binding #UserControl.DataContext.Balance.BtcToUsdExchangeRate^}" />
     </DataTemplate>
 
     <DataTemplate x:Key="WindowsAndLinuxLayout">
@@ -68,6 +73,7 @@
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
         <ContentControl Grid.Column="1" Grid.ColumnSpan="2" ContentTemplate="{StaticResource Title}" />
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
+        <ContentControl Grid.Column="4" ContentTemplate="{StaticResource ExchangeRate}" />
       </Grid>
     </DataTemplate>
 
@@ -94,6 +100,7 @@
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
+        <ContentControl Grid.Column="4" ContentTemplate="{StaticResource ExchangeRate}" />
       </Grid>
     </DataTemplate>
 

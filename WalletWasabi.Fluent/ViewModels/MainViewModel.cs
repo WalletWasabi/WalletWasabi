@@ -17,6 +17,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Dashboard;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -168,7 +169,10 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+		Balance = new ExchangeRateViewModel(Services.Synchronizer);
 	}
+
+	public ExchangeRateViewModel Balance { get; set; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
 
