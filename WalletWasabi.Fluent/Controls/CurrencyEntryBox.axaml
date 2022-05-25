@@ -44,7 +44,7 @@
                             TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
-          
+
           <Panel IsVisible="{Binding !$parent[c:CurrencyEntryBox].IsReadOnly}">
             <Border
               Name="PART_BorderElement"
@@ -108,7 +108,7 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        
+
                         </DockPanel>
                       </Panel>
                     </DockPanel>
@@ -226,7 +226,7 @@
   <Style Selector="c|CurrencyEntryBox">
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
   </Style>
-  
+
   <Style Selector="c|CurrencyEntryBox:isrightside">
     <Setter Property="TextAlignment" Value="Right"/>
     <Setter Property="HorizontalContentAlignment" Value="Right"/>
@@ -245,5 +245,5 @@
   <Style Selector="c|CurrencyEntryBox:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
     <Setter Property="Margin" Value="0 0 63 0"/>
   </Style>
-  
+
 </Styles>
