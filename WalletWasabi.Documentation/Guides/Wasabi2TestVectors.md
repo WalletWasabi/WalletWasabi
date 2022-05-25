@@ -7,7 +7,7 @@ Many of the tests can be done on testnet, but some require a regtest environment
 ## Installation
 
 - Download the release candidate package, public key and signature
-- Verify signature
+- Verify signature [explained [here](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)]
 - Install the package
 
 ## First Run
