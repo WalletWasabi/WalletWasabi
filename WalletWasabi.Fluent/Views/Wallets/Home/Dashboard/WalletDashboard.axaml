@@ -13,29 +13,43 @@
     <dashboard:WalletDashboardViewModelDesign />
   </Design.DataContext>
 
-  <StackPanel Orientation="Horizontal" Margin="0 15 0 5">
-    <StackPanel IsVisible="{Binding HasBalance^}">
-      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">BALANCE</TextBlock>
-      <TextBlock Classes="monoSpaced"
+  <Panel VerticalAlignment="Center" Margin="0 10 0 0">
+    <Panel.Styles>
+      <Style Selector="TextBlock.Header">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+        <Setter Property="Opacity" Value="0.6"></Setter>
+      </Style>
+      <Style Selector="TextBlock.MainData">
+        <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+      </Style>
+      <Style Selector="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="10" />
+      </Style>
+      <Style Selector="StackPanel :is(Control)">
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+      <Style Selector="PathIcon">
+        <Setter Property="Opacity" Value="0.6" />
+      </Style>
+    </Panel.Styles>
+
+    <StackPanel IsVisible="{Binding HasBalance^}" HorizontalAlignment="Left">
+      <PathIcon Data="{StaticResource dash_wallet_balance_20_regular}" Classes="new size20" />
+      <TextBlock Classes="MainData"
                  Text="{Binding BalanceBtc^}" />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
                                       NumberOfPrivacyChars="9"
                                       Content="{Binding BalanceUsd^}" />
     </StackPanel>
 
-    <Separator Classes="vertical" Margin="20 0" />
-
-    <StackPanel IsVisible="{Binding HasPrivacyScore^}">
-      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">PRIVACY SCORE</TextBlock>
-      <TextBlock Classes="monoSpaced"
+    <StackPanel IsVisible="{Binding HasPrivacyScore^}" HorizontalAlignment="Right">
+      <PathIcon Data="{StaticResource dash_privacy_score_20_regular}" Classes="new size20" />
+      <TextBlock Classes="MainData"
                  Text="{Binding PrivacyScore^, StringFormat='{}{0:P0}'}" />
     </StackPanel>
-
-    <Separator Classes="vertical" Margin="20 0" />
-
-    <StackPanel>
-      <TextBlock Classes="bold h7" Foreground="{DynamicResource SystemAccentColor}">EXCHANGE RATE</TextBlock>
-      <TextBlock Classes="monoSpaced" FontWeight="Normal" Text="{Binding BtcToUsdExchangeRate^}" />
-    </StackPanel>
-  </StackPanel>
+  </Panel>
 </UserControl>
