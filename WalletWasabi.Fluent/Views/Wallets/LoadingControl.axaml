@@ -19,7 +19,7 @@
       </StackPanel>
     </controls:ContentArea.Title>
 
-    <DockPanel Margin="0 0 0 30">
+    <DockPanel>
       <DockPanel.Styles>
         <Style Selector="DockPanel.small > Panel#WorldMap">
           <Setter Property="IsVisible" Value="False" />
@@ -28,7 +28,7 @@
 
       <i:Interaction.Behaviors>
         <ir:AdaptiveBehavior>
-          <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="350" ClassName="small" />
+          <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="220" ClassName="small" />
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
@@ -47,7 +47,7 @@
         <TextBlock Text="{Binding StatusText, StringFormat={}{0}⠀}" TextAlignment="Center" Opacity="0.6" />
       </StackPanel>
 
-      <Panel Margin="80 40" x:Name="WorldMap">
+      <Panel x:Name="WorldMap" Margin="20">
         <Viewbox>
           <Viewbox.Styles>
             <Style Selector=":is(Control).City">
@@ -71,6 +71,7 @@
           </Canvas>
         </Viewbox>
       </Panel>
+
     </DockPanel>
   </controls:ContentArea>
 </UserControl>
