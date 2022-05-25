@@ -23,7 +23,7 @@ public class CoinJoinTrackerFactory
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 
-	public CoinJoinTracker CreateAndStart(Wallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
+	public CoinJoinTracker CreateAndStart(IWallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,

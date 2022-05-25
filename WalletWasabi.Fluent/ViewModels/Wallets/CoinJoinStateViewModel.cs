@@ -240,7 +240,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = true;
 				CurrentStatus = _waitingMessage;
 
-				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
+				if (_overridePlebStop && !_wallet.IsUnderPlebStop())
 				{
 					// If we are not below the threshold anymore, we turn off the override.
 					_overridePlebStop = false;
@@ -370,7 +370,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = true;
 				PlayVisible = false;
 
-				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
+				if (_overridePlebStop && !_wallet.IsUnderPlebStop())
 				{
 					// If we are not below the threshold anymore, we turn off the override.
 					_overridePlebStop = false;

@@ -1,3 +1,4 @@
+using System.Collections;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Wallets;
 
-public class WalletManager
+public class WalletManager : IEnumerable<Wallet>
 {
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
@@ -409,5 +410,15 @@ public class WalletManager
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
 		}
+	}
+
+	public IEnumerator<Wallet> GetEnumerator()
+	{
+		return GetWallets().GetEnumerator();
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		return GetEnumerator();
 	}
 }

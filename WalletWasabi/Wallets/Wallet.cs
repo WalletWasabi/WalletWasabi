@@ -1,3 +1,4 @@
+using System.Collections;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
@@ -24,7 +25,15 @@ using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
-public class Wallet : BackgroundService
+public interface IWallet : IEnumerable<SmartCoin>
+{
+	string WalletName { get; }
+	bool CanSpend { get; } 
+	public KeyManager KeyManager { get; }
+	public Kitchen Kitchen { get; }
+}
+
+public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
 
@@ -76,6 +85,10 @@ public class Wallet : BackgroundService
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
+	public bool CanSpend => State == WalletState.Started // Only running wallets
+	                        && !KeyManager.IsWatchOnly // that are not watch-only wallets
+	                        && Kitchen.HasIngredients;
+	
 	/// <summary>
 	/// Unspent Transaction Outputs
 	/// </summary>
@@ -95,8 +108,6 @@ public class Wallet : BackgroundService
 
 	public Kitchen Kitchen { get; } = new();
 	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
-
-	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
@@ -471,4 +482,19 @@ public class Wallet : BackgroundService
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 		return wallet;
 	}
+
+	public IEnumerator<SmartCoin> GetEnumerator()
+	{
+		return Coins.GetEnumerator();
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		return GetEnumerator();
+	}
+}
+
+public static class WalletExtensions
+{
+	public static bool IsUnderPlebStop(this IWallet wallet) => new CoinsView(wallet).TotalAmount() <= wallet.KeyManager.PlebStopThreshold;
 }
