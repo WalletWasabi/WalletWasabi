@@ -12,7 +12,7 @@
         x:DataType="viewModels:MainViewModel"
         x:Name="MainWindow"
         x:CompileBindings="True"
-        MinWidth="640" MinHeight="480"
+        MinWidth="720" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
