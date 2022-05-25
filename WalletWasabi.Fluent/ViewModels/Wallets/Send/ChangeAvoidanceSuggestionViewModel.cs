@@ -50,7 +50,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
-			transactionInfo.Coins,
+			transactionInfo.Coins.Where(c => c.IsPrivate(wallet.KeyManager.AnonScoreTarget)),
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			maxInputCount,
