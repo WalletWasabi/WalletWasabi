@@ -52,8 +52,18 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
+		Observable.Timer(TimeSpan.FromSeconds(30))
+			.Subscribe(_ =>
+			{
+				foreach (var coin in GetCoins())
+				{
+					coin.RefreshAndGetIsBanned();
+				}
+			})
+			.DisposeWith(disposables);
+
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
+		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				490			true
@@ -69,7 +79,9 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					options: new ColumnOptions<WalletCoinViewModel>
 					{
 						CanUserResizeColumn = false,
-						CanUserSortColumn = false
+						CanUserSortColumn = true,
+						CompareAscending = WalletCoinViewModel.SortAscending(x => x.CoinJoinInProgress),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => x.CoinJoinInProgress),
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 

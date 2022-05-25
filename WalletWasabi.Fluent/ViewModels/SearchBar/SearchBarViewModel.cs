@@ -33,7 +33,7 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 	}
-	
+
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 
 	private static Func<ISearchItem, bool> SearchItemFilterFunc(string? text)
@@ -46,9 +46,10 @@ public partial class SearchBarViewModel : ReactiveObject
 			}
 
 			var containsName = searchItem.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase);
+			var containsCategory = searchItem.Category.Contains(text, StringComparison.InvariantCultureIgnoreCase);
 			var containsAnyTag =
 				searchItem.Keywords.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
-			return containsName || containsAnyTag;
+			return containsName || containsCategory || containsAnyTag;
 		};
 	}
 }

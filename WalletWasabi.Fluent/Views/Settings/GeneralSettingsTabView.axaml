@@ -34,12 +34,13 @@
       <TextBlock Text="Auto paste addresses" />
       <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
-
+    <!-- Temporarily remove from settings view for release
+    TODO: Make Custom change address active/implement.
     <DockPanel>
       <TextBlock VerticalAlignment="Center" Text="Custom change address" />
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
-
+    -->
     <StackPanel Spacing="10">
       <TextBlock Text="Fee display unit" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayUnits}" SelectedItem="{Binding SelectedFeeDisplayUnit}">

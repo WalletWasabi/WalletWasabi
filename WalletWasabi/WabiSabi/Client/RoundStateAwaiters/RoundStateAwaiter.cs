@@ -63,7 +63,7 @@ public record RoundStateAwaiter
 			{
 				if (roundState.Phase > expectedPhase)
 				{
-					TaskCompletionSource.TrySetException(new UnexpectedRoundPhaseException(RoundId ?? uint256.Zero, expectedPhase, roundState.Phase));
+					TaskCompletionSource.TrySetException(new UnexpectedRoundPhaseException(RoundId ?? uint256.Zero, expectedPhase, roundState));
 					return true;
 				}
 

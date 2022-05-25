@@ -16,7 +16,7 @@
     <StackPanel Spacing="20" Margin="0 30">
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding ShowAutomaticCoinjoin}">
-          <TextBlock Text="Automatic Coinjoin" />
+          <TextBlock Text="Automatically start coinjoin" />
           <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" />
         </DockPanel>
 

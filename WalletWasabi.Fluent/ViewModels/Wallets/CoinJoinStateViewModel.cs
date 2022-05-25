@@ -34,6 +34,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundFailedMessage = new() { Message = "Coinjoin failed, retrying..." };
+	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
 	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for others" };
 	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Finalizing coinjoin" };
@@ -245,12 +246,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, true, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
+			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, true, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
 
@@ -375,7 +376,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, false, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
@@ -572,9 +573,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				if (_lastStatusMessage is RoundEnded roundEnded)
 				{
-					CurrentStatus = roundEnded.LastRoundState.EndRoundState == EndRoundState.TransactionBroadcasted
-						? _roundSucceedMessage
-						: _roundFailedMessage;
+					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
+					{
+						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
+						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
+						_ => _roundFailedMessage
+					};
 					StopCountDown();
 				}
 			})
