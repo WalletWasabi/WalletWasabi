@@ -126,7 +126,7 @@
                                 WHAT ARE THE FEES FOR coinjoinS?
                             </label>
                             <div class="card-content">
-                                <p>There are two different fees to consider. First, the coordinator fee of 0.3%, which is only paid for the first round of coinjoin, the fee is zero for the second and following rounds. There is even no coordinator fee after one transaction, so when you pay a friend, he does not have to pay coordinator fee.  </p>
+                                <p>You currently pay a fee of 0.003% * anonymity set. If the anonymity set of a coin is 50 then you pay 0.003% * 50 (=0.15%). If you set the target anonymity set to 53 then Wasabi will continue mixing until this is reached, so you may end up with an anonymity set of say 60, and you will pay 0.003% * 60 (=0.18%). </p>
 
                                 <p>There are also cases where you may not pay the full fee or where you pay more. For example, if you’re the smallest registrant to a round, you will never pay a fee. Also when you are remixing and you cannot pay the full fee with your input, then you only pay as much as you have. But, if the change amount leftover would be too small, then that is also added to the fee. Currently the minimum change amount to be paid out is 0.7% of the base denomination (~0.1BTC.)</p>
 
