@@ -57,9 +57,9 @@
             <Panel
               Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
-                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
+                <ContentPresenter Grid.Column="0"
                                   Content="{TemplateBinding InnerLeftContent}" />
-                <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
+                <Panel x:Name="PART_InnerDockPanel" Grid.Column="1"
                        Margin="{TemplateBinding Padding}">
                   <ScrollViewer
                     HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
@@ -114,7 +114,7 @@
                     </DockPanel>
                   </ScrollViewer>
                 </Panel>
-                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1"
+                <ContentPresenter Grid.Column="2"
                                   Content="{TemplateBinding InnerRightContent}" />
               </Grid>
             </Panel>
