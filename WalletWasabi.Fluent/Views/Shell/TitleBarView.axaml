@@ -49,8 +49,7 @@
     <DataTemplate x:Key="SearchBar">
       <searchBar:SearchBar DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
                            HorizontalAlignment="Stretch"
-                           Margin="5"
-                           IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
+                           Margin="5" />
     </DataTemplate>
 
     <DataTemplate x:Key="WindowsAndLinuxLayout">
