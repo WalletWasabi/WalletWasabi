@@ -129,6 +129,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				else
 				{
 					await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
+					_stateMachine.Fire(Trigger.AutoCoinJoinOff);
 				}
 			});
 
@@ -171,7 +172,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		EnterCriticalPhaseMessage,
 		ExitCriticalPhaseMessage,
 		WalletStartedCoinJoin,
-		WalletStoppedCoinJoin
+		WalletStoppedCoinJoin,
+		AutoCoinJoinOff,
+		AutoCoinJoinOn
 	}
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
@@ -193,6 +196,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine.Configure(State.WaitingForAutoStart)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
+			.Permit(Trigger.AutoCoinJoinOff, State.StopOrPause)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
