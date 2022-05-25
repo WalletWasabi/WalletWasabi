@@ -214,25 +214,32 @@ public class CoinJoinManager : BackgroundService
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
 		{
 			var walletToStop = stopCommand.Wallet;
-			TryRemoveTrackedAutoStart(walletToStop);
+
+			var autoStartRemoved = TryRemoveTrackedAutoStart(walletToStop);
 
 			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 			{
 				coinJoinTrackerToStop.Stop();
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
-					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped.");
+					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped - it won't restart later.");
 				}
+			}
+			else if (autoStartRemoved)
+			{
+				NotifyWalletStoppedCoinJoin(walletToStop);
 			}
 		}
 
-		void TryRemoveTrackedAutoStart(Wallet wallet)
+		bool TryRemoveTrackedAutoStart(Wallet wallet)
 		{
 			if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
 			{
 				trackedAutoStart.CancellationTokenSource.Cancel();
 				trackedAutoStart.CancellationTokenSource.Dispose();
+				return true;
 			}
+			return false;
 		}
 
 		while (!stoppingToken.IsCancellationRequested)
@@ -327,13 +334,20 @@ public class CoinJoinManager : BackgroundService
 				}
 			}
 			// Updates the highest coinjoin client state.
-			var inProgress = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
+			var onGoingCoinJoins = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
+			var scheduledCoinJoins = trackedAutoStarts.Select(t => t.Key);
 
-			HighestCoinJoinClientState = inProgress.IsEmpty
+			var onGoingHighestState = onGoingCoinJoins.IsEmpty
 				? CoinJoinClientState.Idle
-				: inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
+				: onGoingCoinJoins.Any(wtd => wtd.InCriticalCoinJoinState)
 					? CoinJoinClientState.InCriticalPhase
 					: CoinJoinClientState.InProgress;
+
+			HighestCoinJoinClientState = onGoingHighestState is not CoinJoinClientState.Idle
+				? onGoingHighestState
+				: scheduledCoinJoins.Any()
+					? CoinJoinClientState.InProgress
+					: CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}

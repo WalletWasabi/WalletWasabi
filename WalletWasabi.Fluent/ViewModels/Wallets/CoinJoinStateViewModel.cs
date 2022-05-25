@@ -423,6 +423,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countDownEndTime = DateTimeOffset.MinValue;
 		ElapsedTime = "";
 		RemainingTime = "";
+		ProgressValue = 0;
 	}
 
 	private void OnTimerTick(object? sender, EventArgs e)
