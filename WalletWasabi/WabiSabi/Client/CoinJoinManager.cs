@@ -345,6 +345,11 @@ public class CoinJoinManager : BackgroundService
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Transaction not broadcasted.");
 			}
 		}
+		catch (NoCoinsToMixException x)
+		{
+			NotifyCoinJoinStartError(wallet, CoinjoinError.NoCoinsToMix);
+			Logger.LogDebug(x);
+		}
 		catch (InvalidOperationException ioe)
 		{
 			Logger.LogWarning(ioe);
