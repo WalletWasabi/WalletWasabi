@@ -3,16 +3,29 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:cp="clr-namespace:WalletWasabi.Fluent.Views.CoinJoinProfiles"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletSettingsView">
+  <UserControl.Styles>
+    <Style Selector="c|ContentArea.pr20">
+      <Setter Property="Padding" Value="0 0 20 0" />
+    </Style>
+  </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
+    <i:Interaction.Behaviors>
+      <ir:AdaptiveBehavior>
+        <ir:AdaptiveClassSetter MaxHeight="612" ClassName="pr20" />
+      </ir:AdaptiveBehavior>
+    </i:Interaction.Behaviors>
+
     <StackPanel Spacing="20">
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding ShowAutomaticCoinjoin}">
@@ -37,7 +50,7 @@
         <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
         <c:InfoMessage>
           <DockPanel>
-            <Button Margin="50 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
+            <Button Margin="50 0 0 0" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
             <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
           </DockPanel>
         </c:InfoMessage>
