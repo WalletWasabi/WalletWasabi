@@ -26,7 +26,7 @@
   <DockPanel>
 
     <TextBlock DockPanel.Dock="Top" Margin="0 0 0 10"
-               Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!"
+               Text="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!"
                TextWrapping="Wrap" />
 
     <Button Classes="h8 plain activeHyperLink"
