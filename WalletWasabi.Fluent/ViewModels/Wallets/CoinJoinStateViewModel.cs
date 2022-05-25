@@ -34,7 +34,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin" };
-	private readonly MusicStatusMessageViewModel _roundFailedMessage = new() { Message = "Coinjoin failed, retrying..." };
+	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for the next round" };
 	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
 	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for others" };
@@ -61,7 +61,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
-	private CoinJoinProgressEventArgs? _lastStatusMessage;
 
 	public bool IsAutoCoinJoinEnabled => WalletVm.Settings.AutoCoinJoin;
 
@@ -188,13 +187,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		BalanceChanged,
 		Timer,
 		PlebStopChanged,
-		RoundEndedMessage,
-		OutputRegistrationMessage,
-		SigningPhaseMessage,
-		InputRegistrationMessage,
-		WaitingForBlameRoundMessage,
-		WaitingForRoundMessage,
-		ConnectionConfirmationPhaseMessage,
 		EnterCriticalPhaseMessage,
 		ExitCriticalPhaseMessage,
 		WalletStartedCoinJoin,
@@ -279,7 +271,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				PauseVisible = IsAutoCoinJoinEnabled;
 				StopVisible = !IsAutoCoinJoinEnabled;
-			});
+			})
+			.OnTrigger(Trigger.Timer, UpdateCountDown);
 
 		_stateMachine.Configure(State.PlebStopActive)
 			.Permit(Trigger.BalanceChanged, State.Playing)
@@ -328,27 +321,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
-	private void UpdateAndShowWalletMixedProgress()
-	{
-		if (!_wallet.Coins.Any() || IsCounting)
-		{
-			return;
-		}
-
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
-
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
-		var total = _wallet.Coins.TotalAmount();
-
-		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = normalAmount.ToFormattedString() + " BTC";
-
-		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
-
-		ProgressValue = (double)percentage;
-	}
-
 	private void StatusChanged(StatusChangedEventArgs e)
 	{
 		switch (e)
@@ -388,37 +360,50 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
-				_lastStatusMessage = roundEnded;
-				_stateMachine.Fire(Trigger.RoundEndedMessage);
+				CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
+				{
+					EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
+					EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
+					_ => _roundFinishedMessage
+				};
+				StopCountDown();
 				break;
 
-			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
-				_lastStatusMessage = enteringOutputRegistrationPhase;
-				_stateMachine.Fire(Trigger.OutputRegistrationMessage);
+			case EnteringOutputRegistrationPhase outputRegPhase:
+				StartCountDown(
+					message: _outputRegistrationMessage,
+					start: outputRegPhase.TimeoutAt - outputRegPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
+					end: outputRegPhase.TimeoutAt);
 				break;
 
-			case EnteringSigningPhase enteringSigningPhase:
-				_lastStatusMessage = enteringSigningPhase;
-				_stateMachine.Fire(Trigger.SigningPhaseMessage);
+			case EnteringSigningPhase signingPhase:
+				StartCountDown(
+					message: _transactionSigningMessage,
+					start: signingPhase.TimeoutAt - signingPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
+					end: signingPhase.TimeoutAt);
 				break;
 
-			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
-				_lastStatusMessage = enteringInputRegistrationPhase;
-				_stateMachine.Fire(Trigger.InputRegistrationMessage);
+			case EnteringInputRegistrationPhase inputRegPhase:
+				StartCountDown(
+					message: _inputRegistrationMessage,
+					start: inputRegPhase.TimeoutAt - inputRegPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
+					end: inputRegPhase.TimeoutAt);
 				break;
 
 			case WaitingForBlameRound waitingForBlameRound:
-				_lastStatusMessage = waitingForBlameRound;
-				_stateMachine.Fire(Trigger.WaitingForBlameRoundMessage);
+				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
 				break;
 
 			case WaitingForRound:
-				_stateMachine.Fire(Trigger.WaitingForRoundMessage);
+				CurrentStatus = _waitingRoundMessage;
+				StopCountDown();
 				break;
 
-			case EnteringConnectionConfirmationPhase:
-				_lastStatusMessage = coinJoinProgress;
-				_stateMachine.Fire(Trigger.ConnectionConfirmationPhaseMessage);
+			case EnteringConnectionConfirmationPhase confirmationPhase:
+				StartCountDown(
+					message: _connectionConfirmationMessage,
+					start: confirmationPhase.TimeoutAt - confirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
+					end: confirmationPhase.TimeoutAt);
 				break;
 
 			case EnteringCriticalPhase:
@@ -431,90 +416,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsInCriticalPhase = false;
 				break;
 		}
-	}
-
-	private StateMachine<State, Trigger>.StateContext HandleMessages(StateMachine<State, Trigger>.StateContext context)
-	{
-		return context.OnTrigger(Trigger.RoundEndedMessage, () =>
-			{
-				if (_lastStatusMessage is RoundEnded roundEnded)
-				{
-					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
-					{
-						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
-						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
-						_ => _roundFailedMessage
-					};
-					StopCountDown();
-				}
-			})
-			.OnTrigger(Trigger.InputRegistrationMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringInputRegistrationPhase enteringInputRegistrationPhase)
-				{
-					StartCountDown(
-						message: _inputRegistrationMessage,
-						start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState
-							.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
-						end: enteringInputRegistrationPhase.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.OutputRegistrationMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringOutputRegistrationPhase enteringOutputRegistrationPhase)
-				{
-					StartCountDown(
-						message: _outputRegistrationMessage,
-						start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState
-							.CoinjoinState.Parameters.OutputRegistrationTimeout,
-						end: enteringOutputRegistrationPhase.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.SigningPhaseMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringSigningPhase enteringSigningPhase)
-				{
-					StartCountDown(
-						message: _transactionSigningMessage,
-						start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters
-							.TransactionSigningTimeout,
-						end: enteringSigningPhase.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.ConnectionConfirmationPhaseMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringConnectionConfirmationPhase confirmationPhaseArgs)
-				{
-					StartCountDown(
-						message: _connectionConfirmationMessage,
-						start: confirmationPhaseArgs.TimeoutAt - confirmationPhaseArgs
-							.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
-						end: confirmationPhaseArgs.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.WaitingForBlameRoundMessage, () =>
-			{
-				if (_lastStatusMessage is WaitingForBlameRound waitingForBlameRound)
-				{
-					StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow,
-						end: waitingForBlameRound.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.WaitingForRoundMessage, () =>
-			{
-				CurrentStatus = _waitingRoundMessage;
-				StopCountDown();
-			});
 	}
 
 	private void StartCountDown(MusicStatusMessageViewModel message, DateTimeOffset start, DateTimeOffset end)
@@ -532,7 +433,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		IsCountDownDelayHappening = false;
 		_countDownStartTime = DateTimeOffset.MinValue;
 		_countDownEndTime = DateTimeOffset.MinValue;
-		UpdateAndShowWalletMixedProgress();
+		ElapsedTime = "";
+		RemainingTime = "";
 	}
 
 	private void OnTimerTick(object? sender, EventArgs e)
