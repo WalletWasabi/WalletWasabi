@@ -73,9 +73,8 @@ public partial class WalletViewModel : WalletViewModelBase
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
 				args switch
 				{
-					StartedEventArgs _ => true,
-					StoppedEventArgs _ => false,
-					CompletedEventArgs => false,
+					WalletStartedCoinJoinEventArgs _ => true,
+					WalletStoppedCoinJoinEventArgs _ => false,
 					_ => null
 				};
 
