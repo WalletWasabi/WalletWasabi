@@ -34,6 +34,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin" };
 	private readonly MusicStatusMessageViewModel _roundFailedMessage = new() { Message = "Coinjoin failed, retrying..." };
+	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
 	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for others" };
 	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Finalizing coinjoin" };
@@ -461,9 +462,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ProgressValue = GetPercentage();
 	}
 
-	private TimeSpan GetElapsedTime() => DateTimeOffset.Now - _countDownStartTime;
+	private TimeSpan GetElapsedTime() => DateTimeOffset.UtcNow - _countDownStartTime;
 
-	private TimeSpan GetRemainingTime() => _countDownEndTime - DateTimeOffset.Now;
+	private TimeSpan GetRemainingTime() => _countDownEndTime - DateTimeOffset.UtcNow;
 
 	private TimeSpan GetTotalTime() => _countDownEndTime - _countDownStartTime;
 
@@ -572,9 +573,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				if (_lastStatusMessage is RoundEnded roundEnded)
 				{
-					CurrentStatus = roundEnded.LastRoundState.EndRoundState == EndRoundState.TransactionBroadcasted
-						? _roundSucceedMessage
-						: _roundFailedMessage;
+					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
+					{
+						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
+						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
+						_ => _roundFailedMessage
+					};
 					StopCountDown();
 				}
 			})

@@ -96,12 +96,22 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe(anySelected => AnySelected = anySelected)
 			.DisposeWith(disposables);
 
+		Observable.Timer(TimeSpan.FromSeconds(30))
+			.Subscribe(_ =>
+			{
+				foreach (var coin in GetCoins())
+				{
+					coin.RefreshAndGetIsBanned();
+				}
+			})
+			.DisposeWith(disposables);
+
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Selection		SelectionColumnView		-			Auto		-				-			false
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
-		// AnonymitySet		AnonymityColumnView		<custom>	40			-				-			true
-		// Labels			LabelsColumnView		Labels		*			-				-			false
+		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
+		// Labels			LabelsColumnView		Labels		*			-				490			true
 
 		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
 		{
@@ -142,7 +152,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 
-				// AnonymitySet
+				// AnonymityScore
 				new TemplateColumn<WalletCoinViewModel>(
 					new AnonymitySetHeaderView(),
 					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
@@ -153,7 +163,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
 						CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
 					},
-					width: new GridLength(40, GridUnitType.Pixel)),
+					width: new GridLength(50, GridUnitType.Pixel)),
 
 				// Labels
 				new TemplateColumn<WalletCoinViewModel>(
@@ -164,7 +174,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
 						CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
+						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel),
+						MaxWidth = new GridLength(490, GridUnitType.Pixel)
 					},
 					width: new GridLength(1, GridUnitType.Star)),
 			}

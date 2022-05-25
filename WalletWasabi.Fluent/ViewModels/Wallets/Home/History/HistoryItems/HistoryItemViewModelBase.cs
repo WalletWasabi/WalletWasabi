@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -26,6 +27,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		OrderIndex = orderIndex;
 		Id = transactionSummary.TransactionId;
 
+		ClipboardCopyCommand =  ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
+
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
 			.SubscribeAsync(async _ =>
@@ -37,7 +40,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public SmartLabel Label { get; protected set; } = SmartLabel.Empty;
+	public SmartLabel Label { get; init; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
 
@@ -51,7 +54,17 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
+	public ICommand? ClipboardCopyCommand { get; protected set; }
+
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+
+	private async Task CopyToClipboardAsync(string text)
+	{
+		if (Application.Current is {Clipboard: { } clipboard})
+		{
+			await clipboard.SetTextAsync(text);
+		}
+	}
 
 	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{

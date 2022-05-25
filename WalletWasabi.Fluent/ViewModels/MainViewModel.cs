@@ -66,8 +66,6 @@ public partial class MainViewModel : ViewModelBase
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
 
-		MusicControls = new MusicControlsViewModel();
-
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
 
@@ -145,6 +143,11 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
+		CurrentWallet =
+			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>();
+
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -167,9 +170,9 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
-	public TargettedNavigationStack MainScreen { get; }
+	public IObservable<WalletViewModel> CurrentWallet { get; }
 
-	public MusicControlsViewModel MusicControls { get; }
+	public TargettedNavigationStack MainScreen { get; }
 
 	public SearchBarViewModel SearchBar { get; }
 

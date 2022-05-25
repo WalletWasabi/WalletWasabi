@@ -104,6 +104,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
+		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
