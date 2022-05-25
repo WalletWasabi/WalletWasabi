@@ -119,6 +119,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		});
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
+			.Skip(1) // The first one is triggered at the creation.
 			.SubscribeAsync(async (autoCoinJoin) =>
 			{
 				if (autoCoinJoin)
@@ -311,14 +312,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 			case WalletStoppedCoinJoinEventArgs:
 				_stateMachine.Fire(Trigger.WalletStoppedCoinJoin);
-				break;
-
-			case CompletedEventArgs:
-
-				break;
-
-			case StartedEventArgs:
-
 				break;
 
 			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
