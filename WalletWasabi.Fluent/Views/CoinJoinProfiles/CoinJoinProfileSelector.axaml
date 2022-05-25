@@ -25,7 +25,9 @@
   </UserControl.Styles>
   <DockPanel>
 
-    <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
+    <TextBlock DockPanel.Dock="Top" Margin="0 0 0 10"
+               Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!"
+               TextWrapping="Wrap" />
 
     <Button Classes="h8 plain activeHyperLink"
             Classes.noMargin="{Binding IsSmall, ElementName=Selector}"
@@ -34,7 +36,8 @@
             Command="{Binding ManualSetupCommand}"
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
-            Content="Customize" />
+            Content="Customize"
+            ZIndex="100" />
 
     <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
