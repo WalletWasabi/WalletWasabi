@@ -9,7 +9,6 @@
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:sb="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Settings"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:searchItems="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems">
   <Design.DataContext>
     <sb:SearchBarDesignViewModel />

@@ -20,7 +20,9 @@ public enum CoinjoinError
 	NoCoinsToMix,
 	AutoConjoinDisabled,
 	UserInSendWorkflow,
-	NotEnoughUnprivateBalance
+	NotEnoughUnprivateBalance,
+	BackendNotSynchronized,
+	AllCoinsPrivate,
 }
 
 public class StatusChangedEventArgs : EventArgs

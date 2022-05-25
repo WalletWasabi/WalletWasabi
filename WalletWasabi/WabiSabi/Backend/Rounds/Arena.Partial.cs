@@ -40,7 +40,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 
-			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast))
+			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
 
 			if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))

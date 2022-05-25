@@ -25,7 +25,7 @@ public class Program
 {
 	private static Global? Global;
 
-	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
+	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync, TerminateApplication);
 
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -165,14 +165,18 @@ public class Program
 	/// </summary>
 	private static async Task TerminateApplicationAsync()
 	{
-		MainViewModel.Instance.ClearStacks();
-		MainViewModel.Instance.StatusBar.Dispose();
 		Logger.LogSoftwareStopped("Wasabi GUI");
 
 		if (Global is { } global)
 		{
 			await global.DisposeAsync().ConfigureAwait(false);
 		}
+	}
+
+	private static void TerminateApplication()
+	{
+		MainViewModel.Instance.ClearStacks();
+		MainViewModel.Instance.StatusIcon.Dispose();
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
@@ -188,7 +192,13 @@ public class Program
 		}
 	}
 
-	// Avalonia configuration, don't remove; also used by visual designer.
+	// This is required to bootstrap Avalonia's Visual Previewer
+	private static AppBuilder BuildAvaloniaApp()
+	{
+		return BuildAvaloniaApp(false);
+	}
+
+	// Avalonia configuration, don't remove
 	private static AppBuilder BuildAvaloniaApp(bool startInBg)
 	{
 		bool useGpuLinux = true;

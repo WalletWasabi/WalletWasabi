@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="history:CoinJoinDetailsViewModel"
+             x:DataType="details:CoinJoinsDetailsViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.CoinJoinDetailsView"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.CoinJoinsDetailsView"
              Name="CoinJoinDetails">
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
@@ -26,17 +26,17 @@
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID">
-          <ItemsRepeater Items="{Binding TransactionIds}">
-            <ItemsRepeater.ItemTemplate>
-              <DataTemplate>
-                <c:PreviewItem TextValue="{Binding }">
-                  <c:PrivacyContentControl NumberOfPrivacyChars="48">
-                    <TextBlock Text="{Binding }" Classes="monoSpaced"/>
-                  </c:PrivacyContentControl>
-                </c:PreviewItem>
-              </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-          </ItemsRepeater>
+        <ItemsRepeater Items="{Binding TransactionIds}">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+              <c:PreviewItem TextValue="{Binding }">
+                <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
       </c:PreviewItem>
 
       <Separator />
@@ -51,11 +51,10 @@
 
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Coinjoin fee:"
+                     Label="Fees:"
                      TextValue="{Binding CoinJoinFee}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
-
     </StackPanel>
   </c:ContentArea>
 </UserControl>

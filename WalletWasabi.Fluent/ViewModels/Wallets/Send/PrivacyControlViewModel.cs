@@ -20,14 +20,15 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent, Money? targetAmount = null)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(targetAmount ?? _transactionInfo.Amount);
+		var amount = transactionInfo.MinimumRequiredAmount == Money.Zero ? transactionInfo.Amount : transactionInfo.MinimumRequiredAmount;
+		LabelSelection = new LabelSelectionViewModel(amount);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -46,7 +47,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void InitializeLabels()
 	{
-		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 
 		LabelSelection.Reset(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
 		LabelSelection.SetUsedLabel(_usedCoins, privateThreshold);
