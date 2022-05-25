@@ -377,7 +377,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.RoundStartFailed);
 				break;
 
-			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
+			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:
 				OnCoinJoinPhaseChanged(coinJoinStatusEventArgs.CoinJoinProgressEventArgs);
 				break;
 		}
