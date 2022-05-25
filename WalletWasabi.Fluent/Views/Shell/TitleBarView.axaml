@@ -72,6 +72,8 @@
                   DataContext="{Binding #UserControl.DataContext.Balance}"
                   Orientation="Horizontal" HorizontalAlignment="Right"
                   Classes="exchangeRate"
+                  IsHitTestVisible="False"
+                  ToolTip.Tip="BTC to USD Exchange Rate"
                   Classes.visible="{Binding HasExchangeRate^, FallbackValue=False}"
                   Margin="0 0 15 0">
 
