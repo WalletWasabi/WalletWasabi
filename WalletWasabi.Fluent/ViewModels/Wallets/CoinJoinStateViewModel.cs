@@ -173,8 +173,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		ExitCriticalPhaseMessage,
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
-		AutoCoinJoinOff,
-		AutoCoinJoinOn
+		AutoCoinJoinOff
 	}
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
