@@ -166,7 +166,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		Invalid = 0,
 		PlebStopActivated,
 		BalanceChanged,
-		Timer,
+		Tick,
 		PlebStopChanged,
 		EnterCriticalPhaseMessage,
 		ExitCriticalPhaseMessage,
@@ -210,7 +210,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_autoCoinJoinStartTimer.Stop();
 				StopCountDown();
 			})
-			.OnTrigger(Trigger.Timer, () =>
+			.OnTrigger(Trigger.Tick, () =>
 			{
 				UpdateCountDown();
 			});
@@ -253,7 +253,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = IsAutoCoinJoinEnabled;
 				StopVisible = !IsAutoCoinJoinEnabled;
 			})
-			.OnTrigger(Trigger.Timer, UpdateCountDown);
+			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
 		_stateMachine.Configure(State.PlebStopActive)
 			.Permit(Trigger.BalanceChanged, State.Playing)
@@ -419,6 +419,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void OnTimerTick(object? sender, EventArgs e)
 	{
-		_stateMachine.Fire(Trigger.Timer);
+		_stateMachine.Fire(Trigger.Tick);
 	}
 }
