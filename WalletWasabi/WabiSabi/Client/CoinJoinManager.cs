@@ -140,6 +140,8 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
+			NotifyWalletStartedCoinJoin(walletToStart);
+
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
 				walletToStart.LogDebug("PlebStop preventing coinjoin.");
@@ -208,12 +210,11 @@ public class CoinJoinManager : BackgroundService
 
 			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 			{
+				coinJoinTrackerToStop.Stop();
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
 					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped.");
-					return;
 				}
-				coinJoinTrackerToStop.Stop();
 			}
 		}
 
@@ -372,6 +373,10 @@ public class CoinJoinManager : BackgroundService
 
 			await StartAsync(finishedCoinJoin.Wallet, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken).ConfigureAwait(false);
 		}
+		else
+		{
+			NotifyWalletStoppedCoinJoin(wallet);
+		}
 	}
 
 	/// <summary>
@@ -389,6 +394,12 @@ public class CoinJoinManager : BackgroundService
 			k.SetKeyState(KeyState.Used);
 		}
 	}
+
+	private void NotifyWalletStartedCoinJoin(Wallet openedWallet) =>
+		StatusChanged.SafeInvoke(this, new WalletStartedCoinJoinEventArgs(openedWallet));
+
+	private void NotifyWalletStoppedCoinJoin(Wallet openedWallet) =>
+	StatusChanged.SafeInvoke(this, new WalletStoppedCoinJoinEventArgs(openedWallet));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
 		StatusChanged.SafeInvoke(this, new StartedEventArgs(openedWallet, registrationTimeout));

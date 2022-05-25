@@ -91,13 +91,13 @@
 
           <Button Classes="plain"
                   IsVisible="{Binding PauseVisible}"
-                  Command="{Binding PauseCommand}">
+                  Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
 
           <Button Classes="plain"
                   IsVisible="{Binding StopVisible}"
-                  Command="{Binding StopCommand}">
+                  Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource stop_regular}" />
           </Button>
 

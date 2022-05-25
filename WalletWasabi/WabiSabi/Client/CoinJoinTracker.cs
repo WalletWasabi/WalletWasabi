@@ -48,7 +48,10 @@ public class CoinJoinTracker : IDisposable
 	public void Stop()
 	{
 		IsStopped = true;
-		CancellationTokenSource.Cancel();
+		if (!InCriticalCoinJoinState)
+		{
+			CancellationTokenSource.Cancel();
+		}
 	}
 
 	private void CoinJoinClient_CoinJoinClientProgress(object? sender, CoinJoinProgressEventArgs coinJoinProgressEventArgs)
