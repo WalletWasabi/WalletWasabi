@@ -246,12 +246,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, true, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
 			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
+			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, true, _overridePlebStop, CancellationToken.None))
 			.OnTrigger(Trigger.Timer, UpdateCountDown)
 			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
 
@@ -376,7 +376,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					_overridePlebStop = false;
 				}
 
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(_wallet, false, _overridePlebStop, CancellationToken.None);
 			})
 			.Custom(HandleMessages)
 			.OnEntry(UpdateAndShowWalletMixedProgress)
