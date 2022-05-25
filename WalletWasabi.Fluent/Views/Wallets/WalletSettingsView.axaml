@@ -13,7 +13,7 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="20" Margin="0 30">
+    <StackPanel Spacing="20">
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding ShowAutomaticCoinjoin}">
           <TextBlock Text="Automatically start coinjoin" />
@@ -25,9 +25,10 @@
           <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
         </DockPanel>
 
-        <Panel IsVisible="{Binding AutoCoinJoin}">
-          <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" IsSmall="True" Height="290" />
-        </Panel>
+        <StackPanel IsVisible="{Binding AutoCoinJoin}">
+          <Separator />
+          <cp:CoinJoinProfileSelector DataContext="{Binding CoinJoinProfiles}" IsSmall="True" Height="290" Margin="0 20 0 0" />
+        </StackPanel>
 
         <Separator />
       </StackPanel>
