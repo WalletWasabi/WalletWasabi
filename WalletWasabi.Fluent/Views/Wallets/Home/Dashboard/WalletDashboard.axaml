@@ -37,7 +37,9 @@
       </Style>
     </Panel.Styles>
 
-    <StackPanel IsVisible="{Binding HasBalance^}" HorizontalAlignment="Left">
+    <StackPanel IsVisible="{Binding HasBalance^}"
+                HorizontalAlignment="Left"
+                ToolTip.Tip="Wallet Balance">
       <PathIcon Data="{StaticResource dash_wallet_balance_20_regular}" Classes="new size20" />
       <TextBlock Classes="MainData"
                  Text="{Binding BalanceBtc^}" />
@@ -46,7 +48,9 @@
                                       Content="{Binding BalanceUsd^}" />
     </StackPanel>
 
-    <StackPanel IsVisible="{Binding HasPrivacyScore^}" HorizontalAlignment="Right">
+    <StackPanel IsVisible="{Binding HasPrivacyScore^}"
+                HorizontalAlignment="Right"
+                ToolTip.Tip="Privacy Score">
       <PathIcon Data="{StaticResource dash_privacy_score_20_regular}" Classes="new size20" />
       <TextBlock Classes="MainData"
                  Text="{Binding PrivacyScore^, StringFormat='{}{0:P0}'}" />
