@@ -63,7 +63,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
+		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				490			true
