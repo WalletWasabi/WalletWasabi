@@ -156,34 +156,16 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		Disabled,
-		AutoCoinJoin,
-		ManualCoinJoin,
-
-		AutoStarting,
-		Paused,
-		AutoPlaying,
-		AutoPlayingCritical,
-		AutoFinished,
-		AutoFinishedPlebStop,
-
 		StopOrPause,
-		ManualPlaying,
-		ManualPlayingCritical,
-		ManualFinished,
-
-		ManualFinishedPlebStop,
-		WaitingForAutoStart,
 		Playing,
 		PlebStopActive,
+		WaitingForAutoStart,
 	}
 
 	private enum Trigger
 	{
 		Invalid = 0,
 		PlebStopActivated,
-		RoundStartFailed,
-		RoundStart,
-		RoundFinished,
 		BalanceChanged,
 		Timer,
 		PlebStopChanged,
@@ -334,19 +316,25 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case CompletedEventArgs:
-				_stateMachine.Fire(Trigger.RoundFinished);
+
 				break;
 
 			case StartedEventArgs:
-				_stateMachine.Fire(Trigger.RoundStart);
+
 				break;
 
 			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
 				_stateMachine.Fire(Trigger.PlebStopActivated);
 				break;
 
-			case StartErrorEventArgs:
-				_stateMachine.Fire(Trigger.RoundStartFailed);
+			case StartErrorEventArgs start:
+				CurrentStatus = start.Error switch
+				{
+					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for valid/confirmed funds" },
+					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
+					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray your wallet is private" },
+					_ => new() { Message = "Waiting for valid conditions" },
+				};
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:

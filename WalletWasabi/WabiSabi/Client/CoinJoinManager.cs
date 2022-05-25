@@ -142,6 +142,14 @@ public class CoinJoinManager : BackgroundService
 
 			NotifyWalletStartedCoinJoin(walletToStart);
 
+			if (IsUserInSendWorkflow)
+			{
+				ScheduleRestartAutomatically(walletToStart, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.UserInSendWorkflow);
+				return;
+			}
+
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
 				walletToStart.LogDebug("PlebStop preventing coinjoin.");
