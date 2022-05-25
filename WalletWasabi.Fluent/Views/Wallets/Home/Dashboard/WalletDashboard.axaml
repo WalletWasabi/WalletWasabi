@@ -27,7 +27,7 @@
       </Style>
       <Style Selector="StackPanel">
         <Setter Property="Orientation" Value="Horizontal" />
-        <Setter Property="Spacing" Value="10" />
+        <Setter Property="Spacing" Value="5" />
       </Style>
       <Style Selector="StackPanel :is(Control)">
         <Setter Property="VerticalAlignment" Value="Center" />
