@@ -81,8 +81,7 @@
                                      Opacity="0.5"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                     DockPanel.Dock="Left">
-                          </TextBlock>
+                                     DockPanel.Dock="Left" />
 
                           <!-- Current Currency Code -->
                           <TextBlock Name="PART_CurrencyCode"
