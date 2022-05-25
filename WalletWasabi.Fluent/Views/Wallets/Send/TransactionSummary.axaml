@@ -38,8 +38,7 @@
                      Label="some people or companies could know about this">
         <c:LabelsListBox Items="{Binding Labels}"
                          HorizontalAlignment="Left"
-                         VerticalAlignment="Center">
-        </c:LabelsListBox>
+                         VerticalAlignment="Center" />
       </c:PreviewItem>
     </DockPanel>
 
