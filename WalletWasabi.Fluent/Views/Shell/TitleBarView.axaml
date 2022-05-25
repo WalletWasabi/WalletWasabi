@@ -10,7 +10,7 @@
              x:Name="UserControl">
 
   <UserControl.Styles>
-    <Style Selector="Panel#TitlePanel">
+    <Style Selector="Panel#TitlePanel, StackPanel.exchangeRate">
       <Setter Property="Transitions">
         <Transitions>
           <DoubleTransition Property="Opacity" Duration="0:0:0.100" />
@@ -18,12 +18,22 @@
                                          Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
+    </Style>
+    <Style Selector="Panel#TitlePanel">
       <Setter Property="Opacity" Value="1" />
       <Setter Property="RenderTransform" Value="translateX(0px)" />
     </Style>
     <Style Selector="Panel#TitlePanel.minWidth">
       <Setter Property="Opacity" Value="0" />
       <Setter Property="RenderTransform" Value="translateX(-20px)" />
+    </Style>
+    <Style Selector="StackPanel.exchangeRate">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="RenderTransform" Value="translateX(-10px)" />
+    </Style>
+    <Style Selector="StackPanel.exchangeRate.visible">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="RenderTransform" Value="translateX(0px)" />
     </Style>
   </UserControl.Styles>
 
@@ -48,14 +58,26 @@
     </DataTemplate>
 
     <DataTemplate x:Key="SearchBar">
-      <searchBar:SearchBar x:CompileBindings="False" DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
+      <searchBar:SearchBar x:CompileBindings="False" DataContext="{Binding #UserControl.DataContext.SearchBar}"
+                           VerticalAlignment="Stretch"
                            HorizontalAlignment="Stretch"
                            Margin="5"
                            IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
     </DataTemplate>
 
     <DataTemplate x:Key="ExchangeRate">
-      <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Binding #UserControl.DataContext.Balance.BtcToUsdExchangeRate^}" />
+
+      <StackPanel VerticalAlignment="Center"
+                  Spacing="5"
+                  DataContext="{Binding #UserControl.DataContext.Balance}"
+                  Orientation="Horizontal" HorizontalAlignment="Right"
+                  Classes="exchangeRate"
+                  Classes.visible="{Binding HasExchangeRate^, FallbackValue=False}"
+                  Margin="0 0 15 0">
+
+        <PathIcon VerticalAlignment="Center" Classes="new size20" Data="{StaticResource dash_exchange_rate_20_regular}"/>
+        <TextBlock VerticalAlignment="Center" Classes="monoSpaced" Text="{Binding BtcToUsdExchangeRate^}" />
+      </StackPanel>
     </DataTemplate>
 
     <DataTemplate x:Key="WindowsAndLinuxLayout">
@@ -85,7 +107,6 @@
           <ColumnDefinition Width="1*" />
           <ColumnDefinition Width="3*" MaxWidth="400" />
           <ColumnDefinition Width="1*" />
-          <ColumnDefinition Width="75" />
         </Grid.ColumnDefinitions>
 
         <DockPanel Grid.Column="1">
@@ -100,7 +121,7 @@
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
-        <ContentControl Grid.Column="4" ContentTemplate="{StaticResource ExchangeRate}" />
+        <ContentControl Grid.Column="3" ContentTemplate="{StaticResource ExchangeRate}" />
       </Grid>
     </DataTemplate>
 
