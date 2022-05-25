@@ -23,7 +23,7 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinManager : BackgroundService
 {
 	private record CoinJoinCommand(Wallet Wallet);
-	private record StartCoinJoinCommand(Wallet Wallet, bool RestartAutomatically, bool OverridePlebStop) : CoinJoinCommand(Wallet);
+	private record StartCoinJoinCommand(Wallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(Wallet Wallet) : CoinJoinCommand(Wallet);
 
 	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
@@ -47,17 +47,18 @@ public class CoinJoinManager : BackgroundService
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
-	#region Public API (Start | Stop | StartAutomatically)
+	#region Public API (Start | Stop | )
 
-	public Task StartAsync(Wallet wallet, bool overridePlebStop, CancellationToken cancellationToken)
-		=> StartAsync(wallet, restartAutomatically: false, overridePlebStop, cancellationToken);
-
-	public Task StartAutomaticallyAsync(Wallet wallet, bool overridePlebStop, CancellationToken cancellationToken)
-		=> StartAsync(wallet, restartAutomatically: true, overridePlebStop, cancellationToken);
-
-	private async Task StartAsync(Wallet wallet, bool restartAutomatically, bool overridePlebStop, CancellationToken cancellationToken)
+	public async Task StartAsync(Wallet wallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken)
 	{
-		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, restartAutomatically, overridePlebStop), cancellationToken).ConfigureAwait(false);
+		if (overridePlebStop && !wallet.IsUnderPlebStop)
+		{
+			// Turn off overriding if we went above the threshold meanwhile.
+			overridePlebStop = false;
+			wallet.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
+		}
+
+		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task StopAsync(Wallet wallet, CancellationToken cancellationToken)
@@ -65,7 +66,7 @@ public class CoinJoinManager : BackgroundService
 		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
 	}
 
-	#endregion Public API (Start | Stop | StartAutomatically)
+	#endregion Public API (Start | Stop | )
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -128,7 +129,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken stoppingToken)
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, stoppingToken);
-		var trackedAutoStarts = new ConcurrentDictionary<Wallet, Task>();
+		var trackedAutoStarts = new ConcurrentDictionary<Wallet, TrackedAutoStart>();
 
 		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -142,34 +143,29 @@ public class CoinJoinManager : BackgroundService
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
 				walletToStart.LogDebug("PlebStop preventing coinjoin.");
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
+				ScheduleRestartAutomatically(walletToStart, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
 
-				if (startCommand.RestartAutomatically)
-				{
-					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
-				}
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
 				return;
 			}
 
 			if (WalletManager.Synchronizer?.LastResponse is not { } synchronizerResponse)
 			{
+				ScheduleRestartAutomatically(walletToStart, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
+
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
-				if (startCommand.RestartAutomatically)
-				{
-					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
-				}
 				return;
 			}
 
 			if (IsWalletPrivate(walletToStart))
 			{
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
-
-				// In AutoCoinJoin mode we keep watching.
-				if (startCommand.RestartAutomatically)
+				walletToStart.LogDebug("All mixed!");
+				if (!startCommand.StopWhenAllMixed)
 				{
-					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
+					ScheduleRestartAutomatically(walletToStart, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
 				}
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
 				return;
 			}
 
@@ -177,15 +173,13 @@ public class CoinJoinManager : BackgroundService
 			if (coinCandidates.Length == 0)
 			{
 				walletToStart.LogDebug("No candidate coins available to mix.");
+				ScheduleRestartAutomatically(walletToStart, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
+
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
-				if (startCommand.RestartAutomatically)
-				{
-					ScheduleRestartAutomatically(walletToStart, startCommand.OverridePlebStop);
-				}
 				return;
 			}
 
-			var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.RestartAutomatically, startCommand.OverridePlebStop);
+			var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
@@ -201,15 +195,17 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogDebug($"Coinjoin client started, AutoStartCoinjoin:'{startCommand.RestartAutomatically}' overridePlebStop:'{startCommand.OverridePlebStop}'.");
+			walletToStart.LogDebug($"Coinjoin client started, {nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
-			trackedAutoStarts.TryRemove(walletToStart, out _);
+			TryRemoveTrackedAutoStart(walletToStart);
 		}
 
 		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
 		{
 			var walletToStop = stopCommand.Wallet;
+			TryRemoveTrackedAutoStart(walletToStop);
+
 			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
 			{
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
@@ -221,7 +217,7 @@ public class CoinJoinManager : BackgroundService
 			}
 		}
 
-		void ScheduleRestartAutomatically(Wallet walletToStart, bool overridePlebStop)
+		void ScheduleRestartAutomatically(Wallet walletToStart, bool stopWhenAllMixed, bool overridePlebStop)
 		{
 			if (trackedAutoStarts.ContainsKey(walletToStart))
 			{
@@ -229,29 +225,47 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+			var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
 			var restartTask = Task.Run(async () =>
 			{
-				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
+				try
+				{
+					await Task.Delay(TimeSpan.FromSeconds(30), linkedCts.Token).ConfigureAwait(false);
+				}
+				catch (OperationCanceledException)
+				{
+					return;
+				}
+				finally
+				{
+					linkedCts.Dispose();
+				}
+
 				if (trackedAutoStarts.TryRemove(walletToStart, out _))
 				{
-					if (overridePlebStop && !walletToStart.IsUnderPlebStop)
-					{
-						// Turn off overriding if we went above the threshold meanwhile.
-						overridePlebStop = false;
-						walletToStart.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
-					}
-
-					await StartAutomaticallyAsync(walletToStart, overridePlebStop, stoppingToken).ConfigureAwait(false);
+					await StartAsync(walletToStart, stopWhenAllMixed, overridePlebStop, stoppingToken).ConfigureAwait(false);
 				}
 				else
 				{
 					walletToStart.LogInfo($"AutoStart was already handled.");
 				}
-			}, stoppingToken);
+			}, linkedCts.Token);
 
-			if (!trackedAutoStarts.TryAdd(walletToStart, restartTask))
+			if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
 			{
 				walletToStart.LogInfo($"AutoCoinJoin task was already added.");
+			}
+		}
+
+		void TryRemoveTrackedAutoStart(Wallet wallet)
+		{
+			if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
+			{
+				trackedAutoStart.CancellationTokenSource.Cancel();
+				trackedAutoStart.CancellationTokenSource.Dispose();
 			}
 		}
 
@@ -271,7 +285,13 @@ public class CoinJoinManager : BackgroundService
 			}
 		}
 
-		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.ToArray()).ConfigureAwait(false);
+		foreach (var trackedAutoStart in trackedAutoStarts.Values)
+		{
+			trackedAutoStart.CancellationTokenSource.Cancel();
+			trackedAutoStart.CancellationTokenSource.Dispose();
+		}
+
+		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task MonitorAndHandlingCoinJoinFinallizationAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken stoppingToken)
@@ -346,13 +366,11 @@ public class CoinJoinManager : BackgroundService
 			finishedCoinJoin.Dispose();
 		}
 
-		if (finishedCoinJoin.RestartAutomatically &&
-			!finishedCoinJoin.IsStopped &&
-			!cancellationToken.IsCancellationRequested)
+		if (!finishedCoinJoin.IsStopped && !cancellationToken.IsCancellationRequested)
 		{
 			wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
-			await StartAutomaticallyAsync(finishedCoinJoin.Wallet, finishedCoinJoin.OverridePlebStop, cancellationToken).ConfigureAwait(false);
+			await StartAsync(finishedCoinJoin.Wallet, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -479,4 +497,6 @@ public class CoinJoinManager : BackgroundService
 
 		NotifyCoinJoinStatusChanged(wallet, e);
 	}
+
+	private record TrackedAutoStart(Task Task, CancellationTokenSource CancellationTokenSource);
 }
