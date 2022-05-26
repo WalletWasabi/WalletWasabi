@@ -74,10 +74,7 @@
 
             <DockPanel LastChildFill="False">
               <TextBlock Text="{Binding ElapsedTime}" />
-              <controls:PrivacyContentControl
-                Content="{Binding RemainingTime}"
-                DockPanel.Dock="Right"
-                ForceShow="{Binding !IsBalanceDisplayed}" />
+              <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
             </DockPanel>
           </StackPanel>
 

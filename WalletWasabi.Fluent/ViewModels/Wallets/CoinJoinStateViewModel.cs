@@ -53,7 +53,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
-	[AutoNotify] private bool _isBalanceDisplayed;
 	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
 
@@ -80,9 +79,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
-
-		this.WhenAnyValue(x => x.RemainingTime)
-			.Subscribe(text => IsBalanceDisplayed = text.Contains("BTC"));
 
 		var initialState = walletVm.Settings.AutoCoinJoin
 			? State.WaitingForAutoStart
