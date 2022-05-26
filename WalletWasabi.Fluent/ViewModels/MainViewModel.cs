@@ -215,13 +215,6 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
-		TorSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
-				return _settingsPage;
-			});
-
 		BitcoinTabSettingsViewModel.RegisterLazy(
 			() =>
 			{
