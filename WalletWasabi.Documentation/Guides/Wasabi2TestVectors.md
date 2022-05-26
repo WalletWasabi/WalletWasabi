@@ -35,10 +35,10 @@ Many of the tests can be done on the [testnet](https://en.bitcoin.it/wiki/Testne
 - Edit the label
 - Hide the address
 - Generate a new address and send testnet coins to it, maybe from a faucet:
--- https://testnet-faucet.mempool.co/
--- https://bitcoinfaucet.uo1.net/
--- https://kuttler.eu/en/bitcoin/btc/faucet/
--- https://testnet-faucet.com/btc-testnet/
+  * https://testnet-faucet.mempool.co/
+  * https://bitcoinfaucet.uo1.net/
+  * https://kuttler.eu/en/bitcoin/btc/faucet/
+  * https://testnet-faucet.com/btc-testnet/
 
 ## Coinjoin / Music box
 
