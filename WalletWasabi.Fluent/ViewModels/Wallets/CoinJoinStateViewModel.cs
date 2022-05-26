@@ -77,7 +77,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		var initialState = walletVm.Settings.AutoCoinJoin
 			? State.WaitingForAutoStart
-			: State.StopOrPause;
+			: State.StoppedOrPaused;
 
 		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
 		{
@@ -147,7 +147,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		Disabled,
-		StopOrPause,
+		StoppedOrPaused,
 		Playing,
 		PlebStopActive,
 		WaitingForAutoStart,
@@ -184,7 +184,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine.Configure(State.WaitingForAutoStart)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
-			.Permit(Trigger.AutoCoinJoinOff, State.StopOrPause)
+			.Permit(Trigger.AutoCoinJoinOff, State.StoppedOrPaused)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -204,7 +204,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
-		_stateMachine.Configure(State.StopOrPause)
+		_stateMachine.Configure(State.StoppedOrPaused)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.OnEntry(() =>
@@ -222,7 +222,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			});
 
 		_stateMachine.Configure(State.Playing)
-			.Permit(Trigger.WalletStoppedCoinJoin, State.StopOrPause)
+			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.OnEntry(() =>
 			{
@@ -248,7 +248,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.BalanceChanged, State.Playing)
 			.Permit(Trigger.PlebStopChanged, State.Playing)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
-			.Permit(Trigger.WalletStoppedCoinJoin, State.StopOrPause)
+			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
