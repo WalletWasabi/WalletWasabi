@@ -98,6 +98,7 @@ Many of the tests can be done on the [testnet](https://en.bitcoin.it/wiki/Testne
 - See multiple coinjoins collapsed into one line item, click expand and see individual coinjoins
 - See transaction details icon pop up when hovering, click it to see details dialog
 - See right click menu options
+- Sort the table by collumn
 
 ## Settings
 
@@ -107,8 +108,54 @@ Many of the tests can be done on the [testnet](https://en.bitcoin.it/wiki/Testne
 - Turn on / off auto copy / paste, test if it works in receive and send dialogs
 - Turn on start Wasabi on boot
 
-## Close to tray
+## Close to tray / running in background
 
 - Close Wasabi GUI, see it goes into tray icon
 - Right click tray icon and maximize GUI
 - Right click tray icon and close Wasabi
+
+## Hardware wallets
+
+- Import hardware wallet
+- Generate receive address
+- Check if spend is not possible when hardware wallet not connected
+- Check if spend is possible with connected hardware wallet
+- Check PSBT workflow [coldcard SD card]
+- Check if music box is not visible [coinjoin impossible]
+
+## Watch only wallets
+
+- Import watch only wallet [explained here](https://docs.wasabiwallet.io/FAQ/FAQ-UseWasabi.html#can-i-import-a-watch-only-extended-public-key)
+- Generate receive address
+- Check if spend is impossible
+- Check if musicbox is not visible [coinjoin impossible]
+
+## Searchbar
+
+- Search for settings in search bar
+- Check interactive toggles in search bar
+- Check clicking on search bar item to open settings
+
+## Window size
+
+- Check everything looks good in maximized, medium-size window, and smallest-size window
+
+## Wallet info
+
+- Check secret information hidden by default, and visible when clicking `show sensitive data`
+- Check copy works
+
+## Wallet settings
+
+- Change anonscore target and auto start coinjoin threshold, see if it applies in wallet file
+- Check the verify recovery words flow
+
+## Wallet statistics
+
+- Check if everything is correct [maybe import to Wasabi 1.0 or Electrum or another coinlist wallet]
+
+## Coinlist
+
+- Open coinlist with `Ctrl+C+D`
+- Sorting the table by column
+- Select coins and send them out
