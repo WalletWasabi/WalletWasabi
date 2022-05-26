@@ -16,14 +16,12 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly Wallet _wallet;
 	private readonly DispatcherTimer _countdownTimer;
 	private readonly DispatcherTimer _autoCoinJoinStartTimer;
 
@@ -63,8 +61,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
-		_wallet = walletVm.Wallet;
 		WalletVm = walletVm;
+		var wallet = walletVm.Wallet;
 
 		_elapsedTime = "";
 		_remainingTime = "";
@@ -97,21 +95,21 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
+			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
+				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
 			}
 
-			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
+			if (wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
 				var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
-				await coinJoinManager.StartAsync(_wallet, stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop, CancellationToken.None);
+				await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop, CancellationToken.None);
 			}
 		});
 
 		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
+			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
 		});
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
@@ -120,11 +118,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			{
 				if (autoCoinJoin)
 				{
-					await coinJoinManager.StartAsync(_wallet, stopWhenAllMixed: false, false, CancellationToken.None);
+					await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: false, false, CancellationToken.None);
 				}
 				else
 				{
-					await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
+					await coinJoinManager.StopAsync(wallet, CancellationToken.None);
 					_stateMachine.Fire(Trigger.AutoCoinJoinOff);
 				}
 			});
@@ -141,7 +139,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(Random.Shared.Next(5, 16)) };
 		_autoCoinJoinStartTimer.Tick += async (_, _) =>
 		{
-			await coinJoinManager.StartAsync(_wallet, stopWhenAllMixed: false, false, CancellationToken.None);
+			await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: false, false, CancellationToken.None);
 			_autoCoinJoinStartTimer.Stop();
 		};
 
@@ -187,8 +185,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		// See diagram in the developer docs.
 		_stateMachine.Configure(State.Disabled);
 
-		var autoStartEnd = DateTimeOffset.UtcNow;
-
 		_stateMachine.Configure(State.WaitingForAutoStart)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.AutoCoinJoinOff, State.StopOrPause)
@@ -199,7 +195,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 
 				var now = DateTimeOffset.UtcNow;
-				autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
+				var autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
 				_autoCoinJoinStartTimer.Start();
 
 				StartCountDown(_countDownMessage, now, autoStartEnd);
