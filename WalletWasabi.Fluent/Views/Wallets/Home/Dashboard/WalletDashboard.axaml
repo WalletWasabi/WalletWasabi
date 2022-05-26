@@ -21,9 +21,9 @@
         <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         <Setter Property="Opacity" Value="0.6"></Setter>
       </Style>
-      <Style Selector="TextBlock.MainData">
-        <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-        <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+      <Style Selector=":is(Control).MainData">
+        <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
+        <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH6}" />
       </Style>
       <Style Selector="StackPanel">
         <Setter Property="Orientation" Value="Horizontal" />
@@ -41,8 +41,8 @@
                 HorizontalAlignment="Left"
                 ToolTip.Tip="Wallet Balance">
       <PathIcon Data="{StaticResource dash_wallet_balance_20_regular}" Classes="new size20" />
-      <TextBlock Classes="MainData"
-                 Text="{Binding BalanceBtc^}" />
+      <controls:PrivacyContentControl Classes="MainData" NumberOfPrivacyChars="9"
+                                      Content="{Binding BalanceBtc^}" />
       <controls:PrivacyContentControl Classes="monoSpaced h8"
                                       NumberOfPrivacyChars="9"
                                       Content="{Binding BalanceUsd^}" />
