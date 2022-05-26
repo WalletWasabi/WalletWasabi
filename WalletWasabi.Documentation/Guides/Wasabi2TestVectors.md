@@ -2,7 +2,7 @@
 
 Thank you for considering to test and review Wasabi Wallet 2.0, it's been a long time in the making and we appreciate every feedback so close before release.
 
-Many of the tests can be done on testnet, but some require a regtest environment. Follow the setup instructions [here](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/WasabiSetupRegtest.md).
+Many of the tests can be done on the [testnet](https://en.bitcoin.it/wiki/Testnet), but some require a regtest environment. Follow the setup instructions [here](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/WasabiSetupRegtest.md).
 
 ## Installation
 
