@@ -310,9 +310,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case StartErrorEventArgs start:
 				CurrentStatus = start.Error switch
 				{
-					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for valid/confirmed funds" },
+					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for confirmed funds" },
 					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
-					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray your wallet is private" },
+					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray!! Your wallet is private" },
 					_ => new() { Message = "Waiting for valid conditions" },
 				};
 				break;
