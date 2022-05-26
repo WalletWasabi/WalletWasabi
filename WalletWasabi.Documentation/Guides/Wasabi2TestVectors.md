@@ -75,7 +75,7 @@ Many of the tests can be done on the [testnet](https://en.bitcoin.it/wiki/Testne
 - Click pause, see coinjoin stops
 - Click play, see coinjoin starts
 - Click pause, restart Wasabi, load same wallet, see that coinjoin is starting
-- Coinjoin to 100% privacy level, see that coinjoin stopps, receive fresh bitcoin to the wallet, see that coinjoin is starting
+- Coinjoin to 100% privacy level, see that coinjoin stops, receive fresh bitcoin to the wallet, see that coinjoin is starting
 
 ## Send
 
