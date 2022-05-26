@@ -145,7 +145,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		for (var tries = 0; tries < tryLimit; tries++)
@@ -470,7 +470,7 @@ public class CoinJoinClient
 		// How many inputs do we want to provide to the mix?
 		int inputCount = Math.Min(
 			organizedCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(organizedCoins.Count, rnd));
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Length, privateCoins.Length, rnd));
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestAmounts = nonPrivateCoins
@@ -568,17 +568,21 @@ public class CoinJoinClient
 	/// Note: random biasing is applied.
 	/// </summary>
 	/// <returns>Desired input count.</returns>
-	private static int GetInputTarget(int utxoCount, WasabiRandom rnd)
+	private static int GetInputTarget(int nonPrivateCount, int privateCount, WasabiRandom rnd)
 	{
-		var minUtxoCountTarget = 21;
+		var utxoCount = nonPrivateCount + privateCount;
+		var utxoCountTarget = 21;
+		var minPrivateUtxoCountTarget = 10;
 		var maxUtxoCountTarget = 100;
 
 		int targetInputCount;
-		if (utxoCount < minUtxoCountTarget)
+		if (utxoCount < utxoCountTarget)
 		{
 			targetInputCount = 1;
 		}
-		else if (utxoCount > maxUtxoCountTarget)
+		else if (utxoCount > maxUtxoCountTarget
+			|| privateCount > utxoCountTarget
+			|| (privateCount > nonPrivateCount && privateCount >= minPrivateUtxoCountTarget))
 		{
 			targetInputCount = MaxInputsRegistrableByWallet;
 		}
@@ -587,7 +591,7 @@ public class CoinJoinClient
 			var min = 2;
 			var max = MaxInputsRegistrableByWallet - 1;
 
-			var percent = (double)(utxoCount - minUtxoCountTarget) / (maxUtxoCountTarget - minUtxoCountTarget);
+			var percent = (double)(utxoCount - utxoCountTarget) / (maxUtxoCountTarget - utxoCountTarget);
 			targetInputCount = (int)Math.Round((max - min) * percent + min);
 		}
 

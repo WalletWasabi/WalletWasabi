@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
   <Design.PreviewWith>
-    <c:CurrencyEntryBox IsReadOnly="True" AmountBtc="1" ConversionCurrencyCode="USD" />
+    <c:CurrencyEntryBox IsReadOnly="True" />
   </Design.PreviewWith>
   <Styles.Resources>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
@@ -44,7 +44,7 @@
                             TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
-          
+
           <Panel IsVisible="{Binding !$parent[c:CurrencyEntryBox].IsReadOnly}">
             <Border
               Name="PART_BorderElement"
@@ -57,9 +57,9 @@
             <Panel
               Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
-                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
+                <ContentPresenter Grid.Column="0"
                                   Content="{TemplateBinding InnerLeftContent}" />
-                <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
+                <Panel x:Name="PART_InnerDockPanel" Grid.Column="1"
                        Margin="{TemplateBinding Padding}">
                   <ScrollViewer
                     HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
@@ -81,8 +81,7 @@
                                      Opacity="0.5"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                     DockPanel.Dock="Left">
-                          </TextBlock>
+                                     DockPanel.Dock="Left" />
 
                           <!-- Current Currency Code -->
                           <TextBlock Name="PART_CurrencyCode"
@@ -108,13 +107,13 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        
+
                         </DockPanel>
                       </Panel>
                     </DockPanel>
                   </ScrollViewer>
                 </Panel>
-                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1"
+                <ContentPresenter Grid.Column="2"
                                   Content="{TemplateBinding InnerRightContent}" />
               </Grid>
             </Panel>
@@ -226,7 +225,7 @@
   <Style Selector="c|CurrencyEntryBox">
     <Setter Property="HorizontalContentAlignment" Value="Left"/>
   </Style>
-  
+
   <Style Selector="c|CurrencyEntryBox:isrightside">
     <Setter Property="TextAlignment" Value="Right"/>
     <Setter Property="HorizontalContentAlignment" Value="Right"/>
@@ -245,5 +244,5 @@
   <Style Selector="c|CurrencyEntryBox:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
     <Setter Property="Margin" Value="0 0 63 0"/>
   </Style>
-  
+
 </Styles>

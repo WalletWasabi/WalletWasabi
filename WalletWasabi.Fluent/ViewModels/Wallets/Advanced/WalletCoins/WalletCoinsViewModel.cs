@@ -108,7 +108,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Selection		SelectionColumnView		-			Auto		-				-			false
-		// Indicators		IndicatorsColumnView	-			Auto		-				-			false
+		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				490			true
@@ -135,7 +135,9 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					options: new ColumnOptions<WalletCoinViewModel>
 					{
 						CanUserResizeColumn = false,
-						CanUserSortColumn = false
+						CanUserSortColumn = true,
+						CompareAscending = WalletCoinViewModel.SortAscending(x => x.CoinJoinInProgress),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => x.CoinJoinInProgress),
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 

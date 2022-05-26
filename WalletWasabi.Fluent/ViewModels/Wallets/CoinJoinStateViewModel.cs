@@ -1,14 +1,11 @@
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -16,24 +13,21 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinStateViewModel : ViewModelBase
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly Wallet _wallet;
 	private readonly DispatcherTimer _countdownTimer;
+	private readonly DispatcherTimer _autoCoinJoinStartTimer;
 
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 	private readonly MusicStatusMessageViewModel _waitingMessage = new() { Message = "Waiting for coinjoin" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-	private readonly MusicStatusMessageViewModel _initialisingMessage = new() { Message = "Coinjoin is initialising" };
-	private readonly MusicStatusMessageViewModel _finishedMessage = new() { Message = "Not enough non-private funds to coinjoin" };
-	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin" };
-	private readonly MusicStatusMessageViewModel _roundFailedMessage = new() { Message = "Coinjoin failed, retrying..." };
+	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin, continuing..." };
+	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for the next round" };
 	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
 	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for others" };
@@ -54,18 +48,18 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private double _progressValue;
 	[AutoNotify] private string _elapsedTime;
 	[AutoNotify] private string _remainingTime;
-	[AutoNotify] private bool _isBalanceDisplayed;
 	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
-	private bool _overridePlebStop;
-	private CoinJoinProgressEventArgs? _lastStatusMessage;
+
+	public bool IsAutoCoinJoinEnabled => WalletVm.Settings.AutoCoinJoin;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
-		_wallet = walletVm.Wallet;
+		WalletVm = walletVm;
+		var wallet = walletVm.Wallet;
 
 		_elapsedTime = "";
 		_remainingTime = "";
@@ -81,12 +75,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
 
-		this.WhenAnyValue(x => x.RemainingTime)
-			.Subscribe(text => IsBalanceDisplayed = text.Contains("BTC"));
-
 		var initialState = walletVm.Settings.AutoCoinJoin
-			? State.AutoCoinJoin
-			: State.ManualCoinJoin;
+			? State.WaitingForAutoStart
+			: State.StoppedOrPaused;
 
 		if (walletVm.Wallet.KeyManager.IsHardwareWallet || walletVm.Wallet.KeyManager.IsWatchOnly)
 		{
@@ -95,29 +86,43 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		_stateMachine = new StateMachine<State, Trigger>(initialState);
 
-		ConfigureStateMachine(coinJoinManager);
+		ConfigureStateMachine();
 
 		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
+			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
+				await RoutableViewModel.NavigateDialogAsync(new CoinJoinProfilesViewModel(wallet.KeyManager, isNewWallet: false), NavigationTarget.DialogScreen);
 			}
 
-			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
+			if (wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				_stateMachine.Fire(Trigger.Play);
+				var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
+				await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop, CancellationToken.None);
 			}
 		});
 
-		PauseCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Pause));
-
-		StopCommand = ReactiveCommand.Create(() => _stateMachine.Fire(Trigger.Stop));
+		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
+		});
 
 		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
-			.Subscribe(SetAutoCoinJoin);
+			.Skip(1) // The first one is triggered at the creation.
+			.SubscribeAsync(async (autoCoinJoin) =>
+			{
+				if (autoCoinJoin)
+				{
+					await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: false, false, CancellationToken.None);
+				}
+				else
+				{
+					await coinJoinManager.StopAsync(wallet, CancellationToken.None);
+					_stateMachine.Fire(Trigger.AutoCoinJoinOff);
+				}
+			});
 
 		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
 			.SubscribeAsync(async _ =>
@@ -128,6 +133,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.PlebStopChanged);
 			});
 
+		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(Random.Shared.Next(5, 16)) };
+		_autoCoinJoinStartTimer.Tick += async (_, _) =>
+		{
+			await coinJoinManager.StartAsync(wallet, stopWhenAllMixed: false, false, CancellationToken.None);
+			_autoCoinJoinStartTimer.Stop();
+		};
+
 		_stateMachine.Start();
 	}
 
@@ -135,49 +147,24 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		Invalid = 0,
 		Disabled,
-		AutoCoinJoin,
-		ManualCoinJoin,
-
-		AutoStarting,
-		Paused,
-		AutoPlaying,
-		AutoPlayingCritical,
-		AutoFinished,
-		AutoFinishedPlebStop,
-
-		Stopped,
-		ManualPlaying,
-		ManualPlayingCritical,
-		ManualFinished,
-
-		ManualFinishedPlebStop,
+		StoppedOrPaused,
+		Playing,
+		PlebStopActive,
+		WaitingForAutoStart,
 	}
 
 	private enum Trigger
 	{
 		Invalid = 0,
-		AutoStartTimeout,
-		AutoCoinJoinOn,
-		AutoCoinJoinOff,
-		Pause,
-		Play,
-		Stop,
-		PlebStop,
-		RoundStartFailed,
-		RoundStart,
-		RoundFinished,
+		PlebStopActivated,
 		BalanceChanged,
-		Timer,
+		Tick,
 		PlebStopChanged,
-		RoundEndedMessage,
-		OutputRegistrationMessage,
-		SigningPhaseMessage,
-		InputRegistrationMessage,
-		WaitingForBlameRoundMessage,
-		WaitingForRoundMessage,
-		ConnectionConfirmationPhaseMessage,
 		EnterCriticalPhaseMessage,
-		ExitCriticalPhaseMessage
+		ExitCriticalPhaseMessage,
+		WalletStartedCoinJoin,
+		WalletStoppedCoinJoin,
+		AutoCoinJoinOff
 	}
 
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
@@ -186,261 +173,95 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public ICommand PlayCommand { get; }
 
-	public ICommand PauseCommand { get; }
+	public ICommand StopPauseCommand { get; }
 
-	public ICommand StopCommand { get; }
+	public WalletViewModel WalletVm { get; }
 
-	private void ConfigureStateMachine(CoinJoinManager coinJoinManager)
+	private void ConfigureStateMachine()
 	{
 		// See diagram in the developer docs.
 		_stateMachine.Configure(State.Disabled);
 
-		// Manual Cj State
-		_stateMachine.Configure(State.ManualCoinJoin)
-			.Permit(Trigger.AutoCoinJoinOn, State.AutoCoinJoin)
-			.InitialTransition(State.Stopped)
+		_stateMachine.Configure(State.WaitingForAutoStart)
+			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
+			.Permit(Trigger.AutoCoinJoinOff, State.StoppedOrPaused)
 			.OnEntry(() =>
 			{
-				IsAuto = false;
-				IsAutoWaiting = false;
 				PlayVisible = true;
-				StopVisible = false;
 				PauseVisible = false;
-			})
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
-
-		_stateMachine.Configure(State.Stopped)
-			.SubstateOf(State.ManualCoinJoin)
-			.Permit(Trigger.Play, State.ManualPlaying)
-			.OnEntry(async () =>
-			{
-				ProgressValue = 0;
-				ElapsedTime = "";
-				RemainingTime = "";
 				StopVisible = false;
-				PlayVisible = true;
-				_wallet.AllowManualCoinJoin = false;
-				CurrentStatus = _stoppedMessage;
 
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
-			})
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
-
-		_stateMachine.Configure(State.ManualPlaying)
-			.SubstateOf(State.ManualCoinJoin)
-			.Permit(Trigger.Stop, State.Stopped)
-			.Permit(Trigger.RoundStartFailed, State.ManualFinished)
-			.Permit(Trigger.PlebStop, State.ManualFinishedPlebStop)
-			.Permit(Trigger.EnterCriticalPhaseMessage, State.ManualPlayingCritical)
-			.OnEntry(async () =>
-			{
-				PlayVisible = false;
-				StopVisible = true;
-				CurrentStatus = _waitingMessage;
-
-				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
-				{
-					// If we are not below the threshold anymore, we turn off the override.
-					_overridePlebStop = false;
-				}
-
-				await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None);
-			})
-			.Custom(HandleMessages)
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.RoundFinished, async () => await coinJoinManager.StartAsync(_wallet, _overridePlebStop, CancellationToken.None))
-			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnTrigger(Trigger.Stop, () => _overridePlebStop = false);
-
-		_stateMachine.Configure(State.ManualPlayingCritical)
-			.SubstateOf(State.ManualPlaying)
-			.Permit(Trigger.ExitCriticalPhaseMessage, State.ManualPlaying)
-			.OnEntry(() =>
-			{
-				StopVisible = false;
-			})
-			.OnExit(() =>
-			{
-				StopVisible = true;
-			});
-
-		_stateMachine.Configure(State.ManualFinished)
-			.SubstateOf(State.ManualCoinJoin)
-			.Permit(Trigger.Play, State.ManualPlaying)
-			.OnEntry(() =>
-			{
-				StopVisible = false;
-				PlayVisible = true;
-				CurrentStatus = _finishedMessage;
-				ProgressValue = 100;
-				ElapsedTime = "";
-				RemainingTime = "";
-			});
-
-		_stateMachine.Configure(State.ManualFinishedPlebStop)
-			.SubstateOf(State.ManualFinished)
-			.Permit(Trigger.BalanceChanged, State.ManualPlaying)
-			.Permit(Trigger.PlebStopChanged, State.ManualPlaying)
-			.Permit(Trigger.Stop, State.Stopped)
-			.OnEntry(() =>
-			{
-				CurrentStatus = _plebStopMessage;
-				ElapsedTime = _plebStopMessageBelow.Message ?? "";
-				ProgressValue = 0;
-
-				StopVisible = true;
-				PauseVisible = false;
-				PlayVisible = true;
-			})
-			.OnTrigger(Trigger.Play, () =>
-			{
-				_overridePlebStop = true;
-			});
-
-		// AutoCj State
-		_stateMachine.Configure(State.AutoCoinJoin)
-			.InitialTransition(State.AutoStarting)
-			.Permit(Trigger.AutoCoinJoinOff, State.ManualCoinJoin)
-			.OnEntry(async () =>
-			{
-				IsAuto = true;
-				StopVisible = false;
-				PauseVisible = false;
-				PlayVisible = false;
-
-				CurrentStatus = _initialisingMessage;
-
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
-			});
-
-		_stateMachine.Configure(State.AutoStarting)
-			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.Pause, State.Paused)
-			.Permit(Trigger.RoundStart, State.AutoPlaying)
-			.Permit(Trigger.AutoStartTimeout, State.AutoPlaying)
-			.Permit(Trigger.Play, State.AutoPlaying)
-			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.OnEntry(() =>
-			{
-				PlayVisible = true;
-				IsAutoWaiting = true;
 				var now = DateTimeOffset.UtcNow;
-				StartCountDown(_countDownMessage, start: now, end: now + TimeSpan.FromSeconds(Random.Shared.Next(5 * 60, 16 * 60)));
+				var autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
+				_autoCoinJoinStartTimer.Start();
+
+				StartCountDown(_countDownMessage, now, autoStartEnd);
 			})
-			.OnTrigger(Trigger.Timer, UpdateAutoStartCountDown)
 			.OnExit(() =>
 			{
+				_autoCoinJoinStartTimer.Stop();
 				StopCountDown();
-				IsAutoWaiting = false;
-			});
-
-		_stateMachine.Configure(State.Paused)
-			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.Play, State.AutoPlaying)
-			.OnEntry(async () =>
-			{
-				IsAutoWaiting = true;
-
-				CurrentStatus = _pauseMessage;
-				ProgressValue = 0;
-				ElapsedTime = "";
-				RemainingTime = "";
-
-				PauseVisible = false;
-				PlayVisible = true;
-
-				await coinJoinManager.StopAsync(_wallet, CancellationToken.None);
 			})
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress);
+			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
-		_stateMachine.Configure(State.AutoPlaying)
-			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.Pause, State.Paused)
-			.Permit(Trigger.PlebStop, State.AutoFinishedPlebStop)
-			.Permit(Trigger.RoundStartFailed, State.AutoFinished)
-			.Permit(Trigger.EnterCriticalPhaseMessage, State.AutoPlayingCritical)
-			.OnEntry(async () =>
-			{
-				CurrentStatus = _waitingMessage;
-				IsAutoWaiting = false;
-				PauseVisible = true;
-				PlayVisible = false;
-
-				if (_overridePlebStop && !_wallet.IsUnderPlebStop)
-				{
-					// If we are not below the threshold anymore, we turn off the override.
-					_overridePlebStop = false;
-				}
-
-				await coinJoinManager.StartAutomaticallyAsync(_wallet, _overridePlebStop, CancellationToken.None);
-			})
-			.Custom(HandleMessages)
-			.OnEntry(UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.BalanceChanged, UpdateAndShowWalletMixedProgress)
-			.OnTrigger(Trigger.Timer, UpdateCountDown)
-			.OnTrigger(Trigger.Pause, () => _overridePlebStop = false);
-
-		_stateMachine.Configure(State.AutoPlayingCritical)
-			.SubstateOf(State.AutoPlaying)
-			.Permit(Trigger.ExitCriticalPhaseMessage, State.AutoPlaying)
+		_stateMachine.Configure(State.StoppedOrPaused)
+			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
+			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.OnEntry(() =>
 			{
+				PlayVisible = true;
 				PauseVisible = false;
+				StopVisible = false;
+
+				CurrentStatus = IsAutoCoinJoinEnabled ? _pauseMessage : _stoppedMessage;
+				ElapsedTime = "Press Play to start";
 			})
 			.OnExit(() =>
 			{
-				PauseVisible = true;
+				ElapsedTime = "";
 			});
 
-		_stateMachine.Configure(State.AutoFinished)
-			.SubstateOf(State.AutoCoinJoin)
-			.Permit(Trigger.RoundStart, State.AutoPlaying)
-			.Permit(Trigger.BalanceChanged, State.AutoPlaying)
+		_stateMachine.Configure(State.Playing)
+			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
+			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.OnEntry(() =>
+			{
+				PlayVisible = false;
+				PauseVisible = IsAutoCoinJoinEnabled;
+				StopVisible = !IsAutoCoinJoinEnabled;
+
+				CurrentStatus = _waitingMessage;
+			})
+			.OnTrigger(Trigger.EnterCriticalPhaseMessage, () =>
 			{
 				PauseVisible = false;
-				PlayVisible = false;
+				StopVisible = false;
+			})
+			.OnTrigger(Trigger.ExitCriticalPhaseMessage, () =>
+			{
+				PauseVisible = IsAutoCoinJoinEnabled;
+				StopVisible = !IsAutoCoinJoinEnabled;
+			})
+			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
-				ProgressValue = 100;
-				ElapsedTime = "";
-				RemainingTime = "";
-
-				CurrentStatus = _finishedMessage;
-			});
-
-		_stateMachine.Configure(State.AutoFinishedPlebStop)
-			.SubstateOf(State.AutoFinished)
-			.Permit(Trigger.Play, State.AutoPlaying)
-			.Permit(Trigger.PlebStopChanged, State.AutoPlaying)
-			.Permit(Trigger.Pause, State.Paused)
+		_stateMachine.Configure(State.PlebStopActive)
+			.Permit(Trigger.BalanceChanged, State.Playing)
+			.Permit(Trigger.PlebStopChanged, State.Playing)
+			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
+			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
 			.OnEntry(() =>
 			{
-				CurrentStatus = _plebStopMessage;
-				ElapsedTime = _plebStopMessageBelow.Message ?? "";
-				ProgressValue = 0;
-
-				StopVisible = false;
-				PauseVisible = true;
 				PlayVisible = true;
+				PauseVisible = false;
+				StopVisible = false;
+
+				CurrentStatus = _plebStopMessage;
+				ElapsedTime = _plebStopMessageBelow.Message!;
 			})
-			.OnTrigger(Trigger.Play, () =>
+			.OnExit(() =>
 			{
-				_overridePlebStop = true;
+				ElapsedTime = "";
 			});
-	}
-
-	private void UpdateAutoStartCountDown()
-	{
-		UpdateCountDown();
-
-		if (IsCountDownFinished)
-		{
-			_stateMachine.Fire(Trigger.AutoStartTimeout);
-		}
 	}
 
 	private void UpdateCountDown()
@@ -470,48 +291,33 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
-	private void UpdateAndShowWalletMixedProgress()
-	{
-		if (!_wallet.Coins.Any() || IsCounting)
-		{
-			return;
-		}
-
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
-
-		var privateAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
-		var normalAmount = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
-		var total = _wallet.Coins.TotalAmount();
-
-		ElapsedTime = "Balance to coinjoin:";
-		RemainingTime = normalAmount.ToFormattedString() + " BTC";
-
-		var percentage = privateAmount.ToDecimal(MoneyUnit.BTC) / total.ToDecimal(MoneyUnit.BTC) * 100;
-
-		ProgressValue = (double)percentage;
-	}
-
 	private void StatusChanged(StatusChangedEventArgs e)
 	{
 		switch (e)
 		{
-			case CompletedEventArgs:
-				_stateMachine.Fire(Trigger.RoundFinished);
+			case WalletStartedCoinJoinEventArgs:
+				_stateMachine.Fire(Trigger.WalletStartedCoinJoin);
 				break;
 
-			case StartedEventArgs:
-				_stateMachine.Fire(Trigger.RoundStart);
+			case WalletStoppedCoinJoinEventArgs:
+				_stateMachine.Fire(Trigger.WalletStoppedCoinJoin);
 				break;
 
 			case StartErrorEventArgs start when start.Error is CoinjoinError.NotEnoughUnprivateBalance:
-				_stateMachine.Fire(Trigger.PlebStop);
+				_stateMachine.Fire(Trigger.PlebStopActivated);
 				break;
 
-			case StartErrorEventArgs:
-				_stateMachine.Fire(Trigger.RoundStartFailed);
+			case StartErrorEventArgs start:
+				CurrentStatus = start.Error switch
+				{
+					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for valid/confirmed funds" },
+					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
+					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray your wallet is private" },
+					_ => new() { Message = "Waiting for valid conditions" },
+				};
 				break;
 
-			case CoinJoinStatusEventArgs coinJoinStatusEventArgs when coinJoinStatusEventArgs.Wallet == _wallet:
+			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:
 				OnCoinJoinPhaseChanged(coinJoinStatusEventArgs.CoinJoinProgressEventArgs);
 				break;
 		}
@@ -522,37 +328,50 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		switch (coinJoinProgress)
 		{
 			case RoundEnded roundEnded:
-				_lastStatusMessage = roundEnded;
-				_stateMachine.Fire(Trigger.RoundEndedMessage);
+				CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
+				{
+					EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
+					EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
+					_ => _roundFinishedMessage
+				};
+				StopCountDown();
 				break;
 
-			case EnteringOutputRegistrationPhase enteringOutputRegistrationPhase:
-				_lastStatusMessage = enteringOutputRegistrationPhase;
-				_stateMachine.Fire(Trigger.OutputRegistrationMessage);
+			case EnteringOutputRegistrationPhase outputRegPhase:
+				StartCountDown(
+					message: _outputRegistrationMessage,
+					start: outputRegPhase.TimeoutAt - outputRegPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
+					end: outputRegPhase.TimeoutAt);
 				break;
 
-			case EnteringSigningPhase enteringSigningPhase:
-				_lastStatusMessage = enteringSigningPhase;
-				_stateMachine.Fire(Trigger.SigningPhaseMessage);
+			case EnteringSigningPhase signingPhase:
+				StartCountDown(
+					message: _transactionSigningMessage,
+					start: signingPhase.TimeoutAt - signingPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
+					end: signingPhase.TimeoutAt);
 				break;
 
-			case EnteringInputRegistrationPhase enteringInputRegistrationPhase:
-				_lastStatusMessage = enteringInputRegistrationPhase;
-				_stateMachine.Fire(Trigger.InputRegistrationMessage);
+			case EnteringInputRegistrationPhase inputRegPhase:
+				StartCountDown(
+					message: _inputRegistrationMessage,
+					start: inputRegPhase.TimeoutAt - inputRegPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
+					end: inputRegPhase.TimeoutAt);
 				break;
 
 			case WaitingForBlameRound waitingForBlameRound:
-				_lastStatusMessage = waitingForBlameRound;
-				_stateMachine.Fire(Trigger.WaitingForBlameRoundMessage);
+				StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow, end: waitingForBlameRound.TimeoutAt);
 				break;
 
 			case WaitingForRound:
-				_stateMachine.Fire(Trigger.WaitingForRoundMessage);
+				CurrentStatus = _waitingRoundMessage;
+				StopCountDown();
 				break;
 
-			case EnteringConnectionConfirmationPhase:
-				_lastStatusMessage = coinJoinProgress;
-				_stateMachine.Fire(Trigger.ConnectionConfirmationPhaseMessage);
+			case EnteringConnectionConfirmationPhase confirmationPhase:
+				StartCountDown(
+					message: _connectionConfirmationMessage,
+					start: confirmationPhase.TimeoutAt - confirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
+					end: confirmationPhase.TimeoutAt);
 				break;
 
 			case EnteringCriticalPhase:
@@ -565,90 +384,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				IsInCriticalPhase = false;
 				break;
 		}
-	}
-
-	private StateMachine<State, Trigger>.StateContext HandleMessages(StateMachine<State, Trigger>.StateContext context)
-	{
-		return context.OnTrigger(Trigger.RoundEndedMessage, () =>
-			{
-				if (_lastStatusMessage is RoundEnded roundEnded)
-				{
-					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
-					{
-						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
-						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
-						_ => _roundFailedMessage
-					};
-					StopCountDown();
-				}
-			})
-			.OnTrigger(Trigger.InputRegistrationMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringInputRegistrationPhase enteringInputRegistrationPhase)
-				{
-					StartCountDown(
-						message: _inputRegistrationMessage,
-						start: enteringInputRegistrationPhase.TimeoutAt - enteringInputRegistrationPhase.RoundState
-							.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
-						end: enteringInputRegistrationPhase.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.OutputRegistrationMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringOutputRegistrationPhase enteringOutputRegistrationPhase)
-				{
-					StartCountDown(
-						message: _outputRegistrationMessage,
-						start: enteringOutputRegistrationPhase.TimeoutAt - enteringOutputRegistrationPhase.RoundState
-							.CoinjoinState.Parameters.OutputRegistrationTimeout,
-						end: enteringOutputRegistrationPhase.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.SigningPhaseMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringSigningPhase enteringSigningPhase)
-				{
-					StartCountDown(
-						message: _transactionSigningMessage,
-						start: enteringSigningPhase.TimeoutAt - enteringSigningPhase.RoundState.CoinjoinState.Parameters
-							.TransactionSigningTimeout,
-						end: enteringSigningPhase.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.ConnectionConfirmationPhaseMessage, () =>
-			{
-				if (_lastStatusMessage is EnteringConnectionConfirmationPhase confirmationPhaseArgs)
-				{
-					StartCountDown(
-						message: _connectionConfirmationMessage,
-						start: confirmationPhaseArgs.TimeoutAt - confirmationPhaseArgs
-							.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
-						end: confirmationPhaseArgs.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.WaitingForBlameRoundMessage, () =>
-			{
-				if (_lastStatusMessage is WaitingForBlameRound waitingForBlameRound)
-				{
-					StartCountDown(message: _waitingForBlameRoundMessage, start: DateTimeOffset.UtcNow,
-						end: waitingForBlameRound.TimeoutAt);
-
-					_lastStatusMessage = null;
-				}
-			})
-			.OnTrigger(Trigger.WaitingForRoundMessage, () =>
-			{
-				CurrentStatus = _waitingRoundMessage;
-				StopCountDown();
-			});
 	}
 
 	private void StartCountDown(MusicStatusMessageViewModel message, DateTimeOffset start, DateTimeOffset end)
@@ -666,16 +401,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		IsCountDownDelayHappening = false;
 		_countDownStartTime = DateTimeOffset.MinValue;
 		_countDownEndTime = DateTimeOffset.MinValue;
-		UpdateAndShowWalletMixedProgress();
+		ElapsedTime = "";
+		RemainingTime = "";
+		ProgressValue = 0;
 	}
 
 	private void OnTimerTick(object? sender, EventArgs e)
 	{
-		_stateMachine.Fire(Trigger.Timer);
-	}
-
-	private void SetAutoCoinJoin(bool enabled)
-	{
-		_stateMachine.Fire(enabled ? Trigger.AutoCoinJoinOn : Trigger.AutoCoinJoinOff);
+		_stateMachine.Fire(Trigger.Tick);
 	}
 }

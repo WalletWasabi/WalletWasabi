@@ -99,6 +99,11 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 
 	private void SearchBoxOnGotFocus()
 	{
+		if (AssociatedObject is { IsEffectivelyEnabled: false })
+		{
+			return;
+		}
+
 		ShowFlyout();
 	}
 
