@@ -1,10 +1,12 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -45,12 +47,13 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		ImmutableArray<SmartCoin> coinsToUse,
 		int maxInputCount,
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
-			transactionInfo.Coins,
+			coinsToUse,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			maxInputCount,

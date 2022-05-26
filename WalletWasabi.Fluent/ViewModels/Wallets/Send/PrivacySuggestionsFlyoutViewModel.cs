@@ -1,6 +1,7 @@
 using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -56,12 +57,17 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			// Exchange rate can change substantially during computation itself.
 			// Reporting up-to-date exchange rates would just confuse users.
 			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
-		
+
 			int originalInputCount = transaction.SpentCoins.Count();
 			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
 
+			var pockets = wallet.GetPockets();
+			var spentCoins = transaction.SpentCoins;
+			var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
+			var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
+
 			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, usdExchangeRate, linkedCts.Token);
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
 
 			await foreach (var suggestion in suggestions)
 			{
