@@ -1,14 +1,11 @@
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -205,10 +202,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_autoCoinJoinStartTimer.Stop();
 				StopCountDown();
 			})
-			.OnTrigger(Trigger.Tick, () =>
-			{
-				UpdateCountDown();
-			});
+			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
 		_stateMachine.Configure(State.StopOrPause)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
