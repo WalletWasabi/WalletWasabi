@@ -8,15 +8,12 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override string Description => "Choice of the paranoid. Optimizes for privacy at all costs.";
 
-	public override int MinAnonScoreTarget { get; } = GetRandom(40, 61);
-
-	public override int MaxAnonScoreTarget { get; } = GetRandom(90, 111);
+	public override int AnonScoreTarget { get; } = GetRandom(50, 101);
 
 	public override int FeeRateMedianTimeFrameHours => 0;
 
 	private static int GetRandom(int minInclusive, int maxExclusive)
 	{
-		using SecureRandom rand = new();
-		return rand.GetInt(minInclusive, maxExclusive);
+		return SecureRandom.Instance.GetInt(minInclusive, maxExclusive);
 	}
 }

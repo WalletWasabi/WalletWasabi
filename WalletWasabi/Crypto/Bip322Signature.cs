@@ -76,7 +76,12 @@ public record Bip322Signature : IBitcoinSerializable
 				return false;
 			}
 
-			return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
+			if (witnessParameters.TransactionSignature is not { } transactionSignature)
+			{
+				return false;
+			}
+
+			return witnessParameters.PublicKey.Verify(hash, transactionSignature.Signature);
 		}
 		catch (FormatException)
 		{

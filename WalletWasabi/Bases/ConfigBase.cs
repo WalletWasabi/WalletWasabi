@@ -21,12 +21,12 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	}
 
 	/// <inheritdoc />
-	public string FilePath { get; private set; } = null;
+	public string FilePath { get; private set; } = "";
 
 	/// <inheritdoc />
 	public void AssertFilePathSet()
 	{
-		if (FilePath is null)
+		if (string.IsNullOrWhiteSpace(FilePath))
 		{
 			throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 		}

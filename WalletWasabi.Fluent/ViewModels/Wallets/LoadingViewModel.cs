@@ -46,6 +46,8 @@ public partial class LoadingViewModel : ActivatableViewModel
 			});
 	}
 
+	public string WalletName => _wallet.WalletName;
+
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
 	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
@@ -98,7 +100,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.IsNewlyCreated)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}

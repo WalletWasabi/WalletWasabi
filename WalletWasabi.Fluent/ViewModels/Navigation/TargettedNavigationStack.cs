@@ -55,6 +55,11 @@ public class TargettedNavigationStack : NavigationStack<RoutableViewModel>
 	{
 		base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
 
+		if (oldPage is { } && oldPage != newPage)
+		{
+			oldPage.IsActive = false;
+		}
+
 		if (newPage is { })
 		{
 			newPage.CurrentTarget = _target;

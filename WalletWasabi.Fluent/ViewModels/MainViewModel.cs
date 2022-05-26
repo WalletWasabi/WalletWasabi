@@ -12,8 +12,9 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Logging;
@@ -32,26 +33,15 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
-	[AutoNotify] private StatusBarViewModel _statusBar;
+	[AutoNotify] private StatusIconViewModel _statusIcon;
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
-	[AutoNotify] private double _windowWidth;
-	[AutoNotify] private double _windowHeight;
-	[AutoNotify] private PixelPoint? _windowPosition;
 
 	public MainViewModel()
 	{
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
-		_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
-		_windowHeight = Services.UiConfig.WindowHeight ?? 960;
-
-		var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
-		if (x != null && y != null)
-		{
-			_windowPosition = new PixelPoint(x.Value, y.Value);
-		}
 
 		_dialogScreen = new DialogScreenViewModel();
 
@@ -67,7 +57,7 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusBar = new StatusBarViewModel();
+		_statusIcon = new StatusIconViewModel();
 
 		UiServices.Initialize();
 
@@ -76,30 +66,29 @@ public partial class MainViewModel : ViewModelBase
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
 
-		MusicControls = new MusicControlsViewModel();
-
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
 
 		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
-			.Where(x => x.Item1 != WindowState.Minimized)
-			.Where(x => x.Item2 != new PixelPoint(-32000, -32000)) // value when minimized
+		this.WhenAnyValue(x => x.WindowState)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(t =>
+			.Subscribe(state =>
 			{
-				var (state, position, width, height) = t;
-
 				Services.UiConfig.WindowState = state.ToString();
-				if (position is { })
-				{
-					Services.UiConfig.WindowX = position.Value.X;
-					Services.UiConfig.WindowY = position.Value.Y;
-				}
 
-				Services.UiConfig.WindowWidth = width;
-				Services.UiConfig.WindowHeight = height;
+				switch (state)
+				{
+					case WindowState.Normal:
+					case WindowState.Maximized:
+					case WindowState.FullScreen:
+						if (Application.Current?.DataContext is ApplicationViewModel avm)
+						{
+							avm.IsMainWindowShown = true;
+						}
+
+						break;
+				}
 			});
 
 		this.WhenAnyValue(
@@ -154,6 +143,11 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
+		CurrentWallet =
+			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>();
+
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -172,12 +166,13 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		SearchBar = new SearchBarViewModel(SearchItemProvider.GetSearchItems());
+		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
+		SearchBar = new SearchBarViewModel(source.Changes);
 	}
 
-	public TargettedNavigationStack MainScreen { get; }
+	public IObservable<WalletViewModel> CurrentWallet { get; }
 
-	public MusicControlsViewModel MusicControls { get; }
+	public TargettedNavigationStack MainScreen { get; }
 
 	public SearchBarViewModel SearchBar { get; }
 
@@ -199,7 +194,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void Initialize()
 	{
-		StatusBar.Initialize();
+		StatusIcon.Initialize();
 
 		if (Services.Config.Network != Network.Main)
 		{
@@ -217,13 +212,6 @@ public partial class MainViewModel : ViewModelBase
 			() =>
 			{
 				_settingsPage.SelectedTab = 0;
-				return _settingsPage;
-			});
-
-		TorSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
