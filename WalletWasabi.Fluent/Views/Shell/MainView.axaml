@@ -13,7 +13,7 @@
                     d:DesignWidth="1000" d:DesignHeight="1000"
                     x:CompileBindings="True">
 
-  <DockPanel>
+  <DockPanel IsEnabled="{Binding IsMainContentEnabled}">
     <shell:TitleBarView DockPanel.Dock="Top" />
     <DockPanel>
       <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
