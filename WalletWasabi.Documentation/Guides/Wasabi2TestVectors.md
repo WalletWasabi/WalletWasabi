@@ -14,7 +14,7 @@ Many of the tests can be done on the [testnet](https://en.bitcoin.it/wiki/Testne
 
 - Start Wasabi for the first time on testnet
 - Confirm Tor is running, backend is connected
-- Confirm filters are downloaded successfully
+- Confirm filters are downloaded successfully by looking at application logs
 
 ## Wallet Generation
 
