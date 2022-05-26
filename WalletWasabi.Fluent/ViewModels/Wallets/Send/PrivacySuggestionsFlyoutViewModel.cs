@@ -1,7 +1,10 @@
+using NBitcoin;
+using ReactiveUI;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
@@ -14,7 +17,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private bool _isLoading;
+	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
 	public PrivacySuggestionsFlyoutViewModel()
 	{
@@ -32,31 +35,40 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
-	public  async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
-		IsLoading = true;
+		_suggestionCancellationTokenSource?.Cancel();
+		_suggestionCancellationTokenSource?.Dispose();
+
+		_suggestionCancellationTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_suggestionCancellationTokenSource.Token, cancellationToken);
 
 		Suggestions.Clear();
 		SelectedSuggestion = null;
 
-		if (!info.IsPrivate)
+		var loadingRing = new LoadingSuggestionViewModel();
+		Suggestions.Add(loadingRing);
+
+		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
+		if (hasChange && !isFixedAmount && !info.IsPayJoin)
 		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => CoinHelpers.GetLabels(x)))));
-		}
+			// Exchange rate can change substantially during computation itself.
+			// Reporting up-to-date exchange rates would just confuse users.
+			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+		
+			int originalInputCount = transaction.SpentCoins.Count();
+			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
 
-		var suggestions =
-			await ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, transaction);
+			IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
+				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, maxInputCount, usdExchangeRate, linkedCts.Token);
 
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Address.ScriptPubKey);
-
-		if (hasChange)
-		{
-			foreach (var suggestion in suggestions)
+			await foreach (var suggestion in suggestions)
 			{
-				Suggestions.Add(suggestion);
+				Suggestions.Insert(Suggestions.Count - 1, suggestion);
 			}
 		}
 
-		IsLoading = false;
+		Suggestions.Remove(loadingRing);
 	}
 }

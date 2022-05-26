@@ -96,10 +96,10 @@ public class GeneralTests
 		// Kinda clunky, but otherwise CodeFactor won't be happy.
 		GroupElement? n = null;
 
-		Assert.False(ge == n);
+		Assert.NotEqual(ge, n);
 		Assert.True(ge != n);
 
-		Assert.False(n == ge);
+		Assert.NotEqual(n, ge);
 		Assert.True(n != ge);
 
 		Assert.False(ge.Equals(n));

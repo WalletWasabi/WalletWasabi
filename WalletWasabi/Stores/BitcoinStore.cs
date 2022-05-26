@@ -14,8 +14,10 @@ namespace WalletWasabi.Stores;
 /// The purpose of this class is to safely and efficiently manage all the Bitcoin related data
 /// that's being serialized to disk, like transactions, wallet files, keys, blocks, index files, etc.
 /// </summary>
-public class BitcoinStore : IAsyncDisposable
+public class BitcoinStore
 {
+	/// <param name="indexStore">Not initialized index store.</param>
+	/// <param name="transactionStore">Not initialized transaction store.</param>
 	public BitcoinStore(
 		IndexStore indexStore,
 		AllTransactionStore transactionStore,
@@ -52,11 +54,5 @@ public class BitcoinStore : IAsyncDisposable
 
 			await Task.WhenAll(initTasks).ConfigureAwait(false);
 		}
-	}
-
-	public async ValueTask DisposeAsync()
-	{
-		await IndexStore.DisposeAsync().ConfigureAwait(false);
-		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 	}
 }

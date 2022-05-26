@@ -44,18 +44,26 @@ public static class FileDialogHelper
 
 	private static async Task<string?> GetDialogResultAsync(OpenFileDialog ofd)
 	{
-		var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-		var selected = await ofd.ShowAsync(window);
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
+			lifetime.MainWindow is { })
+		{
+			var selected = await ofd.ShowAsync(lifetime.MainWindow);
 
-		return selected?.FirstOrDefault();
+			return selected?.FirstOrDefault();
+		}
+
+		return null;
 	}
 
 	private static async Task<string?> GetDialogResultAsync(SaveFileDialog sfd)
 	{
-		var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-		var selected = await sfd.ShowAsync(window);
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime &&
+			lifetime.MainWindow is { })
+		{
+			return await sfd.ShowAsync(lifetime.MainWindow);
+		}
 
-		return selected;
+		return null;
 	}
 
 	private static OpenFileDialog CreateOpenFileDialog(string title)

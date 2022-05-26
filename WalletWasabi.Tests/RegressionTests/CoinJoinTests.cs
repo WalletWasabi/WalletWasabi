@@ -156,7 +156,7 @@ public class CoinJoinTests
 		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
 		Assert.Contains(HttpStatusCode.BadRequest.ToReasonString(), httpRequestException.Message);
 
-		byte[] dummySignature = new byte[65];
+		CompactSignature dummySignature = new(0, new byte[64]);
 
 		BlindedOutputWithNonceIndex nullBlindedScript = new(0, uint256.One);
 		inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() + 1).Select(x => nullBlindedScript);
@@ -647,10 +647,10 @@ public class CoinJoinTests
 
 			Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 			Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-			Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two inputs are equal, so change addresses won't be used, nor coordinator fee will be taken.
+			Assert.Equal(2, unsignedCoinJoin.Outputs.Count); // Because the two inputs are equal, so change addresses won't be used, nor coordinator fee will be taken.
 			Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 			Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
-			Assert.True(2 == unsignedCoinJoin.Inputs.Count);
+			Assert.Equal(2, unsignedCoinJoin.Inputs.Count);
 
 			#endregion GetCoinjoin
 
@@ -729,7 +729,7 @@ public class CoinJoinTests
 		// important data for each of the participants in the coinjoin session.
 		var participants = new List<(AliceClient4,
 									 List<(Requester requester, BitcoinAddress outputAddress, BlindedOutputWithNonceIndex blindedScript)>,
-									 List<(OutPoint input, byte[] proof, Coin coin, Key key)>)>();
+									 List<(OutPoint input, CompactSignature proof, Coin coin, Key key)>)>();
 
 		// INPUTS REGISTRATION PHASE --
 		for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
@@ -753,7 +753,7 @@ public class CoinJoinTests
 			var blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptListBytes));
 
 			// Create 4 new coins that we want to mix
-			var inputs = new List<(OutPoint input, byte[] proof, Coin coin, Key key)>();
+			var inputs = new List<(OutPoint input, CompactSignature proof, Coin coin, Key key)>();
 			for (var inputIdx = 0; inputIdx < 4; inputIdx++)
 			{
 				var key = new Key();
@@ -1161,7 +1161,7 @@ public class CoinJoinTests
 			{
 				if (timeout.IsCompletedSuccessfully)
 				{
-					throw new TimeoutException("CoinJoin was not propagated.");
+					throw new TimeoutException("Coinjoin was not propagated.");
 				}
 
 				await Task.Delay(1000);
@@ -1179,7 +1179,7 @@ public class CoinJoinTests
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
-						throw new TimeoutException("CoinJoin was not noticed.");
+						throw new TimeoutException("Coinjoin was not noticed.");
 					}
 					await Task.Delay(1000);
 				}
@@ -1285,13 +1285,13 @@ public class CoinJoinTests
 			await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(randomStx, 0, randomKey), DequeueReason.UserRequested);
 			randomKey.SetAnonymitySet(1, randomStx.GetHash());
 
-			Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+			Assert.Equal(2, (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 			await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
 			Assert.False(smartCoin1.CoinJoinInProgress);
 			await chaumianClient1.DequeueCoinsFromMixAsync(new[] { smartCoin1, smartCoin2 }, DequeueReason.UserRequested);
 			Assert.False(smartCoin1.CoinJoinInProgress);
 			Assert.False(smartCoin2.CoinJoinInProgress);
-			Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+			Assert.Equal(2, (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 			Assert.True(smartCoin1.CoinJoinInProgress);
 			Assert.True(smartCoin2.CoinJoinInProgress);
 			await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
@@ -1299,17 +1299,17 @@ public class CoinJoinTests
 			Assert.False(smartCoin1.CoinJoinInProgress);
 			Assert.False(smartCoin2.CoinJoinInProgress);
 
-			Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+			Assert.Equal(2, (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 			Assert.True(smartCoin1.CoinJoinInProgress);
 			Assert.True(smartCoin2.CoinJoinInProgress);
-			Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
+			Assert.Single((await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)));
 
 			Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
 			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
 				if (timeout.IsCompletedSuccessfully)
 				{
-					throw new TimeoutException("CoinJoin was not propagated.");
+					throw new TimeoutException("Coinjoin was not propagated.");
 				}
 				await Task.Delay(1000);
 			}

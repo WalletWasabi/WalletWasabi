@@ -29,6 +29,9 @@ public sealed class StrobeHasher
 	public StrobeHasher Append(string fieldName, TimeSpan time)
 		=> Append(fieldName, time.Ticks);
 
+	public StrobeHasher Append(string fieldName, decimal value)
+		=> Append(fieldName, (long)(value * Money.COIN));
+
 	public StrobeHasher Append(string fieldName, Money money)
 		=> Append(fieldName, money.Satoshi);
 
@@ -65,6 +68,10 @@ public sealed class StrobeHasher
 		_strobe.AddAssociatedData(serializedValue, false);
 		return this;
 	}
+
+	public StrobeHasher Append(string fieldName, CoordinationFeeRate coordinationFeeRate)
+		=> Append($"{fieldName}.Rate", coordinationFeeRate.Rate)
+		.Append($"{fieldName}.PlebsDontPayThreshold", coordinationFeeRate.PlebsDontPayThreshold);
 
 	public uint256 GetHash()
 	{

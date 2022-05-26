@@ -4,9 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -24,18 +27,17 @@ public class AliceTimeoutTests
 		var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, rpc, round);
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		// Register Alices.
-		using var identificationKey = new Key();
-		var esk = km.GetSecrets("", smartCoin.ScriptPubKey).Single();
+		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		using CancellationTokenSource cancellationTokenSource = new();
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, esk.PrivateKey.GetBitcoinSecret(round.Network), identificationKey, roundStateUpdater, cancellationTokenSource.Token);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, cancellationTokenSource.Token);
 
 		while (round.Alices.Count == 0)
 		{
@@ -49,7 +51,16 @@ public class AliceTimeoutTests
 		Assert.Empty(round.Alices);
 
 		cancellationTokenSource.Cancel();
-		await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+
+		try
+		{
+			await task;
+			throw new InvalidOperationException("The operation should throw!");
+		}
+		catch (Exception exc)
+		{
+			Assert.True(exc is OperationCanceledException or WabiSabiProtocolException);
+		}
 
 		await roundStateUpdater.StopAsync(CancellationToken.None);
 		await arena.StopAsync(CancellationToken.None);
@@ -65,7 +76,7 @@ public class AliceTimeoutTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -88,7 +99,7 @@ public class AliceTimeoutTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -113,7 +124,7 @@ public class AliceTimeoutTests
 		round.Alices.Add(alice);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 
@@ -135,7 +146,7 @@ public class AliceTimeoutTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 

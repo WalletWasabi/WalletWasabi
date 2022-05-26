@@ -31,7 +31,14 @@ public class SyntheticSecretNonceProvider
 	{
 		while (true)
 		{
-			yield return new Scalar(_strobe.Prf(32, false));
+			Scalar scalar;
+			int overflow;
+			do
+			{
+				scalar = new Scalar(_strobe.Prf(32, false), out overflow);
+			}
+			while (overflow != 0);
+			yield return scalar;
 		}
 	}
 

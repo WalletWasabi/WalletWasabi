@@ -11,7 +11,7 @@ public class RandomTests
 	[Fact]
 	public void BasicTests()
 	{
-		// Make sure byte array comparison works within hashset and that the underlying API won't pull the floor out.
+		// Make sure byte array comparison works within hash set and that the underlying API won't pull the floor out.
 		var byteArray = new byte[] { 1, 2, 3 };
 		var sameByteArray = new byte[] { 1, 2, 3 };
 		var differentByteArray = new byte[] { 4, 5, 6 };
@@ -30,8 +30,8 @@ public class RandomTests
 		var pseudoSet = new HashSet<byte[]>();
 		var secureSet = new HashSet<byte[]>();
 		var count = 100;
-		using var insecureRandom = new InsecureRandom();
-		using var secureRandom = new SecureRandom();
+		InsecureRandom insecureRandom = InsecureRandom.Instance;
+		SecureRandom secureRandom = SecureRandom.Instance;
 		for (int i = 0; i < count; i++)
 		{
 			pseudoSet.Add(insecureRandom.GetBytes(10));
@@ -46,8 +46,8 @@ public class RandomTests
 	{
 		var randoms = new List<WasabiRandom>
 			{
-				new SecureRandom(),
-				new InsecureRandom(),
+				SecureRandom.Instance,
+				InsecureRandom.Instance,
 			};
 
 		foreach (var random in randoms)
@@ -71,7 +71,7 @@ public class RandomTests
 	[Fact]
 	public void ScalarTests()
 	{
-		// Make sure first that scalar equality works within hashset and that the underlying API won't pull the floor out.
+		// Make sure first that scalar equality works within hash set and that the underlying API won't pull the floor out.
 		var singleSet = new HashSet<Scalar>
 			{
 				new Scalar(5),
@@ -107,7 +107,7 @@ public class RandomTests
 	[Fact]
 	public void ScalarInternalTests()
 	{
-		using var mockRandom = new MockRandom();
+		MockRandom mockRandom = new();
 
 		// The random should not overflow.
 		mockRandom.GetBytesResults.Add(EC.N.ToBytes());
@@ -118,6 +118,7 @@ public class RandomTests
 		mockRandom.GetBytesResults.Add(Scalar.Zero.ToBytes());
 		var one = new Scalar(1);
 		mockRandom.GetBytesResults.Add(one.ToBytes());
+		mockRandom.GetBytesResults.Add(one.ToBytes());
 		var two = new Scalar(2);
 		mockRandom.GetBytesResults.Add(two.ToBytes());
 		var big = new Scalar(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
@@ -126,7 +127,7 @@ public class RandomTests
 		mockRandom.GetBytesResults.Add(biggest.ToBytes());
 
 		var randomScalar = mockRandom.GetScalar();
-		Assert.Equal(Scalar.Zero, randomScalar);
+		Assert.Equal(one, randomScalar);
 		randomScalar = mockRandom.GetScalar();
 		Assert.Equal(one, randomScalar);
 		randomScalar = mockRandom.GetScalar();

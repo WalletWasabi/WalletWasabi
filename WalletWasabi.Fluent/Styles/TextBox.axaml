@@ -44,8 +44,7 @@
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}"
                 MinWidth="{TemplateBinding MinWidth}"
-                MinHeight="{TemplateBinding MinHeight}">
-              </Border>
+                MinHeight="{TemplateBinding MinHeight}" />
 
               <Border
                 Margin="{TemplateBinding BorderThickness}">
@@ -96,7 +95,7 @@
   </Style>
 
   <Style Selector="TextBox /template/ Border#PART_BorderElement">
-    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
   </Style>
 
   <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
@@ -158,7 +157,11 @@
     </Setter>
   </Style>
 
-  <Style Selector="TextBlock.monoSpaced, c|PrivacyContentControl.monoSpaced">
+  <Style Selector="TextBlock.monoSpaced">
+    <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
+  </Style>
+
+  <Style Selector="c|PrivacyContentControl.monoSpaced">
     <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 

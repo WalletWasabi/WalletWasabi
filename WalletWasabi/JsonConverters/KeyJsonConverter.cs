@@ -4,16 +4,10 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters;
 
-public class KeyJsonConverter : JsonConverter
+public class KeyJsonConverter : JsonConverter<Key>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
-	{
-		return objectType == typeof(Key);
-	}
-
-	/// <inheritdoc />
-	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override Key? ReadJson(JsonReader reader, Type objectType, Key? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		var keyString = reader.Value as string;
 		if (string.IsNullOrWhiteSpace(keyString))
@@ -27,9 +21,9 @@ public class KeyJsonConverter : JsonConverter
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, Key? value, JsonSerializer serializer)
 	{
-		var key = (Key)value;
-		writer.WriteValue(key.GetWif(Network.Main));
+		BitcoinSecret bitcoinSecret = value?.GetWif(Network.Main) ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(bitcoinSecret);
 	}
 }

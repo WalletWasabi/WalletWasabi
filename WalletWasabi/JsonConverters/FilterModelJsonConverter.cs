@@ -4,25 +4,20 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters;
 
-public class FilterModelJsonConverter : JsonConverter
+public class FilterModelJsonConverter : JsonConverter<FilterModel>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
+	public override FilterModel? ReadJson(JsonReader reader, Type objectType, FilterModel? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return objectType == typeof(FilterModel);
-	}
-
-	/// <inheritdoc />
-	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-	{
-		var value = Guard.Correct((string)reader.Value);
+		var value = Guard.Correct((string?)reader.Value);
 
 		return string.IsNullOrWhiteSpace(value) ? default : FilterModel.FromLine(value);
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, FilterModel? value, JsonSerializer serializer)
 	{
-		writer.WriteValue(((FilterModel)value).ToLine());
+		var filterModel = value?.ToLine() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(filterModel);
 	}
 }

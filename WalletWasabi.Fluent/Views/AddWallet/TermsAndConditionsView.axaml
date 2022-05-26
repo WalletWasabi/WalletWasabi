@@ -11,7 +11,7 @@
              x:DataType="vm:TermsAndConditionsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="To continue using Wasabi you must accept the terms and conditions"
+                 Caption="To continue using Wasabi, please accept the terms and conditions"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
@@ -20,6 +20,7 @@
                       HorizontalAlignment="Center">
                 <i:Interaction.Behaviors>
                     <behaviors:FocusOnAttachedBehavior />
+                    <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}" IsEnabled="{Binding IsAgreed}" Key="Enter" EventRoutingStrategy="Tunnel"/>
                 </i:Interaction.Behaviors>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"

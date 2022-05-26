@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -46,8 +47,6 @@ public class Wallet : BackgroundService
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	public event EventHandler<DequeueResult>? OnDequeue;
-
 	public static event EventHandler<bool>? InitializingChanged;
 
 	public event EventHandler<FilterModel>? NewFilterProcessed;
@@ -65,6 +64,7 @@ public class Wallet : BackgroundService
 			{
 				return;
 			}
+
 			_state = value;
 			StateChanged?.Invoke(this, _state);
 		}
@@ -94,6 +94,9 @@ public class Wallet : BackgroundService
 	public bool AllowManualCoinJoin { get; set; }
 
 	public Kitchen Kitchen { get; } = new();
+	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
+
+	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
 	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 	{
@@ -107,7 +110,7 @@ public class Wallet : BackgroundService
 		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
 		{
 			IsLoggedIn = true;
-			Kitchen.Cook(password);
+			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
 		}
 
 		return IsLoggedIn;
@@ -138,10 +141,10 @@ public class Wallet : BackgroundService
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.MinAnonScoreTarget);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, KeyManager.AnonScoreTarget);
 			Coins = TransactionProcessor.Coins;
 
-			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 			BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 			BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 			BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
@@ -215,7 +218,8 @@ public class Wallet : BackgroundService
 		FeeStrategy feeStrategy,
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null)
+		IPayjoinClient? payjoinClient = null,
+		bool tryToSign = true)
 	{
 		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 		return builder.BuildTransaction(
@@ -241,7 +245,8 @@ public class Wallet : BackgroundService
 				var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
-			payjoinClient);
+			payjoinClient,
+			tryToSign: tryToSign);
 	}
 
 	/// <inheritdoc/>
@@ -261,7 +266,7 @@ public class Wallet : BackgroundService
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
 					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
-					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
+					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 				}
 			}
 		}
@@ -271,7 +276,7 @@ public class Wallet : BackgroundService
 		}
 	}
 
-	private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object? sender, ProcessedResult e)
+	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 	{
 		try
 		{
@@ -332,6 +337,7 @@ public class Wallet : BackgroundService
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
+
 			NewFilterProcessed?.Invoke(this, filterModel);
 
 			do
@@ -341,6 +347,7 @@ public class Wallet : BackgroundService
 				{
 					return;
 				}
+
 				// Make sure fully synced and this filter is the latest filter.
 				if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModel.Header.BlockHash)
 				{
@@ -373,7 +380,7 @@ public class Wallet : BackgroundService
 
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
-		new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
+			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -400,7 +407,7 @@ public class Wallet : BackgroundService
 					if (mempoolHashes.Contains(hash.ToString()[..compactness]))
 					{
 						txsToProcess.Add(tx);
-						Logger.LogInfo($"Transaction was successfully tested against the backend's mempool hashes: {hash}.");
+						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {hash}.");
 					}
 					else
 					{
@@ -436,8 +443,9 @@ public class Wallet : BackgroundService
 			for (int i = 0; i < currentBlock.Transactions.Count; i++)
 			{
 				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
+				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
 			}
+
 			TransactionProcessor.Process(txsToProcess);
 			KeyManager.SetBestHeight(height);
 
@@ -453,6 +461,7 @@ public class Wallet : BackgroundService
 		{
 			throw new InvalidOperationException($"{nameof(State)} must be {WalletState.Uninitialized}. Current state: {State}.");
 		}
+
 		State = WalletState.WaitingForInit;
 	}
 

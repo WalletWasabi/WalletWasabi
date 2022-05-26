@@ -18,7 +18,7 @@ public interface IWabiSabiApiRequestHandler
 
 	Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken);
 
-	Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken);
+	Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken);
 
 	Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
 }

@@ -53,11 +53,11 @@ public class P2pTests
 
 		var dataDir = Common.GetWorkDir();
 
-		var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
+		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
+		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 		await bitcoinStore.InitializeAsync();
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
@@ -98,7 +98,7 @@ public class P2pTests
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 		var feeProvider = new HybridFeeProvider(synchronizer, null);
 
-		ServiceConfiguration serviceConfig = new(5, 10, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		CachedBlockProvider blockProvider = new(
 			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
 			bitcoinStore.BlockRepository);
@@ -109,7 +109,7 @@ public class P2pTests
 			keyManager,
 			synchronizer,
 			dataDir,
-			new ServiceConfiguration(5, 10, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
+			new ServiceConfiguration(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 			feeProvider,
 			blockProvider);
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
@@ -167,8 +167,6 @@ public class P2pTests
 			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 			addressManager?.SavePeerFile(addressManagerFilePath, network);
 			Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
-
-			await bitcoinStore.DisposeAsync();
 		}
 	}
 }

@@ -12,8 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Caption = "Manage appearance, privacy and other settings",
 	Order = 1,
 	Category = "General",
-	Keywords = new[] { "Settings", "General", "User", "Interface", "Privacy", "Advanced" },
-	IconName = "settings_regular",
+	Keywords = new[] { "Settings", "General", "User", "Interface", "Advanced" },
+	IconName = "nav_settings_24_regular",
+	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class SettingsPageViewModel : NavBarItemViewModel
@@ -26,8 +27,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 		_selectedTab = 0;
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
-		PrivacySettingsTab = new PrivacySettingsTabViewModel();
-		NetworkSettingsTab = new NetworkSettingsTabViewModel();
+		TorSettingsTab = new TorSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
@@ -36,8 +36,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	public ICommand RestartCommand { get; }
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
-	public PrivacySettingsTabViewModel PrivacySettingsTab { get; }
-	public NetworkSettingsTabViewModel NetworkSettingsTab { get; }
+	public TorSettingsTabViewModel TorSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 
 	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
@@ -51,7 +50,7 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 
 		SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 
-		Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded)
-			.DisposeWith(disposables);
+		disposables.Add(
+			Disposable.Create(() => SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded));
 	}
 }

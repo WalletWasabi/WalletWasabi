@@ -52,7 +52,7 @@ public class Config : ConfigBase
 
 	[DefaultValue("user:password")]
 	[JsonProperty(PropertyName = "BitcoinRpcConnectionString", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string BitcoinRpcConnectionString { get; private set; }
+	public string BitcoinRpcConnectionString { get; private set; } = "user:password";
 
 	[JsonProperty(PropertyName = "MainNetBitcoinP2pEndPoint")]
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinP2pPort)]
@@ -123,6 +123,13 @@ public class Config : ConfigBase
 		try
 		{
 			var jsObject = JsonConvert.DeserializeObject<JObject>(jsonString);
+
+			if (jsObject is null)
+			{
+				Logger.LogWarning("Failed to parse config JSON.");
+				return false;
+			}
+
 			bool saveIt = false;
 
 			var mainNetBitcoinCoreHost = jsObject.Value<string>("MainNetBitcoinCoreHost");

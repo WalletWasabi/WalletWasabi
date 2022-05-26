@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -50,7 +51,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.AsObservableList();
 
 		Observable
-			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletStateChanged))
+				.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(
 				x =>
@@ -73,11 +74,10 @@ public partial class WalletManagerViewModel : ViewModelBase
 			});
 
 		Observable
-			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletAdded))
+				.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(
-				wallet =>
+			.Subscribe(wallet =>
 			{
 				WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 					? ClosedWalletViewModel.Create(wallet)
@@ -89,12 +89,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 		Observable
 			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(async arg =>
+			.SubscribeAsync(async arg =>
 			{
 				var (sender, e) = arg;
 
 				if (Services.UiConfig.PrivacyMode ||
-					!e.IsNews ||
+					!e!.IsNews ||
 					sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 				{
 					return;
@@ -102,7 +102,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 				if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 				{
-					if (!e.IsLikelyOwnCoinJoin)
+					if (!e.IsOwnCoinJoin)
 					{
 						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 					}
@@ -139,6 +139,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public async Task LoadWalletAsync(Wallet wallet)
 	{
+		wallet.KeyManager.SetNonNewlyCreated();
+
 		if (wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");

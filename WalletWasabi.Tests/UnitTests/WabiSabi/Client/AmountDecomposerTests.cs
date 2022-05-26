@@ -5,6 +5,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -28,16 +29,17 @@ public class AmountDecomposerTests
 	[InlineData(5000, 0, 8)]
 	public void DecompositionsInvariantTest(decimal feeRateDecimal, long minOutputAmount, int maxAvailableOutputs)
 	{
-		var availableVsize = maxAvailableOutputs * Constants.P2wpkhOutputSizeInBytes;
+		var availableVsize = maxAvailableOutputs * Constants.P2wpkhOutputVirtualSize;
 		var feeRate = new FeeRate(feeRateDecimal);
-		var feePerOutput = feeRate.GetFee(Constants.P2wpkhOutputSizeInBytes);
-		var registeredCoins = GenerateRandomCoins().Take(3).ToList();
-		var theirCoins = GenerateRandomCoins().Take(30).ToList();
+		var feePerOutput = feeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
+		var registeredCoinEffectiveValues = GenerateRandomCoins().Take(3).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
+		var theirCoinEffectiveValues = GenerateRandomCoins().Take(30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
+		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 
-		var amountDecomposer = new AmountDecomposer(feeRate, minOutputAmount, Constants.P2wpkhOutputSizeInBytes, availableVsize);
-		var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
+		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange, Constants.P2wpkhOutputVirtualSize, Constants.P2wpkhInputVirtualSize, availableVsize);
+		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
-		var totalEffectiveValue = registeredCoins.Sum(x => x.EffectiveValue(feeRate));
+		var totalEffectiveValue = registeredCoinEffectiveValues.Sum(x => x);
 		var totalEffectiveCost = outputValues.Count() * feePerOutput;
 
 		Assert.InRange(outputValues.Count(), 1, maxAvailableOutputs);

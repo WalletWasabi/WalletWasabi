@@ -16,14 +16,17 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 {
-	// There is a deadlock in the current version of the asmp.net testing framework
+	// There is a deadlock in the current version of the asp.net testing framework
 	// https://www.strathweb.com/2021/05/the-curious-case-of-asp-net-core-integration-test-deadlock/
 	protected override IHost CreateHost(IHostBuilder builder)
 	{
@@ -39,10 +42,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	protected override IHostBuilder CreateHostBuilder()
 	{
-		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x =>
-		{
-			x.UseStartup<TStartup>().UseTestServer();
-		});
+		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x => x.UseStartup<TStartup>().UseTestServer());
 		return builder;
 	}
 
@@ -53,11 +53,14 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		{
 			services.AddHostedService<BackgroundServiceStarter<Arena>>();
 			services.AddSingleton<Arena>();
-			services.AddScoped<Network>(_ => Network.Main);
+			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddScoped<Prison>();
 			services.AddScoped<WabiSabiConfig>();
+			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
+			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
+			services.AddSingleton<CoinJoinFeeRateStatStore>();
 		});
 		builder.ConfigureLogging(o =>
 		{
@@ -73,7 +76,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	public async Task<ArenaClient> CreateArenaClientAsync(WabiSabiHttpApiClient wabiSabiHttpApiClient)
 	{
-		var rounds = await wabiSabiHttpApiClient.GetStatusAsync(CancellationToken.None);
+		var rounds = (await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 		var insecureRandom = new InsecureRandom();
 		var arenaClient = new ArenaClient(

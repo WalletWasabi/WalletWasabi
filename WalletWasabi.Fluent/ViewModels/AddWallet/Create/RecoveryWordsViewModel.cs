@@ -7,7 +7,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Recovery words")]
+[NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
 	public RecoveryWordsViewModel(KeyManager keyManager, Mnemonic mnemonic)

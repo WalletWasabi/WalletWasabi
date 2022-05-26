@@ -58,7 +58,7 @@ public class LiveServerTests : IAsyncLifetime
 		FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 
 		Assert.NotNull(filtersResponse);
-		Assert.True(filtersResponse!.Filters.Count() == 2);
+		Assert.Equal(2, filtersResponse!.Filters.Count());
 	}
 
 	[Theory]

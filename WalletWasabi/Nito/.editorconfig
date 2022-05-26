@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+
+# Disable all .NET analyzers
+dotnet_analyzer_diagnostic.severity = none
+
+# Disable nullable reference type warnings
+dotnet_diagnostic.CS8600.severity = none
+dotnet_diagnostic.CS8601.severity = none
+dotnet_diagnostic.CS8604.severity = none

@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
@@ -65,6 +66,12 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 
 		if (customFeeString is null or "")
 		{
+			return;
+		}
+
+		if (customFeeString.Any(c => !char.IsDigit(c) && c != '.'))
+		{
+			errors.Add(ErrorSeverity.Error, "The field only accepts numbers.");
 			return;
 		}
 

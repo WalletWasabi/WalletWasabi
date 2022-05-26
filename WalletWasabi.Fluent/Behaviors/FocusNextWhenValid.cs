@@ -12,6 +12,11 @@ public class FocusNextWhenValid : DisposingBehavior<TextBox>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
+		if (AssociatedObject is null)
+		{
+			return;
+		}
+
 		var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty);
 		var text = AssociatedObject.GetObservable(TextBox.TextProperty);
 
@@ -22,9 +27,10 @@ public class FocusNextWhenValid : DisposingBehavior<TextBox>
 			.Subscribe(_ =>
 			{
 				if (AssociatedObject is { } &&
-					!DataValidationErrors.GetHasErrors(AssociatedObject) &&
-					!string.IsNullOrEmpty(AssociatedObject.Text) &&
-					KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is { } nextFocus)
+				    !DataValidationErrors.GetHasErrors(AssociatedObject) &&
+				    !string.IsNullOrEmpty(AssociatedObject.Text) &&
+				    KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is
+					    { } nextFocus)
 				{
 					nextFocus.Focus();
 				}

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -28,7 +29,7 @@ public class StepConnectionConfirmationTests
 		round.Alices.Add(a3);
 		round.Alices.Add(a4);
 		round.SetPhase(Phase.ConnectionConfirmation);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.OutputRegistration, round.Phase);

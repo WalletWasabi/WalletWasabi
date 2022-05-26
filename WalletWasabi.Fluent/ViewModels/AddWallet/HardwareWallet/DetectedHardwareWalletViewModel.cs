@@ -64,7 +64,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
+			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occurred during adding your wallet.");
 			Navigate().Back();
 		}
 	}
@@ -81,11 +81,10 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
-		Disposable.Create(() =>
-			{
-				CancelCts.Cancel();
-				CancelCts.Dispose();
-			})
-			.DisposeWith(disposables);
+		disposables.Add(Disposable.Create(() =>
+		{
+			CancelCts.Cancel();
+			CancelCts.Dispose();
+		}));
 	}
 }

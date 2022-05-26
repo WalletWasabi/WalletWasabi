@@ -95,10 +95,15 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 							cities.Select(x => AnimateCityMarkerAsync(x.control, x.point, cancellationToken)).ToArray(),
 							cancellationToken);
 					}
-					catch (Exception ex) when (ex is not OperationCanceledException)
+					catch (Exception ex)
 					{
+						if (ex is OperationCanceledException)
+						{
+							return;
+						}
+
 						Logger.LogWarning(
-							$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
+								$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
 					}
 				}
 			},
@@ -112,10 +117,7 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 			return;
 		}
 
-		await Dispatcher.UIThread.InvokeAsync(() =>
-		{
-			target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger);
-		});
+		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger));
 
 		await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
@@ -128,10 +130,7 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 
 		await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
-		await Dispatcher.UIThread.InvokeAsync(() =>
-		{
-			target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger);
-		});
+		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger));
 	}
 
 	protected override void OnDetaching()

@@ -48,6 +48,8 @@ namespace WalletWasabi.Fluent
 
 		public string IconName { get; init; }
 
+		public string IconNameFocused { get; init; }
+
 		public int Order { get; init; }
 
 		public string Category { get; init; }
@@ -74,6 +76,8 @@ namespace WalletWasabi.Fluent
 
 		public string IconName { get; set; }
 
+		public string IconNameFocused { get; set; }
+
 		public int Order { get; set; }
 
 		public string Category { get; set; }
@@ -89,10 +93,7 @@ namespace WalletWasabi.Fluent
 	public void Initialize(GeneratorInitializationContext context)
 	{
 		// System.Diagnostics.Debugger.Launch();
-		context.RegisterForPostInitialization((i) =>
-		{
-			i.AddSource("NavigationMetaDataAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
-		});
+		context.RegisterForPostInitialization((i) => i.AddSource("NavigationMetaDataAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8)));
 
 		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 	}
@@ -211,6 +212,11 @@ namespace {namespaceName}
 				if (attributeData.NamedArguments.Any(x => x.Key == "IconName"))
 				{
 					source.AppendLine($@"        public override string IconName => MetaData.IconName;");
+				}
+
+				if (attributeData.NamedArguments.Any(x => x.Key == "IconNameFocused"))
+				{
+					source.AppendLine($@"        public override string IconNameFocused => MetaData.IconNameFocused;");
 				}
 			}
 		}

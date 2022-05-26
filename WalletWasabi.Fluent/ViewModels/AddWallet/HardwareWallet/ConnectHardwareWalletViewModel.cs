@@ -163,7 +163,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		if (Services.WalletManager.WalletExists(device.Fingerprint))
 		{
 			ExistingWallet = Wallets.FirstOrDefault(x => x.Wallet.KeyManager.MasterFingerprint == device.Fingerprint);
-			Message = "The connected hardware wallet is already added to the software, click below to open it or click Continue to search again.";
+			Message = "The connected hardware wallet is already added to the software, click below to open it or click Rescan to search again.";
 			ExistingWalletFound = true;
 			return;
 		}
@@ -219,6 +219,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
+
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 		if (isInHistory)
@@ -228,12 +229,11 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		StartDetection();
 
-		Disposable.Create(async () =>
-			{
-				CancelCts.Cancel();
-				await AbandonedTasks.WhenAllAsync();
-				CancelCts.Dispose();
-			})
-			.DisposeWith(disposables);
+		disposables.Add(Disposable.Create(async () =>
+		{
+			CancelCts.Cancel();
+			await AbandonedTasks.WhenAllAsync();
+			CancelCts.Dispose();
+		}));
 	}
 }

@@ -25,7 +25,13 @@ public class TorTcpConnection : IDisposable
 	public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
 	{
 		long id = Interlocked.Increment(ref LastId);
-		Name = $"TC#{id:0000}#{circuit.Name[0..10]}";
+		string prefix = circuit switch
+		{
+			DefaultCircuit _ => "DC",
+			PersonCircuit _ => "PC",
+			_ => "UC" // Unknown circuit type.
+		};
+		Name = $"{prefix}#{id:0000}#{circuit.Name[0..10]}";
 
 		TcpClient = tcpClient;
 		TransportStream = transportStream;
@@ -50,7 +56,7 @@ public class TorTcpConnection : IDisposable
 		{
 			lock (StateLock)
 			{
-				return State == TcpConnectionState.ToDispose;
+				return State == TcpConnectionState.ToDispose || !Circuit.IsActive;
 			}
 		}
 	}
@@ -104,13 +110,24 @@ public class TorTcpConnection : IDisposable
 		}
 	}
 
+	/// <param name="force">
+	/// <c>true</c> if we know that we have just finished using the TCP connection.
+	/// <c>false</c> if we got an external piece of information that the TCP connection should be closed.
+	/// </param>
 	/// <remarks>Connection transporting an HTTP request that was canceled or otherwise failed must be torn down.</remarks>
-	public void MarkAsToDispose()
+	public void MarkAsToDispose(bool force = true)
 	{
 		lock (StateLock)
 		{
-			Debug.Assert(State == TcpConnectionState.InUse, $"Unexpected state: '{State}'.");
-			State = TcpConnectionState.ToDispose;
+			if (force)
+			{
+				Debug.Assert(State == TcpConnectionState.InUse, $"Unexpected state: '{State}'.");
+				State = TcpConnectionState.ToDispose;
+			}
+			else if (State == TcpConnectionState.FreeToUse)
+			{
+				State = TcpConnectionState.ToDispose;
+			}
 		}
 	}
 

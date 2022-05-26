@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Moq;
 using NBitcoin.RPC;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
@@ -16,7 +17,7 @@ public class StepInputRegistrationTests
 	{
 		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
 		var round = WabiSabiFactory.CreateRound(cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -44,7 +45,7 @@ public class StepInputRegistrationTests
 		mockRpc.Setup(rpc => rpc.GetTxOutAsync(offendingAlice.Coin.Outpoint.Hash, (int)offendingAlice.Coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
 			.ReturnsAsync((GetTxOutResponse?)null);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, mockRpc, round);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync(round);
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		round.Alices.Add(offendingAlice);
@@ -78,7 +79,7 @@ public class StepInputRegistrationTests
 		round.Alices.Add(alice3);
 		var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync( blameRound);
 
 		blameRound.Alices.Add(alice1);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -108,7 +109,7 @@ public class StepInputRegistrationTests
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
@@ -136,7 +137,7 @@ public class StepInputRegistrationTests
 		blameRound.Alices.Add(alice1);
 		blameRound.Alices.Add(alice2);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync( blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.ConnectionConfirmation, blameRound.Phase);
 
@@ -153,7 +154,7 @@ public class StepInputRegistrationTests
 			MinInputCountByRoundMultiplier = 0.5
 		};
 		var round = WabiSabiFactory.CreateRound(cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -184,7 +185,7 @@ public class StepInputRegistrationTests
 		var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 		blameRound.Alices.Add(alice1);
 
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync( blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.Ended, blameRound.Phase);
 		Assert.DoesNotContain(blameRound, arena.GetActiveRounds());
@@ -202,7 +203,7 @@ public class StepInputRegistrationTests
 			MinInputCountByRoundMultiplier = 0.5
 		};
 		var round = WabiSabiFactory.CreateRound(cfg);
-		using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));

@@ -28,7 +28,7 @@ public class ArenaClient
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
 
-	public async Task<ArenaResponse<Guid>> RegisterInputAsync(
+	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
 		OutPoint outPoint,
 		OwnershipProof ownershipProof,
@@ -49,7 +49,7 @@ public class ArenaClient
 		var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 		var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-		return new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials);
+		return (new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials), inputRegistrationResponse.IsPayingZeroCoordinationFee);
 	}
 
 	public async Task RemoveInputAsync(uint256 roundId, Guid aliceId, CancellationToken cancellationToken)
@@ -99,10 +99,15 @@ public class ArenaClient
 		var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 		if (amountsToRequest.Sum() != presentedAmount)
 		{
-			throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
+			throw new InvalidOperationException($"Reissuance amounts sum must equal the sum of the presented ones.");
+		}
+		
+		var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
+		if (vsizesToRequest.Sum() > presentedVsize)
+		{
+			throw new InvalidOperationException($"Reissuance vsizes sum can not be greater than the sum of the presented ones.");
 		}
 
-		var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 		var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 			vsizesToRequest,
 			vsizeCredentialsToPresent,
@@ -183,23 +188,10 @@ public class ArenaClient
 		return new(false, zeroAmountCredentials, zeroVsizeCredentials);
 	}
 
-	public async Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
+	public async Task SignTransactionAsync(uint256 roundId, Coin coin, OwnershipProof ownershipProof, IKeyChain keyChain, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
 	{
-		if (unsignedCoinJoin.Inputs.Count == 0)
-		{
-			throw new ArgumentException("No inputs to sign.", nameof(unsignedCoinJoin));
-		}
-
-		var signedCoinJoin = unsignedCoinJoin.Clone();
-		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
-
-		if (txInput is null)
-		{
-			throw new InvalidOperationException($"Missing input.");
-		}
-
-		signedCoinJoin.Sign(bitcoinSecret, coin);
-
+		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin, coin, ownershipProof);
+		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
 		if (!txInput.VerifyScript(coin, out var error))
 		{
 			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
@@ -208,9 +200,9 @@ public class ArenaClient
 		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		return await RequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
+		return await RequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task ReadyToSignAsync(

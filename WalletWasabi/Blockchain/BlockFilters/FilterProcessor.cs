@@ -16,8 +16,8 @@ public class FilterProcessor
 		BitcoinStore = bitcoinStore;
 	}
 
-	public BitcoinStore BitcoinStore { get; }
-	public AsyncLock AsyncLock { get; } = new();
+	private BitcoinStore BitcoinStore { get; }
+	private AsyncLock AsyncLock { get; } = new();
 
 	public async Task ProcessAsync(uint serverBestHeight, FiltersResponseState filtersResponseState, IEnumerable<FilterModel> filters)
 	{
@@ -26,7 +26,7 @@ public class FilterProcessor
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				var hashChain = BitcoinStore.SmartHeaderChain;
-				hashChain.UpdateServerTipHeight(serverBestHeight);
+				hashChain.SetServerTipHeight(serverBestHeight);
 
 				if (filtersResponseState == FiltersResponseState.NewFilters)
 				{

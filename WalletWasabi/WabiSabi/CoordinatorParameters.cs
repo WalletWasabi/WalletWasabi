@@ -31,6 +31,18 @@ public class CoordinatorParameters
 	public string PrisonFilePath => Path.Combine(CoordinatorDataDir, "Prison.txt");
 
 	/// <summary>
+	/// File that is storing the hashes of WabiSabi CoinJoins.
+	/// </summary>
+	public string CoinJoinIdStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinIdStore.txt");
+
+	/// <summary>
+	/// File that is storing the fee rate statistics.
+	/// </summary>
+	public string CoinJoinFeeRateStatStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinFeeRateStatStore.txt");
+
+	public string CoinJoinScriptStoreFilePath => Path.Combine(CoordinatorDataDir, "CoinJoinScriptStore.txt");
+
+	/// <summary>
 	/// Runtime adjustable configuration of the coordinator.
 	/// </summary>
 	public WabiSabiConfig RuntimeCoordinatorConfig { get; }

@@ -40,7 +40,6 @@ public class IndexStoreTests
 		await using var indexStore = new IndexStore(dir, network, headersChain);
 		var dummyFilter = GolombRiceFilter.Parse("00");
 
-		static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 		var matureIndexStoreContent = new[]
 		{
 				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter),
@@ -67,8 +66,6 @@ public class IndexStoreTests
 		await using var indexStore = new IndexStore(dir, network, headersChain);
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
-
-		static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 		var startingFilter = StartingFilters.GetStartingFilter(network);
 
 		var immatureIndexStoreContent = new[]
@@ -98,7 +95,6 @@ public class IndexStoreTests
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
 
-		static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 		var matureIndexStoreContent = new[]
 		{
 				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter),
@@ -131,7 +127,6 @@ public class IndexStoreTests
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
 
-		static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 		var matureIndexStoreContent = new[]
 		{
 				new FilterModel(new SmartHeader(new uint256(2), new uint256(1), 1, MinutesAgo(30)), dummyFilter),
@@ -171,4 +166,6 @@ public class IndexStoreTests
 		IoHelpers.EnsureContainingDirectoryExists(immatureFilters);
 		return (dir, matureFilters, immatureFilters);
 	}
+
+	private static DateTimeOffset MinutesAgo(int mins) => DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(mins));
 }

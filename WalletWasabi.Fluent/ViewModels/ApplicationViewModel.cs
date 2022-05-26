@@ -1,11 +1,12 @@
-using System.Runtime.InteropServices;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Windows.Input;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 
@@ -13,43 +14,51 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
-	public ApplicationViewModel()
+	private readonly IMainWindowService _mainWindowService;
+	[AutoNotify] private bool _isMainWindowShown = true;
+
+	public ApplicationViewModel(IMainWindowService mainWindowService)
 	{
-		QuitCommand = ReactiveCommand.CreateFromTask(async () =>
+		_mainWindowService = mainWindowService;
+
+		QuitCommand = ReactiveCommand.Create(ShutDown);
+
+		ShowHideCommand = ReactiveCommand.Create(() =>
 		{
-			if (CanShutdown())
+			if (IsMainWindowShown)
 			{
-				if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
-					desktopLifetime)
-				{
-					desktopLifetime.Shutdown();
-				}
+				_mainWindowService.Close();
 			}
 			else
 			{
-					// Show the window if it was hidden.
-					ShowRequested?.Invoke(this, EventArgs.Empty);
-
-				await MainViewModel.Instance!.CompactDialogScreen.NavigateDialogAsync(new Dialogs.ShowErrorDialogViewModel(
-					"Wasabi is currently anonymising your wallet. Please try again in a few minutes.",
-					"Warning",
-					"Unable to close right now"));
+				_mainWindowService.Show();
 			}
 		});
 
-		ShowCommand = ReactiveCommand.Create(() => ShowRequested?.Invoke(this, EventArgs.Empty));
+		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
 
-		TrayIcon = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-			? new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo_white.ico"))
-			: new WindowIcon(AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico"));
+		AboutCommand = ReactiveCommand.Create(
+			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
+			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage).Select(x => x is null));
+
+		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
+		TrayIcon = new WindowIcon(bitmap);
 	}
 
 	public WindowIcon TrayIcon { get; }
+	public ICommand AboutCommand { get; }
+	public ICommand ShowCommand { get; }
 
-	public event EventHandler? ShowRequested;
+	public ICommand ShowHideCommand { get; }
 
 	public ICommand QuitCommand { get; }
-	public ICommand ShowCommand { get; }
+
+	public void ShutDown() => _mainWindowService.Shutdown();
+
+	public void OnShutdownPrevented()
+	{
+		RxApp.MainThreadScheduler.Schedule(() => MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this)));
+	}
 
 	public bool CanShutdown()
 	{

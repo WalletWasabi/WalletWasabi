@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -24,6 +21,12 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using System.Reactive;
+using System.Collections.ObjectModel;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -38,23 +41,31 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
+	private readonly CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
+	[AutoNotify] private bool _conversionReversed;
+
 	private bool _parsingUrl;
 
-	public SendViewModel(Wallet wallet)
+	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo();
+		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
+		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+
+		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+
+		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -83,7 +94,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-		QRCommand = ReactiveCommand.Create(async () =>
+		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
@@ -109,10 +120,26 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
+			var address = BitcoinAddress.Create(To, wallet.Network);
+
+			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo));
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+			if (result.Result is not { } label)
+			{
+				return;
+			}
+
+			_transactionInfo.UserLabels = label;
+
+			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
+
+		this.WhenAnyValue(x => x.ConversionReversed)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public bool IsQrButtonVisible { get; }
@@ -121,9 +148,11 @@ public partial class SendViewModel : RoutableViewModel
 
 	public ICommand AutoPasteCommand { get; }
 
-	public ICommand QRCommand { get; }
+	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
+
+	public WalletBalanceTileViewModel Balance { get; }
 
 	private async Task OnAutoPasteAsync()
 	{
@@ -137,41 +166,43 @@ public partial class SendViewModel : RoutableViewModel
 
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
-		var text = await Application.Current.Clipboard.GetTextAsync();
-
-		_parsingUrl = true;
-
-		if (!TryParseUrl(text) && pasteIfInvalid)
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			To = text;
-		}
+			var text = await clipboard.GetTextAsync();
 
-		_parsingUrl = false;
+			_parsingUrl = true;
+
+			if (!TryParseUrl(text) && pasteIfInvalid)
+			{
+				To = text;
+			}
+
+			_parsingUrl = false;
+		}
 	}
 
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
-					Logger.LogWarning("PayJoin server is an onion service but Tor is disabled. Ignoring...");
+					Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
 					return null;
 				}
 
 				if (Services.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 				{
-					Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
+					Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
 					return null;
 				}
 			}
 
-			IHttpClient httpClient =
-				Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
+			IHttpClient httpClient = Services.HttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 
@@ -196,14 +227,13 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(To) &&
-			!AddressStringParser.TryParse(To, _wallet.Network, out _))
+		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _wallet.Network, out _)))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
 		else if (IsPayJoin && _wallet.KeyManager.IsHardwareWallet)
 		{
-			errors.Add(ErrorSeverity.Error, "PayJoin is not possible with hardware wallets.");
+			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}
 	}
 
@@ -219,26 +249,28 @@ public partial class SendViewModel : RoutableViewModel
 		Dispatcher.UIThread.Post(() =>
 		{
 			TryParseUrl(s);
-
 			_parsingUrl = false;
 		});
 	}
 
-	private bool TryParseUrl(string text)
+	private bool TryParseUrl(string? text)
 	{
+		if (text is null || text.IsTrimmable())
+		{
+			return false;
+		}
+
 		bool result = false;
 
 		if (AddressStringParser.TryParse(text, _wallet.Network, out BitcoinUrlBuilder? url))
 		{
 			result = true;
-			SmartLabel label = url.Label;
-
-			if (!label.IsEmpty)
+			if (url.Label is { } label)
 			{
-				_transactionInfo.UserLabels = new SmartLabel(label.Labels);
+				_transactionInfo.UserLabels = new SmartLabel(label);
 			}
 
-			if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
 			{
 				PayJoinEndPoint = endPoint;
 			}
@@ -249,7 +281,6 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (url.Address is { })
 			{
-				_transactionInfo.Address = url.Address;
 				To = url.Address.ToString();
 			}
 
@@ -279,6 +310,11 @@ public partial class SendViewModel : RoutableViewModel
 			To = "";
 			AmountBtc = 0;
 			ClearValidations();
+
+			if (_coinJoinManager is { } coinJoinManager)
+			{
+				coinJoinManager.IsUserInSendWorkflow = true;
+			}
 		}
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
@@ -288,6 +324,18 @@ public partial class SendViewModel : RoutableViewModel
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
+		Balance.Activate(disposables);
+
 		base.OnNavigatedTo(inHistory, disposables);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+
+		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
+		{
+			coinJoinManager.IsUserInSendWorkflow = false;
+		}
 	}
 }

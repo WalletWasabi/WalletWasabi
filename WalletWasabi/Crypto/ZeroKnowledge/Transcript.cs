@@ -65,8 +65,15 @@ public sealed class Transcript
 	// Generate Fiat Shamir challenges
 	public Scalar GenerateChallenge()
 	{
-		_strobe.AddAssociatedMetaData(ChallengeTag, false);
-		return new Scalar(_strobe.Prf(KeySizeInBytes, false));
+		Scalar scalar;
+		int overflow;
+		do
+		{
+			_strobe.AddAssociatedMetaData(ChallengeTag, false);
+			scalar = new Scalar(_strobe.Prf(KeySizeInBytes, false), out overflow);
+		}
+		while(overflow != 0);
+		return scalar;
 	}
 
 	private void AddMessage(byte[] label, byte[] message)

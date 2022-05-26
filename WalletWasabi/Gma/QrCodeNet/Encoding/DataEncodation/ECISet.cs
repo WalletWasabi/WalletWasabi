@@ -150,7 +150,7 @@ public sealed class ECISet
 			Initialize(AppendOption.NameToValue);
 		}
 
-		if (_nameToValue.TryGetValue(encodingName, out int eCIValue))
+		if (_nameToValue!.TryGetValue(encodingName, out int eCIValue))
 		{
 			return eCIValue;
 		}
@@ -167,7 +167,7 @@ public sealed class ECISet
 			Initialize(AppendOption.ValueToName);
 		}
 
-		if (_valueToName.TryGetValue(eCIValue, out var eCIName))
+		if (_valueToName!.TryGetValue(eCIValue, out var eCIName))
 		{
 			return eCIName;
 		}
@@ -195,7 +195,7 @@ public sealed class ECISet
 			Initialize(AppendOption.NameToValue);
 		}
 
-		return _nameToValue.ContainsKey(encodingName);
+		return _nameToValue!.ContainsKey(encodingName);
 	}
 
 	public bool ContainsECIValue(int eciValue)
@@ -205,7 +205,7 @@ public sealed class ECISet
 			Initialize(AppendOption.ValueToName);
 		}
 
-		return _valueToName.ContainsKey(eciValue);
+		return _valueToName!.ContainsKey(eciValue);
 	}
 
 	/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.</remarks>

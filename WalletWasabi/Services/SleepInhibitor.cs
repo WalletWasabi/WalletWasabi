@@ -12,7 +12,7 @@ namespace WalletWasabi.Services;
 
 public class SleepInhibitor : PeriodicRunner
 {
-	private const string Reason = "CoinJoin is in progress.";
+	private const string Reason = "Coinjoin is in progress.";
 	private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
 
 	private volatile IPowerSavingInhibitorTask? _powerSavingTask;
@@ -64,7 +64,8 @@ public class SleepInhibitor : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		switch (CoinJoinManager.HighestCoinJoinClientState)
+		var highestCoinJoinClientState = CoinJoinManager.HighestCoinJoinClientState;
+		switch (highestCoinJoinClientState)
 		{
 			case CoinJoinClientState.Idle:
 				Logger.LogTrace("Computer idle state is allowed again.");
@@ -76,7 +77,7 @@ public class SleepInhibitor : PeriodicRunner
 				break;
 
 			default:
-				throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
+				throw new NotSupportedException($"Unsupported {highestCoinJoinClientState} value.");
 		}
 	}
 

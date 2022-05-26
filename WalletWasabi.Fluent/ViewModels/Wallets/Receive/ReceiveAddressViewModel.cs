@@ -39,7 +39,13 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (Application.Current is { Clipboard: { } clipboard })
+			{
+				await clipboard.SetTextAsync(Address);
+			}
+		});
 
 		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
 
@@ -88,9 +94,9 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			}
 			catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
 			{
-					// This exception happens everytime on TestNet because of Wasabi Keypath handling.
-					// The user doesn't need to know about it.
-				}
+				// This exception happens everytime on TestNet because of Wasabi Keypath handling.
+				// The user doesn't need to know about it.
+			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);

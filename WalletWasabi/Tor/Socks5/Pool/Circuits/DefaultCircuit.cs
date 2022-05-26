@@ -17,7 +17,11 @@ public class DefaultCircuit : ICircuit
 	{
 	}
 
+	/// <inheritdoc/>
 	public string Name => RandomName;
+
+	/// <inheritdoc/>
+	public bool IsActive => true;
 
 	/// <inheritdoc/>
 	public override string ToString()

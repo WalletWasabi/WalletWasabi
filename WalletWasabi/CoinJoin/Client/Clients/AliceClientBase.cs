@@ -183,7 +183,7 @@ public abstract class AliceClientBase
 		var coinjoinHex = await response.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
 
 		Transaction coinJoin = Transaction.Parse(coinjoinHex, Network.Main);
-		Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
+		Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned coinjoin: {coinJoin.GetHash()}.");
 		return coinJoin;
 	}
 

@@ -71,9 +71,16 @@ public class TorTcpConnectionFactory
 		{
 			tcpClient = new(TorSocks5EndPoint.AddressFamily);
 			tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-			tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
-			tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
-			tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
+			try
+			{
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
+			}
+			catch (SocketException ex) when (ex.ErrorCode is 10042)
+			{
+				Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
+			}
 
 			transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
 			await HandshakeAsync(tcpClient, circuit, cancellationToken).ConfigureAwait(false);
@@ -122,7 +129,7 @@ public class TorTcpConnectionFactory
 	/// <summary>
 	/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 	/// </summary>
-	public async virtual Task<bool> IsTorRunningAsync()
+	public virtual async Task<bool> IsTorRunningAsync()
 	{
 		try
 		{

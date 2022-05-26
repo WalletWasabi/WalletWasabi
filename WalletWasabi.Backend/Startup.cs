@@ -45,10 +45,7 @@ public class Startup
 		services.AddMvc()
 			.AddNewtonsoftJson();
 
-		services.AddControllers().AddNewtonsoftJson(x =>
-		{
-			x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
-		});
+		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
 
 		// Register the Swagger generator, defining one or more Swagger documents
 		services.AddSwaggerGen(c =>
@@ -61,8 +58,8 @@ public class Startup
 				License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
 			});
 
-				// Set the comments path for the Swagger JSON and UI.
-				var basePath = AppContext.BaseDirectory;
+			// Set the comments path for the Swagger JSON and UI.
+			var basePath = AppContext.BaseDirectory;
 			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
 			c.IncludeXmlComments(xmlPath);
 		});
@@ -71,12 +68,20 @@ public class Startup
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		services.AddSingleton<IdempotencyRequestCache>();
+#pragma warning disable CA2000 // Dispose objects before losing scope, reason: https://github.com/dotnet/roslyn-analyzers/issues/3836
 		services.AddSingleton(new Global(Configuration["datadir"]));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		services.AddSingleton(serviceProvider =>
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 			return coordinator.Arena;
+		});
+		services.AddSingleton(serviceProvider =>
+		{
+			var global = serviceProvider.GetRequiredService<Global>();
+			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
+			return coordinator.CoinJoinFeeRateStatStore;
 		});
 		services.AddStartupTask<InitConfigStartupTask>();
 
@@ -111,40 +116,7 @@ public class Startup
 
 	private void OnShutdown(Global global)
 	{
-		CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
-	}
-
-	private async Task CleanupAsync(Global global)
-	{
-		var coordinator = global.Coordinator;
-		if (coordinator is { })
-		{
-			coordinator.Dispose();
-			Logger.LogInfo($"{nameof(coordinator)} is disposed.");
-		}
-
-		var indexBuilderService = global.IndexBuilderService;
-		if (indexBuilderService is { })
-		{
-			await indexBuilderService.StopAsync();
-			Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
-		}
-
-		var hostedServices = global.HostedServices;
-		if (hostedServices is { })
-		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-			await hostedServices.StopAllAsync(cts.Token);
-			hostedServices.Dispose();
-		}
-
-		var p2pNode = global.P2pNode;
-		if (p2pNode is { })
-		{
-			await p2pNode.DisposeAsync();
-			Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
-		}
-
+		global.Dispose();
 		Logger.LogSoftwareStopped("Wasabi Backend");
 	}
 }

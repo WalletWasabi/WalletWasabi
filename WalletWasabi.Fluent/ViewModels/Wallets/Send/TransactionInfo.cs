@@ -10,29 +10,35 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class TransactionInfo
 {
-	private readonly int _privateCoinThreshold;
+	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
+	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	[AutoNotify] private Money _amount = Money.Zero;
-
-	public TransactionInfo()
+	public TransactionInfo(int anonScoreTarget)
 	{
-		_privateCoinThreshold = Services.Config.MinAnonScoreTarget;
+		PrivateCoinThreshold = anonScoreTarget;
 
-		this.WhenAnyValue(x => x.Amount)
-			.Subscribe(_ => OnAmountChanged());
+		this.WhenAnyValue(x => x.FeeRate)
+			.Subscribe(_ => OnFeeChanged());
+
+		this.WhenAnyValue(x => x.Coins)
+			.Subscribe(_ => OnCoinsChanged());
 	}
 
+	public int PrivateCoinThreshold { get; }
+
+	/// <summary>
+	/// In the case when InsufficientBalanceException happens, this amount should be
+	/// taken into account when selecting pockets.
+	/// </summary>
+	public Money MinimumRequiredAmount { get; set; } = Money.Zero;
+
+	public Money Amount { get; set; } = Money.Zero;
+
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
-
-	public BitcoinAddress Address { get; set; }
-
-	public FeeRate FeeRate { get; set; } = FeeRate.Zero;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
 	public TimeSpan ConfirmationTimeSpan { get; set; }
-
-	public IEnumerable<SmartCoin> Coins { get; set; } = Enumerable.Empty<SmartCoin>();
 
 	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
 
@@ -42,26 +48,59 @@ public partial class TransactionInfo
 
 	public bool IsOptimized => ChangelessCoins.Any();
 
-	public bool IsPrivate => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
+	public bool IsPrivate => Coins.All(x => x.HdPubKey.AnonymitySet >= PrivateCoinThreshold);
 
 	public bool IsCustomFeeUsed { get; set; }
 
 	public bool SubtractFee { get; set; }
 
-	private void OnAmountChanged()
+	public bool IsOtherPocketSelectionPossible { get; set; }
+
+	public void Reset()
 	{
-		SubtractFee = default;
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		Amount = Money.Zero;
+		MinimumRequiredAmount = Money.Zero;
+		UserLabels = SmartLabel.Empty;
 		MaximumPossibleFeeRate = null;
+		ConfirmationTimeSpan = TimeSpan.Zero;
+		Coins = Enumerable.Empty<SmartCoin>();
+		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		SubtractFee = default;
+		IsOtherPocketSelectionPossible = default;
 
 		if (!IsCustomFeeUsed)
 		{
 			FeeRate = FeeRate.Zero;
 		}
+	}
 
-		if (Coins.Sum(x => x.Amount) < Amount) // Reset coins if the selected cluster is not enough for the new amount
+	private void OnFeeChanged()
+	{
+		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		MinimumRequiredAmount = Money.Zero;
+	}
+
+	private void OnCoinsChanged()
+	{
+		MaximumPossibleFeeRate = null;
+	}
+
+	public TransactionInfo Clone()
+	{
+		return new TransactionInfo(PrivateCoinThreshold)
 		{
-			Coins = Enumerable.Empty<SmartCoin>();
-		}
+			Amount = Amount,
+			MinimumRequiredAmount = MinimumRequiredAmount,
+			ChangelessCoins = ChangelessCoins,
+			Coins = Coins,
+			ConfirmationTimeSpan = ConfirmationTimeSpan,
+			FeeRate = FeeRate,
+			IsCustomFeeUsed = IsCustomFeeUsed,
+			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
+			PayJoinClient = PayJoinClient,
+			SubtractFee = SubtractFee,
+			UserLabels = UserLabels,
+			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible
+		};
 	}
 }

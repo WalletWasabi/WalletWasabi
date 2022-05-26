@@ -12,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// An UTXO that knows more.
 /// </summary>
 [DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
-public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
+public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination
 {
 	private Height _height;
 	private SmartTransaction? _spenderTransaction;
@@ -101,10 +101,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 		get => _bannedUntilUtc;
 		set
 		{
-			// ToDo: IsBanned does not get notified when it gets unbanned.
 			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
 			{
-				SetIsBanned();
+				RefreshAndGetIsBanned();
 			}
 		}
 	}
@@ -136,15 +135,33 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 		private set => RaiseAndSetIfChanged(ref _confirmed, value);
 	}
 
+	/// <summary>
+	/// If you want to have a notification about a coin is released, then you have to periodically read IsBanned.
+	/// </summary>
 	public bool IsBanned
 	{
-		get => _isBanned;
+		get => RefreshAndGetIsBanned();
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
 	}
 
-	public void SetIsBanned()
+	public bool IsImmature(int bestHeight)
 	{
-		IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
+		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
+	}
+
+	public bool RefreshAndGetIsBanned()
+	{
+		if(BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
+		{
+			IsBanned = true;
+			return true;
+		}
+		
+		IsBanned = false;
+		BannedUntilUtc = null;
+
+		return false;
+		
 	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]

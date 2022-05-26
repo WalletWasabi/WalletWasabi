@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NBitcoin;
+using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -48,14 +49,14 @@ public static class TextHelpers
 		return result;
 	}
 
-	public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode)
+	public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode, string format = "N2")
 	{
-		return GenerateFiatText(amountBtc * exchangeRate, fiatCode);
+		return GenerateFiatText(amountBtc * exchangeRate, fiatCode, format);
 	}
 
-	public static string GenerateFiatText(this decimal amountFiat, string fiatCode)
+	public static string GenerateFiatText(this decimal amountFiat, string fiatCode, string format = "N2")
 	{
-		return $"(≈{(amountFiat).FormattedFiat()} {fiatCode}) ";
+		return $"(≈{(amountFiat).FormattedFiat(format)} {fiatCode}) ";
 	}
 
 	public static string ToFormattedString(this Money money)
@@ -80,4 +81,9 @@ public static class TextHelpers
 	}
 
 	public static string ParseLabel(this string text) => Regex.Replace(text, @"\s+", " ").Trim();
+
+	public static string GetPrivacyMask(int repeatCount)
+	{
+		return new string(UIConstants.PrivacyChar, repeatCount);
+	}
 }

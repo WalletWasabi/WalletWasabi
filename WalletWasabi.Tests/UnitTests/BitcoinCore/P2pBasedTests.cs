@@ -40,7 +40,7 @@ public class P2pBasedTests
 			FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
 
 			// Construct BitcoinStore.
-			await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
+			BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			await rpc.GenerateAsync(blockCount: 101);

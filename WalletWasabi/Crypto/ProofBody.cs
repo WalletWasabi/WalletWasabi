@@ -1,5 +1,6 @@
 using NBitcoin;
 using NBitcoin.Crypto;
+using NBitcoin.Protocol;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -49,8 +50,14 @@ public class ProofBody : IBitcoinSerializable, IEquatable<ProofBody>
 	public uint256 SignatureHash(Script scriptPubKey, byte[] commitmentData) =>
 		new(Hashes.SHA256(this.ToBytes().Concat(ProofFooter(scriptPubKey, commitmentData)).ToArray()));
 
-	private static IEnumerable<byte> ProofFooter(Script scriptPubKey, byte[] commitmentData) =>
-		scriptPubKey.ToBytes().Concat(commitmentData);
+	private static IEnumerable<byte> ProofFooter(Script scriptPubKey, byte[] commitmentData)
+	{
+		var scriptPubKeyBytes = scriptPubKey.ToBytes();
+		var scriptPubKeyPrefix = new VarInt((ulong)scriptPubKeyBytes.Length).ToBytes();
+		var commitmentDataPrefix = new VarInt((ulong)commitmentData.Length).ToBytes();
+
+		return scriptPubKeyPrefix.Concat(scriptPubKeyBytes).Concat(commitmentDataPrefix).Concat(commitmentData);
+	}
 
 	public override int GetHashCode()
 	{

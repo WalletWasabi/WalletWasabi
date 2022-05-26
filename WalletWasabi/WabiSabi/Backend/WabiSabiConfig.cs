@@ -2,8 +2,11 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend;
 
@@ -24,8 +27,11 @@ public class WabiSabiConfig : ConfigBase
 
 	[DefaultValueTimeSpan("0d 3h 0m 0s")]
 	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
+
+	[DefaultValueTimeSpan("31d 0h 0m 0s")]
+	[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfterLongBan", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ReleaseUtxoFromPrisonAfterLongBan { get; set; } = TimeSpan.FromDays(31);
 
 	[DefaultValueMoneyBtc("0.00005")]
 	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -35,10 +41,10 @@ public class WabiSabiConfig : ConfigBase
 	/// <summary>
 	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
-	[DefaultValueMoneyBtc("43000")]
+	[DefaultValueMoneyBtc("1343.75")]
 	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
+	public Money MaxRegistrableAmount { get; set; } = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -46,32 +52,26 @@ public class WabiSabiConfig : ConfigBase
 
 	[DefaultValueTimeSpan("0d 1h 0m 0s")]
 	[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
 
 	[DefaultValueTimeSpan("0d 0h 3m 0s")]
 	[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
 
 	[DefaultValueTimeSpan("0d 0h 1m 0s")]
 	[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 	[DefaultValueTimeSpan("0d 0h 1m 0s")]
 	[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 	[DefaultValueTimeSpan("0d 0h 1m 0s")]
 	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
 	[DefaultValueTimeSpan("0d 0h 5m 0s")]
 	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(TimeSpanJsonConverter))]
 	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
 	[DefaultValue(100)]
@@ -84,11 +84,32 @@ public class WabiSabiConfig : ConfigBase
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-	/// <summary>
-	/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
-	/// </summary>
-	[DefaultValueScript("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e")]
-	[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(ScriptJsonConverter))]
-	public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
+	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
+	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
+
+	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
+	public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
+
+	[DefaultValueMoneyBtc("0.1")]
+	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
+
+	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
+
+	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+
+	public void MakeNextCoordinatorScriptDirty()
+	{
+		CoordinatorExtPubKeyCurrentDepth++;
+		if (!string.IsNullOrWhiteSpace(FilePath))
+		{
+			ToFile();
+		}
+	}
 }

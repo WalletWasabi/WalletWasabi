@@ -16,19 +16,23 @@ public static class ThemeHelper
 
 	public static void ApplyTheme(Theme theme)
 	{
-		var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
-
-		if (currentTheme is { })
+		if (Application.Current is { })
 		{
-			var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
+			var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x)
+				.FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
-			var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.axaml"))
+			if (currentTheme is { })
 			{
-				Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/Base{theme}.axaml")
-			};
+				var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
 
-			CurrentTheme = theme;
-			Application.Current.Styles[themeIndex] = newTheme;
+				var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.axaml"))
+				{
+					Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/Base{theme}.axaml")
+				};
+
+				CurrentTheme = theme;
+				Application.Current.Styles[themeIndex] = newTheme;
+			}
 		}
 	}
 }

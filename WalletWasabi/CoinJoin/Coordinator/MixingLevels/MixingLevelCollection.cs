@@ -16,7 +16,7 @@ public class MixingLevelCollection
 	[JsonConstructor]
 	public MixingLevelCollection(IEnumerable<MixingLevel> levels)
 	{
-		Create(levels);
+		Levels = Guard.NotNullOrEmpty(nameof(levels), levels).ToList();
 	}
 
 	public MixingLevelCollection(Money baseDenomination, Signer signer)
@@ -25,7 +25,7 @@ public class MixingLevelCollection
 		signer = Guard.NotNull(nameof(signer), signer);
 		Guard.NotNull(nameof(signer.Key), signer.Key);
 
-		Create(new List<MixingLevel> { new MixingLevel(baseDenomination, signer) });
+		Levels = new List<MixingLevel> { new MixingLevel(baseDenomination, signer) };
 	}
 
 	[JsonProperty]
@@ -35,18 +35,13 @@ public class MixingLevelCollection
 	{
 		get
 		{
-			if (_signerPubKeys?.Count() != Levels?.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
+			if (_signerPubKeys?.Count() != Levels.Count) // Signing keys do not change, but more levels may be added. (Although even that's unlikely.)
 			{
 				_signerPubKeys = Levels.Select(x => x.Signer.Key.PubKey);
 			}
 			return _signerPubKeys;
 		}
 		set => _signerPubKeys = value;
-	}
-
-	private void Create(IEnumerable<MixingLevel> levels)
-	{
-		Levels = Guard.NotNullOrEmpty(nameof(levels), levels).ToList();
 	}
 
 	public void AddNewLevel()

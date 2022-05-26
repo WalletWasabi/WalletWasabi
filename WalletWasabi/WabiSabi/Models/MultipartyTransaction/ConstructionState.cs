@@ -1,13 +1,14 @@
 using NBitcoin;
 using System.Linq;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 // This class represents actions of the BIP 370 creator and constructor roles
 public record ConstructionState : MultipartyTransactionState
 {
-	public ConstructionState(MultipartyTransactionParameters parameters)
+	public ConstructionState(RoundParameters parameters)
 		: base(parameters)
 	{
 	}
@@ -42,7 +43,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 		}
 
-		if (prevout.Value <= Parameters.FeeRate.GetFee(prevout.ScriptPubKey.EstimateInputVsize()))
+		if (prevout.Value <= Parameters.MiningFeeRate.GetFee(prevout.ScriptPubKey.EstimateInputVsize()))
 		{
 			// Inputs must contribute more than they cost to spend because:
 			// - Such inputs contribute nothing to privacy and may degrade it
@@ -60,7 +61,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 		}
 
-		return this with { Inputs = Inputs.Add(coin) };
+		return this with { Events = Events.Add(new InputAdded(coin)) };
 	}
 
 	public ConstructionState AddOutput(TxOut output)
@@ -75,7 +76,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 		}
 
-		if (output.IsDust(Parameters.MinRelayTxFee))
+		if (output.IsDust())
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DustOutput);
 		}
@@ -93,21 +94,21 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 		}
 
-		return this with { Outputs = Outputs.Add(output) };
+		return this with { Events = Events.Add(new OutputAdded(output)) };
 	}
 
 	public SigningState Finalize()
 	{
 		if (EstimatedVsize > Parameters.MaxTransactionSize)
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded);
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
 		}
 
-		if (EffectiveFeeRate < Parameters.FeeRate)
+		if (EffectiveFeeRate < Parameters.MiningFeeRate)
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees);
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}.");
 		}
 
-		return new SigningState(Parameters, Inputs, Outputs);
+		return new SigningState(Parameters, Events);
 	}
 }

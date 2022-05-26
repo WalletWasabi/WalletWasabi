@@ -3,16 +3,10 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.JsonConverters;
 
-public class HeightJsonConverter : JsonConverter
+public class HeightJsonConverter : JsonConverter<Height>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
-	{
-		return objectType == typeof(Height);
-	}
-
-	/// <inheritdoc />
-	public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+	public override Height ReadJson(JsonReader reader, Type objectType, Height existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		var stringValue = reader.Value?.ToString() ?? throw new InvalidOperationException("json reader returns null.");
 		var value = long.Parse(stringValue);
@@ -20,8 +14,8 @@ public class HeightJsonConverter : JsonConverter
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, Height value, JsonSerializer serializer)
 	{
-		writer.WriteValue(((Height)value).Value.ToString());
+		writer.WriteValue(value.Value.ToString());
 	}
 }

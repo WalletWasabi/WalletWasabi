@@ -57,9 +57,9 @@ public class BestEffortEndpointConnector : IEnpointConnector
 			socketEndpoint = socksSettings.SocksEndpoint;
 		}
 
-		if (socketEndpoint is IPEndPoint mappedv4 && mappedv4.Address.IsIPv4MappedToIPv6Ex())
+		if (socketEndpoint is IPEndPoint mappedv4 && mappedv4.Address.IsIPv4MappedToIPv6)
 		{
-			socketEndpoint = new IPEndPoint(mappedv4.Address.MapToIPv4Ex(), mappedv4.Port);
+			socketEndpoint = new IPEndPoint(mappedv4.Address.MapToIPv4(), mappedv4.Port);
 		}
 		await socket.ConnectAsync(socketEndpoint, cancellationToken).ConfigureAwait(false);
 

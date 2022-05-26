@@ -5,12 +5,14 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -21,8 +23,13 @@ namespace WalletWasabi.Blockchain.Keys;
 [JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
+	public const int DefaultAnonScoreTarget = 5;
+	public const bool DefaultAutoCoinjoin = false;
+	public const int DefaultFeeRateMedianTimeFrameHours = 0;
+
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
+	public static Money DefaultPlebStopThreshold = Money.Coins(0.001m);
 
 	// BIP84-ish derivation scheme
 	// m / purpose' / coin_type' / account' / change / address_index
@@ -32,7 +39,7 @@ public class KeyManager
 	private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
 
 	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
+	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool isNewlyCreated, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 	{
 		HdPubKeys = new List<HdPubKey>();
 		HdPubKeyScriptBytes = new List<byte[]>();
@@ -47,7 +54,7 @@ public class KeyManager
 		MasterFingerprint = masterFingerprint;
 		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
-		PasswordVerified = passwordVerified;
+		IsNewlyCreated = isNewlyCreated;
 		SetMinGapLimit(minGapLimit);
 
 		BlockchainState = blockchainState;
@@ -81,6 +88,18 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+		ToFileLock = new object();
+	}
+
+	[OnDeserialized]
+	private void OnDeserializedMethod(StreamingContext context)
+	{
+		// This should be impossible but in any case, coinjoin can only happen,
+		// if a profile is selected. Otherwise, the user's money can be drained.
+		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		{
+			AutoCoinJoin = false;
+		}
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
@@ -113,7 +132,7 @@ public class KeyManager
 	public ExtPubKey ExtPubKey { get; }
 
 	[JsonProperty(Order = 5)]
-	public bool? PasswordVerified { get; private set; }
+	public bool IsNewlyCreated { get; private set; } = false;
 
 	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
@@ -133,17 +152,33 @@ public class KeyManager
 	[JsonProperty(Order = 8)]
 	private BlockchainState BlockchainState { get; }
 
-	[JsonProperty(Order = 9)]
-	private List<HdPubKey> HdPubKeys { get; }
-
-	[JsonProperty(Order = 10, PropertyName = "Icon")]
-	public string? Icon { get; private set; }
-
-	[JsonProperty(Order = 11, PropertyName = "PreferPsbtWorkflow")]
+	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 12, PropertyName = "AutoCoinJoin", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AutoCoinJoin { get; set; }
+	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin")]
+	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
+
+	/// <summary>
+	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
+	/// </summary>
+	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
+	[JsonConverter(typeof(MoneyBtcJsonConverter))]
+	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
+
+	[JsonProperty(Order = 12, PropertyName = "Icon")]
+	public string? Icon { get; private set; }
+
+	[JsonProperty(Order = 13, PropertyName = "AnonScoreTarget")]
+	public int AnonScoreTarget { get; private set; } = DefaultAnonScoreTarget;
+
+	[JsonProperty(Order = 14, PropertyName = "FeeRateMedianTimeFrameHours")]
+	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
+
+	[JsonProperty(Order = 15, PropertyName = "IsCoinjoinProfileSelected")]
+	public bool IsCoinjoinProfileSelected { get; set; } = false;
+
+	[JsonProperty(Order = 999)]
+	private List<HdPubKey> HdPubKeys { get; }
 
 	private object BlockchainStateLock { get; }
 
@@ -171,17 +206,17 @@ public class KeyManager
 		BlockchainState blockchainState = new(network);
 		KeyPath keyPath = GetAccountKeyPath(network);
 		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, isNewlyCreated: true, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
 	}
 
 	public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string? filePath = null)
 	{
-		return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, extPubKey, isNewlyCreated: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
 	{
-		return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
+		return new KeyManager(null, null, masterFingerprint, extPubKey, isNewlyCreated: false, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 	}
 
 	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
@@ -196,7 +231,7 @@ public class KeyManager
 
 		KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, true, minGapLimit, new BlockchainState(network), filePath, keyPath);
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, isNewlyCreated: false, minGapLimit, new BlockchainState(network), filePath, keyPath);
 	}
 
 	public static KeyManager FromFile(string filePath)
@@ -211,7 +246,8 @@ public class KeyManager
 		SafeIoManager safeIoManager = new(filePath);
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
-		var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString)
+			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
 		lock (km.HdPubKeyScriptBytesLock)
@@ -226,9 +262,6 @@ public class KeyManager
 				km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
 			}
 		}
-
-		// Backwards compatibility:
-		km.PasswordVerified ??= true;
 
 		return km;
 	}
@@ -374,9 +407,9 @@ public class KeyManager
 		}
 	}
 
-	public void SetPasswordVerified()
+	public void SetNonNewlyCreated()
 	{
-		PasswordVerified = true;
+		IsNewlyCreated = false;
 		ToFile();
 	}
 
@@ -673,6 +706,29 @@ public class KeyManager
 	public void SetIcon(WalletType type)
 	{
 		SetIcon(type.ToString());
+	}
+
+	public void SetAnonScoreTarget(int anonScoreTarget, bool toFile = true)
+	{
+		AnonScoreTarget = anonScoreTarget;
+		if (toFile)
+		{
+			ToFile();
+		}
+	}
+
+	public void SetFeeRateMedianTimeFrame(int hours, bool toFile = true)
+	{
+		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
+		{
+			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only one of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
+		}
+
+		FeeRateMedianTimeFrameHours = hours;
+		if (toFile)
+		{
+			ToFile();
+		}
 	}
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
