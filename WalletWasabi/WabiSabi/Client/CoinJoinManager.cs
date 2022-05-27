@@ -374,11 +374,11 @@ public class CoinJoinManager : BackgroundService
 			{
 				CoinRefrigerator.Freeze(result.RegisteredCoins);
 				MarkDestinationsUsed(result.RegisteredOutputs);
-				wallet.LogInfo($"{nameof(CoinJoinClient)} finished!");
+				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
 			{
-				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Transaction not broadcasted.");
+				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");
 			}
 		}
 		catch (NoCoinsToMixException x)
