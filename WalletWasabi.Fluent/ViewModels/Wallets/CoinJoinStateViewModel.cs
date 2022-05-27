@@ -160,8 +160,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		BalanceChanged,
 		Tick,
 		PlebStopChanged,
-		EnterCriticalPhaseMessage,
-		ExitCriticalPhaseMessage,
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
 		AutoCoinJoinOff
@@ -231,16 +229,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = !IsAutoCoinJoinEnabled;
 
 				CurrentStatus = _waitingMessage;
-			})
-			.OnTrigger(Trigger.EnterCriticalPhaseMessage, () =>
-			{
-				PauseVisible = false;
-				StopVisible = false;
-			})
-			.OnTrigger(Trigger.ExitCriticalPhaseMessage, () =>
-			{
-				PauseVisible = IsAutoCoinJoinEnabled;
-				StopVisible = !IsAutoCoinJoinEnabled;
 			})
 			.OnTrigger(Trigger.Tick, UpdateCountDown);
 
@@ -375,12 +363,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case EnteringCriticalPhase:
-				_stateMachine.Fire(Trigger.EnterCriticalPhaseMessage);
 				IsInCriticalPhase = true;
 				break;
 
 			case LeavingCriticalPhase:
-				_stateMachine.Fire(Trigger.ExitCriticalPhaseMessage);
 				IsInCriticalPhase = false;
 				break;
 		}

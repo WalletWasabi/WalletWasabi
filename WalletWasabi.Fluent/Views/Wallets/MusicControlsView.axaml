@@ -41,6 +41,11 @@
       <Panel DataContext="{Binding CoinJoinStateViewModel}">
         <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
+          <StackPanel.Styles>
+            <Style Selector="Button:disabled PathIcon">
+              <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}"/>
+            </Style>
+          </StackPanel.Styles>
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
           <StackPanel Spacing="5">
             <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
@@ -87,12 +92,14 @@
           </Button>
 
           <Button Classes="plain"
+                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding PauseVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
 
           <Button Classes="plain"
+                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding StopVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource stop_regular}" />
