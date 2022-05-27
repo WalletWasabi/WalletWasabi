@@ -99,7 +99,7 @@
           </Button>
 
           <Ellipse Height="12" Width="12"
-                   Classes.disabled="{Binding !IsAuto}"
+                   Classes.disabled="{Binding !AutoCoinJoinObservable^}"
                    Classes.waiting="{Binding IsAutoWaiting}">
             <Ellipse.Styles>
               <Style Selector="Ellipse">
