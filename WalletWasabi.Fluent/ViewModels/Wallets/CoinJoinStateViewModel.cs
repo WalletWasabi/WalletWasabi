@@ -193,6 +193,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				PauseVisible = false;
 				StopVisible = false;
+				IsAutoWaiting = true;
 
 				var now = DateTimeOffset.UtcNow;
 				var autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
@@ -202,6 +203,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnExit(() =>
 			{
+				IsAutoWaiting = false;
 				_autoCoinJoinStartTimer.Stop();
 				StopCountDown();
 			})
