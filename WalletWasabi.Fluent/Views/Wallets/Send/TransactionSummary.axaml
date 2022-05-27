@@ -35,7 +35,7 @@
         </Viewbox>
       </Button>
       <c:PreviewItem Icon="{StaticResource incognito_pathicon}"
-                     Label="some people or companies could know about this">
+                     Label="other people or companies could know about this">
         <c:LabelsListBox Items="{Binding Labels}"
                          HorizontalAlignment="Left"
                          VerticalAlignment="Center" />
