@@ -478,7 +478,7 @@ public class CoinJoinClient
 			.Take(3)
 			.ToArray();
 
-		// Select a group of coins those are close to each other by Anonymity Score.
+		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
 		// Create a bunch of combinations.
