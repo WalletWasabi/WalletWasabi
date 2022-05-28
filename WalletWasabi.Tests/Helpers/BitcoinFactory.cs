@@ -60,11 +60,11 @@ public static class BitcoinFactory
 
 		foreach (var sc in walletInputs)
 		{
-			stx.AddWalletInput(sc);
+			stx.TryAddWalletInput(sc);
 		}
 		foreach (var sc in walletOutputs)
 		{
-			stx.AddWalletOutput(sc);
+			stx.TryAddWalletOutput(sc);
 		}
 		return stx;
 	}

@@ -32,44 +32,28 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-		_walletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
-		_walletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+
+		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 	}
 
 	#endregion Constructors
 
 	#region Members
 
-	public IReadOnlyCollection<SmartCoin> WalletInputs
-	{
-		get
-		{
-			return _walletInputs;
-		}
-	}
+	/// <summary>
+	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
+	private HashSet<SmartCoin> WalletInputsInternal { get; }
 
-	public void AddWalletInput(SmartCoin input)
-	{
-		_walletInputs.Add(input);
-	}
+	/// <summary>
+	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
+	/// </summary>
+	private HashSet<SmartCoin> WalletOutputsInternal { get; }
 
-	public IReadOnlyCollection<SmartCoin> WalletOutputs
-	{
-		get
-		{
-			return _walletOutputs;
-		}
-	}
+	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
 
-	public void AddWalletOutput(SmartCoin output)
-	{
-		_walletOutputs.Add(output);
-	}
-
-	public void RemoveWalletOutput(SmartCoin output)
-	{
-		_walletOutputs.Remove(output);
-	}
+	public IReadOnlyCollection<SmartCoin> WalletOutputs => WalletOutputsInternal;
 
 	[JsonProperty]
 	[JsonConverter(typeof(TransactionJsonConverter))]
@@ -127,17 +111,15 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
-	/// <summary>
-	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
-	private HashSet<SmartCoin> _walletInputs;
-
-	/// <summary>
-	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
-	private HashSet<SmartCoin> _walletOutputs;
-
 	#endregion Members
+
+	public bool TryAddWalletInput(SmartCoin input) => WalletInputsInternal.Add(input);
+
+	public void TryAddWalletOutput(SmartCoin output) => WalletOutputsInternal.Add(output);
+
+	public bool TryRemoveWalletInput(SmartCoin input) => WalletInputsInternal.Remove(input);
+
+	public bool TryRemoveWalletOutput(SmartCoin output) => WalletOutputsInternal.Remove(output);
 
 	/// <summary>
 	/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)

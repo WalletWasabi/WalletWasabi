@@ -41,9 +41,9 @@ public class CoinJoinAnonScoreTests
 		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 8), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 		var sc = tx.WalletOutputs.First();
-		tx.RemoveWalletOutput(sc);
+		tx.TryRemoveWalletOutput(sc);
 		analyser.Analyze(tx);
-		tx.AddWalletOutput(sc);
+		tx.TryAddWalletOutput(sc);
 		analyser.Analyze(tx);
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
