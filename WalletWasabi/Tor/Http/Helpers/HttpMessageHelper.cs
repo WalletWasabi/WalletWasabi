@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
