@@ -54,7 +54,7 @@ public partial class LoginViewModel : RoutableViewModel
 		if (!isPasswordCorrect)
 		{
 			IsForgotPasswordVisible = true;
-			ErrorMessage = "The password is incorrect! Try again.";
+			ErrorMessage = "The password is incorrect! Please try again.";
 			return;
 		}
 
