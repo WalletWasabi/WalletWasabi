@@ -146,6 +146,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletInputsInternal.Add(input))
 		{
+			// Null it out so we recalculate on demand.
 			ForeignInputsInternal = null;
 			return true;
 		}
@@ -156,6 +157,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletOutputsInternal.Add(output))
 		{
+			// Null it out so we recalculate on demand.
 			ForeignOutputsInternal = null;
 			return true;
 		}
@@ -166,6 +168,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletInputsInternal.Remove(input))
 		{
+			// Null it out so we recalculate on demand.
 			ForeignInputsInternal = null;
 			return true;
 		}
@@ -176,6 +179,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletOutputsInternal.Remove(output))
 		{
+			// Null it out so we recalculate on demand.
 			ForeignOutputsInternal = null;
 			return true;
 		}
