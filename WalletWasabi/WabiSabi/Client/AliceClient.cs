@@ -10,6 +10,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Client;
 

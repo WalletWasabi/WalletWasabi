@@ -1,5 +1,5 @@
-using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
