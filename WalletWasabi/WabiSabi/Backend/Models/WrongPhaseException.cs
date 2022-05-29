@@ -23,14 +23,15 @@ public class WrongPhaseException : WabiSabiProtocolException
 
 		var endTime = latestExpectedPhase switch
 		{
-			Phase.InputRegistration => now - round.InputRegistrationTimeFrame.EndTime,
-			Phase.ConnectionConfirmation => now - round.ConnectionConfirmationTimeFrame.EndTime,
-			Phase.OutputRegistration => now - round.OutputRegistrationTimeFrame.EndTime,
-			Phase.TransactionSigning => now - round.TransactionSigningTimeFrame.EndTime,
-			Phase.Ended => now - round.End,
+			Phase.InputRegistration => round.InputRegistrationTimeFrame.EndTime,
+			Phase.ConnectionConfirmation => round.ConnectionConfirmationTimeFrame.EndTime,
+			Phase.OutputRegistration => round.OutputRegistrationTimeFrame.EndTime,
+			Phase.TransactionSigning => round.TransactionSigningTimeFrame.EndTime,
+			Phase.Ended => round.End,
 			_ => throw new ArgumentException($"Unknown Phase {latestExpectedPhase}.")
 		};
 
+		Late = now - endTime;
 		CurrentPhase = round.Phase;
 		RoundId = round.Id;
 		ExpectedPhases = expectedPhases;
