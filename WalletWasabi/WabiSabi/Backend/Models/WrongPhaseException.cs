@@ -28,7 +28,7 @@ public class WrongPhaseException : WabiSabiProtocolException
 			Phase.OutputRegistration => round.OutputRegistrationTimeFrame.EndTime,
 			Phase.TransactionSigning => round.TransactionSigningTimeFrame.EndTime,
 			Phase.Ended => round.End,
-			_ => throw new ArgumentException($"Unknown Phase {latestExpectedPhase}.")
+			_ => throw new ArgumentException($"Unknown phase {latestExpectedPhase}.")
 		};
 
 		Late = now - endTime;
