@@ -5,6 +5,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
