@@ -3,8 +3,9 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Crypto.Groups;
 using NBitcoin.Secp256k1;
 using NBitcoin;
+using System.Linq;
 
-namespace System.Linq;
+namespace WalletWasabi.Crypto;
 
 public static class Extensions
 {
