@@ -43,7 +43,7 @@ public class CoinJoinAnonScoreTests
 		var sc = tx.WalletOutputs.First();
 		Assert.True(tx.TryRemoveWalletOutput(sc));
 		analyser.Analyze(tx);
-		tx.TryAddWalletOutput(sc);
+		Assert.True(tx.TryAddWalletOutput(sc));
 		analyser.Analyze(tx);
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
