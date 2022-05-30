@@ -688,18 +688,21 @@ public class CoinJoinClient
 		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
-		// Sanity check.
-		if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
-		{
-			string round = roundState.BlameOf == 0 ? "Round" : "Blame Round";
-
-			throw new InvalidOperationException($"{round} ({roundState.Id}): My output is missing.");
-		}
+		// If everything is okay the sign all the inputs. Otherwise, in case there are missing outputs, the server is
+		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
+		// now when we identify as satoshi.
+		// In this scenario we should ban the coordinator and stop dealing with it.
+		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin);
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Alices({registeredAliceClients.Length}) have signed the coinjoin tx.");
+		var alicesToSign = mustSignAllInputs
+			? registeredAliceClients
+			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
+		
+		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		roundState.LogDebug($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
 		return unsignedCoinJoin;
 	}
