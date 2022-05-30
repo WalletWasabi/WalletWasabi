@@ -53,6 +53,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxIn>? ForeignInputsInternal { get; set; }
+
+	/// <summary>Cached computation of <see cref="ForeignOutputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxOut>? ForeignOutputsInternal { get; set; }
 
 	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
