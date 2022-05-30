@@ -41,14 +41,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#region Members
 
-	/// <summary>
-	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
+	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletInputsInternal { get; }
 
-	/// <summary>
-	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
+	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletOutputsInternal { get; }
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
@@ -189,9 +185,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		return false;
 	}
 
-	/// <summary>
-	/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
-	/// </summary>
+	/// <summary>Update the transaction with the data acquired from another transaction. (For example merge their labels.)</summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
 		var updated = false;
@@ -241,9 +235,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>
-	/// First looks at height, then block index, then mempool firstseen.
-	/// </summary>
+	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>
