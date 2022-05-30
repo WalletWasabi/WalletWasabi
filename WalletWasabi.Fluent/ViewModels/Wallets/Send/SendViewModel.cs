@@ -250,7 +250,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			if (s.IsTrimmable())
 			{
-				To = s.Trim().Trim('\r', '\n');
+				To = s.Trim();
 			}
 
 			TryParseUrl(s);
