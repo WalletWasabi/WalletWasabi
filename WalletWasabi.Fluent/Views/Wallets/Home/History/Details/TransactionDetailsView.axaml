@@ -43,7 +43,7 @@
 
       <Separator />
 
-      <!-- Incoming amount  -->
+      <!-- Amount -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount"
                      TextValue="{Binding Amount}">
