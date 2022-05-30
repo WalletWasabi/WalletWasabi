@@ -478,7 +478,7 @@ public class CoinJoinClient
 			.Take(3)
 			.ToArray();
 
-		// Select a group of coins those are close to each other by Anonimity Score.
+		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
 		// Create a bunch of combinations.
@@ -621,7 +621,7 @@ public class CoinJoinClient
 		var now = DateTimeOffset.UtcNow;
 		var outputRegistrationPhaseEndTime = now + remainingTime;
 
-		// Splitting the ramaining time.
+		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
 		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
 		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.

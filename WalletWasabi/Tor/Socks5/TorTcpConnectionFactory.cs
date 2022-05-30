@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -71,15 +72,20 @@ public class TorTcpConnectionFactory
 		{
 			tcpClient = new(TorSocks5EndPoint.AddressFamily);
 			tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-			try
+
+			// Windows 7 does not support the API we use.
+			if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Major < 10))
 			{
-				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
-				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
-				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
-			}
-			catch (SocketException ex) when (ex.ErrorCode is 10042)
-			{
-				Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
+				try
+				{
+					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
+				}
+				catch (SocketException ex) when (ex.ErrorCode is 10042)
+				{
+					Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
+				}
 			}
 
 			transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
@@ -260,7 +266,7 @@ public class TorTcpConnectionFactory
 			}
 
 			// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
-			// Generally also do not check anything but the success response, according to Socks5 RFC
+			// Generally also do not check anything but the success response, according to Socks5 RFC.
 
 			// If the reply code(REP value of X'00') indicates a success, and the
 			// request was either a BIND or a CONNECT, the client may now start

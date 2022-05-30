@@ -75,7 +75,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 				var destinationAmount = transaction.CalculateDestinationAmount();
 
-				// If Bnb solutions become the same transaction somehow, do not show the same suggestion twice.
+				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
 				if (!foundSolutionsByAmount.Contains(destinationAmount))
 				{
 					foundSolutionsByAmount.Add(destinationAmount);
