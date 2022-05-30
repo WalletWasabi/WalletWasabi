@@ -107,9 +107,9 @@ I. TERMS AND CONDITIONS
 
 Coin Filtering 
 
-Wasabi may execute illicit activity checking and control via a contracted third party solely in its CoinJoin Coordination Services. Wasabi may suspend your UTXOs’ access to the CoinJoin Services, with immediate effect for any reason - including but not limited to Illicit or Prohibited Activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk Bitcoin UTXO to reach the CoinJoin Services. 
-You acknowledge that Wasabi's decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to Wasabi's risk management and security protocols. You agree that Wasabi is under no obligation to disclose the details of its risk management and security procedures to you.
-Your access with the relevant Bitcoin UTXOs to the CoinJoin Services will be permanently suspended.
+ZkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its coinjoin coordination services. ZkSNACKs Ltd. may suspend your UTXOs’ access to the coinjoin services, with immediate effect for any reason - including but not limited to Illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the coinjoin services. 
+You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
+Your access with the relevant bitcoin UTXOs to the coinjoin services will be permanently suspended.
 
 4 INDEMNIFICATION
 =================
