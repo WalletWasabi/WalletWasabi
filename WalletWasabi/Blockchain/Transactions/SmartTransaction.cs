@@ -48,10 +48,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private HashSet<SmartCoin> WalletOutputsInternal { get; }
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxIn>? ForeignInputsInternal { get; set; }
+	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; }
 
 	/// <summary>Cached computation of <see cref="ForeignOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxOut>? ForeignOutputsInternal { get; set; }
+	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; }
 
 	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
 
@@ -61,12 +61,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (ForeignInputsInternal is null)
+			if (ForeignInputsCache is null)
 			{
 				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
-				ForeignInputsInternal = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 			}
-			return ForeignInputsInternal;
+			return ForeignInputsCache;
 		}
 	}
 
@@ -74,12 +74,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (ForeignOutputsInternal is null)
+			if (ForeignOutputsCache is null)
 			{
 				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
-				ForeignOutputsInternal = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 			}
-			return ForeignOutputsInternal;
+			return ForeignOutputsCache;
 		}
 	}
 
@@ -145,8 +145,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletInputsInternal.Add(input))
 		{
-			// Null it out so we recalculate on demand.
-			ForeignInputsInternal = null;
+			ForeignInputsCache = null;
 			return true;
 		}
 		return false;
@@ -157,7 +156,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		if (WalletOutputsInternal.Add(output))
 		{
 			// Null it out so we recalculate on demand.
-			ForeignOutputsInternal = null;
+			ForeignOutputsCache = null;
 			return true;
 		}
 		return false;
@@ -167,8 +166,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletInputsInternal.Remove(input))
 		{
-			// Null it out so we recalculate on demand.
-			ForeignInputsInternal = null;
+			ForeignInputsCache = null;
 			return true;
 		}
 		return false;
@@ -179,7 +177,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		if (WalletOutputsInternal.Remove(output))
 		{
 			// Null it out so we recalculate on demand.
-			ForeignOutputsInternal = null;
+			ForeignOutputsCache = null;
 			return true;
 		}
 		return false;
