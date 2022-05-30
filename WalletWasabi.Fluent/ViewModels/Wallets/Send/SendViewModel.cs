@@ -184,7 +184,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
@@ -248,6 +248,11 @@ public partial class SendViewModel : RoutableViewModel
 
 		Dispatcher.UIThread.Post(() =>
 		{
+			if (s.IsTrimmable())
+			{
+				To = s.Trim().Trim('\r', '\n');
+			}
+
 			TryParseUrl(s);
 			_parsingUrl = false;
 		});
