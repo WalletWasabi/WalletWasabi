@@ -8,5 +8,7 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.LabelsColumnView">
+ <c:PrivacyContentControl NumberOfPrivacyChars="15" VerticalAlignment="Center">
   <c:LabelsListBox VerticalAlignment="Center" Items="{Binding SmartLabel}" />
+ </c:PrivacyContentControl>
 </UserControl>
