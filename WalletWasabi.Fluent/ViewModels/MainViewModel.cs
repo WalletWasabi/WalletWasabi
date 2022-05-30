@@ -176,7 +176,9 @@ public partial class MainViewModel : ViewModelBase
 
 	public SearchBarViewModel SearchBar { get; }
 
-	public static MainViewModel Instance { get; } = new();
+	public static Lazy<MainViewModel> Instance { get; } = new(() => new MainViewModel());
+
+	public static bool IsInitialized => Instance.IsValueCreated;
 
 	public void ClearStacks()
 	{

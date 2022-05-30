@@ -38,8 +38,8 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
 
 		AboutCommand = ReactiveCommand.Create(
-			() => MainViewModel.Instance.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null)),
-			canExecute: MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage).Select(x => x is null));
+			() => MainViewModel.Instance.Value.DialogScreen.To(new AboutViewModel(navigateBack: MainViewModel.Instance.Value.DialogScreen.CurrentPage is not null)),
+			canExecute: MainViewModel.Instance.Value.DialogScreen.WhenAnyValue(x => x.CurrentPage).Select(x => x is null));
 
 		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 		TrayIcon = new WindowIcon(bitmap);
@@ -57,7 +57,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented()
 	{
-		RxApp.MainThreadScheduler.Schedule(() => MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this)));
+		RxApp.MainThreadScheduler.Schedule(() => MainViewModel.Instance.Value.CompactDialogScreen.To(new ShuttingDownViewModel(this)));
 	}
 
 	public bool CanShutdown()

@@ -175,8 +175,11 @@ public class Program
 
 	private static void TerminateApplication()
 	{
-		MainViewModel.Instance.ClearStacks();
-		MainViewModel.Instance.StatusIcon.Dispose();
+		if (MainViewModel.IsInitialized)
+		{
+			MainViewModel.Instance.Value.ClearStacks();
+			MainViewModel.Instance.Value.StatusIcon.Dispose();
+		}
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

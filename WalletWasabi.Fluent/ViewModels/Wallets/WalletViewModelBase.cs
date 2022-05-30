@@ -59,7 +59,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 			.Skip(1)
 			.Subscribe(x =>
 			{
-				MainViewModel.Instance.InvalidateIsCoinJoinActive();
+				MainViewModel.Instance.Value.InvalidateIsCoinJoinActive();
 			});
 	}
 

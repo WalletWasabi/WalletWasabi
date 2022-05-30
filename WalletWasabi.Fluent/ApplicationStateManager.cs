@@ -163,7 +163,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		var result = new MainWindow
 		{
-			DataContext = MainViewModel.Instance
+			DataContext = MainViewModel.Instance.Value
 		};
 
 		result.Closing += MainWindowOnClosing;

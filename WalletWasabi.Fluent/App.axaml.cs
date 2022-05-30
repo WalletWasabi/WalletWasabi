@@ -50,7 +50,7 @@ public class App : Application
 					{
 						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
 
-						MainViewModel.Instance.Initialize();
+						MainViewModel.Instance.Value.Initialize();
 					});
 			}
 		}
