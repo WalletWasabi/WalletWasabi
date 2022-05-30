@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
-using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent;
@@ -13,8 +12,8 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly Func<Task>? _backendInitialiseAsync;
-	private ApplicationStateManager? _applicationStateManager;
 	private readonly bool _startInBg;
+	private ApplicationStateManager? _applicationStateManager;
 
 	public App()
 	{
