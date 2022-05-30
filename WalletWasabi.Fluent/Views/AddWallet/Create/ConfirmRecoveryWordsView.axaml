@@ -28,6 +28,7 @@
               <TextBox Watermark="Type in the word" Classes="hasCheckMarkBoolean" validation:CheckMarkStatus.IsEnabled="{Binding IsConfirmed}" Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top">
                 <i:Interaction.Behaviors>
                   <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
+                  <behaviors:ForceLowercaseInputBehavior />
                 </i:Interaction.Behaviors>
               </TextBox>
             </DockPanel>
