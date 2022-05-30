@@ -39,7 +39,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _plebStopMessageBelow = new() { Message = "Receive more funds or press play to bypass" };
 
 	[AutoNotify] private bool _isAutoWaiting;
-	[AutoNotify] private bool _isAuto;
 	[AutoNotify] private bool _playVisible = true;
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _stopVisible;
@@ -109,7 +108,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
 		});
 
-		walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin)
+		AutoCoinJoinObservable = walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin);
+
+		AutoCoinJoinObservable
 			.Skip(1) // The first one is triggered at the creation.
 			.SubscribeAsync(async (autoCoinJoin) =>
 			{
@@ -165,6 +166,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		AutoCoinJoinOff
 	}
 
+	public IObservable<bool> AutoCoinJoinObservable { get; }
+
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
 
 	private bool IsCounting => _countdownTimer.IsEnabled;
@@ -188,6 +191,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				PauseVisible = false;
 				StopVisible = false;
+				IsAutoWaiting = true;
 
 				var now = DateTimeOffset.UtcNow;
 				var autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
@@ -197,6 +201,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			})
 			.OnExit(() =>
 			{
+				IsAutoWaiting = false;
 				_autoCoinJoinStartTimer.Stop();
 				StopCountDown();
 			})
