@@ -61,7 +61,7 @@ public static class Constants
 
 	public static readonly Version HwiVersion = new("2.0.2");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
-	public static readonly Version LegalDocumentsVersion = new(2, 0);
+	public static readonly Version LegalDocumentsVersion = new(3, 0);
 
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };
