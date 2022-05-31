@@ -688,7 +688,7 @@ public class CoinJoinClient
 		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
-		// If everything is okay the sign all the inputs. Otherwise, in case there are missing outputs, the server is
+		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
 		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
