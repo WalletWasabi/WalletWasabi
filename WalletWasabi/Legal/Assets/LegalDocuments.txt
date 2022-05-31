@@ -166,7 +166,7 @@ Your access with the relevant bitcoin UTXOs to the coinjoin services will be per
      - that arbitration will be conducted confidentially by a single arbitrator appointed by law of Republic of Seychelles;
      - the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and
      - that the arbitration in Republic of Seychelles will have exclusive jurisdiction over any appeals of an arbitration award.
-   Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
+    Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
     Whether the dispute is heard in arbitration, You and the Service Provider will not commence against the other any class action, class arbitration or representative action or proceeding.
 
 9.3 GOVERNING LAW AND JURISDICTION
