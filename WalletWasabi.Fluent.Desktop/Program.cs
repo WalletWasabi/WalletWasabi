@@ -88,8 +88,10 @@ public class Program
 				Services.Initialize(Global);
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
-				BuildAvaloniaApp(runGuiInBackground, terminateService)
-					.AfterSetup(_ =>
+
+				var appBuilder = AppBuilder.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI();
+				appBuilder = SetupAppBuilder(appBuilder);
+				appBuilder.AfterSetup(_ =>
 					{
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
 						Logger.LogInfo(glInterface is { }
@@ -208,40 +210,33 @@ public class Program
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
 	private static AppBuilder BuildAvaloniaApp()
 	{
-		return BuildAvaloniaApp(false, null!);
+		var result = AppBuilder.Configure(() => new App()).UseReactiveUI();
+		result = SetupAppBuilder(result);
+
+		return result;
 	}
 
-	// Avalonia configuration, don't remove
-	private static AppBuilder BuildAvaloniaApp(bool startInBg, TerminateService terminateService)
+	private static AppBuilder SetupAppBuilder(AppBuilder appBuilder)
 	{
 		bool useGpuLinux = true;
 
-		var result = AppBuilder.Configure(() => new App(async () =>
-			{
-				if (Global is { } global && terminateService is not null)
-				{
-					await global.InitializeNoWalletAsync(terminateService);
-				}
-			}, startInBg))
-			.UseReactiveUI();
-
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			result
+			appBuilder
 				.UseWin32()
 				.UseSkia();
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			result.UsePlatformDetect()
+			appBuilder.UsePlatformDetect()
 				.UseManagedSystemDialogs<AppBuilder, Window>();
 		}
 		else
 		{
-			result.UsePlatformDetect();
+			appBuilder.UsePlatformDetect();
 		}
 
-		return result
+		return appBuilder
 			.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true, UseWindowsUIComposition = true })
 			.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
 			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
