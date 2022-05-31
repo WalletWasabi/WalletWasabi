@@ -74,7 +74,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
 				args switch
 				{
-					CoinJoinStatusEventArgs e when e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase => true,
+					CoinJoinStatusEventArgs e when e.CoinJoinProgressEventArgs is EnteringCriticalPhase => true,
 					CompletedEventArgs _ => false,
 					_ => null
 				};
