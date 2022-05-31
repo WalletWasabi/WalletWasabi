@@ -161,7 +161,7 @@ Your access with the relevant bitcoin UTXOs to the coinjoin services will be per
     You and the Service Provider agree to arbitrate any dispute arising under or in connection with these Terms or Your use of our Services, except for disputes in which either party seeks equitable and other relief for any alleged infringement or unlawful use of copyrights, trademarks, trade names, logos, trade secrets, patents or other intellectual property rights. Arbitration prevents You from suing in court or from having a jury trial. You and the Service Provider agree to notify each other in writing of any dispute within thirty (30) days of when it arises. Notice to the Service Provider shall be sent to legal@zksnacks.com.
 
     You and the Service Provider further agree:
-- to attempt informal resolution prior to any demand for arbitration;
+    - to attempt informal resolution prior to any demand for arbitration;
      - that the seat or legal place of any arbitration will be Republic of Seychelles;
      - that arbitration will be conducted confidentially by a single arbitrator appointed by law of Republic of Seychelles;
      - the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and
