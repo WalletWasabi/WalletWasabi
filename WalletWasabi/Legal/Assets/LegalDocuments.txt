@@ -105,7 +105,7 @@ I. TERMS AND CONDITIONS
     If You find any reason to violate the law during Your transaction (for example, in a transaction with a third party), please let us know at one of the contacts listed at the end of this document.
     The Service Provider shall assist the investigation in any case, if so instructed by an authorized body, a final court judgment or a final regulatory decision.
 
-Coin Filtering 
+    COIN FILTERING
 
     zkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its coinjoin coordination services. zkSNACKs Ltd. may suspend your UTXOs’ access to the coinjoin services, with immediate effect for any reason - including but not limited to illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the coinjoin services.
 You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
