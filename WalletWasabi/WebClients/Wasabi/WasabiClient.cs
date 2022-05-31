@@ -262,7 +262,7 @@ public class WasabiClient
 	{
 		using HttpResponseMessage response = await HttpClient.SendAsync(
 			HttpMethod.Get,
-			$"/api/v{ApiVersion}/wasabi/legaldocuments",
+			$"/api/v{ApiVersion}/wasabi/legaldocuments?id={Helpers.Constants.WW2LegalDocumentsVersion}",
 			cancel: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)

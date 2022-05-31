@@ -19,9 +19,28 @@ public class WasabiController : ControllerBase
 	/// <response code="200">Returns the legal documents.</response>
 	[HttpGet("legaldocuments")]
 	[ProducesResponseType(typeof(byte[]), 200)]
-	public async Task<IActionResult> GetLegalDocumentsAsync()
+	public async Task<IActionResult> GetLegalDocumentsAsync(string? id)
 	{
-		var content = await System.IO.File.ReadAllBytesAsync(LegalDocuments.EmbeddedFilePath);
+		string filePath;
+
+		// If the document id is null, then the request comes from WW1.0 client.
+		if (id is null)
+		{
+			filePath = LegalDocuments.EmbeddedFilePath;
+		}
+		else
+		{
+			if (Version.TryParse(id, out var requestedVersion) && requestedVersion == Constants.WW2LegalDocumentsVersion)
+			{
+				filePath = LegalDocuments.EmbeddedFilePathForWW2;
+			}
+			else
+			{
+				return NotFound();
+			}
+		}
+
+		var content = await System.IO.File.ReadAllBytesAsync(filePath);
 		return File(content, "text/plain");
 	}
 }
