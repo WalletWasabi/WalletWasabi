@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
-using System.IO;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto;
@@ -144,7 +143,7 @@ public class BlindingTests
 		using var key = new Key();
 		var signer = new Signer(key);
 
-		foreach (var i in Enumerable.Range(0, 100))
+		foreach (int _ in Enumerable.Range(0, 100))
 		{
 			var requester = new Requester();
 
@@ -152,14 +151,12 @@ public class BlindingTests
 			Random.NextBytes(message);
 			var blindedMessage = requester.BlindMessage(message, r.PubKey, key.PubKey);
 			var blindSignature = signer.Sign(blindedMessage, r);
-			var unblindedSignature = requester.UnblindSignature(blindSignature);
+			UnblindedSignature unblindedSignature = requester.UnblindSignature(blindSignature);
 
-			var sb = new StringBuilder();
-			using var writer = new JsonTextWriter(new StringWriter(sb));
-			converter.WriteJson(writer, unblindedSignature, null);
+			string json = JsonConvert.SerializeObject(unblindedSignature, converter);
+			UnblindedSignature convertedUnblindedSignature = JsonConvert.DeserializeObject<UnblindedSignature>(json, converter)!;
 
-			using var reader = new JsonTextReader(new StringReader(sb.ToString()));
-			var convertedUnblindedSignature = (UnblindedSignature)converter.ReadJson(reader, null, null, null);
+			Assert.NotNull(convertedUnblindedSignature);
 			Assert.Equal(unblindedSignature.C, convertedUnblindedSignature.C);
 			Assert.Equal(unblindedSignature.S, convertedUnblindedSignature.S);
 		}
@@ -168,12 +165,11 @@ public class BlindingTests
 	[Fact]
 	public void DetectInvalidSerializedMessage()
 	{
-		var json = "[ '999999999999999999999999999999999999999999999999999999999999999999999999999999'," + // 33 bytes (INVALID)
+		UnblindedSignatureJsonConverter converter = new();
+		string json = "[ '999999999999999999999999999999999999999999999999999999999999999999999999999999'," + // 33 bytes (INVALID)
 					" '999999999999999999999999999']";
 
-		using var reader = new JsonTextReader(new StringReader(json));
-		var converter = new UnblindedSignatureJsonConverter();
-		var ex = Assert.Throws<FormatException>(() => converter.ReadJson(reader, null, null, null));
+		FormatException ex = Assert.Throws<FormatException>(() => JsonConvert.DeserializeObject<UnblindedSignature>(json, converter));
 		Assert.Contains("longer than 32 bytes", ex.Message);
 	}
 }

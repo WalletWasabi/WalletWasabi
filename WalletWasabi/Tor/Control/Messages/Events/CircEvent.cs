@@ -2,7 +2,7 @@ using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using WalletWasabi.Tor.Control.Utils;
 
-namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+namespace WalletWasabi.Tor.Control.Messages.Events;
 
 /// <summary>Circuit event as specified in <c>4.1.1. Circuit status changed</c> spec.</summary>
 /// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt"/>

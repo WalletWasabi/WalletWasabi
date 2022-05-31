@@ -1,16 +1,15 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public abstract class SpectrumDataSource
 {
-	private float[] _bins;
 	private float[] _averaged;
 	private DispatcherTimer _timer;
 
 	public SpectrumDataSource(int numBins, int numAverages, TimeSpan mixInterval)
 	{
-		_bins = new float[numBins];
+		Bins = new float[numBins];
 		_averaged = new float[numBins];
 
 		_timer = new DispatcherTimer
@@ -23,18 +22,20 @@ public abstract class SpectrumDataSource
 		NumAverages = numAverages;
 	}
 
+	public event EventHandler<bool>? GeneratingDataStateChanged;
+
+	public int NumAverages { get; }
+
+	protected float[] Bins { get; }
+
+	protected int NumBins => Bins.Length;
+
+	protected int MidPointBins => NumBins / 2;
+
 	private void TimerOnTick(object? sender, EventArgs e)
 	{
 		OnMixData();
 	}
-
-	public int NumAverages { get; }
-
-	protected float[] Bins => _bins;
-
-	protected int NumBins => Bins.Length;
-
-	protected int MidPointBins => NumBins /2;
 
 	protected abstract void OnMixData();
 
@@ -52,10 +53,17 @@ public abstract class SpectrumDataSource
 	public void Start()
 	{
 		_timer.Start();
+		OnGeneratingDataStateChanged(isGenerating: true);
 	}
 
 	public void Stop()
 	{
 		_timer.Stop();
+		OnGeneratingDataStateChanged(isGenerating: false);
+	}
+
+	private void OnGeneratingDataStateChanged(bool isGenerating)
+	{
+		GeneratingDataStateChanged?.Invoke(this, isGenerating);
 	}
 }

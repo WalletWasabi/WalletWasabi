@@ -22,6 +22,9 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 	public static readonly StyledProperty<object> CommandParameterProperty =
 		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, object>(nameof(CommandParameter));
 
+	public static readonly StyledProperty<RoutingStrategies> EventRoutingStrategyProperty =
+		AvaloniaProperty.Register<ExecuteCommandOnKeyDownBehavior, RoutingStrategies>(nameof(EventRoutingStrategy), RoutingStrategies.Bubble);
+
 	public Key? Key
 	{
 		get => GetValue(KeyProperty);
@@ -46,6 +49,12 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 		set => SetValue(CommandParameterProperty, value);
 	}
 
+	public RoutingStrategies EventRoutingStrategy
+	{
+		get => GetValue(EventRoutingStrategyProperty);
+		set => SetValue(EventRoutingStrategyProperty, value);
+	}
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var control = AssociatedObject;
@@ -56,7 +65,7 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 
 		if (control.GetVisualRoot() is IInputElement inputRoot)
 		{
-			inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown)
+			inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown, EventRoutingStrategy)
 			         .DisposeWith(disposable);
 		}
 	}

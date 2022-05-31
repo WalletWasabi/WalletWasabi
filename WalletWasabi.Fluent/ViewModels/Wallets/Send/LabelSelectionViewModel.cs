@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -32,16 +34,28 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelsViewModel.Where(x => x.IsBlackListed);
 
-	public Pocket[] AutoSelectPockets()
+	public Pocket[] AutoSelectPockets(SmartLabel recipient)
 	{
 		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
 		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
 		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
 		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
+		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
+		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
+
+		if (onlyKnownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return onlyKnownByRecipientPockets;
+		}
 
 		if (_privatePocket.Amount >= _targetAmount)
 		{
 			return new[] { _privatePocket };
+		}
+
+		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, recipient, out var pockets))
+		{
+			return pockets;
 		}
 
 		if (knownPockets.Sum(x => x.Amount) >= _targetAmount)
@@ -72,13 +86,66 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
+	private bool TryGetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
+	{
+		pockets = null;
+
+		if (knownByRecipientPockets.Sum(x => x.Amount) < _targetAmount)
+		{
+			return false;
+		}
+
+		var privacyRankedPockets =
+			knownByRecipientPockets
+				.Select(pocket =>
+				{
+					var containedRecipientLabelsCount = pocket.Labels.Count(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase));
+					var totalPocketLabelsCount = pocket.Labels.Count();
+					var totalRecipientLabelsCount = recipient.Count();
+					var index = ((double)containedRecipientLabelsCount / totalPocketLabelsCount) + ((double)containedRecipientLabelsCount / totalRecipientLabelsCount);
+
+					return (acceptabilityIndex: index, pocket);
+				})
+				.OrderByDescending(tup => tup.acceptabilityIndex)
+				.ThenBy(tup => tup.pocket.Labels.Count())
+				.ThenByDescending(tup => tup.pocket.Amount)
+				.Select(tup => tup.pocket)
+				.ToArray();
+
+		var bestPockets = new List<Pocket>();
+		foreach (var p in privacyRankedPockets)
+		{
+			bestPockets.Add(p);
+
+			if (bestPockets.Sum(x => x.Amount) >= targetAmount)
+			{
+				break;
+			}
+		}
+
+		foreach (var p in bestPockets.OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
+		{
+			if (bestPockets.Sum(x => x.Amount) - p.Amount >= targetAmount)
+			{
+				bestPockets.Remove(p);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		pockets = bestPockets.ToArray();
+		return true;
+	}
+
 	public Pocket[] GetUsedPockets()
 	{
 		var pocketsToReturn = NonPrivatePockets.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToList();
 
-		if (_includePrivatePocket && _privatePocket is { } privatePocket)
+		if (_includePrivatePocket)
 		{
-			pocketsToReturn.Add(privatePocket);
+			pocketsToReturn.Add(_privatePocket);
 		}
 
 		return pocketsToReturn.ToArray();
@@ -163,26 +230,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
 				.Sum(x => x.Amount);
 
-		if (sumOfWhiteList >= _targetAmount)
-		{
-			EnoughSelected = true;
-			_includePrivatePocket = false;
-		}
-		else if (!LabelsBlackList.Any() && sumOfWhiteList + _privatePocket.Amount >= _targetAmount)
-		{
-			EnoughSelected = true;
-			_includePrivatePocket = true;
-		}
-		else if (!LabelsWhiteList.Any() && _privatePocket.Amount >= _targetAmount)
-		{
-			EnoughSelected = true;
-			_includePrivatePocket = true;
-		}
-		else
-		{
-			EnoughSelected = false;
-			_includePrivatePocket = false;
-		}
+		_includePrivatePocket = NonPrivatePockets.Sum(x => x.Amount) < _targetAmount || (LabelsWhiteList.IsEmpty() && _privatePocket.Amount >= _targetAmount);
+		var totalSelected = sumOfWhiteList + (_includePrivatePocket ? _privatePocket.Amount : Money.Zero);
+		EnoughSelected = totalSelected >= _targetAmount;
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
@@ -195,8 +245,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return;
 		}
 
+		usedCoins = usedCoins.ToImmutableArray();
+
 		var usedLabels = SmartLabel.Merge(usedCoins.Select(x => x.GetLabels(privateThreshold)));
-		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value)).ToArray();
+		var usedLabelViewModels = AllLabelsViewModel.Where(x => usedLabels.Contains(x.Value, StringComparer.OrdinalIgnoreCase)).ToArray();
 		var notUsedLabelViewModels = AllLabelsViewModel.Except(usedLabelViewModels);
 
 		foreach (LabelViewModel label in notUsedLabelViewModels)
@@ -205,5 +257,34 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		}
 
 		OnSelectionChanged();
+	}
+
+	public bool IsOtherSelectionPossible(IEnumerable<SmartCoin> usedCoins, SmartLabel recipient)
+	{
+		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
+		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
+
+		if (!usedPockets.Contains(_privatePocket)) // Private pocket hasn't been used. Don't deal with it then.
+		{
+			remainingUsablePockets.Remove(_privatePocket);
+		}
+
+		if (usedPockets.Length == 1 && usedPockets.First() == _privatePocket)
+		{
+			return false;
+		}
+
+		if (!remainingUsablePockets.Any())
+		{
+			return false;
+		}
+
+		var labels = SmartLabel.Merge(usedPockets.Select(x => x.Labels));
+		if (labels.Equals(recipient, StringComparer.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		return true;
 	}
 }

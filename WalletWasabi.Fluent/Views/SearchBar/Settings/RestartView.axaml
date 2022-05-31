@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar.Settings"
+             mc:Ignorable="d"
+             x:DataType="settings:RestartViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.SearchBar.Settings.RestartView">
+
+  <DockPanel Margin="10">
+    <Button Classes="action" Margin="10" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Command="{Binding RestartCommand}">
+      <TextBlock>Restart now</TextBlock>
+    </Button>
+    <TextBlock Margin="10 20 10 10" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding Message}" />
+  </DockPanel>
+</UserControl>

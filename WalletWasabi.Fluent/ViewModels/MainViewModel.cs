@@ -1,30 +1,29 @@
 using System.Linq;
 using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using Avalonia;
+using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive.Linq;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Search;
-using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
-using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
-using WalletWasabi.Logging;
-using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Fluent.ViewModels.Settings;
+using WalletWasabi.Fluent.ViewModels.StatusIcon;
+using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
 	private readonly SettingsPageViewModel _settingsPage;
-	private readonly SearchPageViewModel _searchPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
 	[AutoNotify] private bool _isMainContentEnabled;
@@ -34,7 +33,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
-	[AutoNotify] private StatusBarViewModel _statusBar;
+	[AutoNotify] private StatusIconViewModel _statusIcon;
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
@@ -43,6 +42,7 @@ public partial class MainViewModel : ViewModelBase
 	public MainViewModel()
 	{
 		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+
 		_dialogScreen = new DialogScreenViewModel();
 
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -57,31 +57,39 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusBar = new StatusBarViewModel();
+		_statusIcon = new StatusIconViewModel();
 
 		UiServices.Initialize();
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
 		_privacyMode = new PrivacyModeViewModel();
-		_searchPage = new SearchPageViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
 
-		MusicControls = new MusicControlsViewModel();
-
 		NavigationManager.RegisterType(_navBar);
-
-		RegisterCategories(_searchPage);
 		RegisterViewModels();
 
 		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-		_searchPage.Initialise();
-
 		this.WhenAnyValue(x => x.WindowState)
-			.Where(x => x != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
+			.Subscribe(state =>
+			{
+				Services.UiConfig.WindowState = state.ToString();
+
+				switch (state)
+				{
+					case WindowState.Normal:
+					case WindowState.Maximized:
+					case WindowState.FullScreen:
+						if (Application.Current?.DataContext is ApplicationViewModel avm)
+						{
+							avm.IsMainWindowShown = true;
+						}
+
+						break;
+				}
+			});
 
 		this.WhenAnyValue(
 				x => x.DialogScreen!.IsDialogOpen,
@@ -135,6 +143,11 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
+		CurrentWallet =
+			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>();
+
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -152,11 +165,16 @@ public partial class MainViewModel : ViewModelBase
 				}
 			}
 		});
+
+		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
+		SearchBar = new SearchBarViewModel(source.Changes);
 	}
+
+	public IObservable<WalletViewModel> CurrentWallet { get; }
 
 	public TargettedNavigationStack MainScreen { get; }
 
-	public MusicControlsViewModel MusicControls { get; }
+	public SearchBarViewModel SearchBar { get; }
 
 	public static MainViewModel Instance { get; } = new();
 
@@ -176,7 +194,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void Initialize()
 	{
-		StatusBar.Initialize();
+		StatusIcon.Initialize();
 
 		if (Services.Config.Network != Network.Main)
 		{
@@ -186,7 +204,6 @@ public partial class MainViewModel : ViewModelBase
 
 	private void RegisterViewModels()
 	{
-		SearchPageViewModel.Register(_searchPage);
 		PrivacyModeViewModel.Register(_privacyMode);
 		AddWalletPageViewModel.Register(_addWalletPage);
 		SettingsPageViewModel.Register(_settingsPage);
@@ -195,13 +212,6 @@ public partial class MainViewModel : ViewModelBase
 			() =>
 			{
 				_settingsPage.SelectedTab = 0;
-				return _settingsPage;
-			});
-
-		TorSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
@@ -239,7 +249,6 @@ public partial class MainViewModel : ViewModelBase
 					var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
 					return new LegalDocumentsViewModel(document.Content);
 				});
-				_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
 			}
 			catch (Exception ex)
 			{
@@ -258,13 +267,5 @@ public partial class MainViewModel : ViewModelBase
 		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
 		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
-	}
-
-	private static void RegisterCategories(SearchPageViewModel searchPage)
-	{
-		searchPage.RegisterCategory("General", 0);
-		searchPage.RegisterCategory("Settings", 1);
-		searchPage.RegisterCategory("Help & Support", 2);
-		searchPage.RegisterCategory("Open", 3);
 	}
 }

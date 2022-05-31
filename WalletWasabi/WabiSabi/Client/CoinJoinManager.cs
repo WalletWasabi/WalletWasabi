@@ -5,23 +5,27 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-internal enum CoinJoinCommand
-{
-	Start,
-	Stop,
-}
-
 public class CoinJoinManager : BackgroundService
 {
+	private record CoinJoinCommand(Wallet Wallet);
+	private record StartCoinJoinCommand(Wallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
+	private record StopCoinJoinCommand(Wallet Wallet) : CoinJoinCommand(Wallet);
+
 	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
 	{
 		WalletManager = walletManager;
@@ -30,243 +34,469 @@ public class CoinJoinManager : BackgroundService
 		ServiceConfiguration = serviceConfiguration;
 	}
 
-	public event EventHandler<WalletStatusChangedEventArgs>? WalletStatusChanged;
-
 	public WalletManager WalletManager { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	private ImmutableDictionary<string, CoinJoinTracker> TrackedCoinJoins { get; set; } = ImmutableDictionary<string, CoinJoinTracker>.Empty;
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	private TimeSpan AutoCoinJoinDelayAfterWalletLoaded { get; } = TimeSpan.FromSeconds(60);
 	public bool IsUserInSendWorkflow { get; set; }
-
-	private ConcurrentDictionary<Wallet, CoinJoinCommand> WalletManualState { get; } = new();
-
-	public void Start(Wallet wallet) =>
-		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Start, (_, _) => CoinJoinCommand.Start);
-
-	public void Stop(Wallet wallet) =>
-		WalletManualState.AddOrUpdate(wallet, CoinJoinCommand.Stop, (_, _) => CoinJoinCommand.Stop);
-
-	public void AutoStart(Wallet wallet) =>
-		WalletManualState.Remove(wallet, out _);
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
-	public CoinJoinClientState HighestCoinJoinClientState
+	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
+
+	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
+
+	#region Public API (Start | Stop | )
+
+	public async Task StartAsync(Wallet wallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken)
 	{
-		get
+		if (overridePlebStop && !wallet.IsUnderPlebStop)
 		{
-			var inProgress = TrackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
-
-			if (inProgress.IsEmpty)
-			{
-				return CoinJoinClientState.Idle;
-			}
-
-			return inProgress.Any(wtd => wtd.InCriticalCoinJoinState)
-				? CoinJoinClientState.InCriticalPhase
-				: CoinJoinClientState.InProgress;
+			// Turn off overriding if we went above the threshold meanwhile.
+			overridePlebStop = false;
+			wallet.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
 		}
+
+		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
 	}
+
+	public async Task StopAsync(Wallet wallet, CancellationToken cancellationToken)
+	{
+		await CommandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
+	}
+
+	#endregion Public API (Start | Stop | )
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		if (WalletManager.Network == Network.Main)
-		{
-			Logger.LogInfo("WabiSabi coinjoin client-side functionality is disabled temporarily on mainnet.");
-			return;
-		}
-		CoinJoinTrackerFactory coinJoinTrackerFactory = new(HttpClientFactory, RoundStatusUpdater, stoppingToken);
+		// Detects and notifies about wallets that can participate in a coinjoin.
+		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
-		var trackedCoinJoins = new Dictionary<string, CoinJoinTracker>();
+		// Coinjoin handling Start / Stop and finallization.
+		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
 
+		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
+
+		await WaitAndHandleResultOfTasksAsync(nameof(walletsMonitoringTask), walletsMonitoringTask).ConfigureAwait(false);
+		await WaitAndHandleResultOfTasksAsync(nameof(monitorAndHandleCoinjoinsTask), monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
+	}
+
+	private async Task MonitorWalletsAsync(CancellationToken stoppingToken)
+	{
+		var trackedWallets = new Dictionary<string, Wallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
-
 			var mixableWallets = RoundStatusUpdater.AnyRound
 				? GetMixableWallets()
 				: ImmutableDictionary<string, Wallet>.Empty;
-			var openedWallets = mixableWallets.Where(x => !trackedCoinJoins.ContainsKey(x.Key)).ToImmutableList();
-			var closedWallets = trackedCoinJoins.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 
+			// Notifies when a wallet meets the criteria for participating in a coinjoin.
+			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
+				trackedWallets.Add(openedWallet.WalletName, openedWallet);
 				NotifyMixableWalletLoaded(openedWallet);
-
-				if (!MustStart(openedWallet))
-				{
-					if (openedWallet.ElapsedTimeSinceStartup <= AutoCoinJoinDelayAfterWalletLoaded)
-					{
-						NotifyCoinJoinStarting(openedWallet);
-						continue;
-					}
-					if (!openedWallet.KeyManager.AutoCoinJoin)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.AutoConjoinDisabled);
-						continue;
-					}
-					if (IsUserInSendWorkflow)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.UserInSendWorkflow);
-						continue;
-					}
-					if (openedWallet.NonPrivateCoins.TotalAmount() <= openedWallet.KeyManager.PlebStopThreshold)
-					{
-						NotifyCoinJoinStartError(openedWallet, CoinjoinError.NotEnoughUnprivateBalance);
-						continue;
-					}
-				}
-				var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
-				if (coinCandidates.Length == 0)
-				{
-					NotifyCoinJoinStartError(openedWallet, CoinjoinError.NoCoinsToMix);
-					continue;
-				}
-
-				CoinJoinTracker coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(openedWallet, coinCandidates);
-
-				trackedCoinJoins.Add(openedWallet.WalletName, coinJoinTracker);
-				var registrationTimeout = TimeSpan.MaxValue;
-				NotifyCoinJoinStarted(openedWallet, registrationTimeout);
-				WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 			}
 
+			// Notifies when a wallet no longer meets the criteria for participating in a coinjoin.
+			var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
-				closedWallet.Cancel();
+				//closedWallet.Cancel();
 				NotifyMixableWalletUnloaded(closedWallet);
+				trackedWallets.Remove(closedWallet.WalletName);
 			}
-
-			var finishedCoinJoins = trackedCoinJoins
-				.Where(x => x.Value.IsCompleted)
-				.Select(x => x.Value)
-				.ToImmutableArray();
-
-			foreach (var finishedCoinJoin in finishedCoinJoins)
-			{
-				NotifyCoinJoinCompletion(finishedCoinJoin);
-
-				var walletToRemove = finishedCoinJoin.Wallet;
-				if (!trackedCoinJoins.Remove(walletToRemove.WalletName))
-				{
-					Logger.LogWarning($"Wallet: `{walletToRemove.WalletName}` was not removed from tracked wallet list. Will retry in a few seconds.");
-				}
-				else
-				{
-					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(walletToRemove, IsCoinJoining: false));
-					finishedCoinJoin.Dispose();
-				}
-			}
-
-			foreach (var finishedCoinJoin in finishedCoinJoins)
-			{
-				var logPrefix = $"Wallet: `{finishedCoinJoin.Wallet.WalletName}` - Coinjoin client";
-
-				try
-				{
-					var success = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
-					if (success)
-					{
-						CoinRefrigerator.Freeze(finishedCoinJoin.CoinCandidates);
-						Logger.LogInfo($"{logPrefix} finished!");
-					}
-					else
-					{
-						Logger.LogInfo($"{logPrefix} finished with error. Transaction not broadcasted.");
-					}
-				}
-				catch (InvalidOperationException ioe)
-				{
-					Logger.LogError(ioe);
-					await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					Logger.LogInfo($"{logPrefix} was cancelled.");
-				}
-				catch (Exception e)
-				{
-					Logger.LogError($"{logPrefix} failed with exception:", e);
-				}
-
-				foreach (var coins in finishedCoinJoin.CoinCandidates)
-				{
-					coins.CoinJoinInProgress = false;
-				}
-			}
-
-			TrackedCoinJoins = trackedCoinJoins.ToImmutableDictionary();
+			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
 	}
 
-	private void NotifyCoinJoinStarting(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StartingEventArgs(
-			openedWallet,
-			AutoCoinJoinDelayAfterWalletLoaded - openedWallet.ElapsedTimeSinceStartup));
+	private async Task MonitorAndHandleCoinJoinsAsync(CancellationToken stoppingToken)
+	{
+		// This is a shared resource and that's why it is concurrent. Alternatives are locking structures,
+		// using a single lock around its access or use a channel.
+		var trackedCoinJoins = new ConcurrentDictionary<string, CoinJoinTracker>();
+		var trackedAutoStarts = new ConcurrentDictionary<Wallet, TrackedAutoStart>();
+
+		var commandsHandlingTask = Task.Run(() => HandleCoinJoinCommandsAsync(trackedCoinJoins, trackedAutoStarts, stoppingToken), stoppingToken);
+		var monitorCoinJoinTask = Task.Run(() => MonitorAndHandlingCoinJoinFinallizationAsync(trackedCoinJoins, trackedAutoStarts, stoppingToken), stoppingToken);
+
+		await Task.WhenAny(commandsHandlingTask, monitorCoinJoinTask).ConfigureAwait(false);
+
+		await WaitAndHandleResultOfTasksAsync(nameof(commandsHandlingTask), commandsHandlingTask).ConfigureAwait(false);
+		await WaitAndHandleResultOfTasksAsync(nameof(monitorCoinJoinTask), monitorCoinJoinTask).ConfigureAwait(false);
+	}
+
+	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<Wallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
+	{
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, stoppingToken);
+
+		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
+		{
+			var walletToStart = startCommand.Wallet;
+			if (trackedCoinJoins.TryGetValue(walletToStart.WalletName, out var tracker))
+			{
+				if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed)
+				{
+					tracker.StopWhenAllMixed = startCommand.StopWhenAllMixed;
+
+					walletToStart.LogDebug($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed}.");
+				}
+				else
+				{
+					walletToStart.LogDebug("Cannot start coinjoin, because it is already running.");
+				}
+
+				return;
+			}
+
+			NotifyWalletStartedCoinJoin(walletToStart);
+
+			if (IsUserInSendWorkflow)
+			{
+				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.UserInSendWorkflow);
+				return;
+			}
+
+			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
+			{
+				walletToStart.LogDebug("PlebStop preventing coinjoin.");
+				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
+				return;
+			}
+
+			if (WalletManager.Synchronizer?.LastResponse is not { } synchronizerResponse)
+			{
+				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.BackendNotSynchronized);
+				return;
+			}
+
+			if (IsWalletPrivate(walletToStart))
+			{
+				walletToStart.LogDebug("All mixed!");
+				if (!startCommand.StopWhenAllMixed)
+				{
+					ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
+				}
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AllCoinsPrivate);
+				return;
+			}
+
+			var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight).ToArray();
+			if (coinCandidates.Length == 0)
+			{
+				walletToStart.LogDebug("No candidate coins available to mix.");
+				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
+
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
+				return;
+			}
+
+			var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
+
+			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
+			{
+				// This should never happen.
+				walletToStart.LogError($"{nameof(CoinJoinTracker)} was already added.");
+				coinJoinTracker.Stop();
+				coinJoinTracker.Dispose();
+				return;
+			}
+
+			coinJoinTracker.WalletCoinJoinProgressChanged += CoinJoinTracker_WalletCoinJoinProgressChanged;
+
+			var registrationTimeout = TimeSpan.MaxValue;
+			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+
+			walletToStart.LogDebug($"Coinjoin client started, {nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
+
+			// In case there was another start scheduled just remove it.
+			TryRemoveTrackedAutoStart(walletToStart);
+		}
+
+		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
+		{
+			var walletToStop = stopCommand.Wallet;
+
+			var autoStartRemoved = TryRemoveTrackedAutoStart(walletToStop);
+
+			if (trackedCoinJoins.TryGetValue(walletToStop.WalletName, out var coinJoinTrackerToStop))
+			{
+				coinJoinTrackerToStop.Stop();
+				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
+				{
+					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped - it won't restart later.");
+				}
+			}
+			else if (autoStartRemoved)
+			{
+				NotifyWalletStoppedCoinJoin(walletToStop);
+			}
+		}
+
+		bool TryRemoveTrackedAutoStart(Wallet wallet)
+		{
+			if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
+			{
+				trackedAutoStart.CancellationTokenSource.Cancel();
+				trackedAutoStart.CancellationTokenSource.Dispose();
+				return true;
+			}
+			return false;
+		}
+
+		while (!stoppingToken.IsCancellationRequested)
+		{
+			var command = await CommandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
+
+			switch (command)
+			{
+				case StartCoinJoinCommand startCommand:
+					StartCoinJoinCommand(startCommand);
+					break;
+
+				case StopCoinJoinCommand stopCommand:
+					StopCoinJoinCommand(stopCommand);
+					break;
+			}
+		}
+
+		foreach (var trackedAutoStart in trackedAutoStarts.Values)
+		{
+			trackedAutoStart.CancellationTokenSource.Cancel();
+			trackedAutoStart.CancellationTokenSource.Dispose();
+		}
+
+		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
+	}
+
+	private void ScheduleRestartAutomatically(Wallet walletToStart, ConcurrentDictionary<Wallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken stoppingToken)
+	{
+		if (trackedAutoStarts.ContainsKey(walletToStart))
+		{
+			walletToStart.LogDebug($"AutoStart was already scheduled.");
+			return;
+		}
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+		var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+		var restartTask = Task.Run(async () =>
+		{
+			try
+			{
+				await Task.Delay(TimeSpan.FromSeconds(30), linkedCts.Token).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+			finally
+			{
+				linkedCts.Dispose();
+			}
+
+			if (trackedAutoStarts.TryRemove(walletToStart, out _))
+			{
+				await StartAsync(walletToStart, stopWhenAllMixed, overridePlebStop, stoppingToken).ConfigureAwait(false);
+			}
+			else
+			{
+				walletToStart.LogInfo($"AutoStart was already handled.");
+			}
+		}, linkedCts.Token);
+
+		if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
+		{
+			walletToStart.LogInfo($"AutoCoinJoin task was already added.");
+		}
+	}
+
+	private async Task MonitorAndHandlingCoinJoinFinallizationAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<Wallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
+	{
+		while (!stoppingToken.IsCancellationRequested)
+		{
+			// Handles coinjoin finalization and notification.
+			var finishedCoinJoins = trackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
+			foreach (var finishedCoinJoin in finishedCoinJoins)
+			{
+				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, trackedCoinJoins, stoppingToken).ConfigureAwait(false);
+
+				NotifyCoinJoinCompletion(finishedCoinJoin);
+
+				if (!finishedCoinJoin.IsStopped && !stoppingToken.IsCancellationRequested)
+				{
+					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
+
+					ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, stoppingToken);
+				}
+				else
+				{
+					NotifyWalletStoppedCoinJoin(finishedCoinJoin.Wallet);
+				}
+			}
+			// Updates the highest coinjoin client state.
+			var onGoingCoinJoins = trackedCoinJoins.Values.Where(wtd => !wtd.IsCompleted).ToImmutableArray();
+			var scheduledCoinJoins = trackedAutoStarts.Select(t => t.Key);
+
+			var onGoingHighestState = onGoingCoinJoins.IsEmpty
+				? CoinJoinClientState.Idle
+				: onGoingCoinJoins.Any(wtd => wtd.InCriticalCoinJoinState)
+					? CoinJoinClientState.InCriticalPhase
+					: CoinJoinClientState.InProgress;
+
+			HighestCoinJoinClientState = onGoingHighestState is not CoinJoinClientState.Idle
+				? onGoingHighestState
+				: scheduledCoinJoins.Any()
+					? CoinJoinClientState.InProgress
+					: CoinJoinClientState.Idle;
+
+			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, CancellationToken cancellationToken)
+	{
+		var wallet = finishedCoinJoin.Wallet;
+
+		try
+		{
+			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
+			if (result.SuccessfulBroadcast)
+			{
+				CoinRefrigerator.Freeze(result.RegisteredCoins);
+				MarkDestinationsUsed(result.RegisteredOutputs);
+				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
+			}
+			else
+			{
+				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");
+			}
+		}
+		catch (NoCoinsToMixException x)
+		{
+			NotifyCoinJoinStartError(wallet, CoinjoinError.NoCoinsToMix);
+			Logger.LogDebug(x);
+		}
+		catch (InvalidOperationException ioe)
+		{
+			Logger.LogWarning(ioe);
+		}
+		catch (OperationCanceledException)
+		{
+			if (finishedCoinJoin.IsStopped)
+			{
+				wallet.LogInfo($"{nameof(CoinJoinClient)} was stopped.");
+			}
+			else
+			{
+				wallet.LogInfo($"{nameof(CoinJoinClient)} was cancelled.");
+			}
+		}
+		catch (Exception e)
+		{
+			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+		}
+
+		if (!trackedCoinJoins.TryRemove(wallet.WalletName, out _))
+		{
+			wallet.LogWarning($"Was not removed from tracked wallet list. Will retry in a few seconds.");
+		}
+		else
+		{
+			finishedCoinJoin.WalletCoinJoinProgressChanged -= CoinJoinTracker_WalletCoinJoinProgressChanged;
+			finishedCoinJoin.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Mark all the outputs we had in any of our wallets used.
+	/// </summary>
+	private void MarkDestinationsUsed(ImmutableList<Script> outputs)
+	{
+		var hashSet = outputs.ToHashSet();
+
+		foreach (var k in WalletManager
+			.GetWallets(false)
+			.Select(w => w.KeyManager)
+			.SelectMany(k => k.GetKeys(k => hashSet.Contains(k.P2wpkhScript))))
+		{
+			k.SetKeyState(KeyState.Used);
+		}
+	}
+
+	private void NotifyWalletStartedCoinJoin(Wallet openedWallet) =>
+		StatusChanged.SafeInvoke(this, new WalletStartedCoinJoinEventArgs(openedWallet));
+
+	private void NotifyWalletStoppedCoinJoin(Wallet openedWallet) =>
+	StatusChanged.SafeInvoke(this, new WalletStoppedCoinJoinEventArgs(openedWallet));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
-		SafeRaiseEvent(StatusChanged, new StartedEventArgs(openedWallet, registrationTimeout));
+		StatusChanged.SafeInvoke(this, new StartedEventArgs(openedWallet, registrationTimeout));
 
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
-		SafeRaiseEvent(StatusChanged, new StartErrorEventArgs(openedWallet, error));
+		StatusChanged.SafeInvoke(this, new StartErrorEventArgs(openedWallet, error));
 
-	private void NotifyMixableWalletUnloaded(CoinJoinTracker closedWallet) =>
-		SafeRaiseEvent(StatusChanged, new StoppedEventArgs(closedWallet.Wallet, StopReason.WalletUnloaded));
+	private void NotifyMixableWalletUnloaded(Wallet closedWallet) =>
+		StatusChanged.SafeInvoke(this, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
 
 	private void NotifyMixableWalletLoaded(Wallet openedWallet) =>
-		SafeRaiseEvent(StatusChanged, new LoadedEventArgs(openedWallet));
+		StatusChanged.SafeInvoke(this, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin) =>
-		SafeRaiseEvent(StatusChanged, new CoinJoinCompletedEventArgs(
+		StatusChanged.SafeInvoke(this, new CompletedEventArgs(
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
-				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result => CompletionStatus.Success,
+				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result.SuccessfulBroadcast => CompletionStatus.Success,
 				TaskStatus.Canceled => CompletionStatus.Canceled,
 				TaskStatus.Faulted => CompletionStatus.Failed,
 				_ => CompletionStatus.Unknown,
 			}));
 
+	private void NotifyCoinJoinStatusChanged(Wallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) =>
+		StatusChanged.SafeInvoke(this, new CoinJoinStatusEventArgs(
+			wallet,
+			coinJoinProgressEventArgs));
+
 	private ImmutableDictionary<string, Wallet> GetMixableWallets() =>
 		WalletManager.GetWallets()
-			.Where(x => x.State == WalletState.Started) // Only running wallets
-			.Where(x => !x.KeyManager.IsWatchOnly)      // that are not watch-only wallets
-			.Where(x => x.Kitchen.HasIngredients)
-			.Where(x => x.KeyManager.AutoCoinJoin || MustStart(x))
-			.Where(x => !MustStop(x))
+			.Where(x => x.State == WalletState.Started // Only running wallets
+					&& !x.KeyManager.IsWatchOnly // that are not watch-only wallets
+					&& x.Kitchen.HasIngredients)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private void SafeRaiseEvent(EventHandler<StatusChangedEventArgs>? evnt, StatusChangedEventArgs args)
+	private bool IsWalletPrivate(Wallet wallet)
 	{
-		try
+		var coins = new CoinsView(wallet.Coins);
+
+		if (GetPrivacyPercentage(coins, wallet.KeyManager.AnonScoreTarget) >= 1)
 		{
-			evnt?.Invoke(this, args);
+			return true;
 		}
-		catch (Exception e)
-		{
-			Logger.LogError(e);
-		}
+
+		return false;
 	}
 
-	private bool MustStart(Wallet wallet) =>
-		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Start;
-
-	private bool MustStop(Wallet wallet) =>
-		WalletManualState.TryGetValue(wallet, out var state) && state == CoinJoinCommand.Stop;
-
-	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
+	private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet, int bestHeight)
 	{
 		var coins = new CoinsView(openedWallet.Coins
 			.Available()
 			.Confirmed()
-			.Where(x => x.HdPubKey.AnonymitySet < openedWallet.KeyManager.MaxAnonScoreTarget)
+			.Where(x => !x.IsImmature(bestHeight))
+			.Where(x => !x.IsBanned)
 			.Where(x => !CoinRefrigerator.IsFrozen(x)));
 
 		// If a small portion of the wallet isn't private, it's better to wait with mixing.
-		if (GetPrivacyPercentage(coins, openedWallet.KeyManager.MinAnonScoreTarget) > 0.99)
+		if (GetPrivacyPercentage(coins, openedWallet.KeyManager.AnonScoreTarget) > 0.99)
 		{
 			return Enumerable.Empty<SmartCoin>();
 		}
@@ -286,4 +516,36 @@ public class CoinJoinManager : BackgroundService
 		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
 		return pcPrivate;
 	}
+
+	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
+	{
+		foreach (var task in tasks)
+		{
+			try
+			{
+				await task.ConfigureAwait(false);
+				Logger.LogInfo($"Task '{logPrefix}' finished successfully.");
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogInfo($"Task '{logPrefix}' finished successfully by cancellation.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogInfo($"Task '{logPrefix}' finished but with an error: '{ex}'.");
+			}
+		}
+	}
+
+	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
+	{
+		if (sender is not Wallet wallet)
+		{
+			throw new InvalidOperationException("Sender must be a wallet.");
+		}
+
+		NotifyCoinJoinStatusChanged(wallet, e);
+	}
+
+	private record TrackedAutoStart(Task Task, CancellationTokenSource CancellationTokenSource);
 }

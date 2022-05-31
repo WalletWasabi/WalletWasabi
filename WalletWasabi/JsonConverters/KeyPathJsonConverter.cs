@@ -3,18 +3,12 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters;
 
-public class KeyPathJsonConverter : JsonConverter
+public class KeyPathJsonConverter : JsonConverter<KeyPath>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
+	public override KeyPath? ReadJson(JsonReader reader, Type objectType, KeyPath? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return objectType == typeof(KeyPath);
-	}
-
-	/// <inheritdoc />
-	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-	{
-		var s = (string)reader.Value;
+		var s = (string?)reader.Value;
 		if (string.IsNullOrWhiteSpace(s))
 		{
 			return null;
@@ -25,11 +19,9 @@ public class KeyPathJsonConverter : JsonConverter
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, KeyPath? value, JsonSerializer serializer)
 	{
-		var kp = (KeyPath)value;
-
-		var s = kp.ToString();
+		var s = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
 		writer.WriteValue(s);
 	}
 }

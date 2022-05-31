@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -88,7 +89,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 		Observable
 			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(Services.WalletManager.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(async arg =>
+			.SubscribeAsync(async arg =>
 			{
 				var (sender, e) = arg;
 
@@ -138,6 +139,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public async Task LoadWalletAsync(Wallet wallet)
 	{
+		wallet.KeyManager.SetNonNewlyCreated();
+
 		if (wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");

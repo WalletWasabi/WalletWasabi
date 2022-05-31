@@ -4,28 +4,38 @@ using Newtonsoft.Json.Linq;
 
 namespace WalletWasabi.JsonConverters;
 
-public class OutPointAsTxoRefJsonConverter : JsonConverter
+public class OutPointAsTxoRefJsonConverter : JsonConverter<OutPoint>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
-	{
-		return objectType == typeof(OutPoint);
-	}
-
-	/// <inheritdoc />
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override OutPoint? ReadJson(JsonReader reader, Type objectType, OutPoint? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		JObject item = JObject.Load(reader);
 
-		var hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase).Value<string>();
-		var n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase).Value<uint>();
-		return new OutPoint(uint256.Parse(hash), n);
+		string? hash = item.GetValue("TransactionId", StringComparison.OrdinalIgnoreCase)?.Value<string>();
+		uint? n = item.GetValue("Index", StringComparison.OrdinalIgnoreCase)?.Value<uint>();
+
+		if (hash is null)
+		{
+			throw new ArgumentNullException(nameof(hash));
+		}
+
+		if (n is null)
+		{
+			throw new ArgumentNullException(nameof(n));
+		}
+
+		return new OutPoint(uint256.Parse(hash), n.Value);
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, OutPoint? value, JsonSerializer serializer)
 	{
-		var outpoint = value as OutPoint;
+		if (value is null)
+		{
+			throw new ArgumentNullException(nameof(value));
+		}
+
+		var outpoint = value;
 		writer.WriteStartObject();
 		writer.WritePropertyName("TransactionId");
 		writer.WriteValue(outpoint.Hash.ToString());

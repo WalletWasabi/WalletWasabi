@@ -6,7 +6,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 using static WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage.CoinJoinTransactionArchiver;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 
 /// <summary>
 /// Tests for <see cref="CoinJoinTransactionArchiver"/>

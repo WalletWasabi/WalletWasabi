@@ -23,7 +23,8 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
 		_cluster = new Cluster(this);
-		SetLabel(label, null);
+		Label = label;
+		Cluster.UpdateLabels();
 		KeyState = keyState;
 
 		P2pkScript = PubKey.ScriptPubKey;

@@ -24,6 +24,7 @@ public class JsonSerializationOptions
 				new MoneySatoshiJsonConverter(),
 				new Uint256JsonConverter(),
 				new MultipartyTransactionStateJsonConverter(),
+				new ExceptionDataJsonConverter(),
 				new ExtPubKeyJsonConverter(),
 				new TimeSpanJsonConverter(),
 				new CoinJsonConverter(),

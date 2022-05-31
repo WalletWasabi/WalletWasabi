@@ -183,7 +183,7 @@ public class SerializationTests
 				new MoneySatoshiJsonConverter()
 		};
 
-		using var rnd = new SecureRandom();
+		SecureRandom rnd = SecureRandom.Instance;
 		var sk = new CredentialIssuerSecretKey(rnd);
 
 		var issuer = new CredentialIssuer(sk, rnd, 4300000000000);

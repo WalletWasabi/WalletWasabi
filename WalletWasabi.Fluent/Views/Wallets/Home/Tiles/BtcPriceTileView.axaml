@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             xmlns:bp="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPrice"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
@@ -13,9 +12,10 @@
     <DockPanel>
       <TextBlock Text="EXCHANGE RATE" DockPanel.Dock="Top" Classes="h8 bold" />
       <TextBlock Margin="0 3"
+                 Classes="h2 monoSpaced"
                  VerticalAlignment="Center" HorizontalAlignment="Center"
                  TextAlignment="Center"
-                 Text="{Binding BtcPrice, FallbackValue='53 540.00'}" Classes="h2" />
+                 Text="{Binding BtcPrice, FallbackValue='53 540.00'}" />
     </DockPanel>
   </controls:TileControl>
 

@@ -1,6 +1,3 @@
-using Avalonia.Media;
-using WalletWasabi.Fluent.Helpers;
-
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 internal class SpeedyCoinJoinProfileViewModel : CoinJoinProfileViewModelBase

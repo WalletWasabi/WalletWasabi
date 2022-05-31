@@ -4,25 +4,18 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters;
 
-public class Uint256JsonConverter : JsonConverter
+public class Uint256JsonConverter : JsonConverter<uint256>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
+	public override uint256? ReadJson(JsonReader reader, Type objectType, uint256? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return objectType == typeof(uint256);
+		string? value = (string?)reader.Value;
+		return value is null ? default : new uint256(value);
 	}
 
 	/// <inheritdoc />
-	public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, uint256? value, JsonSerializer serializer)
 	{
-		var value = Guard.Correct((string)reader.Value);
-
-		return string.IsNullOrWhiteSpace(value) ? default : new uint256(value);
-	}
-
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-	{
-		writer.WriteValue(((uint256)value)?.ToString());
+		writer.WriteValue(value?.ToString());
 	}
 }

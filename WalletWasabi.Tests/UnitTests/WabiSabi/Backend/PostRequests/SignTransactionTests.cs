@@ -60,7 +60,7 @@ public class SignTransactionTests
 			{
 				round.SetPhase(phase);
 
-				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
+				var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () =>
 					await arena.SignTransactionAsync(req, CancellationToken.None));
 				Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			}
