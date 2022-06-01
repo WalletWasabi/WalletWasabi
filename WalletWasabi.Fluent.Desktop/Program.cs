@@ -31,7 +31,6 @@ public class Program
 	// yet and stuff might break.
 	public static int Main(string[] args)
 	{
-		bool runGui = true;
 		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.
@@ -40,23 +39,46 @@ public class Program
 
 		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none") }.");
 
+		// Crash reporting must be before the "single instance checking".
+		try
+		{
+			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
+			{
+				// Show the exception.
+				BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
+				return 1;
+			}
+		}
+		catch (Exception ex)
+		{
+			// If anything happens here just log it and exit.
+			Logger.LogCritical(ex);
+			return 1;
+		}
+
 		(UiConfig uiConfig, Config config) = LoadOrCreateConfigs(dataDir);
+
+		// Start single instance checker that is active over the lifetime of the application.
 		using SingleInstanceChecker singleInstanceChecker = new(config.Network);
 
 		try
 		{
 			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 		}
-		catch (Exception e) when (e is InvalidOperationException or OperationCanceledException)
+		catch (Exception ex) when (ex is InvalidOperationException or OperationCanceledException)
 		{
+			// Another instance is running. Just show a crash window and finish.
+			CrashReporter.Invoke(ex);
 			return 1;
 		}
 		catch (Exception ex)
 		{
+			CrashReporter.Invoke(ex);
 			Logger.LogCritical(ex);
 			return 1;
 		}
 
+		// Now run the GUI application.
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -65,31 +87,11 @@ public class Program
 
 		try
 		{
-			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
-			{
-				// Show the exception.
-				BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
-				runGui = false;
-			}
-		}
-		catch (Exception ex)
-		{
-			// Anything happens here just log it and do not run the Gui.
-			Logger.LogCritical(ex);
-			runGui = false;
-		}
+			Global = CreateGlobal(dataDir, uiConfig, config);
+			Services.Initialize(Global);
 
-		if (runGui)
-		{
-			try
-			{
-				Global = CreateGlobal(dataDir, uiConfig, config);
-
-				Services.Initialize(Global);
-
-				Logger.LogSoftwareStarted("Wasabi GUI");
-
-				var appBuilder = AppBuilder.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI();
+			Logger.LogSoftwareStarted("Wasabi GUI");
+			var appBuilder = AppBuilder.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI();
 				appBuilder = SetupAppBuilder(appBuilder);
 				appBuilder.AfterSetup(_ =>
 					{
@@ -101,16 +103,15 @@ public class Program
 						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(args);
-			}
-			catch (OperationCanceledException ex)
-			{
-				Logger.LogDebug(ex);
-			}
-			catch (Exception ex)
-			{
-				exceptionToReport = ex;
-				Logger.LogCritical(ex);
-			}
+		}
+		catch (OperationCanceledException ex)
+		{
+			Logger.LogDebug(ex);
+		}
+		catch (Exception ex)
+		{
+			exceptionToReport = ex;
+			Logger.LogCritical(ex);
 		}
 
 		// Start termination/disposal of the application.
