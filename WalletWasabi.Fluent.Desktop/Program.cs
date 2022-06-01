@@ -66,10 +66,10 @@ public class Program
 		{
 			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 		}
-		catch (Exception ex) when (ex is InvalidOperationException or OperationCanceledException)
+		catch (OperationCanceledException)
 		{
-			// Another instance is running. Just show a crash window and finish.
-			CrashReporter.Invoke(ex);
+			// We have successfully signalled the other instance and that instance should pop up
+			// so user will think he has just run the application.
 			return 1;
 		}
 		catch (Exception ex)
