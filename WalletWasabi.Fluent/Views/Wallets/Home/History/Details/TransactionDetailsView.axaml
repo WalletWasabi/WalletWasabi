@@ -34,13 +34,13 @@
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
-                     Label="Confirmations">
+                     Label="Status">
         <StackPanel Orientation="Horizontal">
-          <TextBlock Text="{Binding Confirmations}" />
-          <Panel Margin="4 0 0 0 ">
-            <TextBlock Text="(Confirmed)" IsVisible="{Binding IsConfirmed}" />
-            <TextBlock Text="(Pending)" IsVisible="{Binding !IsConfirmed}" />
+          <Panel>
+            <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+            <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
           </Panel>
+          <TextBlock Margin="4 0 0 0 " Text="{Binding Confirmations, StringFormat='({0} confirmations)'}" />
         </StackPanel>
       </c:PreviewItem>
 
