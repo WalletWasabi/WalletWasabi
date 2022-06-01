@@ -179,7 +179,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, width, height));
 
 		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint {ImageFilter = filter};
+		using var paint = new SKPaint { ImageFilter = filter };
 
 		pictureRecorder.RecordingCanvas.SaveLayer(paint);
 
