@@ -1,4 +1,3 @@
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
@@ -7,7 +6,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -57,7 +55,8 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented()
 	{
-		RxApp.MainThreadScheduler.Schedule(() => MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this)));
+		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
+		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this));
 	}
 
 	public bool CanShutdown()
