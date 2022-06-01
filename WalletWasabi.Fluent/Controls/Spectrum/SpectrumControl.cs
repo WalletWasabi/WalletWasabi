@@ -173,6 +173,18 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
+	private SKPicture RenderPicture(float width, float height)
+	{
+		using var pictureRecorder = new SKPictureRecorder();
+		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, width, height));
+		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
+		using var paint = new SKPaint {ImageFilter = filter};
+		pictureRecorder.RecordingCanvas.SaveLayer(paint);
+		RenderBars(pictureRecorder.RecordingCanvas);
+		pictureRecorder.RecordingCanvas.Restore();
+		return pictureRecorder.EndRecording();
+	}
+
 	void IDisposable.Dispose()
 	{
 		// nothing to do.
@@ -191,14 +203,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		var width = (float) bounds.Size.Width;
 		var height = (float) bounds.Size.Height;
-		using var pictureRecorder = new SKPictureRecorder();
-		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, width, height));
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint {ImageFilter = filter};
-		pictureRecorder.RecordingCanvas.SaveLayer(paint);
-		RenderBars(pictureRecorder.RecordingCanvas);
-		pictureRecorder.RecordingCanvas.Restore();
-		using var picture = pictureRecorder.EndRecording();
+		using var picture = RenderPicture(width, height);
 
 		skia.SkCanvas.DrawPicture(picture);
 	}
