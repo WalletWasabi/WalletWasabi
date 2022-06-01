@@ -26,9 +26,9 @@ public class ApplicationStateManager : IMainWindowService
 	private enum State
 	{
 		Invalid = 0,
+		InitialState,
 		Closed,
 		Open,
-		InitialState
 	}
 
 	private readonly StateMachine<State, Trigger> _stateMachine;
@@ -105,12 +105,14 @@ public class ApplicationStateManager : IMainWindowService
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
 			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown()))
-			.TakeWhile(_ => !_isShuttingDown)
+			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
+				// _hideRequest flag is used to distinguish what is the user's intent.
+				// It is only true when the request comes from the Tray.
 				if (Services.UiConfig.HideOnClose || _hideRequest)
 				{
-					_hideRequest = false;
+					_hideRequest = false; // request processed, set it back to the default.
 					return;
 				}
 
