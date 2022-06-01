@@ -220,8 +220,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
 		RenderBars(barsLayer);
 
-		using var crop = new SKImageFilter.CropRect(Bounds.ToSKRect());
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp, null, crop);
+		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
 		using var paint = new SKPaint { ImageFilter = filter };
 		barsLayer.DrawTo(skia, paint);
 #else
