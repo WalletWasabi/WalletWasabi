@@ -133,7 +133,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	protected override Size ArrangeOverride(Size finalSize)
 	{
-		_linePen = new ImmutablePen(_lineBrush, finalSize.Width / NumBins);
+		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
 		return base.ArrangeOverride(finalSize);
 	}
 
