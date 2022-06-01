@@ -144,7 +144,7 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Fire(Trigger.Show);
 	}
 
-	void IMainWindowService.Close()
+	void IMainWindowService.Hide()
 	{
 		_hideRequest = true;
 		_stateMachine.Fire(Trigger.Hide);
