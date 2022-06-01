@@ -694,7 +694,11 @@ public class CoinJoinClient
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
 		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin);
-
+		if (!mustSignAllInputs)
+		{
+			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");	
+		}
+		
 		// Send signature.
 		var combinedToken = linkedCts.Token;
 		var alicesToSign = mustSignAllInputs
