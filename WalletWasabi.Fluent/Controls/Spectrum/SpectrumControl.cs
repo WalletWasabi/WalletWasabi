@@ -23,6 +23,8 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private ImmutablePen? _linePen;
 	private IBrush? _lineBrush;
+	private SKPaint? _linePaint;
+	private double _barThickness;
 
 	private float[] _data;
 
@@ -114,13 +116,31 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		else if (change.Property == ForegroundProperty)
 		{
 			_lineBrush = Foreground ?? Brushes.Magenta;
+
+			if (_lineBrush is ImmutableSolidColorBrush brush)
+			{
+				_linePaint?.Dispose();
+				_linePaint = new SKPaint()
+				{
+					Color = brush.Color.ToSKColor(),
+					IsAntialias = false,
+					Style = SKPaintStyle.Stroke
+				};
+			}
+
 			InvalidateArrange();
 		}
 	}
 
 	protected override Size ArrangeOverride(Size finalSize)
 	{
-		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
+		_barThickness = finalSize.Width / NumBins;
+		_linePen = new ImmutablePen(_lineBrush, finalSize.Width / NumBins);
+		if (_linePaint is { })
+		{
+			_linePaint.StrokeWidth = (float)_barThickness;
+		}
+
 		return base.ArrangeOverride(finalSize);
 	}
 
@@ -164,6 +184,29 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
+	private void RenderBars(SKCanvas context)
+	{
+		var width = Bounds.Width;
+		var height = Bounds.Height;
+		var thickness = width / NumBins;
+		var center = (width / 2);
+
+		double x = 0;
+
+		for (int i = 0; i < NumBins; i++)
+		{
+			var dCenter = Math.Abs(x - center);
+			var multiplier = 1 - (dCenter / center);
+
+			context.DrawLine(
+				new SKPoint((float)x, (float)height),
+				new SKPoint((float)x, (float)(height - multiplier * _data[i] * (height * 0.8))),
+				_linePaint);
+
+			x += thickness;
+		}
+	}
+
 	void IDisposable.Dispose()
 	{
 		// nothing to do.
@@ -180,12 +223,23 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			return;
 		}
 
-		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
-		RenderBars(barsLayer);
+		//using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
+		//RenderBars(barsLayer);
 
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
-		barsLayer.DrawTo(skia, paint);
+		using var pictureRecorder = new SKPictureRecorder();
+		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, (float) bounds.Size.Width, (float) bounds.Size.Height));
+		RenderBars(pictureRecorder.RecordingCanvas);
+		//using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
+		//using var paint = new SKPaint { ImageFilter = filter };
+		//pictureRecorder.RecordingCanvas.DrawPaint(paint);
+		var picture = pictureRecorder.EndRecording();
+		skia.SkCanvas.DrawPicture(picture);
+
+		//using var crop = new SKImageFilter.CropRect(Bounds.ToSKRect());
+		//using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp, null, crop);
+		//using var paint = new SKPaint { ImageFilter = filter };
+		//barsLayer.DrawTo(skia, paint);
+		//barsLayer.DrawTo(skia, new SKPaint());
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;
