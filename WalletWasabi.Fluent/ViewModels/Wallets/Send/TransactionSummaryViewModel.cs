@@ -55,14 +55,14 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
-		var destinationAmount = _transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-		var btcAmountText = $"{destinationAmount} BTC ";
+		var destinationAmount = _transaction.CalculateDestinationAmount();
+		var btcAmountText = $"{destinationAmount.ToFormattedString()} BTC ";
 		var fiatAmountText =
-			destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+			destinationAmount.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 		AmountText = $"{btcAmountText}{fiatAmountText}";
 
 		var fee = _transaction.Fee;
-		var feeText = fee.ToFeeDisplayUnitString();
+		var feeText = $"{fee.ToFormattedString()} BTC ";
 		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC)
 			.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 
