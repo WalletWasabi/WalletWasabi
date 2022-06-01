@@ -19,6 +19,7 @@ using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Fluent.Desktop.Extensions;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -91,9 +92,10 @@ public class Program
 			Services.Initialize(Global);
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
-			var appBuilder = AppBuilder.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI();
-				appBuilder = SetupAppBuilder(appBuilder);
-				appBuilder.AfterSetup(_ =>
+			AppBuilder
+				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI()
+				.SetupAppBuilder()
+				.AfterSetup(_ =>
 					{
 						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
 						Logger.LogInfo(glInterface is { }
@@ -209,40 +211,7 @@ public class Program
 	}
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
-	private static AppBuilder BuildAvaloniaApp()
-	{
-		var result = AppBuilder.Configure(() => new App()).UseReactiveUI();
-		result = SetupAppBuilder(result);
-
-		return result;
-	}
-
-	private static AppBuilder SetupAppBuilder(AppBuilder appBuilder)
-	{
-		bool useGpuLinux = true;
-
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			appBuilder
-				.UseWin32()
-				.UseSkia();
-		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-		{
-			appBuilder.UsePlatformDetect()
-				.UseManagedSystemDialogs<AppBuilder, Window>();
-		}
-		else
-		{
-			appBuilder.UsePlatformDetect();
-		}
-
-		return appBuilder
-			.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true, UseWindowsUIComposition = true })
-			.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet" })
-			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
-			.With(new MacOSPlatformOptions { ShowInDock = true });
-	}
+	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
 
 	/// <summary>
 	/// Sets up and initializes the crash reporting UI.
