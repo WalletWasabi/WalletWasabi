@@ -39,6 +39,11 @@
       <ControlTemplate>
         <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
 
+          <Grid.Resources>
+            <StreamGeometry x:Key="UpArrow">M 0 4 L 8 4 L 4 0 Z</StreamGeometry>
+            <StreamGeometry x:Key="DownArrow">M 0 0 L 4 4 L 8 0 Z</StreamGeometry>
+          </Grid.Resources>
+
           <ScrollContentPresenter Name="PART_ContentPresenter"
                                   Grid.Row="0"
                                   Grid.Column="0"
@@ -127,6 +132,7 @@
                      Visibility="{TemplateBinding HorizontalScrollBarVisibility}"
                      Grid.Row="1"
                      Focusable="False" />
+
           <ScrollBar Name="PART_VerticalScrollBar"
                      MaxWidth="10"
                      MinWidth="2"
@@ -140,6 +146,7 @@
                      Visibility="{TemplateBinding VerticalScrollBarVisibility}"
                      Grid.Column="1"
                      Focusable="False" />
+
           <Panel x:Name="PART_ScrollBarsSeparator" Grid.Row="1" Grid.Column="1"
                  Background="{DynamicResource ScrollViewerScrollBarsSeparatorBackground}" />
 
@@ -157,7 +164,7 @@
               </MultiBinding>
             </RepeatButton.IsVisible>
             <Viewbox Classes="ScrollViewerCuePath">
-              <Path Data="M 0 4 L 8 4 L 4 0 Z" Classes="ScrollViewerCuePath" />
+              <Path Data="{StaticResource UpArrow}" Classes="ScrollViewerCuePath" />
             </Viewbox>
           </RepeatButton>
 
@@ -175,7 +182,7 @@
 
             </RepeatButton.IsVisible>
             <Viewbox Classes="ScrollViewerCuePath" Stretch="Fill">
-              <Path Data="M 0 0 L 4 4 L 8 0 Z" Classes="ScrollViewerCuePath" />
+              <Path Data="{StaticResource DownArrow}" Classes="ScrollViewerCuePath" />
             </Viewbox>
           </RepeatButton>
         </Grid>
@@ -186,13 +193,14 @@
 
   <Style Selector="Path.ScrollViewerCuePath">
     <Setter Property="Fill" Value="{StaticResource AcrylicTrimForeground}" />
+    <Setter Property="Opacity" Value="0.9" />
   </Style>
 
   <Style Selector="Viewbox.ScrollViewerCuePath">
-    <Setter Property="Width" Value="25" />
-    <Setter Property="Height" Value="10" />
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="8" />
     <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="(Grid.ColumnSpan)" Value="2" />
+    <Setter Property="Grid.ColumnSpan" Value="2" />
   </Style>
 
   <Style Selector="RepeatButton">
