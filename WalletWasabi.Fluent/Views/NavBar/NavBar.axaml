@@ -114,7 +114,7 @@
     </Style>
 
   </UserControl.Styles>
-  <DockPanel Margin="0 -5 0 5">
+  <DockPanel Margin="0 0 0 5">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
