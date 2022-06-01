@@ -13,10 +13,13 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+
   <i:Interaction.Behaviors>
     <behaviors:NavBarSelectedIndicatorParentBehavior />
   </i:Interaction.Behaviors>
   <UserControl.Styles>
+
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CuedScrollViewer.axaml" />
 
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
@@ -85,7 +88,7 @@
 
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
-       <Setter Property="Opacity" Value="1" />
+      <Setter Property="Opacity" Value="1" />
       <Setter Property="Margin" Value="-8, 0" />
       <Setter Property="Transitions">
         <Transitions>
@@ -98,7 +101,7 @@
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
       <Setter Property="TextAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
-     </Style>
+    </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
