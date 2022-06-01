@@ -73,23 +73,7 @@ public partial class MainViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.WindowState)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(state =>
-			{
-				Services.UiConfig.WindowState = state.ToString();
-
-				switch (state)
-				{
-					case WindowState.Normal:
-					case WindowState.Maximized:
-					case WindowState.FullScreen:
-						if (Application.Current?.DataContext is ApplicationViewModel avm)
-						{
-							avm.IsMainWindowShown = true;
-						}
-
-						break;
-				}
-			});
+			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
 
 		this.WhenAnyValue(
 				x => x.DialogScreen!.IsDialogOpen,

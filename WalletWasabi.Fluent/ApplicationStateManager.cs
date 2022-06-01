@@ -50,6 +50,7 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
+				_lifetime.MainWindow.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
 			})
@@ -60,7 +61,6 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.InitialState)
 			.OnEntry(CreateAndShowMainWindow)
-			.OnTrigger(Trigger.Hide, () => _lifetime.MainWindow.Close())
 			.Permit(Trigger.Hide, State.Closed)
 			.Permit(Trigger.MainWindowClosed, State.Closed);
 
