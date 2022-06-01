@@ -108,8 +108,8 @@ I. TERMS AND CONDITIONS
     COIN FILTERING
 
     zkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its coinjoin coordination services. zkSNACKs Ltd. may suspend your UTXOs’ access to the coinjoin services, with immediate effect for any reason - including but not limited to illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the coinjoin services.
-You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
-Your access with the relevant bitcoin UTXOs to the coinjoin services will be permanently suspended.
+    You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
+    Your access with the relevant bitcoin UTXOs to the coinjoin services will be permanently suspended.
 
 4 INDEMNIFICATION
 =================
