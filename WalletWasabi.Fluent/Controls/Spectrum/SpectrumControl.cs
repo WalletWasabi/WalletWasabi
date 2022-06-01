@@ -55,6 +55,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+
+		DispatcherTimer.Run(() =>
+		{
+			InvalidateVisual();
+			return true;
+		}, TimeSpan.FromMilliseconds(50), DispatcherPriority.Render);
 	}
 
 	public bool IsActive
@@ -146,7 +152,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		context.Custom(this);
 
-		Dispatcher.UIThread.Post(() => InvalidateVisual());
+		// Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
 
 	private void RenderBars(SKCanvas context)
