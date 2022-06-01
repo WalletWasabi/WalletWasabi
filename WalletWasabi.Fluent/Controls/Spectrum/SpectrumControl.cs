@@ -56,11 +56,14 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		DispatcherTimer.Run(() =>
-		{
-			InvalidateVisual();
-			return true;
-		}, TimeSpan.FromMilliseconds(50), DispatcherPriority.Render);
+		DispatcherTimer.Run(
+			() =>
+			{
+				InvalidateVisual();
+				return true;
+			},
+			TimeSpan.FromMilliseconds(50),
+			DispatcherPriority.Render);
 	}
 
 	public bool IsActive
