@@ -76,25 +76,6 @@ public class ApplicationStateManager : IMainWindowService
 
 	internal ApplicationViewModel ApplicationViewModel { get; }
 
-	private void MainWindowOnClosing(object? sender, CancelEventArgs e)
-	{
-		// TODO
-		// if (_stateMachine.IsInState(State.StandardMode))
-		// {
-		// 	e.Cancel = !ApplicationViewModel.CanShutdown();
-		//
-		// 	if (e.Cancel)
-		// 	{
-		// 		_stateMachine.Fire(Trigger.ShutdownPrevented);
-		// 	}
-		// 	else if (sender is MainWindow w)
-		// 	{
-		// 		w.Closing -= MainWindowOnClosing;
-		// 		_stateMachine.Fire(Trigger.ShutdownRequested);
-		// 	}
-		// }
-	}
-
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
 	{
 		// Shutdown prevention will only work if you directly run the executable.
@@ -117,10 +98,30 @@ public class ApplicationStateManager : IMainWindowService
 			DataContext = MainViewModel.Instance
 		};
 
-		result.Closing += MainWindowOnClosing;
-
 		_compositeDisposable?.Dispose();
 		_compositeDisposable = new();
+
+		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
+			.Subscribe(args =>
+			{
+				var (sender, e) = args;
+
+				// TODO
+				// if (_stateMachine.IsInState(State.StandardMode))
+				// {
+				// 	e.Cancel = !ApplicationViewModel.CanShutdown();
+				//
+				// 	if (e.Cancel)
+				// 	{
+				// 		_stateMachine.Fire(Trigger.ShutdownPrevented);
+				// 	}
+				// 	else if (sender is MainWindow w)
+				// 	{
+				// 		_stateMachine.Fire(Trigger.ShutdownRequested);
+				// 	}
+				// }
+			})
+			.DisposeWith(_compositeDisposable);
 
 		Observable.FromEventPattern(result, nameof(result.Closed))
 			.Take(1)
@@ -128,7 +129,6 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				_compositeDisposable?.Dispose();
 				_compositeDisposable = null;
-				result.Closing -= MainWindowOnClosing;
 				_stateMachine.Fire(Trigger.MainWindowClosed);
 			})
 			.DisposeWith(_compositeDisposable);
