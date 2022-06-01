@@ -96,14 +96,14 @@ public static class LinqExtensions
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
+	=> ofLength switch
 	{
-		return (ofLength == 1)
-			? items.Select(item => new[] { item })
-			: items.SelectMany((item, i) => items
+		1 => items.Select(item => new[] { item }),
+		_ => items.SelectMany((item, i) => items
 				.Skip(i + 1)
 				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }.Concat(result)));
-	}
+				.Select(result => new T[] { item }.Concat(result)))
+	};
 
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
