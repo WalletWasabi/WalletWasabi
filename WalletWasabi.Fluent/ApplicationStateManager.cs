@@ -34,6 +34,8 @@ public class ApplicationStateManager : IMainWindowService
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
+	private bool _hideRequest;
+	private bool _isShuttingDown;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
@@ -102,30 +104,27 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Subscribe(args =>
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown()))
+			.TakeWhile(_ => !_isShuttingDown)
+			.Subscribe(tup =>
 			{
-				var (sender, e) = args;
+				if (Services.UiConfig.HideOnClose || _hideRequest)
+				{
+					_hideRequest = false;
+					return;
+				}
 
-				// TODO
-				// if (_stateMachine.IsInState(State.StandardMode))
-				// {
-				// 	e.Cancel = !ApplicationViewModel.CanShutdown();
-				//
-				// 	if (e.Cancel)
-				// 	{
-				// 		_stateMachine.Fire(Trigger.ShutdownPrevented);
-				// 	}
-				// 	else if (sender is MainWindow w)
-				// 	{
-				// 		_stateMachine.Fire(Trigger.ShutdownRequested);
-				// 	}
-				// }
+				var (e, preventShutdown) = tup;
+
+				_isShuttingDown = !preventShutdown;
+				e.Cancel = preventShutdown;
+				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
 			})
 			.DisposeWith(_compositeDisposable);
 
 		Observable.FromEventPattern(result, nameof(result.Closed))
 			.Take(1)
-			.Subscribe(x =>
+			.Subscribe(_ =>
 			{
 				_compositeDisposable?.Dispose();
 				_compositeDisposable = null;
@@ -147,6 +146,7 @@ public class ApplicationStateManager : IMainWindowService
 
 	void IMainWindowService.Close()
 	{
+		_hideRequest = true;
 		_stateMachine.Fire(Trigger.Hide);
 	}
 
