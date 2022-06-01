@@ -64,7 +64,8 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(CreateAndShowMainWindow)
 			.Permit(Trigger.Hide, State.Closed)
-			.Permit(Trigger.MainWindowClosed, State.Closed);
+			.Permit(Trigger.MainWindowClosed, State.Closed)
+			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowSate);
 
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
