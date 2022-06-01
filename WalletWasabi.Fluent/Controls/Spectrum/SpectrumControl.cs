@@ -21,7 +21,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private readonly SpectrumDataSource[] _sources;
 
-	private ImmutablePen? _linePen;
 	private IBrush? _lineBrush;
 	private SKPaint? _linePaint;
 
@@ -131,12 +130,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
-	protected override Size ArrangeOverride(Size finalSize)
-	{
-		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
-		return base.ArrangeOverride(finalSize);
-	}
-
 	public override void Render(DrawingContext context)
 	{
 		base.Render(context);
@@ -154,27 +147,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		context.Custom(this);
 
 		Dispatcher.UIThread.Post(() => InvalidateVisual());
-	}
-
-	private void RenderBars(IDrawingContextImpl context)
-	{
-		var thickness = Bounds.Width / NumBins;
-		var center = (Bounds.Width / 2);
-
-		double x = 0;
-
-		for (int i = 0; i < NumBins; i++)
-		{
-			var dCenter = Math.Abs(x - center);
-			var multiplier = 1 - (dCenter / center);
-
-			context.DrawLine(
-				_linePen,
-				new Point(x, Bounds.Height),
-				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
-
-			x += thickness;
-		}
 	}
 
 	private void RenderBars(SKCanvas context)
@@ -216,24 +188,19 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		{
 			return;
 		}
-#if false
-		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
-		RenderBars(barsLayer);
 
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
-		barsLayer.DrawTo(skia, paint);
-#else
+		var width = (float) bounds.Size.Width;
+		var height = (float) bounds.Size.Height;
 		using var pictureRecorder = new SKPictureRecorder();
-		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, (float) bounds.Size.Width, (float) bounds.Size.Height));
+		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, width, height));
 		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
+		using var paint = new SKPaint {ImageFilter = filter};
 		pictureRecorder.RecordingCanvas.SaveLayer(paint);
 		RenderBars(pictureRecorder.RecordingCanvas);
 		pictureRecorder.RecordingCanvas.Restore();
-		var picture = pictureRecorder.EndRecording();
+		using var picture = pictureRecorder.EndRecording();
+
 		skia.SkCanvas.DrawPicture(picture);
-#endif
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;
