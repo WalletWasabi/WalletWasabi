@@ -33,9 +33,14 @@ public static class TransactionSummaryExtension
 		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
 		var moneyUnit = displayUnit.ToMoneyUnit();
 
-		var feePartText = moneyUnit == MoneyUnit.BTC ? fee.ToDecimal(moneyUnit).FormattedBtc() : fee.ToString();
+		var feePartText = moneyUnit switch
+		{
+			MoneyUnit.BTC => fee.ToDecimal(moneyUnit).FormattedBtc(),
+			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
+			_ => fee.ToString()
+		};
 
-		var feeText = $"{feePartText} {displayUnit.FriendlyName() } ";
+		var feeText = $"{feePartText} {displayUnit.FriendlyName()} ";
 
 		return feeText;
 	}
