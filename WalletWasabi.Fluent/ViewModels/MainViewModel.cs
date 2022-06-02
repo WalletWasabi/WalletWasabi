@@ -26,7 +26,6 @@ public partial class MainViewModel : ViewModelBase
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
-	[AutoNotify] private bool _isMainContentEnabled;
 	[AutoNotify] private bool _isDialogScreenEnabled;
 	[AutoNotify] private bool _isFullScreenEnabled;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
@@ -53,7 +52,6 @@ public partial class MainViewModel : ViewModelBase
 
 		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
-		_isMainContentEnabled = true;
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
@@ -76,17 +74,12 @@ public partial class MainViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
 
-		this.WhenAnyValue(
-				x => x.DialogScreen!.IsDialogOpen,
-				x => x.FullScreen!.IsDialogOpen,
-				x => x.CompactDialogScreen!.IsDialogOpen)
+		IsMainContentEnabled = this.WhenAnyValue(
+				x => x.DialogScreen.IsDialogOpen,
+				x => x.FullScreen.IsDialogOpen,
+				x => x.CompactDialogScreen.IsDialogOpen)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(tup =>
-			{
-				var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
-
-				IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
-			});
+			.Select(tup => !(tup.Item1 || tup.Item2 || tup.Item3));
 
 		this.WhenAnyValue(
 				x => x.DialogScreen.CurrentPage,
@@ -128,6 +121,8 @@ public partial class MainViewModel : ViewModelBase
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
 	}
+
+	public IObservable<bool> IsMainContentEnabled { get; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
 
