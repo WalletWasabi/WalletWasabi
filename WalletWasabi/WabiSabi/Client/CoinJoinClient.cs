@@ -655,18 +655,34 @@ public class CoinJoinClient
 		var bobClient = CreateBobClient(roundState);
 		roundState.LogInfo("Starting reissuances.");
 		var combinedToken = linkedCts.Token;
-		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
+		bool wereAllCredentialsReissuedSuccessfully = await scheduler
+			.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken)
+			.ConfigureAwait(false);
 
-		// Output registration.
-		roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
+		bool wereAllOutputsRegistered = false;
+		if (wereAllCredentialsReissuedSuccessfully)
+		{
+			// Output registration.
+			roundState.LogDebug(
+				$"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-		var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
-		await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Outputs({outputTxOuts.Count()}) were registered.");
+			var outputRegistrationScheduledDates =
+				GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+			var registeredOutputs = await scheduler
+				.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken)
+                .ConfigureAwait(false);
+			roundState.LogDebug($"{registeredOutputs.Count} out of {outputTxOuts.Count()} outputs were registered.");
+
+			wereAllOutputsRegistered = registeredOutputs.Count == outputTxOuts.Count();
+		}
+
+		var alicesToSignalReadiness = wereAllCredentialsReissuedSuccessfully && wereAllOutputsRegistered
+			? registeredAliceClients
+			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
 
 		// ReadyToSign.
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
-		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
+		await ReadyToSignAsync(alicesToSignalReadiness, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
 		return outputTxOuts;
 	}

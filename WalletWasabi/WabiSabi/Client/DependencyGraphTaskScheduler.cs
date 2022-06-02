@@ -82,7 +82,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
+	public async Task<bool> StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 	{
 		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, Graph);
 
@@ -139,11 +139,14 @@ public class DependencyGraphTaskScheduler
 		// Check if all tasks were finished, otherwise Task.Result will block.
 		if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
 		{
-			throw new InvalidOperationException("Some Output nodes in-edges failed to complete");
+			Logger.LogInfo("Some output nodes in-edges failed to complete.");
+			return false;
 		}
+
+		return true;
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
+	public async Task<ImmutableList<TxOut>> StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -172,6 +175,7 @@ public class DependencyGraphTaskScheduler
 						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 					}
 					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+					return txOut;
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
@@ -181,11 +185,17 @@ public class DependencyGraphTaskScheduler
 					{
 						hdPubKey.SetKeyState(KeyState.Used);
 					}
+
+					throw;
 				}
 			}
 		).ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
+		return tasks
+			.Where(x => x.IsCompletedSuccessfully)
+			.Select(x => x.Result)
+			.ToImmutableList();
 	}
 
 	private IEnumerable<(AliceClient AliceClient, InputNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)
