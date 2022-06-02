@@ -218,7 +218,7 @@ public class TransactionProcessor
 				}
 
 				foundKey.SetKeyState(KeyState.Used, KeyManager);
-				if (output.Value <= DustThreshold)
+				if (output.Value < DustThreshold)
 				{
 					result.ReceivedDusts.Add(output);
 					continue;

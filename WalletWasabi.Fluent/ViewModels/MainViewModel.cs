@@ -41,7 +41,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public MainViewModel()
 	{
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		ApplyUiConfigWindowSate();
 
 		_dialogScreen = new DialogScreenViewModel();
 
@@ -72,24 +72,9 @@ public partial class MainViewModel : ViewModelBase
 		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
 		this.WhenAnyValue(x => x.WindowState)
+			.Where(state => state != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(state =>
-			{
-				Services.UiConfig.WindowState = state.ToString();
-
-				switch (state)
-				{
-					case WindowState.Normal:
-					case WindowState.Maximized:
-					case WindowState.FullScreen:
-						if (Application.Current?.DataContext is ApplicationViewModel avm)
-						{
-							avm.IsMainWindowShown = true;
-						}
-
-						break;
-				}
-			});
+			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
 
 		this.WhenAnyValue(
 				x => x.DialogScreen!.IsDialogOpen,
@@ -218,7 +203,7 @@ public partial class MainViewModel : ViewModelBase
 		BitcoinTabSettingsViewModel.RegisterLazy(
 			() =>
 			{
-				_settingsPage.SelectedTab = 2;
+				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
@@ -267,5 +252,10 @@ public partial class MainViewModel : ViewModelBase
 		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
 		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+	}
+
+	public void ApplyUiConfigWindowSate()
+	{
+		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}
 }
