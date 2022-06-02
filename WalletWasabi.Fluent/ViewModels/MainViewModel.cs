@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
@@ -133,8 +132,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void InvalidateIsCoinJoinActive()
 	{
-		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
-			.Any(x => x.IsCoinJoining);
+		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.IsCoinJoining);
 	}
 
 	public void Initialize()
@@ -153,23 +151,17 @@ public partial class MainViewModel : ViewModelBase
 		AddWalletPageViewModel.Register(_addWalletPage);
 		SettingsPageViewModel.Register(_settingsPage);
 
-		GeneralSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 0;
-				return _settingsPage;
-			});
+		GeneralSettingsTabViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 0;
+			return _settingsPage;
+		});
 
-		BitcoinTabSettingsViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 2;
-				return _settingsPage;
-			});
-
-		AboutViewModel.RegisterLazy(() => new AboutViewModel());
-
-		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
+		BitcoinTabSettingsViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 2;
+			return _settingsPage;
+		});
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
@@ -192,6 +184,8 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
+		AboutViewModel.RegisterLazy(() => new AboutViewModel());
+		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
