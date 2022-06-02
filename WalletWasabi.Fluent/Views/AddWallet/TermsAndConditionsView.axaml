@@ -20,6 +20,7 @@
                       HorizontalAlignment="Center">
                 <i:Interaction.Behaviors>
                     <behaviors:FocusOnAttachedBehavior />
+                    <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}" IsEnabled="{Binding IsAgreed}" Key="Enter" EventRoutingStrategy="Tunnel"/>
                 </i:Interaction.Behaviors>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"

@@ -216,7 +216,7 @@ public class TorHttpPoolTests
 		public TransportStream(string testName)
 		{
 			// Construct unique pipe name.
-			int n = new Random().Next(0, 1_000_000);
+			int n = Random.Shared.Next(0, 1_000_000);
 			string pipeName = $"{testName}.Pipe.{n}";
 
 			Server = new(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 4, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);

@@ -33,7 +33,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 
 	private void Update()
 	{
-		var privateThreshold = _wallet.KeyManager.MinAnonScoreTarget;
+		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 
 		var currentPrivacyScore = _wallet.Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
 		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);

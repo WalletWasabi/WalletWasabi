@@ -1,7 +1,7 @@
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Tor.Http.Models;
 using static WalletWasabi.Tor.Http.Constants;
 

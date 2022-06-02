@@ -16,7 +16,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
 
-      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically coinjoining all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fee. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
+      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
 
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               DockPanel.Dock="Bottom"
@@ -25,7 +25,8 @@
               VerticalAlignment="Bottom"
               Content="Customize" />
 
-      <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent">
+      <ListBox Items="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" Background="Transparent"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <ListBox.Styles>
           <Style Selector="ListBoxItem">
             <Setter Property="Cursor" Value="Hand" />
@@ -42,12 +43,12 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-            <Setter Property="Padding" Value="20,25,20,25" />
+            <Setter Property="Padding" Value="15,25,15,0" />
             <Setter Property="CornerRadius" Value="4" />
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-            <Setter Property="Padding" Value="15 25 15 25" />
+            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Margin" Value="5" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
@@ -57,7 +58,7 @@
           </Style>
 
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-            <Setter Property="Padding" Value="15 25 15 25" />
+            <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Margin" Value="5" />
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
@@ -74,12 +75,12 @@
         </ListBox.Styles>
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <UniformGrid Rows="1" />
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
         <ListBox.DataTemplates>
-          <DataTemplate DataType="vm:CoinJoinProfileViewModelBase">
-            <c:SuggestionItem>
+          <DataTemplate>
+            <c:SuggestionItem MaxHeight="280">
               <prof:CoinJoinProfileControl />
             </c:SuggestionItem>
           </DataTemplate>

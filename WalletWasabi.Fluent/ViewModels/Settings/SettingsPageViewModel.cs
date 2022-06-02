@@ -13,7 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Order = 1,
 	Category = "General",
 	Keywords = new[] { "Settings", "General", "User", "Interface", "Advanced" },
-	IconName = "settings_regular",
+	IconName = "nav_settings_24_regular",
+	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class SettingsPageViewModel : NavBarItemViewModel
@@ -26,7 +27,6 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 		_selectedTab = 0;
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
-		TorSettingsTab = new TorSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
@@ -35,7 +35,6 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	public ICommand RestartCommand { get; }
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
-	public TorSettingsTabViewModel TorSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 
 	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)

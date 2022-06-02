@@ -1,5 +1,3 @@
-using Avalonia.Media;
-
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public abstract class CoinJoinProfileViewModelBase : ViewModelBase
@@ -10,9 +8,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual bool AutoCoinjoin { get; } = true;
 
-	public virtual int MinAnonScoreTarget { get; } = 5;
-
-	public virtual int MaxAnonScoreTarget { get; } = 10;
+	public virtual int AnonScoreTarget { get; } = 5;
 
 	public abstract int FeeRateMedianTimeFrameHours { get; }
 }

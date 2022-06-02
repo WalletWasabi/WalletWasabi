@@ -12,27 +12,27 @@
                  IsBusy="{Binding IsBusy}">
     <StackPanel Spacing="20">
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Text="Transaction ID"
+                     Label="Transaction ID"
                      Content="{Binding TransactionId, FallbackValue=ab550cbedcacc9e4d1d6d37b1dc54eee0cax7b70c4e0beeac2d0915353b70ae0}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Input amount"
+                     Label="Input amount"
                      Content="{Binding InputAmountString, FallbackValue=0.0001 1234 BTC}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="Output amount"
+                     Label="Output amount"
                      Content="{Binding OutputAmountString, FallbackValue=0.0001 1234 BTC}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource arrow_down_right_circle_regular}"
-                     Text="Input count"
+                     Label="Input count"
                      Content="{Binding InputCount, FallbackValue=1}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource arrow_up_right_circle_regular}"
-                     Text="Output count"
+                     Label="Output count"
                      Content="{Binding OutputCount, FallbackValue=1}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                     Text="Fee"
+                     Label="Fee"
                      Content="{Binding FeeString, FallbackValue=0.0001 1234 BTC}" />
     </StackPanel>
   </c:ContentArea>

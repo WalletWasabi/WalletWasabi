@@ -37,5 +37,5 @@ public static class CryptoHelpers
 	}
 
 	public static int RandomInt(int minInclusive, int maxInclusive)
-		=> new Random().Next(minInclusive, maxInclusive + 1);
+		=> Random.Shared.Next(minInclusive, maxInclusive + 1);
 }

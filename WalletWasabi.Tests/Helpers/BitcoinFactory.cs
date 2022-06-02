@@ -31,25 +31,23 @@ public static class BitcoinFactory
 		var tx = Transaction.Create(Network.Main);
 		var walletInputs = new HashSet<SmartCoin>();
 		var walletOutputs = new HashSet<SmartCoin>();
-
 		for (int i = 0; i < othersInputCount; i++)
 		{
 			tx.Inputs.Add(CreateOutPoint());
 		}
-		var idx = (uint)othersInputCount - 1;
+
 		foreach (var (value, anonset, hdpk) in ownInputs)
 		{
-			idx++;
-			var sc = CreateSmartCoin(hdpk, value, idx, anonymitySet: anonset);
+			var sc = CreateSmartCoin(hdpk, value, anonymitySet: anonset);
 			tx.Inputs.Add(sc.OutPoint);
 			walletInputs.Add(sc);
 		}
-
 		foreach (var output in othersOutputs)
 		{
 			tx.Outputs.Add(output);
 		}
-		idx = (uint)othersOutputs.Count() - 1;
+
+		var idx = (uint)othersOutputs.Count() - 1;
 		foreach (var txo in ownOutputs)
 		{
 			idx++;
@@ -58,19 +56,15 @@ public static class BitcoinFactory
 			var sc = new SmartCoin(new SmartTransaction(tx, Height.Mempool), idx, hdpk);
 			walletOutputs.Add(sc);
 		}
-
 		var stx = new SmartTransaction(tx, Height.Mempool);
-
 		foreach (var sc in walletInputs)
 		{
 			stx.WalletInputs.Add(sc);
 		}
-
 		foreach (var sc in walletOutputs)
 		{
 			stx.WalletOutputs.Add(sc);
 		}
-
 		return stx;
 	}
 
@@ -126,7 +120,7 @@ public static class BitcoinFactory
 			new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-					Histogram = Array.Empty<FeeRateGroup>()
+				Histogram = Array.Empty<FeeRateGroup>()
 			});
 
 		mockRpc.OnEstimateSmartFeeAsync = (target, mode) => Task.FromResult(
@@ -146,5 +140,5 @@ public static class BitcoinFactory
 		return CreateScript(key).GetDestinationAddress(network);
 	}
 
-	public static Transaction CreateTransaction() => CreateSmartTransaction(1,0,0,1).Transaction;
+	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
 }

@@ -10,8 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.ActionsColumnView">
   <Panel>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal"
-                x:DataType="receive:AddressViewModel">
+                Margin="-5 0 0 0" Spacing="5" Orientation="Horizontal">
       <Button Classes="plain addressActionButton"
               Margin="0"
               Command="{Binding HideAddressCommand}"

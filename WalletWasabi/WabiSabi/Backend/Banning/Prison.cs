@@ -41,9 +41,9 @@ public class Prison
 		Punish(alice.Coin.Outpoint, Punishment.Noted, lastDisruptedRoundId);
 	}
 
-	public void Ban(Alice alice, uint256 lastDisruptedRoundId)
+	public void Ban(Alice alice, uint256 lastDisruptedRoundId, bool isLongBan = false)
 	{
-		Punish(alice.Coin.Outpoint, Punishment.Banned, lastDisruptedRoundId);
+		Punish(alice.Coin.Outpoint, isLongBan ? Punishment.LongBanned : Punishment.Banned, lastDisruptedRoundId);
 	}
 
 	public void Ban(OutPoint outpoint, uint256 lastDisruptedRoundId)
@@ -92,7 +92,7 @@ public class Prison
 		}
 	}
 
-	public IEnumerable<Inmate> ReleaseEligibleInmates(TimeSpan time)
+	public IEnumerable<Inmate> ReleaseEligibleInmates(TimeSpan normalBanPeriod, TimeSpan longBanPeriod)
 	{
 		lock (Lock)
 		{
@@ -100,7 +100,8 @@ public class Prison
 
 			foreach (var inmate in Inmates.Values.ToList())
 			{
-				if (inmate.TimeSpent > time)
+				var banPeriod = inmate.Punishment is Punishment.LongBanned ? longBanPeriod : normalBanPeriod;
+				if (inmate.TimeSpent > banPeriod)
 				{
 					Inmates.Remove(inmate.Utxo);
 					released.Add(inmate);

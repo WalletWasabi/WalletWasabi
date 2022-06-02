@@ -108,7 +108,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 				lock (y.Lock)
 				{
 					// We lose the order here, which isn't great and may cause problems,
-					// but this is also a significant perfomance gain.
+					// but this is also a significant performance gain.
 					return x.KeysSet.SetEquals(y.KeysSet);
 				}
 			}

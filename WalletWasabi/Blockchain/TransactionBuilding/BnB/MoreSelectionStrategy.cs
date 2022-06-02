@@ -11,19 +11,26 @@ public class MoreSelectionStrategy : SelectionStrategy
 	public const double MaxExtraPayment = 1.25;
 
 	/// <inheritdoc/>
-	public MoreSelectionStrategy(long target, long[] inputValues, long[] inputCosts)
-		: base(target, inputValues, inputCosts, new CoinSelection(long.MaxValue, long.MaxValue))
+	public MoreSelectionStrategy(StrategyParameters parameters, double maxExtraPayment = MaxExtraPayment)
+		: base(parameters, new CoinSelection(long.MaxValue, long.MaxValue))
 	{
-		MaximumTarget = (long)(target * MaxExtraPayment);
+		MaximumTarget = (long)(parameters.Target * maxExtraPayment);
 	}
 
 	/// <summary>Maximum acceptable target (inclusive).</summary>
 	/// <seealso cref="SelectionStrategy.Target"/>
 	public long MaximumTarget { get; }
 
+	/// <inheritdoc/>
 	public override EvaluationResult Evaluate(long[] selection, int depth, long sum)
 	{
 		long totalCost = sum + CurrentInputCosts;
+
+		if (IncludedCoinsCount > Parameters.MaxInputCount)
+		{
+			// Too many coins in the selection. Cut the branch.
+			return EvaluationResult.SkipBranch;
+		}
 
 		if (sum > BestSelection.PaymentAmount || sum > MaximumTarget)
 		{
@@ -35,7 +42,7 @@ public class MoreSelectionStrategy : SelectionStrategy
 		{
 			if (sum < BestSelection.PaymentAmount || (sum == BestSelection.PaymentAmount && totalCost < BestSelection.TotalCosts))
 			{
-				BestSelection.Update(sum, totalCost, selection[0..depth]);
+				BestSelection.Update(sum, totalCost, IncludedCoinsCount, selection[0..depth]);
 			}
 
 			// Even if a match occurred we cannot be sure that there isn't

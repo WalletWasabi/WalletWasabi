@@ -1,6 +1,7 @@
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionProcessing;
 
-namespace WalletWasabi.Blockchain.TransactionProcessing;
+namespace WalletWasabi.Tests.Helpers;
 
 public static class TransactionProcessorExtensions
 {

@@ -3,25 +3,20 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.JsonConverters;
 
-public class TransactionJsonConverter : JsonConverter
+public class TransactionJsonConverter : JsonConverter<Transaction>
 {
 	/// <inheritdoc />
-	public override bool CanConvert(Type objectType)
+	public override Transaction? ReadJson(JsonReader reader, Type objectType, Transaction? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return objectType == typeof(Transaction);
-	}
-
-	/// <inheritdoc />
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-	{
-		var txHex = reader.Value.ToString();
+		var txHex = reader.Value?.ToString();
 		var tx = Transaction.Parse(txHex, Network.Main);
 		return tx;
 	}
 
 	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	public override void WriteJson(JsonWriter writer, Transaction? value, JsonSerializer serializer)
 	{
-		writer.WriteValue(((Transaction)value).ToHex());
+		var txHex = value?.ToHex() ?? throw new ArgumentNullException(nameof(value));
+		writer.WriteValue(txHex);
 	}
 }

@@ -36,49 +36,51 @@ public class BlockchainAnalyzer
 		}
 		else
 		{
-			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
+			int startingOutputAnonset;
+			var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
 
 			if (inputCount == ownInputCount)
 			{
-				AnalyzeSelfSpend(tx, newInputAnonset);
+				startingOutputAnonset = AnalyzeSelfSpendWalletInputs(distinctWalletInputPubKeys);
+
+				AnalyzeSelfSpendWalletOutputs(tx, startingOutputAnonset);
 			}
 			else
 			{
-				AnalyzeCoinjoin(tx, newInputAnonset, distinctWalletInputPubKeys);
+				startingOutputAnonset = AnalyzeCoinjoinWalletInputs(tx);
+
+				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, distinctWalletInputPubKeys);
 			}
 
-			AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
+			AdjustWalletInputs(tx, distinctWalletInputPubKeys, startingOutputAnonset);
 		}
 
 		AnalyzeClusters(tx);
 	}
 
-	/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
-	private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset)
+	private static int AnalyzeCoinjoinWalletInputs(SmartTransaction tx)
 	{
-		// We want to weaken the punishment if the input merge happens in coinjoins.
-		// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
-		// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
-		// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
-		// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
-		distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
-		var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
-		var pubKeyReuseCount = tx.WalletInputs.Count - distinctWalletInputPubKeyCount;
-		double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
+		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
+		// because coinjoins are an exception from common input ownership heuristic.
+		// Calculate weighted average.
+		return (int)(tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount) / tx.WalletInputs.Sum(x => x.Amount));
+	}
 
-		newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
-
+	private int AnalyzeSelfSpendWalletInputs(HashSet<HdPubKey> distinctWalletInputPubKeys)
+	{
+		int startingOutputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet));
 		foreach (var key in distinctWalletInputPubKeys)
 		{
-			key.SetAnonymitySet(newInputAnonset);
+			key.SetAnonymitySet(startingOutputAnonset);
 		}
+
+		return startingOutputAnonset;
 	}
 
 	/// <summary>
 	/// Estimate input cluster anonymity set size, penalizing input consolidations to accounting for intersection attacks.
 	/// </summary>
-	/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
-	private int Intersect(IEnumerable<int> anonsets, double coefficient)
+	private int Intersect(IEnumerable<int> anonsets)
 	{
 		// Sanity check.
 		if (!anonsets.Any())
@@ -92,38 +94,43 @@ public class BlockchainAnalyzer
 		// Punish intersection exponentially.
 		// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
 		var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
-		var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
+		var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty);
 
 		// The minimum anonymity set size is 1, enforce it when the punishment is very large.
 		var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
+	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, int startingOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
 	{
 		var indistinguishableWalletOutputs = tx
 			.WalletOutputs.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var anonsets = tx.Transaction.GetAnonymitySets(tx.WalletOutputs.Select(x => x.Index));
+		var indistinguishableOutputs = tx.Transaction.Outputs
+			.GroupBy(x => x.ScriptPubKey)
+			.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
+			.GroupBy(x => x.Value)
+			.ToDictionary(x => x.Key, y => y.Count());
 
-		foreach (var newCoin in tx.WalletOutputs.ToArray())
+		var inputCount = tx.Transaction.Inputs.Count;
+		var ownInputCount = tx.WalletInputs.Count;
+
+		foreach (var newCoin in tx.WalletOutputs)
 		{
-			// Begin estimating the anonymity set size based on the number of
-			// equivalent outputs that the i-th output has in the transaction.
-			int anonset = anonsets[newCoin.Index];
+			var output = newCoin.TxOut;
+			var equalOutputCount = indistinguishableOutputs[output.Value];
+			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
+
+			// Anonset gain cannot be larger than others' input count.
+			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, inputCount - ownInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
-			anonset /= indistinguishableWalletOutputs[newCoin.Amount];
+			anonset /= ownEqualOutputCount;
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
-			// The anonymity set size estimated for the input cluster is corrected
-			// by -1 to avoid double counting ourselves in the anonset.
-			// Stated differently, the right value to use for the calculation is not the
-			// anonymity set size, but the subset of only the other participants, since
-			// every output must belong to a member of the set.
-			anonset += newInputAnonset - 1;
+			anonset += startingOutputAnonset;
 
 			HdPubKey hdPubKey = newCoin.HdPubKey;
 			uint256 txid = tx.GetHash();
@@ -138,12 +145,12 @@ public class BlockchainAnalyzer
 			else if (distinctWalletInputPubKeys.Contains(hdPubKey))
 			{
 				// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-				hdPubKey.SetAnonymitySet(newInputAnonset, txid);
+				hdPubKey.SetAnonymitySet(startingOutputAnonset, txid);
 			}
 			else if (tx.WalletOutputs.Where(x => x != newCoin).Select(x => x.HdPubKey).Contains(hdPubKey))
 			{
 				// If it's a reuse of another output's pubkey, then intersection punishment can only go as low as the inherited anonset.
-				hdPubKey.SetAnonymitySet(Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1)), txid);
+				hdPubKey.SetAnonymitySet(Math.Max(startingOutputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet })), txid);
 			}
 			else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
 			{
@@ -160,7 +167,7 @@ public class BlockchainAnalyzer
 			else
 			{
 				// It's address reuse.
-				hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1), txid);
+				hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
 			}
 		}
 	}
@@ -168,7 +175,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Adjusts the anonset of the inputs to the newly calculated output anonsets.
 	/// </summary>
-	private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
+	private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int startingOutputAnonset)
 	{
 		// Sanity check.
 		if (!tx.WalletOutputs.Any())
@@ -177,7 +184,7 @@ public class BlockchainAnalyzer
 		}
 
 		var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
-		if (smallestOutputAnonset < newInputAnonset)
+		if (smallestOutputAnonset < startingOutputAnonset)
 		{
 			foreach (var key in distinctWalletInputPubKeys)
 			{
@@ -186,17 +193,17 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private void AnalyzeSelfSpend(SmartTransaction tx, int newInputAnonset)
+	private void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, int startingOutputAnonset)
 	{
 		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 		{
 			if (key.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
 			{
-				key.SetAnonymitySet(newInputAnonset, tx.GetHash());
+				key.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
 			}
 			else
 			{
-				key.SetAnonymitySet(Intersect(new[] { newInputAnonset, key.AnonymitySet }, 1), tx.GetHash());
+				key.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, key.AnonymitySet }), tx.GetHash());
 			}
 		}
 	}

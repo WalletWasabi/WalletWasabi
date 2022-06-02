@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 
@@ -16,11 +19,15 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private DateTimeOffset _date;
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private bool _isExpanded;
+	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
 		Id = transactionSummary.TransactionId;
+
+		ClipboardCopyCommand =  ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -33,11 +40,11 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public uint256 Id { get; }
 
-	public List<string>? FilteredLabel { get; protected set; }
-
-	public string? Label { get; protected set; }
+	public SmartLabel Label { get; init; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
+
+	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
 
 	public Money? Balance { get; protected set; }
 
@@ -47,15 +54,22 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ShowDetailsCommand { get; protected set; }
 
-	public virtual void Update(HistoryItemViewModelBase item)
+	public ICommand? ClipboardCopyCommand { get; protected set; }
+
+	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+
+	private async Task CopyToClipboardAsync(string text)
 	{
-		OrderIndex = item.OrderIndex;
-		Date = item.Date;
-		DateString = item.DateString;
-		IsConfirmed = item.IsConfirmed;
+		if (Application.Current is {Clipboard: { } clipboard})
+		{
+			await clipboard.SetTextAsync(text);
+		}
 	}
 
-	public bool IsSimilar(HistoryItemViewModelBase item) => Id == item.Id;
+	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
+	{
+		throw new NotSupportedException();
+	}
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
@@ -75,6 +89,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			}
 			else
 			{
+				if (!x.IsConfirmed && y.IsConfirmed)
+				{
+					return -1;
+				}
+				else if (x.IsConfirmed && !y.IsConfirmed)
+				{
+					return 1;
+				}
 				return Comparer<T>.Default.Compare(selector(x), selector(y));
 			}
 		};
@@ -98,6 +120,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 			}
 			else
 			{
+				if (!x.IsConfirmed && y.IsConfirmed)
+				{
+					return -1;
+				}
+				else if (x.IsConfirmed && !y.IsConfirmed)
+				{
+					return 1;
+				}
 				return Comparer<T>.Default.Compare(selector(y), selector(x));
 			}
 		};

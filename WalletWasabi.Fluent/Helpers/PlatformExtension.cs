@@ -1,5 +1,10 @@
+using System.ComponentModel;
 using Avalonia.Markup.Xaml;
 using System.Runtime.InteropServices;
+using Avalonia;
+using Avalonia.Data.Core;
+using Avalonia.Utilities;
+using System.Globalization;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -39,6 +44,20 @@ public class PlatformExtension : MarkupExtension
 			result = Windows;
 		}
 
-		return result;
+		var provideValueTarget = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
+
+		if (provideValueTarget is { TargetProperty: IPropertyInfo propertyInfo})
+		{
+			if (TypeUtilities.TryConvert(
+				    propertyInfo.PropertyType,
+				    result,
+				    CultureInfo.InvariantCulture,
+				    out var converted))
+			{
+				return converted;
+			}
+		}
+
+		return AvaloniaProperty.UnsetValue;
 	}
 }

@@ -3,13 +3,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
-using Splat;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ReactiveUI;
+using System.Linq;
+using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
@@ -27,7 +28,7 @@ public class Program
 {
 	private static Global? Global;
 
-	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
+	private static readonly TerminateService TerminateService = new(TerminateApplicationAsync, TerminateApplication);
 
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -37,10 +38,13 @@ public class Program
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 		bool runGui = true;
+		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
 		// Initialize the logger.
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		SetupLogger(dataDir, args);
+
+		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
 
 		try
 		{
@@ -65,13 +69,11 @@ public class Program
 			try
 			{
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
+
 				using SingleInstanceChecker singleInstanceChecker = new(config.Network);
 				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 				Global = CreateGlobal(dataDir, uiConfig, config);
-
-				// TODO only required due to statusbar vm... to be removed.
-				Locator.CurrentMutable.RegisterConstant(Global);
 
 				Services.Initialize(Global, singleInstanceChecker);
 
@@ -88,8 +90,16 @@ public class Program
 				});
 
 				Logger.LogSoftwareStarted("Wasabi GUI");
-				BuildAvaloniaApp()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+				BuildAvaloniaApp(runGuiInBackground)
+					.AfterSetup(_ =>
+					{
+						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
+						Logger.LogInfo(glInterface is { }
+							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
+							: "Renderer: Avalonia Software");
+
+						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+					})
 					.StartWithClassicDesktopLifetime(args);
 			}
 			catch (OperationCanceledException ex)
@@ -170,14 +180,18 @@ public class Program
 	/// </summary>
 	private static async Task TerminateApplicationAsync()
 	{
-		MainViewModel.Instance.ClearStacks();
-		MainViewModel.Instance.StatusBar.Dispose();
 		Logger.LogSoftwareStopped("Wasabi GUI");
 
 		if (Global is { } global)
 		{
 			await global.DisposeAsync().ConfigureAwait(false);
 		}
+	}
+
+	private static void TerminateApplication()
+	{
+		MainViewModel.Instance.ClearStacks();
+		MainViewModel.Instance.StatusIcon.Dispose();
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
@@ -193,8 +207,14 @@ public class Program
 		}
 	}
 
-	// Avalonia configuration, don't remove; also used by visual designer.
+	// This is required to bootstrap Avalonia's Visual Previewer
 	private static AppBuilder BuildAvaloniaApp()
+	{
+		return BuildAvaloniaApp(false);
+	}
+
+	// Avalonia configuration, don't remove
+	private static AppBuilder BuildAvaloniaApp(bool startInBg)
 	{
 		bool useGpuLinux = true;
 
@@ -204,7 +224,7 @@ public class Program
 				{
 					await global.InitializeNoWalletAsync(TerminateService);
 				}
-			}))
+			}, startInBg))
 			.UseReactiveUI();
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

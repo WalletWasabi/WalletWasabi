@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -18,23 +19,49 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	Caption = "Create, recover or import wallet",
 	Order = 2,
 	Category = "General",
-	Keywords = new[] { "Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
-	IconName = "add_circle_regular",
+	Keywords = new[]
+		{"Wallet", "Add", "Create", "New", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger"},
+	IconName = "nav_add_circle_24_regular",
+	IconNameFocused = "nav_add_circle_24_filled",
 	NavigationTarget = NavigationTarget.DialogScreen,
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
+	[AutoNotify] private AddWalletPageOption _selectedOption;
+
 	public AddWalletPageViewModel()
 	{
 		SelectionMode = NavBarItemSelectionMode.Button;
 
-		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
+		Options = new()
+		{
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.AddNewWallet,
+				Title = "Create a new wallet",
+				IconName = "add_regular"
+			},
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.ConnectToHardwareWallet,
+				Title = "Connect to hardware wallet",
+				IconName = "calculator_regular"
+			},
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.ImportWallet,
+				Title = "Import a wallet",
+				IconName = "import_regular"
+			},
+			new AddWalletPageOption
+			{
+				CreationOption = WalletCreationOption.RecoverWallet,
+				Title = "Recover a wallet",
+				IconName = "recover_arrow_right_regular"
+			},
+		};
 
-		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
-
-		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
-
-		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
+		_selectedOption = Options.First();
 
 		OpenCommand = ReactiveCommand.Create(async () =>
 		{
@@ -42,27 +69,13 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
 			MainViewModel.Instance.IsOobeBackgroundVisible = false;
 		});
+
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 	}
 
-	public ICommand CreateWalletCommand { get; }
+	public List<AddWalletPageOption> Options { get; }
 
-	public ICommand ConnectHardwareWalletCommand { get; }
-
-	public ICommand ImportWalletCommand { get; }
-
-	public ICommand RecoverWalletCommand { get; }
-
-	private void OnCreateWallet()
-	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.AddNewWallet));
-	}
-
-	private void OnConnectHardwareWallet()
-	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ConnectToHardwareWallet));
-	}
-
-	private async Task OnImportWalletAsync()
+	private async Task ImportWalletAsync()
 	{
 		try
 		{
@@ -92,9 +105,16 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		}
 	}
 
-	private void OnRecoverWallet()
+	private async Task OnNextAsync()
 	{
-		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
+		if (SelectedOption.CreationOption == WalletCreationOption.ImportWallet)
+		{
+			await ImportWalletAsync();
+		}
+		else
+		{
+			Navigate().To(new WalletNamePageViewModel(SelectedOption.CreationOption));
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -103,5 +123,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+
+		SelectedOption = Options.First();
 	}
 }

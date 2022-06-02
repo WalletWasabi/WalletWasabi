@@ -56,8 +56,10 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
+		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+
+		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -134,6 +136,10 @@ public partial class SendViewModel : RoutableViewModel
 
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
+
+		this.WhenAnyValue(x => x.ConversionReversed)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public bool IsQrButtonVisible { get; }

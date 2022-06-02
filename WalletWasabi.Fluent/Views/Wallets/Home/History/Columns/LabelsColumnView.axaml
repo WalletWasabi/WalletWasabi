@@ -5,40 +5,13 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.LabelsColumnView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Columns.LabelsColumnView"
+             x:DataType="historyItems:HistoryItemViewModelBase"
+             x:CompileBindings="True" >
   <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                            Classes="monoSpacedPrivacyReplacement">
-    <DockPanel LastChildFill="False" x:DataType="historyItems:HistoryItemViewModelBase">
-      <Button Classes="labelFlyout"
-              DockPanel.Dock="Left"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Center"
-              IsVisible="{Binding !!Label}"
-              IsHitTestVisible="False"
-              Margin="0 0 4 0">
-        <TextBlock Text="{Binding Label}"
-                   MaxWidth="120"
-                   TextTrimming="CharacterEllipsis" />
-      </Button>
-      <Button Classes="labelFlyout"
-              DockPanel.Dock="Left"
-              IsVisible="{Binding !!FilteredLabel.Count}"
-              Content="..."
-              Margin="0 0 0 0">
-        <Button.Flyout>
-          <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-            <c:TagsBox IsReadOnly="True"
-                       Items="{Binding FilteredLabel}" />
-          </Flyout>
-        </Button.Flyout>
-        <ToolTip.Tip>
-          <Panel>
-            <c:TagsBox IsReadOnly="True"
-                       Margin="4,6,0,0"
-                       Items="{Binding FilteredLabel}" />
-          </Panel>
-        </ToolTip.Tip>
-      </Button>
-    </DockPanel>
+    <c:LabelsListBox Items="{Binding Label}"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center" />
   </c:PrivacyContentControl>
 </UserControl>

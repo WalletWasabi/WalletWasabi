@@ -52,7 +52,7 @@ public class TranscriptTests
 	public void SyntheticNoncesTest()
 	{
 		var protocol = Encoding.UTF8.GetBytes("test TranscriptRng collisions");
-		using var rnd = new SecureRandom();
+		SecureRandom rnd = SecureRandom.Instance;
 
 		var commitment1 = new[] { Generators.Gx0 };
 		var commitment2 = new[] { Generators.Gx1 };
@@ -146,7 +146,7 @@ public class TranscriptTests
 	{
 		var protocol = Encoding.UTF8.GetBytes("witness size");
 
-		using var rnd = new SecureRandom();
+		SecureRandom rnd = SecureRandom.Instance;
 
 		var witness = new Scalar[size];
 
@@ -163,7 +163,7 @@ public class TranscriptTests
 	{
 		var protocol = Encoding.UTF8.GetBytes("empty witness not allowed");
 
-		using var rnd = new SecureRandom();
+		SecureRandom rnd = SecureRandom.Instance;
 
 		var transcript = new Transcript(protocol);
 

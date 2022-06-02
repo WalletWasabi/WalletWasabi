@@ -23,7 +23,7 @@ public partial class BtcPriceTileViewModel : TileViewModel
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(usd => BtcPrice = usd.FormattedFiat() + " USD")
+			.Subscribe(usd => BtcPrice = usd.FormattedFiat(format: "N0") + " USD")
 			.DisposeWith(disposables);
 	}
 }

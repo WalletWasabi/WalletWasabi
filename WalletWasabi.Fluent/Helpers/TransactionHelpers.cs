@@ -90,22 +90,6 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
-	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false, bool tryToSign = true)
-	{
-		transaction = null;
-
-		try
-		{
-			transaction = BuildTransaction(wallet, transactionInfo, destination, isPayJoin, tryToSign: tryToSign);
-		}
-		catch (Exception)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
 	public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)
 	{
 		var psbtBytes = await File.ReadAllBytesAsync(path);
