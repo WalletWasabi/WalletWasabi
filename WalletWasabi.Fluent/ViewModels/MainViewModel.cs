@@ -169,19 +169,7 @@ public partial class MainViewModel : ViewModelBase
 
 		AboutViewModel.RegisterLazy(() => new AboutViewModel());
 
-		BroadcastTransactionViewModel.RegisterAsyncLazy(
-			async () =>
-			{
-				var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
-
-				if (dialogResult.Result is { })
-				{
-					return new BroadcastTransactionViewModel(Services.Config.Network,
-						dialogResult.Result);
-				}
-
-				return null;
-			});
+		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
