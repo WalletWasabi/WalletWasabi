@@ -26,8 +26,6 @@ public partial class MainViewModel : ViewModelBase
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
-	[AutoNotify] private bool _isDialogScreenEnabled;
-	[AutoNotify] private bool _isFullScreenEnabled;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
@@ -43,17 +41,10 @@ public partial class MainViewModel : ViewModelBase
 		ApplyUiConfigWindowSate();
 
 		_dialogScreen = new DialogScreenViewModel();
-
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
-
 		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
-
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-
 		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
-
-		_isDialogScreenEnabled = true;
-		_isFullScreenEnabled = true;
 
 		_statusIcon = new StatusIconViewModel();
 

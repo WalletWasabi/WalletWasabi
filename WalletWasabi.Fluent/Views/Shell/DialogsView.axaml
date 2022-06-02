@@ -29,7 +29,6 @@
               IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
               EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
@@ -53,7 +52,6 @@
               IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
               EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700"
@@ -68,7 +66,6 @@
               IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
               EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
-              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
