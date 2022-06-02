@@ -93,40 +93,14 @@ public partial class MainViewModel : ViewModelBase
 				x => x.CompactDialogScreen.CurrentPage,
 				x => x.FullScreen.CurrentPage,
 				x => x.MainScreen.CurrentPage)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(tup =>
+			.Select(tup =>
 			{
 				var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
-
-				/*
-				 * Order is important.
-				 * Always the topmost content will be the active one.
-				 */
-
-				if (compactDialog is { })
-				{
-					compactDialog.SetActive();
-					return;
-				}
-
-				if (dialog is { })
-				{
-					dialog.SetActive();
-					return;
-				}
-
-				if (fullscreenDialog is { })
-				{
-					fullscreenDialog.SetActive();
-					return;
-				}
-
-				if (mainsScreen is { })
-				{
-					mainsScreen.SetActive();
-					return;
-				}
-			});
+				return compactDialog ?? dialog ?? fullscreenDialog ?? mainsScreen; // Order is important. Always the topmost content will be the active one.
+			})
+			.WhereNotNull()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(page => page.SetActive());
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
