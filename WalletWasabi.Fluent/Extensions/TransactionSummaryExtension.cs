@@ -40,7 +40,7 @@ public static class TransactionSummaryExtension
 			_ => fee.ToString()
 		};
 
-		var feeText = $"{feePartText} {displayUnit.FriendlyName()} ";
+		var feeText = $"{feePartText} {displayUnit.FriendlyName()}";
 
 		return feeText;
 	}
