@@ -139,7 +139,7 @@ public class DependencyGraphTaskScheduler
 		// Check if all tasks were finished, otherwise Task.Result will block.
 		if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
 		{
-			Logger.LogInfo("Some Output nodes in-edges failed to complete");
+			Logger.LogInfo("Some output nodes in-edges failed to complete");
 			return false;
 		}
 

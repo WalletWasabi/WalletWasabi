@@ -650,7 +650,6 @@ public class CoinJoinClient
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
-		
 		// Re-issuances.
 		var bobClient = CreateBobClient(roundState);
 		roundState.LogInfo("Starting reissuances.");
@@ -671,7 +670,7 @@ public class CoinJoinClient
 			var registeredOutputs = await scheduler
 				.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates,
 					combinedToken).ConfigureAwait(false);
-			roundState.LogDebug($"{registeredOutputs.Count} out of {outputTxOuts.Count()} Outputs were registered.");
+			roundState.LogDebug($"{registeredOutputs.Count} out of {outputTxOuts.Count()} outputs were registered.");
 
 			wereAllOutputsRegistered = registeredOutputs.Count == outputTxOuts.Count();
 		}
