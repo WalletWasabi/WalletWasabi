@@ -347,7 +347,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case EnteringInputRegistrationPhase inputRegPhase:
 				StartCountDown(
 					message: _inputRegistrationMessage,
-					start: inputRegPhase.TimeoutAt - inputRegPhase.RoundState.CoinjoinState.Parameters.StandardInputRegistrationTimeout,
+					start: inputRegPhase.TimeoutAt - inputRegPhase.RoundState.InputRegistrationTimeout,
 					end: inputRegPhase.TimeoutAt);
 				break;
 
