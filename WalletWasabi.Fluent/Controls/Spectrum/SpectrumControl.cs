@@ -171,6 +171,8 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			Style = SKPaintStyle.Fill
 		};
 
+		using var path = new SKPath();
+
 		for (int i = 0; i < NumBins; i++)
 		{
 			var dCenter = Math.Abs(x - center);
@@ -180,10 +182,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				(float) height,
 				(float) (x + thickness),
 				(float) (height - multiplier * _data[i] * (height * 0.8)));
-			context.DrawRect(rect, linePaint);
+			// context.DrawRect(rect, linePaint);
+			path.AddRect(rect);
 
 			x += thickness;
 		}
+
+		context.DrawPath(path, linePaint);
 	}
 
 	private SKPicture RenderPicture(float width, float height)
