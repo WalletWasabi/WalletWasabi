@@ -35,7 +35,7 @@ public static class TransactionSummaryExtension
 
 		var feePartText = moneyUnit switch
 		{
-			MoneyUnit.BTC => fee.ToDecimal(moneyUnit).FormattedBtc(),
+			MoneyUnit.BTC => fee.ToFormattedString(),
 			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
 			_ => fee.ToString()
 		};
