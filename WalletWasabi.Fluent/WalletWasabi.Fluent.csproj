@@ -13,7 +13,7 @@
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Fluent</PathMap>
-		<AvaloniaVersion>0.10.999-cibuild0020960-beta</AvaloniaVersion>
+		<AvaloniaVersion>0.10.999-cibuild0021004-beta</AvaloniaVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<ItemGroup>
