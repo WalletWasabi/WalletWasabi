@@ -105,7 +105,7 @@
   </UserControl.DataTemplates>
 
   <Panel VerticalAlignment="Center">
-    <TextBlock IsVisible="{Binding !Any^}" Margin="10">No results</TextBlock>
+    <TextBlock IsVisible="{Binding !Any^, FallbackValue=False}" Margin="10">No results</TextBlock>
     <ItemsControl IsVisible="{Binding Any^}" Items="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
