@@ -27,10 +27,10 @@
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID">
         <c:PreviewItem DataContext="{Binding TransactionId}" TextValue="{Binding }">
-            <c:PrivacyContentControl NumberOfPrivacyChars="48">
-              <TextBlock Text="{Binding }" Classes="monoSpaced" />
-            </c:PrivacyContentControl>
-          </c:PreviewItem>
+          <c:DiscreetContentControl NumberOfDiscreetChars="48">
+            <TextBlock Text="{Binding }" Classes="monoSpaced" />
+          </c:DiscreetContentControl>
+        </c:PreviewItem>
       </c:PreviewItem>
 
       <Separator />

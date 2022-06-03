@@ -9,8 +9,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.AddressColumnView">
   <DockPanel LastChildFill="True" Margin="10 0">
-    <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
+    <c:DiscreetContentControl Content="{Binding Address}" VerticalAlignment="Center"
                              Classes="monoSpaced"
-                             NumberOfPrivacyChars="38" />
+                             NumberOfDiscreetChars="38" />
   </DockPanel>
 </UserControl>

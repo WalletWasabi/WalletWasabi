@@ -30,9 +30,9 @@
           <ItemsRepeater.ItemTemplate>
             <DataTemplate>
               <c:PreviewItem TextValue="{Binding }">
-                <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                <c:DiscreetContentControl NumberOfDiscreetChars="48">
                   <TextBlock Text="{Binding }" Classes="monoSpaced" />
-                </c:PrivacyContentControl>
+                </c:DiscreetContentControl>
               </c:PreviewItem>
             </DataTemplate>
           </ItemsRepeater.ItemTemplate>

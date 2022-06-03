@@ -57,7 +57,7 @@ public partial class WalletViewModel : WalletViewModelBase
 				.Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
 					.Select(_ => Unit.Default))
-				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
+				.Merge(Services.UiConfig.WhenAnyValue(x => x.DiscreetMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.Merge(Settings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
 				.Throttle(TimeSpan.FromSeconds(0.1))

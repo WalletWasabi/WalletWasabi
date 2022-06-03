@@ -2,19 +2,19 @@ using Avalonia.Controls.Models.TreeDataGrid;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
-internal class PrivacyTextCell : ICell
+internal class DiscreetTextCell : ICell
 {
-	public PrivacyTextCell(string? value, int numberOfPrivacyChars)
+	public DiscreetTextCell(string? value, int numberOfDiscreetChars)
 	{
 		Value = value;
-		NumberOfPrivacyChars = numberOfPrivacyChars;
+		NumberOfDiscreetChars = numberOfDiscreetChars;
 	}
 
 	public bool CanEdit => false;
 
 	public string? Value { get; }
 
-	public int NumberOfPrivacyChars { get;  }
+	public int NumberOfDiscreetChars { get; }
 
 	object? ICell.Value => Value;
 }

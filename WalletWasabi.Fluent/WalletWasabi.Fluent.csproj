@@ -38,4 +38,10 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Controls\DiscreetContentControl.axaml.cs">
+	    <DependentUpon>DiscreetContentControl.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>

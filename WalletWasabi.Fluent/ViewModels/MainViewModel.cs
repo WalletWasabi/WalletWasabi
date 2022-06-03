@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
 	private readonly SettingsPageViewModel _settingsPage;
-	private readonly PrivacyModeViewModel _privacyMode;
+	private readonly DiscreetModeViewModel _discreetMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
 	[AutoNotify] private bool _isMainContentEnabled;
 	[AutoNotify] private bool _isDialogScreenEnabled;
@@ -63,7 +63,7 @@ public partial class MainViewModel : ViewModelBase
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
-		_privacyMode = new PrivacyModeViewModel();
+		_discreetMode = new DiscreetModeViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
 
 		NavigationManager.RegisterType(_navBar);
@@ -189,7 +189,7 @@ public partial class MainViewModel : ViewModelBase
 
 	private void RegisterViewModels()
 	{
-		PrivacyModeViewModel.Register(_privacyMode);
+		DiscreetModeViewModel.Register(_discreetMode);
 		AddWalletPageViewModel.Register(_addWalletPage);
 		SettingsPageViewModel.Register(_settingsPage);
 

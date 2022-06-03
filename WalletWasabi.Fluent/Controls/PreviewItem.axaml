@@ -34,7 +34,7 @@
                                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                   IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
-                <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}" />
+                <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding DiscreetModeEnabled}" />
               </Panel>
             </DockPanel>
           </DockPanel>
@@ -78,5 +78,4 @@
                    c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter[IsVisible=False]">
     <Setter Property="Opacity" Value="0" />
   </Style>
-
 </Styles>

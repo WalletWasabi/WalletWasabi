@@ -161,7 +161,7 @@
     <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 
-  <Style Selector="c|PrivacyContentControl.monoSpaced">
+  <Style Selector="c|DiscreetContentControl.monoSpaced">
     <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 

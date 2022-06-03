@@ -25,9 +25,9 @@
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID"
                      TextValue="{Binding TransactionId}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="48">
+        <c:DiscreetContentControl NumberOfDiscreetChars="48">
           <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
+        </c:DiscreetContentControl>
       </c:PreviewItem>
 
       <Separator />
@@ -47,9 +47,9 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount"
                      TextValue="{Binding Amount}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="9">
+        <c:DiscreetContentControl NumberOfDiscreetChars="9">
           <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
-        </c:PrivacyContentControl>
+        </c:DiscreetContentControl>
       </c:PreviewItem>
 
       <Separator />
@@ -85,9 +85,9 @@
       <c:PreviewItem Icon="{StaticResource entities_regular}"
                      Label="Labels"
                      TextValue="{Binding Labels}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="20">
+        <c:DiscreetContentControl NumberOfDiscreetChars="20">
           <c:LabelsListBox Items="{Binding Labels}" />
-        </c:PrivacyContentControl>
+        </c:DiscreetContentControl>
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

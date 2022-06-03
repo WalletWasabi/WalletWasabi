@@ -18,7 +18,7 @@
             <TextBlock
               Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
           </Border>
-          <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9"
+          <controls:DiscreetContentControl Classes="bold" NumberOfDiscreetChars="9"
                                           VerticalAlignment="Center"
 
                                           Content="{Binding BalancePrivateBtc}" />

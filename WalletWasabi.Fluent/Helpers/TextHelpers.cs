@@ -82,8 +82,8 @@ public static class TextHelpers
 
 	public static string ParseLabel(this string text) => Regex.Replace(text, @"\s+", " ").Trim();
 
-	public static string GetPrivacyMask(int repeatCount)
+	public static string GetDiscreetMask(int repeatCount)
 	{
-		return new string(UIConstants.PrivacyChar, repeatCount);
+		return new string(UIConstants.DiscreetChar, repeatCount);
 	}
 }

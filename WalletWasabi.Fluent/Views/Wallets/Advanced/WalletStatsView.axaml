@@ -13,24 +13,24 @@
     <StackPanel Spacing="10" Margin="0 20 20 0">
       <c:PreviewItem Label="Number of coins (UTXOs)"
                      TextValue="{Binding CoinCount}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 NumberOfPrivacyChars="8"
+        <c:DiscreetContentControl Classes="monoSpaced"
+                                 NumberOfDiscreetChars="8"
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Unconfirmed balance"
                      TextValue="{Binding UnconfirmedBalance}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding UnconfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+        <c:DiscreetContentControl NumberOfDiscreetChars="11" Content="{Binding UnconfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Confirmed balance"
                      TextValue="{Binding ConfirmedBalance}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+        <c:DiscreetContentControl NumberOfDiscreetChars="11" Content="{Binding ConfirmedBalance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Total balance"
                      TextValue="{Binding Balance}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+        <c:DiscreetContentControl NumberOfDiscreetChars="11" Content="{Binding Balance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

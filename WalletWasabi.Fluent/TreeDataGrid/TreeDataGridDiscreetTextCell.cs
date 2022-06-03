@@ -9,23 +9,23 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
-internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
+internal class TreeDataGridDiscreetTextCell : TreeDataGridCell
 {
-	private static readonly List<TreeDataGridPrivacyTextCell> Realized = new();
+	private static readonly List<TreeDataGridDiscreetTextCell> Realized = new();
 	private static IDisposable? Subscription;
 	private static bool IsContentVisible = true;
 	private string? _value;
 	private FormattedText? _formattedText;
-	private int _numberOfPrivacyChars;
+	private int _numberOfDiscreetChars;
 
-	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
+	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfDiscreetChars : 0);
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var privacyTextCell = (PrivacyTextCell)model;
-		var text = privacyTextCell.Value;
+		var discreetTextCell = (DiscreetTextCell)model;
+		var text = discreetTextCell.Value;
 
-		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
+		_numberOfDiscreetChars = discreetTextCell.NumberOfDiscreetChars;
 
 		if (text != _value)
 		{
@@ -52,7 +52,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		if (Realized.Count == 0)
 		{
 			Subscription = Services.UiConfig
-				.WhenAnyValue(x => x.PrivacyMode)
+				.WhenAnyValue(x => x.DiscreetMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SetContentVisible(!x));
 		}

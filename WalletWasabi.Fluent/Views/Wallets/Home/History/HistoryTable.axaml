@@ -90,7 +90,6 @@
         </MenuItem.Icon>
       </MenuItem>
     </ContextMenu>
-
   </UserControl.Resources>
 
   <Panel>
@@ -110,7 +109,7 @@
             </i:BehaviorCollectionTemplate>
           </Setter>
         </Style>
-        <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
+        <Style Selector="treeDataGrid|TreeDataGridDiscreetTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />
@@ -126,7 +125,7 @@
           <Setter Property="VerticalAlignment" Value="Center" />
           <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
-        <Style Selector="TextBlock, c|PrivacyContentControl">
+        <Style Selector="TextBlock, c|DiscreetContentControl">
           <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="StackPanel">
@@ -159,13 +158,13 @@
                                               Items="{TemplateBinding Columns}"
                                               Rows="{TemplateBinding Rows}"
                                               Classes.coinJoinTransaction="{Binding !IsSingleCoinJoinTransaction}"
-                                              x:CompileBindings="False"/>
+                                              x:CompileBindings="False" />
                   <Rectangle Name="PART_Separator"
                              Margin="-2,0,0,0"
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Bottom"
                              IsHitTestVisible="False"
-                             Height="1"/>
+                             Height="1" />
                 </Panel>
               </DockPanel>
             </ControlTemplate>
@@ -215,13 +214,13 @@
           <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TreeDataGridRow /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}"/>
+          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}" />
         </Style>
         <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TreeDataGridRow:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
@@ -256,20 +255,19 @@
                                   Focusable="False"
                                   IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
                                   IsVisible="{TemplateBinding ShowExpander}"
-                                  Cursor="Hand"/>
+                                  Cursor="Hand" />
                   </Border>
-                  <Decorator Name="PART_Content"/>
+                  <Decorator Name="PART_Content" />
                 </DockPanel>
               </Border>
             </ControlTemplate>
           </Setter>
         </Style>
-
       </TreeDataGrid.Styles>
     </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}"/>
+                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
       <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
     </Panel>
   </Panel>

@@ -31,8 +31,8 @@ public class PreviewItem : ContentControl
 	public static readonly StyledProperty<bool> IsCopyButtonVisibleProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(IsCopyButtonVisible));
 
-	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
-		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
+	public static readonly StyledProperty<bool> DiscreetModeEnabledProperty =
+		AvaloniaProperty.Register<PreviewItem, bool>(nameof(DiscreetModeEnabled));
 
 	public string Label
 	{
@@ -76,10 +76,10 @@ public class PreviewItem : ContentControl
 		set => SetValue(IsCopyButtonVisibleProperty, value);
 	}
 
-	public bool PrivacyModeEnabled
+	public bool DiscreetModeEnabled
 	{
-		get => GetValue(PrivacyModeEnabledProperty);
-		set => SetValue(PrivacyModeEnabledProperty, value);
+		get => GetValue(DiscreetModeEnabledProperty);
+		set => SetValue(DiscreetModeEnabledProperty, value);
 	}
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

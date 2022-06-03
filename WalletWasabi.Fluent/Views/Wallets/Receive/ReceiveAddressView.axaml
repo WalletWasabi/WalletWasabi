@@ -30,13 +30,13 @@
                               ClickIcon="{StaticResource copy_confirmed}"
                               ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
           </StackPanel>
-          <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}" NumberOfPrivacyChars="38">
+          <c:DiscreetContentControl FontSize="{StaticResource FontSizeH5}" NumberOfDiscreetChars="38">
             <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
-          </c:PrivacyContentControl>
+          </c:DiscreetContentControl>
         </DockPanel>
-        <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalAlignment="Center">
+        <c:DiscreetContentControl DiscreetReplacementMode="Text" NumberOfDiscreetChars="15" HorizontalAlignment="Center">
           <c:LabelsListBox Items="{Binding Labels}" />
-        </c:PrivacyContentControl>
+        </c:DiscreetContentControl>
       </StackPanel>
 
       <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center" ClipToBounds="False">
@@ -49,9 +49,9 @@
           </Panel>
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20" MinHeight="100">
-          <c:PrivacyContentControl Height="250" Margin="0 0 0 -18" PrivacyReplacementMode="Icon">
-            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}"  />
-          </c:PrivacyContentControl>
+          <c:DiscreetContentControl Height="250" Margin="0 0 0 -18" DiscreetReplacementMode="Icon">
+            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
+          </c:DiscreetContentControl>
         </Viewbox>
       </c:AdorningContentControl>
     </DockPanel>

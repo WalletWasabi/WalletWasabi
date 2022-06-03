@@ -88,7 +88,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x =>
 				{
 					if (x is CoinJoinsHistoryItemViewModel coinJoinsHistoryItemViewModel
-					    && coinJoinsHistoryItemViewModel.CoinJoinTransactions.Count > 1)
+						&& coinJoinsHistoryItemViewModel.CoinJoinTransactions.Count > 1)
 					{
 						return true;
 					}
@@ -98,7 +98,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x => x.IsExpanded),
 
 				// Date
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new DiscreetTextColumn<HistoryItemViewModelBase>(
 					"Date / Time",
 					x => x.DateString,
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -110,7 +110,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(150, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 15),
+					numberOfDiscreetChars: 15),
 
 				// Labels
 				new TemplateColumn<HistoryItemViewModelBase>(
@@ -127,7 +127,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					width: new GridLength(1, GridUnitType.Star)),
 
 				// Incoming
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new DiscreetTextColumn<HistoryItemViewModelBase>(
 					"Incoming (BTC)",
 					x => x.IncomingAmount?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -140,10 +140,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					numberOfDiscreetChars: 9),
 
 				// Outgoing
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new DiscreetTextColumn<HistoryItemViewModelBase>(
 					"Outgoing (BTC)",
 					x => x.OutgoingAmount?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -156,10 +156,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					numberOfDiscreetChars: 9),
 
 				// Balance
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new DiscreetTextColumn<HistoryItemViewModelBase>(
 					"Balance (BTC)",
 					x => x.Balance?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -172,7 +172,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					numberOfDiscreetChars: 9),
 			}
 		};
 
@@ -272,8 +272,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-			    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
-			     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
+				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{

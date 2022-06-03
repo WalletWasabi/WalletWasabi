@@ -96,7 +96,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			{
 				var (sender, e) = arg;
 
-				if (Services.UiConfig.PrivacyMode ||
+				if (Services.UiConfig.DiscreetMode ||
 					!e!.IsNews ||
 					sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 				{

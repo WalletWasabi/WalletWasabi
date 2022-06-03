@@ -38,7 +38,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AdorningContentControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/DiscreetContentControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsListBox.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />

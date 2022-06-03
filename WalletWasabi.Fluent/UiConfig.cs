@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent;
 [JsonObject(MemberSerialization.OptIn)]
 public class UiConfig : ConfigBase
 {
-	private bool _privacyMode;
+	private bool _discreetMode;
 	private bool _isCustomChangeAddress;
 	private bool _autocopy;
 	private int _feeDisplayUnit;
@@ -41,7 +41,7 @@ public class UiConfig : ConfigBase
 				x => x.WindowState,
 				x => x.Oobe,
 				x => x.RunOnSystemStartup,
-				x => x.PrivacyMode,
+				x => x.DiscreetMode,
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
@@ -114,11 +114,11 @@ public class UiConfig : ConfigBase
 	}
 
 	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "PrivacyMode", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool PrivacyMode
+	[JsonProperty(PropertyName = "DiscreetMode", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool DiscreetMode
 	{
-		get => _privacyMode;
-		set => RaiseAndSetIfChanged(ref _privacyMode, value);
+		get => _discreetMode;
+		set => RaiseAndSetIfChanged(ref _discreetMode, value);
 	}
 
 	[DefaultValue(true)]

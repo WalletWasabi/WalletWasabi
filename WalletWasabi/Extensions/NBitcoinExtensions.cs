@@ -373,20 +373,20 @@ public static class NBitcoinExtensions
 		return null;
 	}
 
-	private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
+	private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool discreetMode = false)
 	{
 		var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
 
-		return privacyMode
+		return discreetMode
 			? $"### {currency}"
 			: exchangeRate == default
 				? $"??? {currency}"
 				: $"{dollars.ToString("N", CurrencyNumberFormat)} {currency}";
 	}
 
-	public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
+	public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool discreetMode = false)
 	{
-		return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
+		return ToCurrency(btc, "USD", usdExchangeRate, discreetMode);
 	}
 
 	/// <summary>

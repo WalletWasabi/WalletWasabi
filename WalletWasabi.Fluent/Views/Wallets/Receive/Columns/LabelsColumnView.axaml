@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.Columns.LabelsColumnView">
   <DockPanel LastChildFill="True" Margin="10 0 30 0">
-    <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
+    <c:DiscreetContentControl DiscreetReplacementMode="Text" NumberOfDiscreetChars="15"
                              VerticalAlignment="Center">
       <DockPanel LastChildFill="False">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -24,6 +24,6 @@
                          HorizontalAlignment="Left"
                          VerticalAlignment="Center" />
       </DockPanel>
-    </c:PrivacyContentControl>
+    </c:DiscreetContentControl>
   </DockPanel>
 </UserControl>
