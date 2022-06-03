@@ -139,7 +139,7 @@ public class BlockchainAnalyzer
 				// If the new coin's HD pubkey haven't been used yet
 				// then its anonset haven't been set yet.
 				// In that case the acquired anonset does not have to be intersected with the default anonset,
-				// so this coin gets the aquired anonset.
+				// so this coin gets the acquired anonset.
 				hdPubKey.SetAnonymitySet(anonset, txid);
 			}
 			else if (distinctWalletInputPubKeys.Contains(hdPubKey))
