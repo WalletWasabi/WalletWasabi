@@ -22,7 +22,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	private readonly SpectrumDataSource[] _sources;
 
 	private IBrush? _lineBrush;
-	private SKPaint? _linePaint;
+	private SKColor _lineColor;
 
 	private float[] _data;
 
@@ -117,13 +117,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 			if (_lineBrush is ImmutableSolidColorBrush brush)
 			{
-				_linePaint?.Dispose();
-				_linePaint = new SKPaint()
-				{
-					Color = brush.Color.ToSKColor(),
-					IsAntialias = false,
-					Style = SKPaintStyle.Fill
-				};
+				_lineColor = brush.Color.ToSKColor();
 			}
 
 			InvalidateArrange();
@@ -158,6 +152,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		double x = 0;
 
+		using var linePaint = new SKPaint()
+		{
+			Color = _lineColor,
+			IsAntialias = false,
+			Style = SKPaintStyle.Fill
+		};
+
 		for (int i = 0; i < NumBins; i++)
 		{
 			var dCenter = Math.Abs(x - center);
@@ -167,7 +168,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				(float) height,
 				(float) (x + thickness),
 				(float) (height - multiplier * _data[i] * (height * 0.8)));
-			context.DrawRect(rect, _linePaint);
+			context.DrawRect(rect, linePaint);
 
 			x += thickness;
 		}
