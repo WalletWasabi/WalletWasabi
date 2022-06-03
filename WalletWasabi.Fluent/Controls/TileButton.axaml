@@ -59,6 +59,7 @@
     <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushPointerOver}" />
     <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
+    <Setter Property="Cursor" Value="Hand" />
   </Style>
 
   <!-- Pressed -->
