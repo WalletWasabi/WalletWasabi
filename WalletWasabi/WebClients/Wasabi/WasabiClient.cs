@@ -235,7 +235,7 @@ public class WasabiClient
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
 
-		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
+		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.Ww2LegalDocumentsVersion));
 	}
 
 	public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)

@@ -11,7 +11,7 @@ namespace WalletWasabi.Services;
 
 public class LegalChecker : IDisposable
 {
-	public const string LegalFolderName = "Legal";
+	public const string LegalFolderName = "Legal2";
 	public const string ProvisionalLegalFolderName = "Provisional";
 
 	private bool _disposedValue;
