@@ -26,13 +26,13 @@ public class WasabiController : ControllerBase
 		// If the document id is null, then the request comes from WW1.0 client.
 		if (id is null)
 		{
-			filePath = LegalDocuments.EmbeddedFilePath;
+			filePath = LegalDocuments.EmbeddedFilePathForWw1;
 		}
 		else
 		{
-			if (Version.TryParse(id, out var requestedVersion) && requestedVersion == Constants.WW2LegalDocumentsVersion)
+			if (Version.TryParse(id, out var requestedVersion) && requestedVersion == Constants.Ww2LegalDocumentsVersion)
 			{
-				filePath = LegalDocuments.EmbeddedFilePathForWW2;
+				filePath = LegalDocuments.EmbeddedFilePathForWw2;
 			}
 			else
 			{
