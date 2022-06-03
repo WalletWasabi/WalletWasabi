@@ -156,7 +156,7 @@ public partial class MainViewModel : ViewModelBase
 
 		BitcoinTabSettingsViewModel.RegisterLazy(() =>
 		{
-			_settingsPage.SelectedTab = 2;
+			_settingsPage.SelectedTab = 1;
 			return _settingsPage;
 		});
 
