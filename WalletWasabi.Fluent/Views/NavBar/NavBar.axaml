@@ -128,7 +128,7 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right"
+            <Panel Classes="NavBarItemPanel utilities"
                    Cursor="Hand">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
