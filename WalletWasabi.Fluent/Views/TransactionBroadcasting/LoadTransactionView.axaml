@@ -23,12 +23,10 @@
       </WrapPanel.Styles>
       <c:TileButton Text="Import transaction"
                     Icon="{StaticResource folder_move_regular}"
-                    Command="{Binding ImportTransactionCommand}"
-                    Cursor="Hand" />
+                    Command="{Binding ImportTransactionCommand}" />
       <c:TileButton Text="Paste from clipboard"
                     Icon="{StaticResource clipboard_text_regular}"
-                    Command="{Binding PasteCommand}"
-                    Cursor="Hand" />
+                    Command="{Binding PasteCommand}" />
     </WrapPanel>
   </c:ContentArea>
 </UserControl>
