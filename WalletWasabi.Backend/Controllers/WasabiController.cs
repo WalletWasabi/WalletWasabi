@@ -23,21 +23,18 @@ public class WasabiController : ControllerBase
 	{
 		string filePath;
 
-		// If the document id is null, then the request comes from WW1.0 client.
-		if (id is null)
+		switch (id)
 		{
-			filePath = LegalDocuments.EmbeddedFilePathForWw1;
-		}
-		else
-		{
-			if (Version.TryParse(id, out var requestedVersion) && requestedVersion == Constants.Ww2LegalDocumentsVersion)
-			{
+			case "ww2":
 				filePath = LegalDocuments.EmbeddedFilePathForWw2;
-			}
-			else
-			{
+				break;
+
+			case null:
+				filePath = LegalDocuments.EmbeddedFilePathForWw1; // If the document id is null, then the request comes from WW 1.0 client.
+				break;
+
+			default:
 				return NotFound();
-			}
 		}
 
 		var content = await System.IO.File.ReadAllBytesAsync(filePath);
