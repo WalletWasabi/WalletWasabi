@@ -67,23 +67,20 @@ public partial class MainViewModel : ViewModelBase
 		IsMainContentEnabled = this.WhenAnyValue(
 				x => x.DialogScreen.IsDialogOpen,
 				x => x.FullScreen.IsDialogOpen,
-				x => x.CompactDialogScreen.IsDialogOpen)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(tup => !(tup.Item1 || tup.Item2 || tup.Item3));
+				x => x.CompactDialogScreen.IsDialogOpen,
+				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 		this.WhenAnyValue(
 				x => x.DialogScreen.CurrentPage,
 				x => x.CompactDialogScreen.CurrentPage,
 				x => x.FullScreen.CurrentPage,
-				x => x.MainScreen.CurrentPage)
-			.Select(tup =>
-			{
-				var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
-				return compactDialog ?? dialog ?? fullscreenDialog ?? mainsScreen; // Order is important. Always the topmost content will be the active one.
-			})
+				x => x.MainScreen.CurrentPage,
+				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(page => page.SetActive());
+			.Do(page => page.SetActive())
+			.Subscribe();
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
