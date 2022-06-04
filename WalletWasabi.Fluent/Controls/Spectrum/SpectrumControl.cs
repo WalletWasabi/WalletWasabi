@@ -151,8 +151,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 
 		context.Custom(this);
-
-		// Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
 
 	private void RenderBars(SKCanvas context)
@@ -182,8 +180,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				(float) height,
 				(float) (x + thickness),
 				(float) (height - multiplier * _data[i] * (height * 0.8)));
-
-			// context.DrawRect(rect, linePaint);
 			path.AddRect(rect);
 
 			x += thickness;
