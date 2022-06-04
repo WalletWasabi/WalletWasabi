@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent;
 
@@ -133,6 +134,11 @@ public class ApplicationStateManager : IMainWindowService
 				_compositeDisposable = null;
 				_stateMachine.Fire(Trigger.MainWindowClosed);
 			})
+			.DisposeWith(_compositeDisposable);
+
+		Observable
+			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
+			.Subscribe(_ => _stateMachine.Fire(Trigger.Show))
 			.DisposeWith(_compositeDisposable);
 
 		_lifetime.MainWindow = result;
