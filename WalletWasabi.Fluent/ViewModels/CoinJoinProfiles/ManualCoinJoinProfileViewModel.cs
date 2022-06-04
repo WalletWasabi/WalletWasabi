@@ -9,7 +9,7 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
 	}
 
-	public override string Title => "Manual";
+	public override string Title => "Custom";
 
 	public override string Description => "";
 

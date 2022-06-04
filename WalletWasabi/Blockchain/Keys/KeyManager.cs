@@ -176,6 +176,9 @@ public class KeyManager
 	[JsonProperty(Order = 15, PropertyName = "IsCoinjoinProfileSelected")]
 	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
+	[JsonProperty(Order = 16, PropertyName = "CoinjoinProfile")]
+	public string CoinjoinProfile { get; set; }
+
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
 
@@ -387,7 +390,7 @@ public class KeyManager
 		newKey.SetLabel(label, kmToFile: this);
 
 		SetDoNotSkipSynchronization();
-		
+
 		return newKey;
 	}
 

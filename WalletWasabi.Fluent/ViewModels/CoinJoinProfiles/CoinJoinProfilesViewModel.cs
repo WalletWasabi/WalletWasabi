@@ -63,6 +63,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 		keyManager.IsCoinjoinProfileSelected = true;
+		keyManager.CoinjoinProfile = selected.Title;
 
 		if (isNewWallet)
 		{

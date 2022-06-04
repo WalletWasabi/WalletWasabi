@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -19,6 +21,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private string? _selectedCoinjoinProfileName;
+	[AutoNotify] private bool _isCoinjoinProfileSelected;
 
 	private Wallet _wallet;
 
@@ -66,6 +70,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			}
 		});
 
+		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
+
 		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 
 		this.WhenAnyValue(x => x.AnonScoreTarget)
@@ -98,6 +104,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public ICommand SetAutoCoinJoin { get; }
 
+	public ICommand SelectCoinjoinProfileCommand { get; }
+
 	public ICommand VerifyRecoveryWordsCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -105,6 +113,20 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
 		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
+
+		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
+		SelectedCoinjoinProfileName =
+			(_wallet.KeyManager.IsCoinjoinProfileSelected, _wallet.KeyManager.CoinjoinProfile) switch
+			{
+				(true, string x) => x,
+				(true, null) => "[unknown]",
+				(false, _) => "none"
+			};
+	}
+
+	private async Task SelectCoinjoinProfileAsync()
+	{
+		await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
 	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>

@@ -30,17 +30,11 @@
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
 
-        <Separator />
-
-        <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
-          <TextBlock Text="Anonymity score target" />
-          <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelStrongBrush}"
-                      Data="{StaticResource privacy_strong}" />
-            <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding AnonScoreTarget}" VerticalAlignment="Center" />
-            <Slider Minimum="2" Maximum="300" Value="{Binding AnonScoreTarget}" Margin="10 0" />
-          </DockPanel>
-        </StackPanel>
+        <DockPanel IsVisible="{Binding IsCoinjoinProfileSelected}">
+          <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
+          <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
+          <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+        </DockPanel>
       </StackPanel>
 
       <Separator />
