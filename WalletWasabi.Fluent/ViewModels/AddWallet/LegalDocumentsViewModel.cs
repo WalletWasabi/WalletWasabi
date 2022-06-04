@@ -1,4 +1,8 @@
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -15,14 +19,38 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string? _content;
 
-	public LegalDocumentsViewModel(string content)
+	public LegalDocumentsViewModel()
 	{
-		Content = content;
-
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		EnableBack = true;
 
 		NextCommand = BackCommand;
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			try
+			{
+				IsBusy = true;
+				var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
+				Content = document.Content;
+			}
+			catch (Exception ex)
+			{
+				if (ex is not OperationCanceledException)
+				{
+					Logger.LogError("Failed to get Legal documents.", ex);
+				}
+			}
+			finally
+			{
+				IsBusy = false;
+			}
+		});
 	}
 }
