@@ -40,12 +40,12 @@ public partial class LegalDocumentsViewModel : RoutableViewModel
 				var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
 				Content = document.Content;
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
-				if (ex is not OperationCanceledException)
-				{
-					Logger.LogError("Failed to get Legal documents.", ex);
-				}
+				var caption = "Failed to get Legal documents.";
+				Logger.LogError(caption, ex);
+				await ShowErrorAsync(Title, ex.Message, caption);
+				Navigate().Back();
 			}
 			finally
 			{
