@@ -65,9 +65,6 @@
   <!-- Pressed -->
   <Style Selector="c|TileButton:pressed">
     <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
-  </Style>
-
-  <Style Selector="c|TileButton:pressed">
     <Setter Property="RenderTransform" Value="scale(0.98)" />
   </Style>
 
