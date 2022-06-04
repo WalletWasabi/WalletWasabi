@@ -3,6 +3,7 @@
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
   <Style Selector="c|TileButton">
+    <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Template">
       <ControlTemplate>
         <Border x:Name="PART_Border"
