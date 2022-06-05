@@ -24,6 +24,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private Money? _coinJoinFee;
 	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
+	[AutoNotify] private int _txCount;
 
 	public CoinJoinsDetailsViewModel(CoinJoinsHistoryItemViewModel coinJoinGroup, IObservable<Unit> updateTrigger)
 	{
@@ -63,5 +64,6 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
 
 		TransactionIds = new ObservableCollection<uint256>(_coinJoinGroup.CoinJoinTransactions.Select(x => x.TransactionId));
+		TxCount = TransactionIds.Count;
 	}
 }
