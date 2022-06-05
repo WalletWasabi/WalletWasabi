@@ -16,23 +16,26 @@
                  EnableNext="False">
     <UniformGrid Rows="1" HorizontalAlignment="Center">
       <c:TileButton Text="Create a new wallet"
-                    Classes="action"
+                    Classes="action doubleline"
                     Icon="{StaticResource add_regular}"
                     Command="{Binding CreateWalletCommand}"
                     IsDefault="{Binding IsActive}"
                     Margin="10" IconSize="60" />
 
       <c:TileButton Text="Connect to hardware wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource calculator_regular}"
                     Command="{Binding ConnectHardwareWalletCommand}"
                     Margin="10" IconSize="60" />
 
       <c:TileButton Text="Import a wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource import_regular}"
                     Command="{Binding ImportWalletCommand}"
                     Margin="10" IconSize="60" />
 
       <c:TileButton Text="Recover a wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource recover_arrow_right_regular}"
                     Command="{Binding RecoverWalletCommand}"
                     Margin="10" IconSize="60" />
