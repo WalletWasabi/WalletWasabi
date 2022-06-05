@@ -20,22 +20,22 @@
                     Icon="{StaticResource add_regular}"
                     Command="{Binding CreateWalletCommand}"
                     IsDefault="{Binding IsActive}"
-                    Margin="10" IconSize="50" />
+                    Margin="10" IconSize="60" />
 
       <c:TileButton Text="Connect to hardware wallet"
                     Icon="{StaticResource calculator_regular}"
                     Command="{Binding ConnectHardwareWalletCommand}"
-                    Margin="10" IconSize="50" />
+                    Margin="10" IconSize="60" />
 
       <c:TileButton Text="Import a wallet"
                     Icon="{StaticResource import_regular}"
                     Command="{Binding ImportWalletCommand}"
-                    Margin="10" IconSize="50" />
+                    Margin="10" IconSize="60" />
 
       <c:TileButton Text="Recover a wallet"
                     Icon="{StaticResource recover_arrow_right_regular}"
                     Command="{Binding RecoverWalletCommand}"
-                    Margin="10" IconSize="50" />
+                    Margin="10" IconSize="60" />
     </UniformGrid>
   </c:ContentArea>
 </UserControl>
