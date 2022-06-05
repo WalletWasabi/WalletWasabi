@@ -13,7 +13,6 @@ public partial class ContainsNumbersViewModel : RoutableViewModel
 	public ContainsNumbersViewModel(PasswordFinderOptions options)
 	{
 		Options = options;
-		Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -28,8 +27,6 @@ public partial class ContainsNumbersViewModel : RoutableViewModel
 	public ICommand YesCommand { get; }
 
 	public ICommand NoCommand { get; }
-
-	public IImage Icon { get; }
 
 	private void SetAnswer(bool ans)
 	{
