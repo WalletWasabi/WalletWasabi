@@ -495,12 +495,6 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => !x.IsBanned)
 			.Where(x => !CoinRefrigerator.IsFrozen(x)));
 
-		// If a small portion of the wallet isn't private, it's better to wait with mixing.
-		if (GetPrivacyPercentage(coins, openedWallet.KeyManager.AnonScoreTarget) > 0.99)
-		{
-			return Enumerable.Empty<SmartCoin>();
-		}
-
 		return coins;
 	}
 
