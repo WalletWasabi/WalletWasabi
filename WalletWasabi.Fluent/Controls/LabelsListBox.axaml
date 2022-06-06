@@ -34,8 +34,7 @@
                 <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
                   <c:LabelsPanel.EllipsisControl>
                     <c:LabelControl DataContext="..."
-                                    Margin="0 0 0 0"
-                                    IsHitTestVisible="True">
+                                    Margin="0 0 0 0">
                       <ToolTip.Tip>
                         <Panel>
                           <c:TagsBox IsReadOnly="True"

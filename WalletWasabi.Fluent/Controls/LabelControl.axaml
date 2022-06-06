@@ -8,10 +8,9 @@
 
   <Style Selector="c|LabelControl">
     <Setter Property="Margin" Value="0 0 4 0" />
-    <Setter Property="IsHitTestVisible" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Name="PART_Border">
+        <Border Name="PART_Border" ToolTip.Tip="{Binding}">
           <TextBlock Text="{Binding}"
                      TextTrimming="CharacterEllipsis"
                      MaxWidth="120" />
