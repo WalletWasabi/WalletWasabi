@@ -10,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Edit Labels")]
 public partial class AddressLabelEditViewModel : RoutableViewModel
 {
-	[AutoNotify] private SmartLabel? _finalLabel;
 	[AutoNotify] private bool _isCurrentTextValid;
 
 	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
@@ -19,28 +18,18 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		SuggestionLabels.Labels
-			.WhenAnyValue(x => x.Count)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => FinalLabel = new SmartLabel(SuggestionLabels.Labels));
-
 		var canExecute =
-			this.WhenAnyValue(x => x.FinalLabel, x => x.IsCurrentTextValid)
+			this.WhenAnyValue(x => x.SuggestionLabels.Labels.Count, x => x.IsCurrentTextValid)
 				.Select(tup =>
 				{
-					var (finalLabel, isCurrentTextValid) = tup;
-					return finalLabel is { IsEmpty: false } || isCurrentTextValid;
+					var (labelsCount, isCurrentTextValid) = tup;
+					return labelsCount > 0 || isCurrentTextValid;
 				});
 
 		NextCommand = ReactiveCommand.Create(
 			() =>
 			{
-				if (FinalLabel is null)
-				{
-					return;
-				}
-
-				hdPubKey.SetLabel(FinalLabel, kmToFile: keyManager);
+				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
 				Navigate().Back();
 			},
