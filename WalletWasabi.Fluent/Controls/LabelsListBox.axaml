@@ -33,15 +33,9 @@
               <ItemsPanelTemplate>
                 <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
                   <c:LabelsPanel.EllipsisControl>
-                    <Button Classes="labelFlyout"
-                            Content="..."
-                            Margin="0 0 0 0">
-                      <Button.Flyout>
-                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
-                          <c:TagsBox IsReadOnly="True"
-                                     Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
-                        </Flyout>
-                      </Button.Flyout>
+                    <c:LabelControl DataContext="..."
+                                    Margin="0 0 0 0"
+                                    IsHitTestVisible="True">
                       <ToolTip.Tip>
                         <Panel>
                           <c:TagsBox IsReadOnly="True"
@@ -49,7 +43,7 @@
                                      Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
                         </Panel>
                       </ToolTip.Tip>
-                    </Button>
+                    </c:LabelControl>
                   </c:LabelsPanel.EllipsisControl>
                 </c:LabelsPanel>
               </ItemsPanelTemplate>
@@ -61,4 +55,3 @@
   </Style>
 
 </Styles>
-

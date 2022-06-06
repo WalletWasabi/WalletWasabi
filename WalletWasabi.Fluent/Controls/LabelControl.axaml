@@ -27,7 +27,6 @@
     <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="38" />
-    <Setter Property="Cursor" Value="Hand" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
@@ -35,4 +34,3 @@
   </Style>
 
 </Styles>
-
