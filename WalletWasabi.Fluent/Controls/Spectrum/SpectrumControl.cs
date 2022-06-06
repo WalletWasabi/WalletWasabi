@@ -59,12 +59,40 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
+		const int EffectRepeatInterval = 15 * 60;
+		const int EffectLength = 5 * 60;
+		var isEffectActive = true;
+		var frameCounter = 0;
+
 		DispatcherTimer.Run(
 			() =>
 			{
 				if (IsVisible)
 				{
-					InvalidateVisual();
+					if (isEffectActive == false)
+					{
+						if (frameCounter >= EffectRepeatInterval)
+						{
+							isEffectActive = true;
+							frameCounter = 0;
+						}
+					}
+					else
+					{
+						if (frameCounter >= EffectLength)
+						{
+							isEffectActive = false;
+							frameCounter = 0;
+							InvalidateVisual();
+						}
+					}
+
+					if (isEffectActive || IsFireEffectVisible)
+					{
+						InvalidateVisual();
+					}
+
+					frameCounter++;
 				}
 				return true;
 			},
