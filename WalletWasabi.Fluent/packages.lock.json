@@ -347,7 +347,7 @@
       "SkiaSharp.NativeAssets.WebAssembly": {
         "type": "Transitive",
         "resolved": "2.88.1-preview.1",
-        "contentHash": "Bjmqn93yHtjT8XXgcLIJ4bdvugZLnlJ3QVbb+Q9raUh3/8kXMn3p4E29v61tXAcLTeYwK1B+FECcu1yDqsTzyQ=="
+        "contentHash": "oHrRcTXt82ZN0n0MJREV2Z5MAMeUP7s5N4QOc4FSMZQ9jbG9rPbHw3Y2FSkIB8ymqRSRCEvkRJNQla1OcAeezQ=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
