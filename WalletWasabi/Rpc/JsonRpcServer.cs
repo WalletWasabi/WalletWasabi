@@ -93,22 +93,19 @@ public class JsonRpcServer : BackgroundService
 
 	private bool IsAuthorized(HttpListenerContext context)
 	{
-		if (Config.RequiresCredentials)
+		if (!Config.RequiresCredentials)
 		{
-			var user = context.User;
-			if (user is null)
-			{
-				return false;
-			}
-
-			var identity = (HttpListenerBasicIdentity?) user.Identity;
-			if (!CheckValidCredentials(identity))
-			{
-				return false;
-			}
+			return true;
 		}
 
-		return true;
+		var user = context.User;
+		if (user is null)
+		{
+			return false;
+		}
+
+		var identity = (HttpListenerBasicIdentity?) user.Identity;
+		return CheckValidCredentials(identity);
 	}
 
 	private async Task<HttpListenerContext> GetHttpContextAsync(CancellationToken cancellationToken)
