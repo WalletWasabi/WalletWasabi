@@ -82,7 +82,7 @@ public class UiConfig : ConfigBase
 	}
 
 	[DefaultValue(0)]
-	[JsonProperty(PropertyName = "FeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(PropertyName = "TxnFeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int FeeDisplayUnit
 	{
 		get => _feeDisplayUnit;

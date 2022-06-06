@@ -3,7 +3,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models;
 
-public enum FeeDisplayUnit
+public enum TxnFeeDisplayUnit
 {
 	BTC,
 
