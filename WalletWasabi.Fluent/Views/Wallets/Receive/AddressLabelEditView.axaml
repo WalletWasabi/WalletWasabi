@@ -20,6 +20,7 @@
                TagSeparator=","
                Items="{Binding SuggestionLabels.Labels}"
                Suggestions="{Binding SuggestionLabels.Suggestions}"
+               TopItems="{Binding SuggestionLabels.TopSuggestions}"
                SuggestionsAreCaseSensitive="True"
                RestrictInputToSuggestions="False"
                VerticalAlignment="Top"
