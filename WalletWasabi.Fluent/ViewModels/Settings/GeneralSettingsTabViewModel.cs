@@ -26,7 +26,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
-	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
+	[AutoNotify] private TxnFeeDisplayUnit _selectedTxnFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
 	[AutoNotify] private bool _useTor;
@@ -40,9 +40,9 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
 		_hideOnClose = Services.UiConfig.HideOnClose;
-		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
-			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
-			: FeeDisplayUnit.Satoshis;
+		_selectedTxnFeeDisplayUnit = Enum.IsDefined(typeof(TxnFeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
+			? (TxnFeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
+			: TxnFeeDisplayUnit.Satoshis;
 		_useTor = Services.Config.UseTor;
 		_terminateTorOnExit = Services.Config.TerminateTorOnExit;
 
@@ -85,7 +85,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
 
-		this.WhenAnyValue(x => x.SelectedFeeDisplayUnit)
+		this.WhenAnyValue(x => x.SelectedTxnFeeDisplayUnit)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.FeeDisplayUnit = (int)x);
@@ -106,8 +106,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 	public ICommand StartupCommand { get; }
 
-	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
-		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
+	public IEnumerable<TxnFeeDisplayUnit> TxnFeeDisplayUnits =>
+		Enum.GetValues(typeof(TxnFeeDisplayUnit)).Cast<TxnFeeDisplayUnit>();
 
 	protected override void EditConfigOnSave(Config config)
 	{

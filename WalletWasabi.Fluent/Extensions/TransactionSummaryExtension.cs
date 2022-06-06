@@ -15,12 +15,12 @@ public static class TransactionSummaryExtension
 		return confirmations > 0;
 	}
 
-	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
-		feeDisplayUnit switch
+	public static MoneyUnit ToMoneyUnit(this TxnFeeDisplayUnit txnFeeDisplayUnit) =>
+		txnFeeDisplayUnit switch
 		{
-			FeeDisplayUnit.BTC => MoneyUnit.BTC,
-			FeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
-			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
+			TxnFeeDisplayUnit.BTC => MoneyUnit.BTC,
+			TxnFeeDisplayUnit.Satoshis => MoneyUnit.Satoshi,
+			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {txnFeeDisplayUnit}")
 		};
 
 	public static string? ToFeeDisplayUnitString(this Money? fee)
@@ -30,7 +30,7 @@ public static class TransactionSummaryExtension
 			return null;
 		}
 
-		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
+		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(TxnFeeDisplayUnit.BTC);
 		var moneyUnit = displayUnit.ToMoneyUnit();
 
 		var feePartText = moneyUnit switch
