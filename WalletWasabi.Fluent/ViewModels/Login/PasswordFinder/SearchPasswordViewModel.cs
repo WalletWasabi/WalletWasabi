@@ -40,7 +40,7 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 
 		var cts = new CancellationTokenSource();
 
-		var t = Task.Run(() => FindPassword(Options, cts.Token));
+		var t = FindPasswordAsync(Options, cts.Token);
 
 		disposables.Add(Disposable.Create(async () =>
 		{
@@ -51,11 +51,13 @@ public partial class SearchPasswordViewModel : RoutableViewModel
 		disposables.Add(cts);
 	}
 
-	private void FindPassword(PasswordFinderOptions options, CancellationToken token)
+	private async Task FindPasswordAsync(PasswordFinderOptions options, CancellationToken token)
 	{
 		try
 		{
-			if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, token))
+			string? foundPassword = null;
+			var result = await Task.Run(() => PasswordFinderHelper.TryFind(options, out foundPassword, SetStatus, token));
+			if (result && foundPassword is { })
 			{
 				Navigate().To(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
 			}
