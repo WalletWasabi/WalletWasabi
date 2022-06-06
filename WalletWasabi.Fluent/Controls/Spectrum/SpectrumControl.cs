@@ -35,6 +35,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	public static readonly StyledProperty<bool> IsDockEffectVisibleProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsDockEffectVisible));
 
+	public static readonly StyledProperty<bool> IsFireEffectVisibleProperty =
+		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsFireEffectVisible));
+
 	public SpectrumControl()
 	{
 		SetVisibility();
@@ -79,6 +82,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		get => GetValue(IsDockEffectVisibleProperty);
 		set => SetValue(IsDockEffectVisibleProperty, value);
+	}
+
+	public bool IsFireEffectVisible
+	{
+		get => GetValue(IsFireEffectVisibleProperty);
+		set => SetValue(IsFireEffectVisibleProperty, value);
 	}
 
 	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)

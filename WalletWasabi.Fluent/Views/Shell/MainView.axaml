@@ -26,6 +26,7 @@
                  Height="100">
             <spectrum:SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
                                       IsDockEffectVisible="{Binding CurrentWallet^.IsMusicBoxVisible^, FallbackValue=False}"
+                                      IsFireEffectVisible="{Binding CurrentWallet^.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}"
                                       Classes.fireEffect="{Binding CurrentWallet^.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
               <spectrum:SpectrumControl.Styles>
                 <Style Selector="spectrum|SpectrumControl.fireEffect">
