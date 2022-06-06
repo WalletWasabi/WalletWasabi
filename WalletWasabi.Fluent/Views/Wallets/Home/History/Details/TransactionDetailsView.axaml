@@ -40,7 +40,7 @@
             <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
             <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
           </Panel>
-          <TextBlock Margin="4 0 0 0 " Text="{Binding Confirmations, StringFormat='({0} confirmations)'}" />
+          <TextBlock IsVisible="{Binding IsConfirmed}" Margin="4 0 0 0 " Text="{Binding Confirmations, StringFormat='({0} confirmations)'}" />
         </StackPanel>
       </c:PreviewItem>
 
