@@ -55,14 +55,7 @@ public class JsonRpcServer : BackgroundService
 					using var reader = new StreamReader(request.InputStream);
 					string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-					var user = context.User;
-					if (user is null)
-					{
-						throw new InvalidOperationException($"{nameof(context.User)} was null.");
-					}
-					var identity = (HttpListenerBasicIdentity?)user.Identity;
-
-					if (!Config.RequiresCredentials || CheckValidCredentials(identity))
+					if (IsAuthorized(context))
 					{
 						var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
 
@@ -96,6 +89,26 @@ public class JsonRpcServer : BackgroundService
 				Logger.LogError(ex);
 			}
 		}
+	}
+
+	private bool IsAuthorized(HttpListenerContext context)
+	{
+		if (Config.RequiresCredentials)
+		{
+			var user = context.User;
+			if (user is null)
+			{
+				return false;
+			}
+
+			var identity = (HttpListenerBasicIdentity?) user.Identity;
+			if (!CheckValidCredentials(identity))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private async Task<HttpListenerContext> GetHttpContextAsync(CancellationToken cancellationToken)
