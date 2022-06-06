@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -830,8 +831,8 @@ public class TransactionProcessorTests
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
-				// The dust coin should raise an event, but it shouldn't be fully processed.
-				Assert.NotEmpty(e.ReceivedDusts);
+			// The dust coin should raise an event, but it shouldn't be fully processed.
+			Assert.NotEmpty(e.ReceivedDusts);
 			Assert.Empty(e.ReceivedCoins);
 			Assert.Empty(e.NewlyReceivedCoins);
 			Assert.Empty(e.NewlyConfirmedReceivedCoins);
@@ -869,6 +870,34 @@ public class TransactionProcessorTests
 		// It is relevant even when all the coins can be dust.
 		Assert.All(keys.Take(5), key => Assert.Equal(KeyState.Used, key.KeyState));
 		Assert.All(keys.Skip(5), key => Assert.Equal(KeyState.Clean, key.KeyState));
+	}
+
+	[Fact]
+	public async Task ReceiveTransactionWithDustFromOurselvesAsync()
+	{
+		await using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+
+		// The dust coin should raise an event, but it shouldn't be fully processed.
+		transactionProcessor.WalletRelevantTransactionProcessed += (s, e)
+			=> Assert.Empty(e.ReceivedDusts); // small coins received from us are not an attack.
+
+		var keys = transactionProcessor.KeyManager.GetKeys();
+		var creditingTx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.0001001m));
+		var relevant = transactionProcessor.Process(creditingTx);
+		var receivedCoin = Assert.Single(relevant.ReceivedCoins);
+
+		using var destinationKey = new Key();
+		var spendingTx = CreateSpendingTransaction(
+			Enumerable.Repeat(receivedCoin.Coin, 1),
+			destinationKey.GetScriptPubKey(ScriptPubKeyType.Legacy),
+			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone"), out _).P2wpkhScript);
+		relevant = transactionProcessor.Process(spendingTx);
+		Assert.True(relevant.IsNews);
+
+		// There is one coin (the change of the payment) under dust.
+		var underDustThresholdCoin = Assert.Single(transactionProcessor.Coins);
+		Assert.True(underDustThresholdCoin.Amount < transactionProcessor.DustThreshold);
 	}
 
 	[Fact]

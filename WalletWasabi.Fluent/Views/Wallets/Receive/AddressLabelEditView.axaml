@@ -18,8 +18,9 @@
                  Height="280">
     <c:TagsBox x:Name="LabelTagBox"
                TagSeparator=","
-               Items="{Binding Labels}"
-               Suggestions="{Binding Suggestions}"
+               Items="{Binding SuggestionLabels.Labels}"
+               Suggestions="{Binding SuggestionLabels.Suggestions}"
+               TopItems="{Binding SuggestionLabels.TopSuggestions}"
                SuggestionsAreCaseSensitive="True"
                RestrictInputToSuggestions="False"
                VerticalAlignment="Top"

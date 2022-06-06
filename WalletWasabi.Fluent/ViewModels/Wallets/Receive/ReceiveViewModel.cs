@@ -68,7 +68,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet, SuggestionLabels.Suggestions.ToHashSet()));
+		Navigate().To(new ReceiveAddressesViewModel(_wallet));
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
