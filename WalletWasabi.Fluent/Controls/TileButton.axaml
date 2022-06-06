@@ -13,12 +13,18 @@
           <DockPanel>
             <TextBlock x:Name="PART_Text"
                        Text="{TemplateBinding Text}"
-                       Foreground="{TemplateBinding Foreground}"
-                       DockPanel.Dock="Top" />
-            <PathIcon x:Name="PART_Icon"
+                       Foreground="{TemplateBinding Foreground}" />
+            <Panel>
+              <PathIcon x:Name="PART_Icon"
                       Data="{TemplateBinding Icon}"
                       Width="{TemplateBinding IconSize}"
                       Height="{TemplateBinding IconSize}" />
+
+              <ContentPresenter x:Name="PART_ContentPresenter"
+                                Content="{TemplateBinding Content}"
+                                Height="{TemplateBinding IconSize}"
+                                Width="{TemplateBinding IconSize}" />
+            </Panel>
           </DockPanel>
         </Border>
       </ControlTemplate>
@@ -32,10 +38,16 @@
     <Setter Property="Foreground" Value="{StaticResource SystemAccentColor}" />
   </Style>
 
+  <Style Selector="c|TileButton /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0 0 0 15" />
+  </Style>
+
   <Style Selector="c|TileButton /template/ TextBlock#PART_Text">
+    <Setter Property="DockPanel.Dock" Value="Top" />
     <Setter Property="Margin" Value="10 10 10 15" />
     <Setter Property="TextWrapping" Value="Wrap" />
-    <Setter Property="MinHeight" Value="34" />
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="TextAlignment" Value="Center" />
   </Style>
@@ -79,5 +91,20 @@
   <Style Selector="c|TileButton.action">
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+  </Style>
+
+  <!-- Double line Text -->
+  <Style Selector="c|TileButton.doubleline /template/ TextBlock#PART_Text">
+    <Setter Property="MinHeight" Value="34" />
+  </Style>
+
+  <!-- Bottom Text -->
+  <Style Selector="c|TileButton.bottomtext /template/ TextBlock#PART_Text">
+    <Setter Property="DockPanel.Dock" Value="Bottom" />
+    <Setter Property="Margin" Value="10 15 10 10" />
+  </Style>
+
+  <Style Selector="c|TileButton.bottomtext /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Margin" Value="0 15 0 0" />
   </Style>
 </Styles>

@@ -22,20 +22,23 @@
         </Style>
       </UniformGrid.Styles>
       <c:TileButton Text="Create a new wallet"
-                    Classes="action"
+                    Classes="action doubleline"
                     Icon="{StaticResource add_regular}"
                     Command="{Binding CreateWalletCommand}"
                     IsDefault="{Binding IsActive}" />
 
       <c:TileButton Text="Connect to hardware wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource calculator_regular}"
                     Command="{Binding ConnectHardwareWalletCommand}" />
 
       <c:TileButton Text="Import a wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource import_regular}"
                     Command="{Binding ImportWalletCommand}" />
 
       <c:TileButton Text="Recover a wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource recover_arrow_right_regular}"
                     Command="{Binding RecoverWalletCommand}" />
     </UniformGrid>
