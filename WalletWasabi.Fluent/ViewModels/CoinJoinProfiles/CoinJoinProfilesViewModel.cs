@@ -21,16 +21,33 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
 
-		var speedyProfile = new SpeedyCoinJoinProfileViewModel();
-
 		Profiles = new()
 		{
 			new EconomicCoinJoinProfileViewModel(),
-			speedyProfile,
+			new SpeedyCoinJoinProfileViewModel(),
 			new PrivateCoinJoinProfileViewModel()
 		};
 
-		_selectedProfile = speedyProfile;
+		if (isNewWallet)
+		{
+			_selectedProfile = Profiles[1];
+		}
+		else
+		{
+			_selectedProfile = Profiles.FirstOrDefault(x => x.Title == keyManager.CoinjoinProfile);
+
+			if (_selectedProfile is PrivateCoinJoinProfileViewModel p)
+			{
+				Profiles.Remove(p);
+				_selectedProfile = new CustomPrivateCoinJoinProfileViewModel(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
+				Profiles.Add(_selectedProfile);
+			}
+
+			if (_selectedProfile is null && keyManager.CoinjoinProfile is { })
+			{
+				SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AutoCoinJoin, keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
+			}
+		}
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
 	}
