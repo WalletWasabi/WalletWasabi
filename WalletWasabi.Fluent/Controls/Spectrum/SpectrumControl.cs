@@ -5,7 +5,6 @@ using Avalonia.Media.Immutable;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using SkiaSharp;
 
