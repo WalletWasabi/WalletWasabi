@@ -53,7 +53,7 @@ public class LegalChecker : IDisposable
 		}
 	}
 
-	public async Task<LegalDocuments> WaitAndGetLatestDocumentAsync()
+	public async Task<LegalDocuments> WaitAndGetLatestDocumentAsync(CancellationToken cancellationToken)
 	{
 		if (TryGetNewLegalDocs(out var provisionalLegal))
 		{
@@ -64,7 +64,7 @@ public class LegalChecker : IDisposable
 			return currentLegal;
 		}
 
-		return await LatestDocumentTaskCompletion.Task.ConfigureAwait(false);
+		return await LatestDocumentTaskCompletion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
