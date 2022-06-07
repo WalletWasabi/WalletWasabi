@@ -224,7 +224,7 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
-			roundState.LogDebug(msg);
+			roundState.LogInfo(msg);
 
 			LogCoinJoinSummary(readyAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
@@ -706,18 +706,25 @@ public class CoinJoinClient
 		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
-		// Sanity check.
-		if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
+		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
+		// now when we identify as satoshi.
+		// In this scenario we should ban the coordinator and stop dealing with it.
+		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin);
+		if (!mustSignAllInputs)
 		{
-			string round = roundState.BlameOf == 0 ? "Round" : "Blame Round";
-
-			throw new InvalidOperationException($"{round} ({roundState.Id}): My output is missing.");
+			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
 		}
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		await SignTransactionAsync(registeredAndReadyAliceClients, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Alices({registeredAndReadyAliceClients.Length}) have signed the coinjoin tx.");
+		var alicesToSign = mustSignAllInputs
+			? registeredAndReadyAliceClients
+			: registeredAndReadyAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAndReadyAliceClients.Length));
+
+		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		roundState.LogDebug($"{alicesToSign.Length} out of {registeredAndReadyAliceClients.Length} Alices have signed the coinjoin tx.");
 
 		return unsignedCoinJoin;
 	}

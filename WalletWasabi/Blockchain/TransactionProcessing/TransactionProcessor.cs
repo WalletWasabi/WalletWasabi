@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
@@ -206,6 +207,7 @@ public class TransactionProcessor
 			}
 		}
 
+		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
@@ -218,7 +220,8 @@ public class TransactionProcessor
 				}
 
 				foundKey.SetKeyState(KeyState.Used, KeyManager);
-				if (output.Value < DustThreshold)
+				var areWeSending = myInputs.Any();
+				if (output.Value <= DustThreshold && !areWeSending)
 				{
 					result.ReceivedDusts.Add(output);
 					continue;
@@ -257,7 +260,7 @@ public class TransactionProcessor
 		}
 
 		// If spends any of our coin
-		foreach (var coin in Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()))
+		foreach (var coin in myInputs)
 		{
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);

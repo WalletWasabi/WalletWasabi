@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Models;
 
@@ -31,8 +32,15 @@ public static class TransactionSummaryExtension
 
 		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
 		var moneyUnit = displayUnit.ToMoneyUnit();
-		
-		var feeText = $"{fee.ToDecimal(moneyUnit)} {displayUnit.FriendlyName() } ";
+
+		var feePartText = moneyUnit switch
+		{
+			MoneyUnit.BTC => fee.ToFormattedString(),
+			MoneyUnit.Satoshi => fee.Satoshi.ToString(),
+			_ => fee.ToString()
+		};
+
+		var feeText = $"{feePartText} {displayUnit.FriendlyName()}";
 
 		return feeText;
 	}
