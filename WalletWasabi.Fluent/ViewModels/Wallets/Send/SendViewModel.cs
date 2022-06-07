@@ -248,11 +248,6 @@ public partial class SendViewModel : RoutableViewModel
 
 		Dispatcher.UIThread.Post(() =>
 		{
-			if (s.IsTrimmable())
-			{
-				To = s.Trim();
-			}
-
 			TryParseUrl(s);
 			_parsingUrl = false;
 		});
@@ -260,9 +255,14 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool TryParseUrl(string? text)
 	{
-		if (text is null || text.IsTrimmable())
+		if (string.IsNullOrEmpty(text))
 		{
 			return false;
+		}
+
+		if (text.IsTrimmable())
+		{
+			text = text.Trim();
 		}
 
 		bool result = false;

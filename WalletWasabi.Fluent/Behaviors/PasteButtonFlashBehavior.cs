@@ -95,7 +95,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			{
 				AssociatedObject.Classes.Add(FlashAnimation);
 				_lastFlashedOn = clipboardValue;
-				ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue}");
+				ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue.Trim()}");
 			}
 			else
 			{
