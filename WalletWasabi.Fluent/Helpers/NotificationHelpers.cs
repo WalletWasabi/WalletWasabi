@@ -7,6 +7,7 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -32,8 +33,23 @@ public static class NotificationHelpers
 	{
 		if (NotificationManager is { } nm)
 		{
-			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
+			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), () => TryExecute(onClick))));
 		}
+	}
+
+	private static void TryExecute(Action? action)
+	{
+		if (action is null)
+		{
+			return;
+		}
+
+		if (!MainViewModel.Instance.IsMainContentEnabled)
+		{
+			return;
+		}
+
+		action();
 	}
 
 	public static void Show(string walletName, ProcessedResult result, Action onClick)
