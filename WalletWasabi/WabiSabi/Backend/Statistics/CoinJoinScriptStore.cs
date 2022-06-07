@@ -12,7 +12,8 @@ public class CoinJoinScriptStore
 {
 	public CoinJoinScriptStore()
 		: this(Enumerable.Empty<Script>())
-	{}
+	{
+	}
 	
 	public CoinJoinScriptStore(IEnumerable<Script> scripts)
 	{
