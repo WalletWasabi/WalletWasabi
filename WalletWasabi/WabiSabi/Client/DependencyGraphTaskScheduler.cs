@@ -186,23 +186,16 @@ public class DependencyGraphTaskScheduler
 						hdPubKey.SetKeyState(KeyState.Used);
 					}
 
-					throw;
+					return null;
 				}
 			}
 		).ToImmutableArray();
 
-		try
-		{
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-		catch
-		{
-			// No matter the reason why the output was not registered we should continue.
-		}
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 
 		return tasks
-			.Where(x => x.IsCompletedSuccessfully)
-			.Select(x => x.Result)
+			.Where(x => x.IsCompletedSuccessfully && x.Result is { })
+			.Select(x => x.Result!)
 			.ToImmutableList();
 	}
 
