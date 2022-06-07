@@ -30,7 +30,14 @@
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
 
-        <DockPanel IsVisible="{Binding IsCoinjoinProfileSelected}">
+        <DockPanel>
+          <DockPanel.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsCoinjoinProfileSelected" />
+              <Binding Path="IsWatchOnly" Converter="{x:Static BoolConverters.Not}" />
+            </MultiBinding>
+          </DockPanel.IsVisible>
+
           <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
           <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
           <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
