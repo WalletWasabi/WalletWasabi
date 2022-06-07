@@ -44,7 +44,7 @@ public static class NotificationHelpers
 			return;
 		}
 
-		if (!MainViewModel.Instance.IsMainContentEnabled)
+		if (MainViewModel.Instance.IsBusy)
 		{
 			return;
 		}
