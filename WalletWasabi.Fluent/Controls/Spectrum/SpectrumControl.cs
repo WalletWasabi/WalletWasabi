@@ -33,6 +33,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	private bool _isAuraActive;
 	private bool _isSplashActive;
 
+	private bool _isEffectActive = true;
+	private int _effectFrameCounter;
+
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
 
@@ -63,39 +66,38 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		var isEffectActive = true;
-		var frameCounter = 0;
-
 		DispatcherTimer.Run(
 			() =>
 			{
 				if (IsVisible)
 				{
-					if (isEffectActive == false)
+					if (_isEffectActive == false)
 					{
-						if (frameCounter >= EffectRepeatInterval)
+						if (_effectFrameCounter >= EffectRepeatInterval)
 						{
-							isEffectActive = true;
-							frameCounter = 0;
+							_isEffectActive = true;
+							_effectFrameCounter = 0;
 						}
 					}
 					else
 					{
-						if (frameCounter >= EffectLength)
+						if (_effectFrameCounter >= EffectLength)
 						{
-							isEffectActive = false;
-							frameCounter = 0;
-							InvalidateVisual();
+							_isEffectActive = false;
+							_effectFrameCounter = 0;
 						}
+
+						InvalidateVisual();
 					}
 
-					if (isEffectActive || IsFireEffectVisible)
+					if (IsFireEffectVisible)
 					{
 						InvalidateVisual();
 					}
 
-					frameCounter++;
+					_effectFrameCounter++;
 				}
+
 				return true;
 			},
 			TimeSpan.FromMilliseconds((float)1000/60),
@@ -134,7 +136,14 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private void SetVisibility()
 	{
-		IsVisible = _isSplashActive || _isAuraActive;
+		var isVisible = _isSplashActive || _isAuraActive;
+		if (isVisible && !IsVisible)
+		{
+			_isEffectActive = true;
+			_effectFrameCounter = 0;
+		}
+
+		IsVisible = isVisible;
 	}
 
 	private void OnIsActiveChanged()
