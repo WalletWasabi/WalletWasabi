@@ -90,12 +90,14 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 			AssociatedObject.Classes.Remove(FlashAnimation);
 
+			clipboardValue = clipboardValue.Trim();
+
 			if (clipboardValue != CurrentAddress &&
 			    AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
 			{
 				AssociatedObject.Classes.Add(FlashAnimation);
 				_lastFlashedOn = clipboardValue;
-				ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue.Trim()}");
+				ToolTip.SetTip(AssociatedObject, $"Paste BTC Address:\r\n{clipboardValue}");
 			}
 			else
 			{
