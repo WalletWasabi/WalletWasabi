@@ -60,18 +60,21 @@
 
             <Classes.bottomCue>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="#ScrollCues.IsVisible" />
                 <Binding Path="#BottomCue.IsVisible" />
                 <Binding Path="!#TopCue.IsVisible" />
               </MultiBinding>
             </Classes.bottomCue>
             <Classes.topCue>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="#ScrollCues.IsVisible" />
                 <Binding Path="!#BottomCue.IsVisible" />
                 <Binding Path="#TopCue.IsVisible" />
               </MultiBinding>
             </Classes.topCue>
             <Classes.bothCues>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="#ScrollCues.IsVisible" />
                 <Binding Path="#BottomCue.IsVisible" />
                 <Binding Path="#TopCue.IsVisible" />
               </MultiBinding>
@@ -150,41 +153,44 @@
           <Panel x:Name="PART_ScrollBarsSeparator" Grid.Row="1" Grid.Column="1"
                  Background="{DynamicResource ScrollViewerScrollBarsSeparatorBackground}" />
 
-          <!-- Scroll hints -->
-          <RepeatButton x:Name="TopCue"
-                        VerticalAlignment="Top"
-                        Command="{Binding LineUp, RelativeSource={RelativeSource TemplatedParent}}">
-            <RepeatButton.IsVisible>
-              <MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}"
-                            ConverterParameter="0">
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="VerticalScrollBarVisibility" />
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Offset.Y" />
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Extent.Height" />
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Viewport.Height" />
-              </MultiBinding>
-            </RepeatButton.IsVisible>
-            <Viewbox Classes="ScrollViewerCuePath">
-              <Path Data="{StaticResource UpArrow}" Classes="ScrollViewerCuePath" />
-            </Viewbox>
-          </RepeatButton>
+          <!-- Scroll cues (hints)  -->
+          <!-- They are disabled for now. If we want to enable them, just remove the IsVisible="False" attribute below --> 
+          <Panel x:Name="ScrollCues" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" IsVisible="False">
+            <RepeatButton x:Name="TopCue"
+                          VerticalAlignment="Top"
+                          Command="{Binding LineUp, RelativeSource={RelativeSource TemplatedParent}}">
+              <RepeatButton.IsVisible>
+                <MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}"
+                              ConverterParameter="0">
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="VerticalScrollBarVisibility" />
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Offset.Y" />
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Extent.Height" />
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Viewport.Height" />
+                </MultiBinding>
+              </RepeatButton.IsVisible>
+              <Viewbox Classes="ScrollViewerCuePath">
+                <Path Data="{StaticResource UpArrow}" Classes="ScrollViewerCuePath" />
+              </Viewbox>
+            </RepeatButton>
 
-          <RepeatButton x:Name="BottomCue"
-                        Command="{Binding LineDown, RelativeSource={RelativeSource TemplatedParent}}"
-                        Grid.Column="0" VerticalAlignment="Bottom">
-            <RepeatButton.IsVisible>
-              <MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}"
-                            ConverterParameter="100">
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="VerticalScrollBarVisibility" />
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Offset.Y" />
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Extent.Height" />
-                <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Viewport.Height" />
-              </MultiBinding>
+            <RepeatButton x:Name="BottomCue"
+                          Command="{Binding LineDown, RelativeSource={RelativeSource TemplatedParent}}"
+                          Grid.Column="0" VerticalAlignment="Bottom">
+              <RepeatButton.IsVisible>
+                <MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}"
+                              ConverterParameter="100">
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="VerticalScrollBarVisibility" />
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Offset.Y" />
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Extent.Height" />
+                  <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Viewport.Height" />
+                </MultiBinding>
 
-            </RepeatButton.IsVisible>
-            <Viewbox Classes="ScrollViewerCuePath" Stretch="Fill">
-              <Path Data="{StaticResource DownArrow}" Classes="ScrollViewerCuePath" />
-            </Viewbox>
-          </RepeatButton>
+              </RepeatButton.IsVisible>
+              <Viewbox Classes="ScrollViewerCuePath" Stretch="Fill">
+                <Path Data="{StaticResource DownArrow}" Classes="ScrollViewerCuePath" />
+              </Viewbox>
+            </RepeatButton>
+          </Panel>
         </Grid>
 
       </ControlTemplate>
