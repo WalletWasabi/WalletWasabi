@@ -12,6 +12,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -280,7 +281,7 @@ public class CoinJoinClient
 
 				return (aliceClient, personCircuit);
 			}
-			catch (HttpRequestException)
+			catch (WabiSabiProtocolException)
 			{
 				personCircuit?.Dispose();
 				return (null, null);
