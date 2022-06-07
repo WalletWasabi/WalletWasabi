@@ -224,7 +224,7 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
-			roundState.LogDebug(msg);
+			roundState.LogInfo(msg);
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
@@ -696,15 +696,15 @@ public class CoinJoinClient
 		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin);
 		if (!mustSignAllInputs)
 		{
-			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");	
+			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
 		}
-		
+
 		// Send signature.
 		var combinedToken = linkedCts.Token;
 		var alicesToSign = mustSignAllInputs
 			? registeredAliceClients
 			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
-		
+
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 

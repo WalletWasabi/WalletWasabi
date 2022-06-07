@@ -184,7 +184,7 @@ public partial class SendViewModel : RoutableViewModel
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
@@ -255,7 +255,9 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool TryParseUrl(string? text)
 	{
-		if (text is null || text.IsTrimmable())
+		text = text?.Trim();
+
+		if (string.IsNullOrEmpty(text))
 		{
 			return false;
 		}

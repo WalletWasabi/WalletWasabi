@@ -16,7 +16,6 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -160,29 +159,9 @@ public partial class MainViewModel : ViewModelBase
 			return _settingsPage;
 		});
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			try
-			{
-				await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
-
-				LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
-				{
-					var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
-					return new LegalDocumentsViewModel(document.Content);
-				});
-			}
-			catch (Exception ex)
-			{
-				if (ex is not OperationCanceledException)
-				{
-					Logger.LogError("Failed to get Legal documents.", ex);
-				}
-			}
-		});
-
 		AboutViewModel.RegisterLazy(() => new AboutViewModel());
 		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
+		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
