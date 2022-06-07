@@ -255,14 +255,11 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool TryParseUrl(string? text)
 	{
+		text = text?.Trim();
+
 		if (string.IsNullOrEmpty(text))
 		{
 			return false;
-		}
-
-		if (text.IsTrimmable())
-		{
-			text = text.Trim();
 		}
 
 		bool result = false;
