@@ -24,7 +24,7 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 		EnableBack = false;
 
-		AuthorizationFailedMessage = $"The password is incorrect.{Environment.NewLine}Please, try Again.";
+		AuthorizationFailedMessage = $"The password is incorrect.{Environment.NewLine}Please try again.";
 	}
 
 	protected override async Task<bool> AuthorizeAsync()

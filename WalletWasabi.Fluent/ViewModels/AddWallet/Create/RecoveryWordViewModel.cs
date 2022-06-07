@@ -32,7 +32,7 @@ public partial class RecoveryWordViewModel : ViewModelBase
 			return;
 		}
 
-		if (Input == Word)
+		if (Input.Equals(Word, StringComparison.InvariantCultureIgnoreCase))
 		{
 			IsConfirmed = true;
 			return;

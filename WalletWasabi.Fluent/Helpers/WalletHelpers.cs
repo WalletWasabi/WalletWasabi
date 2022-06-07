@@ -59,7 +59,7 @@ public static class WalletHelpers
 
 		if (!WalletGenerator.ValidateWalletName(walletName))
 		{
-			return (ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+			return (ErrorSeverity.Error, "Selected wallet name is not valid. Please try a different name.");
 		}
 
 		return null;

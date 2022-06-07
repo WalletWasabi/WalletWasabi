@@ -145,7 +145,7 @@ public class CoinJoinClient
 
 		if (coins.IsEmpty)
 		{
-			throw new InvalidOperationException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		for (var tries = 0; tries < tryLimit; tries++)
@@ -224,7 +224,7 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
-			roundState.LogDebug(msg);
+			roundState.LogInfo(msg);
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
@@ -478,7 +478,7 @@ public class CoinJoinClient
 			.Take(3)
 			.ToArray();
 
-		// Select a group of coins those are close to each other by Anonimity Score.
+		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
 		// Create a bunch of combinations.
@@ -621,7 +621,7 @@ public class CoinJoinClient
 		var now = DateTimeOffset.UtcNow;
 		var outputRegistrationPhaseEndTime = now + remainingTime;
 
-		// Splitting the ramaining time.
+		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
 		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
 		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
@@ -688,18 +688,25 @@ public class CoinJoinClient
 		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
-		// Sanity check.
-		if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
+		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
+		// now when we identify as satoshi.
+		// In this scenario we should ban the coordinator and stop dealing with it.
+		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin);
+		if (!mustSignAllInputs)
 		{
-			string round = roundState.BlameOf == 0 ? "Round" : "Blame Round";
-
-			throw new InvalidOperationException($"{round} ({roundState.Id}): My output is missing.");
+			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
 		}
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Alices({registeredAliceClients.Length}) have signed the coinjoin tx.");
+		var alicesToSign = mustSignAllInputs
+			? registeredAliceClients
+			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
+
+		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		roundState.LogDebug($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
 		return unsignedCoinJoin;
 	}

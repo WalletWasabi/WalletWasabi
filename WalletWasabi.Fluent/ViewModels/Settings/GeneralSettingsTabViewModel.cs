@@ -6,7 +6,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
-using DynamicData;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -30,6 +29,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
 	[AutoNotify] private bool _runOnSystemStartup;
 	[AutoNotify] private bool _hideOnClose;
+	[AutoNotify] private bool _useTor;
+	[AutoNotify] private bool _terminateTorOnExit;
 
 	public GeneralSettingsTabViewModel()
 	{
@@ -42,6 +43,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
 			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
 			: FeeDisplayUnit.Satoshis;
+		_useTor = Services.Config.UseTor;
+		_terminateTorOnExit = Services.Config.TerminateTorOnExit;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
@@ -91,6 +94,14 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.HideOnClose = x);
+
+		this.WhenAnyValue(
+				x => x.UseTor,
+				x => x.TerminateTorOnExit)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
+			.Skip(1)
+			.Subscribe(_ => Save());
 	}
 
 	public ICommand StartupCommand { get; }
@@ -100,5 +111,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 	protected override void EditConfigOnSave(Config config)
 	{
+		config.UseTor = UseTor;
+		config.TerminateTorOnExit = TerminateTorOnExit;
 	}
 }

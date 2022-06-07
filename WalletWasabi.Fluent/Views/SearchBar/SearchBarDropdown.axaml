@@ -24,16 +24,6 @@
       <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="ItemsControl:empty">
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate>
-            <TextBlock Margin="10">No results</TextBlock>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
     <Style Selector="Button.searchItem /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
@@ -114,15 +104,18 @@
 
   </UserControl.DataTemplates>
 
-  <ItemsControl Items="{Binding Groups}">
-    <ItemsControl.ItemTemplate>
-      <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-        <DockPanel Margin="0 0 0 10">
-          <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-          <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
-        </DockPanel>
-      </DataTemplate>
-    </ItemsControl.ItemTemplate>
-  </ItemsControl>
+  <Panel VerticalAlignment="Center">
+    <TextBlock IsVisible="{Binding !Any^, FallbackValue=False}" Margin="10">No results</TextBlock>
+    <ItemsControl IsVisible="{Binding Any^}" Items="{Binding Groups}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
+          <DockPanel Margin="0 0 0 10">
+            <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
+            <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
+          </DockPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </Panel>
 
 </UserControl>

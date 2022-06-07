@@ -1,9 +1,11 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 
-namespace System.Linq;
+namespace WalletWasabi.Extensions;
 
 public static class LinqExtensions
 {
@@ -87,6 +89,10 @@ public static class LinqExtensions
 	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
 		=> source?.Any() is true;
 
+	/// <summary>
+	/// Recursive algorithm that generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
+	/// </summary>
+	/// <remarks>If you have numbers <c>1, 2, 3, 4</c>, then the output will contain <c>(2, 3, 4)</c> but not, for example, <c>(4, 3, 2)</c>.</remarks>
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
@@ -96,8 +102,7 @@ public static class LinqExtensions
 			: items.SelectMany((item, i) => items
 				.Skip(i + 1)
 				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }
-				.Concat(result)));
+				.Select(result => new T[] { item }.Concat(result)));
 	}
 
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(

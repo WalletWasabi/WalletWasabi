@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Settings;
+namespace WalletWasabi.Fluent.Views.Dialogs;
 
-public class TorSettingsTabView : UserControl
+public class AddressEntryDialogView : UserControl
 {
-	public TorSettingsTabView()
+	public AddressEntryDialogView()
 	{
 		InitializeComponent();
 	}

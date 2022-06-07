@@ -79,7 +79,7 @@ public class WasabiClientTests
 
 		// Requests fails with Bad Request
 		mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
+			.ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.BadRequest)
 			{
 				Content = new StringContent("\"Some RPC problem...\"")
 			});

@@ -139,7 +139,7 @@ public class BlockchainAnalyzer
 				// If the new coin's HD pubkey haven't been used yet
 				// then its anonset haven't been set yet.
 				// In that case the acquired anonset does not have to be intersected with the default anonset,
-				// so this coin gets the aquired anonset.
+				// so this coin gets the acquired anonset.
 				hdPubKey.SetAnonymitySet(anonset, txid);
 			}
 			else if (distinctWalletInputPubKeys.Contains(hdPubKey))
@@ -240,7 +240,10 @@ public class BlockchainAnalyzer
 	{
 		foreach (var newCoin in tx.WalletOutputs)
 		{
-			if (newCoin.HdPubKey.AnonymitySet < PrivacyLevelThreshold)
+			// Forget clusters when no unique outputs created in coinjoins,
+			// otherwise in half mixed wallets all the labels quickly gravitate into a single cluster
+			// making pocket selection unusable.
+			if (newCoin.HdPubKey.AnonymitySet < 2)
 			{
 				// Set clusters.
 				foreach (var spentCoin in tx.WalletInputs)

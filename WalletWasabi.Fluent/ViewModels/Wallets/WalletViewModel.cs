@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -73,9 +74,8 @@ public partial class WalletViewModel : WalletViewModelBase
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
 				args switch
 				{
-					StartedEventArgs _ => true,
-					StoppedEventArgs _ => false,
-					CompletedEventArgs => false,
+					CoinJoinStatusEventArgs e when e.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase => true,
+					CompletedEventArgs _ => false,
 					_ => null
 				};
 

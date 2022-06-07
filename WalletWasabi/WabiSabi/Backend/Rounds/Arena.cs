@@ -16,6 +16,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 

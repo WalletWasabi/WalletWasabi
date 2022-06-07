@@ -1,10 +1,12 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -23,7 +25,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		TransactionResult = transactionResult;
 
-		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+		var totalAmount = transactionResult.CalculateDestinationAmount();
+		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 
@@ -36,7 +39,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
 			.Replace("(", "").Replace(")", "");
 
-		_amount = $"{total} BTC";
+		_amount = $"{totalAmount.ToFormattedString()} BTC";
 	}
 
 	public BuildTransactionResult TransactionResult { get; }
@@ -45,12 +48,13 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
+		ImmutableArray<SmartCoin> coinsToUse,
 		int maxInputCount,
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
-			transactionInfo.Coins,
+			coinsToUse,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			maxInputCount,
@@ -72,7 +76,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 				var destinationAmount = transaction.CalculateDestinationAmount();
 
-				// If Bnb solutions become the same transaction somehow, do not show the same suggestion twice.
+				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
 				if (!foundSolutionsByAmount.Contains(destinationAmount))
 				{
 					foundSolutionsByAmount.Add(destinationAmount);

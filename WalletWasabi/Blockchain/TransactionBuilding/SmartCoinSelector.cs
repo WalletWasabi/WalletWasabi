@@ -5,6 +5,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -17,6 +18,7 @@ public class SmartCoinSelector : ICoinSelector
 
 	private IEnumerable<SmartCoin> UnspentCoins { get; }
 
+	/// <param name="unused">Unused parameter, make it an empty list.</param>
 	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
 	{
 		var targetMoney = target as Money;
