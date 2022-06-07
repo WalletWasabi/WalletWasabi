@@ -5,7 +5,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(Title = "Payment successful")]
+[NavigationMetaData(Title = "Transaction sent")]
 public partial class SendSuccessViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
