@@ -16,6 +16,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
 	private const int NumBins = 250;
 
+	/// The length of spectrum animation pause (seconds * FPS) to optimize GPU/CPU usage.
+	private const int EffectRepeatInterval = 15 * 60;
+
+	// The lenght of spectrum animation (seconds * FPS).
+	private const int EffectLength = 5 * 60;
+
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
 
@@ -59,8 +65,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		const int EffectRepeatInterval = 15 * 60;
-		const int EffectLength = 5 * 60;
 		var isEffectActive = true;
 		var frameCounter = 0;
 
