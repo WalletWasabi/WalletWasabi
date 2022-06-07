@@ -191,7 +191,15 @@ public class DependencyGraphTaskScheduler
 			}
 		).ToImmutableArray();
 
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		try
+		{
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+		catch
+		{
+			// No matter the reason why the output was not registered we should continue.
+		}
+
 		return tasks
 			.Where(x => x.IsCompletedSuccessfully)
 			.Select(x => x.Result)
