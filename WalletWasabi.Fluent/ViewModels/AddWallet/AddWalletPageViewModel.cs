@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(
 	Title = "Add Wallet",
-	Caption = "Create, recover or import wallet",
+	Caption = "Create, connect, import or recover",
 	Order = 2,
 	Category = "General",
 	Keywords = new[]
