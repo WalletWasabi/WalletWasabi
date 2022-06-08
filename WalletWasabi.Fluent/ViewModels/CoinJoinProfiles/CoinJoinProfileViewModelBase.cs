@@ -21,10 +21,9 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 				return true;
 			}
 
-			// Only the left side is null.
 			return false;
 		}
-		// Equals handles case of null on right side.
+
 		return x.Equals(y);
 	}
 

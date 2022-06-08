@@ -17,13 +17,6 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private bool _autoCoinJoin;
 
-	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
-		{
-			new EconomicCoinJoinProfileViewModel(),
-			new SpeedyCoinJoinProfileViewModel(),
-			new PrivateCoinJoinProfileViewModel()
-		};
-
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
@@ -43,6 +36,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		_selectedProfile = IdentifySelectedProfile(keyManager);
 	}
+
+	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
+	{
+			new EconomicCoinJoinProfileViewModel(),
+			new SpeedyCoinJoinProfileViewModel(),
+			new PrivateCoinJoinProfileViewModel()
+	};
 
 	public static CoinJoinProfileViewModelBase IdentifySelectedProfile(KeyManager keyManager)
 	{
