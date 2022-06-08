@@ -19,8 +19,6 @@
   </i:Interaction.Behaviors>
   <UserControl.Styles>
 
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/CuedScrollViewer.axaml" />
-
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -114,7 +112,9 @@
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
+
   </UserControl.Styles>
+
   <DockPanel Margin="0 -5 0 5">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
       <c:NavBarListBox Items="{Binding BottomItems}"
