@@ -15,11 +15,14 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
+	[AutoNotify] private bool _autoCoinJoin;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
+
+		AutoCoinJoin = keyManager.AutoCoinJoin;
 
 		Profiles = new()
 		{
@@ -39,13 +42,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 			if (_selectedProfile is PrivateCoinJoinProfileViewModel p)
 			{
 				Profiles.Remove(p);
-				_selectedProfile = new CustomPrivateCoinJoinProfileViewModel(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
+				_selectedProfile = new PrivateCoinJoinProfileViewModel(keyManager.AnonScoreTarget);
 				Profiles.Add(_selectedProfile);
 			}
 
 			if (_selectedProfile is null && keyManager.CoinjoinProfile is { })
 			{
-				SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AutoCoinJoin, keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
+				SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
 			}
 		}
 
@@ -65,10 +68,11 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
-		if (dialogResult.Result is ManualCoinJoinProfileViewModel profile)
+		if (dialogResult.Result is ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult result)
 		{
 			SelectedProfile = null;
-			SelectedManualProfile = profile;
+			SelectedManualProfile = result.Profile;
+			AutoCoinJoin = result.AutoCoinJoin;
 		}
 	}
 
@@ -76,7 +80,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
+		keyManager.AutoCoinJoin = AutoCoinJoin;
 		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 		keyManager.IsCoinjoinProfileSelected = true;

@@ -60,9 +60,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				AutoCoinJoin = !AutoCoinJoin;
 				_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
 				_wallet.KeyManager.ToFile();
+				this.RaisePropertyChanged(nameof(AutoCoinJoin));
 			}
 			else
 			{
