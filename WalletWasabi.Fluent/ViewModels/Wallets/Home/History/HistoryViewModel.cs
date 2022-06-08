@@ -66,6 +66,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		145				210			true
 		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
+		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
+
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
 			Columns =
