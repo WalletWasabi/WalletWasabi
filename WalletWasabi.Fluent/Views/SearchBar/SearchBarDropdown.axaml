@@ -84,12 +84,12 @@
 
     <DataTemplate DataType="searchItems:AutocloseActionableItem">
 
-      <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent" Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
+      <Button Command="{Binding Command}" Classes="searchItem" Background="Transparent"
+              Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
         <DockPanel Background="Transparent" Margin="10">
-          <Panel DockPanel.Dock="Left" Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center">
-            <PathIcon Foreground="{DynamicResource AcrylicTrimForeground}" Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-          </Panel>
+          <PathIcon Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center" Foreground="{DynamicResource AcrylicTrimForeground}"
+                    Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
           <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
           <TextBlock Opacity="0.5" VerticalAlignment="Center" Text="{Binding Description}"
                      TextTrimming="CharacterEllipsis" />
