@@ -33,23 +33,8 @@ public static class NotificationHelpers
 	{
 		if (NotificationManager is { } nm)
 		{
-			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), () => TryExecute(onClick))));
+			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}
-	}
-
-	private static void TryExecute(Action? action)
-	{
-		if (action is null)
-		{
-			return;
-		}
-
-		if (MainViewModel.Instance.IsBusy)
-		{
-			return;
-		}
-
-		action();
 	}
 
 	public static void Show(string walletName, ProcessedResult result, Action onClick)
