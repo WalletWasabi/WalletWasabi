@@ -228,10 +228,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-
-			// The original ordering prefers the txn block index more than the date so adjust it,
-			// as in the UI the date is more important.
-			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.Height).ThenBy(x => x.DateTime).ToList();
+			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
 
 			_transactionSourceList.Edit(x =>
