@@ -161,6 +161,12 @@ public partial class MainViewModel : ViewModelBase
 
 	public static MainViewModel Instance { get; } = new();
 
+	public bool IsBusy =>
+		MainScreen.CurrentPage is { IsBusy: true } ||
+		DialogScreen.CurrentPage is { IsBusy: true } ||
+		FullScreen.CurrentPage is { IsBusy: true } ||
+		CompactDialogScreen.CurrentPage is { IsBusy: true };
+
 	public void ClearStacks()
 	{
 		MainScreen.Clear();
