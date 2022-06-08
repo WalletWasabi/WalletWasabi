@@ -76,7 +76,8 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			var clipboardValue = await clipboard.GetTextAsync();
+			await clipboard.ClearAsync();
+			var clipboardValue = (await clipboard.GetTextAsync()) ?? "";
 
 			if (AssociatedObject is null)
 			{
@@ -90,10 +91,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 			AssociatedObject.Classes.Remove(FlashAnimation);
 
-			if (!string.IsNullOrEmpty(clipboardValue))
-			{
-				clipboardValue = clipboardValue.Trim();
-			}
+			clipboardValue = clipboardValue.Trim();
 
 			if (clipboardValue != CurrentAddress &&
 			    AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
