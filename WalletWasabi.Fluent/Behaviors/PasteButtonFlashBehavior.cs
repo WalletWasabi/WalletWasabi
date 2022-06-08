@@ -90,7 +90,10 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 			AssociatedObject.Classes.Remove(FlashAnimation);
 
-			clipboardValue = clipboardValue.Trim();
+			if (!string.IsNullOrEmpty(clipboardValue))
+			{
+				clipboardValue = clipboardValue.Trim();
+			}
 
 			if (clipboardValue != CurrentAddress &&
 			    AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
