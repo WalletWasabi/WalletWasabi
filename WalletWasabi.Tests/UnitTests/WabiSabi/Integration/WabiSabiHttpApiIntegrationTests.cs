@@ -255,11 +255,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		{
 			if (coinJoinProgress is RoundEnded roundEnded)
 			{
-				if (roundEnded.LastRoundState.EndRoundState is EndRoundState.NotAllAlicesSign)
-				{
-					failedBecauseNotAllAlicesSigned = true;
-					cts.Cancel(); // this is what we were waitin for so, end the test.
-				}
+				failedBecauseNotAllAlicesSigned = roundEnded.LastRoundState.EndRoundState is EndRoundState.NotAllAlicesSign;
+				cts.Cancel(); // this is what we were waitin for so, end the test.
 			}
 		}
 
