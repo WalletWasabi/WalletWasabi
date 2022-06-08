@@ -41,7 +41,7 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
-	private readonly CoinJoinManager? _coinJoinManager;
+	private readonly CoinJoinManager _coinJoinManager;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -57,7 +57,7 @@ public partial class SendViewModel : RoutableViewModel
 		_to = "";
 		_wallet = wallet;
 		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
-		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
@@ -312,12 +312,9 @@ public partial class SendViewModel : RoutableViewModel
 			To = "";
 			AmountBtc = 0;
 			ClearValidations();
-
-			if (_coinJoinManager is { } coinJoinManager)
-			{
-				coinJoinManager.IsUserInSendWorkflow = true;
-			}
 		}
+
+		_coinJoinManager.IsUserInSendWorkflow = true;
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -335,9 +332,6 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		base.OnNavigatedFrom(isInHistory);
 
-		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
-		{
-			coinJoinManager.IsUserInSendWorkflow = false;
-		}
+		_coinJoinManager.IsUserInSendWorkflow = false;
 	}
 }

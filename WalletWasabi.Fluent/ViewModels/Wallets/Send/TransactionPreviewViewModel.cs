@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -25,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 [NavigationMetaData(Title = "Transaction Preview")]
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
+	private readonly CoinJoinManager _coinJoinManager;
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly bool _isFixedAmount;
 	private readonly Wallet _wallet;
@@ -40,6 +42,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
 	{
+		_coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
 		_undoHistory = new();
 		_wallet = wallet;
 		_info = info;
@@ -434,6 +437,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!isInHistory)
 		{
 			RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
+			_coinJoinManager.IsUserInSendWorkflow = true;
 		}
 	}
 
@@ -444,6 +448,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_cancellationTokenSource.Cancel();
 			_cancellationTokenSource.Dispose();
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
+			_coinJoinManager.IsUserInSendWorkflow = false;
 		}
 
 		base.OnNavigatedFrom(isInHistory);
