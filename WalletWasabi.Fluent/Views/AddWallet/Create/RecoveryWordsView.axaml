@@ -9,7 +9,7 @@
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Write down the numbered words in correct order. These are the Recovery Words, which are needed to recover this wallet. It is very important that these are stored in a safe place."
+                 Caption="Write down the following Recovery Words in the correct order and store them in a safe place. They are needed to recover this wallet."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
