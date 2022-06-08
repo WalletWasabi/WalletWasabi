@@ -210,7 +210,12 @@ public class CoinJoinClient
 
 			var (wereAllOutputsRegistered, outputTxOuts) = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
-			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, wereAllOutputsRegistered, cancellationToken).ConfigureAwait(false);
+			var aliceClientsToSign = wereAllOutputsRegistered
+				? registeredAliceClients
+				: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
+
+			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, aliceClientsToSign, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			roundState.LogDebug($"{aliceClientsToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -232,7 +237,7 @@ public class CoinJoinClient
 			return new CoinJoinResult(
 				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
-				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin).ToImmutableList(),
+				RegisteredCoins: aliceClientsToSign.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
 		finally
@@ -686,7 +691,7 @@ public class CoinJoinClient
 		return (wereAllOutputsRegistered, registeredOutputs);
 	}
 
-	private async Task<Transaction> ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, bool shouldAllAlicesSign, CancellationToken cancellationToken)
+	private async Task<Transaction> ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> aliceClientsToSign, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
 	{
 		// Signing.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -717,13 +722,7 @@ public class CoinJoinClient
 		// Send signature.
 		var combinedToken = linkedCts.Token;
 
-		var alicesToSign = shouldAllAlicesSign
-			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
-		
-		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
-
+		await SignTransactionAsync(aliceClientsToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		return unsignedCoinJoin;
 	}
 
