@@ -111,7 +111,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
-		// Labels			LabelsColumnView		Labels		*			-				490			true
+		// Labels			LabelsColumnView		Labels		*			-				-			true
 
 		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
 		{
@@ -177,7 +177,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CanUserSortColumn = true,
 						CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
 						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel),
-						MaxWidth = new GridLength(490, GridUnitType.Pixel)
 					},
 					width: new GridLength(1, GridUnitType.Star)),
 			}
