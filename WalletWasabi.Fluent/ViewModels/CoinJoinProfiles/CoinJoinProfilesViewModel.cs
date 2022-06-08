@@ -61,7 +61,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private async Task OnManualSetupAsync()
 	{
 		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
-		var dialog = new ManualCoinJoinProfileDialogViewModel(current);
+		var dialog = new ManualCoinJoinProfileDialogViewModel(current, AutoCoinJoin);
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 

@@ -16,9 +16,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
-	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
+	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current, bool autoCoinJoin)
 	{
-		_autoCoinjoin = true;
+		_autoCoinjoin = autoCoinJoin;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
