@@ -155,7 +155,7 @@
 
           <!-- Scroll cues (hints)  -->
           <!-- They are disabled for now. If we want to enable them, just remove the IsVisible="False" attribute below --> 
-          <Panel x:Name="ScrollCues" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" IsVisible="False">
+          <Panel x:Name="ScrollCues" Grid.Row="0" Grid.ColumnSpan="2" Grid.RowSpan="2" Grid.Column="0" IsVisible="False">
             <RepeatButton x:Name="TopCue"
                           VerticalAlignment="Top"
                           Command="{Binding LineUp, RelativeSource={RelativeSource TemplatedParent}}">
@@ -175,7 +175,7 @@
 
             <RepeatButton x:Name="BottomCue"
                           Command="{Binding LineDown, RelativeSource={RelativeSource TemplatedParent}}"
-                          Grid.Column="0" VerticalAlignment="Bottom">
+                          VerticalAlignment="Bottom">
               <RepeatButton.IsVisible>
                 <MultiBinding Converter="{x:Static converters:MenuScrollingVisibilityConverter.Instance}"
                               ConverterParameter="100">
@@ -186,7 +186,7 @@
                 </MultiBinding>
 
               </RepeatButton.IsVisible>
-              <Viewbox Classes="ScrollViewerCuePath" Stretch="Fill">
+              <Viewbox Classes="ScrollViewerCuePath">
                 <Path Data="{StaticResource DownArrow}" Classes="ScrollViewerCuePath" />
               </Viewbox>
             </RepeatButton>
@@ -205,14 +205,13 @@
   <Style Selector="Viewbox.ScrollViewerCuePath">
     <Setter Property="Width" Value="20" />
     <Setter Property="Height" Value="8" />
-    <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="Grid.ColumnSpan" Value="2" />
+    <Setter Property="Stretch" Value="Fill" />
   </Style>
 
   <Style Selector="RepeatButton">
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="Grid.ColumnSpan" Value="2"/>
-    <Setter Property="Background" Value="Transparent"></Setter>
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <Style Selector="ScrollBar RepeatButton">
