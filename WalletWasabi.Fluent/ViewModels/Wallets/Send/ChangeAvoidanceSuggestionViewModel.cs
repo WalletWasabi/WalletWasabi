@@ -25,7 +25,8 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 	{
 		TransactionResult = transactionResult;
 
-		decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+		var totalAmount = transactionResult.CalculateDestinationAmount();
+		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 
 		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
 
@@ -38,7 +39,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
 			.Replace("(", "").Replace(")", "");
 
-		_amount = $"{total} BTC";
+		_amount = $"{totalAmount.ToFormattedString()} BTC";
 	}
 
 	public BuildTransactionResult TransactionResult { get; }

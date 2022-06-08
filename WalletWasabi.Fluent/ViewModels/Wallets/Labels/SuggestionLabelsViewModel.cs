@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -18,12 +19,12 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 
 	[AutoNotify] private bool _isCurrentTextValid;
 
-	public SuggestionLabelsViewModel(int topSuggestionsCount)
+	public SuggestionLabelsViewModel(int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{
 		_sourceLabels = new SourceList<SuggestionLabelViewModel>();
 		_topSuggestions = new ObservableCollectionExtended<string>();
 		_suggestions = new ObservableCollectionExtended<string>();
-		_labels = new ObservableCollectionExtended<string>();
+		_labels = new ObservableCollectionExtended<string>(labels ?? new List<string>());
 
 		UpdateLabels();
 		CreateSuggestions(topSuggestionsCount);

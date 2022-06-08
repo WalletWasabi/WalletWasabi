@@ -18,6 +18,7 @@ public class SmartCoinSelector : ICoinSelector
 
 	private IEnumerable<SmartCoin> UnspentCoins { get; }
 
+	/// <param name="unused">Unused parameter, make it an empty list.</param>
 	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
 	{
 		var targetMoney = target as Money;

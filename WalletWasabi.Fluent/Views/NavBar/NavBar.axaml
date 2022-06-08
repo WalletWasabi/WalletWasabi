@@ -82,11 +82,10 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
-
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
-       <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="-8, 0" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Margin" Value="-9, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
@@ -98,7 +97,7 @@
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
       <Setter Property="TextAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
-     </Style>
+    </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
@@ -112,7 +111,6 @@
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
-
   </UserControl.Styles>
   <DockPanel Margin="0 -5 0 5">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
@@ -128,7 +126,7 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right"
+            <Panel Classes="NavBarItemPanel utilities"
                    Cursor="Hand">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">

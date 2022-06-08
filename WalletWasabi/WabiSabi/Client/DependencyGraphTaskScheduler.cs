@@ -187,15 +187,16 @@ public class DependencyGraphTaskScheduler
 						hdPubKey.SetKeyState(KeyState.Used);
 					}
 
-					throw;
+					return null;
 				}
 			}
 		).ToImmutableArray();
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
+
 		return tasks
-			.Where(x => x.IsCompletedSuccessfully)
-			.Select(x => x.Result)
+			.Where(x => x.IsCompletedSuccessfully && x.Result is { })
+			.Select(x => x.Result!)
 			.ToImmutableList();
 	}
 

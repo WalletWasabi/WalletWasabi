@@ -40,6 +40,7 @@ public static class Services
 	/// Initializes global services used by fluent project.
 	/// </summary>
 	/// <param name="global">The global instance.</param>
+	/// <param name="singleInstanceChecker">The singleInstanceChecker instance.</param>
 	public static void Initialize(Global global, SingleInstanceChecker singleInstanceChecker)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
