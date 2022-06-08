@@ -17,6 +17,13 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private bool _autoCoinJoin;
 
+	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
+		{
+			new EconomicCoinJoinProfileViewModel(),
+			new SpeedyCoinJoinProfileViewModel(),
+			new PrivateCoinJoinProfileViewModel()
+		};
+
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
@@ -24,35 +31,25 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		AutoCoinJoin = keyManager.AutoCoinJoin;
 
-		Profiles = new()
-		{
-			new EconomicCoinJoinProfileViewModel(),
-			new SpeedyCoinJoinProfileViewModel(),
-			new PrivateCoinJoinProfileViewModel()
-		};
+		Profiles = DefaultProfiles.ToList();
+
+		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
 
 		if (isNewWallet)
 		{
 			_selectedProfile = Profiles[1];
-		}
-		else
-		{
-			_selectedProfile = Profiles.FirstOrDefault(x => x.Title == keyManager.CoinjoinProfile);
-
-			if (_selectedProfile is PrivateCoinJoinProfileViewModel p)
-			{
-				Profiles.Remove(p);
-				_selectedProfile = new PrivateCoinJoinProfileViewModel(keyManager.AnonScoreTarget);
-				Profiles.Add(_selectedProfile);
-			}
-
-			if (_selectedProfile is null && keyManager.CoinjoinProfile is { })
-			{
-				SelectedManualProfile = new ManualCoinJoinProfileViewModel(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours);
-			}
+			return;
 		}
 
-		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
+		_selectedProfile = IdentifySelectedProfile(keyManager);
+	}
+
+	public static CoinJoinProfileViewModelBase IdentifySelectedProfile(KeyManager keyManager)
+	{
+		var currentProfile = new ManualCoinJoinProfileViewModel(keyManager);
+		var result = DefaultProfiles.FirstOrDefault(x => x == currentProfile) ?? currentProfile;
+
+		return result;
 	}
 
 	public ICommand ManualSetupCommand { get; }
@@ -84,7 +81,6 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 		keyManager.IsCoinjoinProfileSelected = true;
-		keyManager.CoinjoinProfile = selected.Title;
 
 		if (isNewWallet)
 		{

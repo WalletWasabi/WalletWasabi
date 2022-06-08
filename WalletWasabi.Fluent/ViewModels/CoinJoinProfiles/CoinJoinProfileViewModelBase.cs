@@ -1,3 +1,5 @@
+using WalletWasabi.Blockchain.Keys;
+
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public abstract class CoinJoinProfileViewModelBase : ViewModelBase
@@ -8,7 +10,25 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual int AnonScoreTarget { get; } = 5;
 
-	public abstract int FeeRateMedianTimeFrameHours { get; }
+	public virtual int FeeRateMedianTimeFrameHours { get; }
+
+	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
+	{
+		if (x is null)
+		{
+			if (y is null)
+			{
+				return true;
+			}
+
+			// Only the left side is null.
+			return false;
+		}
+		// Equals handles case of null on right side.
+		return x.Equals(y);
+	}
+
+	public static bool operator !=(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y) => !(x == y);
 
 	public override bool Equals(object? obj)
 	{

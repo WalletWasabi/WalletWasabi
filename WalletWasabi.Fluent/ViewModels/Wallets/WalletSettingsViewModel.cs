@@ -53,7 +53,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
+			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
+			{
+				AutoCoinJoin = !AutoCoinJoin;
+			}
+			else
 			{
 				await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
 			}
@@ -62,7 +66,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 			{
 				_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
 				_wallet.KeyManager.ToFile();
-				this.RaisePropertyChanged(nameof(AutoCoinJoin));
 			}
 			else
 			{
@@ -116,17 +119,18 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
-			(_wallet.KeyManager.IsCoinjoinProfileSelected, _wallet.KeyManager.CoinjoinProfile) switch
+			(_wallet.KeyManager.IsCoinjoinProfileSelected, CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.KeyManager)) switch
 			{
-				(true, string x) => x,
-				(true, null) => "[unknown]",
-				(false, _) => "none"
+				(true, CoinJoinProfileViewModelBase x) => x.Title,
+				(false, _) => "None",
+				_ => "Unknown"
 			};
 	}
 
 	private async Task SelectCoinjoinProfileAsync()
 	{
 		await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+		AutoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>
