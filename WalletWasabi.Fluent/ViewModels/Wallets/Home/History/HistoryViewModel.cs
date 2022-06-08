@@ -228,7 +228,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ToList();
+			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
 
 			_transactionSourceList.Edit(x =>
