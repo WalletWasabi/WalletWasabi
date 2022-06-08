@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SendViewModel : RoutableViewModel
 {
+	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
@@ -49,8 +50,6 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
-
-	private bool _parsingUrl;
 
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -170,14 +169,13 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			var text = await clipboard.GetTextAsync();
 
-			_parsingUrl = true;
-
-			if (!TryParseUrl(text) && pasteIfInvalid)
+			lock (_parsingLock)
 			{
-				To = text;
+				if (!TryParseUrl(text) && pasteIfInvalid)
+				{
+					To = text;
+				}
 			}
-
-			_parsingUrl = false;
 		}
 	}
 
@@ -239,18 +237,10 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ParseToField(string s)
 	{
-		if (_parsingUrl)
+		lock (_parsingLock)
 		{
-			return;
+			Dispatcher.UIThread.Post(() => TryParseUrl(s));
 		}
-
-		_parsingUrl = true;
-
-		Dispatcher.UIThread.Post(() =>
-		{
-			TryParseUrl(s);
-			_parsingUrl = false;
-		});
 	}
 
 	private bool TryParseUrl(string? text)
