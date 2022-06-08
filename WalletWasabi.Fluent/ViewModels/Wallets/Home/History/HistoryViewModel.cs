@@ -13,7 +13,6 @@ using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -231,7 +230,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-			var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
+			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
+			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
 
 			_transactionSourceList.Edit(x =>
 			{
