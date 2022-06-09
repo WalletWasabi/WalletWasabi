@@ -50,6 +50,6 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			},
 			speedUpTransactionCommandCanExecute);
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
+		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}
 }
