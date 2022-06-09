@@ -76,7 +76,6 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			await clipboard.ClearAsync();
 			var clipboardValue = (await clipboard.GetTextAsync()) ?? "";
 
 			if (AssociatedObject is null)
