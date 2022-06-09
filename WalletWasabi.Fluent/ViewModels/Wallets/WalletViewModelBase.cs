@@ -103,17 +103,21 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 			.DisposeWith(disposables);
 	}
 
-	public int CompareTo([AllowNull] WalletViewModelBase other)
+	public int CompareTo(WalletViewModelBase? other)
 	{
-		if (WalletState != other!.WalletState)
+		if (other is null)
 		{
-			if (WalletState == WalletState.Started || other.WalletState == WalletState.Started)
-			{
-				return other.WalletState.CompareTo(WalletState);
-			}
+			return -1;
 		}
 
-		return Title.CompareTo(other!.Title);
+		var result = other.IsLoggedIn.CompareTo(IsLoggedIn);
+
+		if (result == 0)
+		{
+			result = string.Compare(Title, other.Title, StringComparison.Ordinal);
+		}
+
+		return result;
 	}
 
 	public override string ToString() => WalletName;

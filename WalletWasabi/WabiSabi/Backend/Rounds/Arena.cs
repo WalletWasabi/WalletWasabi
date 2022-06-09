@@ -284,8 +284,8 @@ public partial class Arena : PeriodicRunner
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
-					throw new TimeoutException(
-						$"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
+					round.LogWarning($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
+					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 				}
 			}
 			catch (RPCException ex)
@@ -296,7 +296,7 @@ public partial class Arena : PeriodicRunner
 			catch (Exception ex)
 			{
 				round.LogWarning($"Signing phase failed, reason: '{ex}'.");
-				await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+				round.EndRound(EndRoundState.AbortedWithError);
 			}
 		}
 	}

@@ -89,7 +89,7 @@ public class Program
 		try
 		{
 			Global = CreateGlobal(dataDir, uiConfig, config);
-			Services.Initialize(Global);
+			Services.Initialize(Global, singleInstanceChecker);
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
 			AppBuilder

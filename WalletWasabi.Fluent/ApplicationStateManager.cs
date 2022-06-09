@@ -2,11 +2,13 @@ using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
+using ReactiveUI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent;
 
@@ -42,6 +44,11 @@ public class ApplicationStateManager : IMainWindowService
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 		ApplicationViewModel = new ApplicationViewModel(this);
+
+		Observable
+			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
 
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)

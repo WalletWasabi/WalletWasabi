@@ -13,6 +13,7 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+
   <i:Interaction.Behaviors>
     <behaviors:NavBarSelectedIndicatorParentBehavior />
   </i:Interaction.Behaviors>
@@ -82,11 +83,10 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
-
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
-       <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="-8, 0" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Margin" Value="-9, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
@@ -98,7 +98,7 @@
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
       <Setter Property="TextAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
-     </Style>
+    </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
@@ -114,6 +114,7 @@
     </Style>
 
   </UserControl.Styles>
+
   <DockPanel Margin="0 -5 0 5">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
       <c:NavBarListBox Items="{Binding BottomItems}"
