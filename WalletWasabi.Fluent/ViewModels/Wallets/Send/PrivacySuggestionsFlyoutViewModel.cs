@@ -112,7 +112,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					tryToSign: false);
 
 				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
-					info.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+					info.Amount.ToDecimal(MoneyUnit.BTC),
+					smallerTransaction,
 					usdExchangeRate);
 
 				// Sanity check not to show crazy suggestions
