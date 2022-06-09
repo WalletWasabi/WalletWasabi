@@ -31,7 +31,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(3);
+		SuggestionLabels = new SuggestionLabelsViewModel(Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
