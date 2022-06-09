@@ -6,7 +6,9 @@ using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
@@ -19,8 +21,9 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 
 	[AutoNotify] private bool _isCurrentTextValid;
 
-	public SuggestionLabelsViewModel(Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
+	public SuggestionLabelsViewModel(KeyManager keyManager, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{
+		KeyManager = keyManager;
 		Intent = intent;
 		_sourceLabels = new SourceList<SuggestionLabelViewModel>();
 		_topSuggestions = new ObservableCollectionExtended<string>();
@@ -37,26 +40,61 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 
 	public ObservableCollection<string> Labels => _labels;
 
+	public KeyManager KeyManager { get; }
 	public Intent Intent { get; }
 
 	public void UpdateLabels()
 	{
 		var labelPool = new Dictionary<string, int>(); // int: score.
-		foreach (var label in WalletHelpers.GetAddressLabels().SelectMany(x => x.Labels))
+
+		// Make recent and receive labels count more for the current wallet
+		var multiplier = 100;
+		foreach (var label in KeyManager.GetReceiveLabels().Reverse().SelectMany(x => x.Labels))
 		{
-			var score = Intent == Intent.Receive ? 10 : 1;
+			var score = (Intent == Intent.Receive ? 100 : 1) * multiplier;
+			if (!labelPool.TryAdd(label, score))
+			{
+				labelPool[label] += score;
+			}
+
+			if (multiplier > 1)
+			{
+				multiplier--;
+			}
+		}
+
+		// Receive addresses should be more dominant.
+		foreach (var label in WalletHelpers.GetReceiveAddressLabels().SelectMany(x => x.Labels))
+		{
+			var score = Intent == Intent.Receive ? 100 : 1;
 			if (!labelPool.TryAdd(label, score))
 			{
 				labelPool[label] += score;
 			}
 		}
 
-		foreach (var label in WalletHelpers.GetTransactionLabels().SelectMany(x => x.Labels))
+		// Change addresses shouldn't be much dominant, but should be present.
+		foreach (var label in WalletHelpers.GetChangeAddressLabels().SelectMany(x => x.Labels))
 		{
-			var score = Intent == Intent.Send ? 10 : 1;
+			var score = 1;
 			if (!labelPool.TryAdd(label, score))
 			{
 				labelPool[label] += score;
+			}
+		}
+
+		multiplier = 100; // Make recent labels count more.
+		foreach (var label in WalletHelpers.GetTransactionLabels().SelectMany(x => x.Labels).Reverse())
+		{
+			var score = (Intent == Intent.Send ? 100 : 1) * multiplier;
+			if (!labelPool.TryAdd(label, score))
+			{
+				labelPool[label] += score;
+			}
+
+			if (multiplier > 1)
+			{
+				multiplier--;
 			}
 		}
 

@@ -14,7 +14,7 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 
 	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{
-		SuggestionLabels = new SuggestionLabelsViewModel(Intent.Receive, 3, hdPubKey.Label);
+		SuggestionLabels = new SuggestionLabelsViewModel(keyManager, Intent.Receive, 3, hdPubKey.Label);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

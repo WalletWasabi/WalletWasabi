@@ -387,7 +387,7 @@ public class KeyManager
 		newKey.SetLabel(label, kmToFile: this);
 
 		SetDoNotSkipSynchronization();
-		
+
 		return newKey;
 	}
 
@@ -522,7 +522,9 @@ public class KeyManager
 		return extKeysAndPubs;
 	}
 
-	public IEnumerable<SmartLabel> GetLabels() => GetKeys().Select(x => x.Label);
+	public IEnumerable<SmartLabel> GetChangeLabels() => GetKeys(x => x.IsInternal).Select(x => x.Label);
+
+	public IEnumerable<SmartLabel> GetReceiveLabels() => GetKeys(x => !x.IsInternal).Select(x => x.Label);
 
 	public ExtKey GetMasterExtKey(string password)
 	{

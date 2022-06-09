@@ -22,13 +22,20 @@ public static class WalletHelpers
 		return keyManager.IsHardwareWallet ? WalletType.Hardware : WalletType.Normal;
 	}
 
+	/// <returns>Labels ordered by blockchain.</returns>
 	public static IEnumerable<SmartLabel> GetTransactionLabels() => Services.BitcoinStore.TransactionStore.GetLabels();
 
-	public static IEnumerable<SmartLabel> GetAddressLabels() =>
+	public static IEnumerable<SmartLabel> GetReceiveAddressLabels() =>
 		Services.WalletManager
 			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
 			.Select(x => x.KeyManager)
-			.SelectMany(x => x.GetLabels());
+			.SelectMany(x => x.GetReceiveLabels());
+
+	public static IEnumerable<SmartLabel> GetChangeAddressLabels() =>
+		Services.WalletManager
+			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
+			.Select(x => x.KeyManager)
+			.SelectMany(x => x.GetChangeLabels());
 
 	public static (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
