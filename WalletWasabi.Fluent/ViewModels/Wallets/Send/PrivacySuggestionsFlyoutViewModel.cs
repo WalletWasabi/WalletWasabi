@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -50,16 +51,16 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 		var loadingRing = new LoadingSuggestionViewModel();
 		Suggestions.Add(loadingRing);
 
+		// Exchange rate can change substantially during computation itself.
+		// Reporting up-to-date exchange rates would just confuse users.
+		decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
 		var onlyPrivateCoinsUsed = transaction.SpentCoins.All(x => x.HdPubKey.AnonymitySet > wallet.KeyManager.AnonScoreTarget);
 
 		if (hasChange && onlyPrivateCoinsUsed && !isFixedAmount && !info.IsPayJoin)
 		{
-			// Exchange rate can change substantially during computation itself.
-			// Reporting up-to-date exchange rates would just confuse users.
-			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
-
 			int originalInputCount = transaction.SpentCoins.Count();
 			int maxInputCount = (int)Math.Max(3, originalInputCount * 1.3);
 
@@ -74,6 +75,51 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			await foreach (var suggestion in suggestions)
 			{
 				Suggestions.Insert(Suggestions.Count - 1, suggestion);
+			}
+		}
+		else if (hasChange && !isFixedAmount && !info.IsPayJoin)
+		{
+			// If non-private coins were used to build the original transaction, show only basic suggestions, otherwise we might do more harm than good.
+
+			BuildTransactionResult largerTransaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					destination,
+					info.UserLabels,
+					info.FeeRate,
+					transaction.SpentCoins,
+					tryToSign: false);
+
+			var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(info.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction, usdExchangeRate);
+
+			// Sanity check not to show crazy suggestions
+			if (largerTransaction.CalculateDestinationAmount().Satoshi < MoreSelectionStrategy.MaxExtraPayment * transaction.CalculateDestinationAmount().Satoshi)
+			{
+				Suggestions.Insert(Suggestions.Count - 1, largerSuggestion);
+			}
+
+			ChangeAvoidanceSuggestionViewModel? smallerSuggestion = null;
+			if (transaction.SpentCoins.Count() > 1)
+			{
+				BuildTransactionResult smallerTransaction = TransactionHelpers.BuildChangelessTransaction(
+					wallet,
+					destination,
+					info.UserLabels,
+					info.FeeRate,
+					transaction
+						.SpentCoins
+						.OrderByDescending(x => x.Amount)
+						.Skip(1),
+					tryToSign: false);
+
+				smallerSuggestion = new ChangeAvoidanceSuggestionViewModel(
+					info.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+					usdExchangeRate);
+
+				// Sanity check not to show crazy suggestions
+				if (smallerTransaction.CalculateDestinationAmount().Satoshi > LessSelectionStrategy.MinPaymentThreshold * transaction.CalculateDestinationAmount().Satoshi)
+				{
+					Suggestions.Insert(Suggestions.Count - 1, smallerSuggestion);
+				}
 			}
 		}
 
