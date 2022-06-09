@@ -10,11 +10,6 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class CoinJoinScriptStore
 {
-	public CoinJoinScriptStore()
-		: this(Enumerable.Empty<Script>())
-	{
-	}
-	
 	public CoinJoinScriptStore(IEnumerable<Script> scripts)
 	{
 		Scripts = new HashSet<Script>(scripts);

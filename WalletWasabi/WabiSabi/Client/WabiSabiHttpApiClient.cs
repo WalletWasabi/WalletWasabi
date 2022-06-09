@@ -122,7 +122,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 		if (!response.IsSuccessStatusCode)
 		{
-			await response.ThrowUnwrapExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
