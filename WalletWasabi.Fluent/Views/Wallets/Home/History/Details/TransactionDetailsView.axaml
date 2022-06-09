@@ -33,12 +33,15 @@
       <Separator />
 
       <!-- Status -->
-      <c:PreviewItem Icon="{StaticResource status_regular}"
+      <c:PreviewItem Icon="{StaticResource copy_confirmed}"
                      Label="Status">
-        <Panel>
-          <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
-          <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
-        </Panel>
+        <StackPanel Orientation="Horizontal">
+          <Panel>
+            <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+            <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
+          </Panel>
+          <TextBlock IsVisible="{Binding IsConfirmed}" Margin="4 0 0 0 " Text="{Binding Confirmations, StringFormat='({0} confirmations)'}" />
+        </StackPanel>
       </c:PreviewItem>
 
       <Separator />
@@ -71,15 +74,6 @@
         <TextBlock Text="{Binding BlockHeight}" />
       </c:PreviewItem>
       <Separator IsVisible="{Binding IsConfirmed}" />
-
-      <!-- Confirmations -->
-      <c:PreviewItem Icon="{StaticResource copy_confirmed}"
-                     Label="Confirmations"
-                     TextValue="{Binding Confirmations}">
-        <TextBlock Text="{Binding Confirmations}" />
-      </c:PreviewItem>
-
-      <Separator />
 
       <!-- Labels -->
       <c:PreviewItem Icon="{StaticResource entities_regular}"
