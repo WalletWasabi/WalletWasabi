@@ -13,6 +13,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <StackPanel Spacing="20" Margin="0 30">
+      <!-- TODO: It is getting messy... A separate settings page should be created for HW wallets. -->
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
