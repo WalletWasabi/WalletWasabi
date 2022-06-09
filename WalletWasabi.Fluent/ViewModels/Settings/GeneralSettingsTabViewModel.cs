@@ -17,12 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Keywords = new[]
 	{
 			"Settings", "General", "Bitcoin", "Dark", "Mode", "Run", "Wasabi", "Computer", "System", "Start", "Background", "Close",
-			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats"
+			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats", "Enable", "GPU"
 	},
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 {
 	[AutoNotify] private bool _darkModeEnabled;
+	[AutoNotify] private bool _enableGpu;
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
@@ -35,6 +36,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
+		_enableGpu = Services.UiConfig.EnableGpu;
 		_autoCopy = Services.UiConfig.Autocopy;
 		_autoPaste = Services.UiConfig.AutoPaste;
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
@@ -54,6 +56,11 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 					Services.UiConfig.DarkModeEnabled = x;
 					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
 				});
+
+		this.WhenAnyValue(x => x.EnableGpu)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.EnableGpu = x);
 
 		this.WhenAnyValue(x => x.AutoCopy)
 			.ObserveOn(RxApp.TaskpoolScheduler)

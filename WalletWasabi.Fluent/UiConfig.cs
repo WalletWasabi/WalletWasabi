@@ -24,6 +24,7 @@ public class UiConfig : ConfigBase
 	private bool _autoPaste;
 	private int _feeTarget;
 	private bool _sendAmountConversionReversed;
+	private bool _enableGpu;
 
 	public UiConfig() : base()
 	{
@@ -50,7 +51,9 @@ public class UiConfig : ConfigBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
-		this.WhenAnyValue(x => x.SendAmountConversionReversed)
+		this.WhenAnyValue(
+				x => x.SendAmountConversionReversed,
+				x => x.EnableGpu)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -127,6 +130,14 @@ public class UiConfig : ConfigBase
 	{
 		get => _darkModeEnabled;
 		set => RaiseAndSetIfChanged(ref _darkModeEnabled, value);
+	}
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "EnableGpu", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool EnableGpu
+	{
+		get => _enableGpu;
+		set => RaiseAndSetIfChanged(ref _enableGpu, value);
 	}
 
 	[DefaultValue(null)]
