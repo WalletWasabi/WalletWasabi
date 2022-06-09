@@ -91,7 +91,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 			var largerSuggestion = new ChangeAvoidanceSuggestionViewModel(info.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction, usdExchangeRate);
 
-			// Sanity check not to show crazy suggestions
+			// Sanity check
 			if (largerTransaction.CalculateDestinationAmount().Satoshi < MoreSelectionStrategy.MaxExtraPayment * transaction.CalculateDestinationAmount().Satoshi)
 			{
 				Suggestions.Insert(Suggestions.Count - 1, largerSuggestion);
@@ -107,7 +107,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					info.FeeRate,
 					transaction
 						.SpentCoins
-						.OrderByDescending(x => x.Amount)
+						.OrderBy(x => x.Amount)
 						.Skip(1),
 					tryToSign: false);
 
@@ -116,7 +116,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					smallerTransaction,
 					usdExchangeRate);
 
-				// Sanity check not to show crazy suggestions
+				// Sanity check
 				if (smallerTransaction.CalculateDestinationAmount().Satoshi > LessSelectionStrategy.MinPaymentThreshold * transaction.CalculateDestinationAmount().Satoshi)
 				{
 					Suggestions.Insert(Suggestions.Count - 1, smallerSuggestion);
