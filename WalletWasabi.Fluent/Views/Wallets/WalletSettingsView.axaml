@@ -25,14 +25,15 @@
         </DockPanel>
 
         <StackPanel Spacing="10"
-                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this.">
+                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this."
+                    IsVisible="{Binding !IsWatchOnly}">
           <TextBlock Text="Auto-start coinjoin threshold (BTC)" />
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
 
-        <Separator />
+        <Separator IsVisible="{Binding !IsWatchOnly}" />
 
-        <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
+        <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private." IsVisible="{Binding !IsWatchOnly}">
           <TextBlock Text="Anonymity score target" />
           <DockPanel>
             <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelStrongBrush}"
@@ -43,7 +44,7 @@
         </StackPanel>
       </StackPanel>
 
-      <Separator />
+      <Separator IsVisible="{Binding !IsWatchOnly}" />
 
       <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
