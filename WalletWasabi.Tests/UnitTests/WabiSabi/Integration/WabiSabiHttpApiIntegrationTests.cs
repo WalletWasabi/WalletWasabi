@@ -56,11 +56,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var signingKey = new Key();
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 
-		var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 		   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, ownershipProof, CancellationToken.None));
 
-		var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
-		Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
+		Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
 	}
 
 	[Fact]
@@ -86,12 +85,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var signingKey = new Key();
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 
-		var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, timeoutCts.Token));
 
-		var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
-		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, wex.ErrorCode);
-		var inputBannedData = Assert.IsType<InputBannedExceptionData>(wex.ExceptionData);
+		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, ex.ErrorCode);
+		var inputBannedData = Assert.IsType<InputBannedExceptionData>(ex.ExceptionData);
 		Assert.True(inputBannedData.BannedUntil > DateTimeOffset.UtcNow);
 	}
 
