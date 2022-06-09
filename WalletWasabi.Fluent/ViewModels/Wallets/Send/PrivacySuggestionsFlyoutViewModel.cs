@@ -58,8 +58,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			// Reporting up-to-date exchange rates would just confuse users.
 			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
 
-			int originalInputCount = transaction.SpentCoins.Count();
-			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
+			int maxInputCount = transaction.SpentCoins.Count();
 
 			var pockets = wallet.GetPockets();
 			var spentCoins = transaction.SpentCoins;
