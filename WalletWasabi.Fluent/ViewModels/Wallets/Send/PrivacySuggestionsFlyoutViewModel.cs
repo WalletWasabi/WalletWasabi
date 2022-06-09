@@ -52,14 +52,16 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
 
-		if (hasChange && !isFixedAmount && !info.IsPayJoin)
+		var onlyPrivateCoinsUsed = transaction.SpentCoins.All(x => x.HdPubKey.AnonymitySet > wallet.KeyManager.AnonScoreTarget);
+
+		if (hasChange && onlyPrivateCoinsUsed && !isFixedAmount && !info.IsPayJoin)
 		{
 			// Exchange rate can change substantially during computation itself.
 			// Reporting up-to-date exchange rates would just confuse users.
 			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
 
 			int originalInputCount = transaction.SpentCoins.Count();
-			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
+			int maxInputCount = (int)Math.Max(3, originalInputCount * 1.3);
 
 			var pockets = wallet.GetPockets();
 			var spentCoins = transaction.SpentCoins;
