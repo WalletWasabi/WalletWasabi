@@ -26,9 +26,8 @@ public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
 
-	public TorMonitor(TimeSpan period, Uri backendUri, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory backendHttpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory backendHttpClientFactory) : base(period)
 	{
-		BackendUri = backendUri;
 		FallbackBackendUri = fallbackBackendUri;
 		TorProcessManager = torProcessManager;
 		TorHttpPool = backendHttpClientFactory.TorHttpPool!;
@@ -38,7 +37,6 @@ public class TorMonitor : PeriodicRunner
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
-	private Uri BackendUri { get; }
 	private Uri FallbackBackendUri { get; }
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
@@ -143,62 +141,46 @@ public class TorMonitor : PeriodicRunner
 		}
 	}
 
-	/// <inheritdoc/>
-	protected override async Task ActionAsync(CancellationToken token)
+/// <inheritdoc/>
+protected override async Task ActionAsync(CancellationToken token)
+{
+	if (TorHttpPool.TorDoesntWorkSince is not null) // If Tor misbehaves.
 	{
-		if (TorHttpPool.TorDoesntWorkSince is not null) // If Tor misbehaves.
+		TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
+
+		if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 		{
-			TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
-
-			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
+			if (TorHttpPool.LatestTorException is TorConnectCommandFailedException)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
+				Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
+
+				// Check if the fallback address (clearnet) works. It must work for us to switch to the fallback address.
+				try
 				{
-					if (torEx.RepField == RepField.OnionServiceIntroFailed)
-					{
-						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
-
-						// Check if the fallback address (clearnet) works. It must work for us to switch to the fallback address.
-						try
-						{
-							using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
-							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-						}
-						catch
-						{
-							// The fallback address does not work too. We do not want to switch.
-							return;
-						}
-
-						// Check if the onion address is still broken.
-						try
-						{
-							using HttpRequestMessage request = new(HttpMethod.Get, BackendUri);
-							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-						}
-						catch (TorConnectCommandFailedException e) when (e.RepField == RepField.OnionServiceIntroFailed)
-						{
-							// Fallback here...
-							RequestFallbackAddressUsage = true;
-						}
-						catch (Exception e)
-						{
-							Logger.LogDebug(e);
-						}
-					}
+					using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
+					using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 				}
-				else
+				catch
 				{
-					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
+					// The fallback address does not work too. We do not want to switch.
+					return;
+				}
 
-					if (isRunning)
-					{
-						Logger.LogInfo("Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
-					}
+				// Fallback here...
+				RequestFallbackAddressUsage = true;
+			}
+			else
+			{
+				bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
+
+				if (isRunning)
+				{
+					Logger.LogInfo("Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
 				}
 			}
 		}
 	}
+}
 
 	/// <inheritdoc/>
 	public override async Task StopAsync(CancellationToken cancellationToken)
