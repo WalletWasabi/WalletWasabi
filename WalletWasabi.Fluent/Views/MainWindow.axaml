@@ -34,7 +34,12 @@
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <shell:ShellView />
-    <!-- Press F11 key to enable layout overlay -->
+    <!--
+    Press F10 key to enable/disable layout overlay.
+    Press F7 key to toggle bounds rectangles.
+    Press F8 key to toggle horizontal lines.
+    Press F9 key to toggle vertical lines.
+    -->
     <controls:Overlay IsHitTestVisible="False" IsEnabled="False" />
   </Panel>
 </Window>

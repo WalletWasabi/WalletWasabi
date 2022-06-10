@@ -16,10 +16,37 @@ public class Overlay : Control
 	public static readonly StyledProperty<bool> EnabledProperty =
 		AvaloniaProperty.Register<Overlay, bool>(nameof(Enabled));
 
+	public static readonly StyledProperty<bool> ShowBoundsRectsProperty =
+		AvaloniaProperty.Register<Overlay, bool>(nameof(ShowBoundsRects), true);
+
+	public static readonly StyledProperty<bool> ShowHorizontalLinesProperty =
+		AvaloniaProperty.Register<Overlay, bool>(nameof(ShowHorizontalLines));
+
+	public static readonly StyledProperty<bool> ShowVerticalLinesProperty =
+		AvaloniaProperty.Register<Overlay, bool>(nameof(ShowVerticalLines));
+
 	public bool Enabled
 	{
 		get => GetValue(EnabledProperty);
 		set => SetValue(EnabledProperty, value);
+	}
+
+	public bool ShowBoundsRects
+	{
+		get => GetValue(ShowBoundsRectsProperty);
+		set => SetValue(ShowBoundsRectsProperty, value);
+	}
+
+	public bool ShowHorizontalLines
+	{
+		get => GetValue(ShowHorizontalLinesProperty);
+		set => SetValue(ShowHorizontalLinesProperty, value);
+	}
+
+	public bool ShowVerticalLines
+	{
+		get => GetValue(ShowVerticalLinesProperty);
+		set => SetValue(ShowVerticalLinesProperty, value);
 	}
 #if DEBUG
 	private List<ILogical>? _descendants;
@@ -33,6 +60,13 @@ public class Overlay : Control
 			var isEnabled = change.NewValue.GetValueOrDefault<bool>();
 
 			UpdateDescendants(isEnabled);
+			InvalidateVisual();
+		}
+
+		if (change.Property == ShowBoundsRectsProperty
+		    || change.Property == ShowHorizontalLinesProperty
+		    || change.Property == ShowVerticalLinesProperty)
+		{
 			InvalidateVisual();
 		}
 	}
@@ -63,7 +97,22 @@ public class Overlay : Control
 
 	private void OnKeyDown(object? sender, KeyEventArgs e)
 	{
-		if (e.Key == Key.F11)
+		if (e.Key == Key.F7)
+		{
+			ShowBoundsRects = !ShowBoundsRects;
+		}
+
+		if (e.Key == Key.F8)
+		{
+			ShowHorizontalLines = !ShowHorizontalLines;
+		}
+
+		if (e.Key == Key.F9)
+		{
+			ShowVerticalLines = !ShowVerticalLines;
+		}
+
+		if (e.Key == Key.F10)
 		{
 			IsEnabled = !IsEnabled;
 		}
@@ -121,7 +170,8 @@ public class Overlay : Control
 			return;
 		}
 
-		var pen = new ImmutablePen(Colors.Red.ToUint32());
+		var penBounds = new ImmutablePen(Colors.Red.ToUint32());
+		var penLines = new ImmutablePen(Colors.Cyan.ToUint32());
 
 		foreach (var logical in _descendants)
 		{
@@ -144,9 +194,26 @@ public class Overlay : Control
 			var b = tb.Bounds;
 			var rect = new Rect(b.Left + 0.5, b.Top + 0.5, b.Width + 0.5, b.Height + 0.5);
 
-			using var _ = context.PushSetTransform(tb.Transform);
+			var tl = rect.TopLeft.Transform(tb.Transform);
+			var br = rect.TopLeft.Transform(tb.Transform);
 
-			context.DrawRectangle(null, pen, rect);
+			if (ShowHorizontalLines)
+			{
+				context.DrawLine(penLines, new Point(0, tl.Y + 0.5), new Point(Bounds.Width, tl.Y + 0.5));
+				context.DrawLine(penLines, new Point(0, br.X + 0.5), new Point(Bounds.Width, br.X + 0.5));
+			}
+
+			if (ShowVerticalLines)
+			{
+				context.DrawLine(penLines, new Point(tl.X + 0.5, 0), new Point(tl.X + 0.5, Bounds.Height));
+				context.DrawLine(penLines, new Point(br.X + 0.5, 0), new Point(br.X + 0.5, Bounds.Height));
+			}
+
+			if (ShowBoundsRects)
+			{
+				using var _ = context.PushSetTransform(tb.Transform);
+				context.DrawRectangle(null, penBounds, rect);
+			}
 		}
 	}
 #endif
