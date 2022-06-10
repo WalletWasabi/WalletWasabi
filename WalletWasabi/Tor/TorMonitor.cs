@@ -144,7 +144,7 @@ public class TorMonitor : PeriodicRunner
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken token)
 	{
-		if (TorHttpPool.TorDoesntWorkSince is { }) // If Tor misbehaves.
+		if (TorHttpPool.TorDoesntWorkSince is not null) // If Tor misbehaves.
 		{
 			TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
@@ -154,9 +154,17 @@ public class TorMonitor : PeriodicRunner
 				{
 					if (torEx.RepField == RepField.HostUnreachable)
 					{
-						Logger.LogInfo("Tor does not work properly. Test fallback URI.");
-						using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
-						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
+						
+						try
+						{
+							using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
+							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+						}
+						catch (HttpRequestException)
+						{
+							// Ignore HTTP exceptions as we want to verify that HOST is really unreachable.
+						}
 
 						// Check if it changed in the meantime...
 						if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
