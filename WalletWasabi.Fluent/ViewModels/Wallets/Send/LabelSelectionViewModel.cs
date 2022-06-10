@@ -335,7 +335,22 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			remainingUsablePockets.Remove(_privatePocket);
 		}
 
+		if (!usedPockets.Contains(_semiPrivatePocket)) // Semi private pocket hasn't been used. Don't deal with it then.
+		{
+			remainingUsablePockets.Remove(_semiPrivatePocket);
+		}
+
 		if (usedPockets.Length == 1 && usedPockets.First() == _privatePocket)
+		{
+			return false;
+		}
+
+		if (usedPockets.Length == 1 && usedPockets.First() == _semiPrivatePocket)
+		{
+			return false;
+		}
+
+		if (usedPockets.Length == 2 && usedPockets.Contains(_privatePocket) && usedPockets.Contains(_semiPrivatePocket))
 		{
 			return false;
 		}

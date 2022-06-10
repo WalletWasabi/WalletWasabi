@@ -1050,6 +1050,9 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("0.5"));
 		var pockets = new List<Pocket>();
 
+		var privatePocket = LabelTestExtensions.CreateSingleCoinPocket(1.0m, CoinPocketHelper.PrivateFundsText, anonSet: 999);
+		var semiPrivatePocket = LabelTestExtensions.CreateSingleCoinPocket(1.0m, CoinPocketHelper.SemiPrivateFundsText, anonSet: 2);
+
 		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan"));
 		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan, Lucas"));
 		selection.Reset(pockets.ToArray());
@@ -1064,11 +1067,30 @@ public class PocketSelectionTests
 		output = selection.AutoSelectPockets(recipient);
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
-		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, anonSet: 999));
+		pockets.Add(privatePocket);
 		selection.Reset(pockets.ToArray());
 
 		// Private funds are enough for the payment, no better selection.
 		recipient = "Doesn't matter, it will use private coins";
+		output = selection.AutoSelectPockets(recipient);
+		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+
+		pockets.Remove(privatePocket);
+		pockets.Add(semiPrivatePocket);
+		selection = new LabelSelectionViewModel(Money.Parse("0.5"));
+		selection.Reset(pockets.ToArray());
+
+		// Semi funds are enough for the payment, no better selection.
+		recipient = "Doesn't matter, it will use semi private coins";
+		output = selection.AutoSelectPockets(recipient);
+		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
+
+		pockets.Add(privatePocket);
+		selection = new LabelSelectionViewModel(Money.Parse("1.5"));
+		selection.Reset(pockets.ToArray());
+
+		// Private and semi funds are enough for the payment, no better selection.
+		recipient = "Doesn't matter, it will use semi private coins";
 		output = selection.AutoSelectPockets(recipient);
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 	}
