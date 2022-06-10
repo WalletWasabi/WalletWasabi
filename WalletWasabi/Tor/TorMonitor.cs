@@ -174,7 +174,7 @@ public class TorMonitor : PeriodicRunner
 						return;
 					}
 
-					// Enable fallback address.
+					Logger.LogInfo("Switching to the clearnet mode.");
 					RequestFallbackAddressUsage = true;
 				}
 			}
