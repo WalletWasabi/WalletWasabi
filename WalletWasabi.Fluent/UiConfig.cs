@@ -24,7 +24,6 @@ public class UiConfig : ConfigBase
 	private bool _autoPaste;
 	private int _feeTarget;
 	private bool _sendAmountConversionReversed;
-	private bool _enableGpu;
 
 	public UiConfig() : base()
 	{
