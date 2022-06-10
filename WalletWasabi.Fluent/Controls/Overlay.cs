@@ -195,7 +195,7 @@ public class Overlay : Control
 			var rect = new Rect(b.Left + 0.5, b.Top + 0.5, b.Width + 0.5, b.Height + 0.5);
 
 			var tl = rect.TopLeft.Transform(tb.Transform);
-			var br = rect.TopLeft.Transform(tb.Transform);
+			var br = rect.BottomRight.Transform(tb.Transform);
 
 			if (ShowHorizontalLines)
 			{
