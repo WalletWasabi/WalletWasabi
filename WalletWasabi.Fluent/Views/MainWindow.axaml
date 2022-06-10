@@ -35,6 +35,6 @@
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <shell:ShellView />
     <!-- Press F11 key to enable layout overlay -->
-    <controls:Overlay IsHitTestVisible="False" Enabled="False" />
+    <controls:Overlay IsHitTestVisible="False" IsEnabled="False" />
   </Panel>
 </Window>
