@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Rendering;
 using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -42,8 +43,21 @@ public class Overlay : Control
 
 		if (this.GetVisualRoot() is TopLevel root)
 		{
-			root.LayoutUpdated += OnLayoutUpdated;
+			root.Renderer.SceneInvalidated += RendererOnSceneInvalidated;
+			// root.LayoutUpdated += OnLayoutUpdated;
 			root.KeyDown += OnKeyDown;
+		}
+	}
+
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnDetachedFromVisualTree(e);
+
+		if (this.GetVisualRoot() is TopLevel root)
+		{
+			root.Renderer.SceneInvalidated -= RendererOnSceneInvalidated;
+			// root.LayoutUpdated -= OnLayoutUpdated;
+			root.KeyDown -= OnKeyDown;
 		}
 	}
 
@@ -55,14 +69,12 @@ public class Overlay : Control
 		}
 	}
 
-	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	private void RendererOnSceneInvalidated(object? sender, SceneInvalidatedEventArgs e)
 	{
-		base.OnDetachedFromVisualTree(e);
-
-		if (this.GetVisualRoot() is TopLevel root)
+		if (IsEnabled)
 		{
-			root.LayoutUpdated -= OnLayoutUpdated;
-			root.KeyDown -= OnKeyDown;
+			UpdateDescendants(IsEnabled);
+			InvalidateVisual();
 		}
 	}
 
