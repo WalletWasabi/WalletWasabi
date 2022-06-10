@@ -93,6 +93,12 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		}
 	}
 
+	protected override void OnDetachedFromVisualTree()
+	{
+		HideFlyout();
+		FocusManager.Instance?.Focus(null);
+	}
+
 	private void ToggleFlyoutOpen(bool isOpen)
 	{
 		if (isOpen)
