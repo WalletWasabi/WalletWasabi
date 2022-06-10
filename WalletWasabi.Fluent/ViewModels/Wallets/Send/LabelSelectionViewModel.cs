@@ -270,15 +270,15 @@ public partial class LabelSelectionViewModel : ViewModelBase
 				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
 				.Sum(x => x.Amount);
 
-		if (IsEnoughIfIncluded(_privatePocket))
+		if (IsPrivatePocketNeeded())
 		{
 			_hiddenIncludedPockets.Add(_privatePocket);
 		}
-		else if (IsEnoughIfIncluded(_semiPrivatePocket))
+		else if (IsSemiPrivatePocketNeeded())
 		{
 			_hiddenIncludedPockets.Add(_semiPrivatePocket);
 		}
-		else if (IsEnoughIfIncluded(_privatePocket, _semiPrivatePocket))
+		else if (IsPrivateAndSemiPrivatePocketNeeded())
 		{
 			_hiddenIncludedPockets.Add(_privatePocket);
 			_hiddenIncludedPockets.Add(_semiPrivatePocket);
@@ -292,9 +292,17 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
 
-	private bool IsEnoughIfIncluded(params Pocket[] pockets) =>
-		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + pockets.Sum(x => x.Amount) >= _targetAmount) ||
-		(LabelsWhiteList.IsEmpty() && pockets.Sum(x => x.Amount) >= _targetAmount);
+	private bool IsPrivatePocketNeeded() =>
+		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount >= _targetAmount) ||
+		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount >= _targetAmount);
+
+	private bool IsSemiPrivatePocketNeeded() =>
+		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _semiPrivatePocket.Amount >= _targetAmount) ||
+		(LabelsWhiteList.IsEmpty() && _semiPrivatePocket.Amount >= _targetAmount);
+
+	private bool IsPrivateAndSemiPrivatePocketNeeded() =>
+		(NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount) ||
+		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount < _targetAmount && _semiPrivatePocket.Amount < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount);
 
 	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins, int privateThreshold)
 	{
