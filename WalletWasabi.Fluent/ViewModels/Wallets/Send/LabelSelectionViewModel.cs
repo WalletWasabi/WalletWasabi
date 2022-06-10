@@ -14,12 +14,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class LabelSelectionViewModel : ViewModelBase
 {
 	private readonly Money _targetAmount;
+	private readonly List<Pocket> _hiddenIncludedPockets = new();
 
 	[AutoNotify] private bool _enoughSelected;
 
 	private Pocket _privatePocket = Pocket.Empty;
 	private Pocket _semiPrivatePocket = Pocket.Empty;
-	private bool _includePrivatePocket;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
 	public LabelSelectionViewModel(Money targetAmount)
@@ -179,17 +179,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return true;
 	}
 
-	public Pocket[] GetUsedPockets()
-	{
-		var pocketsToReturn = NonPrivatePockets.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label))).ToList();
-
-		if (_includePrivatePocket)
-		{
-			pocketsToReturn.Add(_privatePocket);
-		}
-
-		return pocketsToReturn.ToArray();
-	}
+	public Pocket[] GetUsedPockets() =>
+		NonPrivatePockets.Where(x => x.Labels.All(label => LabelsWhiteList.Any(labelViewModel => labelViewModel.Value == label)))
+			.Union(_hiddenIncludedPockets)
+			.ToArray();
 
 	public void Reset(Pocket[] pockets)
 	{
@@ -270,18 +263,38 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private void OnSelectionChanged()
 	{
+		_hiddenIncludedPockets.Clear();
+
 		Money sumOfWhiteList =
 			NonPrivatePockets
 				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
 				.Sum(x => x.Amount);
 
-		_includePrivatePocket = NonPrivatePockets.Sum(x => x.Amount) < _targetAmount || (LabelsWhiteList.IsEmpty() && _privatePocket.Amount >= _targetAmount);
-		var totalSelected = sumOfWhiteList + (_includePrivatePocket ? _privatePocket.Amount : Money.Zero);
+		if (IsEnoughIfIncluded(_privatePocket))
+		{
+			_hiddenIncludedPockets.Add(_privatePocket);
+		}
+		else if (IsEnoughIfIncluded(_semiPrivatePocket))
+		{
+			_hiddenIncludedPockets.Add(_semiPrivatePocket);
+		}
+		else if (IsEnoughIfIncluded(_privatePocket, _semiPrivatePocket))
+		{
+			_hiddenIncludedPockets.Add(_privatePocket);
+			_hiddenIncludedPockets.Add(_semiPrivatePocket);
+		}
+
+		var totalSelected = sumOfWhiteList + _hiddenIncludedPockets.Sum(x => x.Amount);
+
 		EnoughSelected = totalSelected >= _targetAmount;
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
+
+	private bool IsEnoughIfIncluded(params Pocket[] pockets) =>
+		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + pockets.Sum(x => x.Amount) >= _targetAmount) ||
+		(LabelsWhiteList.IsEmpty() && pockets.Sum(x => x.Amount) >= _targetAmount);
 
 	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins, int privateThreshold)
 	{
