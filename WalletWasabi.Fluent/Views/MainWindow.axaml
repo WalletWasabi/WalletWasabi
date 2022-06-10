@@ -6,6 +6,7 @@
         xmlns:i="using:Avalonia.Xaml.Interactivity"
         xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
         xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+        xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
         mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
         x:Class="WalletWasabi.Fluent.Views.MainWindow"
         x:DataType="viewModels:MainViewModel"
@@ -33,5 +34,6 @@
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <shell:ShellView />
+    <controls:Overlay IsHitTestVisible="False" Enabled="True" />
   </Panel>
 </Window>
