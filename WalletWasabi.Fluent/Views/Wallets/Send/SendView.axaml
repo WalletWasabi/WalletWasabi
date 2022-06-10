@@ -10,7 +10,7 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-  <c:ContentArea
+  <c:ContentArea 
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
                  NextContent="Continue"
