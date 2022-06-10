@@ -18,6 +18,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	[AutoNotify] private bool _enoughSelected;
 
 	private Pocket _privatePocket = Pocket.Empty;
+	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private bool _includePrivatePocket;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
@@ -160,7 +161,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			_privatePocket = privatePocket;
 		}
 
-		NonPrivatePockets = pockets.Where(x => x != _privatePocket).ToArray();
+		if (pockets.FirstOrDefault(x => x.Labels == CoinPocketHelper.SemiPrivateFundsText) is { } semiPrivatePocket)
+		{
+			_semiPrivatePocket = semiPrivatePocket;
+		}
+
+		NonPrivatePockets = pockets.Where(x => x != _privatePocket && x != _semiPrivatePocket).ToArray();
 
 		var allLabels = SmartLabel.Merge(NonPrivatePockets.Select(x => x.Labels));
 		AllLabelsViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
