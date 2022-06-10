@@ -34,6 +34,6 @@
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <shell:ShellView />
-    <controls:Overlay IsHitTestVisible="False" Enabled="True" />
+    <controls:Overlay IsHitTestVisible="False" Enabled="False" />
   </Panel>
 </Window>
