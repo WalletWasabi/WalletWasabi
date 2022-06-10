@@ -2,6 +2,7 @@
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
@@ -14,13 +15,13 @@ public class Overlay : Control
 	public static readonly StyledProperty<bool> EnabledProperty =
 		AvaloniaProperty.Register<Overlay, bool>(nameof(Enabled));
 
-	private List<ILogical>? _descendants;
-
 	public bool Enabled
 	{
 		get => GetValue(EnabledProperty);
 		set => SetValue(EnabledProperty, value);
 	}
+#if DEBUG
+	private List<ILogical>? _descendants;
 
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
@@ -42,6 +43,15 @@ public class Overlay : Control
 		if (this.GetVisualRoot() is TopLevel root)
 		{
 			root.LayoutUpdated += OnLayoutUpdated;
+			root.KeyDown += OnKeyDown;
+		}
+	}
+
+	private void OnKeyDown(object? sender, KeyEventArgs e)
+	{
+		if (e.Key == Key.F11)
+		{
+			IsEnabled = !IsEnabled;
 		}
 	}
 
@@ -52,6 +62,7 @@ public class Overlay : Control
 		if (this.GetVisualRoot() is TopLevel root)
 		{
 			root.LayoutUpdated -= OnLayoutUpdated;
+			root.KeyDown -= OnKeyDown;
 		}
 	}
 
@@ -126,4 +137,5 @@ public class Overlay : Control
 			context.DrawRectangle(null, pen, rect);
 		}
 	}
+#endif
 }
