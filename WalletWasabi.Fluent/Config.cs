@@ -115,6 +115,9 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
+	[JsonProperty(PropertyName = "EnableGpu")]
+	public bool EnableGpu { get; internal set; } = true;
+
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 	public Uri GetCurrentBackendUri()

@@ -36,7 +36,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
-		_enableGpu = Services.UiConfig.EnableGpu;
+		_enableGpu = Services.Config.EnableGpu;
 		_autoCopy = Services.UiConfig.Autocopy;
 		_autoPaste = Services.UiConfig.AutoPaste;
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
@@ -56,11 +56,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 					Services.UiConfig.DarkModeEnabled = x;
 					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
 				});
-
-		this.WhenAnyValue(x => x.EnableGpu)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Skip(1)
-			.Subscribe(x => Services.UiConfig.EnableGpu = x);
 
 		this.WhenAnyValue(x => x.AutoCopy)
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -104,7 +99,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 		this.WhenAnyValue(
 				x => x.UseTor,
-				x => x.TerminateTorOnExit)
+				x => x.TerminateTorOnExit,
+				x => x.EnableGpu)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
@@ -120,5 +116,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	{
 		config.UseTor = UseTor;
 		config.TerminateTorOnExit = TerminateTorOnExit;
+		config.EnableGpu = EnableGpu;
 	}
 }
