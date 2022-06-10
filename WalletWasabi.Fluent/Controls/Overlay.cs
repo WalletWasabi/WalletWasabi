@@ -112,7 +112,7 @@ public class Overlay : Control
 			ShowVerticalLines = !ShowVerticalLines;
 		}
 
-		if (e.Key == Key.F10)
+		if (e.Key == Key.F11)
 		{
 			IsEnabled = !IsEnabled;
 		}
