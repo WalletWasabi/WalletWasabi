@@ -518,7 +518,7 @@ public class TransactionFactoryTests
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
 				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100)
-			});
+		});
 
 		// Selecting 0.08 + 0.02 should be enough but it has to select 0.02 too because it is the same address
 		using Key key = new();
@@ -557,6 +557,22 @@ public class TransactionFactoryTests
 		var payment = new PaymentIntent(key, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
 		var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
+		Assert.Single(result.OuterWalletOutputs);
+		Assert.False(result.Signed);
+	}
+
+	[Fact]
+	public void ManyCoins()
+	{
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			DemoCoinSets.LotOfCoins);
+
+		using Key key = new();
+		var payment = new PaymentIntent(key, MoneyRequest.Create(Money.Coins(0.29943925m)));
+
+		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
+
+		var result = transactionFactory.BuildTransaction(payment, new FeeRate(12m));
 		Assert.Single(result.OuterWalletOutputs);
 		Assert.False(result.Signed);
 	}

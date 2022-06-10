@@ -2,6 +2,7 @@ using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -22,12 +23,21 @@ public static class ServiceFactory
 		keyManager.AssertCleanKeysIndexed();
 
 		var coinArray = coins.ToArray();
+
+		var generated = keyManager.GetKeys().Count();
+		var toGenerate = coinArray.Length - generated;
+		for (int i = 0; i < toGenerate; i++)
+		{
+			keyManager.GenerateNewKey("", KeyState.Clean, false, false);
+		}
+
 		var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
 		for (int i = 0; i < coinArray.Length; i++)
 		{
 			var c = coinArray[i];
 			var k = keys[c.KeyIndex];
 			k.SetLabel(c.Label);
+			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
 		var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, 0, x.Confirmed, x.AnonymitySet)).ToArray();
@@ -38,6 +48,13 @@ public static class ServiceFactory
 				sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 			}
 		}
+
+		var uniqueCoins = scoins.Distinct().Count();
+		if (uniqueCoins != scoins.Length)
+		{
+			throw new InvalidOperationException($"Coin clones are detected. Number of all:{scoins.Length}, unique:{uniqueCoins}.");
+		}
+
 		var coinsView = new CoinsView(scoins);
 		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
