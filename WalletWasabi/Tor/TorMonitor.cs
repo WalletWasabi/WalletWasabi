@@ -152,25 +152,23 @@ public class TorMonitor : PeriodicRunner
 			{
 				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
 				{
-					if (torEx.RepField == RepField.HostUnreachable)
+					if (torEx.RepField == RepField.OnionServiceIntroFailed)
 					{
 						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
 						
 						try
 						{
+							// Check if it changed in the meantime...
 							using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
 							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 						}
-						catch (HttpRequestException)
+						catch (HttpRequestException e)
 						{
-							// Ignore HTTP exceptions as we want to verify that HOST is really unreachable.
-						}
-
-						// Check if it changed in the meantime...
-						if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
-						{
-							// Fallback here...
-							RequestFallbackAddressUsage = true;
+							if (e.InnerException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.OnionServiceIntroFailed)
+							{
+								// Fallback here...
+								RequestFallbackAddressUsage = true;
+							}
 						}
 					}
 				}
