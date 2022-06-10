@@ -37,10 +37,19 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public Pocket[] AutoSelectPockets(SmartLabel recipient)
 	{
+		var privateAndSemiPrivatePockets = new[] { _privatePocket, _semiPrivatePocket };
+
 		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
 		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
-		var privateAndUnknownPockets = _allPockets.Except(knownPockets).ToArray();
-		var privateAndKnownPockets = _allPockets.Except(unknownPockets).ToArray();
+
+		var privateAndUnknownPockets = unknownPockets.Union(new[] { _privatePocket }).ToArray();
+		var semiPrivateAndUnknownPockets = unknownPockets.Union(new[] { _semiPrivatePocket }).ToArray();
+		var privateAndSemiPrivateAndUnknownPockets = privateAndSemiPrivatePockets.Union(unknownPockets).ToArray();
+
+		var privateAndKnownPockets = knownPockets.Union(new[] { _privatePocket }).ToArray();
+		var semiPrivateAndKnownPockets = knownPockets.Union(new[] { _semiPrivatePocket }).ToArray();
+		var privateAndSemiPrivateAndKnownPockets = privateAndSemiPrivatePockets.Union(knownPockets).ToArray();
+
 		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
 		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
 
@@ -52,6 +61,16 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		if (_privatePocket.Amount >= _targetAmount)
 		{
 			return new[] { _privatePocket };
+		}
+
+		if (_semiPrivatePocket.Amount >= _targetAmount)
+		{
+			return new[] { _semiPrivatePocket };
+		}
+
+		if (privateAndSemiPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return privateAndSemiPrivatePockets;
 		}
 
 		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, recipient, out var pockets))
@@ -79,9 +98,29 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndKnownPockets;
 		}
 
+		if (semiPrivateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return semiPrivateAndKnownPockets;
+		}
+
+		if (privateAndSemiPrivateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return privateAndSemiPrivateAndKnownPockets;
+		}
+
 		if (privateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
 		{
 			return privateAndUnknownPockets;
+		}
+
+		if (semiPrivateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return semiPrivateAndUnknownPockets;
+		}
+
+		if (privateAndSemiPrivateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		{
+			return privateAndSemiPrivateAndUnknownPockets;
 		}
 
 		return _allPockets.ToArray();
