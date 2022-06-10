@@ -10,7 +10,7 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-  <c:ContentArea 
+  <c:ContentArea
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
                  NextContent="Continue"
@@ -62,6 +62,8 @@
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  Watermark="(e.g. Bitcoin address or payjoin URL)"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
