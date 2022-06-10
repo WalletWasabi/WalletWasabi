@@ -26,9 +26,9 @@ public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
 
-	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory backendHttpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, Uri backendUri, TorProcessManager torProcessManager, HttpClientFactory backendHttpClientFactory) : base(period)
 	{
-		FallbackBackendUri = fallbackBackendUri;
+		BackendUri = backendUri;
 		TorProcessManager = torProcessManager;
 		TorHttpPool = backendHttpClientFactory.TorHttpPool!;
 		HttpClient = backendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
@@ -37,7 +37,7 @@ public class TorMonitor : PeriodicRunner
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
-	private Uri FallbackBackendUri { get; }
+	private Uri BackendUri { get; }
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
 	private TorHttpPool TorHttpPool { get; }
@@ -159,7 +159,7 @@ public class TorMonitor : PeriodicRunner
 						try
 						{
 							// Check if it changed in the meantime...
-							using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
+							using HttpRequestMessage request = new(HttpMethod.Get, BackendUri);
 							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 						}
 						catch (HttpRequestException e)
