@@ -1348,7 +1348,8 @@ public class TransactionProcessorTests
 		Assert.Single(pockets.Single(x => x.SmartLabel == "B").Coins);
 		Assert.Equal(2, pockets.Single(x => x.SmartLabel == "C").Coins.Count());
 		Assert.Single(pockets.Single(x => x.SmartLabel == "A, B").Coins);
-		Assert.Equal(4, pockets.Single(x => x.SmartLabel == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
+		Assert.Single(pockets.Single(x => x.SmartLabel == CoinPocketHelper.SemiPrivateFundsText).Coins);
+		Assert.Equal(3, pockets.Single(x => x.SmartLabel == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
 		Assert.Equal(2, pockets.Single(x => x.SmartLabel == CoinPocketHelper.PrivateFundsText).Coins.Count());
 	}
 
