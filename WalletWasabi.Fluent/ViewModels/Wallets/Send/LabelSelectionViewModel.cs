@@ -63,11 +63,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return new[] { _privatePocket };
 		}
 
-		if (_semiPrivatePocket.Amount >= _targetAmount)
-		{
-			return new[] { _semiPrivatePocket };
-		}
-
 		if (privateAndSemiPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
 		{
 			return privateAndSemiPrivatePockets;
@@ -274,10 +269,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		{
 			_hiddenIncludedPockets.Add(_privatePocket);
 		}
-		else if (IsSemiPrivatePocketNeeded())
-		{
-			_hiddenIncludedPockets.Add(_semiPrivatePocket);
-		}
 		else if (IsPrivateAndSemiPrivatePocketNeeded())
 		{
 			_hiddenIncludedPockets.Add(_privatePocket);
@@ -296,13 +287,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount >= _targetAmount) ||
 		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount >= _targetAmount);
 
-	private bool IsSemiPrivatePocketNeeded() =>
-		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _semiPrivatePocket.Amount >= _targetAmount) ||
-		(LabelsWhiteList.IsEmpty() && _semiPrivatePocket.Amount >= _targetAmount);
-
 	private bool IsPrivateAndSemiPrivatePocketNeeded() =>
 		(NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount) ||
-		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount < _targetAmount && _semiPrivatePocket.Amount < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount);
+		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount);
 
 	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins, int privateThreshold)
 	{
