@@ -23,7 +23,6 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _generatedCleanKeyCount;
 	[AutoNotify] private int _generatedLockedKeyCount;
 	[AutoNotify] private int _generatedUsedKeyCount;
-	[AutoNotify] private int _minGapLimit;
 	[AutoNotify] private int _largestExternalKeyGap;
 	[AutoNotify] private int _largestInternalKeyGap;
 
@@ -65,7 +64,6 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		GeneratedLockedKeyCount = _wallet.KeyManager.GetKeys(KeyState.Locked).Count();
 		GeneratedUsedKeyCount = _wallet.KeyManager.GetKeys(KeyState.Used).Count();
 
-		MinGapLimit = _wallet.KeyManager.MinGapLimit;
 		LargestExternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: false, ignoreTail: true);
 		LargestInternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: true, ignoreTail: true);
 	}

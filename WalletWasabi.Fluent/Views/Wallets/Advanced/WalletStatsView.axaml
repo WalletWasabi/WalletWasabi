@@ -63,13 +63,6 @@
       </c:PreviewItem>
 
       <Separator />
-      <c:PreviewItem Label="MinGapLimit"
-                     TextValue="{Binding MinGapLimit}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 NumberOfPrivacyChars="8"
-                                 Content="{Binding MinGapLimit}" />
-      </c:PreviewItem>
-      <Separator />
       <c:PreviewItem Label="Largest receive key gap"
                      TextValue="{Binding LargestExternalKeyGap}">
         <c:PrivacyContentControl Classes="monoSpaced"
