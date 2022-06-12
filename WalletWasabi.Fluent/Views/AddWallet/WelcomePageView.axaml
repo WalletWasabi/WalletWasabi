@@ -92,7 +92,7 @@
       </Panel>
 
       <!-- Pages -->
-      <Carousel SelectedIndex="{Binding SelectedIndex}"
+      <Carousel SelectedIndex="{Binding SelectedIndex, FallbackValue=2}"
                 DockPanel.Dock="Top"
                 Margin="0 10">
         <i:Interaction.Behaviors>
@@ -137,7 +137,7 @@
                        Classes="title" />
           </DockPanel>
           <Panel MaxWidth="230" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right"
-                 Margin="10,0,0,0">
+                 Margin="30,0,0,0">
             <ExperimentalAcrylicBorder Margin="0 0 0 2">
               <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial BackgroundSource="Digger"
@@ -170,7 +170,7 @@
             <TextBlock Text="Non-Custodial"
                        Classes="title" />
           </DockPanel>
-          <Panel Grid.Column="1" MaxHeight="300">
+          <Panel Grid.Column="1" MaxHeight="300" Margin="30 0 0 0">
             <Border CornerRadius="4"
                     BoxShadow="0 5 16 0 #3F000000"
                     VerticalAlignment="Top" HorizontalAlignment="Left"
@@ -236,7 +236,7 @@
             <TextBlock Text="Anonymous"
                        Classes="title" />
           </DockPanel>
-          <Panel Grid.Column="1" MaxHeight="240" Margin="0,50">
+          <Panel Grid.Column="1" MaxHeight="240" Margin="30,50,0,50">
             <Border CornerRadius="4"
                     BoxShadow="0 5 16 0 #3F000000"
                     HorizontalAlignment="Center" VerticalAlignment="Top">
@@ -310,7 +310,7 @@
             <TextBlock Text="Open-Source"
                        Classes="title" />
           </DockPanel>
-          <Panel Grid.Column="1" MaxHeight="240" Margin="0,50">
+          <Panel Grid.Column="1" MaxHeight="240" Margin="30,0,0,50">
             <Border CornerRadius="4"
                     BoxShadow="0 5 16 0 #3F000000"
                     HorizontalAlignment="Center" VerticalAlignment="Bottom">
