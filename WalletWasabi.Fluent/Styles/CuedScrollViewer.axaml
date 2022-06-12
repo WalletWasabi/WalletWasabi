@@ -124,6 +124,7 @@
           </ScrollContentPresenter>
 
           <ScrollBar Name="PART_HorizontalScrollBar"
+                     Classes="cued"
                      MaxHeight="10"
                      MinHeight="2"
                      AllowAutoHide="{TemplateBinding AllowAutoHide}"
@@ -138,6 +139,7 @@
                      Focusable="False" />
 
           <ScrollBar Name="PART_VerticalScrollBar"
+                     Classes="cued"
                      MaxWidth="10"
                      MinWidth="2"
                      AllowAutoHide="{TemplateBinding AllowAutoHide}"
@@ -209,14 +211,11 @@
     <Setter Property="Stretch" Value="Fill" />
   </Style>
 
-  <Style Selector="RepeatButton">
+  <Style Selector="navBar|NavBar RepeatButton">
+    <Setter Property="IsVisible" Value="False" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="Grid.ColumnSpan" Value="2"/>
     <Setter Property="Background" Value="Transparent" />
-  </Style>
-
-  <Style Selector="ScrollBar RepeatButton">
-    <Setter Property="IsVisible" Value="False" />
   </Style>
 
 </Styles>
