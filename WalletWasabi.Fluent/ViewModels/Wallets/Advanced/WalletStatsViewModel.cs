@@ -13,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 [NavigationMetaData(Title = "Wallet Statistics")]
 public partial class WalletStatsViewModel : RoutableViewModel
 {
+	private readonly Wallet _wallet;
+
 	[AutoNotify] private int _coinCount;
 	[AutoNotify] private string _balance = "";
 	[AutoNotify] private string _confirmedBalance = "";
@@ -24,8 +26,6 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _minGapLimit;
 	[AutoNotify] private int _largestExternalKeyGap;
 	[AutoNotify] private int _largestInternalKeyGap;
-
-	private readonly Wallet _wallet;
 
 	public WalletStatsViewModel(WalletViewModelBase walletViewModelBase)
 	{
