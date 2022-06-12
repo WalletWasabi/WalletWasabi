@@ -199,7 +199,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
-		keyManager.AssertLockedInternalKeysIndexed();
+		keyManager.AssertLockedInternalKeysIndexed(14);
 		var outputScriptCandidates = keyManager
 			.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked)
 			.Select(x => x.PubKey.WitHash.ScriptPubKey)

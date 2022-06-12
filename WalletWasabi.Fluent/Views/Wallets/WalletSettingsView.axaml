@@ -13,6 +13,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <StackPanel Spacing="20" Margin="0 30">
+      <!-- TODO: It is getting messy... A separate settings page should be created for HW wallets. -->
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
@@ -25,7 +26,8 @@
         </DockPanel>
 
         <StackPanel Spacing="10"
-                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this.">
+                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this."
+                    IsVisible="{Binding !IsWatchOnly}">
           <TextBlock Text="Auto-start coinjoin threshold (BTC)" />
           <TextBox Text="{Binding PlebStopThreshold}" />
         </StackPanel>
@@ -44,7 +46,7 @@
         </DockPanel>
       </StackPanel>
 
-      <Separator />
+      <Separator IsVisible="{Binding !IsWatchOnly}" />
 
       <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
