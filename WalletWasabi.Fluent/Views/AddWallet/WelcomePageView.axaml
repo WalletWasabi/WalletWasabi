@@ -138,7 +138,7 @@
           </DockPanel>
           <Panel MaxWidth="230" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right"
                  Margin="10,0,0,0">
-            <ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder Margin="0 0 0 2">
               <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                              TintColor="White"
