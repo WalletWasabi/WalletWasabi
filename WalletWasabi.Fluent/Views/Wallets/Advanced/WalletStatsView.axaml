@@ -63,7 +63,7 @@
       </c:PreviewItem>
 
       <Separator />
-      <c:PreviewItem Label="Minimum key gap limit"
+      <c:PreviewItem Label="MinGapLimit"
                      TextValue="{Binding MinGapLimit}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  NumberOfPrivacyChars="8"
