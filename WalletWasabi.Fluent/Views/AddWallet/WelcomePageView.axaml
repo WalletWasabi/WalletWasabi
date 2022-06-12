@@ -129,16 +129,18 @@
         </Carousel.PageTransition>
 
         <!-- Welcome to Wasabi -->
-        <Grid ColumnDefinitions="*,Auto">
-          <DockPanel Grid.Column="0" VerticalAlignment="Center">
+        <Grid ColumnDefinitions="Auto,*">
+          <DockPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock Classes="text"
                        Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory.&#10;&#10;Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
           </DockPanel>
-          <Panel MaxWidth="230" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right"
-                 Margin="30,0,0,0">
-            <ExperimentalAcrylicBorder Margin="0 0 0 2">
+          <Panel MaxWidth="230" Grid.Column="0"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Right"
+                 Margin="0,0,30,0">
+            <ExperimentalAcrylicBorder Margin="2">
               <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                              TintColor="White"
@@ -148,7 +150,7 @@
               </ExperimentalAcrylicBorder.Material>
             </ExperimentalAcrylicBorder>
             <Viewbox>
-              <Panel Margin="0 0 -28.8 0">
+              <Panel>
                 <Border Width="465.5" Height="465.5" />
                 <Path Fill="{DynamicResource TextControlForeground}" Opacity="0.75"
                       Data="M 14 37 L 14 452 L 453 452 L 453 189 L 322 189 L 322 37 L 14 37 z " />
@@ -366,7 +368,7 @@
           <TextBlock Text="Start using Wasabi Wallet" FontSize="30" HorizontalAlignment="Center"
                      DockPanel.Dock="Bottom" />
           <Panel Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
-            <ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder Margin="2">
               <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                              TintColor="White"
