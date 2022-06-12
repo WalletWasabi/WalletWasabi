@@ -446,9 +446,23 @@ public class KeyManager
 		}
 	}
 
-	public int CountConsecutiveUnusedKeys(bool isInternal)
+	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
+	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
 	{
 		var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).Select(x => x.Index).ToArray();
+
+		if (ignoreTail)
+		{
+			var lastUsedIndex = GetKeys(x => x.IsInternal == isInternal && x.KeyState == KeyState.Used).LastOrDefault()?.Index;
+			if (lastUsedIndex is null)
+			{
+				return 0;
+			}
+			else
+			{
+				keyIndexes = keyIndexes.Where(x => x < lastUsedIndex).ToArray();
+			}
+		}
 
 		var hs = keyIndexes.ToHashSet();
 		int largerConsecutiveSequence = 0;
@@ -561,18 +575,18 @@ public class KeyManager
 
 		if (isInternal.HasValue)
 		{
-			while (CountConsecutiveUnusedKeys(isInternal.Value) < MinGapLimit)
+			while (CountConsecutiveUnusedKeys(isInternal.Value, ignoreTail: false) < MinGapLimit)
 			{
 				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value, toFile: false));
 			}
 		}
 		else
 		{
-			while (CountConsecutiveUnusedKeys(true) < MinGapLimit)
+			while (CountConsecutiveUnusedKeys(true, ignoreTail: false) < MinGapLimit)
 			{
 				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
 			}
-			while (CountConsecutiveUnusedKeys(false) < MinGapLimit)
+			while (CountConsecutiveUnusedKeys(false, ignoreTail: false) < MinGapLimit)
 			{
 				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
 			}
