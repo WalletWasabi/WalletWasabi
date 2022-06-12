@@ -76,7 +76,13 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 	{
 		if (Application.Current is { Clipboard: { } clipboard })
 		{
-			var clipboardValue = await clipboard.GetTextAsync();
+			var clipboardValue = (await clipboard.GetTextAsync()) ?? "";
+
+			// Yes, it can be null, the software crashed without this condition.
+			if (clipboardValue is null)
+			{
+				return;
+			}
 
 			if (AssociatedObject is null)
 			{
@@ -93,7 +99,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			clipboardValue = clipboardValue.Trim();
 
 			if (clipboardValue != CurrentAddress &&
-			    AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
+				AddressStringParser.TryParse(clipboardValue, Services.WalletManager.Network, out _))
 			{
 				AssociatedObject.Classes.Add(FlashAnimation);
 				_lastFlashedOn = clipboardValue;
