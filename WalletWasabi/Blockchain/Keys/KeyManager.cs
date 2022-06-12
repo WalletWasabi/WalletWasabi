@@ -569,7 +569,7 @@ public class KeyManager
 	/// Make sure there's always clean keys generated and indexed.
 	/// Call SetMinGapLimit() to set how many keys should be asserted.
 	/// </summary>
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
+	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null, bool toFile = true)
 	{
 		var newKeys = new List<HdPubKey>();
 
@@ -592,7 +592,7 @@ public class KeyManager
 			}
 		}
 
-		if (newKeys.Any())
+		if (toFile && newKeys.Any())
 		{
 			ToFile();
 		}
@@ -603,22 +603,35 @@ public class KeyManager
 	/// <summary>
 	/// Make sure there's always locked internal keys generated and indexed.
 	/// </summary>
-	public bool AssertLockedInternalKeysIndexed(int howMany = 14)
+	public bool AssertLockedInternalKeysIndexed(int howMany)
 	{
-		var generated = false;
+		var changed = false;
 
 		while (GetKeys(KeyState.Locked, true).Count() < howMany)
 		{
-			GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
-			generated = true;
+			var firstUnusedInternalKey = GetKeys(x => x.IsInternal == true && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
+
+			if (firstUnusedInternalKey is null)
+			{
+				// If not found, generate a new.
+				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
+			}
+			else
+			{
+				firstUnusedInternalKey.SetKeyState(KeyState.Locked);
+			}
+
+			changed = true;
 		}
 
-		if (generated)
+		AssertCleanKeysIndexed(isInternal: true, toFile: false);
+
+		if (changed)
 		{
 			ToFile();
 		}
 
-		return generated;
+		return changed;
 	}
 
 	private void SetMinGapLimit(int? minGapLimit)
