@@ -92,7 +92,7 @@
       </Panel>
 
       <!-- Pages -->
-      <Carousel SelectedIndex="{Binding SelectedIndex, FallbackValue=2}"
+      <Carousel SelectedIndex="{Binding SelectedIndex, FallbackValue=3}"
                 DockPanel.Dock="Top"
                 Margin="0 10">
         <i:Interaction.Behaviors>
@@ -326,12 +326,12 @@
                                                  MaterialOpacity="0" />
                   </ExperimentalAcrylicBorder.Material>
                 </ExperimentalAcrylicBorder>
-                <Viewbox
-                  MaxWidth="460" MaxHeight="280">
+                <Border Opacity="0.85" CornerRadius="4" Background="{DynamicResource TileRegionColor}" />
+                <Viewbox MaxWidth="460" MaxHeight="280">
                   <Panel>
                     <Panel Width="461" Height="287" />
-                    <Path Opacity="0.8" Fill="{DynamicResource RegionColor}" Data="M0 0h461.1v286.8H0z" />
-                    <Path Opacity="0.8" Fill="{DynamicResource TileRegionColor}" Data="M0 0h461.1v65.8H0z" />
+                    <!-- <Path Opacity="0.8" Fill="{DynamicResource RegionColor}" Data="M0 0h461.1v286.8H0z" /> -->
+                    <Path Opacity="0.8" Fill="{DynamicResource TileRegionColor}" Data="M0 0h465v65.8H0z" />
                     <Path Fill="{DynamicResource TextControlForeground}" Opacity=".5"
                           Data="M18 89.8a2.5 2.5 0 0 1 2.5-2.5h8.8a.8.8 0 0 1 .7.7v12.5a.8.8 0 0 1-.8.8h-2.4a.8.8 0 1 1 0-1.5h1.7v-2h-8a1 1 0 0 0-.7 1.7.8.8 0 0 1-1 1 2.5 2.5 0 0 1-.8-1.8zm10.5-1v7.5h-8c-.4 0-.7 0-1 .2v-6.8a1 1 0 0 1 1-1zM21 99.5v3.3a.3.3 0 0 0 .4.2l1.4-1.1a.3.3 0 0 1 .3 0l1.5 1a.3.3 0 0 0 .4-.2v-3.2a.3.3 0 0 0-.3-.3h-3.5a.3.3 0 0 0-.2.3z" />
                     <Path Fill="{DynamicResource TextControlBorderBrushFocused}"
