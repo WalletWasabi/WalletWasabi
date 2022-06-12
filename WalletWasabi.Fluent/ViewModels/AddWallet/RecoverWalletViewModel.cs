@@ -123,7 +123,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
 
-	private int MinGapLimit { get; set; } = 100;
+	private int MinGapLimit { get; set; } = 114;
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
