@@ -36,6 +36,9 @@ public class TorMonitor : PeriodicRunner
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
+
+	/// <summary>When the fallback address was started to be used, <c>null</c> if fallback address is not in use.</summary>
+	private DateTime? FallbackStarted { get; set; }
 	private Uri FallbackBackendUri { get; }
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
@@ -143,7 +146,8 @@ public class TorMonitor : PeriodicRunner
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken token)
 	{
-		if (TorHttpPool.TorDoesntWorkSince is not null) // If Tor misbehaves.
+		// If Tor misbehaves and we have not requested the fallback mechanism yet.
+		if (!RequestFallbackAddressUsage && TorHttpPool.TorDoesntWorkSince is not null)
 		{
 			TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
@@ -176,8 +180,18 @@ public class TorMonitor : PeriodicRunner
 
 					Logger.LogInfo("Switching to the clearnet mode.");
 					RequestFallbackAddressUsage = true;
+					FallbackStarted = DateTime.UtcNow;
 				}
 			}
+		}
+
+		// Every two hours try to revert to the original Backend onion Tor address. It might be already fixed.
+		// If not, we will get back to the fallback URI again later on.
+		if (FallbackStarted is not null && DateTime.UtcNow - FallbackStarted > TimeSpan.FromHours(2))
+		{
+			Logger.LogInfo("Attempt to revert to the more private onion address of the Backend server.");
+			FallbackStarted = null;
+			RequestFallbackAddressUsage = false;
 		}
 	}
 
