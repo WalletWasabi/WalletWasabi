@@ -77,11 +77,13 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 							password!,
 							Services.WalletManager.Network,
 							AccountKeyPath,
-							"",
+							"", // Make sure it is not saved into a file yet.
 							MinGapLimit);
 
 						result.AutoCoinJoin = true;
 						result.SetNetwork(Services.WalletManager.Network);
+
+						// Set the filepath but we will only write the file later when the Ui workflow is done.
 						result.SetFilePath(walletFilePath);
 
 						return result;
