@@ -70,18 +70,19 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					() =>
 					{
 						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-							.walletFilePath;
+						   .walletFilePath;
 
 						var result = KeyManager.Recover(
 							CurrentMnemonics!,
 							password!,
 							Services.WalletManager.Network,
 							AccountKeyPath,
-							walletFilePath,
+							"",
 							MinGapLimit);
 
 						result.AutoCoinJoin = true;
 						result.SetNetwork(Services.WalletManager.Network);
+						result.SetFilePath(walletFilePath);
 
 						return result;
 					});
