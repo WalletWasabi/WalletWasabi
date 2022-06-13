@@ -66,6 +66,7 @@ public class TorHttpClient : IHttpClient
 		return await SendAsync(request, token).ConfigureAwait(false);
 	}
 
+	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
 	/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 	{
