@@ -122,11 +122,6 @@ public class Config : ConfigBase
 
 	public Uri GetCurrentBackendUri()
 	{
-		if (TorMonitor.RequestFallbackAddressUsage)
-		{
-			return GetFallbackBackendUri();
-		}
-
 		if (_backendUri is { })
 		{
 			return _backendUri;

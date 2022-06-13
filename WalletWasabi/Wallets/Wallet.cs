@@ -42,7 +42,6 @@ public class Wallet : BackgroundService
 		HandleFiltersLock = new AsyncLock();
 
 		KeyManager.AssertCleanKeysIndexed();
-		KeyManager.AssertLockedInternalKeysIndexed(14);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
