@@ -14,7 +14,6 @@ using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 using WalletWasabi.Tor.Control.Utils;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
-using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
@@ -26,17 +25,21 @@ public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
 
-	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory backendHttpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
 		FallbackBackendUri = fallbackBackendUri;
 		TorProcessManager = torProcessManager;
-		TorHttpPool = backendHttpClientFactory.TorHttpPool!;
-		HttpClient = backendHttpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
+		TorHttpPool = httpClientFactory.TorHttpPool!;
+		HttpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
 	}
 
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
+
+	/// <summary>When the fallback address was started to be used, <c>null</c> if fallback address is not in use.</summary>
+	private DateTime? FallbackStarted { get; set; }
+
 	private Uri FallbackBackendUri { get; }
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
@@ -144,38 +147,52 @@ public class TorMonitor : PeriodicRunner
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken token)
 	{
-		if (TorHttpPool.TorDoesntWorkSince is { }) // If Tor misbehaves.
+		// If Tor misbehaves and we have not requested the fallback mechanism yet.
+		if (!RequestFallbackAddressUsage && TorHttpPool.TorDoesntWorkSince is not null)
 		{
 			TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
 			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
+				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException)
 				{
-					if (torEx.RepField == RepField.HostUnreachable)
-					{
-						Logger.LogInfo("Tor does not work properly. Test fallback URI.");
-						using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
-						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-
-						// Check if it changed in the meantime...
-						if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
-						{
-							// Fallback here...
-							RequestFallbackAddressUsage = true;
-						}
-					}
-				}
-				else
-				{
+					// Tor must be running for us to consider switching to the fallback address.
 					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
 
-					if (isRunning)
+					if (!isRunning)
 					{
-						Logger.LogInfo("Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
+						Logger.LogInfo("Tor is not running.");
+						return;
 					}
+
+					// Check if the fallback address (clearnet) works. It must work.
+					try
+					{
+						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
+						using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
+						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						// The fallback address does not work too. We do not want to switch.
+						Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
+						return;
+					}
+
+					Logger.LogInfo("Switching to the clearnet mode.");
+					RequestFallbackAddressUsage = true;
+					FallbackStarted = DateTime.UtcNow;
 				}
 			}
+		}
+
+		// Every two hours try to revert to the original Backend onion Tor address. It might be already fixed.
+		// If not, we will get back to the fallback URI again later on.
+		if (FallbackStarted is not null && DateTime.UtcNow - FallbackStarted > TimeSpan.FromHours(24))
+		{
+			Logger.LogInfo("Attempt to revert to the more private onion address of the Backend server.");
+			FallbackStarted = null;
+			RequestFallbackAddressUsage = false;
 		}
 	}
 
