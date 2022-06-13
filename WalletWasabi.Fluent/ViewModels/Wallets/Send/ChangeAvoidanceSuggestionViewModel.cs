@@ -45,7 +45,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 	public BuildTransactionResult TransactionResult { get; }
 
-	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel?> GenerateSuggestionsAsync(
+	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		Wallet wallet,
