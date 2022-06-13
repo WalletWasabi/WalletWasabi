@@ -120,6 +120,10 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		else if (change.Property == ForegroundProperty)
 		{
 			_lineBrush = Foreground ?? Brushes.Magenta;
+			if (_lineBrush is ImmutableSolidColorBrush brush)
+			{
+				_lineColor = brush.Color.ToSKColor();
+			}
 			InvalidateArrange();
 		}
 	}
@@ -147,30 +151,46 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		context.Custom(this);
 	}
 
-	private  SKPaint _paint = new SKPaint { ColorF = new SKColorF(1.0f, 1.0f, 1.0f) };
+
+	private SKColor _lineColor;
 	private SKSurface _surface;
 	private const double TextureHeight = 32;
 	private const double TextureWidth = 32;
 
-	private void RenderBars(SKCanvas canvas)
+	private void RenderBars(SKCanvas context)
 	{
-		canvas.Clear();
-		var thickness = TextureWidth / NumBins;
-		var center = (TextureWidth / 2);
+		context.Clear();
+		var width = TextureWidth;
+		var height = TextureHeight;
+		var thickness = width / NumBins;
+		var center = (width / 2);
 
 		double x = 0;
+
+		using var linePaint = new SKPaint()
+		{
+			Color = _lineColor,
+			IsAntialias = false,
+			Style = SKPaintStyle.Fill
+		};
+
+		using var path = new SKPath();
 
 		for (int i = 0; i < NumBins; i++)
 		{
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
-
-			canvas.DrawLine(
-				new SKPoint((float)x, (float)TextureHeight),
-				new SKPoint((float)x, (float)(TextureHeight - multiplier * _data[i] * (TextureHeight * 0.8))), _paint);
+			var rect = new SKRect(
+				(float) x,
+				(float) height,
+				(float) (x + thickness),
+				(float) (height - multiplier * _data[i] * (height * 0.8)));
+			path.AddRect(rect);
 
 			x += thickness;
 		}
+
+		context.DrawPath(path, linePaint);
 	}
 
 	void IDisposable.Dispose()
@@ -178,7 +198,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		// nothing to do.
 	}
 
-	SKPaint _blur = new SKPaint
+	SKPaint _blur = new()
 	{
 		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
 		FilterQuality = SKFilterQuality.Low
