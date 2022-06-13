@@ -172,10 +172,10 @@ public class TorMonitor : PeriodicRunner
 						using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
 						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 					}
-					catch
+					catch (Exception ex)
 					{
 						// The fallback address does not work too. We do not want to switch.
-						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
+						Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
 						return;
 					}
 
