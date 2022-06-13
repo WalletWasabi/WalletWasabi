@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private const int NumBins = 250;
+	private const int NumBins = 64;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
@@ -55,6 +55,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+
+		DispatcherTimer.Run(() =>
+		{
+			InvalidateVisual();
+			return true;
+		}, TimeSpan.FromMilliseconds(70));
 	}
 
 	public bool IsActive
@@ -139,14 +145,18 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 
 		context.Custom(this);
-
-		Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
 
-	private void RenderBars(IDrawingContextImpl context)
+	private  SKPaint _paint = new SKPaint { ColorF = new SKColorF(1.0f, 1.0f, 1.0f) };
+	private SKSurface _surface;
+	private const double TextureHeight = 32;
+	private const double TextureWidth = 32;
+
+	private void RenderBars(SKCanvas canvas)
 	{
-		var thickness = Bounds.Width / NumBins;
-		var center = (Bounds.Width / 2);
+		canvas.Clear();
+		var thickness = TextureWidth / NumBins;
+		var center = (TextureWidth / 2);
 
 		double x = 0;
 
@@ -155,10 +165,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
 
-			context.DrawLine(
-				_linePen,
-				new Point(x, Bounds.Height),
-				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
+			canvas.DrawLine(
+				new SKPoint((float)x, (float)TextureHeight),
+				new SKPoint((float)x, (float)(TextureHeight - multiplier * _data[i] * (TextureHeight * 0.8))), _paint);
 
 			x += thickness;
 		}
@@ -168,6 +177,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		// nothing to do.
 	}
+
+	SKPaint _blur = new SKPaint
+	{
+		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
+		FilterQuality = SKFilterQuality.Low
+	};
 
 	bool IDrawOperation.HitTest(Point p) => Bounds.Contains(p);
 
@@ -180,12 +195,19 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			return;
 		}
 
-		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
-		RenderBars(barsLayer);
+		if (_surface is null)
+		{
+			_surface =
+				SKSurface.Create(skia.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+		}
 
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
-		barsLayer.DrawTo(skia, paint);
+		RenderBars(_surface.Canvas);
+
+		using var snapshot = _surface.Snapshot();
+
+		skia.SkCanvas.DrawImage(snapshot,
+			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
+			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height), _blur);
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;
