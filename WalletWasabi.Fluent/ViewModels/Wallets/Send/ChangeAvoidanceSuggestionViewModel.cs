@@ -81,7 +81,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Failed to build suggestion. Exception: {ex}");
+					Logger.LogError($"Failed to build changeless transaction. Exception: {ex}");
 				}
 
 				if (transaction is not null)
