@@ -206,6 +206,7 @@ public class AllTransactionStore : IAsyncDisposable
 		}
 	}
 
+	/// <returns>Transactions ordered by blockchain.</returns>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		lock (Lock)
@@ -261,6 +262,7 @@ public class AllTransactionStore : IAsyncDisposable
 		}
 	}
 
+	/// <returns>Labels ordered by blockchain.</returns>
 	public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
 
 	#endregion Accessors
