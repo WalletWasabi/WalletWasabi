@@ -9,16 +9,11 @@ using Avalonia.Threading;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
+#pragma warning disable CS0612
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private const int NumBins = 250;
-
-	/// The length of spectrum animation pause (seconds * FPS) to optimize GPU/CPU usage.
-	private const int EffectRepeatInterval = 15 * 60;
-
-	// The lenght of spectrum animation (seconds * FPS).
-	private const int EffectLength = 5 * 60;
+	private const int NumBins = 64;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
@@ -26,24 +21,29 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	private readonly SpectrumDataSource[] _sources;
 
 	private IBrush? _lineBrush;
-	private SKColor _lineColor;
 
 	private float[] _data;
 
 	private bool _isAuraActive;
 	private bool _isSplashActive;
 
-	private bool _isEffectActive = true;
-	private int _effectFrameCounter;
+	private readonly SKPaint _blur = new()
+	{
+		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
+		FilterQuality = SKFilterQuality.Low
+	};
+
+	private SKColor _lineColor;
+	private SKSurface? _surface;
+	private readonly DispatcherTimer _invalidationTimer;
+	private const double TextureHeight = 32;
+	private const double TextureWidth = 32;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
 
 	public static readonly StyledProperty<bool> IsDockEffectVisibleProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsDockEffectVisible));
-
-	public static readonly StyledProperty<bool> IsFireEffectVisibleProperty =
-		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsFireEffectVisible));
 
 	public SpectrumControl()
 	{
@@ -66,42 +66,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		DispatcherTimer.Run(
-			() =>
-			{
-				if (IsVisible)
-				{
-					if (_isEffectActive == false)
-					{
-						if (_effectFrameCounter >= EffectRepeatInterval)
-						{
-							_isEffectActive = true;
-							_effectFrameCounter = 0;
-						}
-					}
-					else
-					{
-						if (_effectFrameCounter >= EffectLength)
-						{
-							_isEffectActive = false;
-							_effectFrameCounter = 0;
-						}
+		_invalidationTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(1000.0 / 15.0)
+		};
 
-						InvalidateVisual();
-					}
-
-					if (IsFireEffectVisible)
-					{
-						InvalidateVisual();
-					}
-
-					_effectFrameCounter++;
-				}
-
-				return true;
-			},
-			TimeSpan.FromMilliseconds((float)1000/60),
-			DispatcherPriority.Render);
+		_invalidationTimer.Tick += (sender, args) => InvalidateVisual();
 	}
 
 	public bool IsActive
@@ -114,12 +84,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		get => GetValue(IsDockEffectVisibleProperty);
 		set => SetValue(IsDockEffectVisibleProperty, value);
-	}
-
-	public bool IsFireEffectVisible
-	{
-		get => GetValue(IsFireEffectVisibleProperty);
-		set => SetValue(IsFireEffectVisibleProperty, value);
 	}
 
 	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
@@ -136,14 +100,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private void SetVisibility()
 	{
-		var isVisible = _isSplashActive || _isAuraActive;
-		if (isVisible && !IsVisible)
-		{
-			_isEffectActive = true;
-			_effectFrameCounter = 0;
-		}
-
-		IsVisible = isVisible;
+		IsVisible = _isSplashActive || _isAuraActive;
 	}
 
 	private void OnIsActiveChanged()
@@ -153,6 +110,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		if (IsActive)
 		{
 			_auraSpectrumDataSource.Start();
+			_invalidationTimer.Start();
+		}
+		else
+		{
+			_invalidationTimer.Stop();
 		}
 	}
 
@@ -179,8 +141,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			{
 				_lineColor = brush.Color.ToSKColor();
 			}
-
-			InvalidateArrange();
 		}
 	}
 
@@ -203,8 +163,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private void RenderBars(SKCanvas context)
 	{
-		var width = Bounds.Width;
-		var height = Bounds.Height;
+		context.Clear();
+		var width = TextureWidth;
+		var height = TextureHeight;
 		var thickness = width / NumBins;
 		var center = (width / 2);
 
@@ -236,23 +197,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		context.DrawPath(path, linePaint);
 	}
 
-	private SKPicture RenderPicture(float width, float height)
-	{
-		using var pictureRecorder = new SKPictureRecorder();
-		pictureRecorder.BeginRecording(SKRect.Create(0f, 0f, width, height));
-
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
-
-		pictureRecorder.RecordingCanvas.SaveLayer(paint);
-
-		RenderBars(pictureRecorder.RecordingCanvas);
-
-		pictureRecorder.RecordingCanvas.Restore();
-
-		return pictureRecorder.EndRecording();
-	}
-
 	void IDisposable.Dispose()
 	{
 		// nothing to do.
@@ -269,11 +213,32 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			return;
 		}
 
-		var width = (float) bounds.Size.Width;
-		var height = (float) bounds.Size.Height;
-		using var picture = RenderPicture(width, height);
+		if (_surface is null)
+		{
+			if (skia.GrContext is { })
+			{
+				_surface =
+					SKSurface.Create(skia.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+			}
+			else
+			{
+				_surface = SKSurface.Create(
+					new SKImageInfo(
+						(int)Math.Ceiling(TextureWidth),
+						(int)Math.Ceiling(TextureHeight),
+						SKImageInfo.PlatformColorType,
+						SKAlphaType.Premul));
+			}
+		}
 
-		skia.SkCanvas.DrawPicture(picture);
+		RenderBars(_surface.Canvas);
+
+		using var snapshot = _surface.Snapshot();
+
+		skia.SkCanvas.DrawImage(
+			snapshot,
+			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
+			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height), _blur);
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;
