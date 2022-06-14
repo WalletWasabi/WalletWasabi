@@ -5,7 +5,6 @@ using Avalonia.Media.Immutable;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using SkiaSharp;
 
@@ -21,13 +20,24 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private readonly SpectrumDataSource[] _sources;
 
-	private ImmutablePen? _linePen;
 	private IBrush? _lineBrush;
 
 	private float[] _data;
 
 	private bool _isAuraActive;
 	private bool _isSplashActive;
+
+	private readonly SKPaint _blur = new()
+	{
+		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
+		FilterQuality = SKFilterQuality.Low
+	};
+
+	private SKColor _lineColor;
+	private SKSurface? _surface;
+	private readonly DispatcherTimer _invalidationTimer;
+	private const double TextureHeight = 32;
+	private const double TextureWidth = 32;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
@@ -56,11 +66,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			}
 		};
 
-		DispatcherTimer.Run(() =>
+		_invalidationTimer = new DispatcherTimer
 		{
-			InvalidateVisual();
-			return true;
-		}, TimeSpan.FromMilliseconds(70));
+			Interval = TimeSpan.FromMilliseconds(70)
+		};
+
+		_invalidationTimer.Tick += (sender, args) => InvalidateVisual();
 	}
 
 	public bool IsActive
@@ -99,6 +110,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		if (IsActive)
 		{
 			_auraSpectrumDataSource.Start();
+			_invalidationTimer.Start();
+		}
+		else
+		{
+			_invalidationTimer.Stop();
 		}
 	}
 
@@ -120,18 +136,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		else if (change.Property == ForegroundProperty)
 		{
 			_lineBrush = Foreground ?? Brushes.Magenta;
+
 			if (_lineBrush is ImmutableSolidColorBrush brush)
 			{
 				_lineColor = brush.Color.ToSKColor();
 			}
-			InvalidateArrange();
 		}
-	}
-
-	protected override Size ArrangeOverride(Size finalSize)
-	{
-		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
-		return base.ArrangeOverride(finalSize);
 	}
 
 	public override void Render(DrawingContext context)
@@ -150,12 +160,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		context.Custom(this);
 	}
-
-
-	private SKColor _lineColor;
-	private SKSurface _surface;
-	private const double TextureHeight = 32;
-	private const double TextureWidth = 32;
 
 	private void RenderBars(SKCanvas context)
 	{
@@ -198,12 +202,6 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		// nothing to do.
 	}
 
-	SKPaint _blur = new()
-	{
-		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
-		FilterQuality = SKFilterQuality.Low
-	};
-
 	bool IDrawOperation.HitTest(Point p) => Bounds.Contains(p);
 
 	void IDrawOperation.Render(IDrawingContextImpl context)
@@ -225,7 +223,8 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		using var snapshot = _surface.Snapshot();
 
-		skia.SkCanvas.DrawImage(snapshot,
+		skia.SkCanvas.DrawImage(
+			snapshot,
 			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
 			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height), _blur);
 	}
