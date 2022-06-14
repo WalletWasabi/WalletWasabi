@@ -2762,8 +2762,6 @@ internal class DemoCoinSets
 	/// <summary>
 	/// With this function you can generate code to create test cases from a specific coinset.
 	/// </summary>
-	/// <param name="coins"></param>
-	/// <returns></returns>
 	public static string GenerateTxFactoryCoinArrayInitializerCode(IEnumerable<SmartCoin> coins)
 	{
 		Dictionary<HdPubKey, int> keyAndIndex = new();
