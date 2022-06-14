@@ -11,12 +11,12 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins)
 	{
-		UnspentCoins = unspentCoins.Distinct();
+		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private IEnumerable<SmartCoin> UnspentCoins { get; }
+	private List<SmartCoin> UnspentCoins { get; }
 
 	/// <param name="unused">Unused parameter, make it an empty list.</param>
 	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
@@ -35,12 +35,14 @@ public class SmartCoinSelector : ICoinSelector
 			.Distinct();
 
 		// Build all the possible coin clusters, except when it's computationally too expensive.
-		List<IEnumerable<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
+		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 			? uniqueClusters
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster)))
+				.Select(clusterCombination => UnspentCoins
+					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
+					.ToList())
 				.ToList()
-			: new List<IEnumerable<SmartCoin>>();
+			: new List<List<SmartCoin>>();
 
 		coinClusters.Add(UnspentCoins);
 
