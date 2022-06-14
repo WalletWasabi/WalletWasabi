@@ -10,34 +10,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions;
 
 internal class DemoCoinSets
 {
-	public static string GenerateTxFactoryCoinArrayInitializerCode(IEnumerable<SmartCoin> coins)
-	{
-		//var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
-		//{
-		//		("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
-		//		("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
-		//		("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
-		//		("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100)
-		//});
-
-		Dictionary<HdPubKey, int> keyAndIndex = new();
-		int index = 0;
-
-		foreach (var coin in coins)
-		{
-			if (keyAndIndex.TryAdd(coin.HdPubKey, index))
-			{
-				index++;
-			}
-		}
-
-		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Label}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");
-		var result = string.Join($",\r\n", coinTexts);
-		return result;
-	}
-
 	public static IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> LotOfCoins =
-		new[] {
+		new[]
+		{
 			("", 0, 0.00009503m, true, 1),
 			("", 1, 0.00012916m, true, 1),
 			("", 1, 0.00010720m, true, 1),
@@ -2783,4 +2758,27 @@ internal class DemoCoinSets
 			("", 10, 0.00048221m, true, 1),
 			("", 11, 0.00032124m, true, 1)
 	};
+
+	/// <summary>
+	/// With this function you can generate code to create test cases from a specific coinset.
+	/// </summary>
+	/// <param name="coins"></param>
+	/// <returns></returns>
+	public static string GenerateTxFactoryCoinArrayInitializerCode(IEnumerable<SmartCoin> coins)
+	{
+		Dictionary<HdPubKey, int> keyAndIndex = new();
+		int index = 0;
+
+		foreach (var coin in coins)
+		{
+			if (keyAndIndex.TryAdd(coin.HdPubKey, index))
+			{
+				index++;
+			}
+		}
+
+		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Label}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");
+		var result = string.Join($",\r\n", coinTexts);
+		return result;
+	}
 }
