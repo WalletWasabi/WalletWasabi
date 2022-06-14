@@ -44,7 +44,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
 		}
 
-		string? jsonString = null;
+		string jsonString;
 		lock (FileLocker)
 		{
 			jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
