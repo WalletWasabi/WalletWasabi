@@ -30,7 +30,7 @@ public class SmartCoinSelector : ICoinSelector
 			throw new InsufficientBalanceException(targetMoney, available);
 		}
 
-		// This is hacky safety check to make sure the first few iteration can go through.
+		// This is a hacky safety check to make sure the first few iterations can go through.
 		if (IterationCount > 10)
 		{
 			var suggestedSum = suggestion.Sum(c => (Money)c.Amount);
@@ -47,8 +47,8 @@ public class SmartCoinSelector : ICoinSelector
 
 		// Get unique clusters.
 		IEnumerable<Cluster> uniqueClusters = UnspentCoins
-		.Select(coin => coin.HdPubKey.Cluster)
-		.Distinct();
+			.Select(coin => coin.HdPubKey.Cluster)
+			.Distinct();
 
 		// Build all the possible coin clusters, except when it's computationally too expensive.
 		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10

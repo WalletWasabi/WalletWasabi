@@ -2,7 +2,6 @@ using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -52,7 +51,7 @@ public static class ServiceFactory
 		var uniqueCoins = scoins.Distinct().Count();
 		if (uniqueCoins != scoins.Length)
 		{
-			throw new InvalidOperationException($"Coin clones are detected. Number of all:{scoins.Length}, unique:{uniqueCoins}.");
+			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{scoins.Length}, unique coins:{uniqueCoins}.");
 		}
 
 		var coinsView = new CoinsView(scoins);
