@@ -68,7 +68,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		_invalidationTimer = new DispatcherTimer
 		{
-			Interval = TimeSpan.FromMilliseconds(70)
+			Interval = TimeSpan.FromMilliseconds(1000.0 / 15.0)
 		};
 
 		_invalidationTimer.Tick += (sender, args) => InvalidateVisual();
