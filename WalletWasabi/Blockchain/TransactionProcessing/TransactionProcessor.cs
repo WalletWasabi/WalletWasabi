@@ -238,12 +238,6 @@ public class TransactionProcessor
 
 					// Make sure there's always 21 clean keys generated and indexed.
 					KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
-
-					if (foundKey.IsInternal)
-					{
-						// Make sure there's always 14 internal locked keys generated and indexed.
-						KeyManager.AssertLockedInternalKeysIndexed(14);
-					}
 				}
 				else // If we had this coin already.
 				{
