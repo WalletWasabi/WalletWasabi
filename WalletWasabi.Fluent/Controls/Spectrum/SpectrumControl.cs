@@ -215,8 +215,20 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		if (_surface is null)
 		{
-			_surface =
-				SKSurface.Create(skia.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+			if (skia.GrContext is { })
+			{
+				_surface =
+					SKSurface.Create(skia.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+			}
+			else
+			{
+				_surface = SKSurface.Create(
+					new SKImageInfo(
+						(int)Math.Ceiling(TextureWidth),
+						(int)Math.Ceiling(TextureHeight),
+						SKImageInfo.PlatformColorType,
+						SKAlphaType.Premul));
+			}
 		}
 
 		RenderBars(_surface.Canvas);
