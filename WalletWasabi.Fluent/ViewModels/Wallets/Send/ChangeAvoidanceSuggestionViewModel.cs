@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -66,25 +67,37 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		{
 			if (selection.Any())
 			{
-				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
-					wallet,
-					destination,
-					transactionInfo.UserLabels,
-					transactionInfo.FeeRate,
-					selection,
-					tryToSign: false);
+				BuildTransactionResult? transaction = null;
 
-				var destinationAmount = transaction.CalculateDestinationAmount();
-
-				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
-				if (!foundSolutionsByAmount.Contains(destinationAmount))
+				try
 				{
-					foundSolutionsByAmount.Add(destinationAmount);
+					transaction = TransactionHelpers.BuildChangelessTransaction(
+						wallet,
+						destination,
+						transactionInfo.UserLabels,
+						transactionInfo.FeeRate,
+						selection,
+						tryToSign: false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Failed to build changeless transaction. Exception: {ex}");
+				}
 
-					yield return new ChangeAvoidanceSuggestionViewModel(
-						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-						transaction,
-						usdExchangeRate);
+				if (transaction is not null)
+				{
+					var destinationAmount = transaction.CalculateDestinationAmount();
+
+					// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
+					if (!foundSolutionsByAmount.Contains(destinationAmount))
+					{
+						foundSolutionsByAmount.Add(destinationAmount);
+
+						yield return new ChangeAvoidanceSuggestionViewModel(
+							transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+							transaction,
+							usdExchangeRate);
+					}
 				}
 			}
 		}

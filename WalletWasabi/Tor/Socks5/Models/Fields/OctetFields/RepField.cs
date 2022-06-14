@@ -38,6 +38,8 @@ public class RepField : OctetSerializableBase
 
 	public static readonly RepField AddressTypeNotSupported = new((byte)ReplyType.AddressTypeNotSupported);
 
+	public static readonly RepField OnionServiceIntroFailed = new((byte)ReplyType.OnionServiceIntroFailed);
+
 	public RepField(byte byteValue)
 	{
 		ByteValue = byteValue;

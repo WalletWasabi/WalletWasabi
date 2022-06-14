@@ -21,10 +21,10 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		_addWalletPage = addWalletPage;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
-		
+
 		SelectedIndex = 0;
 		NextCommand = ReactiveCommand.Create(OnNext);
-		
+
 		this.WhenAnyValue(x => x.SelectedIndex)
 			.Subscribe(x =>
 			{
@@ -37,14 +37,6 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			.Where(x => !x)
 			.Subscribe(x => EnableNextKey = false);
 	}
-
-	public Bitmap WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
-
-	public Bitmap TrustlessImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/trustless.png");
-
-	public Bitmap OpensourceImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/opensource.png");
-
-	public Bitmap AnonymousImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/anonymous.png");
 
 	private void OnNext()
 	{

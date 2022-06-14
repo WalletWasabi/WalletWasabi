@@ -84,6 +84,22 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
+	public void ChangeOutputConservativeConsolidation()
+	{
+		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(3.1m), 1), (Money.Coins(3.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+
+		analyser.Analyze(tx);
+
+		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
+		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
+
+		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(59, active.HdPubKey.AnonymitySet);
+		Assert.Equal(1, change.HdPubKey.AnonymitySet);
+	}
+
+	[Fact]
 	public void ChangeOutputInheritance()
 	{
 		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
