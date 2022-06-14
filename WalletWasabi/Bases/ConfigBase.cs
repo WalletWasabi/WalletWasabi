@@ -85,7 +85,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public virtual void LoadFile()
 	{
-		string? jsonString = null;
+		string jsonString;
 		lock (FileLocker)
 		{
 			jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
