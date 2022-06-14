@@ -9,11 +9,19 @@ using Avalonia.Threading;
 using SkiaSharp;
 
 namespace WalletWasabi.Fluent.Controls.Spectrum;
-#pragma warning disable CS0612
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
 	private const int NumBins = 64;
+
+	/// The spectrum effect frames per second.
+	private const int Fps = 15;
+
+	/// The length of spectrum animation pause (seconds * FPS) to optimize GPU/CPU usage.
+	private const int EffectRepeatInterval = 15 * Fps;
+
+	// The lenght of spectrum animation (seconds * FPS).
+	private const int EffectLength = 5 * Fps;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
@@ -26,6 +34,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	private bool _isAuraActive;
 	private bool _isSplashActive;
+
+	private bool _isEffectActive = true;
+	private int _effectFrameCounter;
 
 	private readonly SKPaint _blur = new()
 	{
@@ -44,6 +55,9 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 	public static readonly StyledProperty<bool> IsDockEffectVisibleProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsDockEffectVisible));
+
+	public static readonly StyledProperty<bool> IsFireEffectVisibleProperty =
+		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsFireEffectVisible));
 
 	public SpectrumControl()
 	{
@@ -68,10 +82,37 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		_invalidationTimer = new DispatcherTimer
 		{
-			Interval = TimeSpan.FromMilliseconds(1000.0 / 15.0)
+			Interval = TimeSpan.FromMilliseconds(1000.0 / Fps)
 		};
 
-		_invalidationTimer.Tick += (sender, args) => InvalidateVisual();
+		_invalidationTimer.Tick += (sender, args) =>
+		{
+			if (_isEffectActive == false)
+			{
+				if (_effectFrameCounter >= EffectRepeatInterval)
+				{
+					_isEffectActive = true;
+					_effectFrameCounter = 0;
+				}
+			}
+			else
+			{
+				if (_effectFrameCounter >= EffectLength)
+				{
+					_isEffectActive = false;
+					_effectFrameCounter = 0;
+				}
+
+				InvalidateVisual();
+			}
+
+			if (IsFireEffectVisible)
+			{
+				InvalidateVisual();
+			}
+
+			_effectFrameCounter++;
+		};
 	}
 
 	public bool IsActive
@@ -84,6 +125,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		get => GetValue(IsDockEffectVisibleProperty);
 		set => SetValue(IsDockEffectVisibleProperty, value);
+	}
+
+	public bool IsFireEffectVisible
+	{
+		get => GetValue(IsFireEffectVisibleProperty);
+		set => SetValue(IsFireEffectVisibleProperty, value);
 	}
 
 	private void OnSplashGeneratingDataStateChanged(object? sender, bool e)
@@ -110,11 +157,16 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		if (IsActive)
 		{
 			_auraSpectrumDataSource.Start();
+
+			_isEffectActive = true;
+			_effectFrameCounter = 0;
 			_invalidationTimer.Start();
 		}
 		else
 		{
 			_invalidationTimer.Stop();
+			_isEffectActive = false;
+			_effectFrameCounter = 0;
 		}
 	}
 
