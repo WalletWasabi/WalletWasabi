@@ -17,11 +17,12 @@ public class SmartCoinSelector : ICoinSelector
 	}
 
 	private IEnumerable<SmartCoin> UnspentCoins { get; }
+	private int IterationCount { get; set; }
 
-	/// <param name="unused">Unused parameter, make it an empty list.</param>
-	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
+	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
+	public IEnumerable<ICoin> Select(IEnumerable<ICoin> suggestion, IMoney target)
 	{
-		var targetMoney = target as Money;
+		var targetMoney = (Money)target;
 
 		long available = UnspentCoins.Sum(x => x.Amount);
 		if (available < targetMoney)
@@ -29,10 +30,25 @@ public class SmartCoinSelector : ICoinSelector
 			throw new InsufficientBalanceException(targetMoney, available);
 		}
 
+		// This is hacky safety check to make sure the first few iteration can go through.
+		if (IterationCount > 10)
+		{
+			var suggestedSum = suggestion.Sum(c => (Money)c.Amount);
+			if (suggestedSum < (Money)target)
+			{
+				throw new InsufficientBalanceException(targetMoney, suggestedSum);
+			}
+		}
+
+		if (IterationCount > 500)
+		{
+			throw new TimeoutException("Coin selection timed out.");
+		}
+
 		// Get unique clusters.
 		IEnumerable<Cluster> uniqueClusters = UnspentCoins
-			.Select(coin => coin.HdPubKey.Cluster)
-			.Distinct();
+		.Select(coin => coin.HdPubKey.Cluster)
+		.Distinct();
 
 		// Build all the possible coin clusters, except when it's computationally too expensive.
 		List<IEnumerable<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
@@ -82,6 +98,8 @@ public class SmartCoinSelector : ICoinSelector
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
 			.OrderBy(x => x.Coins.Count());
+
+		IterationCount++;
 
 		// Select the best solution.
 		return candidates.First().Coins.Select(x => x.Coin);
