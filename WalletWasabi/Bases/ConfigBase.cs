@@ -23,7 +23,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public string FilePath { get; private set; } = "";
 
-	private object FileLocker { get; } = new object();
+	private object FileLocker { get; } = new();
 
 	/// <inheritdoc />
 	public void AssertFilePathSet()
