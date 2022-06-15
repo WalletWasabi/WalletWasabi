@@ -155,7 +155,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletOutputsInternal.Add(output))
 		{
-			// Null it out so we recalculate on demand.
 			ForeignOutputsCache = null;
 			return true;
 		}
@@ -176,7 +175,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		if (WalletOutputsInternal.Remove(output))
 		{
-			// Null it out so we recalculate on demand.
 			ForeignOutputsCache = null;
 			return true;
 		}
