@@ -66,7 +66,7 @@ I. TERMS AND CONDITIONS
     The client application (“Client Application”) is software, with the sole purpose of allowing You access to the Bitcoin network and our Services (as defined below), without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with ordinary features. Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within the decentralized Bitcoin network, and not in the Wasabi Wallet.
     The CoinJoin Coordinator Service is an online service that implements trustless CoinJoin to prevent third parties from spying on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs. You acknowledge that the CoinJoin Service runs in the background by default, while using the Client Application. To avoid fees, you may turn automatic CoinJoin Services off in the settings of the Client Application.
 	The UTXO is an unspent transaction output, the technical term for the amount of digital currency that remains after a cryptocurrency transaction. 
-	The One Hop transaction is when there is one non coinjoined transaction in between two coinjoined transactions.
+	The One Hop transaction is when there is one non coinjoined transaction spending only coinjoined outputs.
 
 2.2 FEES
     Subject to the other provisions of these Terms, including, but not limited to Section 3 on Prohibited Activities, You may freely download and use the Client Application without any charge or fee imposed on You by the Service Provider.
@@ -74,8 +74,8 @@ I. TERMS AND CONDITIONS
     Both the Service Provider and the Bitcoin network charge You transaction fees for CoinJoin Bitcoin transactions.
 
     The CoinJoin fee, charged by the Service Provider is 0.3% per new UTXO, except if:
-     -The transaction comes directly from a previous Wasabi Wallet 1.x CoinJoin output..
-     -The transaction defines as a One Hop transaction.
+     -The UTXO comes directly from a previous Wasabi Wallet 1.x CoinJoin transaction.
+     -The UTXO comes from a One Hop transaction.
 
      
     BY ACCEPTING THESE TERMS AND CONDITIONS PURSUANT TO SECTION 1.1 YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT OUR COORDINATOR AUTOMATICALLY DEDUCTS THE TRANSACTION FEES FROM THE TRANSACTION YOU SUBMITTED FOR THE SERVICES IN LINE WITH THE PREVIOUS PARAGRAPHS. YOU EXPRESSLY ACKNOWLEDGE THAT WHILE COINJOINING THE COORDINATOR AUTOMATICALLY SELECTS THE COINS WHICH WILL PARTICIPATE IN THE COINJOIN TRANSACTION.
@@ -109,10 +109,9 @@ I. TERMS AND CONDITIONS
 
 Coin Filtering 
 
-Wasabi may execute illicit activity checking and control via a contracted third party solely in its CoinJoin Coordination Services. Wasabi may suspend your UTXOs’ access to the CoinJoin Services, with immediate effect for any reason - including but not limited to Illicit or Prohibited Activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk Bitcoin UTXO to reach the CoinJoin Services. 
-You acknowledge that Wasabi's decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to Wasabi's risk management and security protocols. You agree that Wasabi is under no obligation to disclose the details of its risk management and security procedures to you.
-Your access with the relevant Bitcoin UTXOs to the CoinJoin Services will be permanently suspended.
-
+zkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its coinjoin coordination services. zkSNACKs Ltd. may suspend your UTXOs’ access to the coinjoin services, with immediate effect for any reason - including but not limited to illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the coinjoin services.
+    You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
+    Your access with the relevant bitcoin UTXOs to the coinjoin services will be permanently suspended.
 
 
 4 INDEMNIFICATION
@@ -276,4 +275,3 @@ COUNTRY OF RESIDENCE
         www.zksnacks.com(*)
 
 (*) We recommend You to prefer Tor Browser over other browsers in order to protect Your privacy while visiting our websites.
-
