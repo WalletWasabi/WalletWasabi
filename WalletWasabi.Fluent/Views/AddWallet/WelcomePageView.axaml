@@ -92,7 +92,7 @@
       </Panel>
 
       <!-- Pages -->
-      <Carousel SelectedIndex="{Binding SelectedIndex, FallbackValue=3}"
+      <Carousel SelectedIndex="{Binding SelectedIndex}"
                 DockPanel.Dock="Top"
                 Margin="0 10">
         <i:Interaction.Behaviors>
@@ -132,7 +132,7 @@
         <Grid ColumnDefinitions="Auto,*">
           <DockPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out. Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory.&#10;&#10;Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
+                       Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out.&#10;Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory.&#10;&#10;Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
           </DockPanel>
@@ -234,7 +234,7 @@
           </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="Wasabi provides privacy by default, it protects your financial information through coinjoins, client-side block filtering, and communication over the Tor anonymity network. Neither the public nor the developers can breach your privacy." />
+                       Text="Wasabi provides privacy by default, it protects your financial information through coinjoins, client-side block filtering and communication over the Tor anonymity network.&#10;&#10;Neither the public nor the developers can breach your privacy." />
             <TextBlock Text="Anonymous"
                        Classes="title" />
           </DockPanel>
@@ -292,8 +292,8 @@
                     <Path Fill="{DynamicResource TextControlForeground}" Opacity="0.5"
                           Data="m 237.18417 5 h 0.5 v 52 h -0.5 z" />
                     <Path Fill="{DynamicResource TextControlForeground}"
-                          Data="m 262.08417 23.2 12.2 6.3 a 1.6 1.6 0 0 1 0 2.9 l -12.2 6.4 a 1.6 1.6 0 0 1 -2.4 -1.4 V 24.7 a 1.6 1.6 0 0 1 2.3 -1.5 z m -0.6 1.1 a 0.4 0.4 0 0 0 -0.6 0.4 v 12.7 a 0.4 0.4 0 0 0 0.6 0.3 l 12.2 -6.3 a 0.4 0.4 0 0 0 0 -0.7 z" />
-                    <Path Fill="{DynamicResource CoinjoinActiveColor}"
+                          Data="m 264.11765 23 c 0.84465 0 1.52941 0.68474 1.52941 1.52941 v 12.94117 c 0 0.84466 -0.68476 1.52941 -1.52941 1.52941 h -2.58824 C 260.68474 38.99999 260 38.31524 260 37.47058 V 24.52941 C 260 23.68474 260.68474 23 261.52941 23 Z m 8.47058 0 c 0.84466 0 1.52941 0.68474 1.52941 1.52941 v 12.94117 c 0 0.84466 -0.68475 1.52941 -1.52941 1.52941 H 270 c -0.84466 0 -1.52942 -0.68475 -1.52942 -1.52941 V 24.52941 C 268.47058 23.68474 269.15534 23 270 23 Z m -8.47058 1.17647 h -2.58824 c -0.19492 0 -0.35294 0.15802 -0.35294 0.35294 v 12.94117 c 0 0.19492 0.15802 0.35294 0.35294 0.35294 h 2.58824 c 0.19492 0 0.35294 -0.15802 0.35294 -0.35294 V 24.52941 c 0 -0.19492 -0.15802 -0.35294 -0.35294 -0.35294 z m 8.47058 0 H 270 c -0.19492 0 -0.35295 0.15802 -0.35295 0.35294 v 12.94117 c 0 0.19492 0.15803 0.35294 0.35295 0.35294 h 2.58823 c 0.19492 0 0.35294 -0.15802 0.35294 -0.35294 V 24.52941 c 0 -0.19492 -0.15802 -0.35294 -0.35294 -0.35294 z" />
+                    <Path Fill="{DynamicResource SystemAccentColor}"
                           Data="m 309.68417 31 a 5.8 5.8 0 0 1 -0.9 3 6 6 0 0 1 -5.1 3 5.8 5.8 0 0 1 -3 -0.9 6 6 0 0 1 -3 -5.1 5.8 5.8 0 0 1 0.9 -3 6 6 0 0 1 10.4 0.2 5.9 5.9 0 0 1 0.7 2.8 z" />
                   </Panel>
                 </Viewbox>

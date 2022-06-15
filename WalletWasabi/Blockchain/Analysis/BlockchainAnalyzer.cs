@@ -47,9 +47,9 @@ public class BlockchainAnalyzer
 			}
 			else
 			{
-				startingOutputAnonset = AnalyzeCoinjoinWalletInputs(tx);
+				AnalyzeCoinjoinWalletInputs(tx, out startingOutputAnonset, out int nonMixedAnonScore);
 
-				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, distinctWalletInputPubKeys);
+				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, nonMixedAnonScore, distinctWalletInputPubKeys);
 			}
 
 			AdjustWalletInputs(tx, distinctWalletInputPubKeys, startingOutputAnonset);
@@ -58,12 +58,14 @@ public class BlockchainAnalyzer
 		AnalyzeClusters(tx);
 	}
 
-	private static int AnalyzeCoinjoinWalletInputs(SmartTransaction tx)
+	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out int mixedAnonScore, out int nonMixedAnonScore)
 	{
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
-		return (int)(tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount) / tx.WalletInputs.Sum(x => x.Amount));
+		mixedAnonScore = (int)(tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount) / tx.WalletInputs.Sum(x => x.Amount));
+
+		nonMixedAnonScore = tx.WalletInputs.Min(x => x.HdPubKey.AnonymitySet);
 	}
 
 	private int AnalyzeSelfSpendWalletInputs(HashSet<HdPubKey> distinctWalletInputPubKeys)
@@ -101,10 +103,10 @@ public class BlockchainAnalyzer
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, int startingOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
+	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, int startingMixedOutputAnonset, int startingNonMixedOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
 	{
-		var indistinguishableWalletOutputs = tx
-			.WalletOutputs.GroupBy(x => x.Amount)
+		var indistinguishableWalletOutputs = tx.WalletOutputs
+			.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
 		var indistinguishableOutputs = tx.Transaction.Outputs
@@ -127,6 +129,9 @@ public class BlockchainAnalyzer
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= ownEqualOutputCount;
+
+			// If not anonset gain achieved on the output, then it's best to assume it's change.
+			var startingOutputAnonset = anonset == 0 ? startingNonMixedOutputAnonset : startingMixedOutputAnonset;
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.

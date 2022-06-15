@@ -57,12 +57,12 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-	public static readonly Version ClientVersion = new(1, 1, 13, 1);
+	public static readonly Version ClientVersion = new(2, 0, 0, 0);
 
 	public static readonly Version HwiVersion = new("2.0.2");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
 	public static readonly Version Ww1LegalDocumentsVersion = new(2, 0);
-	public static readonly Version Ww2LegalDocumentsVersion = new(0, 1);
+	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);
 
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };
