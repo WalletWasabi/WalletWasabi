@@ -204,6 +204,7 @@ public static class Program
 
 		foreach (string target in Targets)
 		{
+			string targetOsName = target.Split('-')[0]; // Example "win7-x64" -> "win7".
 			string publishedFolder = Path.Combine(BinDistDirectory, target);
 			string currentBinDistDirectory = publishedFolder;
 
@@ -249,27 +250,13 @@ public static class Program
 
 			Tools.ClearSha512Tags(currentBinDistDirectory);
 
-			// Remove Tor binaries that are not relevant to the platform.
-			var toNotRemove = "";
-			if (target.StartsWith("win"))
-			{
-				toNotRemove = "win";
-			}
-			else if (target.StartsWith("linux"))
-			{
-				toNotRemove = "lin";
-			}
-			else if (target.StartsWith("osx"))
-			{
-				toNotRemove = "osx";
-			}
+			// Remove Tor distribution folders for different platforms - e.g. on Windows we remove macOS and linux folders.
+			// Note that we cannot remove "osx-x64" folder for "osx-arm64" target because Apple Silicon uses x64 Tor binaries.
+			DirectoryInfo binaryFolder = new(Path.Combine(currentBinDistDirectory, "Microservices", "Binaries"));
 
-			// Remove binaries that are not relevant to the platform.
-			var binaryFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Microservices", "Binaries"));
-
-			foreach (var dir in binaryFolder.EnumerateDirectories())
+			foreach (DirectoryInfo dir in binaryFolder.EnumerateDirectories())
 			{
-				if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
+				if (targetOsName != dir.Name.Split('-')[0])
 				{
 					await IoHelpers.TryDeleteDirectoryAsync(dir.FullName).ConfigureAwait(false);
 				}
