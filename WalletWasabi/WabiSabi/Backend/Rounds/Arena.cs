@@ -41,6 +41,7 @@ public partial class Arena : PeriodicRunner
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
+		MaxSuggestedAmountProvider = new(Config);
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -56,11 +57,7 @@ public partial class Arena : PeriodicRunner
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
-
-	/// <summary>
-	/// How many non-blame round get to the end of the Input registration phase.
-	/// </summary>
-	private int InputRegistrationFinishedCounter { get; set; }
+	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -105,22 +102,20 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (round is not BlameRound)
-				{
-					InputRegistrationFinishedCounter++;
-				}
-
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
 						continue;
 					}
+
+					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					round.EndRound(EndRoundState.AbortedNotEnoughAlices);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
+					MaxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					round.SetPhase(Phase.ConnectionConfirmation);
 				}
 			}
@@ -376,7 +371,7 @@ public partial class Arena : PeriodicRunner
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
 			RoundParameters parameters =
-				RoundParameterFactory.CreateRoundParameter(feeRate, InputRegistrationFinishedCounter);
+				RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
 			Round r = new(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
 			r.LogInfo($"Created round with params: {nameof(parameters.MaxSuggestedAmount)}:'{parameters.MaxSuggestedAmount}' BTC.");
