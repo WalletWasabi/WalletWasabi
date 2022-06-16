@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -76,5 +77,24 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 	{
 		await Arena.ReadyToSignAsync(request, cancellableToken);
+	}
+
+	/// <summary>
+	/// Information about the current Rounds designed for the human eyes.
+	/// </summary>
+	[HttpGet("human-monitor")]
+	public HumanMonitorResponse GetHumanMonitor()
+	{
+		var response = Arena.Rounds
+			.Where(r => r.Phase is not Phase.Ended)
+			.Select(r =>
+				new HumanMonitorRoundResponse(
+					RoundId: r.Id,
+					IsBlameRound: r is BlameRound,
+					InputCount: r.InputCount,
+					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(NBitcoin.MoneyUnit.BTC),
+					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
+
+		return new HumanMonitorResponse(response.ToArray());
 	}
 }
