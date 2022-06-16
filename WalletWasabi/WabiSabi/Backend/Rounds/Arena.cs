@@ -109,7 +109,7 @@ public partial class Arena : PeriodicRunner
 						continue;
 					}
 					round.EndRound(EndRoundState.AbortedNotEnoughAlices);
-					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}).");
+					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
