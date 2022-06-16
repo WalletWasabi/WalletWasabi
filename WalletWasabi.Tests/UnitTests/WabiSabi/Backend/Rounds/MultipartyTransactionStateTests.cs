@@ -118,13 +118,16 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(32, histogram[Money.Coins(0.1m)]);
 
 		// Simulate many unsuccessful input-reg. At the end we should always stick with the largest again.
-		for (int i = 0; i < 40; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, false);
+			Assert.Equal(Money.Coins(1343.75m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		}
-		Assert.Equal(Money.Coins(1343.75m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 		// Finally one successful round.
+		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
+		Assert.Equal(Money.Coins(1343.75m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+
 		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 		Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 
@@ -132,7 +135,7 @@ public class MultipartyTransactionStateTests
 		BlameRound blameRound = new(blameParameters, roundLargest, new HashSet<OutPoint>(), SecureRandom.Instance);
 
 		// Blame rounds never change the MaxSuggestedAmount.
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(blameRound, true);
 			Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);
