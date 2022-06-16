@@ -81,12 +81,8 @@ public class MaxSuggestedAmountProvider
 
 		if (!isInputRegistrationSuccessful)
 		{
-			var largestSuggestedAmount = RoundCounterDividerAndMaxAmounts.First().MaxValue;
-			if (MaxSuggestedAmount == largestSuggestedAmount)
-			{
-				// We will keep this on the maximum - let everyone join.
-				return;
-			}
+			// We will keep this on the maximum - let everyone join.
+			MaxSuggestedAmount = RoundCounterDividerAndMaxAmounts.First().MaxValue;
 		}
 
 		// Alter the value.
