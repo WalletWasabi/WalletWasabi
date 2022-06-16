@@ -59,7 +59,7 @@ public static class WabiSabiFactory
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters,	new InsecureRandom());
+		new(parameters, new InsecureRandom());
 
 	public static Round CreateRound(WabiSabiConfig cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
@@ -317,18 +317,18 @@ public static class WabiSabiFactory
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
 		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
-		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<int>()))
+		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>()))
 			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
 				with
-				{
-					MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-				});
+			{
+				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
+			});
 		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
 			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
 				with
-				{
-					MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-				});
+			{
+				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
+			});
 		return mockRoundParameterFactory.Object;
 	}
 }

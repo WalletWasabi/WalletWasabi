@@ -57,11 +57,6 @@ public partial class Arena : PeriodicRunner
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 
-	/// <summary>
-	/// How many non-blame round get to the end of the Input registration phase.
-	/// </summary>
-	private int InputRegistrationFinishedCounter { get; set; }
-
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -105,22 +100,20 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (round is not BlameRound)
-				{
-					InputRegistrationFinishedCounter++;
-				}
-
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
 						continue;
 					}
+
+					RoundParameterFactory.MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					round.EndRound(EndRoundState.AbortedNotEnoughAlices);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({Config.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.");
 				}
 				else if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 				{
+					RoundParameterFactory.MaxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					round.SetPhase(Phase.ConnectionConfirmation);
 				}
 			}
@@ -376,7 +369,7 @@ public partial class Arena : PeriodicRunner
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
 			RoundParameters parameters =
-				RoundParameterFactory.CreateRoundParameter(feeRate, InputRegistrationFinishedCounter);
+				RoundParameterFactory.CreateRoundParameter(feeRate);
 			Round r = new(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
 			r.LogInfo($"Created round with params: {nameof(parameters.MaxSuggestedAmount)}:'{parameters.MaxSuggestedAmount}' BTC.");
