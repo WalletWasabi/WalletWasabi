@@ -10,20 +10,18 @@ public class RoundParameterFactory
 	{
 		Config = config;
 		Network = network;
-		MaxSuggestedAmountProvider = new(Config);
 	}
 
 	public WabiSabiConfig Config { get; }
 	public Network Network { get; }
-	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
-	public virtual RoundParameters CreateRoundParameter(FeeRate feeRate) =>
+	public virtual RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
 		RoundParameters.Create(
 			Config,
 			Network,
 			feeRate,
 			Config.CoordinationFeeRate,
-			MaxSuggestedAmountProvider.MaxSuggestedAmount);
+			maxSuggestedAmount);
 
 	public virtual RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf) =>
 		RoundParameters.Create(

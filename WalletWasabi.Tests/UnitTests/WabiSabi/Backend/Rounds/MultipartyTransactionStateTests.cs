@@ -76,47 +76,25 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(clientState3.Outputs, state3.Outputs);
 	}
 
-	[Theory]
-	[InlineData(32, "1343.75")]
-	[InlineData(32 + 32, "1343.75")]
-	[InlineData(16, "1000")]
-	[InlineData(16 + 32, "1000")]
-	[InlineData(8, "100")]
-	[InlineData(8 + 32, "100")]
-	[InlineData(4, "10")]
-	[InlineData(4 + 32, "10")]
-	[InlineData(2, "1")]
-	[InlineData(2 + 32, "1")]
-	[InlineData(1, "0.1")]
-	[InlineData(1 + 32, "0.1")]
-	[InlineData(0, "1343.75")]
-	public void GetSuggestedAmountsTest(int roundCounter, string amount)
-	{
-		WabiSabiConfig config = new();
-		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
-		var expected = Money.Coins(decimal.Parse(amount));
-		Assert.Equal(expected, maxSuggestedAmountProvider.GetMaxSuggestedAmount(roundCounter));
-	}
-
 	[Fact]
 	public void MaxSuggestedSteppingTest()
 	{
 		WabiSabiConfig config = new();
 
 		RoundParameterFactory roundParameterFactory = new(config, Network.Main);
-		MaxSuggestedAmountProvider maxSuggestedAmountProvider = roundParameterFactory.MaxSuggestedAmountProvider;
-		RoundParameters parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m));
+		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
+		RoundParameters parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		Round roundLargest = new(parameters, SecureRandom.Instance);
 
 		// First Round is the largest.
-		Assert.Equal(Money.Coins(1343.75m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+		Assert.Equal(Money.Coins(1343.75m), roundLargest.Parameters.MaxSuggestedAmount);
 
 		// Simulate 63 successful rounds.
 		Dictionary<Money, int> histogram = new();
 		for (int i = 0; i < 63; i++)
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
-			parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m));
+			parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 			Round round = new(parameters, SecureRandom.Instance);
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
