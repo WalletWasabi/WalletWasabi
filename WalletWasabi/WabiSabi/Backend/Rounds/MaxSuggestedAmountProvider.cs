@@ -9,7 +9,7 @@ public class MaxSuggestedAmountProvider
 	public MaxSuggestedAmountProvider(WabiSabiConfig config)
 	{
 		Config = config;
-		MaxSuggestedAmount = GetMaxSuggestedAmount();
+		MaxSuggestedAmount = GetMaxSuggestedAmount(0);
 	}
 
 	private List<DividerMaxValue> RoundCounterDividerAndMaxAmounts { get; set; } = new List<DividerMaxValue>();
@@ -51,14 +51,14 @@ public class MaxSuggestedAmountProvider
 		LastGeneratedMaxSuggestedAmountBase = maxSuggestedAmountBase;
 	}
 
-	private Money GetMaxSuggestedAmount()
+	internal Money GetMaxSuggestedAmount(int roundCounter)
 	{
 		CheckOrGenerateRoundCounterDividerAndMaxAmounts();
-		if (Counter != 0)
+		if (roundCounter != 0)
 		{
 			foreach (var (divider, maxValue) in RoundCounterDividerAndMaxAmounts.Where(v => v.MaxValue <= Config.MaxRegistrableAmount))
 			{
-				if (Counter % divider == 0)
+				if (roundCounter % divider == 0)
 				{
 					return maxValue;
 				}
@@ -91,6 +91,6 @@ public class MaxSuggestedAmountProvider
 		// Alter the value.
 		Counter++;
 
-		MaxSuggestedAmount = GetMaxSuggestedAmount();
+		MaxSuggestedAmount = GetMaxSuggestedAmount(Counter);
 	}
 }
