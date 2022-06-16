@@ -49,6 +49,7 @@ public class MaxSuggestedAmountProvider
 
 		RoundCounterDividerAndMaxAmounts = roundCounterDividerAndMaxAmounts;
 		LastGeneratedMaxSuggestedAmountBase = maxSuggestedAmountBase;
+		Counter = 0;
 	}
 
 	/// <summary>
