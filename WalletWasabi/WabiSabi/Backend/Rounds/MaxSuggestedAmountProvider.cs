@@ -51,6 +51,9 @@ public class MaxSuggestedAmountProvider
 		LastGeneratedMaxSuggestedAmountBase = maxSuggestedAmountBase;
 	}
 
+	/// <summary>
+	/// Do not use this externally, only for Testing.
+	/// </summary>
 	internal Money GetMaxSuggestedAmount(int roundCounter)
 	{
 		CheckOrGenerateRoundCounterDividerAndMaxAmounts();
