@@ -300,7 +300,7 @@ public static class Program
 			// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 			if (OnlyBinaries)
 			{
-				continue; // In Windows build at this moment it does not matter though.
+				continue;
 			}
 
 			long installedSizeKb = Tools.DirSize(new DirectoryInfo(publishedFolder)) / 1000;
