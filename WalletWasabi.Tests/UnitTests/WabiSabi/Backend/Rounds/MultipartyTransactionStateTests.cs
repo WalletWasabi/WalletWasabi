@@ -86,7 +86,7 @@ public class MultipartyTransactionStateTests
 	[InlineData(2 + 32, "1")]
 	[InlineData(1, "0.1")]
 	[InlineData(1 + 32, "0.1")]
-	[InlineData(0, "0.1")]
+	[InlineData(0, "1343.75")]
 	public void GetSuggestedAmountsTest(int roundCounter, string amount)
 	{
 		WabiSabiConfig config = new();

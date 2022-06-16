@@ -62,7 +62,8 @@ public class MaxSuggestedAmountProvider
 			}
 		}
 
-		return RoundCounterDividerAndMaxAmounts.Last().MaxValue;
+		// We always start with the largest whale round.
+		return RoundCounterDividerAndMaxAmounts.First().MaxValue;
 	}
 
 	private record DividerMaxValue(int Divider, Money MaxValue);
