@@ -1,0 +1,3 @@
+[submodule "Zafiro.Avalonia"]
+	path = Zafiro.Avalonia
+	url = https://github.com/SuperJMN-Zafiro/Zafiro.Avalonia.git

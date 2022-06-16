@@ -15,6 +15,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
+	private readonly ObservableAsPropertyHelper<bool> _hasResults;
 
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
@@ -37,11 +38,13 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		Any = filteredItems
-			.Count()
-			.Select(i => i > 0)
-			.ObserveOn(RxApp.MainThreadScheduler);
+		_hasResults = filteredItems
+				.Count()
+				.Select(i => i > 0)
+				.ToProperty(this, x => x.HasResults);
 	}
+
+	public bool HasResults => _hasResults.Value;
 
 	public IObservable<bool> Any { get; }
 

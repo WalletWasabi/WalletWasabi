@@ -153,10 +153,10 @@
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "jCgTyl3sVMIBZwMEHp7PbY3SMGUQfYWVYTPj010HxvkXo9Zrisxm6iPzDlmd57NfEPgMiW0s/zt6yun4IVnVQQ==",
+        "resolved": "0.10.14",
+        "contentHash": "/AtmTGM+QAjY+8RCkeAbRP5QcEfoWKSDsJYNGnoikRR0xRXlbONvkzhnR0ukxjWkf0NCUh6Sn2dy/HkqWP4y7Q==",
         "dependencies": {
-          "Avalonia": "0.10.13"
+          "Avalonia": "0.10.14"
         }
       },
       "DynamicData": {
@@ -682,7 +682,15 @@
           "System.Drawing.Common": "6.0.0",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
-          "WalletWasabi": "1.0.0"
+          "WalletWasabi": "1.0.0",
+          "Zafiro.Avalonia": "1.0.0"
+        }
+      },
+      "zafiro.avalonia": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.15",
+          "Avalonia.Xaml.Interactivity": "0.10.14"
         }
       }
     },

@@ -33,6 +33,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\Zafiro.Avalonia\Zafiro.Avalonia\Zafiro.Avalonia.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

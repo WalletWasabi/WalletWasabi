@@ -127,10 +127,10 @@
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "jCgTyl3sVMIBZwMEHp7PbY3SMGUQfYWVYTPj010HxvkXo9Zrisxm6iPzDlmd57NfEPgMiW0s/zt6yun4IVnVQQ==",
+        "resolved": "0.10.14",
+        "contentHash": "/AtmTGM+QAjY+8RCkeAbRP5QcEfoWKSDsJYNGnoikRR0xRXlbONvkzhnR0ukxjWkf0NCUh6Sn2dy/HkqWP4y7Q==",
         "dependencies": {
-          "Avalonia": "0.10.13"
+          "Avalonia": "0.10.14"
         }
       },
       "DynamicData": {
@@ -596,6 +596,13 @@
           "Microsoft.Win32.SystemEvents": "6.0.0",
           "NBitcoin": "7.0.6",
           "NBitcoin.Secp256k1": "3.0.1"
+        }
+      },
+      "zafiro.avalonia": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.15",
+          "Avalonia.Xaml.Interactivity": "0.10.14"
         }
       }
     },
