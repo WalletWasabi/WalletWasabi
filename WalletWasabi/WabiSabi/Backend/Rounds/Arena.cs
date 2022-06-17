@@ -325,12 +325,10 @@ public partial class Arena : PeriodicRunner
 	{
 		var state = round.Assert<SigningState>();
 
-		var unsignedPrevouts = state.UnsignedInputs.ToHashSet();
+		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
 
 		var alicesWhoDidntSign = round.Alices
-			.Select(alice => (Alice: alice, alice.Coin))
-			.Where(x => unsignedPrevouts.Contains(x.Coin))
-			.Select(x => x.Alice)
+			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
 		foreach (var alice in alicesWhoDidntSign)
@@ -338,7 +336,7 @@ public partial class Arena : PeriodicRunner
 			Prison.Note(alice, round.Id);
 		}
 
-		var cnt = round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
+		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
 		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount} alices.");
 
