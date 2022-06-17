@@ -155,7 +155,7 @@
     </FlyoutBase.AttachedFlyout>
 
     <i:Interaction.Behaviors>
-      <avalonia:ShowAttachedFlyoutWhenFocusedBehavior  />
+      <avalonia:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsFlyoutOpen, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
 
   </TextBox>
