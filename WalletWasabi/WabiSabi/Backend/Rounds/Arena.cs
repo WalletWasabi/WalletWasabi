@@ -329,7 +329,7 @@ public partial class Arena : PeriodicRunner
 
 		var alicesWhoDidntSign = round.Alices
 			.Select(alice => (Alice: alice, alice.Coin))
-			.Where(x => unsignedPrevouts.Contains(x.Coin))
+			.Where(x => unsignedPrevouts.Any(y => y.Outpoint == x.Coin.Outpoint))
 			.Select(x => x.Alice);
 
 		foreach (var alice in alicesWhoDidntSign)
