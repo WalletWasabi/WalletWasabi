@@ -338,7 +338,9 @@ public partial class Arena : PeriodicRunner
 			Prison.Note(alice, round.Id);
 		}
 
-		round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
+		var cnt = round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
+
+		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount}.");
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
