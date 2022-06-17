@@ -338,12 +338,13 @@ public partial class Arena : PeriodicRunner
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
-		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount} alices. Witness count: {state.Witnesses.Count} Unsigned outpoints: {unsignedOutpoints.Count}");
+		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount} alices. Witness count: {state.Witnesses.Count}. Unsigned outpoints: {unsignedOutpoints.Count}. Alices: {round.Alices.Count}");
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
 			round.EndRound(EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
+			round.LogInfo("Blame round created.");
 		}
 		else
 		{
