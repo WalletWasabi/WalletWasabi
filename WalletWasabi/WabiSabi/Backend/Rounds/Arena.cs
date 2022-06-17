@@ -338,7 +338,7 @@ public partial class Arena : PeriodicRunner
 
 		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
 
-		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount} alices.");
+		round.LogInfo($"Removed {cnt} alices, because they didn't sign. Remainig: {round.InputCount} alices. Witness count: {state.Witnesses.Count}");
 
 		if (round.InputCount >= Config.MinInputCountByRound)
 		{
