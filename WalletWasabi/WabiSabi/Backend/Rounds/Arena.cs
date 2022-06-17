@@ -325,13 +325,12 @@ public partial class Arena : PeriodicRunner
 	{
 		var state = round.Assert<SigningState>();
 
-		var unsignedPrevouts = state.UnsignedInputs.ToHashSet();
+		var unsignedPrevouts = state.UnsignedInputs;
 
 		var alicesWhoDidntSign = round.Alices
 			.Select(alice => (Alice: alice, alice.Coin))
 			.Where(x => unsignedPrevouts.Contains(x.Coin))
-			.Select(x => x.Alice)
-			.ToHashSet();
+			.Select(x => x.Alice);
 
 		foreach (var alice in alicesWhoDidntSign)
 		{
