@@ -171,7 +171,6 @@ public partial class Arena : PeriodicRunner
 					{
 						round.EndRound(EndRoundState.AbortedNotEnoughAlices);
 						await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
-						//round.SetPhase(Phase.OutputRegistration);
 					}
 				}
 			}
