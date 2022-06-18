@@ -170,7 +170,7 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						// Cliens misbehave when they don't confirm everything.
-						round.EndRound(EndRoundState.AbortedWithError);
+						round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
 					}
 				}
 			}
