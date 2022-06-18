@@ -15,8 +15,10 @@ public record TimeFrame
 	public DateTimeOffset StartTime { get; init; }
 	public TimeSpan Duration { get; init; }
 	public bool HasStarted => StartTime > DateTimeOffset.MinValue && StartTime < DateTimeOffset.UtcNow;
-	public bool HasExpired => HasStarted && (EndTime + BufferTime) < DateTimeOffset.UtcNow;
+	public bool HasExpired(Phase p) =>
+		HasStarted
+		&& ((p == Phase.InputRegistration || p == Phase.ConnectionConfirmation) ? EndTime : (EndTime + BufferTime)) < DateTimeOffset.UtcNow;
 	public TimeFrame StartNow() => this with { StartTime = DateTimeOffset.UtcNow };
-	
+
 	private static readonly TimeSpan BufferTime = TimeSpan.FromMinutes(3);
 }
