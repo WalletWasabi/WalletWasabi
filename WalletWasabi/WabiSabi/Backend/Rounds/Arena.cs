@@ -169,7 +169,9 @@ public partial class Arena : PeriodicRunner
 					}
 					else
 					{
-						round.SetPhase(Phase.OutputRegistration);
+						round.EndRound(EndRoundState.AbortedNotEnoughAlices);
+						await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
+						//round.SetPhase(Phase.OutputRegistration);
 					}
 				}
 			}
@@ -344,7 +346,6 @@ public partial class Arena : PeriodicRunner
 		{
 			round.EndRound(EndRoundState.NotAllAlicesSign);
 			await CreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-			round.LogInfo("Blame round created.");
 		}
 		else
 		{
@@ -363,6 +364,7 @@ public partial class Arena : PeriodicRunner
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		Rounds.Add(blameRound);
+		blameRound.LogInfo("Blame round created.");
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
