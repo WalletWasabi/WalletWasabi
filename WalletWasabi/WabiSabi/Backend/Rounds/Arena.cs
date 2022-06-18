@@ -169,8 +169,8 @@ public partial class Arena : PeriodicRunner
 					}
 					else
 					{
-						round.EndRound(EndRoundState.AbortedNotEnoughAlices);
-						await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
+						// Cliens misbehave when they don't confirm everything.
+						round.EndRound(EndRoundState.AbortedWithError);
 					}
 				}
 			}
