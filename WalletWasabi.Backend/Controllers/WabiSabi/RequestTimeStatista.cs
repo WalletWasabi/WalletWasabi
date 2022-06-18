@@ -12,7 +12,7 @@ public class RequestTimeStatista
 	private Dictionary<string, List<(DateTimeOffset Time, TimeSpan Duration)>> Requests { get; } = new();
 	private object Lock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
-	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(10);
+	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(60);
 
 	public void Add(string request, TimeSpan duration)
 	{
