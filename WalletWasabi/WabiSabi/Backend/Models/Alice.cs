@@ -37,6 +37,6 @@ public class Alice
 	public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 	{
 		// Have alice timeouts a bit sooner than the timeout of connection confirmation phase.
-		Deadline = DateTimeOffset.UtcNow + (connectionConfirmationTimeout * 0.9);
+		Deadline = DateTimeOffset.UtcNow + ((connectionConfirmationTimeout  + TimeFrame.BufferTime ) * 0.9);
 	}
 }

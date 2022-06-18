@@ -18,5 +18,5 @@ public record TimeFrame
 	public bool HasExpired => HasStarted && (EndTime + BufferTime) < DateTimeOffset.UtcNow;
 	public TimeFrame StartNow() => this with { StartTime = DateTimeOffset.UtcNow };
 	
-	private static readonly TimeSpan BufferTime = TimeSpan.FromMinutes(3);
+	public static readonly TimeSpan BufferTime = TimeSpan.FromMinutes(3);
 }
