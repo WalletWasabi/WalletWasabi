@@ -61,7 +61,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterInputAsync(request, token), cancellationToken);
 
 		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Add("connection-confirmation", duration);
+		RequestTimeStatista.Add("input-registration", duration);
 		return ret;
 	}
 
