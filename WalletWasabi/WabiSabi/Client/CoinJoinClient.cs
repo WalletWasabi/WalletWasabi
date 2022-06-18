@@ -289,7 +289,7 @@ public class CoinJoinClient
 			catch (Exception)
 			{
 				personCircuit?.Dispose();
-				throw;
+				return (null, null);
 			}
 		}
 
