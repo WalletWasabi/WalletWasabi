@@ -14,6 +14,7 @@ using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 using WalletWasabi.Tor.Control.Utils;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
@@ -31,8 +32,10 @@ public class TorMonitor : PeriodicRunner
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
 		HttpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
+		GetStatusUri = new Uri(fallbackBackendUri, "/wabisabi/status");
 	}
 
+	public Uri GetStatusUri { get; }
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
@@ -154,34 +157,37 @@ public class TorMonitor : PeriodicRunner
 
 			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException)
+				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
 				{
-					// Tor must be running for us to consider switching to the fallback address.
-					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
-
-					if (!isRunning)
+					if (torEx.RepField == RepField.HostUnreachable)
 					{
-						Logger.LogInfo("Tor is not running.");
-						return;
-					}
+						// Tor must be running for us to consider switching to the fallback address.
+						bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
 
-					// Check if the fallback address (clearnet) works. It must work.
-					try
-					{
-						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
-						using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
-						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						// The fallback address does not work too. We do not want to switch.
-						Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
-						return;
-					}
+						if (!isRunning)
+						{
+							Logger.LogInfo("Tor is not running.");
+							return;
+						}
 
-					Logger.LogInfo("Switching to the clearnet mode.");
-					RequestFallbackAddressUsage = true;
-					FallbackStarted = DateTime.UtcNow;
+						// Check if the fallback address (clearnet) works. It must work.
+						try
+						{
+							Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
+							using HttpRequestMessage request = new(HttpMethod.Get, GetStatusUri);
+							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+						}
+						catch (Exception ex)
+						{
+							// The fallback address does not work too. We do not want to switch.
+							Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
+							return;
+						}
+
+						Logger.LogInfo("Switching to the clearnet mode.");
+						RequestFallbackAddressUsage = true;
+						FallbackStarted = DateTime.UtcNow;
+					}
 				}
 			}
 		}
