@@ -405,8 +405,8 @@ public class CoinJoinManager : BackgroundService
 		{
 			// `UnexpectedRoundPhaseException` indicates an error in the protocol however,
 			// temporarily we are shortening the circuit by aborting the rounds if 
-			// there are Alices that disn't confirm.
-			// The fix is already done but the cleints have to upgrade.
+			// there are Alices that didn't confirm.
+			// The fix is already done but the clients have to upgrade.
 			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 		catch (Exception e)
