@@ -9,16 +9,20 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
+/// <summary>
+/// DO ONLY APPEND TO THE END
+/// Otherwise serialization ruins compatibility with clients.
+/// </summary>
 public enum EndRoundState
 {
 	None,
 	AbortedWithError,
 	AbortedNotEnoughAlices,
-	AbortedNotAllAlicesConfirmed,
 	TransactionBroadcastFailed,
 	TransactionBroadcasted,
 	NotAllAlicesSign,
-	AbortedNotEnoughAlicesSigned
+	AbortedNotEnoughAlicesSigned,
+	AbortedNotAllAlicesConfirmed
 }
 
 public class Round
