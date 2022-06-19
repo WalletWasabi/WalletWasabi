@@ -172,10 +172,10 @@ public class TorMonitor : PeriodicRunner
 					{
 						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
 						using HttpRequestMessage request = new(HttpMethod.Get, TestApiUri);
-						using HttpResponseMessage response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-						// Throws if the HTTP status code is not in range 200-299.
-						response.EnsureSuccessStatusCode();
+						// Any HTTP response is fine (e.g. the response message might have the status code 403, 404, etc.) as we test only that
+						// the transport layer works.
+						using HttpResponseMessage response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{
