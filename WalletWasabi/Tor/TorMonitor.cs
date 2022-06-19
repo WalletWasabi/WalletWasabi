@@ -175,7 +175,7 @@ public class TorMonitor : PeriodicRunner
 						using HttpRequestMessage request = new(HttpMethod.Get, TestApiUri);
 						using HttpResponseMessage response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-						// Throws if the HTTP status code is in range 200-299.
+						// Throws if the HTTP status code is not in range 200-299.
 						response.EnsureSuccessStatusCode();
 					}
 					catch (Exception ex)
