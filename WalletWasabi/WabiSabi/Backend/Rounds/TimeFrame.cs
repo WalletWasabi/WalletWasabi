@@ -24,11 +24,11 @@ public record TimeFrame
 		}
 		else if (phase == Phase.ConnectionConfirmation)
 		{
-			bufferTime = TimeSpan.FromMinutes(1);
+			bufferTime = TimeSpan.Zero;
 		}
 		else if (phase == Phase.OutputRegistration)
 		{
-			bufferTime = TimeSpan.FromMinutes(3);
+			bufferTime = TimeSpan.Zero;
 		}
 		else //if (phase == Phase.TransactionSigning)
 		{
