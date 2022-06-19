@@ -28,7 +28,7 @@ public record TimeFrame
 		}
 		else if (phase == Phase.OutputRegistration)
 		{
-			bufferTime = TimeSpan.Zero;
+			bufferTime = TimeSpan.FromMinutes(1);
 		}
 		else //if (phase == Phase.TransactionSigning)
 		{
