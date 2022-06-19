@@ -118,7 +118,7 @@ public class Round
 			return true;
 		}
 
-		return InputRegistrationTimeFrame.HasExpired;
+		return InputRegistrationTimeFrame.HasExpired(Phase.InputRegistration);
 	}
 
 	public ConstructionState AddInput(Coin coin)
