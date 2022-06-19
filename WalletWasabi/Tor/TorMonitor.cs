@@ -28,22 +28,21 @@ public class TorMonitor : PeriodicRunner
 
 	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
-		FallbackBackendUri = fallbackBackendUri;
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
 		HttpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
 		TestApiUri = new Uri(fallbackBackendUri, "/api/Software/versions");
 	}
 
-	private Uri TestApiUri { get; }
 	private CancellationTokenSource LoopCts { get; } = new();
-
 	public static bool RequestFallbackAddressUsage { get; private set; }
+
+	/// <summary>Simple Backend API endpoint that allows us to test whether Backend is actually running or not.</summary>
+	private Uri TestApiUri { get; }
 
 	/// <summary>When the fallback address was started to be used, <c>null</c> if fallback address is not in use.</summary>
 	private DateTime? FallbackStarted { get; set; }
 
-	private Uri FallbackBackendUri { get; }
 	private TorHttpClient HttpClient { get; }
 	private TorProcessManager TorProcessManager { get; }
 	private TorHttpPool TorHttpPool { get; }
