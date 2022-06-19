@@ -32,10 +32,10 @@ public class TorMonitor : PeriodicRunner
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
 		HttpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-		GetStatusUri = new Uri(fallbackBackendUri, "/wabisabi/status");
+		TestApiUri = new Uri(fallbackBackendUri, "/api/Software/versions");
 	}
 
-	private Uri GetStatusUri { get; }
+	private Uri TestApiUri { get; }
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
@@ -172,8 +172,11 @@ public class TorMonitor : PeriodicRunner
 					try
 					{
 						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
-						using HttpRequestMessage request = new(HttpMethod.Get, GetStatusUri);
-						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+						using HttpRequestMessage request = new(HttpMethod.Get, TestApiUri);
+						using HttpResponseMessage response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+
+						// Throws if the HTTP status code is in range 200-299.
+						response.EnsureSuccessStatusCode();
 					}
 					catch (Exception ex)
 					{
