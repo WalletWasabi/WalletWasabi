@@ -170,9 +170,15 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						// Cliens misbehave when they don't confirm everything.
-						// Keep NotAllAlicesSign because that triggers getting into the blame round at the client.
-						round.EndRound(EndRoundState.NotAllAlicesSign);
-						await CreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
+						if (round is BlameRound)
+						{
+							// Unfortunately we would stop the blame round chain completely so we must go to output registration even though we know we'll fail.
+							round.SetPhase(Phase.OutputRegistration);
+						}
+						else
+						{
+							round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
+						}
 					}
 				}
 			}
