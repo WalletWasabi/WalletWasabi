@@ -159,35 +159,32 @@ public class TorMonitor : PeriodicRunner
 			{
 				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
 				{
-					if (torEx.RepField == RepField.HostUnreachable)
+					// Tor must be running for us to consider switching to the fallback address.
+					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
+
+					if (!isRunning)
 					{
-						// Tor must be running for us to consider switching to the fallback address.
-						bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
-
-						if (!isRunning)
-						{
-							Logger.LogInfo("Tor is not running.");
-							return;
-						}
-
-						// Check if the fallback address (clearnet) works. It must work.
-						try
-						{
-							Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
-							using HttpRequestMessage request = new(HttpMethod.Get, GetStatusUri);
-							using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-						}
-						catch (Exception ex)
-						{
-							// The fallback address does not work too. We do not want to switch.
-							Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
-							return;
-						}
-
-						Logger.LogInfo("Switching to the clearnet mode.");
-						RequestFallbackAddressUsage = true;
-						FallbackStarted = DateTime.UtcNow;
+						Logger.LogInfo("Tor is not running.");
+						return;
 					}
+
+					// Check if the fallback address (clearnet) works. It must work.
+					try
+					{
+						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
+						using HttpRequestMessage request = new(HttpMethod.Get, GetStatusUri);
+						using HttpResponseMessage _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						// The fallback address does not work too. We do not want to switch.
+						Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
+						return;
+					}
+
+					Logger.LogInfo("Switching to the clearnet mode.");
+					RequestFallbackAddressUsage = true;
+					FallbackStarted = DateTime.UtcNow;
 				}
 			}
 		}
