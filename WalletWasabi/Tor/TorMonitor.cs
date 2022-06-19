@@ -157,7 +157,7 @@ public class TorMonitor : PeriodicRunner
 
 			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
+				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException)
 				{
 					// Tor must be running for us to consider switching to the fallback address.
 					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
