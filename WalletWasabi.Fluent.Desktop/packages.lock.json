@@ -134,29 +134,29 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "Z+wcwoJCKBBds6aHQ7Fddph3027h9tXswlrOxVh7dJEqTUK0MNYHUlyjOaqIOGl2ng3uBK6cs2L2wXG5Cwzf5g==",
+        "resolved": "0.10.15",
+        "contentHash": "jbxlCjdIa49tSYsYfo54NJcngzhSXpvhs+pWymQjqfKcWBS6yT4CLK6U/nyquYT1XlHdyXJCi/M/R2Xn+rtI7Q==",
         "dependencies": {
-          "Avalonia": "0.10.13",
-          "Avalonia.Xaml.Interactions": "0.10.13.1",
-          "Avalonia.Xaml.Interactivity": "0.10.13.1"
+          "Avalonia": "0.10.15",
+          "Avalonia.Xaml.Interactions": "0.10.15",
+          "Avalonia.Xaml.Interactivity": "0.10.15"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "FfBzAwH9TXVk3P+diK8V0t/dYufXCm1tpY7Ok14bll3xMlI+vICObxE7yzXriFTfQO7oaFONaPgdspQnfGKwEg==",
+        "resolved": "0.10.15",
+        "contentHash": "7580+UOzU8vVVJ1qH2BS+lKtJLToO1cezy29FhDGuFwVuPN8M3aYkq6LlAD5NBo2xkeaOHm7/JqTTyWbVJLOKA==",
         "dependencies": {
-          "Avalonia": "0.10.13",
-          "Avalonia.Xaml.Interactivity": "0.10.13.1"
+          "Avalonia": "0.10.15",
+          "Avalonia.Xaml.Interactivity": "0.10.15"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.14",
-        "contentHash": "/AtmTGM+QAjY+8RCkeAbRP5QcEfoWKSDsJYNGnoikRR0xRXlbONvkzhnR0ukxjWkf0NCUh6Sn2dy/HkqWP4y7Q==",
+        "resolved": "0.10.15",
+        "contentHash": "FO6Ob/fsSK02chQNB79BouAjB9o7qBg1cCcQDjhCQzRc04yE998+cpfMFpkL9ODbnUW1YcDTSKDTW0ZjTX4asQ==",
         "dependencies": {
-          "Avalonia": "0.10.14"
+          "Avalonia": "0.10.15"
         }
       },
       "DynamicData": {
@@ -678,19 +678,11 @@
           "Avalonia.Diagnostics": "0.10.999-cibuild0021004-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0021004-beta",
           "Avalonia.Skia": "0.10.999-cibuild0021004-beta",
-          "Avalonia.Xaml.Behaviors": "0.10.13.1",
+          "Avalonia.Xaml.Behaviors": "0.10.15",
           "System.Drawing.Common": "6.0.0",
           "System.Reactive": "5.0.0",
           "System.Runtime": "4.3.1",
-          "WalletWasabi": "1.0.0",
-          "Zafiro.Avalonia": "1.0.0"
-        }
-      },
-      "zafiro.avalonia": {
-        "type": "Project",
-        "dependencies": {
-          "Avalonia": "0.10.15",
-          "Avalonia.Xaml.Interactivity": "0.10.14"
+          "WalletWasabi": "1.0.0"
         }
       }
     },
