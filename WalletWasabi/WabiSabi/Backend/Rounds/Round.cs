@@ -14,7 +14,6 @@ public enum EndRoundState
 	None,
 	AbortedWithError,
 	AbortedNotEnoughAlices,
-	AbortedNotAllAlicesConfirmed,
 	TransactionBroadcastFailed,
 	TransactionBroadcasted,
 	NotAllAlicesSign,
