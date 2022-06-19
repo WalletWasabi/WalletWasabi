@@ -35,7 +35,7 @@ public class TorMonitor : PeriodicRunner
 		GetStatusUri = new Uri(fallbackBackendUri, "/wabisabi/status");
 	}
 
-	public Uri GetStatusUri { get; }
+	private Uri GetStatusUri { get; }
 	private CancellationTokenSource LoopCts { get; } = new();
 
 	public static bool RequestFallbackAddressUsage { get; private set; }
