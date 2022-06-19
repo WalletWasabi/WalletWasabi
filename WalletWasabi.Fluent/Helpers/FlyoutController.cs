@@ -5,10 +5,10 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class FlyoutController : IDisposable
 {
+	private readonly FlyoutCloseEnforcer _enforcer;
 	private readonly FlyoutBase _flyout;
 	private readonly Control _parent;
 	private bool _isOpen;
-	private readonly FlyoutCloseEnforcer _enforcer;
 
 	public FlyoutController(FlyoutBase flyout, Control parent)
 	{
@@ -30,6 +30,11 @@ public class FlyoutController : IDisposable
 			ToggleFlyout(value);
 			_isOpen = value;
 		}
+	}
+
+	public void Dispose()
+	{
+		_enforcer.Dispose();
 	}
 
 	private void ToggleFlyout(bool isVisible)
@@ -54,10 +59,5 @@ public class FlyoutController : IDisposable
 	{
 		_enforcer.IsForcedOpen = true;
 		_flyout.ShowAt(_parent);
-	}
-
-	public void Dispose()
-	{
-		_enforcer.Dispose();
 	}
 }
