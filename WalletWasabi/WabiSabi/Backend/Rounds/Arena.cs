@@ -170,7 +170,15 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						// Cliens misbehave when they don't confirm everything.
-						round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
+						if (round is BlameRound)
+						{
+							// Unfortunately we would stop the blame round chain completely so we must go to output registration even though we know we'll fail.
+							round.SetPhase(Phase.OutputRegistration);
+						}
+						else
+						{
+							round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
+						}
 					}
 				}
 			}
