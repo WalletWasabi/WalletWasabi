@@ -31,6 +31,6 @@
 
 ### Upgrade Geoip files
 
-1. Open `torbrowser-install-win64-<version>_en-US.exe` file a zip decompressing tool (like 7zip).
+1. Open `torbrowser-install-win64-<version>_en-US.exe` file in a zip decompressing tool (like 7zip).
 1. Navigate to `Browser\TorBrowser\Data\Tor` folder in the archive.
 1. Unzip it to `WalletWasabi\WalletWasabi\Tor\Geoip` folder.
