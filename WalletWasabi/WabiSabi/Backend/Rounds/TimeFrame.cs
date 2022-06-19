@@ -32,7 +32,8 @@ public record TimeFrame
 		}
 		else //if (phase == Phase.TransactionSigning)
 		{
-			bufferTime = TimeSpan.FromMinutes(2);
+			// Clients those didn't update would miss the blame round completely.
+			bufferTime = TimeSpan.Zero;
 		}
 		return HasStarted && (EndTime + bufferTime) < DateTimeOffset.UtcNow;
 	}
