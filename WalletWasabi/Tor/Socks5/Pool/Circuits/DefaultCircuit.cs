@@ -13,8 +13,9 @@ public class DefaultCircuit : ICircuit
 
 	private static string RandomName = RandomString.CapitalAlphaNumeric(21);
 
-	private DefaultCircuit()
+	private DefaultCircuit(string? purpose = null)
 	{
+		Purpose = purpose;
 	}
 
 	/// <inheritdoc/>
@@ -24,8 +25,18 @@ public class DefaultCircuit : ICircuit
 	public bool IsActive => true;
 
 	/// <inheritdoc/>
+	public string? Purpose { get; }
+
+	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[{nameof(DefaultCircuit)}:{Name}]";
+		if (Purpose is null)
+		{
+			return $"[{nameof(DefaultCircuit)}:{Name}]";
+		}
+		else
+		{
+			return $"[{nameof(PersonCircuit)}:{Name}|{Purpose}]";
+		}
 	}
 }
