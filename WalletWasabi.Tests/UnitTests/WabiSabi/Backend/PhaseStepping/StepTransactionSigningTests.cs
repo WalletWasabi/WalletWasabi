@@ -183,6 +183,8 @@ public class StepTransactionSigningTests
 			MinInputCountByRoundMultiplier = 1,
 			TransactionSigningTimeout = TimeSpan.Zero,
 			OutputRegistrationTimeout = TimeSpan.Zero,
+			FailFastTransactionSigningTimeout = TimeSpan.Zero,
+			FailFastOutputRegistrationTimeout = TimeSpan.Zero,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
