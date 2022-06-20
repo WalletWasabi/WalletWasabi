@@ -60,8 +60,8 @@ public class Round
 	public Phase Phase { get; private set; } = Phase.InputRegistration;
 	public TimeFrame InputRegistrationTimeFrame { get; internal set; }
 	public TimeFrame ConnectionConfirmationTimeFrame { get; private set; }
-	public TimeFrame OutputRegistrationTimeFrame { get; private set; }
-	public TimeFrame TransactionSigningTimeFrame { get; private set; }
+	public TimeFrame OutputRegistrationTimeFrame { get; set; }
+	public TimeFrame TransactionSigningTimeFrame { get; set; }
 	public DateTimeOffset End { get; private set; }
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
