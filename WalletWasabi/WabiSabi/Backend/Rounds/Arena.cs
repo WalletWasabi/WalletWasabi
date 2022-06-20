@@ -104,7 +104,7 @@ public partial class Arena : PeriodicRunner
 
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
-					if (!round.InputRegistrationTimeFrame.HasExpired(Phase.InputRegistration))
+					if (!round.InputRegistrationTimeFrame.HasExpired)
 					{
 						continue;
 					}
@@ -137,7 +137,7 @@ public partial class Arena : PeriodicRunner
 				{
 					round.SetPhase(Phase.OutputRegistration);
 				}
-				else if (round.ConnectionConfirmationTimeFrame.HasExpired(Phase.ConnectionConfirmation))
+				else if (round.ConnectionConfirmationTimeFrame.HasExpired)
 				{
 					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
 					foreach (var alice in alicesDidntConfirm)
@@ -199,7 +199,7 @@ public partial class Arena : PeriodicRunner
 			try
 			{
 				var allReady = round.Alices.All(a => a.ReadyToSign);
-				bool phaseExpired = round.OutputRegistrationTimeFrame.HasExpired(Phase.OutputRegistration);
+				bool phaseExpired = round.OutputRegistrationTimeFrame.HasExpired;
 
 				if (allReady || phaseExpired)
 				{
@@ -301,7 +301,7 @@ public partial class Arena : PeriodicRunner
 					CoinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 					CoinJoinBroadcast?.Invoke(this, coinjoin);
 				}
-				else if (round.TransactionSigningTimeFrame.HasExpired(Phase.TransactionSigning))
+				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
 					round.LogWarning($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
 					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
