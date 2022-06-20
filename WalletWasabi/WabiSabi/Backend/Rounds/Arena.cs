@@ -169,6 +169,8 @@ public partial class Arena : PeriodicRunner
 					}
 					else
 					{
+						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
+
 						// Cliens misbehave when they don't confirm everything.
 						if (round is BlameRound)
 						{
@@ -197,8 +199,9 @@ public partial class Arena : PeriodicRunner
 			try
 			{
 				var allReady = round.Alices.All(a => a.ReadyToSign);
+				bool phaseExpired = round.OutputRegistrationTimeFrame.HasExpired(Phase.OutputRegistration);
 
-				if (allReady || round.OutputRegistrationTimeFrame.HasExpired(Phase.OutputRegistration))
+				if (allReady || phaseExpired)
 				{
 					var coinjoin = round.Assert<ConstructionState>();
 
@@ -211,6 +214,11 @@ public partial class Arena : PeriodicRunner
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
 
 					round.CoinjoinState = coinjoin.Finalize();
+
+					if (!allReady && phaseExpired)
+					{
+						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
+					}
 
 					round.SetPhase(Phase.TransactionSigning);
 				}
