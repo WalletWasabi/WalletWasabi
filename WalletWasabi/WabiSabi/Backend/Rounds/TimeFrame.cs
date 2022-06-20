@@ -20,7 +20,7 @@ public record TimeFrame
 		TimeSpan bufferTime;
 		if (phase == Phase.InputRegistration)
 		{
-			bufferTime = TimeSpan.Zero;
+			bufferTime = TimeSpan.FromMinutes(1);
 		}
 		else if (phase == Phase.ConnectionConfirmation)
 		{
