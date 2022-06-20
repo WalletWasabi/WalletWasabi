@@ -173,14 +173,14 @@ public partial class Arena : PeriodicRunner
 						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
 
 						// Cliens misbehave when they don't confirm everything.
-						if (round is BlameRound)
+						//if (round is BlameRound)
 						{
 							// Unfortunately we would stop the blame round chain completely so we must go to output registration even though we know we'll fail.
 							round.SetPhase(Phase.OutputRegistration);
 						}
-						else
+						//else
 						{
-							round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
+							//	round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
 						}
 					}
 				}
