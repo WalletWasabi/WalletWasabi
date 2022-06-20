@@ -216,6 +216,7 @@ public class TorHttpPool : IDisposable
 	{
 		Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
 
+		DateTime start = DateTime.UtcNow;
 		string host = GetRequestHost(request);
 
 		do
@@ -244,7 +245,8 @@ public class TorHttpPool : IDisposable
 					{
 						ConnectionPerHost[host].Add(connection);
 
-						Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Using new Tor SOCKS5 connection.");
+						DateTime end = DateTime.UtcNow;
+						Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
 						return connection;
 					}
 				}
