@@ -170,7 +170,6 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
-						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
 
 						// Cliens misbehave when they don't confirm everything.
 						if (round is BlameRound)
