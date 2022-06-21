@@ -5,7 +5,7 @@ using TorStatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
-class StatusIconDesignViewModel : IStatusIconViewModel
+public class StatusIconDesignViewModel : IStatusIconViewModel
 {
 	public ICollection<Issue> TorIssues => new List<Issue>()
 	{
