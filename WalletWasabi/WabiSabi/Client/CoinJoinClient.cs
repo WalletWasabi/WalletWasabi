@@ -382,7 +382,17 @@ public class CoinJoinClient
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
-				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
+
+				try
+				{
+					await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+					// This cannot fail. Otherwise the whole conjoin process will be halted.
+					Logger.LogDebug(e.ToString());
+					Logger.LogInfo($"Failed to register signal ready to sign with message {e.Message}. Ignoring...");
+				}
 			})
 			.ToImmutableArray();
 
@@ -654,18 +664,26 @@ public class CoinJoinClient
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
-		// Re-issuances.
-		var bobClient = CreateBobClient(roundState);
-		roundState.LogInfo("Starting reissuances.");
 		var combinedToken = linkedCts.Token;
-		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
+		try
+		{
+			// Re-issuances.
+			var bobClient = CreateBobClient(roundState);
+			roundState.LogInfo("Starting reissuances.");
+			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
 
-		// Output registration.
-		roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
+			// Output registration.
+			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-		var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
-		await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Outputs({outputTxOuts.Count()}) were registered.");
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
+			roundState.LogDebug($"Outputs({outputTxOuts.Count()}) were registered.");
+		}
+		catch (Exception e)
+		{
+			roundState.LogDebug(e.ToString());
+			roundState.LogInfo($"Failed to register outputs with message {e.Message}. Ignoring...");
+		}
 
 		// ReadyToSign.
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");

@@ -415,8 +415,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	}
 
 	[Theory]
-	[InlineData(123456)]
-	public async Task MultiClientsCoinJoinTestAsync(int seed)
+	[InlineData(123456, 0.00, 0.00)]
+	//[InlineData(123456, 0.01, 0.01)]
+	//[InlineData(123456, 0.10, 0.00)] // Highly aggressive monkey.
+	//[InlineData(123456, 0.00, 0.10)] // Highly aggressive monkey.
+	//[InlineData(123456, 0.05, 0.05)] // Concurrency of aggressive monkeys
+	//[InlineData(123456, 0.10, 0.10)]
+	public async Task MultiClientsCoinJoinTestAsync(
+		int seed,
+		double faultInjectorMonkeyAggressiveness,
+		double delayInjectorMonkeyAggressiveness)
 	{
 		const int NumberOfParticipants = 10;
 		const int NumberOfCoinsPerParticipant = 2;
@@ -436,17 +444,35 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
-						MaxInputCountByRound = ExpectedInputNumber,
-						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10 * ExpectedInputNumber),
-						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
-						OutputRegistrationTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
-						TransactionSigningTimeout = TimeSpan.FromSeconds(20 * ExpectedInputNumber),
+						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness)) ),
+						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(5 * ExpectedInputNumber),
+						BlameInputRegistrationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
+						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
+						OutputRegistrationTimeout = TimeSpan.FromSeconds(3 * ExpectedInputNumber),
+						TransactionSigningTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
 						MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 					});
 				}));
 
 			using PersonCircuit personCircuit = new();
-			IHttpClient httpClientWrapper = new HttpClientWrapper(app.CreateClient());
+			IHttpClient httpClientWrapper = new MonkeyHttpClient(
+				new HttpClientWrapper(app.CreateClient()),
+				// This monkey injects `HttpRequestException` randomly to simulate errors
+				// in the communication.
+				() =>
+				{
+					if (Random.Shared.NextDouble() < faultInjectorMonkeyAggressiveness)
+					{
+						throw new HttpRequestException("Crazy monkey hates you, donkey.");
+					}
+					return Task.CompletedTask;
+				},
+				// This monkey injects `Delays` randomly to simulate slow response times.
+				async () =>
+				{
+					double delay = Random.Shared.NextDouble();
+					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
+				});
 
 			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
 			mockHttpClientFactory
@@ -462,7 +488,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				.Returns(httpClientWrapper);
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40 * ExpectedInputNumber));
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(70 * ExpectedInputNumber));
 
 			var participants = Enumerable
 				.Range(0, NumberOfParticipants)
@@ -489,19 +515,17 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				{
 					throw new TimeoutException("Coinjoin was not propagated.");
 				}
+				await Task.Delay(1_000, cts.Token);
 
-				await Task.Delay(500, cts.Token);
-
-				if (tasks.FirstOrDefault(t => t.IsFaulted)?.Exception is { } exc)
+				if (tasks.All(t => t.IsCompleted))
 				{
-					throw exc;
+					throw new Exception();
 				}
 			}
 			var mempool = await rpc.GetRawMempoolAsync();
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
-			Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
 		}
 		finally
 		{
