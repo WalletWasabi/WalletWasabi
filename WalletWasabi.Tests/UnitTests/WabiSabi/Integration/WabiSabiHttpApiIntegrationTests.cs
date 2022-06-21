@@ -526,14 +526,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
-
-			// Only if all things work okay we can expect all the inputs and outputs to
-			// be registered. However, monkeys can tamper with the process and depending on how aggressive
-			// the monkeys are less inputs and outputs might be registered.
-			if (faultInjectorMonkeyAggressiveness <= 0.00001 && delayInjectorMonkeyAggressiveness <= 0.00001)
-			{
-				Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
-			}
 		}
 		finally
 		{
