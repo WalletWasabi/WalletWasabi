@@ -24,29 +24,3 @@ public class HttpClientWrapper : IHttpClient
 		return HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
 	}
 }
-
-public class HttpClientWrapperWithMonkeys : IHttpClient
-{
-	public delegate Task Monkey();
-
-	private Monkey[] _monkeys;
-
-	public HttpClientWrapperWithMonkeys(IHttpClient httpClient, params Monkey[] monkeys)
-	{
-		HttpClient = httpClient;
-		_monkeys = monkeys;
-	}
-
-	private IHttpClient HttpClient { get; }
-
-	public Func<Uri>? BaseUriGetter => HttpClient.BaseUriGetter;
-
-	public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-	{
-		foreach (var monkey in _monkeys)
-		{
-			await monkey();
-		}
-		return await HttpClient.SendAsync(request, token);
-	}
-}
