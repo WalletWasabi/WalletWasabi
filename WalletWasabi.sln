@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.156
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Backend", "WalletWasabi.Backend\WalletWasabi.Backend.csproj", "{A378E063-1660-472F-9CB2-0A3E96A56A63}"
 EndProject
@@ -32,6 +32,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent.Generators", "WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj", "{5A3DFE7E-F850-4C07-BF10-F845FA328C98}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent", "WalletWasabi.Fluent\WalletWasabi.Fluent.csproj", "{1E9A8055-DC14-4C7D-8878-887D50B55A10}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorStatusChecker", "TorStatusChecker\TorStatusChecker\TorStatusChecker.csproj", "{FA6562CD-841C-4F37-86F0-70F1449A99EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +104,14 @@ Global
 		{1E9A8055-DC14-4C7D-8878-887D50B55A10}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E9A8055-DC14-4C7D-8878-887D50B55A10}.Release|x64.ActiveCfg = Release|Any CPU
 		{1E9A8055-DC14-4C7D-8878-887D50B55A10}.Release|x64.Build.0 = Release|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Debug|x64.Build.0 = Debug|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Release|x64.ActiveCfg = Release|Any CPU
+		{FA6562CD-841C-4F37-86F0-70F1449A99EE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

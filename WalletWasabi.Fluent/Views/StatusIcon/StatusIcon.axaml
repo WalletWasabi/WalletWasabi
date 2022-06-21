@@ -7,6 +7,7 @@
              xmlns:converters="using:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusIcon"
+             xmlns:st="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
              mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="statusIcon:StatusIconViewModel"
              x:CompileBindings="True"
@@ -77,9 +78,17 @@
 
           <!-- Status -->
           <StackPanel Spacing="16">
-            <c:StatusItem Icon="{StaticResource tor_icon}"
-                          Title="Tor"
-                          StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}" />
+
+            <DockPanel>
+              <Viewbox Margin="4" Width="20" Height="20" Stretch="UniformToFill" DockPanel.Dock="Right">
+                <st:TorIssuesControl />
+              </Viewbox>
+              <c:StatusItem Icon="{StaticResource tor_icon}"
+                            Title="Tor"
+                            StatusText="{Binding TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}">
+              </c:StatusItem>
+            </DockPanel>
+
             <c:StatusItem Icon="{StaticResource connector_regular}"
                           Title="Backend"
                           StatusText="{Binding BackendStatus, Converter={x:Static converters:StatusConverters.BackendStatusToString}}" />

@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using TorStatusChecker;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -55,7 +56,7 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusIcon = new StatusIconViewModel();
+		_statusIcon = new StatusIconViewModel(new StatusChecker(new TorNetwork(new HttpClientFactory()), TimeSpan.FromSeconds(20), new NewThreadScheduler()));
 
 		UiServices.Initialize();
 
