@@ -65,7 +65,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	{
 		var exceptions = new List<Exception>();
 
-		var start = DateTime.Now;
+		var start = DateTime.UtcNow;
 
 		for (var attempt = 0; attempt < MaxRetries; attempt++)
 		{
@@ -74,9 +74,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
 				// Any transport layer errors will throw an exception here.
-				var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
 
-				var totalTime = DateTime.Now - start;
+				TimeSpan totalTime = DateTime.UtcNow - start;
 
 				if (exceptions.Any())
 				{

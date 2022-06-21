@@ -120,7 +120,7 @@ public class TorMonitor : PeriodicRunner
 						if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
 						{
 							Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
-							await TorHttpPool.ReportCircuitClosedAsync(info.UserName, linkedCts.Token).ConfigureAwait(false);
+							TorHttpPool.ReportCircuitClosed(info.UserName);
 						}
 					}
 				}
