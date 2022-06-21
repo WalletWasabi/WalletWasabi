@@ -298,6 +298,9 @@ public class CoinJoinClient
 
 		roundState.LogDebug($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
+		// Decrease the time, so the clients hurry up with the registration
+		remainingTimeForRegistration *= 0.9;
+
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
