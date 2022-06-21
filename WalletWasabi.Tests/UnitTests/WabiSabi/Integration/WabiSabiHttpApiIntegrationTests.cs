@@ -455,7 +455,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				}));
 
 			using PersonCircuit personCircuit = new();
-			IHttpClient httpClientWrapper = new HttpClientWrapperWithMonkeys(
+			IHttpClient httpClientWrapper = new MonkeyHttpClient(
 				new HttpClientWrapper(app.CreateClient()),
 				// This monkey injects `HttpRequestException` randomly to simulate errors
 				// in the communication.
@@ -470,8 +470,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				// This monkey injects `Delays` randomly to simulate slow response times.
 				async () =>
 				{
-					var delay = Random.Shared.NextDouble();
-					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness));
+					double delay = Random.Shared.NextDouble();
+					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
 				});
 
 			var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
@@ -528,8 +528,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
 
 			// Only if all things work okay we can expect all the inputs and outputs to
-			// be registered. In those cases where we have monkeys, more aggressive they
-			// are, less inputs and outputs can be registered .
+			// be registered. However, monkeys can tamper with the process and depending on how aggressive
+			// the monkeys are less inputs and outputs might be registered.
 			if (faultInjectorMonkeyAggressiveness <= 0.00001 && delayInjectorMonkeyAggressiveness <= 0.00001)
 			{
 				Assert.Equal(ExpectedInputNumber, coinjoin.Inputs.Count);
