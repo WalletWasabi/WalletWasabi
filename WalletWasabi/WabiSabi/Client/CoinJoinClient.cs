@@ -388,6 +388,8 @@ public class CoinJoinClient
 				catch (Exception e)
 				{
 					// This cannot fail. Otherwise the whole conjoin process will be halted.
+					Logger.LogDebug(e.ToString());
+					Logger.LogInfo($"Failed to register signal ready to sign with message {e.Message}. Ignoring...");
 				}
 			})
 			.ToImmutableArray();
@@ -677,7 +679,8 @@ public class CoinJoinClient
 		}
 		catch (Exception e)
 		{
-			roundState.LogInfo($"Failed to register outputs. Ignoring...");
+			roundState.LogDebug(e.ToString());
+			roundState.LogInfo($"Failed to register outputs with message {e.Message}. Ignoring...");
 		}
 
 		// ReadyToSign.
