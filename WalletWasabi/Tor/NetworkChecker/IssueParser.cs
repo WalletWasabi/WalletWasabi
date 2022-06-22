@@ -52,7 +52,8 @@ public class IssueParser : IIssueParser
 				lastNode = node;
 				yield return node;
 			}
-		} while (read is not null);
+		}
+		while (read is not null);
 	}
 
 	private static void AddListItem(Node lastNode, string line)
