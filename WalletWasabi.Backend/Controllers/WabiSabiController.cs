@@ -124,11 +124,13 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
 		var response = Arena.Rounds
 			.Where(r => r.Phase is not Phase.Ended)
+			.OrderByDescending(x => x.InputCount)
 			.Select(r =>
 				new HumanMonitorRoundResponse(
 					RoundId: r.Id,
 					IsBlameRound: r is BlameRound,
 					InputCount: r.InputCount,
+					Phase: r.Phase.ToString(),
 					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(NBitcoin.MoneyUnit.BTC),
 					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
 
