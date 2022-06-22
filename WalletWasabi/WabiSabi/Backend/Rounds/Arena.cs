@@ -81,7 +81,7 @@ public partial class Arena : PeriodicRunner
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
 			// RoundStates have to contain all states. Do not change stateId=0.
-			RoundStates = Rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
+			RoundStates = Rounds.OrderBy(x => x.InputCount).Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
 		}
 	}
 
@@ -384,7 +384,9 @@ public partial class Arena : PeriodicRunner
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
-		if (!Rounds.Any(x => x is not BlameRound && x.Phase == Phase.InputRegistration))
+		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration);
+		int roundsToCreate = Config.ParallelRounds - registrableRoundCount;
+		for (int i = 0; i < roundsToCreate; i++)
 		{
 			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
