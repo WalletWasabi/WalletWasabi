@@ -17,6 +17,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.TorNetworkChecker;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
