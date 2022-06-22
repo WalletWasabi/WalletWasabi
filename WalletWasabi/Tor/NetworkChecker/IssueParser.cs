@@ -70,12 +70,6 @@ public class IssueParser : IIssueParser
 		return new Node { Name = name, Value = value };
 	}
 
-	private Node ParseRoot(string str)
-	{
-		var (yaml, description) = GetYaml(str);
-		return new Node { Name = "Root", Value = description, Children = ParseYaml(yaml).ToList() };
-	}
-
 	private static (string yaml, string description) GetYaml(string input)
 	{
 		var regex = @"---\s+(.*)\s+---(.*)";
@@ -84,6 +78,12 @@ public class IssueParser : IIssueParser
 		var description = matches.Groups[2].Value;
 
 		return (yaml, description);
+	}
+
+	private Node ParseRoot(string str)
+	{
+		var (yaml, description) = GetYaml(str);
+		return new Node { Name = "Root", Value = description, Children = ParseYaml(yaml).ToList() };
 	}
 
 	private class Node
