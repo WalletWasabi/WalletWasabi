@@ -384,7 +384,7 @@ public partial class Arena : PeriodicRunner
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
-		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration);
+		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
 		int roundsToCreate = Config.ParallelRounds - registrableRoundCount;
 		for (int i = 0; i < roundsToCreate; i++)
 		{
