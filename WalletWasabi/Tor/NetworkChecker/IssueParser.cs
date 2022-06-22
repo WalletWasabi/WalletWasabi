@@ -80,7 +80,7 @@ public class IssueParser : IIssueParser
 		return (yaml, description);
 	}
 
-	private Node ParseRoot(string str)
+	private static Node ParseRoot(string str)
 	{
 		var (yaml, description) = GetYaml(str);
 		return new Node { Name = "Root", Value = description, Children = ParseYaml(yaml).ToList() };
