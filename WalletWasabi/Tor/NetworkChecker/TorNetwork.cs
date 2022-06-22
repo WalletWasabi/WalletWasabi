@@ -19,7 +19,7 @@ public class TorNetwork : ITorNetwork
 
 	public TorNetwork(IUriBasedStringStore stringStore)
 	{
-		this._stringStore = stringStore;
+		_stringStore = stringStore;
 
 		Issues = GetIssueFilenames()
 			.SelectMany(
