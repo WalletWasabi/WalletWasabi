@@ -20,7 +20,7 @@ public class RoundStateUpdater : PeriodicRunner
 	}
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-	private ImmutableDictionary<uint256, RoundState> RoundStates { get; set; } = ImmutableDictionary.Create<uint256, RoundState>();
+	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private List<RoundStateAwaiter> Awaiters { get; } = new();
@@ -51,7 +51,10 @@ public class RoundStateUpdater : PeriodicRunner
 		var newRoundStates = statusResponse
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
-		RoundStates = newRoundStates.Concat(updatedRoundStates).ToImmutableDictionary(x => x.Id, x => x);
+		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
+		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
+		RoundStates = newRoundStates.Concat(updatedRoundStates)
+			.ToDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
