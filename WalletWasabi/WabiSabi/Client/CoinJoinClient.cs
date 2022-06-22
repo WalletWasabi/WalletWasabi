@@ -256,7 +256,12 @@ public class CoinJoinClient
 	{
 		int eventInvokedAlready = 0;
 
-		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
+		using CancellationTokenSource registrationsCts = new();
+		using CancellationTokenSource confirmationsCts = new();
+		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, registrationsCts.Token);
+		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, confirmationsCts.Token);
+		
+		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
 			PersonCircuit? personCircuit = null;
 			try
@@ -271,7 +276,7 @@ public class CoinJoinClient
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					arenaRequestHandler);
 
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
 				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
@@ -281,8 +286,19 @@ public class CoinJoinClient
 
 				return (aliceClient, personCircuit);
 			}
-			catch (WabiSabiProtocolException)
+			catch (WabiSabiProtocolException wpe)
 			{
+				if (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+				{
+					// After receiving a WrongPhase, cancel all the pending registrations because they will arrive late too.
+					registrationsCts.Cancel();
+
+					var isInConnectionConfirmation = wpe.Message.Contains(nameof(Phase.ConnectionConfirmation));
+					if (isInConnectionConfirmation)
+					{
+						confirmationsCts.Cancel();
+					}
+				}
 				personCircuit?.Dispose();
 				return (null, null);
 			}
@@ -312,7 +328,7 @@ public class CoinJoinClient
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
-				return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				return await RegisterInputAsync(coin).ConfigureAwait(false);
 			})
 			.ToImmutableArray();
 
