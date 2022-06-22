@@ -25,7 +25,8 @@ public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
 
-	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
+	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory)
+		: base(period)
 	{
 		FallbackBackendUri = fallbackBackendUri;
 		TorProcessManager = torProcessManager;
