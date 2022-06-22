@@ -5,4 +5,5 @@ public record HumanMonitorRoundResponse(
 	bool IsBlameRound,
 	int InputCount,
 	decimal MaxSuggestedAmount,
-	TimeSpan InputRegistrationRemaining);
+	TimeSpan InputRegistrationRemaining,
+	string Phase);
