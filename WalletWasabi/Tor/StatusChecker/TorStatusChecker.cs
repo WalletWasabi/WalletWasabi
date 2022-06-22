@@ -23,9 +23,8 @@ public class TorStatusChecker : PeriodicRunner
 		HttpClient = httpClient;
 	}
 
-	private IHttpClient HttpClient { get; }
-
 	public event EventHandler<StatusReport[]>? StatusEvent;
+	private IHttpClient HttpClient { get; }
 
 	/// <inheritdoc/>
 	protected override async Task ActionAsync(CancellationToken cancellationToken)

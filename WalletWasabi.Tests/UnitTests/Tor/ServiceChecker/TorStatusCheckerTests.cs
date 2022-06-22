@@ -9,25 +9,6 @@ namespace WalletWasabi.Tests.UnitTests.Tor.ServiceChecker;
 public class TorStatusCheckerTests
 {
 	/// <summary>
-	/// Tests that we can parse https://status.torproject.org/index.xml XML document and parse first <c>&lt;item&gt;</c> from the XML document.
-	/// </summary>
-	[Fact]
-	public void ParseFirstReport()
-	{
-		StatusReport? issue = TorStatusChecker.ParseFirstStatusReport(StatusXmlSample);
-		Assert.NotNull(issue);
-
-		Assert.Equal("Network DDoS", issue!.Title);
-		Assert.Equal("https://status.torproject.org/issues/2022-06-09-network-ddos/", issue.Link);
-		Assert.Equal("Thu, 09 Jun 2022 14:00:00 +0000", issue.PubDate);
-		Assert.Equal("https://status.torproject.org/issues/2022-06-09-network-ddos/", issue.GUID);
-		Assert.Equal("", issue.Category);
-		Assert.Equal("<p>We are experiencing a network-wide DDoS attempt impacting the\r\n" +
-			"performance of the Tor network, which includes both onion services and\r\nnon-onion services traffic. " +
-			"We are currently investigating potential\r\nmitigations.</p>\r\n", issue.Description);
-	}
-
-	/// <summary>
 	/// Shortened sample content of https://status.torproject.org/index.xml.
 	/// </summary>
 	private string StatusXmlSample => @"
@@ -86,4 +67,23 @@ as soon as possible.&lt;/p&gt;
     </channel>
   </rss>
 ";
+
+	/// <summary>
+	/// Tests that we can parse https://status.torproject.org/index.xml XML document and parse first <c>&lt;item&gt;</c> from the XML document.
+	/// </summary>
+	[Fact]
+	public void ParseFirstReport()
+	{
+		StatusReport? issue = TorStatusChecker.ParseFirstStatusReport(StatusXmlSample);
+		Assert.NotNull(issue);
+
+		Assert.Equal("Network DDoS", issue!.Title);
+		Assert.Equal("https://status.torproject.org/issues/2022-06-09-network-ddos/", issue.Link);
+		Assert.Equal("Thu, 09 Jun 2022 14:00:00 +0000", issue.PubDate);
+		Assert.Equal("https://status.torproject.org/issues/2022-06-09-network-ddos/", issue.GUID);
+		Assert.Equal("", issue.Category);
+		Assert.Equal("<p>We are experiencing a network-wide DDoS attempt impacting the\r\n" +
+			"performance of the Tor network, which includes both onion services and\r\nnon-onion services traffic. " +
+			"We are currently investigating potential\r\nmitigations.</p>\r\n", issue.Description);
+	}
 }
