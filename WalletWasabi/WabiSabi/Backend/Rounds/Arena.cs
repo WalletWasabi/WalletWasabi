@@ -81,7 +81,7 @@ public partial class Arena : PeriodicRunner
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
 			// RoundStates have to contain all states. Do not change stateId=0.
-			RoundStates = Rounds.ToShuffled().Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
+			RoundStates = Rounds.OrderBy(x => x.InputCount).Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
 		}
 	}
 
