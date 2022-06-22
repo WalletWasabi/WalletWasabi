@@ -136,3 +136,4 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 
 		return new HumanMonitorResponse(response.ToArray());
 	}
+}
