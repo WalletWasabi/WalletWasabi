@@ -112,6 +112,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "ParallelRounds", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int ParallelRounds { get; set; } = 1;
 
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "RegistrationLoadBalancer", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool RegistrationLoadBalancer { get; set; } = false;
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;

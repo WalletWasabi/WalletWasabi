@@ -384,18 +384,54 @@ public partial class Arena : PeriodicRunner
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
+		FeeRate? feeRate = null;
+
+		// Create rounds to split the volume around minimum input counts if load balance is required.
+		if (Config.RegistrationLoadBalancer
+			&& Rounds.Count <= 5 // It gets computationally expensive getting in here quickly.
+			&& !Rounds.Any(x => x.InputCount < Config.MinInputCountByRound)
+			&& Rounds.Any(x =>
+				x.Phase == Phase.InputRegistration
+				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
+		{
+			feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
+
+			CreateAndAddRound(parameters);
+		}
+
+		// Add more rounds if not enough.
 		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
 		int roundsToCreate = Config.ParallelRounds - registrableRoundCount;
 		for (int i = 0; i < roundsToCreate; i++)
 		{
-			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+			feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
 
-			RoundParameters parameters =
-				RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
-			Round r = new(parameters, SecureRandom.Instance);
-			Rounds.Add(r);
-			r.LogInfo($"Created round with params: {nameof(parameters.MaxSuggestedAmount)}:'{parameters.MaxSuggestedAmount}' BTC.");
+			CreateAndAddRound(parameters);
 		}
+	}
+
+	private void CreateAndAddRound(RoundParameters parameters)
+	{
+		// Huge HACK to keep it compatible with WW2.0.0 client version, which's
+		// round preference is based on the ordering of ToImmutableDictionary.
+		// Add round until ToImmutableDictionary orders it to be the first round
+		// so old clients will prefer that one.
+		IOrderedEnumerable<Round>? orderedRounds;
+		Round r;
+		var before = DateTimeOffset.UtcNow;
+		do
+		{
+			var roundsCopy = Rounds.ToList();
+			r = new Round(parameters, SecureRandom.Instance);
+			roundsCopy.Add(r);
+			orderedRounds = roundsCopy.OrderBy(x => x.InputCount);
+		}
+		while (orderedRounds.ToImmutableDictionary(x => x.Id, x => x).First().Key != r.Id);
+
+		Rounds.Add(r);
+		r.LogInfo($"Created round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 	}
 
 	private void TimeoutRounds()
