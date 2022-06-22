@@ -36,7 +36,7 @@ public record RoundStateAwaiter
 
 	public Task<RoundState> Task => TaskCompletionSource.Task;
 
-	public bool IsCompleted(ImmutableDictionary<uint256, RoundState> allRoundStates)
+	public bool IsCompleted(IDictionary<uint256, RoundState> allRoundStates)
 	{
 		if (Task.IsCompleted)
 		{

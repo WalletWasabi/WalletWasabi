@@ -14,6 +14,7 @@ public record TimeFrame
 	public DateTimeOffset EndTime => StartTime + Duration;
 	public DateTimeOffset StartTime { get; init; }
 	public TimeSpan Duration { get; init; }
+	public TimeSpan Remaining => EndTime - DateTimeOffset.UtcNow;
 	public bool HasStarted => StartTime > DateTimeOffset.MinValue && StartTime < DateTimeOffset.UtcNow;
 	public bool HasExpired => HasStarted && EndTime < DateTimeOffset.UtcNow;
 

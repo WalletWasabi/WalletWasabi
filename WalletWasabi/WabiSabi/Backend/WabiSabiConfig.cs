@@ -108,6 +108,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
 
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "ParallelRounds", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int ParallelRounds { get; set; } = 1;
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
