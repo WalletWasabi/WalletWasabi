@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:torStatusChecker="clr-namespace:TorStatusChecker;assembly=TorStatusChecker"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.ViewModels.StatusIcon"
+             xmlns:tnc="clr-namespace:WalletWasabi.Tor.NetworkChecker;assembly=WalletWasabi"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.StatusIcon.TorIssuesControl"
              x:CompileBindings="True"
@@ -26,7 +26,7 @@
           <TextBlock Margin="8" DockPanel.Dock="Bottom" Text="Click here for details" />
           <ItemsControl Items="{Binding TorIssues}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="torStatusChecker:Issue">
+              <DataTemplate x:DataType="tnc:Issue">
                 <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>

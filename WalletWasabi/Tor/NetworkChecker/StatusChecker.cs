@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 
-namespace WalletWasabi.TorNetworkChecker;
+namespace WalletWasabi.Tor.NetworkChecker;
 
 public class StatusChecker : IStatusChecker
 {

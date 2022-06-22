@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace WalletWasabi.TorNetworkChecker;
+namespace WalletWasabi.Tor.NetworkChecker;
 
 public class TorNetwork : ITorNetwork
 {

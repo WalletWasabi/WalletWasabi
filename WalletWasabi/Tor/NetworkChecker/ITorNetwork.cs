@@ -1,4 +1,4 @@
-namespace WalletWasabi.TorNetworkChecker;
+namespace WalletWasabi.Tor.NetworkChecker;
 
 public interface ITorNetwork
 {

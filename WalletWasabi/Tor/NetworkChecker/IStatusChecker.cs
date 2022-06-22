@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace WalletWasabi.TorNetworkChecker;
+namespace WalletWasabi.Tor.NetworkChecker;
 
 public interface IStatusChecker
 {

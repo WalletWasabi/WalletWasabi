@@ -13,7 +13,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.TorNetworkChecker;
+using WalletWasabi.Tor.NetworkChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
