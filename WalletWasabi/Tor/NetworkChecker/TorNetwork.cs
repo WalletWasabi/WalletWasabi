@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -11,69 +10,67 @@ namespace WalletWasabi.Tor.NetworkChecker;
 
 public class TorNetwork : ITorNetwork
 {
-    private const string IssuesPath = "https://gitlab.torproject.org/api/v4/projects/786/repository/tree?path=content/issues";
-    private static readonly Uri IssuesRoot = new("https://gitlab.torproject.org/tpo/tpa/status-site/-/raw/main/");
+	private static readonly Uri IssuesPath = new("https://gitlab.torproject.org/api/v4/projects/786/repository/tree?path=content/issues");
 
-    private readonly IDeserializer _deserializer;
-    private readonly IHttpClientFactory _httpClientFactory;
+	private static readonly Uri IssuesRoot = new("https://gitlab.torproject.org/tpo/tpa/status-site/-/raw/main/");
 
-    public TorNetwork(IHttpClientFactory httpClientFactory)
-    {
-        _httpClientFactory = httpClientFactory;
+	private readonly IDeserializer _deserializer;
+	private readonly IUriBasedStringStore _stringStore;
 
-        Issues = GetIssueFilenames()
-            .SelectMany(uris => uris.ToObservable()
-                .SelectMany(GetIssueFromUri));
+	public TorNetwork(IUriBasedStringStore stringStore)
+	{
+		this._stringStore = stringStore;
 
-        _deserializer = new DeserializerBuilder()
-            .IgnoreUnmatchedProperties()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-    }
+		Issues = GetIssueFilenames()
+			.SelectMany(
+				uris => uris.ToObservable()
+					.SelectMany(GetIssueFromUri));
 
-    public IObservable<Issue> Issues { get; }
+		_deserializer = new DeserializerBuilder()
+			.IgnoreUnmatchedProperties()
+			.WithNamingConvention(CamelCaseNamingConvention.Instance)
+			.Build();
+	}
 
-    private static IObservable<Uri> ParseResponse(string responseText)
-    {
-        return JArray.Parse(responseText)
-            .Select(d => d["path"])
-            .Select(x => x.ToString())
-            .Where(x => x.EndsWith(".md"))
-            .Select(filename => new Uri(IssuesRoot, filename))
-            .ToObservable();
-    }
+	public IObservable<Issue> Issues { get; }
 
-    private IObservable<IList<Uri>> GetIssueFilenames()
-    {
-        var input = Observable
-            .Using(
-	            () => _httpClientFactory.CreateClient(),
-                httpClient => Observable.FromAsync(() => httpClient.GetStringAsync(IssuesPath)))
-            .SelectMany(s => ParseResponse(s).ToList());
+	private static IObservable<Uri> ParseResponse(string responseText)
+	{
+		return JArray.Parse(responseText)
+			.Select(d => d["path"])
+			.Select(x => x.ToString())
+			.Where(x => x.EndsWith(".md"))
+			.Select(filename => new Uri(IssuesRoot, filename))
+			.ToObservable();
+	}
 
-        return input;
-    }
+	private IObservable<IList<Uri>> GetIssueFilenames()
+	{
+		var input = Observable
+			.FromAsync(() => _stringStore.Fetch(IssuesPath))
+			.SelectMany(s => ParseResponse(s).ToList());
 
-    private IObservable<Issue> GetIssueFromUri(Uri path)
-    {
-        var observable = Observable
-            .Using(
-	            () => _httpClientFactory.CreateClient(),
-                httpClient => Observable.FromAsync(() => httpClient.GetStringAsync(path)))
-            .Select(GetIssueFromContent);
-        return observable;
-    }
+		return input;
+	}
 
-    private Issue GetIssueFromContent(string content)
-    {
-        var regex = @"---\s+(.*)\s+---(.*)";
-        var matches = Regex.Match(content, regex, RegexOptions.Singleline);
-        var yml = matches.Groups[1].Value;
+	private IObservable<Issue> GetIssueFromUri(Uri path)
+	{
+		var observable = Observable
+			.FromAsync(() => _stringStore.Fetch(path))
+			.Select(GetIssueFromContent);
+		return observable;
+	}
 
-        // Still unused
-        var description = matches.Groups[2].Value;
+	private Issue GetIssueFromContent(string content)
+	{
+		var regex = @"---\s+(.*)\s+---(.*)";
+		var matches = Regex.Match(content, regex, RegexOptions.Singleline);
+		var yml = matches.Groups[1].Value;
 
-        var issue = _deserializer.Deserialize<Issue>(yml);
-        return issue;
-    }
+		// Still unused
+		var description = matches.Groups[2].Value;
+
+		var issue = _deserializer.Deserialize<Issue>(yml);
+		return issue;
+	}
 }

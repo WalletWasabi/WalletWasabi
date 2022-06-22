@@ -6,16 +6,15 @@ namespace WalletWasabi.Tor.NetworkChecker;
 
 public class StatusChecker : IStatusChecker
 {
-    public StatusChecker(ITorNetwork reporter, TimeSpan checkInterval, IScheduler scheduler)
-    {
-        var timer = Observable.Timer(checkInterval, scheduler).SelectMany(x => reporter.Issues.ToList());
-        
-        var initial = Observable.Defer(() => reporter.Issues.ToList());
+	public StatusChecker(ITorNetwork reporter, TimeSpan checkInterval, IScheduler scheduler)
+	{
+		var timer = Observable.Timer(checkInterval, scheduler).SelectMany(x => reporter.Issues.ToList());
+		var initial = Observable.Defer(() => reporter.Issues.ToList());
 
-        Issues =
-            initial.Concat(timer)
-                .Retry();
-    }
+		Issues =
+			initial.Concat(timer)
+				.Retry();
+	}
 
-    public IObservable<IList<Issue>> Issues { get; }
+	public IObservable<IList<Issue>> Issues { get; }
 }
