@@ -7,13 +7,13 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin.Protocol;
 using ReactiveUI;
-using TorStatusChecker;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.TorNetworkChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 

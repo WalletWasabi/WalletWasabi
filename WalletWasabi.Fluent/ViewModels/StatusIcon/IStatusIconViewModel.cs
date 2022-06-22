@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Windows.Input;
-using TorStatusChecker;
+using WalletWasabi.TorNetworkChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 

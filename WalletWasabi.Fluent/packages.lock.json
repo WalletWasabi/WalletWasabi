@@ -559,7 +559,9 @@
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "6.0.0",
           "Microsoft.Win32.SystemEvents": "6.0.0",
           "NBitcoin": "7.0.6",
-          "NBitcoin.Secp256k1": "3.0.1"
+          "NBitcoin.Secp256k1": "3.0.1",
+          "System.Reactive": "5.0.0",
+          "YamlDotNet": "11.2.1"
         }
       }
     },
