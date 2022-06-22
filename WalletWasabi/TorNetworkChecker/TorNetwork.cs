@@ -46,7 +46,8 @@ public class TorNetwork : ITorNetwork
     private IObservable<IList<Uri>> GetIssueFilenames()
     {
         var input = Observable
-            .Using(() => _httpClientFactory.CreateClient(),
+            .Using(
+	            () => _httpClientFactory.CreateClient(),
                 httpClient => Observable.FromAsync(() => httpClient.GetStringAsync(IssuesPath)))
             .SelectMany(s => ParseResponse(s).ToList());
 
@@ -56,7 +57,8 @@ public class TorNetwork : ITorNetwork
     private IObservable<Issue> GetIssueFromUri(Uri path)
     {
         var observable = Observable
-            .Using(() => _httpClientFactory.CreateClient(),
+            .Using(
+	            () => _httpClientFactory.CreateClient(),
                 httpClient => Observable.FromAsync(() => httpClient.GetStringAsync(path)))
             .Select(GetIssueFromContent);
         return observable;
