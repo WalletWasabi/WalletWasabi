@@ -7,5 +7,5 @@ namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 public interface IStatusIconViewModel
 {
 	ICollection<Issue> TorIssues { get; }
-	public ICommand OpenTorStatusSiteCommand { get; }
+	ICommand OpenTorStatusSiteCommand { get; }
 }
