@@ -27,7 +27,8 @@ public class IssueParser : IIssueParser
 	{
 		using var reader = new StringReader(yaml);
 		string? read;
-		Node lastNode = null;
+		Node? lastNode = null;
+
 		do
 		{
 			read = reader.ReadLine();
@@ -52,15 +53,14 @@ public class IssueParser : IIssueParser
 				lastNode = node;
 				yield return node;
 			}
-		}
-		while (read is not null);
+		} while (read is not null);
 	}
 
 	private static void AddListItem(Node lastNode, string line)
 	{
 		var hyphenIndex = line.IndexOf('-');
 		var content = line[(hyphenIndex + 1)..].Trim();
-		lastNode.Children.Add(new Node { Name = "", Value = content });
+		lastNode.Children.Add(new Node("", content));
 	}
 
 	private static Node ParseLine(string read)
@@ -68,7 +68,7 @@ public class IssueParser : IIssueParser
 		var colonIndex = read.IndexOf(':');
 		var name = read[..colonIndex].Trim();
 		var value = read[(colonIndex + 1)..].Trim();
-		return new Node { Name = name, Value = value };
+		return new Node(name, value);
 	}
 
 	private static (string yaml, string description) GetYaml(string input)
@@ -84,13 +84,24 @@ public class IssueParser : IIssueParser
 	private static Node ParseRoot(string str)
 	{
 		var (yaml, description) = GetYaml(str);
-		return new Node { Name = "Root", Value = description, Children = ParseYaml(yaml).ToList() };
+		return new Node("Root", description, ParseYaml(yaml).ToList());
 	}
 
 	private class Node
 	{
-		public string Name { get; set; }
-		public string Value { get; set; }
-		public ICollection<Node> Children { get; set; } = new List<Node>();
+		public Node(string name, string value, ICollection<Node> children) : this(name, value)
+		{
+			Children = children;
+		}
+
+		public Node(string name, string value)
+		{
+			Name = name;
+			Value = value;
+		}
+
+		public string Name { get; }
+		public string Value { get; }
+		public ICollection<Node> Children { get; } = new List<Node>();
 	}
 }
