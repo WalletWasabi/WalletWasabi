@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Tor.NetworkChecker;
 
-public interface IUriBasedStringStore
+public interface IHttpGetTextReader
 {
-	Task<string> Fetch(Uri uri);
+	Task<string> Read(Uri uri);
 }

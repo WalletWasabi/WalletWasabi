@@ -11,9 +11,9 @@ public class TorNetwork : ITorNetwork
 	private static readonly Uri IssuesRoot = new("https://gitlab.torproject.org/tpo/tpa/status-site/-/raw/main/");
 
 	private readonly IIssueParser _issueParser;
-	private readonly IUriBasedStringStore _stringStore;
+	private readonly IHttpGetTextReader _stringStore;
 
-	public TorNetwork(IUriBasedStringStore stringStore, IIssueParser issueParser)
+	public TorNetwork(IHttpGetTextReader stringStore, IIssueParser issueParser)
 	{
 		_stringStore = stringStore;
 		_issueParser = issueParser;
@@ -39,7 +39,7 @@ public class TorNetwork : ITorNetwork
 	private IObservable<IList<Uri>> GetIssueFilenames()
 	{
 		var input = Observable
-			.FromAsync(() => _stringStore.Fetch(IssuesPath))
+			.FromAsync(() => _stringStore.Read(IssuesPath))
 			.SelectMany(responseText => ParseResponse(responseText).ToList());
 
 		return input;
@@ -48,7 +48,7 @@ public class TorNetwork : ITorNetwork
 	private IObservable<Issue> GetIssueFromUri(Uri path)
 	{
 		var observable = Observable
-			.FromAsync(() => _stringStore.Fetch(path))
+			.FromAsync(() => _stringStore.Read(path))
 			.Select(GetIssueFromContent);
 		return observable;
 	}
