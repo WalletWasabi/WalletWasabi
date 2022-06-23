@@ -290,7 +290,7 @@ public class CoinJoinClient
 			{
 				if (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
 				{
-					// After receiving a WrongPhase, cancel all the pending registrations because they will arrive late too.
+					// Cancel all remaining pending input registrations because they will arrive late too.
 					registrationsCts.Cancel();
 
 					var isInConnectionConfirmation = wpe.Message.Contains(nameof(Phase.ConnectionConfirmation));
