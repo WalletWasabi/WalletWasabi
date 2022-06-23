@@ -2,5 +2,5 @@ namespace WalletWasabi.Tor.NetworkChecker;
 
 public interface ITorNetwork
 {
-	public IObservable<Issue> Issues { get; }
+	IObservable<Issue> Issues { get; }
 }
