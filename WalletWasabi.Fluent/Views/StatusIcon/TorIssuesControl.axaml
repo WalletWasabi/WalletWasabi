@@ -22,9 +22,9 @@
       </Button.Content>
       <ToolTip.Tip>
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Text="The following issues are affecting the Tor network:" />
-          <TextBlock Margin="8" DockPanel.Dock="Bottom" Text="Click here for details" />
-          <ItemsControl Items="{Binding TorIssues}">
+          <TextBlock DockPanel.Dock="Top" Text="Tor network is having issues:" />
+          <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details" />
+          <ItemsControl Margin="8" Items="{Binding TorIssues}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="tnc:Issue">
                 <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />
