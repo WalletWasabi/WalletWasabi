@@ -7,6 +7,8 @@ namespace WalletWasabi.Tor.NetworkChecker;
 
 public class IssueParser : IIssueParser
 {
+	private readonly Regex _markdownRegex = new(@"---\s+(.*)\s+---(.*)", RegexOptions.Singleline | RegexOptions.Compiled);
+
 	public Issue Parse(string str)
 	{
 		var node = ParseRoot(str);
@@ -72,17 +74,16 @@ public class IssueParser : IIssueParser
 		return new Node(name, value);
 	}
 
-	private static (string yaml, string description) GetYaml(string input)
+	private (string yaml, string description) GetYaml(string input)
 	{
-		var regex = @"---\s+(.*)\s+---(.*)";
-		var matches = Regex.Match(input, regex, RegexOptions.Singleline);
+		var matches = _markdownRegex.Match(input);
 		var yaml = matches.Groups[1].Value;
 		var description = matches.Groups[2].Value;
 
 		return (yaml, description);
 	}
 
-	private static Node ParseRoot(string str)
+	private Node ParseRoot(string str)
 	{
 		var (yaml, description) = GetYaml(str);
 		return new Node("Root", description, ParseYaml(yaml).ToList());
