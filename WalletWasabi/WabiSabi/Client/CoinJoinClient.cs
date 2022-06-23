@@ -120,7 +120,8 @@ public class CoinJoinClient
 
 	public async Task<CoinJoinResult> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
 	{
-		var tryLimit = 21;
+		// 1000 input rounds are unlikely, but may be possible in the future.
+		var tryLimit = 1000;
 
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
