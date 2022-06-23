@@ -56,7 +56,7 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusIcon = new StatusIconViewModel(new StatusChecker(new TorNetwork(new UriBasedStringStore(), new IssueParser()), TimeSpan.FromSeconds(20), new NewThreadScheduler()));
+		_statusIcon = new StatusIconViewModel(new StatusChecker(new TorNetwork(new UriBasedStringStore(), new IssueParser()), TimeSpan.FromHours(6), new NewThreadScheduler()));
 
 		UiServices.Initialize();
 
