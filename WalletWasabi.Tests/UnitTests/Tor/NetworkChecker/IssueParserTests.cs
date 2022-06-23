@@ -24,9 +24,9 @@ We are experiencing a network-wide DDoS attempt impacting the
 performance of the Tor network, which includes both onion services and
 non-onion services traffic. We are currently investigating potential
 mitigations.";
-		var sut = new IssueParser();
+		var issueParser = new IssueParser();
 
-		var issue = sut.Parse(toParse);
+		var issue = issueParser.Parse(toParse);
 
 		Assert.Equal("Network DDoS", issue.Title);
 		Assert.Equal(DateTimeOffset.Parse("2022-06-09 14:00:00"), issue.Date);
