@@ -1,18 +1,18 @@
-using System.Collections.Generic;
-
 namespace WalletWasabi.Tor.NetworkChecker;
 
 public class Issue
 {
-	public string Title { get; set; }
-	public DateTimeOffset Date { get; set; }
-	public bool Resolved { get; set; }
-	public string Severity { get; set; }
-	public IList<string> Affected { get; set; }
+	public Issue(string title, bool resolved)
+	{
+		Title = title;
+		Resolved = resolved;
+	}
+
+	public string Title { get; }
+	public bool Resolved { get; }
 
 	public override string ToString()
 	{
-		return
-			$"{nameof(Title)}: {Title}, {nameof(Date)}: {Date}, {nameof(Resolved)}: {Resolved}, {nameof(Severity)}: {Severity}, {nameof(Affected)}: {{{string.Join(", ", Affected)}}}";
+		return $"{nameof(Title)}: {Title}, {nameof(Resolved)}: {Resolved}";
 	}
 }

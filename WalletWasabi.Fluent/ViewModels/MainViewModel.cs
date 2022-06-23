@@ -58,7 +58,7 @@ public partial class MainViewModel : ViewModelBase
 
 		UiServices.Initialize();
 
-		_statusIcon = new StatusIconViewModel(new StatusChecker(new TorNetwork(new HttpGetStringReader(Services.HttpClientFactory), new IssueParser()), TimeSpan.FromHours(6), new NewThreadScheduler()));
+		_statusIcon = new StatusIconViewModel(new StatusChecker(new TorNetwork(new HttpGetStringReader(Services.HttpClientFactory), new XmlIssueListParser()), TimeSpan.FromHours(6), new NewThreadScheduler()));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();

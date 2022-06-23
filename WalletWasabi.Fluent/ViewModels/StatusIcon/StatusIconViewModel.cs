@@ -61,7 +61,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 			});
 
 		var issues = statusChecker.Issues
-			.Select(r => r.Where(issue => !issue.Resolved).OrderBy(x => x.Date).ToList())
+			.Select(r => r.Where(issue => !issue.Resolved).ToList())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Publish();
 

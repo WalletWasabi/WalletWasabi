@@ -7,32 +7,11 @@ namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
 public class StatusIconDesignViewModel : IStatusIconViewModel
 {
-	public ICollection<Issue> TorIssues => new List<Issue>()
+	public ICollection<Issue> TorIssues => new List<Issue>
 	{
-		new()
-		{
-			Affected = new List<string>()
-			{
-				"This",
-				"That",
-			},
-			Title = "Every man for himself!",
-			Resolved = false,
-			Severity = "OMG!",
-			Date = DateTimeOffset.Now.Date,
-		},
-		new Issue()
-		{
-			Affected = new List<string>()
-			{
-				"This",
-				"That",
-			},
-			Title = "Another issue",
-			Resolved = false,
-			Severity = "minor",
-			Date = DateTimeOffset.Now.Date,
-		}
+		new("Issue 1", false),
+		new("Issue 2", false),
+		new("Issue 3", true)
 	};
 
 	public ICommand OpenTorStatusSiteCommand { get; } = ReactiveCommand.Create(() => { });
