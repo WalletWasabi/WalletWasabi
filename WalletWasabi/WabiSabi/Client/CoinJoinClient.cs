@@ -148,7 +148,6 @@ public class CoinJoinClient
 		}
 
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
-		// ToDo research: Do we do client side verification that blame rounds only contain the blame of round's inputs?
 		while (true)
 		{
 			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false);
