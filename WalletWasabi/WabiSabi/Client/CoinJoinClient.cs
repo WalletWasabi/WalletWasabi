@@ -293,10 +293,18 @@ public class CoinJoinClient
 					// Cancel all remaining pending input registrations because they will arrive late too.
 					registrationsCts.Cancel();
 
-					var isInConnectionConfirmation = wpe.Message.Contains(nameof(Phase.ConnectionConfirmation));
-					if (isInConnectionConfirmation)
+					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
-						confirmationsCts.Cancel();
+						var isInConnectionConfirmation = wrongPhaseExceptionData.CurrentPhase == Phase.ConnectionConfirmation;
+						if (isInConnectionConfirmation)
+						{
+							confirmationsCts.Cancel();
+						}
+					}
+					else
+					{
+						throw new InvalidOperationException(
+							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
 				personCircuit?.Dispose();
