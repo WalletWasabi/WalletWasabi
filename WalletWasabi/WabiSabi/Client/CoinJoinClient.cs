@@ -120,9 +120,6 @@ public class CoinJoinClient
 
 	public async Task<CoinJoinResult> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
 	{
-		// 1000 input rounds are unlikely, but may be possible in the future.
-		var tryLimit = 1000;
-
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
 		ImmutableList<SmartCoin> coins;
@@ -150,7 +147,9 @@ public class CoinJoinClient
 			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
-		for (var tries = 0; tries < tryLimit; tries++)
+		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
+		// ToDo research: Do we do client side verification that blame rounds only contain the blame of round's inputs?
+		while (true)
 		{
 			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false);
 			if (!result.GoForBlameRound)
