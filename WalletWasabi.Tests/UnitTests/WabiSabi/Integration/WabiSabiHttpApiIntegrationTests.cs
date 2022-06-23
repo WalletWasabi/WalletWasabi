@@ -172,7 +172,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		var coinjoinResult = (await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
 		Assert.True(coinjoinResult.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
