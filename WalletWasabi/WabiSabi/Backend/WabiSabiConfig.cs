@@ -109,12 +109,15 @@ public class WabiSabiConfig : ConfigBase
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
 
 	[DefaultValue(1)]
-	[JsonProperty(PropertyName = "ParallelRounds", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int ParallelRounds { get; set; } = 1;
+	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int RoundParallelization { get; set; } = 1;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "RegistrationLoadBalancer", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool RegistrationLoadBalancer { get; set; } = false;
+	/// <summary>
+	/// Try to keep this below 6. The compatibility hack is computationally expensive.
+	/// </summary>
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "WW200CompatibleRoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int WW200CompatibleRoundParallelization { get; set; } = 1;
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
