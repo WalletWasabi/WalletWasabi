@@ -31,6 +31,6 @@ mitigations.";
 		Assert.Equal("Network DDoS", issue.Title);
 		Assert.Equal(DateTimeOffset.Parse("2022-06-09 14:00:00"), issue.Date);
 		Assert.Equal("disrupted", issue.Severity);
-		Assert.True(new[] { "v3 Onion Services" }.SequenceEqual(issue.Affected));
+		Assert.Equal(new[] { "v3 Onion Services" }, issue.Affected);
 	}
 }
