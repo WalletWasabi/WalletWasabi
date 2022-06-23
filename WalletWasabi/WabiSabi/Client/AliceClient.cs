@@ -59,13 +59,15 @@ public class AliceClient
 		SmartCoin coin,
 		IKeyChain keyChain,
 		RoundStateUpdater roundStatusUpdater,
-		CancellationToken cancellationToken)
+		CancellationToken registrationCancellationToken,
+		CancellationToken confirmationCancellationToken
+		)
 	{
 		AliceClient? aliceClient = null;
 		try
 		{
-			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, cancellationToken).ConfigureAwait(false);
-			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, cancellationToken).ConfigureAwait(false);
+			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
+			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
@@ -127,10 +129,15 @@ public class AliceClient
 						Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
 						break;
 
+					case WabiSabiProtocolErrorCode.WrongPhase:
+						Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late. Abort the rest of the registrations.");
+						break;
+						
 					default:
 						Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
 						break;
 				}
+
 			}
 			throw;
 		}
