@@ -5,6 +5,7 @@ root = true
 [*]
 
 charset = utf-8
+insert_final_newline=true
 
 # Formatting - remove any whitespace characters preceding newline characters
 trim_trailing_whitespace = true
@@ -288,4 +289,3 @@ dotnet_diagnostic.CA1827.severity = warning
 
 # CA1822: This complains to make functions static. Static is evil. Don't let it complain.
 dotnet_diagnostic.CA1822.severity = none
-insert_final_newline=true
