@@ -16,7 +16,7 @@
   <DockPanel>
 
     <Button Classes="activeHyperLink" Margin="5" VerticalAlignment="Center" Foreground="Gold"
-            IsVisible="{Binding TorIssues.Count}" Command="{Binding OpenTorStatusSiteCommand}">
+            IsVisible="{Binding TorIssues.Count, FallbackValue=False}" Command="{Binding OpenTorStatusSiteCommand}">
       <Button.Content>
         <PathIcon Foreground="Gold" VerticalAlignment="Center" Data="{StaticResource warning_filled}" />
       </Button.Content>
