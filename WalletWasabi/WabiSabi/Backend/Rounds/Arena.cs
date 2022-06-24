@@ -422,8 +422,8 @@ public partial class Arena : PeriodicRunner
 				{
 					Rounds.Add(largeRound);
 					Rounds.Add(smallRound);
-					largeRound.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
-					smallRound.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+					largeRound.LogInfo($"Created first ordered round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+					smallRound.LogInfo($"Created first ordered round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
 
 					// If it can't create the large round, then don't abort.
 					round.EndRound(EndRoundState.AbortedLoadBalancing);
