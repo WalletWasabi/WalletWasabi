@@ -409,7 +409,7 @@ public partial class Arena : PeriodicRunner
 				var allInputs = round.Alices.Select(y => y.Coin.Amount).OrderBy(x => x).ToArray();
 
 				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
-				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * 0.75)).First();
+				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * Config.WW200CompatibleLoadBalancingInputSplit)).First();
 				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
 
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);

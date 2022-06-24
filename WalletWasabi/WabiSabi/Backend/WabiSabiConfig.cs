@@ -116,6 +116,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancing", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool WW200CompatibleLoadBalancing { get; set; } = false;
 
+	[DefaultValue(0.75)]
+	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancingInputSplit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double WW200CompatibleLoadBalancingInputSplit { get; set; } = 0.75;
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
