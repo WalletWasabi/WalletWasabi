@@ -83,7 +83,10 @@ public partial class Arena : PeriodicRunner
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
 			// RoundStates have to contain all states. Do not change stateId=0.
-			RoundStates = Rounds.OrderBy(x => x.InputCount).Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
+			RoundStates = Rounds
+				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
+				.ThenBy(x => x.InputCount)
+				.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
 		}
 	}
 
@@ -388,28 +391,60 @@ public partial class Arena : PeriodicRunner
 	{
 		FeeRate? feeRate = null;
 
-		// Create rounds to split the volume around minimum input counts if load balance is required.
-		if (Config.WW200CompatibleRoundParallelization > 1 // Only do things if the load balancer compatibility is configured to at least 2.
-			&& (DateTimeOffset.UtcNow - LastFirstOrderedRoundCreated) > TimeSpan.FromMinutes(1) // Run this expensive algorithm every minute at best.
-			&& Rounds.Count(x => // We can at max create the configured number of parallel rounds.
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)) < Config.WW200CompatibleRoundParallelization // It gets computationally expensive getting in here quickly.
-			&& !Rounds.Any(x => // If there's round in input registration that didn't yet reach the minimum, then skip.
+		// Have rounds to split the volume around minimum input counts if load balance is required.
+		// Only do things if the load balancer compatibility is configured.
+		if (Config.WW200CompatibleLoadBalancing)
+		{
+			// Destroy the round when it reaches this input count and create 2 new ones instead.
+			var roundDestroyerInputCount = Config.MinInputCountByRound * 2 + Config.MinInputCountByRound / 2;
+
+			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
 				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
-				&& x.InputCount < Config.MinInputCountByRound)
-			&& Rounds.Any(x => // If there isn't any input reg round, then let the software create a normal round.
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
-		{
-			feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
+				&& x.InputCount >= roundDestroyerInputCount).ToArray())
+			{
+				feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
-			TryCreateFirstOrderedRound(parameters);
-			LastFirstOrderedRoundCreated = DateTimeOffset.UtcNow;
+				var allInputs = round.Alices.Select(y => y.Coin.Amount).OrderBy(x => x).ToArray();
+
+				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
+				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * Config.WW200CompatibleLoadBalancingInputSplit)).First();
+				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
+
+				var roundWithoutThis = Rounds.Except(new[] { round });
+				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
+				Round? foundLargeRound = Rounds.FirstOrDefault(x =>
+									x.Phase == Phase.InputRegistration
+									&& x is not BlameRound
+									&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
+									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60));
+				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
+
+				if (largeRound is not null)
+				{
+					parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
+					var smallRound = TryMineRound(parameters, roundWithoutThis.Concat(new[] { largeRound }).ToArray());
+
+					// If creation is successful destory round only.
+					if (smallRound is not null)
+					{
+						Rounds.Add(largeRound);
+						Rounds.Add(smallRound);
+
+						if (foundLargeRound is null)
+						{
+							largeRound.LogInfo($"Mined round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+						}
+						smallRound.LogInfo($"Mined round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
+
+						// If it can't create the large round, then don't abort.
+						round.EndRound(EndRoundState.AbortedLoadBalancing);
+						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+					}
+				}
+			}
 		}
 
 		// Add more rounds if not enough.
@@ -426,7 +461,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private void TryCreateFirstOrderedRound(RoundParameters parameters)
+	private Round? TryMineRound(RoundParameters parameters, Round[] rounds)
 	{
 		// Huge HACK to keep it compatible with WW2.0.0 client version, which's
 		// round preference is based on the ordering of ToImmutableDictionary.
@@ -439,26 +474,27 @@ public partial class Arena : PeriodicRunner
 		var maxCycleTimes = 300;
 		do
 		{
-			var roundsCopy = Rounds.ToList();
+			var roundsCopy = rounds.ToList();
 			r = new Round(parameters, SecureRandom.Instance);
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
 				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
-				.OrderBy(x => x.InputCount);
+				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
+				.ThenBy(x => x.InputCount);
 			times++;
 		}
 		while (times <= maxCycleTimes && orderedRounds.ToImmutableDictionary(x => x.Id, x => x).First().Key != r.Id);
 
 		Logger.LogDebug($"First ordered round creator did {times} cycles.");
 
-		if (times >= maxCycleTimes)
+		if (times > maxCycleTimes)
 		{
 			r.LogInfo("First ordered round creation too expensive. Skipping...");
+			return null;
 		}
 		else
 		{
-			Rounds.Add(r);
-			r.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+			return r;
 		}
 	}
 
