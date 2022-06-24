@@ -418,7 +418,9 @@ public partial class Arena : PeriodicRunner
 					x.Phase == Phase.InputRegistration
 					&& x is not BlameRound
 					&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
-					&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()) ?? TryMineRound(parameters, roundWithoutThis.ToArray());
+					&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
+					&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60))
+					?? TryMineRound(parameters, roundWithoutThis.ToArray());
 
 				if (largeRound is not null)
 				{
