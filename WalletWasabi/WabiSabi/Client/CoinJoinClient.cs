@@ -221,6 +221,8 @@ public class CoinJoinClient
 				EndRoundState.AbortedNotEnoughAlices => "Aborted. Not enough participants.",
 				EndRoundState.AbortedNotEnoughAlicesSigned => "Aborted. Not enough participants signed the coinjoin transaction.",
 				EndRoundState.NotAllAlicesSign => "Aborted. Some Alices didn't sign. Go to blame round.",
+				EndRoundState.AbortedNotAllAlicesConfirmed => "Aborted. Some Alices didn't confirm.",
+				EndRoundState.AbortedLoadBalancing => "Aborted. Load balancing registrations.",
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
@@ -259,7 +261,7 @@ public class CoinJoinClient
 		using CancellationTokenSource confirmationsCts = new();
 		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, registrationsCts.Token);
 		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, confirmationsCts.Token);
-		
+
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
 			PersonCircuit? personCircuit = null;
