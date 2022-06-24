@@ -75,7 +75,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			try
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
-
+				content.Headers.Add("WabiSabi-Api-Version", "2.0.0");
+					
 				// Any transport layer errors will throw an exception here.
 				HttpResponseMessage response = await _client
 					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, combinedToken).ConfigureAwait(false);
