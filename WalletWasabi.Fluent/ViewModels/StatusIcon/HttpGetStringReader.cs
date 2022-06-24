@@ -5,7 +5,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
-public class HttpGetStringReader : IHttpGetTextReader
+public class HttpGetStringReader : IHttpGetStringReader
 {
 	private readonly IWasabiHttpClientFactory _factory;
 
