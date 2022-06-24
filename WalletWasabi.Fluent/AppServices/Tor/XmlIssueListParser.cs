@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
-namespace WalletWasabi.Tor.NetworkChecker;
+namespace WalletWasabi.Fluent.AppServices.Tor;
 
 public class XmlIssueListParser : IIssueListParser
 {
@@ -15,7 +15,7 @@ public class XmlIssueListParser : IIssueListParser
 		var items = xml.SelectNodes("//rss/channel/item");
 		return items!
 			.Cast<XmlElement>()
-			.Select(Parse);	
+			.Select(Parse);
 	}
 
 	private static Issue Parse(XmlElement xmlElement)
@@ -23,22 +23,22 @@ public class XmlIssueListParser : IIssueListParser
 		var dic = xmlElement.ChildNodes
 			.Cast<XmlElement>()
 			.ToDictionary(x => x.Name, x => x.InnerText);
-	
+
 		var rawTitle = dic["title"];
 		string title;
 		var resolved = true;
-		
+
 		var resolvedTokenIndex = rawTitle.IndexOf(ResolvedToken, StringComparison.InvariantCultureIgnoreCase);
-		if (resolvedTokenIndex == -1) 
+		if (resolvedTokenIndex == -1)
 		{
 			title = rawTitle;
 			resolved = false;
-		} 
+		}
 		else
 		{
-			title = rawTitle[(resolvedTokenIndex+ResolvedToken.Length)..].Trim();
+			title = rawTitle[(resolvedTokenIndex + ResolvedToken.Length)..].Trim();
 		}
-		
+
 		return new Issue(title, resolved);
 	}
 }

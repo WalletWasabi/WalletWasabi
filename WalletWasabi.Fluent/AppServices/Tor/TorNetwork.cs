@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Tor.NetworkChecker;
+namespace WalletWasabi.Fluent.AppServices.Tor;
 
 public class TorNetwork : ITorNetwork
 {
@@ -13,6 +13,6 @@ public class TorNetwork : ITorNetwork
 			.SelectMany(content => issueListParser.Parse(content).ToObservable());
 		Issues = observable;
 	}
-	
+
 	public IObservable<Issue> Issues { get; }
 }

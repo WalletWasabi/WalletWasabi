@@ -9,11 +9,11 @@ using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Tor.NetworkChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 

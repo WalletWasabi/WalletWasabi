@@ -32,7 +32,6 @@
 		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="6.0.0" />
 		<PackageReference Include="NBitcoin" Version="7.0.6" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="3.0.1" />
-		<PackageReference Include="System.Reactive" Version="5.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

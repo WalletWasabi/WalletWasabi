@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Tor.NetworkChecker;
+namespace WalletWasabi.Fluent.AppServices.Tor;
 
 public interface IHttpGetTextReader
 {

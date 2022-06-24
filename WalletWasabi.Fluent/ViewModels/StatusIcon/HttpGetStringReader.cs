@@ -1,6 +1,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using WalletWasabi.Tor.NetworkChecker;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;

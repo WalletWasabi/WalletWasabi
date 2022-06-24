@@ -35,12 +35,6 @@
         "resolved": "3.0.1",
         "contentHash": "n/OaEKIVvgcJ9qwde8g2IZdJMn3oAdEHAKV0gFg3JcrjxfbFCiziZ3WGOJSFPXldhuLy/E9jEIcXdRRG+Q6iUg=="
       },
-      "System.Reactive": {
-        "type": "Direct",
-        "requested": "[5.0.0, )",
-        "resolved": "5.0.0",
-        "contentHash": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ=="
-      },
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
         "resolved": "6.0.0",
