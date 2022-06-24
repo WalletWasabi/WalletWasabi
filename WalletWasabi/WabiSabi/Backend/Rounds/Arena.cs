@@ -414,13 +414,13 @@ public partial class Arena : PeriodicRunner
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
-				var largeRound = Rounds.FirstOrDefault(x =>
-					x.Phase == Phase.InputRegistration
-					&& x is not BlameRound
-					&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
-					&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
-					&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60))
-					?? TryMineRound(parameters, roundWithoutThis.ToArray());
+				Round? foundLargeRound = Rounds.FirstOrDefault(x =>
+									x.Phase == Phase.InputRegistration
+									&& x is not BlameRound
+									&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
+									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60));
+				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
 
 				if (largeRound is not null)
 				{
@@ -432,7 +432,11 @@ public partial class Arena : PeriodicRunner
 					{
 						Rounds.Add(largeRound);
 						Rounds.Add(smallRound);
-						largeRound.LogInfo($"Mined round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+
+						if (foundLargeRound is null)
+						{
+							largeRound.LogInfo($"Mined round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+						}
 						smallRound.LogInfo($"Mined round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
 
 						// If it can't create the large round, then don't abort.
