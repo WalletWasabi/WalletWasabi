@@ -414,7 +414,11 @@ public partial class Arena : PeriodicRunner
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
-				var largeRound = TryMineRound(parameters, roundWithoutThis.ToArray());
+				var largeRound = Rounds.FirstOrDefault(x =>
+					x.Phase == Phase.InputRegistration
+					&& x is not BlameRound
+					&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+					&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()) ?? TryMineRound(parameters, roundWithoutThis.ToArray());
 
 				if (largeRound is not null)
 				{
