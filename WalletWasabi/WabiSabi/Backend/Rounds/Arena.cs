@@ -61,6 +61,12 @@ public partial class Arena : PeriodicRunner
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 	private DateTimeOffset LastFirstOrderedRoundCreated { get; set; } = DateTimeOffset.UtcNow;
 
+	public override Task StartAsync(CancellationToken cancellationToken)
+	{
+		Task.Run(async () => await StartRoundBalancer(cancellationToken).ConfigureAwait(false), cancellationToken);
+		return base.StartAsync(cancellationToken);
+	}
+	
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -78,9 +84,6 @@ public partial class Arena : PeriodicRunner
 			await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
 
 			cancel.ThrowIfCancellationRequested();
-
-			// Ensure there's at least one non-blame round in input registration.
-			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			RoundStates = Rounds.OrderBy(x => x.InputCount).Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
@@ -386,80 +389,14 @@ public partial class Arena : PeriodicRunner
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
-		FeeRate? feeRate = null;
+		var estimateSmartFeeResponse = await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false);
+		var feeRate = estimateSmartFeeResponse.FeeRate;
 
-		// Create rounds to split the volume around minimum input counts if load balance is required.
-		if (Config.WW200CompatibleRoundParallelization > 1 // Only do things if the load balancer compatibility is configured to at least 2.
-			&& (DateTimeOffset.UtcNow - LastFirstOrderedRoundCreated) > TimeSpan.FromMinutes(1) // Run this expensive algorithm every minute at best.
-			&& Rounds.Count(x => // We can at max create the configured number of parallel rounds.
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)) < Config.WW200CompatibleRoundParallelization // It gets computationally expensive getting in here quickly.
-			&& !Rounds.Any(x => // If there's round in input registration that didn't yet reach the minimum, then skip.
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
-				&& x.InputCount < Config.MinInputCountByRound)
-			&& Rounds.Any(x => // If there isn't any input reg round, then let the software create a normal round.
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
-		{
-			feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
+		RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
 
-			TryCreateFirstOrderedRound(parameters);
-			LastFirstOrderedRoundCreated = DateTimeOffset.UtcNow;
-		}
-
-		// Add more rounds if not enough.
-		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
-		int roundsToCreate = Config.RoundParallelization - registrableRoundCount;
-		for (int i = 0; i < roundsToCreate; i++)
-		{
-			feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
-			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
-
-			var r = new Round(parameters, SecureRandom.Instance);
-			Rounds.Add(r);
-			r.LogInfo($"Created round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
-		}
-	}
-
-	private void TryCreateFirstOrderedRound(RoundParameters parameters)
-	{
-		// Huge HACK to keep it compatible with WW2.0.0 client version, which's
-		// round preference is based on the ordering of ToImmutableDictionary.
-		// Add round until ToImmutableDictionary orders it to be the first round
-		// so old clients will prefer that one.
-		IOrderedEnumerable<Round>? orderedRounds;
-		Round r;
-		var before = DateTimeOffset.UtcNow;
-		var times = 0;
-		var maxCycleTimes = 300;
-		do
-		{
-			var roundsCopy = Rounds.ToList();
-			r = new Round(parameters, SecureRandom.Instance);
-			roundsCopy.Add(r);
-			orderedRounds = roundsCopy
-				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
-				.OrderBy(x => x.InputCount);
-			times++;
-		}
-		while (times <= maxCycleTimes && orderedRounds.ToImmutableDictionary(x => x.Id, x => x).First().Key != r.Id);
-
-		Logger.LogDebug($"First ordered round creator did {times} cycles.");
-
-		if (times >= maxCycleTimes)
-		{
-			r.LogInfo("First ordered round creation too expensive. Skipping...");
-		}
-		else
-		{
-			Rounds.Add(r);
-			r.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
-		}
+		var r = new Round(parameters, SecureRandom.Instance);
+		Rounds.Add(r);
+		r.LogInfo($"Created round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 	}
 
 	private void TimeoutRounds()
@@ -564,4 +501,58 @@ public partial class Arena : PeriodicRunner
 
 		return coordinatorScriptPubKey;
 	}
+
+	private async Task StartRoundBalancer(CancellationToken cancellationToken)
+	{
+		using PeriodicTimer timer = new(Config.StandardInputRegistrationTimeout / 20);
+		do
+		{
+			var availableRounds = GetRoundsInInputRegistration();
+			var preferredRound = availableRounds.MinBy(x => x.Id.GetHashCode());
+
+			if (preferredRound is null)
+			{
+				await CreateRoundsAsync(cancellationToken).ConfigureAwait(false);
+			}
+			else
+			{
+				if (preferredRound.Alices.Count >= preferredRound.Parameters.MaxInputCountByRound / 2.0)
+				{
+					var estimateSmartFeeResponse = await Rpc.EstimateSmartFeeAsync(
+						(int) Config.ConfirmationTarget,
+						EstimateSmartFeeMode.Conservative,
+						simulateIfRegTest: true,
+						cancellationToken).ConfigureAwait(false);
+
+					var feeRate = estimateSmartFeeResponse.FeeRate;
+
+					if (MineRound(preferredRound.Id.GetHashCode(), feeRate, preferredRound.Parameters.MaxSuggestedAmount) is { } newRound)
+					{
+						Rounds.Add(newRound);
+					}
+					else
+					{
+						await CreateRoundsAsync(cancellationToken).ConfigureAwait(false);
+					}
+				}
+			}
+		} while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false));
+	}
+	
+	private Round? MineRound(int targetRoundIdHash, FeeRate feeRate, long maxSuggestedAmount) =>
+		Enumerable
+			.Range(0, 1_000)
+			.Select(satoshis => RoundParameterFactory.CreateRoundParameter(feeRate,  maxSuggestedAmount - (long)satoshis))
+			.Select(roundParameters => new Round(roundParameters, SecureRandom.Instance))
+			.FirstOrDefault(round => round.Id.GetHashCode() < targetRoundIdHash);
+	
+
+	private ImmutableList<Round> GetRoundsInInputRegistration() =>
+		Rounds.Where(x =>
+			x is not BlameRound
+			&& x.Phase == Phase.InputRegistration
+			//&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+			)
+		.ToImmutableList();
+	
 }

@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -25,6 +26,7 @@ public enum EndRoundState
 	AbortedNotAllAlicesConfirmed
 }
 
+[DebuggerDisplay("{AsDisplay(),nq}")]
 public class Round
 {
 	public Round(RoundParameters parameters, WasabiRandom random)
@@ -156,4 +158,6 @@ public class Round
 				Parameters.MaxSuggestedAmount,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
+
+	private string AsDisplay() => $"Id: {Id} Hash: {GetHashCode()} Alices: {Alices.Count}";
 }

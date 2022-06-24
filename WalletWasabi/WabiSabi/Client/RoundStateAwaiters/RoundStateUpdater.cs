@@ -51,10 +51,8 @@ public class RoundStateUpdater : PeriodicRunner
 		var newRoundStates = statusResponse
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
-		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
-		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
 		RoundStates = newRoundStates.Concat(updatedRoundStates)
-			.ToDictionary(x => x.Id, x => x);
+			.ToImmutableDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
