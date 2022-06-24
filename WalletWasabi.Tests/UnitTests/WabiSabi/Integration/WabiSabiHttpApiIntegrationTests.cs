@@ -134,7 +134,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				// services to build everything (WabiSabi controller, arena, etc)
 				services.AddScoped(s => new WabiSabiConfig
 				{
-					MaxInputCountByRound = inputCount,
+					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(60),
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -172,7 +172,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager, roundStateUpdater);
 
 		// Run the coinjoin client task.
-		Assert.True((await coinJoinClient.StartCoinJoinAsync(coins, cts.Token)).SuccessfulBroadcast);
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
+		Assert.True(coinjoinResult.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -399,9 +400,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// BadCoinsTask will throw.
-		await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
+		await Assert.ThrowsAsync<TaskCanceledException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 
-		Assert.True(badCoinsTask.IsFaulted);
+		Assert.True(badCoinsTask.IsCanceled);
 		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.

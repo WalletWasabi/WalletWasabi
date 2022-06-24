@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -16,8 +17,6 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 {
-	private const int MaxRetries = 20;
-
 	private IHttpClient _client;
 
 	public WabiSabiHttpApiClient(IHttpClient client)
@@ -64,23 +63,29 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 	{
 		var exceptions = new List<Exception>();
-
 		var start = DateTime.UtcNow;
 
-		for (var attempt = 0; attempt < MaxRetries; attempt++)
+		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
+		var combinedToken = linkedCts.Token;
+
+		var attempt = 1;
+		do
 		{
 			try
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
 				// Any transport layer errors will throw an exception here.
-				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+				HttpResponseMessage response = await _client
+					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, combinedToken).ConfigureAwait(false);
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
 				if (exceptions.Any())
 				{
-					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
+					Logger.LogDebug(
+						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
 				}
 				else
 				{
@@ -111,7 +116,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 			// Wait before the next try.
 			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
-		}
+			attempt++;
+		} while (!combinedToken.IsCancellationRequested);
 
 		throw new AggregateException(exceptions);
 	}
