@@ -259,7 +259,7 @@ public class CoinJoinClient
 		using CancellationTokenSource confirmationsCts = new();
 		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCancel, registrationsCts.Token, cancel);
 		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCancel, confirmationsCts.Token, cancel);
-		using CancellationTokenSource roundFailedCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCancel, registrationsCts.Token, confirmationsCts.Token, cancel);
+		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCancel, connConfTimeoutCancel, cancel);
 
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
@@ -334,7 +334,7 @@ public class CoinJoinClient
 				var delay = date - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
-					await Task.Delay(delay, roundFailedCts.Token).ConfigureAwait(false);
+					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
 				}
 				return await RegisterInputAsync(coin).ConfigureAwait(false);
 			})
