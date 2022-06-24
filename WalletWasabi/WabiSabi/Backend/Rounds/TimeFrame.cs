@@ -14,29 +14,9 @@ public record TimeFrame
 	public DateTimeOffset EndTime => StartTime + Duration;
 	public DateTimeOffset StartTime { get; init; }
 	public TimeSpan Duration { get; init; }
+	public TimeSpan Remaining => EndTime - DateTimeOffset.UtcNow;
 	public bool HasStarted => StartTime > DateTimeOffset.MinValue && StartTime < DateTimeOffset.UtcNow;
-	public bool HasExpired(Phase phase)
-	{
-		TimeSpan bufferTime;
-		if (phase == Phase.InputRegistration)
-		{
-			bufferTime = TimeSpan.Zero;
-		}
-		else if (phase == Phase.ConnectionConfirmation)
-		{
-			bufferTime = TimeSpan.Zero;
-		}
-		else if (phase == Phase.OutputRegistration)
-		{
-			bufferTime = TimeSpan.FromMinutes(1);
-		}
-		else //if (phase == Phase.TransactionSigning)
-		{
-			// Clients those didn't update would miss the blame round completely.
-			bufferTime = TimeSpan.Zero;
-		}
-		return HasStarted && (EndTime + bufferTime) < DateTimeOffset.UtcNow;
-	}
+	public bool HasExpired => HasStarted && EndTime < DateTimeOffset.UtcNow;
 
 	public TimeFrame StartNow() => this with { StartTime = DateTimeOffset.UtcNow };
 }
