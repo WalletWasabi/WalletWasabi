@@ -75,7 +75,7 @@ public class AliceClient
 		{
 			if (aliceClient is { })
 			{
-				// Unregistering coins should be only possible before of during connection confirmation.
+				// Unregistering coins should be only possible before connection confirmation.
 				await aliceClient.TryToUnregisterAlicesAsync(confirmationCancellationToken).ConfigureAwait(false);
 			}
 
