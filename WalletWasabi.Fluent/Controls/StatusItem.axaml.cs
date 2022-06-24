@@ -12,8 +12,8 @@ public class StatusItem : ContentControl
 	public static readonly StyledProperty<string> StatusTextProperty =
 		AvaloniaProperty.Register<StatusItem, string>(nameof(StatusText));
 
-	public static readonly StyledProperty<Geometry> IconProperty =
-		AvaloniaProperty.Register<StatusItem, Geometry>(nameof(Icon));
+	public static readonly StyledProperty<object> IconProperty =
+		AvaloniaProperty.Register<StatusItem, object>(nameof(Icon));
 
 	public string Title
 	{
@@ -27,7 +27,7 @@ public class StatusItem : ContentControl
 		set => SetValue(StatusTextProperty, value);
 	}
 
-	public Geometry Icon
+	public object Icon
 	{
 		get => GetValue(IconProperty);
 		set => SetValue(IconProperty, value);

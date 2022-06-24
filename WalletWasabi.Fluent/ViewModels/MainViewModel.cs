@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -16,6 +17,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -55,9 +57,9 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusIcon = new StatusIconViewModel();
-
 		UiServices.Initialize();
+
+		_statusIcon = new StatusIconViewModel(CreateTorStatusChecker());
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -151,6 +153,14 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+	}
+
+	private static StatusChecker CreateTorStatusChecker()
+	{
+		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
+		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
+		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
+		return statusChecker;
 	}
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
