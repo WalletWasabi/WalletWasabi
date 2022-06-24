@@ -412,22 +412,27 @@ public partial class Arena : PeriodicRunner
 				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * Config.WW200CompatibleLoadBalancingInputSplit)).First();
 				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
 
+				var roundWithoutThis = Rounds.Except(new[] { round });
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
-				var largeRound = TryCreateFirstOrderedRound(parameters);
-				parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
-				var smallRound = TryCreateFirstOrderedRound(parameters);
+				var largeRound = TryMineRound(parameters, roundWithoutThis.ToArray());
 
-				// If creation is successful destory round only.
-				if (largeRound is not null && smallRound is not null)
+				if (largeRound is not null)
 				{
-					Rounds.Add(largeRound);
-					Rounds.Add(smallRound);
-					largeRound.LogInfo($"Created first ordered round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
-					smallRound.LogInfo($"Created first ordered round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
+					parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
+					var smallRound = TryMineRound(parameters, roundWithoutThis.Concat(new[] { largeRound }).ToArray());
 
-					// If it can't create the large round, then don't abort.
-					round.EndRound(EndRoundState.AbortedLoadBalancing);
-					Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+					// If creation is successful destory round only.
+					if (smallRound is not null)
+					{
+						Rounds.Add(largeRound);
+						Rounds.Add(smallRound);
+						largeRound.LogInfo($"Mined round with params: {nameof(largeRound.Parameters.MaxSuggestedAmount)}:'{largeRound.Parameters.MaxSuggestedAmount}' BTC.");
+						smallRound.LogInfo($"Mined round with params: {nameof(smallRound.Parameters.MaxSuggestedAmount)}:'{smallRound.Parameters.MaxSuggestedAmount}' BTC.");
+
+						// If it can't create the large round, then don't abort.
+						round.EndRound(EndRoundState.AbortedLoadBalancing);
+						Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+					}
 				}
 			}
 		}
@@ -446,7 +451,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private Round? TryCreateFirstOrderedRound(RoundParameters parameters)
+	private Round? TryMineRound(RoundParameters parameters, Round[] rounds)
 	{
 		// Huge HACK to keep it compatible with WW2.0.0 client version, which's
 		// round preference is based on the ordering of ToImmutableDictionary.
@@ -459,7 +464,7 @@ public partial class Arena : PeriodicRunner
 		var maxCycleTimes = 300;
 		do
 		{
-			var roundsCopy = Rounds.ToList();
+			var roundsCopy = rounds.ToList();
 			r = new Round(parameters, SecureRandom.Instance);
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
