@@ -408,6 +408,7 @@ public partial class Arena : PeriodicRunner
 
 				var allInputs = round.Alices.Select(y => y.Coin.Amount).OrderBy(x => x).ToArray();
 				round.EndRound(EndRoundState.AbortedLoadBalancing);
+				Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
 
 				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
 				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * 0.75)).First();
