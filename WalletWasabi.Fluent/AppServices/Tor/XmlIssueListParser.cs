@@ -4,15 +4,15 @@ using System.Xml;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 
-public class XmlIssueListParser : IIssueListParser
+public class XmlIssueListParser
 {
 	private const string ResolvedToken = "[resolved]";
 
-	public IEnumerable<Issue> Parse(string str)
+	public IEnumerable<Issue> Parse(string xml)
 	{
-		var xml = new XmlDocument();
-		xml.LoadXml(str);
-		var items = xml.SelectNodes("//rss/channel/item");
+		var xmlDocument = new XmlDocument();
+		xmlDocument.LoadXml(xml);
+		var items = xmlDocument.SelectNodes("//rss/channel/item");
 		return items!
 			.Cast<XmlElement>()
 			.Select(Parse);

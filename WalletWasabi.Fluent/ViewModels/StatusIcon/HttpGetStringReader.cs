@@ -1,25 +1,23 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.AppServices.Tor;
-using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
-public class HttpGetStringReader : IHttpGetStringReader
+public class HttpGetStringReader
 {
-	private readonly IWasabiHttpClientFactory _factory;
+	private readonly IHttpClient _wasabiHttpClient;
 
-	public HttpGetStringReader(IWasabiHttpClientFactory wasabiHttpClientFactory)
+	public HttpGetStringReader(IHttpClient wasabiHttpClient)
 	{
-		_factory = wasabiHttpClientFactory;
+		_wasabiHttpClient = wasabiHttpClient;
 	}
 
 	public async Task<string> ReadAsync(Uri uri)
 	{
 		using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-		var httpClient = _factory.NewHttpClientWithDefaultCircuit();
-		var response = await httpClient.SendAsync(httpRequestMessage);
-		var content = await response.Content.ReadAsStringAsync();
+		var response = await _wasabiHttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
+		var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 		return content;
 	}
 }

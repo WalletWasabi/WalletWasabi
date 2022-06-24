@@ -1,12 +1,13 @@
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.StatusIcon;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 
-public class TorNetwork : ITorNetwork
+public class TorNetwork
 {
 	private static readonly Uri RssFeedUri = new("https://status.torproject.org/index.xml");
 
-	public TorNetwork(IHttpGetStringReader httpGetReader, IIssueListParser issueListParser)
+	public TorNetwork(HttpGetStringReader httpGetReader, XmlIssueListParser issueListParser)
 	{
 		var observable = Observable
 			.FromAsync(() => httpGetReader.ReadAsync(RssFeedUri))

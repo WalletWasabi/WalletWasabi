@@ -4,9 +4,9 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 
-public class StatusChecker : IStatusChecker
+public class StatusChecker
 {
-	public StatusChecker(ITorNetwork reporter, TimeSpan checkInterval, IScheduler scheduler)
+	public StatusChecker(TorNetwork reporter, TimeSpan checkInterval, IScheduler scheduler)
 	{
 		var timer = Observable.Timer(checkInterval, scheduler).SelectMany(x => reporter.Issues.ToList());
 		var initial = Observable.Defer(() => reporter.Issues.ToList());

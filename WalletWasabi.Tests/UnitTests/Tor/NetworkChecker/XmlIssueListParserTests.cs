@@ -4,17 +4,83 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.NetworkChecker;
 
+/// <summary>
+/// Tests for <see cref="XmlIssueListParser"/>
+/// </summary>
 public class XmlIssueListParserTests
 {
+	/// <summary>
+	/// Shortened sample content of https://status.torproject.org/index.xml.
+	/// </summary>
+	private static string StatusXmlSample => @"
+<rss version=""2.0"" xmlns:atom=""http://www.w3.org/2005/Atom"">
+    <channel>
+      
+      <title>Tor Project status</title>
+      <link>https://status.torproject.org/</link>
+      <description>Incident history</description>
+      <generator>github.com/cstate</generator>
+      <language>en</language>
+      
+      <lastBuildDate>Thu, 09 Jun 2022 14:00:00 +0000</lastBuildDate>
+      
+      
+      
+        <atom:link href=""https://status.torproject.org/index.xml"" rel=""self"" type=""application/rss+xml"" />
+      
+      
+        <item>
+          <title>Network DDoS</title>
+          <link>https://status.torproject.org/issues/2022-06-09-network-ddos/</link>
+          <pubDate>Thu, 09 Jun 2022 14:00:00 +0000</pubDate>
+          <guid>https://status.torproject.org/issues/2022-06-09-network-ddos/</guid>
+          <category></category>
+          <description>&lt;p&gt;We are experiencing a network-wide DDoS attempt impacting the
+performance of the Tor network, which includes both onion services and
+non-onion services traffic. We are currently investigating potential
+mitigations.&lt;/p&gt;
+</description>
+        </item>
+      
+        <item>
+          <title>[Resolved] routing issues at main provider</title>
+          <link>https://status.torproject.org/issues/2022-01-25-routing-issues/</link>
+          <pubDate>Tue, 25 Jan 2022 06:00:00 +0000</pubDate>
+          <guid>https://status.torproject.org/issues/2022-01-25-routing-issues/</guid>
+          <category>2022-01-27 18:58:00 &#43;0000</category>
+          <description>&lt;p&gt;We are experiencing intermittent network outages that typically
+resolve themselves within a few hours. Preliminary investigations seem
+to point at routing issues at Hetzner, but we have yet to get a solid
+diagnostic. We&amp;rsquo;re following that issue in &lt;a href=&#34;https://gitlab.torproject.org/tpo/tpa/team/-/issues/40601&#34;&gt;issue 40601&lt;/a&gt;.&lt;/p&gt;
+</description>
+        </item>
+      
+        <item>
+          <title>[Resolved] Disruption of Metrics website and relay search</title>
+          <link>https://status.torproject.org/issues/2021-06-05-metris-website/</link>
+          <pubDate>Thu, 03 Jun 2021 08:00:00 +0000</pubDate>
+          <guid>https://status.torproject.org/issues/2021-06-05-metris-website/</guid>
+          <category>2021-06-14 16:00:00</category>
+          <description>&lt;p&gt;We&amp;rsquo;re currently facing stability issues with respect to our Metrics website and relay search. We are actively &lt;a href=&#34;https://gitlab.torproject.org/tpo/metrics/team/-/issues/15&#34;&gt;working on resolving those issues&lt;/a&gt;
+as soon as possible.&lt;/p&gt;
+</description>
+        </item>    
+    </channel>
+  </rss>
+";
+
+	/// <summary>
+	/// Checks that we can parse and obtain the first <see cref="Issue"/> from the sample XML in <see cref="StatusXmlSample"/>.
+	/// </summary>
 	[Fact]
-	public void Parse()
+	public void Parse_and_get_first_issue()
 	{
-		var toParse = "\n\n  <rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n    <channel>\n      \n      <title>Tor Project status</title>\n      <link>https://status.torproject.org/</link>\n      <description>Incident history</description>\n      <generator>github.com/cstate</generator>\n      <language>en</language>\n      \n      <lastBuildDate>Thu, 09 Jun 2022 14:00:00 +0000</lastBuildDate>\n      \n      \n      \n        <atom:link href=\"https://status.torproject.org/index.xml\" rel=\"self\" type=\"application/rss+xml\" />\n      \n      \n      \n        <item>\n          <title>Network DDoS</title>\n          <link>https://status.torproject.org/issues/2022-06-09-network-ddos/</link>\n          <pubDate>Thu, 09 Jun 2022 14:00:00 +0000</pubDate>\n          <guid>https://status.torproject.org/issues/2022-06-09-network-ddos/</guid>\n          <category></category>\n          <description>&lt;p&gt;We are experiencing a network-wide DDoS attempt impacting the\nperformance of the Tor network, which includes both onion services and\nnon-onion services traffic. We are currently investigating potential\nmitigations.&lt;/p&gt;\n</description>\n        </item>\n      \n        <item>\n          <title>[Resolved] routing issues at main provider</title>\n          <link>https://status.torproject.org/issues/2022-01-25-routing-issues/</link>\n          <pubDate>Tue, 25 Jan 2022 06:00:00 +0000</pubDate>\n          <guid>https://status.torproject.org/issues/2022-01-25-routing-issues/</guid>\n          <category>2022-01-27 18:58:00 &#43;0000</category>\n          <description>&lt;p&gt;We are experiencing intermittent network outages that typically\nresolve themselves within a few hours. Preliminary investigations seem\nto point at routing issues at Hetzner, but we have yet to get a solid\ndiagnostic. We&amp;rsquo;re following that issue in &lt;a href=&#34;https://gitlab.torproject.org/tpo/tpa/team/-/issues/40601&#34;&gt;issue 40601&lt;/a&gt;.&lt;/p&gt;\n</description>\n        </item>\n      \n        <item>\n          <title>[Resolved] Disruption of Metrics website and relay search</title>\n          <link>https://status.torproject.org/issues/2021-06-05-metris-website/</link>\n          <pubDate>Thu, 03 Jun 2021 08:00:00 +0000</pubDate>\n          <guid>https://status.torproject.org/issues/2021-06-05-metris-website/</guid>\n          <category>2021-06-14 16:00:00</category>\n          <description>&lt;p&gt;We&amp;rsquo;re currently facing stability issues with respect to our Metrics website and relay search. We are actively &lt;a href=&#34;https://gitlab.torproject.org/tpo/metrics/team/-/issues/15&#34;&gt;working on resolving those issues&lt;/a&gt;\nas soon as possible.&lt;/p&gt;\n</description>\n        </item>\n      \n        <item>\n          <title>[Resolved] V2 Onion Services deprecation</title>\n          <link>https://status.torproject.org/issues/2021-05-6-v2-deprecation/</link>\n          <pubDate>Thu, 06 May 2021 16:45:00 +0000</pubDate>\n          <guid>https://status.torproject.org/issues/2021-05-6-v2-deprecation/</guid>\n          <category>2021-11-08 00:00:00</category>\n          <description>&lt;p&gt;&lt;strong&gt;If you are an onion site administrator, you must upgrade to v3 onion services as soon as possible.&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;As we &lt;a href=&#34;https://blog.torproject.org/v2-deprecation-timeline&#34;&gt;announced last year&lt;/a&gt;, v2 onion services will be deprecated and obsolete in Tor 0.4.6.x. As of April 2021, Tor Browser Alpha uses this version of Tor and v2 addresses no longer work in this and future versions of Tor Browser Alpha.&lt;/p&gt;\n&lt;p&gt;When Tor Browser stable moves to Tor 0.4.6.x in October 2021, v2 onion addresses will be completely unreachable.&lt;/p&gt;\n&lt;p&gt;Why are we deprecating v2 onion services? Safety. Technologies used in v2 onion services are vulnerable to different kinds of attacks, and v2 onion services are no longer being developed or maintained. The new version of onion services provides improved encryption and enhanced privacy for administrators and users.&lt;/p&gt;\n&lt;p&gt;It&amp;rsquo;s critical that onion service administrators migrate to v3 onion services and work to inform users about this change as soon as possible.&lt;/p&gt;\n&lt;p&gt;&lt;a href=&#34;https://blog.torproject.org/v2-deprecation-timeline&#34;&gt;Read more about the deprecation on our blog&lt;/a&gt;.&lt;/p&gt;\n</description>\n        </item>\n      \n        <item>\n          <title>[Resolved] Disruption of v3 onion services and consensus building</title>\n          <link>https://status.torproject.org/issues/2021-01-28-dir-auth/</link>\n          <pubDate>Wed, 27 Jan 2021 23:00:00 +0000</pubDate>\n          <guid>https://status.torproject.org/issues/2021-01-28-dir-auth/</guid>\n          <category>2021-01-29 05:30:00</category>\n          <description>&lt;p&gt;We&amp;rsquo;re currently facing &lt;a href=&#34;https://lists.torproject.org/pipermail/network-health/2021-January/000661.html&#34;&gt;stability issues&lt;/a&gt; with respect to our v3 onion services and consensus building. We are actively working on resolving those issues as soon as possible.&lt;/p&gt;\n</description>\n        </item>\n      \n        <item>\n          <title>[Resolved] Email delivery problems to Google</title>\n          <link>https://status.torproject.org/issues/2021-01-25-gmail-bounce/</link>\n          <pubDate>Mon, 25 Jan 2021 21:40:00 +0000</pubDate>\n          <guid>https://status.torproject.org/issues/2021-01-25-gmail-bounce/</guid>\n          <category>2021-01-25 21:40:00</category>\n          <description>&lt;p&gt;Google mail servers are currently bouncing some emails coming from\n&lt;code&gt;@torproject.org&lt;/code&gt;, as sent from our main mail server (&lt;code&gt;eugeni&lt;/code&gt;) and\nthird-party servers. This includes lists but may not include all our\nmail servers (the donation platform, for example, seems to still\nwork).&lt;/p&gt;\n&lt;p&gt;We are still investigating the problem, followup in &lt;a href=&#34;https://gitlab.torproject.org/tpo/tpa/team/-/issues/40149&#34;&gt;issue 40149&lt;/a&gt;.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Update, 22:16UTC&lt;/strong&gt;: it looks like only &lt;em&gt;some&lt;/em&gt; emails are being\nbounced, especially a particular email from a particular sysadmin\nwhich made him jump the gun and post this disruption notice. We might\nactually be in our normal &amp;ldquo;somewhat disrupted&amp;rdquo; delivery\nsituation. &lt;a href=&#34;https://en.wikipedia.org/wiki/Buddy_Holly_(song)&#34;&gt;Stay tuned for more happy days&lt;/a&gt;.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Update, 2021-01-27 16:51UTC&lt;/strong&gt;: it turns out this was a false alarm,\nand concerns only a single Google group that is refusing\nemails. Emails are being delivered to Google fine.&lt;/p&gt;\n</description>\n        </item>\n      \n    </channel>\n  </rss>\n\n";
-		var issueParser = new XmlIssueListParser();
+		var issue = new XmlIssueListParser()
+			.Parse(StatusXmlSample)
+			.FirstOrDefault();
 
-		var issue = issueParser.Parse(toParse).First();
-
-		Assert.Equal("Network DDoS", issue.Title);
-		Assert.False(issue.Resolved);
+		Assert.NotNull(issue);
+		Assert.Equal("Network DDoS", issue!.Title);
+		Assert.False(issue!.Resolved);
 	}
 }
