@@ -14,7 +14,7 @@ public class HttpGetStringReader : IHttpGetStringReader
 		_factory = wasabiHttpClientFactory;
 	}
 
-	public async Task<string> Read(Uri uri)
+	public async Task<string> ReadAsync(Uri uri)
 	{
 		using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 		var httpClient = _factory.NewHttpClientWithDefaultCircuit();

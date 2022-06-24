@@ -9,7 +9,7 @@ public class TorNetwork : ITorNetwork
 	public TorNetwork(IHttpGetStringReader httpGetReader, IIssueListParser issueListParser)
 	{
 		var observable = Observable
-			.FromAsync(() => httpGetReader.Read(RssFeedUri))
+			.FromAsync(() => httpGetReader.ReadAsync(RssFeedUri))
 			.SelectMany(content => issueListParser.Parse(content).ToObservable());
 		Issues = observable;
 	}
