@@ -407,18 +407,28 @@ public partial class Arena : PeriodicRunner
 				feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
 				var allInputs = round.Alices.Select(y => y.Coin.Amount).OrderBy(x => x).ToArray();
-				round.EndRound(EndRoundState.AbortedLoadBalancing);
-				Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
 
 				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
 				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * 0.75)).First();
 				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
 
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
-				TryCreateFirstOrderedRound(parameters);
-
+				var largeRound = TryCreateFirstOrderedRound(parameters);
 				parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
-				TryCreateFirstOrderedRound(parameters);
+				var smallRound = TryCreateFirstOrderedRound(parameters);
+
+				// If creation is successful destory round only.
+				if (largeRound is not null && smallRound is not null)
+				{
+					Rounds.Add(largeRound);
+					Rounds.Add(smallRound);
+					largeRound.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+					smallRound.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+
+					// If it can't create the large round, then don't abort.
+					round.EndRound(EndRoundState.AbortedLoadBalancing);
+					Logger.LogInfo($"Destroyed round with {allInputs.Length} inputs. Threshold: {roundDestroyerInputCount}");
+				}
 			}
 		}
 
@@ -436,7 +446,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private void TryCreateFirstOrderedRound(RoundParameters parameters)
+	private Round? TryCreateFirstOrderedRound(RoundParameters parameters)
 	{
 		// Huge HACK to keep it compatible with WW2.0.0 client version, which's
 		// round preference is based on the ordering of ToImmutableDictionary.
@@ -462,14 +472,14 @@ public partial class Arena : PeriodicRunner
 
 		Logger.LogDebug($"First ordered round creator did {times} cycles.");
 
-		if (times >= maxCycleTimes)
+		if (times > maxCycleTimes)
 		{
 			r.LogInfo("First ordered round creation too expensive. Skipping...");
+			return null;
 		}
 		else
 		{
-			Rounds.Add(r);
-			r.LogInfo($"Created first ordered round with params: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
+			return r;
 		}
 	}
 
