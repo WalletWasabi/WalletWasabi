@@ -157,8 +157,8 @@ public partial class MainViewModel : ViewModelBase
 
 	private static StatusChecker CreateTorStatusChecker()
 	{
-		var wasabiHttpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
-		var torNetwork = new TorNetwork(new HttpGetStringReader(wasabiHttpClient), new XmlIssueListParser());
+		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
+		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
 		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
 		return statusChecker;
 	}
