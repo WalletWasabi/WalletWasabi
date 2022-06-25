@@ -193,7 +193,7 @@ public class TorMonitor : PeriodicRunner
 
 		// Every two hours try to revert to the original Backend onion Tor address. It might be already fixed.
 		// If not, we will get back to the fallback URI again later on.
-		if (FallbackStarted is not null && DateTime.UtcNow - FallbackStarted > TimeSpan.FromHours(24))
+		if (FallbackStarted is not null && DateTime.UtcNow - FallbackStarted > TimeSpan.FromHours(2))
 		{
 			Logger.LogInfo("Attempt to revert to the more private onion address of the Backend server.");
 			FallbackStarted = null;
