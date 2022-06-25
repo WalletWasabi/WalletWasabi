@@ -79,8 +79,8 @@
 
         <WrapPanel Grid.Column="1" Grid.ColumnSpan="2"  VerticalAlignment="Center">
           <ContentControl ContentTemplate="{StaticResource Title}" />
-          <Border Classes="NetworkBadge">
-            <TextBlock>TestNet</TextBlock>
+          <Border IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
+            <TextBlock Text="{Binding NetworkBadgeName}" />
           </Border>
         </WrapPanel>
 
@@ -110,7 +110,7 @@
             <WrapPanel VerticalAlignment="Center">
               <ContentControl ContentTemplate="{StaticResource Title}" />
               <Border IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
-                <TextBlock Text="{Binding NetworkBadgeName}"/>
+                <TextBlock Text="{Binding NetworkBadgeName}" />
               </Border>
             </WrapPanel>
           </Panel>
@@ -118,10 +118,8 @@
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
       </Grid>
     </DataTemplate>
-
   </UserControl.Resources>
 
   <ContentControl
     ContentTemplate="{ext:Platform {StaticResource WindowsAndLinuxLayout}, Osx={StaticResource MacOSLayout}}" />
-
 </UserControl>
