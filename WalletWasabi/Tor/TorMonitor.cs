@@ -24,7 +24,7 @@ namespace WalletWasabi.Tor;
 /// <summary>Monitors Tor process bootstrap and reachability of Wasabi Backend.</summary>
 public class TorMonitor : PeriodicRunner
 {
-	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
+	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(21);
 
 	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
@@ -167,7 +167,7 @@ public class TorMonitor : PeriodicRunner
 						return;
 					}
 
-					// Check if the fallback address (clearnet) works. It must work.
+					// Check if the fallback address (clearnet through exit nodes) works. It must work.
 					try
 					{
 						Logger.LogInfo("Tor cannot access remote host. Test fallback URI.");
@@ -180,11 +180,11 @@ public class TorMonitor : PeriodicRunner
 					catch (Exception ex)
 					{
 						// The fallback address does not work too. We do not want to switch.
-						Logger.LogInfo($"Clearnet communication with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
+						Logger.LogInfo($"Communication through the fallback URL with the backend does not work either. Probably it is down, keep trying... Exception: '{ex}'");
 						return;
 					}
 
-					Logger.LogInfo("Switching to the clearnet mode.");
+					Logger.LogInfo("Switching to the fallback URL.");
 					RequestFallbackAddressUsage = true;
 					FallbackStarted = DateTime.UtcNow;
 				}
