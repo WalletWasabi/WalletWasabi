@@ -292,18 +292,25 @@ public class CoinJoinClient
 			{
 				if (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
 				{
-					// Cancel all remaining pending input registrations because they will arrive late too.
-					registrationsCts.Cancel();
-
 					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
-						if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 						{
-							confirmationsCts.Cancel();
+							// Cancel all remaining pending input registrations because they will arrive late too.
+							registrationsCts.Cancel();
+
+							if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+							{
+								// Cancel all remaining pending connection confirmations because they will arrive late too.
+								confirmationsCts.Cancel();
+							}
 						}
 					}
 					else
 					{
+						// Something's wrong, cancel everything.
+						registrationsCts.Cancel();
+						confirmationsCts.Cancel();
 						throw new InvalidOperationException(
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
