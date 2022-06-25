@@ -290,11 +290,11 @@ public class CoinJoinClient
 			}
 			catch (WabiSabiProtocolException wpe)
 			{
-				// Cancel all remaining pending input registrations because they will arrive late too.
-				registrationsCts.Cancel();
-
 				if (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
 				{
+					// Cancel all remaining pending input registrations because they will arrive late too.
+					registrationsCts.Cancel();
+
 					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
 						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration
