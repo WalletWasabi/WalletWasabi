@@ -297,7 +297,7 @@ public class CoinJoinClient
 
 					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
-						var isInConnectionConfirmation = wrongPhaseExceptionData.CurrentPhase == Phase.ConnectionConfirmation;
+						var isInConnectionConfirmation = wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation;
 						if (isInConnectionConfirmation)
 						{
 							confirmationsCts.Cancel();
