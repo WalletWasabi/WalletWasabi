@@ -22,6 +22,7 @@ public class CoinJoinCoinSelectionTests
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: 10,
+			redCoinIsolation: false,
 			ConfigureRng(5));
 
 		Assert.Empty(coins);
@@ -43,6 +44,7 @@ public class CoinJoinCoinSelectionTests
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
+			redCoinIsolation: false,
 			ConfigureRng(5));
 
 		Assert.Empty(coins);
@@ -66,6 +68,7 @@ public class CoinJoinCoinSelectionTests
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
+			redCoinIsolation: false,
 			ConfigureRng(5));
 
 		Assert.Contains(smallerAnonCoin, coins);
@@ -88,6 +91,7 @@ public class CoinJoinCoinSelectionTests
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
+			redCoinIsolation: false,
 			ConfigureRng(1));
 
 		Assert.Single(coins);
@@ -110,6 +114,7 @@ public class CoinJoinCoinSelectionTests
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
+			redCoinIsolation: false,
 			ConfigureRng(1));
 
 		Assert.Single(coins);
@@ -132,6 +137,7 @@ public class CoinJoinCoinSelectionTests
 			CreateMultipartyTransactionParameters(),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
+			redCoinIsolation: false,
 			ConfigureRng(1));
 
 		Assert.Equal(2, coins.Count);

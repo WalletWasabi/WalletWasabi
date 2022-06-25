@@ -10,6 +10,8 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public virtual int AnonScoreTarget { get; } = 5;
 
+	public virtual bool RedCoinIsolation { get; } = false;
+
 	public virtual int FeeRateMedianTimeFrameHours { get; }
 
 	public static bool operator ==(CoinJoinProfileViewModelBase x, CoinJoinProfileViewModelBase y)
