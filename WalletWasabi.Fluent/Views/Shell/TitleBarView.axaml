@@ -24,15 +24,16 @@
       <Setter Property="Opacity" Value="0" />
       <Setter Property="RenderTransform" Value="translateX(-20px)" />
     </Style>
-    <Style Selector=":is(Control).NetworkBadge">
+    <Style Selector="Border.NetworkBadge">
       <Setter Property="CornerRadius" Value="3" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Center" />
-      <Setter Property="Background" Value="{StaticResource ActionColorLight3}" />
+      <Setter Property="Background" Value="Gold" />
     </Style>
-    <Style Selector=":is(Control).NetworkBadge TextBlock">
+    <Style Selector="Border.NetworkBadge TextBlock">
       <Setter Property="Margin" Value="5" />
       <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="Black" />
     </Style>
   </UserControl.Styles>
 
@@ -63,7 +64,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="WindowsAndLinuxLayout">
-      <Grid>
+      <Grid DataContext="{Binding $parent.DataContext}">
 
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="70" />
@@ -88,7 +89,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="MacOSLayout">
-      <Grid>
+      <Grid DataContext="{Binding $parent.DataContext}">
 
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="75" />
@@ -108,8 +109,8 @@
             </Interaction.Behaviors>
             <WrapPanel VerticalAlignment="Center">
               <ContentControl ContentTemplate="{StaticResource Title}" />
-              <Border Classes="NetworkBadge">
-                <TextBlock>TestNet</TextBlock>
+              <Border IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
+                <TextBlock Text="{Binding NetworkBadgeName}"/>
               </Border>
             </WrapPanel>
           </Panel>

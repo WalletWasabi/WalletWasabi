@@ -38,6 +38,8 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
+	[AutoNotify] private bool _isNetworkBadgeEnabled;
+	[AutoNotify] private string _networkBadgeName;
 
 	public MainViewModel()
 	{
@@ -153,6 +155,9 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+
+		IsNetworkBadgeEnabled = Services.Config.Network != Network.Main;
+		NetworkBadgeName = IsNetworkBadgeEnabled ? Services.Config.Network.Name : string.Empty;
 	}
 
 	private static StatusChecker CreateTorStatusChecker()
