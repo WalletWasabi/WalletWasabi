@@ -24,6 +24,16 @@
       <Setter Property="Opacity" Value="0" />
       <Setter Property="RenderTransform" Value="translateX(-20px)" />
     </Style>
+    <Style Selector=":is(Control).NetworkBadge">
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Background" Value="{StaticResource ActionColorLight3}" />
+    </Style>
+    <Style Selector=":is(Control).NetworkBadge TextBlock">
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -65,7 +75,14 @@
         </Grid.ColumnDefinitions>
 
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
-        <ContentControl Grid.Column="1" Grid.ColumnSpan="2" ContentTemplate="{StaticResource Title}" />
+
+        <WrapPanel Grid.Column="1" Grid.ColumnSpan="2"  VerticalAlignment="Center">
+          <ContentControl ContentTemplate="{StaticResource Title}" />
+          <Border Classes="NetworkBadge">
+            <TextBlock>TestNet</TextBlock>
+          </Border>
+        </WrapPanel>
+
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
       </Grid>
     </DataTemplate>
@@ -89,7 +106,12 @@
                 <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
               </AdaptiveBehavior>
             </Interaction.Behaviors>
-            <ContentControl ContentTemplate="{StaticResource Title}" />
+            <WrapPanel VerticalAlignment="Center">
+              <ContentControl ContentTemplate="{StaticResource Title}" />
+              <Border Classes="NetworkBadge">
+                <TextBlock>TestNet</TextBlock>
+              </Border>
+            </WrapPanel>
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
@@ -98,6 +120,7 @@
 
   </UserControl.Resources>
 
-  <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsAndLinuxLayout}, Osx={StaticResource MacOSLayout}}" />
+  <ContentControl
+    ContentTemplate="{ext:Platform {StaticResource WindowsAndLinuxLayout}, Osx={StaticResource MacOSLayout}}" />
 
 </UserControl>
