@@ -183,6 +183,10 @@ public class DependencyGraphTaskScheduler
 						hdPubKey.SetKeyState(KeyState.Used);
 					}
 				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug($"Output registration error message:'{ex.Message}'.");
+				}
 			}
 		).ToImmutableArray();
 
