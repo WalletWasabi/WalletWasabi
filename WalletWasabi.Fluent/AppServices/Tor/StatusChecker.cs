@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using WalletWasabi.Services.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 

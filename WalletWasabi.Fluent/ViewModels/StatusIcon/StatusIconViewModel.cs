@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Services.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 

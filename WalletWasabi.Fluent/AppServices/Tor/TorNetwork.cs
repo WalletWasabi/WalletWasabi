@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
+using WalletWasabi.Services.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 

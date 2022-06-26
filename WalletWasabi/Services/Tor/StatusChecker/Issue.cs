@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.AppServices.Tor;
+namespace WalletWasabi.Services.Tor.StatusChecker;
 
 public class Issue
 {

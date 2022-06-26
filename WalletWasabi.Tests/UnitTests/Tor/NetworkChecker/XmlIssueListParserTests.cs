@@ -1,5 +1,6 @@
 using System.Linq;
 using WalletWasabi.Fluent.AppServices.Tor;
+using WalletWasabi.Services.Tor.StatusChecker;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.NetworkChecker;
