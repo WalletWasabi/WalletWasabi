@@ -88,10 +88,7 @@ public class Global
 
 			if (Config.UseTor)
 			{
-				HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
-				{
-					return TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri();
-				});
+				HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () => Config.GetCurrentBackendUri());
 			}
 			else
 			{
@@ -235,7 +232,7 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), TorManager, HttpClientFactory), nameof(TorMonitor));
 		}
 	}
 
