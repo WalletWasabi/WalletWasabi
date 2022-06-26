@@ -55,6 +55,7 @@ public static class Services
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
 		Guard.NotNull(nameof(global.UiConfig), global.UiConfig);
+		Guard.NotNull(nameof(global.TorStatusChecker), global.TorStatusChecker);
 
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
