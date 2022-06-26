@@ -13,28 +13,25 @@
     <statusIcon:StatusIconDesignViewModel />
   </Design.DataContext>
 
-  <DockPanel>
+  <Button Classes="activeHyperLink" VerticalAlignment="Center" Foreground="Gold"
+          Command="{Binding OpenTorStatusSiteCommand}">
+    <Button.Content>
+      <PathIcon Foreground="Gold" VerticalAlignment="Center" Data="{StaticResource warning_filled}" />
+    </Button.Content>
+    <ToolTip.Tip>
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Tor network is having issues:" />
+        <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details" />
+        <ItemsControl Margin="8" Items="{Binding TorIssues}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="tor:Issue">
+              <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-    <Button Classes="activeHyperLink" Margin="5" VerticalAlignment="Center" Foreground="Gold"
-            Command="{Binding OpenTorStatusSiteCommand}">
-      <Button.Content>
-        <PathIcon Foreground="Gold" VerticalAlignment="Center" Data="{StaticResource warning_filled}" />
-      </Button.Content>
-      <ToolTip.Tip>
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Text="Tor network is having issues:" />
-          <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details" />
-          <ItemsControl Margin="8" Items="{Binding TorIssues}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="tor:Issue">
-                <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-
-        </DockPanel>
-      </ToolTip.Tip>
-    </Button>
-  </DockPanel>
+      </DockPanel>
+    </ToolTip.Tip>
+  </Button>
 
 </UserControl>
