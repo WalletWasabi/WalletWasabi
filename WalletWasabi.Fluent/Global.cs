@@ -100,7 +100,7 @@ public class Global
 			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
-			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(5), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
+			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 
 			RoundStateUpdaterCircuit = new PersonCircuit();
 
