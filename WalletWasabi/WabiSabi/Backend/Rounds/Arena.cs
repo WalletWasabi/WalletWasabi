@@ -208,7 +208,7 @@ public partial class Arena : PeriodicRunner
 					{
 						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
 
-						// Cliens misbehave when they don't confirm everything.
+						// Clients misbehave when they don't confirm everything.
 						if (round is BlameRound)
 						{
 							// Unfortunately we would stop the blame round chain completely so we must go to output registration even though we know we'll fail.
