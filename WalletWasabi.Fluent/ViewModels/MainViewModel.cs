@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Threading;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
@@ -159,7 +160,7 @@ public partial class MainViewModel : ViewModelBase
 	{
 		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
 		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
-		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
+		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler(start => new Thread(start) { IsBackground = true }));
 		return statusChecker;
 	}
 
