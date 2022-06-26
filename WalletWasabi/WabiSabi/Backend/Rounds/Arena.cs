@@ -48,7 +48,7 @@ public partial class Arena : PeriodicRunner
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
 
 	public HashSet<Round> Rounds { get; } = new();
-	private ImmutableArray<RoundState> RoundStates { get; set; } = ImmutableArray.Create<RoundState>();
+	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
 	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
@@ -83,11 +83,43 @@ public partial class Arena : PeriodicRunner
 			await CreateRoundsAsync(cancel).ConfigureAwait(false);
 
 			// RoundStates have to contain all states. Do not change stateId=0.
-			RoundStates = Rounds
-				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
-				.ThenBy(x => x.InputCount)
-				.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableArray();
+			SetRoundStates();
 		}
+	}
+
+	private void SetRoundStates()
+	{
+		// Order rounds ascending by max suggested amount, then ascending by input count.
+		// This will make sure WW2.0.1 clients register according to our desired order.
+		var rounds = Rounds
+						.OrderBy(x => x.Parameters.MaxSuggestedAmount)
+						.ThenBy(x => x.InputCount)
+						.ToList();
+
+		var standardRegistrableRounds = rounds
+			.Where(x =>
+				x.Phase == Phase.InputRegistration
+				&& x is not BlameRound
+				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			.ToArray();
+
+		// Let's make sure WW2.0.1 clients prefer rounds that WW2.0.0 clients don't.
+		// In WW2.0.0 on client side we accidentally order rounds by calling .ToImmutableDictionary(x => x.Id, x => x)
+		// therefore whichever round ToImmutableDictionary would make to be the first round, we send it to the back of our list.
+		// With this we can achieve that WW2.0.0 and WW2.0.1 clients prefer different rounds in parallel round configuration.
+		if (standardRegistrableRounds.Any())
+		{
+			var firstRegistrableRoundAccordingToWW200 = standardRegistrableRounds
+				.ToImmutableDictionary(x => x.Id, x => x)
+				.First()
+				.Value;
+
+			// Remove from wherever WW2.0.0's most preferred round is, then add it back to the end of our list.
+			rounds.Remove(firstRegistrableRoundAccordingToWW200);
+			rounds.Add(firstRegistrableRoundAccordingToWW200);
+		}
+
+		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0));
 	}
 
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
