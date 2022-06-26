@@ -17,8 +17,6 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Services.Tor.StatusChecker;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -60,7 +58,7 @@ public partial class MainViewModel : ViewModelBase
 
 		UiServices.Initialize();
 
-		_statusIcon = new StatusIconViewModel(CreateTorStatusChecker());
+		_statusIcon = new StatusIconViewModel(new StatusCheckerWrapper(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -154,14 +152,6 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
-	}
-
-	private static StatusChecker CreateTorStatusChecker()
-	{
-		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
-		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
-		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
-		return statusChecker;
 	}
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }

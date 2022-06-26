@@ -22,6 +22,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Rpc;
+using WalletWasabi.Services.Tor.StatusChecker;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Client;
@@ -52,6 +53,7 @@ public class Global
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
+	public TorStatusChecker TorStatusChecker { get; set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -98,6 +100,7 @@ public class Global
 			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(5), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 
 			RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -108,6 +111,8 @@ public class Global
 			});
 		}
 	}
+
+	
 
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
@@ -137,6 +142,7 @@ public class Global
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();

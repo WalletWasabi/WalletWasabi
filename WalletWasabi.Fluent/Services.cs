@@ -34,7 +34,10 @@ public static class Services
 
 	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
 
+	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
+
 	public static bool IsInitialized { get; private set; }
+	
 
 	/// <summary>
 	/// Initializes global services used by fluent project.
@@ -66,6 +69,7 @@ public static class Services
 		HostedServices = global.HostedServices;
 		UiConfig = global.UiConfig;
 		SingleInstanceChecker = singleInstanceChecker;
+		TorStatusChecker = global.TorStatusChecker;
 
 		IsInitialized = true;
 	}
