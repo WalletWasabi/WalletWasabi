@@ -38,7 +38,6 @@ public static class Services
 
 	public static bool IsInitialized { get; private set; }
 	
-
 	/// <summary>
 	/// Initializes global services used by fluent project.
 	/// </summary>
