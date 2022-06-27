@@ -1,7 +1,6 @@
+using ReactiveUI;
 using System.Collections.Generic;
 using System.Windows.Input;
-using ReactiveUI;
-using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Services.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
