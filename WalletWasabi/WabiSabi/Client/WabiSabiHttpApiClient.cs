@@ -102,8 +102,15 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				exceptions.Add(e);
 			}
 
-			// Wait before the next try.
-			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+			try
+			{
+				// Wait before the next try.
+				await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				exceptions.Add(e);
+			}
 			attempt++;
 		} while (!combinedToken.IsCancellationRequested);
 
