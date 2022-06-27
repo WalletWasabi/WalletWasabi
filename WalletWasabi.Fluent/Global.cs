@@ -22,7 +22,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Rpc;
-using WalletWasabi.Services.Tor.StatusChecker;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Client;
@@ -30,6 +29,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent;
 

@@ -4,10 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
-using WalletWasabi.Services.Tor.StatusChecker;
 using WalletWasabi.Tor.Http;
 
-namespace WalletWasabi.Services;
+namespace WalletWasabi.Tor.StatusChecker;
 
 /// <summary>
 /// Component that periodically checks https://status.torproject.org/ to detect network disruptions.

@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using WalletWasabi.Services;
-using WalletWasabi.Services.Tor.StatusChecker;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 

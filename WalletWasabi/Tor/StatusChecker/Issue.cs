@@ -1,4 +1,4 @@
-namespace WalletWasabi.Services.Tor.StatusChecker;
+namespace WalletWasabi.Tor.StatusChecker;
 
 public class Issue
 {
