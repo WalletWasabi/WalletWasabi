@@ -24,7 +24,7 @@ namespace WalletWasabi.Tor;
 /// <summary>Monitors Tor process bootstrap and reachability of Wasabi Backend.</summary>
 public class TorMonitor : PeriodicRunner
 {
-	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(7);
+	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(5);
 
 	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
