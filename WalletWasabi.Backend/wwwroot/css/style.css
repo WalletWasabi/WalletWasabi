@@ -1144,3 +1144,13 @@ hr {
         transform: translateY(-50%);
     }
 }
+/* Firefox fixes */
+@supports (-moz-appearance:none) {
+    .navbar {
+        background: rgba(0, 16, 31, 0.8);
+    }
+    .blured-section {
+        background: rgba(0, 0, 0, 0.9);
+        background: linear-gradient(180deg, rgba(0, 16, 31, 0.8) 0%, rgba(0, 16, 31, 1) 80%);
+    }
+}
