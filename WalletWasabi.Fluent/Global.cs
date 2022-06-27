@@ -140,7 +140,6 @@ public class Global
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
-				HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
@@ -237,6 +236,7 @@ public class Global
 			}
 
 			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), TorManager, HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
 
@@ -379,6 +379,12 @@ public class Global
 						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
 						Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 					}
+				}
+
+				if (TorStatusChecker is { } torStatusChecker)
+				{
+					torStatusChecker.Dispose();
+					Logger.LogInfo($"{nameof(TorStatusChecker)} is stopped.");
 				}
 
 				if (TorManager is { } torManager)
