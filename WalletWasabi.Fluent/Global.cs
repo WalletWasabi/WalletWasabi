@@ -112,8 +112,6 @@ public class Global
 		}
 	}
 
-	
-
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
