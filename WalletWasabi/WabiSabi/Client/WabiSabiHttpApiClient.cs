@@ -97,21 +97,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 				return response;
 			}
-			catch (HttpRequestException e)
-			{
-				exceptions.Add(e);
-			}
 			catch (Exception e)
 			{
-				if (exceptions.Any())
-				{
-					exceptions.Add(e);
-					throw new AggregateException(exceptions);
-				}
-				else
-				{
-					throw;
-				}
+				exceptions.Add(e);
 			}
 
 			// Wait before the next try.
