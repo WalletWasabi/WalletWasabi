@@ -100,14 +100,17 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			}
 			catch (HttpRequestException e)
 			{
+				Logger.LogTrace($"Attempt {attempt} failed with {nameof(HttpRequestException)}: {e.Message}.");
 				exceptions.Add(e);
 			}
 			catch (TorException e)
 			{
+				Logger.LogTrace($"Attempt {attempt} failed with {nameof(TorException)}: {e.Message}.");
 				exceptions.Add(e);
 			}
 			catch (Exception e)
 			{
+				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
 				if (exceptions.Any())
 				{
 					exceptions.Add(e);
