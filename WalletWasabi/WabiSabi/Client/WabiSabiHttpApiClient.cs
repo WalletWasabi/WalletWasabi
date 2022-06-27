@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
@@ -97,20 +98,29 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 				return response;
 			}
-			catch (Exception e)
+			catch (HttpRequestException e)
 			{
 				exceptions.Add(e);
+			}
+			catch (TorException e)
+			{
+				exceptions.Add(e);
+			}
+			catch (Exception e)
+			{
+				if (exceptions.Any())
+				{
+					exceptions.Add(e);
+					throw new AggregateException(exceptions);
+				}
+				else
+				{
+					throw;
+				}
 			}
 
-			try
-			{
-				// Wait before the next try.
-				await Task.Delay(250, cancellationToken).ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				exceptions.Add(e);
-			}
+			// Wait before the next try.
+			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
 			attempt++;
 		} while (!combinedToken.IsCancellationRequested);
 
