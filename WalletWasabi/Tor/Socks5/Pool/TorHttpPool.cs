@@ -166,6 +166,16 @@ public class TorHttpPool : IDisposable
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
 					}
 				}
+				catch (TorConnectCommandFailedException e)
+				{
+					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connect command failed.", e);
+
+					if (i == attemptsNo)
+					{
+						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
+					}
+				}
 				catch (IOException e)
 				{
 					Logger.LogTrace($"['{connection}'] Failed to read/write HTTP(s) request.", e);
