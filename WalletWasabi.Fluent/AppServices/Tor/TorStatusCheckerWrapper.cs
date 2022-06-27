@@ -6,9 +6,9 @@ using WalletWasabi.Services.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.AppServices.Tor;
 
-public class StatusCheckerWrapper
+public class TorStatusCheckerWrapper
 {
-	public StatusCheckerWrapper(TorStatusChecker statusChecker)
+	public TorStatusCheckerWrapper(TorStatusChecker statusChecker)
 	{
 		Issues = Observable
 			.FromEventPattern<Issue[]>(statusChecker, nameof(TorStatusChecker.StatusEvent))
