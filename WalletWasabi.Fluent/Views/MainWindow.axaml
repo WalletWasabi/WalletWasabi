@@ -20,7 +20,7 @@
         ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}"
-        Icon="/Assets/WasabiLogo.ico">
+        Icon="avares://WalletWasabi.Fluent.Desktop/Assets/WasabiLogo.ico">
   <Window.Styles>
     <Style Selector="TitleBar">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
