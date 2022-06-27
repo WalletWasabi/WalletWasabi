@@ -122,9 +122,12 @@
 
             <Separator Margin="-12 0 -12 6" />
 
-            <c:StatusItem Icon="{StaticResource arrow_clockwise_regular}"
-                          Title="Update available"
-                          StatusText="{Binding VersionText}" />
+            <c:StatusItem Title="Update available"
+                          StatusText="{Binding VersionText}">
+              <c:StatusItem.Icon>
+                <PathIcon Data="{StaticResource arrow_clockwise_regular}" />
+              </c:StatusItem.Icon>
+            </c:StatusItem>
             <Button Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
