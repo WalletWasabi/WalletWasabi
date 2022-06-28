@@ -136,7 +136,7 @@ public partial class MainViewModel : ViewModelBase
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+			if (Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
 			{
 				IsOobeBackgroundVisible = true;
 
