@@ -62,7 +62,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			})
 			.DisposeWith(disposables);
 
-
 		if (!isInHistory)
 		{
 			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
