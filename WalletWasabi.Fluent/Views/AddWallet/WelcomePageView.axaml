@@ -13,6 +13,15 @@
   <i:Interaction.Behaviors>
     <behaviors:FocusOnAttachedBehavior />
   </i:Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Styles>
+      <Style Selector="controls|ContentArea /template/ StackPanel#PART_Header">
+        <Setter Property="Height" Value="32" />
+      </Style>
+    </Styles>
+  </UserControl.Styles>
+
   <controls:ContentArea EnableCancel="False"
                         EnableBack="{Binding CanGoBack^}"
                         EnableNext="True"
