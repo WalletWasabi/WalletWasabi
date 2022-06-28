@@ -23,6 +23,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _isCustomFeeUsed;
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
+	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, BitcoinAddress address, bool isPreview = false)
 	{
@@ -73,6 +74,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Labels = SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels(info.PrivateCoinThreshold)));
 		var exactPocketUsed = Labels.Count() == info.UserLabels.Count() && Labels.All(label => info.UserLabels.Contains(label, StringComparer.OrdinalIgnoreCase));
 		TransactionHasPockets = Labels.Any() && !exactPocketUsed;
+
+		Recipient = info.UserLabels;
 
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
