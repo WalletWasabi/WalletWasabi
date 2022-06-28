@@ -15,11 +15,10 @@
   </i:Interaction.Behaviors>
 
   <UserControl.Styles>
-    <Styles>
-      <Style Selector="controls|ContentArea /template/ StackPanel#PART_Header">
-        <Setter Property="Height" Value="32" />
-      </Style>
-    </Styles>
+    <Style Selector="controls|ContentArea /template/ StackPanel#PART_Header">
+      <Setter Property="Height" Value="32" />
+    </Style>
+
   </UserControl.Styles>
 
   <controls:ContentArea EnableCancel="False"
