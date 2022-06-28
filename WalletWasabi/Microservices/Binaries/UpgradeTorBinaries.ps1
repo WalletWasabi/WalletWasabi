@@ -11,7 +11,7 @@
 # Before running the script, you need to install 7zip
 # $ winget install --id 7zip.7zip
 # $ brew install sevenzip
-# $ apt install p7zip-full # Unfortunately, 7z 16.0 is distributed but this script requires some later version that can be downloaded here https://www.7-zip.org/download.html
+# $ apt-add-repository multiverse && apt update && apt install 7zip # or install using https://www.7-zip.org/download.html. Note that "apt install p7zip-full" distributes 7z version 16 which is old and does not work with this script.
 
 [CmdletBinding()]
 param(
