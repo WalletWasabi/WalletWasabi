@@ -37,7 +37,8 @@
     <c:PrivacyContentControl PrivacyReplacementMode="Icon">
       <c:PrivacyContentControl.Styles>
         <Style Selector="c|PrivacyContentControl /template/ Viewbox#PART_Icon">
-          <Setter Property="Height" Value="18" />
+          <Setter Property="Opacity" Value="0.6" />
+          <Setter Property="Height" Value="14" />
           <Setter Property="Margin" Value="0" />
         </Style>
       </c:PrivacyContentControl.Styles>

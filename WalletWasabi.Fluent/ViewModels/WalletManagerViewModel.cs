@@ -107,7 +107,15 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						{
+							if (MainViewModel.Instance.IsBusy)
+							{
+								return;
+							}
+
+							wvm.NavigateAndHighlight(e.Transaction.GetHash());
+						});
 					}
 
 					if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))

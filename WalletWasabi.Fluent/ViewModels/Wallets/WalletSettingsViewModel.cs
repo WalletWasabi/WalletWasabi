@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -19,6 +21,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private string? _selectedCoinjoinProfileName;
+	[AutoNotify] private bool _isCoinjoinProfileSelected;
 
 	private Wallet _wallet;
 
@@ -49,14 +53,17 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!_wallet.KeyManager.IsCoinjoinProfileSelected)
+			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
+			{
+				AutoCoinJoin = !AutoCoinJoin;
+			}
+			else
 			{
 				await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
 			}
 
 			if (_wallet.KeyManager.IsCoinjoinProfileSelected)
 			{
-				AutoCoinJoin = !AutoCoinJoin;
 				_wallet.KeyManager.AutoCoinJoin = AutoCoinJoin;
 				_wallet.KeyManager.ToFile();
 			}
@@ -65,6 +72,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				AutoCoinJoin = false;
 			}
 		});
+
+		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
 		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 
@@ -98,6 +107,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public ICommand SetAutoCoinJoin { get; }
 
+	public ICommand SelectCoinjoinProfileCommand { get; }
+
 	public ICommand VerifyRecoveryWordsCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -105,6 +116,21 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
 		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
+
+		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
+		SelectedCoinjoinProfileName =
+			(_wallet.KeyManager.IsCoinjoinProfileSelected, CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.KeyManager)) switch
+			{
+				(true, CoinJoinProfileViewModelBase x) => x.Title,
+				(false, _) => "None",
+				_ => "Unknown"
+			};
+	}
+
+	private async Task SelectCoinjoinProfileAsync()
+	{
+		await NavigateDialogAsync(new CoinJoinProfilesViewModel(_wallet.KeyManager, false), NavigationTarget.DialogScreen);
+		AutoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 	}
 
 	private void ValidatePlebStopThreshold(IValidationErrors errors) =>

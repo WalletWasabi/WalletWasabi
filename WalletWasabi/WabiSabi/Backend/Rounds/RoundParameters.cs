@@ -75,9 +75,9 @@ public record RoundParameters
 	// Anyway, it really doesn't matter for us as it is a reasonable limit so, it doesn't affect us
 	// negatively in any way.
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
-	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee 
-	                                              ?? new FeeRate(Money.Satoshis(1000));
-		
+	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee
+												  ?? new FeeRate(Money.Satoshis(1000));
+
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		Network network,

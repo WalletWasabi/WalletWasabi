@@ -40,7 +40,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinDetailsViewModel(this, updateTrigger)));
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
+		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}
 
 	public bool IsSingleCoinJoinTransaction { get; }

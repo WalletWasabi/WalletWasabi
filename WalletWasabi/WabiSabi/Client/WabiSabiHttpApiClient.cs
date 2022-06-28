@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -8,6 +9,7 @@ using Newtonsoft.Json;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
@@ -16,8 +18,6 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 {
-	private const int MaxRetries = 20;
-
 	private IHttpClient _client;
 
 	public WabiSabiHttpApiClient(IHttpClient client)
@@ -64,23 +64,29 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 	{
 		var exceptions = new List<Exception>();
+		var start = DateTime.UtcNow;
 
-		var start = DateTime.Now;
+		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
+		var combinedToken = linkedCts.Token;
 
-		for (var attempt = 0; attempt < MaxRetries; attempt++)
+		var attempt = 1;
+		do
 		{
 			try
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
 				// Any transport layer errors will throw an exception here.
-				var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+				HttpResponseMessage response = await _client
+					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, combinedToken).ConfigureAwait(false);
 
-				var totalTime = DateTime.Now - start;
+				TimeSpan totalTime = DateTime.UtcNow - start;
 
 				if (exceptions.Any())
 				{
-					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
+					Logger.LogDebug(
+						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
 				}
 				else
 				{
@@ -94,10 +100,17 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			}
 			catch (HttpRequestException e)
 			{
+				Logger.LogTrace($"Attempt {attempt} failed with {nameof(HttpRequestException)}: {e.Message}.");
+				exceptions.Add(e);
+			}
+			catch (TorException e)
+			{
+				Logger.LogTrace($"Attempt {attempt} failed with {nameof(TorException)}: {e.Message}.");
 				exceptions.Add(e);
 			}
 			catch (Exception e)
 			{
+				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
 				if (exceptions.Any())
 				{
 					exceptions.Add(e);
@@ -111,7 +124,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 			// Wait before the next try.
 			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
-		}
+			attempt++;
+		} while (!combinedToken.IsCancellationRequested);
 
 		throw new AggregateException(exceptions);
 	}
@@ -122,7 +136,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 		if (!response.IsSuccessStatusCode)
 		{
-			await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			await response.ThrowUnwrapExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

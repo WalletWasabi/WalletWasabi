@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -44,9 +45,9 @@ public partial class MainViewModel : ViewModelBase
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
-		_statusIcon = new StatusIconViewModel();
-
 		UiServices.Initialize();
+
+		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -117,6 +118,12 @@ public partial class MainViewModel : ViewModelBase
 	public SearchBarViewModel SearchBar { get; }
 
 	public static MainViewModel Instance { get; } = new();
+
+	public bool IsBusy =>
+		MainScreen.CurrentPage is { IsBusy: true } ||
+		DialogScreen.CurrentPage is { IsBusy: true } ||
+		FullScreen.CurrentPage is { IsBusy: true } ||
+		CompactDialogScreen.CurrentPage is { IsBusy: true };
 
 	public void ClearStacks()
 	{
