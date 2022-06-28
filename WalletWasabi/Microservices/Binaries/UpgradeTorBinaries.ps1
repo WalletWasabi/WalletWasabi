@@ -11,7 +11,7 @@
 # Before running the script, you need to install 7zip
 # $ winget install --id 7zip.7zip
 # $ brew install sevenzip
-# $ apt install p7zip-full
+# $ apt install p7zip-full # Unfortunately, 7z 16.0 is distributed but this script requires some later version that can be downloaded here https://www.7-zip.org/download.html
 
 [CmdletBinding()]
 param(
@@ -104,15 +104,15 @@ try {
     Remove-Item -Recurse -Force "Tor/*" -ErrorAction SilentlyContinue
 
     Write-Output "# Extract Tor binary for Windows."
-    mkdir "Tor/win64/"
+    mkdir -p "Tor/win64/"
     Copy-item -Recurse -Force -Path "TorBrowser/Windows/Browser/TorBrowser/Tor/*" -Destination "Tor/win64/" -Exclude "PluggableTransports"
 
     Write-Output "# Extract Tor binary for macOs."
-    mkdir "Tor/osx64/"
+    mkdir -p "Tor/osx64/"
     Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
 
     Write-Output "# Extract Tor binary for linux."
-    mkdir "Tor/lin64/"
+    mkdir -p "Tor/lin64/"
     Copy-item -Recurse -Force -Path "TorBrowser/linux/tor-browser_en-US/Browser/TorBrowser/Tor/*" -Destination "Tor/lin64/" -Exclude "PluggableTransports"
   }
 
