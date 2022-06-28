@@ -69,11 +69,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
 
-		TransactionHasPockets = !info.IsPrivate;
-
-		Labels = SmartLabel.Merge(transactionResult.SpentCoins.Select(x => x.GetLabels(info.PrivateCoinThreshold)));
-		var exactPocketUsed = Labels.Count() == info.UserLabels.Count() && Labels.All(label => info.UserLabels.Contains(label, StringComparer.OrdinalIgnoreCase));
-		TransactionHasPockets = Labels.Any() && !exactPocketUsed;
+		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.UserLabels.Labels));
+		TransactionHasPockets = Labels.Any();
 
 		Recipient = info.UserLabels;
 
