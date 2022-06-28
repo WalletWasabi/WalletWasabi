@@ -22,10 +22,8 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 
 		SelectedIndex = 0;
 		NextCommand = ReactiveCommand.Create(OnNext);
-		var canGoBackChanged = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
-		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, canGoBackChanged);
-		canGoBackChanged
-			.Subscribe(canGoBack => EnableBack = canGoBack);
+		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
+		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 
 		this.WhenAnyValue(x => x.SelectedIndex)
 			.Subscribe(x =>
@@ -39,6 +37,8 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			.Where(x => !x)
 			.Subscribe(x => EnableNextKey = false);
 	}
+
+	public IObservable<bool> CanGoBack { get; }
 
 	private void OnNext()
 	{

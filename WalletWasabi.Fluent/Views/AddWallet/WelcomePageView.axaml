@@ -14,7 +14,7 @@
     <behaviors:FocusOnAttachedBehavior />
   </i:Interaction.Behaviors>
   <controls:ContentArea EnableCancel="False"
-                        EnableBack="{Binding EnableBack}"
+                        EnableBack="{Binding CanGoBack^}"
                         EnableNext="True"
                         ClipToBounds="False"
                         NextContent="{Binding NextLabel}"
