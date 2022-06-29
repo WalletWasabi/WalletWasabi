@@ -466,7 +466,7 @@ public class CoinJoinClient
 					.ToList();
 
 			var randomRed = filteredCoins
-				.Where(x => x.HdPubKey.AnonymitySet == anonScoreTarget)
+				.Where(x => x.HdPubKey.AnonymitySet == 1)
 				.RandomElement();
 			if (randomRed is not null)
 			{
