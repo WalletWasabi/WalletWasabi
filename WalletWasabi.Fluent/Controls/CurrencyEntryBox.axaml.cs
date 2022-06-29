@@ -128,6 +128,12 @@ public class CurrencyEntryBox : TextBox
 
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
+		if (Text.Trim() == "" && e.Text == ".")
+		{
+			InsertImplicitZeroForDecimal(e);
+			return;
+		}
+
 		var input = e.Text ?? "";
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
@@ -142,13 +148,20 @@ public class CurrencyEntryBox : TextBox
 		decimal fiatValue = 0;
 
 		e.Handled = !(ValidateEntryText(preComposedText) &&
-					decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+		              decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 		if (IsFiat & !e.Handled)
 		{
 			e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
 		}
 
+		base.OnTextInput(e);
+	}
+
+	private void InsertImplicitZeroForDecimal(TextInputEventArgs e)
+	{
+		e.Text = "0.";
+		CaretIndex = e.Text.Length;
 		base.OnTextInput(e);
 	}
 
