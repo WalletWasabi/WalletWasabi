@@ -54,13 +54,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 					StatusText = null;
 				}
 			});
-
-		this.WhenAnyValue(x => x.IsCoinJoining)
-			.Skip(1)
-			.Subscribe(x =>
-			{
-				MainViewModel.Instance.InvalidateIsCoinJoinActive();
-			});
 	}
 
 	public override string Title

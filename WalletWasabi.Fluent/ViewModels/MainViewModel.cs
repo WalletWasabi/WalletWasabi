@@ -36,7 +36,8 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
-	[AutoNotify] private bool _isCoinJoinActive;
+	[AutoNotify] private bool _isSpectrumAuraActive;
+	[AutoNotify] private bool _isSpectrumAuraFireEffectActive;
 
 	public MainViewModel()
 	{
@@ -86,6 +87,9 @@ public partial class MainViewModel : ViewModelBase
 
 				IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
 			});
+
+		this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.Subscribe(_ => InvalidateSpectrumAura());
 
 		this.WhenAnyValue(
 				x => x.DialogScreen.CurrentPage,
@@ -176,10 +180,14 @@ public partial class MainViewModel : ViewModelBase
 		CompactDialogScreen.Clear();
 	}
 
-	public void InvalidateIsCoinJoinActive()
+	public void InvalidateSpectrumAura()
 	{
-		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
-			.Any(x => x.IsCoinJoining);
+		var isAnyCoinjoining = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.IsCoinJoining);
+		var isAnyInCriticalPhase = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.CoinJoinStateViewModel.IsInCriticalPhase);
+		var currentPageAsWallet = MainScreen.CurrentPage as WalletViewModel;
+
+		IsSpectrumAuraActive = currentPageAsWallet?.IsCoinJoining ?? isAnyCoinjoining;
+		IsSpectrumAuraFireEffectActive = currentPageAsWallet?.CoinJoinStateViewModel.IsInCriticalPhase ?? isAnyInCriticalPhase;
 	}
 
 	public void Initialize()

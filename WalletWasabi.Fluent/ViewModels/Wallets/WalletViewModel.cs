@@ -160,6 +160,10 @@ public partial class WalletViewModel : WalletViewModelBase
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
+
+		this.WhenAnyValue(x => x.IsCoinJoining).Skip(1)
+			.Merge(CoinJoinStateViewModel.WhenAnyValue(x => x.IsInCriticalPhase).Skip(1))
+			.Subscribe(_ => MainViewModel.Instance.InvalidateSpectrumAura());
 	}
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
