@@ -148,7 +148,7 @@ public class CurrencyEntryBox : TextBox
 		decimal fiatValue = 0;
 
 		e.Handled = !(ValidateEntryText(preComposedText) &&
-		              decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+					decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 		if (IsFiat & !e.Handled)
 		{
