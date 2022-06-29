@@ -71,7 +71,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 			await foreach (var suggestion in suggestions)
 			{
-				Suggestions.Insert(Suggestions.Count - 1, suggestion);
+				int index = Suggestions.Count > 0 ? Suggestions.Count - 1 : 0;
+				Suggestions.Insert(index, suggestion);
 			}
 		}
 
