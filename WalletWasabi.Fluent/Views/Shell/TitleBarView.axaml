@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="100"
+             mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.Shell.TitleBarView"
              x:Name="UserControl">
 
@@ -27,8 +27,9 @@
     <Style Selector="Border.NetworkBadge">
       <Setter Property="CornerRadius" Value="3" />
       <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="Background" Value="Gold" />
+      <Setter Property="Margin" Value="0 0 10 0" />
     </Style>
     <Style Selector="Border.NetworkBadge TextBlock">
       <Setter Property="Margin" Value="5" />
@@ -46,7 +47,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="Title">
-      <StackPanel IsHitTestVisible="False" x:Name="Title" Margin="16,8,8,2.5"
+      <StackPanel IsHitTestVisible="False" x:Name="Title"
                   VerticalAlignment="Center"
                   TextBlock.FontFamily="{StaticResource WasabiLogoTextFont}"
                   Classes="h7"
@@ -77,14 +78,16 @@
 
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
 
-        <WrapPanel Grid.Column="1" Grid.ColumnSpan="2"  VerticalAlignment="Center">
-          <ContentControl ContentTemplate="{StaticResource Title}" />
-          <Border IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
-            <TextBlock Text="{Binding NetworkBadgeName}" />
-          </Border>
-        </WrapPanel>
+        <ContentControl Grid.Column="1" Grid.ColumnSpan="2" Margin="16,8,8,2.5"
+                        VerticalAlignment="Center"
+                        ContentTemplate="{StaticResource Title}" />
 
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
+
+        <Border IsHitTestVisible="False" Grid.Column="4" IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
+            <TextBlock Text="{Binding NetworkBadgeName}" />
+        </Border>
+
       </Grid>
     </DataTemplate>
 
@@ -107,15 +110,14 @@
                 <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
               </AdaptiveBehavior>
             </Interaction.Behaviors>
-            <WrapPanel VerticalAlignment="Center">
-              <ContentControl ContentTemplate="{StaticResource Title}" />
-              <Border IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
-                <TextBlock Text="{Binding NetworkBadgeName}" />
-              </Border>
-            </WrapPanel>
+            <ContentControl ContentTemplate="{StaticResource Title}" />
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
+
+        <Border IsHitTestVisible="False" Grid.Column="3" IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
+          <TextBlock Text="{Binding NetworkBadgeName}" />
+        </Border>
       </Grid>
     </DataTemplate>
   </UserControl.Resources>
