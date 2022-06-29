@@ -50,5 +50,4 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 	public bool IsSingleCoinJoinTransaction { get; }
 
 	public TransactionSummary CoinJoinTransaction { get; private set; }
-
 }
