@@ -4,7 +4,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800"
+             xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+             mc:Ignorable="d" d:DesignWidth="1000"
              x:Class="WalletWasabi.Fluent.Views.Shell.TitleBarView"
              x:Name="UserControl">
 
@@ -24,18 +25,7 @@
       <Setter Property="Opacity" Value="0" />
       <Setter Property="RenderTransform" Value="translateX(-20px)" />
     </Style>
-    <Style Selector="Border.NetworkBadge">
-      <Setter Property="CornerRadius" Value="3" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="Background" Value="Gold" />
-      <Setter Property="Margin" Value="0 0 10 0" />
-    </Style>
-    <Style Selector="Border.NetworkBadge TextBlock">
-      <Setter Property="Margin" Value="5" />
-      <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="Foreground" Value="Black" />
-    </Style>
+
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -84,9 +74,7 @@
 
         <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
 
-        <Border IsHitTestVisible="False" Grid.Column="4" IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
-            <TextBlock Text="{Binding NetworkBadgeName}" />
-        </Border>
+        <shell:NetworkBadgeView VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 8 0" Grid.Column="4" />
 
       </Grid>
     </DataTemplate>
@@ -114,14 +102,10 @@
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
-
-        <Border IsHitTestVisible="False" Grid.Column="3" IsVisible="{Binding IsNetworkBadgeEnabled}" Classes="NetworkBadge">
-          <TextBlock Text="{Binding NetworkBadgeName}" />
-        </Border>
+        <shell:NetworkBadgeView  Grid.Column="3" />
       </Grid>
     </DataTemplate>
   </UserControl.Resources>
 
-  <ContentControl
-    ContentTemplate="{ext:Platform {StaticResource WindowsAndLinuxLayout}, Osx={StaticResource MacOSLayout}}" />
+  <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsAndLinuxLayout}, Osx={StaticResource MacOSLayout}}" />
 </UserControl>

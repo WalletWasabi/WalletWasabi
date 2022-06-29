@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             x:DataType="viewModels:MainViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Shell.NetworkBadgeView"
+             x:CompileBindings="True">
+
+  <UserControl.Styles>
+    <Style Selector="Border.NetworkBadge">
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Background" Value="Gold" />
+    </Style>
+    <Style Selector="Border.NetworkBadge TextBlock">
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="Black" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border IsHitTestVisible="False" Classes="NetworkBadge">
+    <TextBlock Text="{Binding NetworkBadgeName}" />
+  </Border>
+
+</UserControl>
