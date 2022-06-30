@@ -93,7 +93,8 @@ public class Program
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
 			AppBuilder
-				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI()
+				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground))
+				.UseReactiveUI()
 				.SetupAppBuilder()
 				.AfterSetup(_ =>
 					{
@@ -199,14 +200,14 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogDebug(e.Exception);
+		// Logger.LogDebug(e.Exception);
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 	{
 		if (e.ExceptionObject is Exception ex)
 		{
-			Logger.LogWarning(ex);
+			//Logger.LogWarning(ex);
 		}
 	}
 
