@@ -53,8 +53,8 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 
 		var centerOffset = TextAlignment switch
 		{
-			TextAlignment.Center => (width - _trimmedLayout.Size.Width) / 2.0,
-			TextAlignment.Right => width - _trimmedLayout.Size.Width,
+			TextAlignment.Center => (width - _trimmedLayout.MaxWidth) / 2.0,
+			TextAlignment.Right => width - _trimmedLayout.MaxWidth,
 			_ => 0.0
 		};
 
@@ -63,7 +63,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		using var a =
 			context.PushPostTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
-		_noTrimLayout.Draw(context);
+		_noTrimLayout.Draw(context, new Point(0,0));
 	}
 
 	private void NewCreateTextLayout(Size constraint, string? text)
@@ -85,11 +85,11 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var lineHeight = LineHeight;
 
 		_noTrimLayout = new TextLayout(text1, typeface, fontSize, foreground, textAlignment,
-			textWrapping, TextTrimming.None, textDecorations, width, height, lineHeight,
+			textWrapping, TextTrimming.None, textDecorations, FlowDirection.LeftToRight, width, height, lineHeight,
 			1);
 
 		_trimmedLayout = new TextLayout(text1, typeface, fontSize, foreground, textAlignment,
-			textWrapping, TextTrimming.CharacterEllipsis, textDecorations, width, height, lineHeight,
+			textWrapping, TextTrimming.CharacterEllipsis, textDecorations, FlowDirection.LeftToRight, width, height, lineHeight,
 			1);
 
 		_cutOff = _trimmedLayout.TextLines[0].HasCollapsed;
@@ -112,6 +112,6 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 			NewCreateTextLayout(_constraint, Text);
 		}
 
-		return (_trimmedLayout?.Size ?? Size.Empty).Inflate(padding);
+		return (_trimmedLayout?.Bounds.Size ?? Size.Empty).Inflate(padding);
 	}
 }
