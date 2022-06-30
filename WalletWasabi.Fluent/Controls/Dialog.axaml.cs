@@ -80,11 +80,11 @@ public class Dialog : ContentControl
 				var increasedHeightThreshold = IncreasedHeightThreshold;
 				var fullScreenHeightThreshold = FullScreenHeightThreshold;
 				var canIncreasedWidth = !double.IsNaN(increasedWidthThreshold)
-										&& width < increasedWidthThreshold;
+				                        && width < increasedWidthThreshold;
 				var canIncreasedHeight = !double.IsNaN(increasedHeightThreshold)
-										 && height < increasedHeightThreshold;
+				                         && height < increasedHeightThreshold;
 				var canGoToFullScreen = !double.IsNaN(fullScreenHeightThreshold)
-										&& height < fullScreenHeightThreshold;
+				                        && height < fullScreenHeightThreshold;
 				IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight;
 				IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight;
 				IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight;
@@ -201,7 +201,8 @@ public class Dialog : ContentControl
 			{
 				CancelPointerPressedDelay = new CancellationTokenSource();
 
-				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ => _canCancelOnPointerPressed = true);
+				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token)
+					.ContinueWith(_ => _canCancelOnPointerPressed = true);
 			}
 		}
 		catch (OperationCanceledException)
@@ -210,18 +211,18 @@ public class Dialog : ContentControl
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsDialogOpenProperty)
 		{
-			PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":open", (bool) change.NewValue);
 		}
 
 		if (change.Property == IsBusyProperty)
 		{
-			PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":busy", (bool) change.NewValue);
 		}
 	}
 
@@ -246,7 +247,8 @@ public class Dialog : ContentControl
 
 	private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 	{
-		if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
+		if (IsDialogOpen && IsActive && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } &&
+		    _overlayPanel is { } && _canCancelOnPointerPressed)
 		{
 			var point = e.GetPosition(_dismissPanel);
 			var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;

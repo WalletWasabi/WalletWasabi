@@ -118,7 +118,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
@@ -128,7 +128,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 		else if (change.Property == IsDockEffectVisibleProperty)
 		{
-			if (change.NewValue.GetValueOrDefault<bool>() && !IsActive)
+			if ((bool)change.NewValue && !IsActive)
 			{
 				_splashEffectDataSource.Start();
 			}

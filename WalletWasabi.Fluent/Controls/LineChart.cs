@@ -851,7 +851,7 @@ public partial class LineChart : Control
 		InvalidateVisual();
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
@@ -859,8 +859,8 @@ public partial class LineChart : Control
 			change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
 		{
 			UpdateSubscription(
-				change.OldValue.GetValueOrDefault<INotifyCollectionChanged>(),
-				change.NewValue.GetValueOrDefault<INotifyCollectionChanged>());
+				(INotifyCollectionChanged)change.OldValue ,
+				(INotifyCollectionChanged)change.NewValue );
 		}
 	}
 

@@ -74,12 +74,12 @@ public class DualCurrencyEntryBox : UserControl
 		_customCultureInfo = new CultureInfo("")
 		{
 			NumberFormat =
-				{
-					CurrencyGroupSeparator = _groupSeparator.ToString(),
-					NumberGroupSeparator = _groupSeparator.ToString(),
-					CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-					NumberDecimalSeparator = _decimalSeparator.ToString()
-				}
+			{
+				CurrencyGroupSeparator = _groupSeparator.ToString(),
+				NumberGroupSeparator = _groupSeparator.ToString(),
+				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
+				NumberDecimalSeparator = _decimalSeparator.ToString()
+			}
 		};
 
 		this.GetObservable(TextProperty).Subscribe(InputText);
@@ -290,8 +290,8 @@ public class DualCurrencyEntryBox : UserControl
 		var part2 = value.FormattedFiat();
 		var part3 =
 			!string.IsNullOrWhiteSpace(currencyCode)
-			? $" {currencyCode}"
-			: "";
+				? $" {currencyCode}"
+				: "";
 		return part1 + part2 + part3;
 	}
 
@@ -326,35 +326,37 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		var focusOn =
 			IsConversionReversed
-			? _rightEntryBox
-			: _leftEntryBox;
+				? _rightEntryBox
+				: _leftEntryBox;
 
 		focusOn?.Focus();
 	}
 
-	protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+	/// <inheritdoc />
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
 		if (property == AmountBtcProperty)
 		{
-			DataValidationErrors.SetError(this, value.Error);
+			DataValidationErrors.SetError(this, error);
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", (bool) change.NewValue);
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", (decimal) change.NewValue == 0m);
 		}
 		else if (change.Property == IsConversionReversedProperty)
 		{
-			PseudoClasses.Set(":reversed", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":reversed", (bool) change.NewValue);
 			ReorganizeVisuals();
 			UpdateDisplay(false);
 		}
