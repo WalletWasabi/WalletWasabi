@@ -156,8 +156,16 @@ public partial class MainViewModel : ViewModelBase
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
 
-		IsNetworkBadgeEnabled = Services.Config.Network != Network.Main;
-		NetworkBadgeName = IsNetworkBadgeEnabled ? Services.Config.Network.Name : string.Empty;
+		if (Services.Config.Network == Network.Main)
+		{
+			IsNetworkBadgeEnabled = false;
+			NetworkBadgeName = "";
+		}
+		else
+		{
+			IsNetworkBadgeEnabled = true;
+			NetworkBadgeName = Services.Config.Network.Name;
+		}
 	}
 
 	private static StatusChecker CreateTorStatusChecker()
