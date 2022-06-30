@@ -10,8 +10,8 @@
       <Setter Property="CornerRadius" Value="3" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Right" />
-      <Setter Property="BorderBrush" Value="Gold" />
-      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="White" />
+      <Setter Property="BorderThickness" Value="0.5" />
     </Style>
     <Style Selector="Border.NetworkBadge TextBlock">
       <Setter Property="Margin" Value="5" />
