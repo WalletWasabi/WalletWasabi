@@ -7,14 +7,14 @@
 
   <UserControl.Styles>
     <Style Selector="Border.NetworkBadge">
-      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="CornerRadius" Value="5" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="BorderBrush" Value="White" />
       <Setter Property="BorderThickness" Value="0.5" />
+      <Setter Property="Padding" Value="7 5 8 5" />
     </Style>
     <Style Selector="Border.NetworkBadge TextBlock">
-      <Setter Property="Margin" Value="5" />
       <Setter Property="FontWeight" Value="Normal" />
       <Setter Property="Foreground" Value="White" />
     </Style>
