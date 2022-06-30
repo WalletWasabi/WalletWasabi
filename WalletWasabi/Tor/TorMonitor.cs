@@ -24,7 +24,7 @@ namespace WalletWasabi.Tor;
 /// <summary>Monitors Tor process bootstrap and reachability of Wasabi Backend.</summary>
 public class TorMonitor : PeriodicRunner
 {
-	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(21);
+	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(5);
 
 	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
@@ -53,22 +53,18 @@ public class TorMonitor : PeriodicRunner
 	public override Task StartAsync(CancellationToken cancellationToken)
 	{
 		BootstrapTask = StartBootstrapMonitorAsync(cancellationToken);
-
 		return base.StartAsync(cancellationToken);
 	}
 
 	private async Task StartBootstrapMonitorAsync(CancellationToken appShutdownToken)
 	{
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(appShutdownToken, LoopCts.Token);
-
 		while (!linkedCts.IsCancellationRequested)
 		{
 			try
 			{
 				(CancellationToken cancellationToken, TorControlClient client) = await TorProcessManager.WaitForNextAttemptAsync(linkedCts.Token).ConfigureAwait(false);
-
 				Logger.LogInfo("Starting Tor bootstrap monitor…");
-
 				List<string> eventNames = new()
 				{
 					StatusEvent.EventNameStatusGeneral,
@@ -79,13 +75,10 @@ public class TorMonitor : PeriodicRunner
 					NetworkLivenessEvent.EventName,
 				};
 				await client.SubscribeEventsAsync(eventNames, cancellationToken).ConfigureAwait(false);
-
 				bool circuitEstablished = false;
-
 				await foreach (TorControlReply reply in client.ReadEventsAsync(cancellationToken).ConfigureAwait(false))
 				{
 					IAsyncEvent asyncEvent;
-
 					try
 					{
 						asyncEvent = AsyncEventParser.Parse(reply);
@@ -95,7 +88,6 @@ public class TorMonitor : PeriodicRunner
 						Logger.LogError($"Exception thrown when parsing event: '{reply}'", e);
 						continue;
 					}
-
 					if (asyncEvent is BootstrapStatusEvent bootstrapEvent)
 					{
 						BootstrapStatusEvent.Phases.TryGetValue(bootstrapEvent.Progress, out string? bootstrapInfo);
@@ -112,13 +104,11 @@ public class TorMonitor : PeriodicRunner
 					else if (asyncEvent is CircEvent circEvent)
 					{
 						CircuitInfo info = circEvent.CircuitInfo;
-
 						if (!circuitEstablished && info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
 						{
 							Logger.LogInfo("Tor circuit was established.");
 							circuitEstablished = true;
 						}
-
 						if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
 						{
 							Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
@@ -205,13 +195,11 @@ public class TorMonitor : PeriodicRunner
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		LoopCts.Cancel();
-
 		if (BootstrapTask is not null)
 		{
 			Logger.LogDebug("Wait until Tor bootstrap monitor finishes.");
 			await BootstrapTask.ConfigureAwait(false);
 		}
-
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

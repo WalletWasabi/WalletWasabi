@@ -17,7 +17,6 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -59,7 +58,7 @@ public partial class MainViewModel : ViewModelBase
 
 		UiServices.Initialize();
 
-		_statusIcon = new StatusIconViewModel(CreateTorStatusChecker());
+		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -157,14 +156,6 @@ public partial class MainViewModel : ViewModelBase
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
 
-	private static StatusChecker CreateTorStatusChecker()
-	{
-		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
-		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
-		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
-		return statusChecker;
-	}
-
 	public string NetworkBadgeName { get; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
@@ -180,6 +171,14 @@ public partial class MainViewModel : ViewModelBase
 		DialogScreen.CurrentPage is { IsBusy: true } ||
 		FullScreen.CurrentPage is { IsBusy: true } ||
 		CompactDialogScreen.CurrentPage is { IsBusy: true };
+
+  private static StatusChecker CreateTorStatusChecker()
+	{
+		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
+		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
+		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
+		return statusChecker;
+	}
 
 	public void ClearStacks()
 	{

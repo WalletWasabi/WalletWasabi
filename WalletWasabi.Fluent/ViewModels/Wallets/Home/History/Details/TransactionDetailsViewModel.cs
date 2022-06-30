@@ -63,7 +63,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		TransactionId = transactionSummary.TransactionId.ToString();
 		Labels = transactionSummary.Label;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
-		Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
 		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false);
 		BlockHash = transactionSummary.BlockHash?.ToString();

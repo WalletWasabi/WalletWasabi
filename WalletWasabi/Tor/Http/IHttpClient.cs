@@ -16,10 +16,12 @@ public interface IHttpClient
 	/// <param name="request">HTTP request message to send.</param>
 	/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
 	/// <exception cref="HttpRequestException"/>
+	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 	Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default);
 
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="InvalidOperationException"/>
+	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 	async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 	{
 		if (BaseUriGetter is null)
