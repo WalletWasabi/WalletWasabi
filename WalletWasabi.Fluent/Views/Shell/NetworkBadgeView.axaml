@@ -20,7 +20,8 @@
     </Style>
   </UserControl.Styles>
 
-  <Border IsHitTestVisible="False" Classes="NetworkBadge" Opacity="0.8">
+  <Border IsHitTestVisible="False" Classes="NetworkBadge" Opacity="0.8"
+          IsVisible="{Binding NetworkBadgeName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
     <TextBlock Text="{Binding NetworkBadgeName}" />
   </Border>
 

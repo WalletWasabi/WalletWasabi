@@ -38,7 +38,6 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
-	[AutoNotify] private bool _isNetworkBadgeEnabled;
 	[AutoNotify] private string _networkBadgeName;
 
 	public MainViewModel()
@@ -158,12 +157,10 @@ public partial class MainViewModel : ViewModelBase
 
 		if (Services.Config.Network == Network.Main)
 		{
-			IsNetworkBadgeEnabled = false;
 			NetworkBadgeName = "";
 		}
 		else
 		{
-			IsNetworkBadgeEnabled = true;
 			NetworkBadgeName = Services.Config.Network.Name;
 		}
 	}
