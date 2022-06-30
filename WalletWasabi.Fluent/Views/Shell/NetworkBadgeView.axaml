@@ -15,8 +15,8 @@
     </Style>
     <Style Selector="Border.NetworkBadge TextBlock">
       <Setter Property="Margin" Value="5" />
-      <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="Foreground" Value="Gold" />
+      <Setter Property="FontWeight" Value="Thin" />
+      <Setter Property="Foreground" Value="White" />
     </Style>
   </UserControl.Styles>
 
