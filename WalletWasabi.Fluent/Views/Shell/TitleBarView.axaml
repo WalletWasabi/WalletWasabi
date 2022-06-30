@@ -98,7 +98,7 @@
                 <AdaptiveClassSetter MaxWidth="150" ClassName="minWidth" />
               </AdaptiveBehavior>
             </Interaction.Behaviors>
-            <ContentControl ContentTemplate="{StaticResource Title}" />
+            <ContentControl ContentTemplate="{StaticResource Title}" Margin="16 4 0 0" />
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
