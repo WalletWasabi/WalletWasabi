@@ -38,7 +38,6 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
-	[AutoNotify] private string _networkBadgeName;
 
 	public MainViewModel()
 	{
@@ -155,14 +154,7 @@ public partial class MainViewModel : ViewModelBase
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
 
-		if (Services.Config.Network == Network.Main)
-		{
-			NetworkBadgeName = "";
-		}
-		else
-		{
-			NetworkBadgeName = Services.Config.Network.Name;
-		}
+		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
 
 	private static StatusChecker CreateTorStatusChecker()
@@ -172,6 +164,8 @@ public partial class MainViewModel : ViewModelBase
 		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
 		return statusChecker;
 	}
+
+	public string NetworkBadgeName { get; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
 
