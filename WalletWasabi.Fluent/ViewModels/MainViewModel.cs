@@ -172,14 +172,6 @@ public partial class MainViewModel : ViewModelBase
 		FullScreen.CurrentPage is { IsBusy: true } ||
 		CompactDialogScreen.CurrentPage is { IsBusy: true };
 
-  private static StatusChecker CreateTorStatusChecker()
-	{
-		var httpClient = Services.HttpClientFactory.NewHttpClient(Mode.DefaultCircuit);
-		var torNetwork = new TorNetwork(new HttpGetStringReader(httpClient), new XmlIssueListParser());
-		var statusChecker = new StatusChecker(torNetwork, TimeSpan.FromHours(6), new NewThreadScheduler());
-		return statusChecker;
-	}
-
 	public void ClearStacks()
 	{
 		MainScreen.Clear();
