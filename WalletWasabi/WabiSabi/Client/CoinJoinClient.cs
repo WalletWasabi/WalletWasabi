@@ -564,9 +564,17 @@ public class CoinJoinClient
 		var remainingLargestAmounts = bestRepGroups
 			.Select(x => x.OrderByDescending(x => x.Amount).First())
 			.ToHashSet();
-		var largestAmount = remainingLargestAmounts.RandomElement();
+		var selectedLargeCoin = remainingLargestAmounts.RandomElement();
+		foreach (var coin in remainingLargestAmounts.OrderByDescending(x => x.Amount))
+		{
+			if (rnd.GetInt(1, 101) <= 50)
+			{
+				selectedLargeCoin = coin;
+				break;
+			}
+		}
 		var finalCandidate = bestRepGroups
-			.Where(x => x.OrderByDescending(x => x.Amount).First() == largestAmount)
+			.Where(x => x.OrderByDescending(x => x.Amount).First() == selectedLargeCoin)
 			.RandomElement();
 
 		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
