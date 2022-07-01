@@ -6,12 +6,12 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class RequestTimeStatista
 {
+	private static readonly Lazy<RequestTimeStatista> Lazy = new(() => new RequestTimeStatista());
+	public static RequestTimeStatista Instance => Lazy.Value;
+
 	private RequestTimeStatista()
 	{
 	}
-
-	private static readonly Lazy<RequestTimeStatista> Lazy = new(() => new RequestTimeStatista());
-	public static RequestTimeStatista Instance => Lazy.Value;
 
 	private Dictionary<string, List<(DateTimeOffset Time, TimeSpan Duration)>> Requests { get; } = new();
 	private object Lock { get; } = new();
