@@ -1,8 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Media.Imaging;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -24,19 +22,24 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 
 		SelectedIndex = 0;
 		NextCommand = ReactiveCommand.Create(OnNext);
+		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
+		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 
 		this.WhenAnyValue(x => x.SelectedIndex)
-			.Subscribe(x =>
-			{
-				NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
-				EnableNextKey = x < NumberOfPages - 1;
-			});
+			.Subscribe(
+				x =>
+				{
+					NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
+					EnableNextKey = x < NumberOfPages - 1;
+				});
 
 		this.WhenAnyValue(x => x.IsActive)
 			.Skip(1)
 			.Where(x => !x)
 			.Subscribe(x => EnableNextKey = false);
 	}
+
+	public IObservable<bool> CanGoBack { get; }
 
 	private void OnNext()
 	{

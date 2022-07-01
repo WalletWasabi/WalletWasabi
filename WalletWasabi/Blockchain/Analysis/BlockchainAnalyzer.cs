@@ -20,17 +20,16 @@ public class BlockchainAnalyzer
 	/// </summary>
 	public void Analyze(SmartTransaction tx)
 	{
-		var inputCount = tx.Transaction.Inputs.Count;
-		var outputCount = tx.Transaction.Outputs.Count;
-
 		var ownInputCount = tx.WalletInputs.Count;
-		var ownOutputCount = tx.WalletOutputs.Count;
+
+		var foreignInputCount = tx.ForeignInputs.Count;
+		var foreignOutputCount = tx.ForeignOutputs.Count;
 
 		if (ownInputCount == 0)
 		{
 			AnalyzeReceive(tx);
 		}
-		else if (inputCount == ownInputCount && outputCount != ownOutputCount)
+		else if (foreignInputCount == 0 && foreignOutputCount > 0)
 		{
 			AnalyzeNormalSpend(tx);
 		}
@@ -39,7 +38,7 @@ public class BlockchainAnalyzer
 			int startingOutputAnonset;
 			var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
 
-			if (inputCount == ownInputCount)
+			if (foreignInputCount == 0)
 			{
 				startingOutputAnonset = AnalyzeSelfSpendWalletInputs(distinctWalletInputPubKeys);
 
@@ -115,8 +114,7 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Value)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var inputCount = tx.Transaction.Inputs.Count;
-		var ownInputCount = tx.WalletInputs.Count;
+		var foreignInputCount = tx.ForeignInputs.Count;
 
 		foreach (var newCoin in tx.WalletOutputs)
 		{
@@ -125,7 +123,7 @@ public class BlockchainAnalyzer
 			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
 
 			// Anonset gain cannot be larger than others' input count.
-			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, inputCount - ownInputCount);
+			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= ownEqualOutputCount;
