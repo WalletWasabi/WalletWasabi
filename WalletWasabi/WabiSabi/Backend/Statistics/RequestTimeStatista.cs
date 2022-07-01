@@ -1,14 +1,18 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Backend.Controllers.WabiSabi;
+namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class RequestTimeStatista
 {
+	private RequestTimeStatista()
+	{
+	}
+
+	private static readonly Lazy<RequestTimeStatista> Lazy = new(() => new RequestTimeStatista());
+	public static RequestTimeStatista Instance => Lazy.Value;
+
 	private Dictionary<string, List<(DateTimeOffset Time, TimeSpan Duration)>> Requests { get; } = new();
 	private object Lock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
@@ -30,7 +34,7 @@ public class RequestTimeStatista
 					Requests.Add(request, new() { (DateTimeOffset.UtcNow, duration) });
 				}
 
-				if ((DateTimeOffset.UtcNow - LastDisplayed) > DisplayFrequency)
+				if (DateTimeOffset.UtcNow - LastDisplayed > DisplayFrequency)
 				{
 					toDisplay = true;
 				}
