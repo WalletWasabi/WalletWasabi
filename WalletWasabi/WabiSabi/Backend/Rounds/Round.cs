@@ -12,6 +12,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 /// <summary>
 /// DO ONLY APPEND TO THE END
 /// Otherwise serialization ruins compatibility with clients.
+/// Do not insert, do not delete, do not reorder, only append!
 /// </summary>
 public enum EndRoundState
 {
