@@ -59,7 +59,6 @@ public partial class Arena : PeriodicRunner
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
-	private DateTimeOffset LastFirstOrderedRoundCreated { get; set; } = DateTimeOffset.UtcNow;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
