@@ -66,7 +66,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		var exceptions = new List<Exception>();
 		var start = DateTime.UtcNow;
 
-		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
+		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
