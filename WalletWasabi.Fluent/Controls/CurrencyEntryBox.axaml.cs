@@ -138,9 +138,18 @@ public class CurrencyEntryBox : TextBox
 			return;
 		}
 
-		if (input.StartsWith(".") && (string.IsNullOrWhiteSpace(Text) || SelectedText == Text))
+		if (IsReplacingWithImplicitDecimal(input))
 		{
-			InsertImplicitZeroForDecimal(e);
+			ReplaceCurrentTextWithLeadingZero(e);
+
+			base.OnTextInput(e);
+			return;
+		}
+
+		if (IsInsertingImplicitDecimal(input))
+		{
+			InsertLeadingZeroForDecimal(e);
+
 			base.OnTextInput(e);
 			return;
 		}
@@ -160,10 +169,31 @@ public class CurrencyEntryBox : TextBox
 		base.OnTextInput(e);
 	}
 
-	private void InsertImplicitZeroForDecimal(TextInputEventArgs e)
+	private bool IsReplacingWithImplicitDecimal(string input)
 	{
-		e.Text = "0" + e.Text;
-		CaretIndex = e.Text.Length;
+		return input.StartsWith(".") && SelectedText == Text;
+	}
+
+	private bool IsInsertingImplicitDecimal(string input)
+	{
+		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
+	}
+
+	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
+	{
+		var finalText = "0" + e.Text;
+		Text = "";
+		e.Text = finalText;
+		CaretIndex = finalText.Length;
+		ClearSelection();
+	}
+
+	private void InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	{
+		var prependText = "0" + e.Text;
+		Text = Text.Insert(0, prependText);
+		e.Text = "";
+		CaretIndex += prependText.Length;
 	}
 
 	private bool ValidateEntryText(string preComposedText)
