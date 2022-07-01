@@ -6,10 +6,6 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class RequestTimeStatista
 {
-	private RequestTimeStatista()
-	{
-	}
-
 	private static readonly Lazy<RequestTimeStatista> Lazy = new(() => new RequestTimeStatista());
 	public static RequestTimeStatista Instance => Lazy.Value;
 
@@ -17,6 +13,10 @@ public class RequestTimeStatista
 	private object Lock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
 	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(60);
+
+	private RequestTimeStatista()
+	{
+	}
 
 	public void Add(string request, TimeSpan duration)
 	{
