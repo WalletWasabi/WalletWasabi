@@ -40,16 +40,12 @@
 		<PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
-		<ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
-		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
+		<ApplicationIcon>WasabiLogo.ico</ApplicationIcon>
+		<PackageIcon>WasabiLogo.ico</PackageIcon>
 		<Product>Wasabi Wallet Fluent</Product>
 		<!-- owners is not supported in MSBuild -->
 		<AvaloniaVersion>0.10.999-cibuild0021004-beta</AvaloniaVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<AvaloniaResource Include="Assets\**" />
-	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
@@ -62,4 +58,9 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="WasabiLogo.ico"  Link="WasabiLogo.ico" />
+	</ItemGroup>
+
 </Project>
