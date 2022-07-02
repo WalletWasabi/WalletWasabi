@@ -45,7 +45,6 @@ public static class Program
 	public static string PackagerProjectDirectory { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 	public static string SolutionDirectory { get; } = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
 	public static string DesktopProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
-	public static string FluentLibraryProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent"));
 	public static string LibraryProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
 	public static string WixProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
 	public static string BinDistDirectory { get; } = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
@@ -423,7 +422,7 @@ public static class Program
 				newFolderPath = Path.Combine(BinDistDirectory, newFolderRelativePath);
 				Directory.Move(publishedFolder, newFolderPath);
 
-				var assetsFolder = Path.Combine(FluentLibraryProjectDirectory, "Assets");
+				var assetsFolder = Path.Combine(DesktopProjectDirectory, "Assets");
 				var assetsInfo = new DirectoryInfo(assetsFolder);
 
 				foreach (var file in assetsInfo.EnumerateFiles())
