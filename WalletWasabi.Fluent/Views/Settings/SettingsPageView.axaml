@@ -27,7 +27,7 @@
   <c:ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"
                  EnableNext="True"
-                 NextContent="Close"
+                 NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
