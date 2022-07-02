@@ -1,8 +1,10 @@
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -16,8 +18,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "nav_settings_24_regular",
 	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
-	NavBarPosition = NavBarPosition.Bottom)]
-public partial class SettingsPageViewModel : NavBarItemViewModel
+	NavBarPosition = NavBarPosition.Bottom,
+	NavigationTarget = NavigationTarget.DialogScreen)]
+public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 {
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
@@ -26,10 +29,14 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	{
 		_selectedTab = 0;
 
+		SelectionMode = NavBarItemSelectionMode.Button;
+
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
+
+		NextCommand = CancelCommand;
 	}
 
 	public ICommand RestartCommand { get; }
@@ -45,6 +52,8 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		IsModified = SettingsTabViewModelBase.CheckIfRestartIsNeeded();
 
 		SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 
