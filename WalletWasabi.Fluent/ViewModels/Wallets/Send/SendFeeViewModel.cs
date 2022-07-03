@@ -113,11 +113,6 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	{
 		var customFeeString = FeeRateString;
 
-		if (customFeeString is null or "")
-		{
-			return;
-		}
-
 		if (!decimal.TryParse(customFeeString, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value))
 		{
 			errors.Add(ErrorSeverity.Error, "The entered fee is not valid.");

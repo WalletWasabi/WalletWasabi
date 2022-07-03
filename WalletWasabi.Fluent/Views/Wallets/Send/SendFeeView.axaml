@@ -146,7 +146,8 @@
         <StackPanel Orientation="Horizontal">
           <Label Content="_Fee rate:" Target="FeeRate" Margin="0 10 5 0" />
           <c:CurrencyEntryBox Text="{Binding FeeRateString}" CurrencyCode="sat/vbyte"
-                              Width="220" MaxLength="10" Classes="standalone" />
+                              Width="220" MaxLength="10" Classes="standalone"
+                              Watermark="0 sat/vbyte"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal">
           <Label Content="{Binding FeeChart.CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Time: \{0\}'}"
