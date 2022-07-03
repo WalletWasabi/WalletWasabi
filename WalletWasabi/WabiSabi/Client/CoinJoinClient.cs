@@ -203,7 +203,7 @@ public class CoinJoinClient
 				return new CoinJoinResult(false);
 			}
 
-			roundState.LogDebug($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
+			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
@@ -706,7 +706,7 @@ public class CoinJoinClient
 
 			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-			roundState.LogDebug($"Outputs({outputTxOuts.Count()}) were registered.");
+			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
 		}
 		catch (Exception e)
 		{
