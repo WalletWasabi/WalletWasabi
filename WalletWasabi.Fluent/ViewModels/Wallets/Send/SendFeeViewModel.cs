@@ -72,6 +72,11 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private void OnSliderValueChanged(decimal x)
 	{
+		if (_isSliderChange)
+		{
+			return;
+		}
+
 		_isSliderChange = true;
 
 		_transactionInfo.IsCustomFeeUsed = false;
@@ -93,7 +98,9 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		{
 			_transactionInfo.FeeRate = new FeeRate(feeRate);
 			_transactionInfo.IsCustomFeeUsed = true;
+			_isSliderChange = true;
 			FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
+			_isSliderChange = false;
 		}
 		else if (_transactionInfo.IsCustomFeeUsed)
 		{
