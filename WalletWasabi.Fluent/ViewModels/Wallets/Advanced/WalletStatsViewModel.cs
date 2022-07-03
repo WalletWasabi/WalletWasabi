@@ -4,8 +4,10 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
@@ -14,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
+	private readonly WalletViewModel _walletViewModel;
 
 	[AutoNotify] private int _coinCount;
 	[AutoNotify] private string _balance = "";
@@ -25,10 +28,14 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _generatedUsedKeyCount;
 	[AutoNotify] private int _largestExternalKeyGap;
 	[AutoNotify] private int _largestInternalKeyGap;
+	[AutoNotify] private int _totalTransactionCount;
+	[AutoNotify] private int _transactionCount;
+	[AutoNotify] private int _coinjoinCount;
 
-	public WalletStatsViewModel(WalletViewModelBase walletViewModelBase)
+	public WalletStatsViewModel(WalletViewModel walletViewModel)
 	{
-		_wallet = walletViewModelBase.Wallet;
+		_wallet = walletViewModel.Wallet;
+		_walletViewModel = walletViewModel;
 
 		UpdateProps();
 
@@ -66,5 +73,9 @@ public partial class WalletStatsViewModel : RoutableViewModel
 
 		LargestExternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: false, ignoreTail: true);
 		LargestInternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: true, ignoreTail: true);
+
+		TotalTransactionCount = _walletViewModel.History.Transactions.Count;
+		TransactionCount = _walletViewModel.History.Transactions.Count(x => !x.IsCoinJoin);
+		CoinjoinCount = _walletViewModel.History.Transactions.Count(x => x.IsCoinJoin);
 	}
 }
