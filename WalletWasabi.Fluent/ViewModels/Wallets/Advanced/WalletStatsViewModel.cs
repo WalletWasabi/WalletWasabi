@@ -80,8 +80,8 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		var nestedCoinjoins = groupedCoinjoins.SelectMany(x => x.Children).ToList();
 		var nonCoinjoins = _walletViewModel.History.Transactions.Where(x => !x.IsCoinJoin).ToList();
 
-		TotalTransactionCount = singleCoinjoins.Count + groupedCoinjoins.Count + nestedCoinjoins.Count + nonCoinjoins.Count;
+		TotalTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count + nonCoinjoins.Count;
 		NonCoinjointransactionCount = nonCoinjoins.Count;
-		CoinjoinTransactionCount = singleCoinjoins.Count + groupedCoinjoins.Count + nestedCoinjoins.Count;
+		CoinjoinTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count;
 	}
 }
