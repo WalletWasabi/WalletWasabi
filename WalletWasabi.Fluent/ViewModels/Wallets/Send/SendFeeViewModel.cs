@@ -70,6 +70,8 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 	}
 
+	public FeeChartViewModel FeeChart { get; }
+
 	private void OnSliderValueChanged(decimal x)
 	{
 		if (_isSliderChange)
@@ -84,8 +86,6 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		FeeRateString = x.ToString("0");
 		_isSliderChange = false;
 	}
-
-	public FeeChartViewModel FeeChart { get; }
 
 	private void OnFeeRateStringChanged(string feeRateString)
 	{
