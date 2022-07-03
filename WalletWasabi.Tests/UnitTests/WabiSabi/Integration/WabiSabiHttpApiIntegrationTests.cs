@@ -76,7 +76,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			builder.ConfigureServices(services =>
 			{
 				var inmate = new Inmate(bannedOutPoint, Punishment.LongBanned, DateTimeOffset.UtcNow, uint256.One);
-				services.AddScoped<Prison>(_ => new Prison(new[] {inmate}));
+				services.AddScoped<Prison>(_ => new Prison(new[] { inmate }));
 			})).CreateClient();
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
@@ -184,7 +184,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[Fact]
 	public async Task FailToRegisterOutputsCoinJoinTestAsync()
 	{
-		var amounts = new long[] {10_000_000, 20_000_000, 30_000_000};
+		var amounts = new long[] { 10_000_000, 20_000_000, 30_000_000 };
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -400,7 +400,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// BadCoinsTask will throw.
-		await Assert.ThrowsAsync<TaskCanceledException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
+		var ex = await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
+		Assert.True(ex.InnerExceptions.Last() is TaskCanceledException);
 
 		Assert.True(badCoinsTask.IsCanceled);
 		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
@@ -417,11 +418,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 	[Theory]
 	[InlineData(123456, 0.00, 0.00)]
-	//[InlineData(123456, 0.01, 0.01)]
-	//[InlineData(123456, 0.10, 0.00)] // Highly aggressive monkey.
-	//[InlineData(123456, 0.00, 0.10)] // Highly aggressive monkey.
-	//[InlineData(123456, 0.05, 0.05)] // Concurrency of aggressive monkeys
-	//[InlineData(123456, 0.10, 0.10)]
 	public async Task MultiClientsCoinJoinTestAsync(
 		int seed,
 		double faultInjectorMonkeyAggressiveness,
@@ -445,7 +441,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
-						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness)) ),
+						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness))),
 						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(5 * ExpectedInputNumber),
 						BlameInputRegistrationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
 						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
