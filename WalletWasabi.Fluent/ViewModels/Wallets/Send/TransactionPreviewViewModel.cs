@@ -206,11 +206,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
 		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-		    newFeeRate != _info.FeeRate)
+			newFeeRate != _info.FeeRate)
 		{
 			_info.FeeRate = feeRateDialogResult.Result;
 
-			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
+			_ = BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
 	}
 
@@ -246,7 +246,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var privacyControlDialogResult =
 				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-			    privacyControlDialogResult.Result is { } coins)
+				privacyControlDialogResult.Result is { } coins)
 			{
 				_info.Coins = coins;
 			}
@@ -353,7 +353,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				: FeeRate.Zero;
 
 		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
-		    (differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
+			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 			_info.FeeRate = maximumPossibleFeeRate;
@@ -482,7 +482,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (!_wallet.KeyManager.IsHardwareWallet &&
-		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 		{
 			return true;
 		}
