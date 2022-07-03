@@ -146,11 +146,11 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
 	{
-		Func<KeyValuePair<Exception, int>, bool> predicate = x => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message;
+		bool Predicate(KeyValuePair<Exception, int> x) => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message;
 
-		if (exceptions.Any(predicate))
+		if (exceptions.Any(Predicate))
 		{
-			var first = exceptions.First(predicate);
+			var first = exceptions.First(Predicate);
 			exceptions[first.Key]++;
 		}
 		else
