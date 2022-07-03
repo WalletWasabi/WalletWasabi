@@ -39,13 +39,13 @@
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Number of non-Coinjoin Transactions"
-                     TextValue="{Binding TransactionCount}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding TransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+                     TextValue="{Binding NonCoinjointransactionCount}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding NonCoinjointransactionCount, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Number of Coinjoin Transactions"
-                     TextValue="{Binding CoinjoinCount}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding CoinjoinCount, Mode=OneWay}" Classes="monoSpaced" />
+                     TextValue="{Binding CoinjoinTransactionCount}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding CoinjoinTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
       <Separator />
 

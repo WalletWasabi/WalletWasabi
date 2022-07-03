@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
@@ -29,8 +30,8 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	[AutoNotify] private int _largestExternalKeyGap;
 	[AutoNotify] private int _largestInternalKeyGap;
 	[AutoNotify] private int _totalTransactionCount;
-	[AutoNotify] private int _transactionCount;
-	[AutoNotify] private int _coinjoinCount;
+	[AutoNotify] private int _nonCoinjointransactionCount;
+	[AutoNotify] private int _coinjoinTransactionCount;
 
 	public WalletStatsViewModel(WalletViewModel walletViewModel)
 	{
@@ -74,8 +75,13 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		LargestExternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: false, ignoreTail: true);
 		LargestInternalKeyGap = _wallet.KeyManager.CountConsecutiveUnusedKeys(isInternal: true, ignoreTail: true);
 
-		TotalTransactionCount = _walletViewModel.History.Transactions.Count;
-		TransactionCount = _walletViewModel.History.Transactions.Count(x => !x.IsCoinJoin);
-		CoinjoinCount = _walletViewModel.History.Transactions.Count(x => x.IsCoinJoin);
+		var singleCoinjoins = _walletViewModel.History.Transactions.OfType<CoinJoinHistoryItemViewModel>().ToList();
+		var groupedCoinjoins = _walletViewModel.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().ToList();
+		var nestedCoinjoins = groupedCoinjoins.SelectMany(x => x.Children).ToList();
+		var nonCoinjoins = _walletViewModel.History.Transactions.Where(x => !x.IsCoinJoin).ToList();
+
+		TotalTransactionCount = singleCoinjoins.Count + groupedCoinjoins.Count + nestedCoinjoins.Count + nonCoinjoins.Count;
+		NonCoinjointransactionCount = nonCoinjoins.Count;
+		CoinjoinTransactionCount = singleCoinjoins.Count + groupedCoinjoins.Count + nestedCoinjoins.Count;
 	}
 }
