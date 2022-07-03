@@ -199,7 +199,6 @@ public class CoinJoinClient
 
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				roundState.LogInfo("There are no available Alices to participate with.");
 				return new CoinJoinResult(false);
 			}
 
@@ -253,15 +252,22 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken inputRegTimeoutCancel, CancellationToken connConfTimeoutCancel, CancellationToken cancel)
+	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
 	{
 		int eventInvokedAlready = 0;
 
+		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+
+		using CancellationTokenSource strictInputRegTimeoutCts = new(remainingInputRegTime);
+		using CancellationTokenSource inputRegTimeoutCts = new(remainingInputRegTime + ExtraPhaseTimeoutMargin);
+		using CancellationTokenSource connConfTimeoutCts = new(remainingInputRegTime + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource registrationsCts = new();
 		using CancellationTokenSource confirmationsCts = new();
-		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCancel, registrationsCts.Token, cancel);
-		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCancel, confirmationsCts.Token, cancel);
-		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCancel, connConfTimeoutCancel, cancel);
+
+		using CancellationTokenSource linkedUnregisterCts = CancellationTokenSource.CreateLinkedTokenSource(strictInputRegTimeoutCts.Token, registrationsCts.Token);
+		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancel);
+		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancel);
+		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancel);
 
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
@@ -278,7 +284,7 @@ public class CoinJoinClient
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					arenaRequestHandler);
 
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
 				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
@@ -716,8 +722,8 @@ public class CoinJoinClient
 		}
 		catch (Exception e)
 		{
-			roundState.LogDebug(e.ToString());
 			roundState.LogInfo($"Failed to register outputs with message {e.Message}. Ignoring...");
+			roundState.LogDebug(e.ToString());
 		}
 
 		// ReadyToSign.
@@ -770,14 +776,10 @@ public class CoinJoinClient
 
 	private async Task<ImmutableArray<(AliceClient, PersonCircuit)>> ProceedWithInputRegAndConfirmAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
-		using CancellationTokenSource inputRegTimeoutCts = new(remainingInputRegTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource connConfTimeoutCts = new(remainingInputRegTime + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout + ExtraPhaseTimeoutMargin);
-
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
 
 		// Register coins.
-		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancellationToken).ConfigureAwait(false);
+		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 
 		if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
 		{
