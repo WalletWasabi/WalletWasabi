@@ -108,16 +108,14 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				Logger.LogTrace($"Attempt {attempt} failed with {nameof(TorException)}: {e.Message}.");
 				exceptions.Add(e);
 			}
+			catch (OperationCanceledException e)
+			{
+				Logger.LogTrace($"Attempt {attempt} failed with {nameof(OperationCanceledException)}: {e.Message}.");
+				exceptions.Add(e);
+			}
 			catch (Exception e)
 			{
-				if (e is OperationCanceledException)
-				{
-					Logger.LogTrace($"Attempt {attempt} failed with {nameof(OperationCanceledException)}: {e.Message}.");
-				}
-				else
-				{
-					Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
-				}
+				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
 
 				if (exceptions.Any())
 				{
@@ -130,8 +128,15 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				}
 			}
 
-			// Wait before the next try.
-			await Task.Delay(250, combinedToken).ConfigureAwait(false);
+			try
+			{
+				// Wait before the next try.
+				await Task.Delay(250, combinedToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				exceptions.Add(e);
+			}
 
 			attempt++;
 		} while (!combinedToken.IsCancellationRequested);
