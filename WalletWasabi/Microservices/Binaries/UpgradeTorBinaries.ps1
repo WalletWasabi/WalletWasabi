@@ -24,7 +24,7 @@ Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
 
 # <Settings>
-$version = "11.0.14"
+$version = "11.0.15"
 $distUri = "https://www.torproject.org/dist/torbrowser/${version}"
 
 $supportedPlatforms = @(
@@ -36,8 +36,10 @@ $supportedPlatforms = @(
 
 if ($IsWindows) {
   $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
-} else {
+} else if ($IsMacOS) {
   $sevenZip = '7z'
+} else {
+  $sevenZip = '7zz'
 }
 
 $windowsInstaller = "torbrowser-install-win64-${version}_en-US.exe"
