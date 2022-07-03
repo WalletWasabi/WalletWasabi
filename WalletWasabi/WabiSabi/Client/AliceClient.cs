@@ -209,9 +209,13 @@ public class AliceClient
 			SmartCoin.CoinJoinInProgress = false;
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.OutPoint}.");
 		}
-		catch (Exception ex)
+		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
 		{
-			if (ex is HttpRequestException && ex.InnerException is WabiSabiProtocolException wpe)
+			Logger.LogTrace(e);
+		}
+		catch (Exception e)
+		{
+			if (e is HttpRequestException && e.InnerException is WabiSabiProtocolException wpe)
 			{
 				switch (wpe.ErrorCode)
 				{
@@ -227,7 +231,7 @@ public class AliceClient
 			}
 
 			// Log and swallow the exception because there is nothing else that can be done here.
-			Logger.LogWarning($"{SmartCoin.Coin.Outpoint} unregistration failed with {ex}.");
+			Logger.LogWarning($"{SmartCoin.Coin.Outpoint} unregistration failed with {e}.");
 		}
 	}
 
