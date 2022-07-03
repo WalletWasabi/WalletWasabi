@@ -110,7 +110,15 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			}
 			catch (Exception e)
 			{
-				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
+				if (e is OperationCanceledException)
+				{
+					Logger.LogTrace($"Attempt {attempt} failed with {nameof(OperationCanceledException)}: {e.Message}.");
+				}
+				else
+				{
+					Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
+				}
+
 				if (exceptions.Any())
 				{
 					exceptions.Add(e);
