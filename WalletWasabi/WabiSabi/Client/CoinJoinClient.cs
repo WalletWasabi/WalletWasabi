@@ -757,7 +757,7 @@ public class CoinJoinClient
 			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
 
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
+		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
 		return (unsignedCoinJoin, alicesToSign);
 	}
