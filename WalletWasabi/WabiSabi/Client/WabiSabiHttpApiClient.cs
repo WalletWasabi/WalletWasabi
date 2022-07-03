@@ -63,7 +63,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 	{
-		var exceptions = new List<(Exception ex, int count)>();
+		var exceptions = new Dictionary<Exception, int>();
 		var start = DateTime.UtcNow;
 
 		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
@@ -86,7 +86,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				if (exceptions.Any())
 				{
 					Logger.LogDebug(
-						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Select(x => x.ex))}.");
+						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
 				}
 				else
 				{
@@ -120,7 +120,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				if (exceptions.Any())
 				{
 					AddException(exceptions, e);
-					throw new AggregateException(exceptions.Select(x => x.ex));
+					throw new AggregateException(exceptions.Keys);
 				}
 				else
 				{
@@ -141,19 +141,19 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			attempt++;
 		} while (!combinedToken.IsCancellationRequested);
 
-		throw new AggregateException(exceptions.Select(x => x.ex));
+		throw new AggregateException(exceptions.Keys);
 	}
 
-	private static void AddException(List<(Exception ex, int count)> exceptions, Exception e)
+	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
 	{
-		var first = exceptions.FirstOrDefault(x => e.GetType() == x.ex.GetType() && e.Message == x.ex.Message);
+		var first = exceptions.FirstOrDefault(x => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message);
 		if (first is { })
 		{
-			first.count++;
+			exceptions[first.Key]++;
 		}
 		else
 		{
-			exceptions.Add((e, 1));
+			exceptions.Add(e, 1);
 		}
 	}
 
