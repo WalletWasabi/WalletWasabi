@@ -146,9 +146,11 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
 	{
-		var first = exceptions.FirstOrDefault(x => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message);
-		if (first is { })
+		Func<KeyValuePair<Exception, int>, bool> predicate = x => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message;
+
+		if (exceptions.Any(predicate))
 		{
+			var first = exceptions.First(predicate);
 			exceptions[first.Key]++;
 		}
 		else
