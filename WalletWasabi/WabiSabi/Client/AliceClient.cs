@@ -136,13 +136,17 @@ public class AliceClient
 						Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late. Abort the rest of the registrations.");
 						break;
 
-					default:
-						Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
-						break;
-				}
-			}
-			throw;
-		}
+                    case WabiSabiProtocolErrorCode.RoundNotFound:
+	                    Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Abort the rest of the registrations.");
+	                    break;
+                    
+                    default:
+                        Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
+                        break;
+                }
+            }
+            throw;
+        }
 
 		return aliceClient;
 	}

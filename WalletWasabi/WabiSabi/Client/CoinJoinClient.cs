@@ -297,7 +297,13 @@ public class CoinJoinClient
 			}
 			catch (WabiSabiProtocolException wpe)
 			{
-				if (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+				if (wpe.ErrorCode is WabiSabiProtocolErrorCode.RoundNotFound)
+				{
+					// if the round does not exist then it ended/aborted.
+					registrationsCts.Cancel();
+					confirmationsCts.Cancel();
+				}
+				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
 				{
 					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
