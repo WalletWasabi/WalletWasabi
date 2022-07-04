@@ -8,6 +8,18 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class BlockchainAnalyzer
 {
+	private static long[] StdDenoms = new[]
+	{
+		5000L, 6561L, 8192L, 10000L, 13122L, 16384L, 19683L, 20000L, 32768L, 39366L, 50000L, 59049L, 65536L, 100000L, 118098L,
+		131072L, 177147L, 200000L, 262144L, 354294L, 500000L, 524288L, 531441L, 1000000L, 1048576L, 1062882L, 1594323L, 2000000L,
+		2097152L, 3188646L, 4194304L, 4782969L, 5000000L, 8388608L, 9565938L, 10000000L, 14348907L, 16777216L, 20000000L,
+		28697814L, 33554432L, 43046721L, 50000000L, 67108864L, 86093442L, 100000000L, 129140163L, 134217728L, 200000000L,
+		258280326L, 268435456L, 387420489L, 500000000L, 536870912L, 774840978L, 1000000000L, 1073741824L, 1162261467L,
+		2000000000L, 2147483648L, 2324522934L, 3486784401L, 4294967296L, 5000000000L, 6973568802L, 8589934592L, 10000000000L,
+		10460353203L, 17179869184L, 20000000000L, 20920706406L, 31381059609L, 34359738368L, 50000000000L, 62762119218L,
+		68719476736L, 94143178827L, 100000000000L, 137438953472L
+	};
+
 	public BlockchainAnalyzer(int privacyLevelThreshold)
 	{
 		PrivacyLevelThreshold = privacyLevelThreshold;
@@ -114,6 +126,10 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Value)
 			.ToDictionary(x => x.Key, y => y.Count());
 
+		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
+		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
+		bool? isWasabi2Cj = null;
+
 		var foreignInputCount = tx.ForeignInputs.Count;
 
 		foreach (var newCoin in tx.WalletOutputs)
@@ -128,8 +144,29 @@ public class BlockchainAnalyzer
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= ownEqualOutputCount;
 
-			// If not anonset gain achieved on the output, then it's best to assume it's change.
-			var startingOutputAnonset = anonset == 0 ? startingNonMixedOutputAnonset : startingMixedOutputAnonset;
+			// If no anonset gain achieved on the output, then it's best to assume it's change.
+			int startingOutputAnonset;
+			if (anonset == 0)
+			{
+				isWasabi2Cj ??=
+					tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& outputValues.Count(x => StdDenoms.Contains(x.Satoshi)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
+					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
+
+				// When WW2 denom output isn't too large, then it's not change.
+				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
+				{
+					startingOutputAnonset = startingMixedOutputAnonset;
+				}
+				else
+				{
+					startingOutputAnonset = startingNonMixedOutputAnonset;
+				}
+			}
+			else
+			{
+				startingOutputAnonset = startingMixedOutputAnonset;
+			}
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
