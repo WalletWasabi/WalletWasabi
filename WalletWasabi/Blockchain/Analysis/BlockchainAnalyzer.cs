@@ -127,7 +127,7 @@ public class BlockchainAnalyzer
 			.ToDictionary(x => x.Key, y => y.Count());
 
 		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
-		var largestValues = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
+		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
 		bool? isWasabi2Cj = null;
 
 		var foreignInputCount = tx.ForeignInputs.Count;
@@ -144,7 +144,7 @@ public class BlockchainAnalyzer
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= ownEqualOutputCount;
 
-			// If not anonset gain achieved on the output, then it's best to assume it's change.
+			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			int startingOutputAnonset;
 			if (anonset == 0)
 			{
@@ -153,7 +153,8 @@ public class BlockchainAnalyzer
 					&& outputValues.Count(x => StdDenoms.Contains(x.Satoshi)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
 					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
 
-				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < largestValues)
+				// When WW2 denom output isn't too large, then it's not change.
+				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 				}
