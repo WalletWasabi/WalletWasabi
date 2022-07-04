@@ -87,7 +87,6 @@
           <ColumnDefinition Width="1*" />
           <ColumnDefinition Width="3*" MaxWidth="400" />
           <ColumnDefinition Width="1*" />
-          <ColumnDefinition Width="75" />
         </Grid.ColumnDefinitions>
 
         <DockPanel Grid.Column="1">
@@ -102,7 +101,7 @@
           </Panel>
         </DockPanel>
         <ContentControl Grid.Column="2" ContentTemplate="{StaticResource SearchBar}" />
-        <shell:NetworkBadgeView  Grid.Column="3" />
+        <shell:NetworkBadgeView Margin="10,0,10,0" Grid.Column="3" />
       </Grid>
     </DataTemplate>
   </UserControl.Resources>
