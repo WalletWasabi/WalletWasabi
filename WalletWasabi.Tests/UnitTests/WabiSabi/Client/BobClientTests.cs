@@ -57,7 +57,7 @@ public class BobClientTests
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var keyChain = new KeyChain(km, new Kitchen(""));
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
 
 		do
 		{

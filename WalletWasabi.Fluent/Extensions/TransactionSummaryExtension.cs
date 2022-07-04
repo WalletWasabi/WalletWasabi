@@ -11,9 +11,11 @@ public static class TransactionSummaryExtension
 {
 	public static bool IsConfirmed(this TransactionSummary model)
 	{
-		var confirmations = model.Height.Type == HeightType.Chain ? (int)Services.BitcoinStore.SmartHeaderChain.TipHeight - model.Height.Value + 1 : 0;
+		var confirmations = model.GetConfirmations();
 		return confirmations > 0;
 	}
+
+	public static int GetConfirmations(this TransactionSummary model) => model.Height.Type == HeightType.Chain ? (int)Services.BitcoinStore.SmartHeaderChain.TipHeight - model.Height.Value + 1 : 0;
 
 	public static MoneyUnit ToMoneyUnit(this FeeDisplayUnit feeDisplayUnit) =>
 		feeDisplayUnit switch
