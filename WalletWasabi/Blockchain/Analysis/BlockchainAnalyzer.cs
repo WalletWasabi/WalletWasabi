@@ -130,31 +130,22 @@ public class BlockchainAnalyzer
 		var foreignInputCount = tx.ForeignInputs.Count;
 		var allOutputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();			
 
+		// We use output order as heuristic to determine whether the coinjoin is wabisabi or not.
+		var isWabiSabiCoinJoin = allOutputValues
+				.Zip(allOutputValues.Skip(1))
+                .All(p => p.First >= p.Second);
+
+		
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			var output = newCoin.TxOut;
 			var equalOutputCount = indistinguishableOutputs[output.Value];
 			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
 
-			// Create a list containing the coinjoin's output values that repeat and are also standard.
-			var stdValuesUsedInOutputs = indistinguishableOutputs.Keys.Intersect(StdDenoms);
-			var stdValuesUsedInOutputsSmallerThanCoin = stdValuesUsedInOutputs.Where(x => x < output.Value).ToArray();
-
-			// Compute the decompositions in which the current analyzed txout value can be expressed (in no more than 6 elements,
-			// this is arbitrary) and count how many of those are present in the coinjoin transaction.
-			var newCoinEquivalentCount = Decomposer
-				.Decompose(output.Value, tolerance: 0, maxCount: 8, stdValuesUsedInOutputsSmallerThanCoin)
-				.Select(d =>
-					Decomposer.ToRealValuesArray(d.Decomposition, d.Count, stdValuesUsedInOutputsSmallerThanCoin))
-				.TakeWhile(equivalentCandidate => allOutputValues.IsSuperSetOf(equivalentCandidate))
-				.Take(10) // Arbitrary circuit breaker. If there are at least 10 possible ways to sum up the same coin amount then stop.
-				.Count();
-
-			// if the value of the current output can be expressed using 8 or more combinations also present in the
-			// coinjoin then do not punish it too hard.
-			var shouldBePenalized = newCoinEquivalentCount < 8;
-			var punishmentSeverity = (int)Math.Max(1, shouldBePenalized ? ownEqualOutputCount : ownEqualOutputCount / 3.0);  
-			
+			var punishmentSeverity = isWabiSabiCoinJoin
+				? PunishmentSeverity(indistinguishableOutputs, output, allOutputValues, ownEqualOutputCount)
+				: ownEqualOutputCount;
+				
 			// Anonset gain cannot be larger than others' input count.
 			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
 
@@ -206,6 +197,30 @@ public class BlockchainAnalyzer
 				hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
 			}
 		}
+	}
+
+	private static int PunishmentSeverity(Dictionary<long, int> indistinguishableOutputs, TxOut output, long[] allOutputValues,
+		int ownEqualOutputCount)
+	{
+		// Create a list containing the coinjoin's output values that repeat and are also standard.
+		var stdValuesUsedInOutputs = indistinguishableOutputs.Keys.Intersect(StdDenoms);
+		var stdValuesUsedInOutputsSmallerThanCoin = stdValuesUsedInOutputs.Where(x => x < output.Value).ToArray();
+
+		// Compute the decompositions in which the current analyzed txout value can be expressed (in no more than 6 elements,
+		// this is arbitrary) and count how many of those are present in the coinjoin transaction.
+		var newCoinEquivalentCount = Decomposer
+			.Decompose(output.Value, tolerance: 0, maxCount: 8, stdValuesUsedInOutputsSmallerThanCoin)
+			.Select(d =>
+				Decomposer.ToRealValuesArray(d.Decomposition, d.Count, stdValuesUsedInOutputsSmallerThanCoin))
+			.TakeWhile(allOutputValues.IsSuperSetOf)
+			.Take(8) // Arbitrary circuit breaker. If there are at least 10 possible ways to sum up the same coin amount then stop.
+			.Count();
+
+		// if the value of the current output can be expressed using 8 or more combinations also present in the
+		// coinjoin then do not punish it too hard.
+		var shouldBePenalized = newCoinEquivalentCount < 8;
+		var punishmentSeverity = (int) Math.Max(1, shouldBePenalized ? ownEqualOutputCount : ownEqualOutputCount / 4.0);
+		return punishmentSeverity;
 	}
 
 	/// <summary>
