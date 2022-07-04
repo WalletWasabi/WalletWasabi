@@ -28,14 +28,14 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	public SettingsPageViewModel()
 	{
 		_selectedTab = 0;
-
 		SelectionMode = NavBarItemSelectionMode.Button;
+
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
-
 		NextCommand = CancelCommand;
 	}
 
