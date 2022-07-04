@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using DynamicData;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -22,9 +24,11 @@ public partial class SearchBarViewModel : ReactiveObject
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
 
-		itemsObservable
+		var filteredItems = itemsObservable
 			.RefCount()
-			.Filter(filterPredicate)
+			.Filter(filterPredicate);
+
+		filteredItems
 			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
@@ -32,7 +36,14 @@ public partial class SearchBarViewModel : ReactiveObject
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
+
+		Any = filteredItems
+			.Count()
+			.Select(i => i > 0)
+			.ObserveOn(RxApp.MainThreadScheduler);
 	}
+
+	public IObservable<bool> Any { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 

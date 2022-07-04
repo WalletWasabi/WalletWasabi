@@ -53,16 +53,28 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(async args =>
 			{
-				Close();
 				await ShowErrorAsync(
 					Title,
 					args.EventArgs.Message,
 					"Something went wrong");
+
+				Close();
 			})
 			.DisposeWith(disposables);
 
-		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None))));
+		if (!isInHistory)
+		{
+			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
+		}
+	}
 
-		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+
+		if (!isInHistory)
+		{
+			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None));
+		}
 	}
 }

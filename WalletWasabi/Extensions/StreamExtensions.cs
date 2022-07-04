@@ -1,8 +1,9 @@
 using System.Buffers;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.IO;
+namespace WalletWasabi.Extensions;
 
 public static class StreamExtensions
 {
@@ -12,6 +13,7 @@ public static class StreamExtensions
 	/// <param name="stream">Stream to read from.</param>
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns><c>-1</c> when no byte could be read, otherwise valid byte value (cast <see cref="int"/> result to <see cref="byte"/>).</returns>
+	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 	public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken cancellationToken = default)
 	{
 		ArrayPool<byte> pool = ArrayPool<byte>.Shared;
@@ -19,6 +21,10 @@ public static class StreamExtensions
 		try
 		{
 			int len = await stream.ReadAsync(buffer.AsMemory(0, 1), cancellationToken).ConfigureAwait(false);
+
+			// We prefer to throw the exception rather than returning -1 as the cancellation token parameter of Stream.ReadAsync() method
+			// is advisory: https://github.com/dotnet/runtime/issues/24093#issuecomment-544941928.
+			cancellationToken.ThrowIfCancellationRequested();
 
 			// End of stream.
 			if (len == 0)
@@ -50,6 +56,8 @@ public static class StreamExtensions
 		{
 			int read = await stream.ReadAsync(buffer.AsMemory(count - remaining, remaining), cancellationToken).ConfigureAwait(false);
 
+			// We prefer to throw the exception rather than breaking here as the cancellation token parameter of Stream.ReadAsync() method
+			// is advisory: https://github.com/dotnet/runtime/issues/24093#issuecomment-544941928.
 			cancellationToken.ThrowIfCancellationRequested();
 
 			// End of stream.

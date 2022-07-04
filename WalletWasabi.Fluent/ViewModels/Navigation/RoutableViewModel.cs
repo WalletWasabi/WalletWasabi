@@ -154,7 +154,12 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	protected async Task ShowErrorAsync(string title, string message, string caption)
 	{
 		var dialog = new ShowErrorDialogViewModel(message, title, caption);
-		await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+
+		var target = CurrentTarget == NavigationTarget.CompactDialogScreen
+			? NavigationTarget.CompactDialogScreen
+			: NavigationTarget.DialogScreen;
+
+		await NavigateDialogAsync(dialog, target);
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)

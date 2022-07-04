@@ -47,23 +47,24 @@ public static class BitcoinFactory
 			tx.Outputs.Add(output);
 		}
 
+		var stx = new SmartTransaction(tx, Height.Mempool);
 		var idx = (uint)othersOutputs.Count() - 1;
 		foreach (var txo in ownOutputs)
 		{
 			idx++;
 			var hdpk = txo.hdpk;
 			tx.Outputs.Add(new TxOut(txo.value, hdpk.P2wpkhScript));
-			var sc = new SmartCoin(new SmartTransaction(tx, Height.Mempool), idx, hdpk);
+			var sc = new SmartCoin(stx, idx, hdpk);
 			walletOutputs.Add(sc);
 		}
-		var stx = new SmartTransaction(tx, Height.Mempool);
+
 		foreach (var sc in walletInputs)
 		{
-			stx.WalletInputs.Add(sc);
+			stx.TryAddWalletInput(sc);
 		}
 		foreach (var sc in walletOutputs)
 		{
-			stx.WalletOutputs.Add(sc);
+			stx.TryAddWalletOutput(sc);
 		}
 		return stx;
 	}

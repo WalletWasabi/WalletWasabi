@@ -12,6 +12,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -119,8 +120,6 @@ public class CoinJoinClient
 
 	public async Task<CoinJoinResult> StartCoinJoinAsync(IEnumerable<SmartCoin> coinCandidates, CancellationToken cancellationToken)
 	{
-		var tryLimit = 6;
-
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
 		ImmutableList<SmartCoin> coins;
@@ -148,7 +147,8 @@ public class CoinJoinClient
 			throw new NoCoinsToMixException($"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
-		for (var tries = 0; tries < tryLimit; tries++)
+		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
+		while (true)
 		{
 			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false);
 			if (!result.GoForBlameRound)
@@ -199,17 +199,16 @@ public class CoinJoinClient
 
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				roundState.LogInfo("There are no available Alices to participate with.");
 				return new CoinJoinResult(false);
 			}
 
-			roundState.LogDebug($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
+			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
-			var unsignedCoinJoin = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -221,17 +220,19 @@ public class CoinJoinClient
 				EndRoundState.AbortedNotEnoughAlices => "Aborted. Not enough participants.",
 				EndRoundState.AbortedNotEnoughAlicesSigned => "Aborted. Not enough participants signed the coinjoin transaction.",
 				EndRoundState.NotAllAlicesSign => "Aborted. Some Alices didn't sign. Go to blame round.",
+				EndRoundState.AbortedNotAllAlicesConfirmed => "Aborted. Some Alices didn't confirm.",
+				EndRoundState.AbortedLoadBalancing => "Aborted. Load balancing registrations.",
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
-			roundState.LogDebug(msg);
+			roundState.LogInfo(msg);
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			return new CoinJoinResult(
 				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
-				RegisteredCoins: registeredAliceClients.Select(a => a.SmartCoin).ToImmutableList(),
+				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
 		finally
@@ -251,11 +252,24 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
 	{
 		int eventInvokedAlready = 0;
 
-		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
+		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+
+		using CancellationTokenSource strictInputRegTimeoutCts = new(remainingInputRegTime);
+		using CancellationTokenSource inputRegTimeoutCts = new(remainingInputRegTime + ExtraPhaseTimeoutMargin);
+		using CancellationTokenSource connConfTimeoutCts = new(remainingInputRegTime + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout + ExtraPhaseTimeoutMargin);
+		using CancellationTokenSource registrationsCts = new();
+		using CancellationTokenSource confirmationsCts = new();
+
+		using CancellationTokenSource linkedUnregisterCts = CancellationTokenSource.CreateLinkedTokenSource(strictInputRegTimeoutCts.Token, registrationsCts.Token);
+		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancel);
+		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancel);
+		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancel);
+
+		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
 			PersonCircuit? personCircuit = null;
 			try
@@ -270,7 +284,7 @@ public class CoinJoinClient
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					arenaRequestHandler);
 
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
 				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
@@ -280,15 +294,43 @@ public class CoinJoinClient
 
 				return (aliceClient, personCircuit);
 			}
-			catch (HttpRequestException)
+			catch (WabiSabiProtocolException wpe)
 			{
+				if (wpe.ErrorCode is WabiSabiProtocolErrorCode.RoundNotFound)
+				{
+					// if the round does not exist then it ended/aborted.
+					registrationsCts.Cancel();
+					confirmationsCts.Cancel();
+				}
+				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
+				{
+					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
+					{
+						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
+						{
+							// Cancel all remaining pending input registrations because they will arrive late too.
+							registrationsCts.Cancel();
+
+							if (wrongPhaseExceptionData.CurrentPhase != Phase.ConnectionConfirmation)
+							{
+								// Cancel all remaining pending connection confirmations because they will arrive late too.
+								confirmationsCts.Cancel();
+							}
+						}
+					}
+					else
+					{
+						throw new InvalidOperationException(
+							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
+					}
+				}
 				personCircuit?.Dispose();
 				return (null, null);
 			}
 			catch (Exception)
 			{
 				personCircuit?.Dispose();
-				throw;
+				return (null, null);
 			}
 		}
 
@@ -297,7 +339,9 @@ public class CoinJoinClient
 
 		roundState.LogDebug($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
-		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd);
+		// Decrease the available time, so the clients hurry up.
+		var safetyBuffer = TimeSpan.FromMinutes(1);
+		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd - safetyBuffer);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
@@ -307,9 +351,9 @@ public class CoinJoinClient
 				var delay = date - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
 				}
-				return await RegisterInputAsync(coin, cancellationToken).ConfigureAwait(false);
+				return await RegisterInputAsync(coin).ConfigureAwait(false);
 			})
 			.ToImmutableArray();
 
@@ -379,7 +423,17 @@ public class CoinJoinClient
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
-				await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
+
+				try
+				{
+					await aliceClient.ReadyToSignAsync(cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+					// This cannot fail. Otherwise the whole conjoin process will be halted.
+					Logger.LogDebug(e.ToString());
+					Logger.LogInfo($"Failed to register signal ready to sign with message {e.Message}. Ignoring...");
+				}
 			})
 			.ToImmutableArray();
 
@@ -522,9 +576,22 @@ public class CoinJoinClient
 		var remainingLargestAmounts = bestRepGroups
 			.Select(x => x.OrderByDescending(x => x.Amount).First())
 			.ToHashSet();
-		var largestAmount = remainingLargestAmounts.RandomElement();
+
+		// Select randomly at first just to have a starting value.
+		var selectedLargeCoin = remainingLargestAmounts.RandomElement();
+
+		// Bias selection towards larger numbers.
+		foreach (var coin in remainingLargestAmounts.OrderByDescending(x => x.Amount))
+		{
+			if (rnd.GetInt(1, 101) <= 50)
+			{
+				selectedLargeCoin = coin;
+				break;
+			}
+		}
+
 		var finalCandidate = bestRepGroups
-			.Where(x => x.OrderByDescending(x => x.Amount).First() == largestAmount)
+			.Where(x => x.OrderByDescending(x => x.Amount).First() == selectedLargeCoin)
 			.RandomElement();
 
 		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
@@ -651,18 +718,26 @@ public class CoinJoinClient
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
-		// Re-issuances.
-		var bobClient = CreateBobClient(roundState);
-		roundState.LogInfo("Starting reissuances.");
 		var combinedToken = linkedCts.Token;
-		await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
+		try
+		{
+			// Re-issuances.
+			var bobClient = CreateBobClient(roundState);
+			roundState.LogInfo("Starting reissuances.");
+			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
 
-		// Output registration.
-		roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
+			// Output registration.
+			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
-		var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
-		await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Outputs({outputTxOuts.Count()}) were registered.");
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
+			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
+			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
+		}
+		catch (Exception e)
+		{
+			roundState.LogInfo($"Failed to register outputs with message {e.Message}. Ignoring...");
+			roundState.LogDebug(e.ToString());
+		}
 
 		// ReadyToSign.
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
@@ -671,7 +746,8 @@ public class CoinJoinClient
 		return outputTxOuts;
 	}
 
-	private async Task<Transaction> ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
+	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)>
+		ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
 	{
 		// Signing.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -688,34 +764,35 @@ public class CoinJoinClient
 		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
-		// Sanity check.
-		if (!SanityCheck(outputTxOuts, unsignedCoinJoin))
+		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
+		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
+		// now when we identify as satoshi.
+		// In this scenario we should ban the coordinator and stop dealing with it.
+		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin);
+		if (!mustSignAllInputs)
 		{
-			string round = roundState.BlameOf == 0 ? "Round" : "Blame Round";
-
-			throw new InvalidOperationException($"{round} ({roundState.Id}): My output is missing.");
+			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
 		}
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		await SignTransactionAsync(registeredAliceClients, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		roundState.LogDebug($"Alices({registeredAliceClients.Length}) have signed the coinjoin tx.");
+		var alicesToSign = mustSignAllInputs
+			? registeredAliceClients
+			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
 
-		return unsignedCoinJoin;
+		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
+
+		return (unsignedCoinJoin, alicesToSign);
 	}
 
 	private async Task<ImmutableArray<(AliceClient, PersonCircuit)>> ProceedWithInputRegAndConfirmAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		var remainingTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
-
-		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
-		var combinedToken = linkedCts.Token;
-
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
 
 		// Register coins.
-		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, combinedToken).ConfigureAwait(false);
+		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 
 		if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
 		{

@@ -13,6 +13,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <StackPanel Spacing="20" Margin="0 30">
+      <!-- TODO: It is getting messy... A separate settings page should be created for HW wallets. -->
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
@@ -25,25 +26,27 @@
         </DockPanel>
 
         <StackPanel Spacing="10"
-                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this.">
-          <TextBlock Text="Auto-start coinjoin threshold (BTC)" />
-          <TextBox Text="{Binding PlebStopThreshold}" />
+                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this."
+                    IsVisible="{Binding !IsWatchOnly}">
+          <TextBlock Text="Auto-start coinjoin threshold" />
+          <c:CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
         </StackPanel>
 
-        <Separator />
+        <DockPanel>
+          <DockPanel.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsCoinjoinProfileSelected" />
+              <Binding Path="IsWatchOnly" Converter="{x:Static BoolConverters.Not}" />
+            </MultiBinding>
+          </DockPanel.IsVisible>
 
-        <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
-          <TextBlock Text="Anonymity score target" />
-          <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Foreground="{StaticResource PrivacyLevelStrongBrush}"
-                      Data="{StaticResource privacy_strong}" />
-            <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding AnonScoreTarget}" VerticalAlignment="Center" />
-            <Slider Minimum="2" Maximum="300" Value="{Binding AnonScoreTarget}" Margin="10 0" />
-          </DockPanel>
-        </StackPanel>
+          <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
+          <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
+          <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+        </DockPanel>
       </StackPanel>
 
-      <Separator />
+      <Separator IsVisible="{Binding !IsWatchOnly}" />
 
       <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />

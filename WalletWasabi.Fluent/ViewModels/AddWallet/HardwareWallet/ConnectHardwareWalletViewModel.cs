@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -38,9 +37,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
-			await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
-
 		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
 
 		this.WhenAnyValue(x => x.Message)
@@ -59,8 +55,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	public ObservableCollection<WalletViewModelBase> Wallets { get; }
 
 	public WalletViewModelBase? ExistingWallet { get; set; }
-
-	public ICommand OpenBrowserCommand { get; }
 
 	public ICommand NavigateToExistingWalletLoginCommand { get; }
 

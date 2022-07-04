@@ -9,6 +9,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.LabelsColumnView">
  <c:PrivacyContentControl NumberOfPrivacyChars="15" VerticalAlignment="Center">
-  <c:LabelsListBox VerticalAlignment="Center" Items="{Binding SmartLabel}" />
+  <c:LabelsListBox VerticalAlignment="Center" Items="{Binding SmartLabel}" Margin="0 0 7 0"/>
  </c:PrivacyContentControl>
 </UserControl>
