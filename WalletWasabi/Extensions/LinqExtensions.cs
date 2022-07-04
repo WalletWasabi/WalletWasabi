@@ -98,6 +98,7 @@ public static class LinqExtensions
 		int ofLength)
 	=> ofLength switch
 	{
+		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
 		1 => items.Select(item => new[] { item }),
 		_ => items.SelectMany((item, i) => items
 				.Skip(i + 1)
