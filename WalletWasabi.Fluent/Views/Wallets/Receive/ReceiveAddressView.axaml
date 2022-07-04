@@ -12,7 +12,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">

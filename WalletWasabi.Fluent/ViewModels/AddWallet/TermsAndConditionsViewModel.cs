@@ -10,9 +10,9 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private bool _isAgreed;
 
-	public TermsAndConditionsViewModel(string legalDocument)
+	public TermsAndConditionsViewModel()
 	{
-		ViewTermsCommand = ReactiveCommand.Create(() => OnViewTerms(legalDocument));
+		ViewTermsCommand = ReactiveCommand.Create(() => Navigate().To(new LegalDocumentsViewModel()));
 
 		NextCommand = ReactiveCommand.Create(
 			OnNext,
@@ -23,11 +23,6 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 	}
 
 	public ICommand ViewTermsCommand { get; }
-
-	private void OnViewTerms(string legalDocument)
-	{
-		Navigate().To(new LegalDocumentsViewModel(legalDocument));
-	}
 
 	private void OnNext()
 	{

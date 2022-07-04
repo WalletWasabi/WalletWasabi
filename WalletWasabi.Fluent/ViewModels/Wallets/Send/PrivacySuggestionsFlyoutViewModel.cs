@@ -58,8 +58,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 			// Reporting up-to-date exchange rates would just confuse users.
 			decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
 
-			int originalInputCount = transaction.SpentCoins.Count();
-			int maxInputCount = (int)(Math.Max(3, originalInputCount * 1.3));
+			// Only allow to create 1 more input with BnB. This accounts for the change created.
+			int maxInputCount = transaction.SpentCoins.Count() + 1;
 
 			var pockets = wallet.GetPockets();
 			var spentCoins = transaction.SpentCoins;

@@ -387,7 +387,7 @@ public class KeyManager
 		newKey.SetLabel(label, kmToFile: this);
 
 		SetDoNotSkipSynchronization();
-		
+
 		return newKey;
 	}
 
@@ -446,9 +446,23 @@ public class KeyManager
 		}
 	}
 
-	public int CountConsecutiveUnusedKeys(bool isInternal)
+	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
+	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
 	{
 		var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).Select(x => x.Index).ToArray();
+
+		if (ignoreTail)
+		{
+			var lastUsedIndex = GetKeys(x => x.IsInternal == isInternal && x.KeyState == KeyState.Used).LastOrDefault()?.Index;
+			if (lastUsedIndex is null)
+			{
+				return 0;
+			}
+			else
+			{
+				keyIndexes = keyIndexes.Where(x => x < lastUsedIndex).ToArray();
+			}
+		}
 
 		var hs = keyIndexes.ToHashSet();
 		int largerConsecutiveSequence = 0;
@@ -522,7 +536,9 @@ public class KeyManager
 		return extKeysAndPubs;
 	}
 
-	public IEnumerable<SmartLabel> GetLabels() => GetKeys().Select(x => x.Label);
+	public IEnumerable<SmartLabel> GetChangeLabels() => GetKeys(x => x.IsInternal).Select(x => x.Label);
+
+	public IEnumerable<SmartLabel> GetReceiveLabels() => GetKeys(x => !x.IsInternal).Select(x => x.Label);
 
 	public ExtKey GetMasterExtKey(string password)
 	{
@@ -553,30 +569,30 @@ public class KeyManager
 	/// Make sure there's always clean keys generated and indexed.
 	/// Call SetMinGapLimit() to set how many keys should be asserted.
 	/// </summary>
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
+	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null, bool toFile = true)
 	{
 		var newKeys = new List<HdPubKey>();
 
 		if (isInternal.HasValue)
 		{
-			while (CountConsecutiveUnusedKeys(isInternal.Value) < MinGapLimit)
+			while (CountConsecutiveUnusedKeys(isInternal.Value, ignoreTail: false) < MinGapLimit)
 			{
 				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value, toFile: false));
 			}
 		}
 		else
 		{
-			while (CountConsecutiveUnusedKeys(true) < MinGapLimit)
+			while (CountConsecutiveUnusedKeys(true, ignoreTail: false) < MinGapLimit)
 			{
 				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
 			}
-			while (CountConsecutiveUnusedKeys(false) < MinGapLimit)
+			while (CountConsecutiveUnusedKeys(false, ignoreTail: false) < MinGapLimit)
 			{
 				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
 			}
 		}
 
-		if (newKeys.Any())
+		if (toFile && newKeys.Any())
 		{
 			ToFile();
 		}
@@ -587,22 +603,35 @@ public class KeyManager
 	/// <summary>
 	/// Make sure there's always locked internal keys generated and indexed.
 	/// </summary>
-	public bool AssertLockedInternalKeysIndexed(int howMany = 14)
+	public bool AssertLockedInternalKeysIndexed(int howMany)
 	{
-		var generated = false;
+		var changed = false;
 
 		while (GetKeys(KeyState.Locked, true).Count() < howMany)
 		{
-			GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
-			generated = true;
+			var firstUnusedInternalKey = GetKeys(x => x.IsInternal == true && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
+
+			if (firstUnusedInternalKey is null)
+			{
+				// If not found, generate a new.
+				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
+			}
+			else
+			{
+				firstUnusedInternalKey.SetKeyState(KeyState.Locked);
+			}
+
+			changed = true;
 		}
 
-		if (generated)
+		AssertCleanKeysIndexed(isInternal: true, toFile: false);
+
+		if (changed)
 		{
 			ToFile();
 		}
 
-		return generated;
+		return changed;
 	}
 
 	private void SetMinGapLimit(int? minGapLimit)
