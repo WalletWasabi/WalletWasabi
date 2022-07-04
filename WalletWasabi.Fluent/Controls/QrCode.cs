@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -89,8 +90,10 @@ public class QrCode : Control
 		sfd.Title = "Save QR Code...";
 		sfd.InitialFileName = $"{address}.png";
 		sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-		sfd.Filters.Add(new FileDialogFilter()
-		{ Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
+		sfd.Filters = new List<FileDialogFilter>
+		{
+			new() { Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } }
+		};
 
 		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
 		{
