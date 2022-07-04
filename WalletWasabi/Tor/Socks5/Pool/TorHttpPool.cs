@@ -111,11 +111,13 @@ public class TorHttpPool : IDisposable
 			do
 			{
 				i++;
-				connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
-				TorTcpConnection? connectionToDispose = connection;
+				TorTcpConnection? connectionToDispose = null;
 
 				try
 				{
+					connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
+					connectionToDispose = connection;
+
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
 					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
 
