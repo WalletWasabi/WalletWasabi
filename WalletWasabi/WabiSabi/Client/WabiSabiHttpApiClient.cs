@@ -63,7 +63,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 	{
-		var exceptions = new List<Exception>();
+		var exceptions = new Dictionary<Exception, int>();
 		var start = DateTime.UtcNow;
 
 		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
@@ -86,7 +86,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				if (exceptions.Any())
 				{
 					Logger.LogDebug(
-						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
+						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
 				}
 				else
 				{
@@ -101,20 +101,26 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			catch (HttpRequestException e)
 			{
 				Logger.LogTrace($"Attempt {attempt} failed with {nameof(HttpRequestException)}: {e.Message}.");
-				exceptions.Add(e);
+				AddException(exceptions, e);
 			}
 			catch (TorException e)
 			{
 				Logger.LogTrace($"Attempt {attempt} failed with {nameof(TorException)}: {e.Message}.");
-				exceptions.Add(e);
+				AddException(exceptions, e);
+			}
+			catch (OperationCanceledException e)
+			{
+				Logger.LogTrace($"Attempt {attempt} failed with {nameof(OperationCanceledException)}: {e.Message}.");
+				AddException(exceptions, e);
 			}
 			catch (Exception e)
 			{
 				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
+
 				if (exceptions.Any())
 				{
-					exceptions.Add(e);
-					throw new AggregateException(exceptions);
+					AddException(exceptions, e);
+					throw new AggregateException(exceptions.Keys);
 				}
 				else
 				{
@@ -122,12 +128,35 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				}
 			}
 
-			// Wait before the next try.
-			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+			try
+			{
+				// Wait before the next try.
+				await Task.Delay(250, combinedToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				AddException(exceptions, e);
+			}
+
 			attempt++;
 		} while (!combinedToken.IsCancellationRequested);
 
-		throw new AggregateException(exceptions);
+		throw new AggregateException(exceptions.Keys);
+	}
+
+	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
+	{
+		bool Predicate(KeyValuePair<Exception, int> x) => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message;
+
+		if (exceptions.Any(Predicate))
+		{
+			var first = exceptions.First(Predicate);
+			exceptions[first.Key]++;
+		}
+		else
+		{
+			exceptions.Add(e, 1);
+		}
 	}
 
 	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
