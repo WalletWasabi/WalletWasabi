@@ -48,7 +48,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 		HdPubKey = pubKey;
 
-		Transaction.WalletOutputs.Add(this);
+		Transaction.TryAddWalletOutput(this);
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -79,8 +79,10 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _spenderTransaction;
 		set
 		{
-			value?.WalletInputs.Add(this);
-			RaiseAndSetIfChanged(ref _spenderTransaction, value);
+			if (value?.TryAddWalletInput(this) is true)
+			{
+				RaiseAndSetIfChanged(ref _spenderTransaction, value);
+			}
 		}
 	}
 
@@ -151,17 +153,16 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool RefreshAndGetIsBanned()
 	{
-		if(BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
+		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
 		{
 			IsBanned = true;
 			return true;
 		}
-		
+
 		IsBanned = false;
 		BannedUntilUtc = null;
 
 		return false;
-		
 	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]

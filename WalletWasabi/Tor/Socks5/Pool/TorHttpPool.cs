@@ -64,9 +64,9 @@ public class TorHttpPool : IDisposable
 
 	public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
-	public Task<bool> IsTorRunningAsync()
+	public Task<bool> IsTorRunningAsync(CancellationToken cancel)
 	{
-		return TcpConnectionFactory.IsTorRunningAsync();
+		return TcpConnectionFactory.IsTorRunningAsync(cancel);
 	}
 
 	public static Exception? LatestTorException { get; private set; } = null;
@@ -78,12 +78,16 @@ public class TorHttpPool : IDisposable
 	/// <param name="e">Tor exception.</param>
 	private void OnTorRequestFailed(Exception e)
 	{
-		if (TorDoesntWorkSince is null)
-		{
-			TorDoesntWorkSince = DateTimeOffset.UtcNow;
-		}
+		TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
 
-		LatestTorException = e;
+		if (e is HttpRequestException)
+		{
+			LatestTorException = e.InnerException is null ? e : e.InnerException;
+		}
+		else
+		{
+			LatestTorException = e;
+		}
 	}
 
 	/// <summary>
@@ -111,11 +115,13 @@ public class TorHttpPool : IDisposable
 			do
 			{
 				i++;
-				connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
-				TorTcpConnection? connectionToDispose = connection;
+				TorTcpConnection? connectionToDispose = null;
 
 				try
 				{
+					connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
+					connectionToDispose = connection;
+
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
 					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
 
@@ -159,6 +165,16 @@ public class TorHttpPool : IDisposable
 					Logger.LogTrace($"['{connection}'] TTL exception occurred.", e);
 
 					await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
+
+					if (i == attemptsNo)
+					{
+						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
+					}
+				}
+				catch (TorConnectCommandFailedException e)
+				{
+					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connect command failed.", e);
 
 					if (i == attemptsNo)
 					{
@@ -263,33 +279,9 @@ public class TorHttpPool : IDisposable
 		while (true);
 	}
 
-	private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+	private async Task<TorTcpConnection> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 	{
-		TorTcpConnection? connection;
-
-		try
-		{
-			connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
-			Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
-		}
-		catch (TorException e)
-		{
-			Logger.LogDebug($"['{request.RequestUri}'][ERROR] Failed to create a new pool connection.", e);
-			throw;
-		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogTrace($"['{request.RequestUri}'] Operation was canceled.");
-			throw;
-		}
-		catch (Exception e)
-		{
-			Logger.LogTrace($"['{request.RequestUri}'][EXCEPTION] {e}");
-			throw;
-		}
-
-		Logger.LogTrace($"< connection='{connection}'");
-		return connection;
+		return await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>

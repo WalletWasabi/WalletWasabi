@@ -5,6 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -32,23 +34,113 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 		IsReplacement = isReplacement;
-		WalletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
-		WalletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+
+		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 	}
 
 	#endregion Constructors
 
 	#region Members
 
-	/// <summary>
-	/// Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
-	public HashSet<SmartCoin> WalletInputs { get; }
+	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
+	private HashSet<SmartCoin> WalletInputsInternal { get; }
 
-	/// <summary>
-	/// Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.
-	/// </summary>
-	public HashSet<SmartCoin> WalletOutputs { get; }
+	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
+	private HashSet<SmartCoin> WalletOutputsInternal { get; }
+
+	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="ForeignOutputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="WalletVirtualInputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<WalletVirtualInput>? WalletVirtualInputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="WalletVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<WalletVirtualOutput>? WalletVirtualOutputsCache { get; set; } = null;
+
+	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
+	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; } = null;
+
+	public IReadOnlyCollection<SmartCoin> WalletInputs => WalletInputsInternal;
+
+	public IReadOnlyCollection<SmartCoin> WalletOutputs => WalletOutputsInternal;
+
+	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
+	{
+		get
+		{
+			if (ForeignInputsCache is null)
+			{
+				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+			}
+			return ForeignInputsCache;
+		}
+	}
+
+	public IReadOnlyCollection<IndexedTxOut> ForeignOutputs
+	{
+		get
+		{
+			if (ForeignOutputsCache is null)
+			{
+				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+			}
+			return ForeignOutputsCache;
+		}
+	}
+
+	/// <summary>Wallet inputs with the same script are virtually considered to be the same by blockchain analysis.</summary>
+	public IReadOnlyCollection<WalletVirtualInput> WalletVirtualInputs
+	{
+		get
+		{
+			if (WalletVirtualInputsCache is null)
+			{
+				WalletVirtualInputsCache = WalletInputs
+					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
+					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
+					.ToHashSet();
+			}
+			return WalletVirtualInputsCache;
+		}
+	}
+
+	/// <summary>Wallet outputs with the same script are virtually considered to be the same by blockchain analysis.</summary>
+	public IReadOnlyCollection<WalletVirtualOutput> WalletVirtualOutputs
+	{
+		get
+		{
+			if (WalletVirtualOutputsCache is null)
+			{
+				WalletVirtualOutputsCache = WalletOutputs
+					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
+					.Select(g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(GetHash(), o.Index)).ToHashSet()))
+					.ToHashSet();
+			}
+			return WalletVirtualOutputsCache;
+		}
+	}
+
+	/// <summary>Foreign outputs with the same script are virtually considered to be the same by blockchain analysis.</summary>
+	public IReadOnlyCollection<ForeignVirtualOutput> ForeignVirtualOutputs
+	{
+		get
+		{
+			if (ForeignVirtualOutputsCache is null)
+			{
+				ForeignVirtualOutputsCache = ForeignOutputs
+					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
+					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
+					.ToHashSet();
+			}
+			return ForeignVirtualOutputsCache;
+		}
+	}
 
 	[JsonProperty]
 	[JsonConverter(typeof(TransactionJsonConverter))]
@@ -108,9 +200,53 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#endregion Members
 
-	/// <summary>
-	/// Update the transaction with the data acquired from another transaction. (For example merge their labels.)
-	/// </summary>
+	public bool TryAddWalletInput(SmartCoin input)
+	{
+		if (WalletInputsInternal.Add(input))
+		{
+			ForeignInputsCache = null;
+			WalletVirtualInputsCache = null;
+			return true;
+		}
+		return false;
+	}
+
+	public bool TryAddWalletOutput(SmartCoin output)
+	{
+		if (WalletOutputsInternal.Add(output))
+		{
+			ForeignOutputsCache = null;
+			WalletVirtualOutputsCache = null;
+			ForeignVirtualOutputsCache = null;
+			return true;
+		}
+		return false;
+	}
+
+	public bool TryRemoveWalletInput(SmartCoin input)
+	{
+		if (WalletInputsInternal.Remove(input))
+		{
+			ForeignInputsCache = null;
+			WalletVirtualInputsCache = null;
+			return true;
+		}
+		return false;
+	}
+
+	public bool TryRemoveWalletOutput(SmartCoin output)
+	{
+		if (WalletOutputsInternal.Remove(output))
+		{
+			ForeignOutputsCache = null;
+			WalletVirtualOutputsCache = null;
+			ForeignVirtualOutputsCache = null;
+			return true;
+		}
+		return false;
+	}
+
+	/// <summary>Update the transaction with the data acquired from another transaction. (For example merge their labels.)</summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
 		var updated = false;
@@ -160,9 +296,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = true;
 	}
 
-	/// <summary>
-	/// First looks at height, then block index, then mempool firstseen.
-	/// </summary>
+	/// <summary>First looks at height, then block index, then mempool firstseen.</summary>
 	public static IComparer<SmartTransaction> GetBlockchainComparer()
 	{
 		return Comparer<SmartTransaction>.Create((a, b) =>

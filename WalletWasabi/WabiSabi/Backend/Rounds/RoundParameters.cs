@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Immutable;
 using NBitcoin;
 using NBitcoin.Policy;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -19,11 +21,14 @@ public record RoundParameters
 		int maxInputCountByRound,
 		MoneyRange allowedInputAmounts,
 		MoneyRange allowedOutputAmounts,
+		ImmutableSortedSet<ScriptType> allowedInputTypes,
+		ImmutableSortedSet<ScriptType> allowedOutputTypes,
 		TimeSpan standardInputRegistrationTimeout,
 		TimeSpan connectionConfirmationTimeout,
 		TimeSpan outputRegistrationTimeout,
 		TimeSpan transactionSigningTimeout,
-		TimeSpan blameInputRegistrationTimeout)
+		TimeSpan blameInputRegistrationTimeout,
+		string coordinationIdentifier)
 	{
 		Network = network;
 		MiningFeeRate = miningFeeRate;
@@ -33,6 +38,8 @@ public record RoundParameters
 		MaxInputCountByRound = maxInputCountByRound;
 		AllowedInputAmounts = allowedInputAmounts;
 		AllowedOutputAmounts = allowedOutputAmounts;
+		AllowedInputTypes = allowedInputTypes;
+		AllowedOutputTypes = allowedOutputTypes;
 		StandardInputRegistrationTimeout = standardInputRegistrationTimeout;
 		ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 		OutputRegistrationTimeout = outputRegistrationTimeout;
@@ -42,6 +49,7 @@ public record RoundParameters
 		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
 		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
 		MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
+		CoordinationIdentifier = coordinationIdentifier;
 	}
 
 	public Network Network { get; init; }
@@ -52,14 +60,13 @@ public record RoundParameters
 	public int MaxInputCountByRound { get; init; }
 	public MoneyRange AllowedInputAmounts { get; init; }
 	public MoneyRange AllowedOutputAmounts { get; init; }
+	public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; }
+	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; }
 	public TimeSpan StandardInputRegistrationTimeout { get; init; }
 	public TimeSpan ConnectionConfirmationTimeout { get; init; }
 	public TimeSpan OutputRegistrationTimeout { get; init; }
 	public TimeSpan TransactionSigningTimeout { get; init; }
 	public TimeSpan BlameInputRegistrationTimeout { get; init; }
-
-	public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; } = OnlyP2WPKH;
-	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;
 
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
 	public Money MaxAmountCredentialValue => AllowedInputAmounts.Max;
@@ -67,6 +74,8 @@ public record RoundParameters
 	public int InitialInputVsizeAllocation { get; init; }
 	public int MaxVsizeCredentialValue { get; init; }
 	public int MaxVsizeAllocationPerAlice { get; init; }
+
+	public string CoordinationIdentifier { get; init; }
 
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
@@ -94,11 +103,14 @@ public record RoundParameters
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
+			wabiSabiConfig.AllowedInputTypes,
+			wabiSabiConfig.AllowedOutputTypes,
 			wabiSabiConfig.StandardInputRegistrationTimeout,
 			wabiSabiConfig.ConnectionConfirmationTimeout,
 			wabiSabiConfig.OutputRegistrationTimeout,
 			wabiSabiConfig.TransactionSigningTimeout,
-			wabiSabiConfig.BlameInputRegistrationTimeout);
+			wabiSabiConfig.BlameInputRegistrationTimeout,
+			wabiSabiConfig.CoordinatorIdentifier);
 	}
 
 	public Transaction CreateTransaction()

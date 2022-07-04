@@ -27,7 +27,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
 	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin, continuing..." };
-	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for the next round" };
+	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for next round" };
 	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
 	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for other participants" };
@@ -53,7 +53,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public bool IsAutoCoinJoinEnabled => WalletVm.Settings.AutoCoinJoin;
+	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -74,7 +74,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
 
-		var initialState = walletVm.Settings.AutoCoinJoin
+		var initialState = walletVm.CoinJoinSettings.AutoCoinJoin
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
@@ -108,7 +108,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
 		});
 
-		AutoCoinJoinObservable = walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin);
+		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
 		AutoCoinJoinObservable
 			.Skip(1) // The first one is triggered at the creation.

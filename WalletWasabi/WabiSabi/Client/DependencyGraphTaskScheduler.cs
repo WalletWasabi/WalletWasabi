@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -177,15 +178,12 @@ public class DependencyGraphTaskScheduler
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
-					if (keyChain is KeyChain { KeyManager: var keyManager }
-						&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
-					{
-						hdPubKey.SetKeyState(KeyState.Used);
-					}
+					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
+					
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug($"Output registration error message:'{ex.Message}'.");
+					Logger.LogInfo($"Output registration error message:'{ex.Message}'.");
 				}
 			}
 		).ToImmutableArray();

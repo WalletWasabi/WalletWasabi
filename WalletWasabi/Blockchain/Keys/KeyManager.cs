@@ -25,6 +25,7 @@ public class KeyManager
 {
 	public const int DefaultAnonScoreTarget = 5;
 	public const bool DefaultAutoCoinjoin = false;
+	public const bool DefaultRedCoinIsolation = false;
 	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
 	public const int AbsoluteMinGapLimit = 21;
@@ -176,6 +177,9 @@ public class KeyManager
 	[JsonProperty(Order = 15, PropertyName = "IsCoinjoinProfileSelected")]
 	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
+	[JsonProperty(Order = 16, PropertyName = "RedCoinIsolation")]
+	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
+
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
 
@@ -195,9 +199,14 @@ public class KeyManager
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
+		mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+		return CreateNew(mnemonic, password, network, filePath);
+	}
+
+	public static KeyManager CreateNew(Mnemonic mnemonic, string password, Network network, string? filePath = null)
+	{
 		password ??= "";
 
-		mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey(password);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
