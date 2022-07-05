@@ -285,7 +285,7 @@ public class TorTcpConnectionFactory
 		}
 		catch (TorException e)
 		{
-			Logger.LogError($"Exception occurred when connecting to '{host}:{port}'.", e);
+			Logger.LogTrace($"Exception occurred when connecting to '{host}:{port}'.", e);
 			throw;
 		}
 		finally
