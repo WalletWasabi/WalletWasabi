@@ -62,7 +62,7 @@
 
 <br>
 
-![](https://i.imgur.com/gI75EKu.png)
+![](https://i.imgur.com/sljB8HL.png)
 
 # Build From Source Code
 
