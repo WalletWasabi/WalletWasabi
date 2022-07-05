@@ -8,10 +8,9 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.AmountColumnView">
- <c:PrivacyContentControl NumberOfPrivacyChars="9" VerticalAlignment="Center" HorizontalAlignment="Center">
-  <TextBlock Text="{Binding Amount}"
-             Margin="5 0 10 0"
-             VerticalAlignment="Center"
-             HorizontalAlignment="Center" />
- </c:PrivacyContentControl>
+  <c:PrivacyContentControl Content="{Binding Amount}"
+                           NumberOfPrivacyChars="9"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Margin="5 0 10 0" />
 </UserControl>
