@@ -455,10 +455,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			using PersonCircuit personCircuit = new();
 			IHttpClient httpClientWrapper = new MonkeyHttpClient(
 				new HttpClientWrapper(app.CreateClient()),
-
-				// This monkey injects `HttpRequestException` randomly to simulate errors
-				// in the communication.
-				() =>
+				() => // This monkey injects `HttpRequestException` randomly to simulate errors in the communication.
 				{
 					if (Random.Shared.NextDouble() < faultInjectorMonkeyAggressiveness)
 					{
@@ -466,9 +463,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					}
 					return Task.CompletedTask;
 				},
-
-				// This monkey injects `Delays` randomly to simulate slow response times.
-				async () =>
+				async () => // This monkey injects `Delays` randomly to simulate slow response times.
 				{
 					double delay = Random.Shared.NextDouble();
 					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
