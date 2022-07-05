@@ -242,7 +242,7 @@ public class ClientState
 					{
 						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
 						// The best selection's anonset should not be lowered by this merge.
-						int bestAnonset = bestSet.Min(x => x.HdPubKey.AnonymitySet);
+						var bestAnonset = bestSet.Min(x => x.HdPubKey.AnonymitySet);
 						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
 
 						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
