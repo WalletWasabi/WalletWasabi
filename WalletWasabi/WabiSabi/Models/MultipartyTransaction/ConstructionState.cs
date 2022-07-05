@@ -66,7 +66,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 		}
 
-		return this with { Events = Events.Add(new InputAdded(coin)) };
+		return this with { Events = Events.Add(new InputAdded(coin, ownershipProof)) };
 	}
 
 	public ConstructionState AddOutput(TxOut output)
