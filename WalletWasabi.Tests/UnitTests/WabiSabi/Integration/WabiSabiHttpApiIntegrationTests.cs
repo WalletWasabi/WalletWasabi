@@ -116,18 +116,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		_output.WriteLine("Coins were created successfully");
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder.AddMockRpcClient(coins, rpc =>
-			{
-				// Make the coordinator believe that the transaction is being
-				// broadcasted using the RPC interface. Once we receive this tx
-				// (the `SendRawTransationAsync` was invoked) we stop waiting
-				// and finish the waiting tasks to finish the test successfully.
-				rpc.OnSendRawTransactionAsync = (tx) =>
+			builder.AddMockRpcClient(
+				coins,
+				rpc =>
 				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
-			})
+					// Make the coordinator believe that the transaction is being
+					// broadcasted using the RPC interface. Once we receive this tx
+					// (the `SendRawTransationAsync` was invoked) we stop waiting
+					// and finish the waiting tasks to finish the test successfully.
+					rpc.OnSendRawTransactionAsync = (tx) =>
+					{
+						transactionCompleted.SetResult(tx);
+						return tx.GetHash();
+					};
+				})
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use these two scoped
@@ -140,9 +142,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				}
+				});
 
-				);
 				// Emulate that the first coin is coming from a coinjoin.
 				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
@@ -314,24 +315,26 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-		builder.AddMockRpcClient(Enumerable.Concat(coins, badCoins).ToArray(), rpc =>
-		{
-			rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+		builder.AddMockRpcClient(
+			Enumerable.Concat(coins, badCoins).ToArray(),
+			rpc =>
 			{
-				var tx = Transaction.Create(Network.Main);
-				return Task.FromResult(tx);
-			};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
 
-			// Make the coordinator believe that the transaction is being
-			// broadcasted using the RPC interface. Once we receive this tx
-			// (the `SendRawTransationAsync` was invoked) we stop waiting
-			// and finish the waiting tasks to finish the test successfully.
-			rpc.OnSendRawTransactionAsync = (tx) =>
-			{
-				transactionCompleted.SetResult(tx);
-				return tx.GetHash();
-			};
-		})
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+				{
+					transactionCompleted.SetResult(tx);
+					return tx.GetHash();
+				};
+			})
 		.ConfigureServices(services =>
 		{
 			// Instruct the coordinator DI container to use this scoped
@@ -379,8 +382,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.CallBase();
 		nonSigningHttpClientMock
-			.Setup(httpClient => httpClient.SendAsync(It.Is<HttpRequestMessage>(
-				req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
+			.Setup(httpClient => httpClient.SendAsync(
+				It.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
 				It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 
@@ -453,6 +456,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			using PersonCircuit personCircuit = new();
 			IHttpClient httpClientWrapper = new MonkeyHttpClient(
 				new HttpClientWrapper(app.CreateClient()),
+
 				// This monkey injects `HttpRequestException` randomly to simulate errors
 				// in the communication.
 				() =>
@@ -463,6 +467,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					}
 					return Task.CompletedTask;
 				},
+
 				// This monkey injects `Delays` randomly to simulate slow response times.
 				async () =>
 				{
