@@ -84,7 +84,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 
-					PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
+					_ = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
 				}
 			});
 
@@ -136,7 +136,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_info = previous.Item2;
 				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
 				CanUndo = _undoHistory.Any();
-				PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, previous.Item1, _isFixedAmount, _cancellationTokenSource.Token);
+				_ = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, previous.Item1, _isFixedAmount, _cancellationTokenSource.Token);
 			}
 		});
 
@@ -221,7 +221,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (newTransaction is { })
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
-			PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+			_ = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 	}
 
@@ -413,7 +413,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 
-			PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
+			_ = PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 		else
 		{
