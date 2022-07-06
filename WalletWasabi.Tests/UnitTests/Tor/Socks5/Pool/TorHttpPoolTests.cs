@@ -199,7 +199,8 @@ public class TorHttpPoolTests
 		aliceCircuit.Dispose();
 
 		// Alice circuit is already disposed and thus it cannot be used.
-		await Assert.ThrowsAsync<TorCircuitExpiredException>(async () => await pool.SendAsync(request, aliceCircuit).ConfigureAwait(false));
+		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit).ConfigureAwait(false));
+		_ = Assert.IsType<TorCircuitExpiredException>(httpRequestException.InnerException);
 
 		mockTcpConnectionFactory.VerifyAll();
 	}

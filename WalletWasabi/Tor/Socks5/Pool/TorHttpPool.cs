@@ -111,11 +111,13 @@ public class TorHttpPool : IDisposable
 			do
 			{
 				i++;
-				connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
-				TorTcpConnection? connectionToDispose = connection;
+				TorTcpConnection? connectionToDispose = null;
 
 				try
 				{
+					connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
+					connectionToDispose = connection;
+
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
 					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
 
@@ -159,6 +161,16 @@ public class TorHttpPool : IDisposable
 					Logger.LogTrace($"['{connection}'] TTL exception occurred.", e);
 
 					await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
+
+					if (i == attemptsNo)
+					{
+						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
+					}
+				}
+				catch (TorConnectCommandFailedException e)
+				{
+					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connect command failed.", e);
 
 					if (i == attemptsNo)
 					{
