@@ -45,7 +45,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(auto, isolateRed, new ManualCoinJoinProfileViewModel(target, hours)));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(auto, isolateRed, new ManualCoinJoinProfileViewModel(target, hours, isolateRed)));
 		});
 	}
 
