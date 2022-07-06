@@ -43,6 +43,7 @@ public class CoinJoinClient
 		RoundStateUpdater roundStatusUpdater,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
+		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
@@ -52,6 +53,7 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		AnonScoreTarget = anonScoreTarget;
 		ConsolidationMode = consolidationMode;
+		RedCoinIsolation = redCoinIsolation;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -68,6 +70,7 @@ public class CoinJoinClient
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool ConsolidationMode { get; private set; }
+	public bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -128,7 +131,7 @@ public class CoinJoinClient
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, SecureRandom);
 
 			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
 			{
@@ -488,7 +491,13 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, RoundParameters parameters, bool consolidationMode, int anonScoreTarget, WasabiRandom rnd)
+	internal static ImmutableList<SmartCoin> SelectCoinsForRound(
+		IEnumerable<SmartCoin> coins,
+		RoundParameters parameters,
+		bool consolidationMode,
+		int anonScoreTarget,
+		bool redCoinIsolation,
+		WasabiRandom rnd)
 	{
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
@@ -500,9 +509,31 @@ public class CoinJoinClient
 		var privateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
-		var nonPrivateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
-			.ToArray();
+
+		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
+		SmartCoin[]? nonPrivateCoins = null;
+		if (redCoinIsolation)
+		{
+			var nonPrivateCandidates = filteredCoins
+					.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet != 1)
+					.ToList();
+
+			var randomRed = filteredCoins
+				.Where(x => x.HdPubKey.AnonymitySet == 1)
+				.RandomElement();
+			if (randomRed is not null)
+			{
+				nonPrivateCandidates.Add(randomRed);
+			}
+
+			nonPrivateCoins = nonPrivateCandidates.ToShuffled().ToArray();
+		}
+		else
+		{
+			nonPrivateCoins = filteredCoins
+				.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
+				.ToArray();
+		}
 
 		// Make sure it's ordered by 1 private and 1 non-private coins.
 		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
