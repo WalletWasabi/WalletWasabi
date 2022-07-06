@@ -9,9 +9,13 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		AssociatedObject?
-			.WhenAnyValue(x => x.Bounds)
-			.Where(b => !b.IsEmpty)
+		if (AssociatedObject is null)
+		{
+			return;
+		}
+
+		Observable
+			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.Opened))
 			.Take(1)
 			.Subscribe(_ =>
 			{
