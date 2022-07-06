@@ -226,11 +226,10 @@ public class BlockchainAnalyzer
 		// Compute the decompositions in which the current analyzed txout value can be expressed (in no more than 6 elements,
 		// this is arbitrary) and count how many of those are present in the coinjoin transaction.
 		var newCoinEquivalentCount = Decomposer
-			.Decompose(output.Value, tolerance: 0, maxCount: 8, stdValuesUsedInOutputsSmallerThanCoin)
-			.Select(d =>
-				Decomposer.ToRealValuesArray(d.Decomposition, d.Count, stdValuesUsedInOutputsSmallerThanCoin))
+			.Decompose(output.Value, tolerance: 0, maxCount: 6, stdValuesUsedInOutputsSmallerThanCoin)
+			.Select(d => Decomposer.ToRealValuesArray(d.Decomposition, d.Count, stdValuesUsedInOutputsSmallerThanCoin))
 			.TakeWhile(allOutputValues.IsSuperSetOf)
-			.Take(8) // Arbitrary circuit breaker. If there are at least 10 possible ways to sum up the same coin amount then stop.
+			.Take(6) // Arbitrary circuit breaker. If there are at least 10 possible ways to sum up the same coin amount then stop.
 			.Count();
 
 		// if the value of the current output can be expressed using 8 or more combinations also present in the
