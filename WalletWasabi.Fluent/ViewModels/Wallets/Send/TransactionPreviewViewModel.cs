@@ -470,6 +470,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 			catch (Exception ex)
 			{
+				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
 					"Wasabi was unable to send your transaction.");
 			}

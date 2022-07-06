@@ -1,8 +1,8 @@
 using System.Linq;
-using WalletWasabi.Fluent.AppServices.Tor;
+using WalletWasabi.Tor.StatusChecker;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Tor.NetworkChecker;
+namespace WalletWasabi.Tests.UnitTests.Services.Tor;
 
 /// <summary>
 /// Tests for <see cref="XmlIssueListParser"/>

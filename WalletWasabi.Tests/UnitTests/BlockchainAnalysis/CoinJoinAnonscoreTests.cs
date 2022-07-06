@@ -41,9 +41,9 @@ public class CoinJoinAnonScoreTests
 		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 8), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 		var sc = tx.WalletOutputs.First();
-		tx.WalletOutputs.Remove(sc);
+		Assert.True(tx.TryRemoveWalletOutput(sc));
 		analyser.Analyze(tx);
-		tx.WalletOutputs.Add(sc);
+		Assert.True(tx.TryAddWalletOutput(sc));
 		analyser.Analyze(tx);
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
@@ -95,7 +95,7 @@ public class CoinJoinAnonScoreTests
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(59, active.HdPubKey.AnonymitySet);
+		Assert.Equal(59.5, active.HdPubKey.AnonymitySet);
 		Assert.Equal(1, change.HdPubKey.AnonymitySet);
 	}
 
@@ -175,7 +175,7 @@ public class CoinJoinAnonScoreTests
 		analyser.Analyze(tx);
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(5 / 2, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(5 / 2d, x.HdPubKey.AnonymitySet));
 	}
 
 	[Fact]
@@ -197,7 +197,7 @@ public class CoinJoinAnonScoreTests
 		// The increase in the anonymity set would naively be 1 as there is 1 equal non-wallet output.
 		// Since 4 outputs are ours, we divide the increase in anonymity between them
 		// and add that to the inherited anonymity of 4.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + 1 / 4, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + 1 / 4d, x.HdPubKey.AnonymitySet));
 	}
 
 	[Fact]

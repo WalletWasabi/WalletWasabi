@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
@@ -30,7 +31,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	[AutoNotify] private string? _versionText;
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
-	public StatusIconViewModel(StatusChecker statusChecker)
+	public StatusIconViewModel(TorStatusCheckerWrapper statusCheckerWrapper)
 	{
 		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
@@ -60,7 +61,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 				SetStatusIconState();
 			});
 
-		var issues = statusChecker.Issues
+		var issues = statusCheckerWrapper.Issues
 			.Select(r => r.Where(issue => !issue.Resolved).ToList())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Publish();
