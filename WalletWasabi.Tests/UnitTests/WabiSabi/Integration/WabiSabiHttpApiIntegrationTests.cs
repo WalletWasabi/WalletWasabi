@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NBitcoin;
@@ -116,18 +115,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		_output.WriteLine("Coins were created successfully");
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder.AddMockRpcClient(coins, rpc =>
-			{
-				// Make the coordinator believe that the transaction is being
-				// broadcasted using the RPC interface. Once we receive this tx
-				// (the `SendRawTransationAsync` was invoked) we stop waiting
-				// and finish the waiting tasks to finish the test successfully.
-				rpc.OnSendRawTransactionAsync = (tx) =>
+			builder.AddMockRpcClient(
+				coins,
+				rpc =>
 				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
-			})
+					// Make the coordinator believe that the transaction is being
+					// broadcasted using the RPC interface. Once we receive this tx
+					// (the `SendRawTransationAsync` was invoked) we stop waiting
+					// and finish the waiting tasks to finish the test successfully.
+					rpc.OnSendRawTransactionAsync = (tx) =>
+					{
+						transactionCompleted.SetResult(tx);
+						return tx.GetHash();
+					};
+				})
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use these two scoped
@@ -140,9 +141,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				}
+				});
 
-				);
 				// Emulate that the first coin is coming from a coinjoin.
 				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
@@ -314,24 +314,26 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-		builder.AddMockRpcClient(Enumerable.Concat(coins, badCoins).ToArray(), rpc =>
-		{
-			rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+		builder.AddMockRpcClient(
+			Enumerable.Concat(coins, badCoins).ToArray(),
+			rpc =>
 			{
-				var tx = Transaction.Create(Network.Main);
-				return Task.FromResult(tx);
-			};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
 
-			// Make the coordinator believe that the transaction is being
-			// broadcasted using the RPC interface. Once we receive this tx
-			// (the `SendRawTransationAsync` was invoked) we stop waiting
-			// and finish the waiting tasks to finish the test successfully.
-			rpc.OnSendRawTransactionAsync = (tx) =>
-			{
-				transactionCompleted.SetResult(tx);
-				return tx.GetHash();
-			};
-		})
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+				{
+					transactionCompleted.SetResult(tx);
+					return tx.GetHash();
+				};
+			})
 		.ConfigureServices(services =>
 		{
 			// Instruct the coordinator DI container to use this scoped
@@ -379,8 +381,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.CallBase();
 		nonSigningHttpClientMock
-			.Setup(httpClient => httpClient.SendAsync(It.Is<HttpRequestMessage>(
-				req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
+			.Setup(httpClient => httpClient.SendAsync(
+				It.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
 				It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 
@@ -453,9 +455,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			using PersonCircuit personCircuit = new();
 			IHttpClient httpClientWrapper = new MonkeyHttpClient(
 				new HttpClientWrapper(app.CreateClient()),
-				// This monkey injects `HttpRequestException` randomly to simulate errors
-				// in the communication.
-				() =>
+				() => // This monkey injects `HttpRequestException` randomly to simulate errors in the communication.
 				{
 					if (Random.Shared.NextDouble() < faultInjectorMonkeyAggressiveness)
 					{
@@ -463,8 +463,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					}
 					return Task.CompletedTask;
 				},
-				// This monkey injects `Delays` randomly to simulate slow response times.
-				async () =>
+				async () => // This monkey injects `Delays` randomly to simulate slow response times.
 				{
 					double delay = Random.Shared.NextDouble();
 					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
@@ -564,27 +563,5 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
-	}
-}
-
-public class StuttererHttpClient : HttpClientWrapper
-{
-	public StuttererHttpClient(HttpClient httpClient) : base(httpClient)
-	{
-	}
-
-	public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-	{
-		using HttpRequestMessage requestClone1 = request.Clone();
-		using HttpRequestMessage requestClone2 = request.Clone();
-
-		HttpResponseMessage result1 = await base.SendAsync(requestClone1, token).ConfigureAwait(false);
-		HttpResponseMessage result2 = await base.SendAsync(requestClone2, token).ConfigureAwait(false);
-
-		string content1 = await result1.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-		string content2 = await result2.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-
-		Assert.Equal(content1, content2);
-		return result2;
 	}
 }
