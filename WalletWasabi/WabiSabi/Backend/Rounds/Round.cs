@@ -46,6 +46,7 @@ public class Round
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
 
 		Id = CalculateHash();
+		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
 	}
 
 	public uint256 Id { get; }
@@ -70,6 +71,8 @@ public class Round
 
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
+
+	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData { get; init; }
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
