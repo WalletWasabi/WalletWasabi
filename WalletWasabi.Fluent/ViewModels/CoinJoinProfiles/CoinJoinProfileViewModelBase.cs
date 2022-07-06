@@ -43,7 +43,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget == AnonScoreTarget && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours;
+		return profile.AnonScoreTarget == AnonScoreTarget && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
 	}
 
 	public override int GetHashCode()
