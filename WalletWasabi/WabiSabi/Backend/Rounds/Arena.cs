@@ -62,6 +62,7 @@ public partial class Arena : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
+		var before = DateTimeOffset.UtcNow;
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			TimeoutRounds();
@@ -84,6 +85,8 @@ public partial class Arena : PeriodicRunner
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
 		}
+		var duration = DateTimeOffset.UtcNow - before;
+		RequestTimeStatista.Instance.Add("arena-period", duration);
 	}
 
 	private void SetRoundStates()
@@ -206,17 +209,7 @@ public partial class Arena : PeriodicRunner
 					else
 					{
 						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
-
-						// Clients misbehave when they don't confirm everything.
-						if (round is BlameRound)
-						{
-							// Unfortunately we would stop the blame round chain completely so we must go to output registration even though we know we'll fail.
-							round.SetPhase(Phase.OutputRegistration);
-						}
-						else
-						{
-							round.EndRound(EndRoundState.AbortedNotAllAlicesConfirmed);
-						}
+						round.SetPhase(Phase.OutputRegistration);
 					}
 				}
 			}
