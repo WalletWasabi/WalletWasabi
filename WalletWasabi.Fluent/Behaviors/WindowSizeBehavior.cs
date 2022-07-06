@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
 
@@ -53,6 +54,10 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 		{
 			window.Width = configWidth.Value;
 			window.Height = configHeight.Value;
+
+			var centerX = (int)((currentScreen.WorkingArea.Width - configWidth.Value) / 2);
+			var centerY = (int)((currentScreen.WorkingArea.Height - configHeight.Value) / 2);
+			window.Position = new PixelPoint(centerX, centerY);
 		}
 	}
 }
