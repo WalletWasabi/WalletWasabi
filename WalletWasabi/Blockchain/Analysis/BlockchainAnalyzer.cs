@@ -128,29 +128,26 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Value)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
+		var outputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();
 		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
-		bool? isWasabi2Cj = null;
+		bool isWasabi2Cj =
+					tx.Transaction.Outputs.Count >= 2 // Sanity check.
+					&& tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& outputValues.Count(x => StdDenoms.Contains(x)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
+					&& outputValues.Zip(outputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
 
 		var foreignInputCount = tx.ForeignInputs.Count;
-		var allOutputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();			
 
-		// We use output order as heuristic to determine whether the coinjoin is wabisabi or not.
-		var isWabiSabiCoinJoin = allOutputValues
-				.Zip(allOutputValues.Skip(1))
-                .All(p => p.First >= p.Second);
-
-		
 		foreach (var newCoin in tx.WalletOutputs)
 		{
 			var output = newCoin.TxOut;
 			var equalOutputCount = indistinguishableOutputs[output.Value];
 			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
 
-			var punishmentSeverity = isWabiSabiCoinJoin
-				? PunishmentSeverity(indistinguishableOutputs, output, allOutputValues, ownEqualOutputCount)
+			var punishmentSeverity = isWasabi2Cj
+				? PunishmentSeverity(indistinguishableOutputs, output, outputValues, ownEqualOutputCount)
 				: ownEqualOutputCount;
-				
+
 			// Anonset gain cannot be larger than others' input count.
 			double anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
 
@@ -161,13 +158,8 @@ public class BlockchainAnalyzer
 			double startingOutputAnonset;
 			if (anonset < 1)
 			{
-				isWasabi2Cj ??=
-					tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& outputValues.Count(x => StdDenoms.Contains(x.Satoshi)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
-					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
-
 				// When WW2 denom output isn't too large, then it's not change.
-				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
+				if (isWasabi2Cj && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 				}
@@ -245,7 +237,7 @@ public class BlockchainAnalyzer
 		// if the value of the current output can be expressed using 8 or more combinations also present in the
 		// coinjoin then do not punish it too hard.
 		var shouldBePenalized = newCoinEquivalentCount < 8;
-		var punishmentSeverity = (int) Math.Max(1, shouldBePenalized ? ownEqualOutputCount : ownEqualOutputCount / 4.0);
+		var punishmentSeverity = (int)Math.Max(1, shouldBePenalized ? ownEqualOutputCount : ownEqualOutputCount / 4.0);
 		return punishmentSeverity;
 	}
 
