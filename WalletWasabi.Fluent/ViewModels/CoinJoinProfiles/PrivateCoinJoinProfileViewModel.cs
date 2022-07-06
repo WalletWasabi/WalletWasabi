@@ -43,6 +43,6 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget < MaxAnonScore && profile.AnonScoreTarget > MinAnonScore && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours;
+		return profile.AnonScoreTarget < MaxAnonScore && profile.AnonScoreTarget > MinAnonScore && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
 	}
 }
