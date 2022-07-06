@@ -56,8 +56,8 @@ public class PubKeyReuseAnonScoreTests
 		var newOutputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
 
 		// Anonsets should not change.
-		Assert.Equal<int[]>(inputAnonsets, newInputAnonsets);
-		Assert.Equal<int[]>(outputAnonsets, newOutputAnonsets);
+		Assert.Equal(inputAnonsets, newInputAnonsets);
+		Assert.Equal(outputAnonsets, newOutputAnonsets);
 	}
 
 	[Fact]
