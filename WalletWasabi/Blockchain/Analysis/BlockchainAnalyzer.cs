@@ -129,13 +129,13 @@ public class BlockchainAnalyzer
 			.ToDictionary(x => x.Key, y => y.Count());
 
 		var outputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();
-		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
 		bool isWasabi2Cj =
 					tx.Transaction.Outputs.Count >= 2 // Sanity check.
 					&& tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
 					&& outputValues.Count(x => StdDenoms.Contains(x)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
 					&& outputValues.Zip(outputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
 
+		var secondLargestOutputAmount = indistinguishableOutputs.Keys.OrderByDescending(x => x).Take(2).Last();
 		var foreignInputCount = tx.ForeignInputs.Count;
 
 		foreach (var newCoin in tx.WalletOutputs)
@@ -220,7 +220,7 @@ public class BlockchainAnalyzer
 	private static int PunishmentSeverity(Dictionary<long, int> indistinguishableOutputs, TxOut output, long[] allOutputValues, int ownEqualOutputCount)
 	{
 		// Create a list containing the coinjoin's output values that repeat and are also standard.
-		var stdValuesUsedInOutputs = indistinguishableOutputs.Keys.Intersect(StdDenoms);
+		var stdValuesUsedInOutputs = indistinguishableOutputs.Where(x => x.Value > 1).Select(x => x.Key).Intersect(StdDenoms);
 		var stdValuesUsedInOutputsSmallerThanCoin = stdValuesUsedInOutputs.Where(x => x < output.Value).ToArray();
 
 		// Compute the decompositions in which the current analyzed txout value can be expressed (in no more than 6 elements,
