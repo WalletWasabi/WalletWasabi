@@ -217,8 +217,7 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private static int PunishmentSeverity(Dictionary<long, int> indistinguishableOutputs, TxOut output, long[] allOutputValues,
-		int ownEqualOutputCount)
+	private static int PunishmentSeverity(Dictionary<long, int> indistinguishableOutputs, TxOut output, long[] allOutputValues, int ownEqualOutputCount)
 	{
 		// Create a list containing the coinjoin's output values that repeat and are also standard.
 		var stdValuesUsedInOutputs = indistinguishableOutputs.Keys.Intersect(StdDenoms);
