@@ -16,7 +16,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	[AutoNotify] private string _titleTip;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
-	[AutoNotify(SetterModifier = AccessModifier.Protected)] private string? _statusText;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 
 	private string _title;
@@ -35,25 +34,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 
 		SetIcon();
-
-		this.WhenAnyValue(x => x.IsLoading, x => x.IsCoinJoining)
-			.Subscribe(tup =>
-			{
-				var (isLoading, isCoinJoining) = tup;
-
-				if (isLoading)
-				{
-					StatusText = "Loading";
-				}
-				else if (isCoinJoining)
-				{
-					StatusText = "Coinjoining";
-				}
-				else
-				{
-					StatusText = null;
-				}
-			});
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
