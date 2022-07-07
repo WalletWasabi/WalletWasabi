@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -432,7 +433,7 @@ public class IndexStore : IAsyncDisposable
 		}
 	}
 
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
+	public async IAsyncEnumerable<FilterModel> GetFiltersFromHeightAsync(Height fromHeight, [EnumeratorCancellation] CancellationToken cancel)
 	{
 		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -470,7 +471,7 @@ public class IndexStore : IAsyncDisposable
 							var filter = FilterModel.FromLine(line);
 
 							await tTask.ConfigureAwait(false);
-							tTask = todo(filter);
+							yield return filter;
 
 							height++;
 
@@ -496,7 +497,7 @@ public class IndexStore : IAsyncDisposable
 
 						var filter = FilterModel.FromLine(line);
 
-						await todo(filter).ConfigureAwait(false);
+						yield return filter;
 						height++;
 					}
 				}
@@ -504,8 +505,16 @@ public class IndexStore : IAsyncDisposable
 
 			foreach (FilterModel filter in ImmatureFilters.ToImmutableArray())
 			{
-				await todo(filter).ConfigureAwait(false);
+				yield return filter;
 			}
+		}
+	}
+	
+	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
+	{
+		await foreach (var filter in GetFiltersFromHeightAsync(fromHeight, cancel).ConfigureAwait(false))
+		{
+			await todo(filter).ConfigureAwait(false);
 		}
 	}
 
