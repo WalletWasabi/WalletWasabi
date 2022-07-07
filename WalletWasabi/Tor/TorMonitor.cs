@@ -24,7 +24,7 @@ namespace WalletWasabi.Tor;
 /// <summary>Monitors Tor process bootstrap and reachability of Wasabi Backend.</summary>
 public class TorMonitor : PeriodicRunner
 {
-	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(5);
+	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(10);
 
 	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
@@ -48,6 +48,7 @@ public class TorMonitor : PeriodicRunner
 	private TorHttpPool TorHttpPool { get; }
 
 	private Task? BootstrapTask { get; set; }
+	private bool TriedTorRestart { get; set; } = false;
 
 	/// <inheritdoc/>
 	public override Task StartAsync(CancellationToken cancellationToken)
@@ -146,7 +147,7 @@ public class TorMonitor : PeriodicRunner
 
 			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException)
+				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException e)
 				{
 					// Tor must be running for us to consider switching to the fallback address.
 					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
@@ -156,6 +157,14 @@ public class TorMonitor : PeriodicRunner
 						Logger.LogInfo("Tor is not running.");
 						return;
 					}
+
+					if (!TriedTorRestart && e.RepField == RepField.TtlExpired)
+					{
+						TriedTorRestart = true;
+						// todo: kill Tor
+						return;
+					}
+					TriedTorRestart = false;
 
 					// Check if the fallback address (clearnet through exit nodes) works. It must work.
 					try
