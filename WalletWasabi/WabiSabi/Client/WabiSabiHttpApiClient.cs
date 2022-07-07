@@ -139,7 +139,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			}
 
 			attempt++;
-		} while (!combinedToken.IsCancellationRequested);
+		}
+		while (!combinedToken.IsCancellationRequested);
 
 		throw new AggregateException(exceptions.Keys);
 	}
