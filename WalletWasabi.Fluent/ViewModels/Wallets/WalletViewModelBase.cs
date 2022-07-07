@@ -11,7 +11,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
 {
-	[AutoNotify] private string _titleTip;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
@@ -23,10 +22,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		Wallet = Guard.NotNull(nameof(wallet), wallet);
 
 		_title = WalletName;
-		var isHardware = Wallet.KeyManager.IsHardwareWallet;
-		var isWatch = Wallet.KeyManager.IsWatchOnly;
-		_titleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
-
 		WalletState = wallet.State;
 
 		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
