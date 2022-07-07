@@ -27,7 +27,7 @@ public class OwnershipProofValidatorTests
 	{
 		// We need the `TransactionStore` instance to verify coins created in transactions (coinjoins by sure)
 		// that are saved in our disk (because they are relevant for us). The `BlockProvider` and the `IndexStore`
-		// are used to find and get the blocks containing the transactions that creates the coins that we have
+		// are used to find and get the blocks containing the transactions that create the coins that we have
 		// to verify.
 		await using var indexStore = await CreateIndexStoreAsync().ConfigureAwait(false);
 		await using var transactionStore = await CreateTransactionStoreAsync().ConfigureAwait(false);
@@ -100,7 +100,7 @@ public class OwnershipProofValidatorTests
 		using var identificationKey = Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main);
 		var stx = CreateCreditingTransaction(scriptPubKey, Money.Coins(0.1234m));
 
-		// put the transaction is a block.
+		// put the transaction in a block.
 		var block = Consensus.Main.ConsensusFactory.CreateBlock();
 		block.AddTransaction(stx.Transaction);
 		var blockHash = block.GetHash();
@@ -125,7 +125,7 @@ public class OwnershipProofValidatorTests
 			new OwnershipIdentifier(identificationKey, otherAliceKey.PubKey.WitHash.ScriptPubKey),
 			coinJoinInputCommitmentData);
 
-		// verify the proof is valied.
+		// verify the proof is valid.
 		var validator = new OwnershipProofValidator(indexStore, transactionStore, blockProvider.Object);
 		var validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,
@@ -134,7 +134,7 @@ public class OwnershipProofValidatorTests
 			CancellationToken.None);
 		Assert.Equal(1, validProofs);
 
-		// validate a coin comming from an non-existing transaction.
+		// validate a coin coming from a non-existing transaction.
 		var fakeCoin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(8.118736401m), BitcoinFactory.CreateScript()));
 		validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,

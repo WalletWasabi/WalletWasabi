@@ -27,7 +27,7 @@ public class OwnershipProofValidator
 	private IBlockProvider BlockProvider { get; }
 
 	// Verifies the coins and ownership proofs. These proofs are provided by the coordinator who should
-	// have validate them before which means that when dealing with a honest coordinator all these proof
+	// have validated them before which means that when dealing with a honest coordinator all these proofs
 	// are valid.
 	//
 	// In case one proof is invalid we have evidence enough to know the coordinator is malicious and we
@@ -38,7 +38,7 @@ public class OwnershipProofValidator
 		int stopAfter,
 		CancellationToken cancellationToken)
 	{
-		var proofChannel = Channel.CreateBounded<(Coin, Coin, OwnershipProof)>(10);
+		var proofChannel = Channel.CreateBounded<(Coin, Coin, OwnershipProof)>(1);
 			
 		var coinsSearchingTask = Task.Run(() => FindCoinsToVerifyAsync(proofChannel.Writer, othersCoins, cancellationToken), cancellationToken);
 		var coinsValidationTask = Task.Run(() => ValidateCoinsAsync(proofChannel.Reader, coinJoinInputCommitmentData, stopAfter, cancellationToken));
@@ -57,7 +57,7 @@ public class OwnershipProofValidator
 		var mineTxIds = TransactionStore.GetTransactionHashes();
 		var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.Coin.Outpoint.Hash));
 
-		// In case one Alice is trying to spend a output from a transaction that we already have
+		// In case one Alice is trying to spend an output from a transaction that we already have
 		// seen before then we can verify its script without downloading anything from the network.
 		// However it is impossible for us to know it the coins is unspent!.
 		foreach (var (coin, ownershipProof) in alreadySeenCoins)
@@ -136,11 +136,11 @@ public class OwnershipProofValidator
 			var (aliceCoin, realCoin, ownershipProof) = await proofChannelReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			if (realCoin is not { } coin || (aliceCoin.TxOut, aliceCoin.Outpoint) != (coin.TxOut, coin.Outpoint))
 			{
-				throw new MaliciousCoordinatorException("Coin doesn't exists or is different than the provided by the coordinator.");
+				throw new MaliciousCoordinatorException("Coin doesn't exist or is different from the one provided by the coordinator.");
 			}
 			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, aliceCoin.ScriptPubKey, coinJoinInputCommitmentData))
 			{
-				throw new MaliciousCoordinatorException("The ownership proof is not valid what means Alice cannot really spend it.");
+				throw new MaliciousCoordinatorException("The ownership proof is not valid which means Alice cannot really spend it.");
 			}
 			validProofs++;
 		}
