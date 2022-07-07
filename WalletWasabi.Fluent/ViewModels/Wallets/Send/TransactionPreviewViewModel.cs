@@ -183,14 +183,22 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
-
-		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-			newFeeRate != _info.FeeRate)
+		if (_info.IsCustomFeeUsed)
 		{
-			_info.FeeRate = feeRateDialogResult.Result;
+			var customFeeResult = await NavigateDialogAsync(new SendFeeAdvancedOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
+			if (customFeeResult.Kind == DialogResultKind.Normal && customFeeResult.Result is { })
+			{
+				await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
+			}
+		}
+		else
+		{
+			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
 
-			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
+			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { })
+			{
+				await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
+			}
 		}
 	}
 
