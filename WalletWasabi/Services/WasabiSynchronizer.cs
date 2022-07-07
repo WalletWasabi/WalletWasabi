@@ -307,6 +307,11 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	{
 		bool isFail = false;
 
+		if (ex is HttpRequestException httpRequestException && httpRequestException.InnerException is not null)
+		{
+			ex = httpRequestException.InnerException;
+		}
+
 		if (ex is TorConnectCommandFailedException torEx)
 		{
 			isFail = torEx.RepField == RepField.GeneralSocksServerFailure || torEx.RepField == RepField.OnionServiceIntroFailed;
