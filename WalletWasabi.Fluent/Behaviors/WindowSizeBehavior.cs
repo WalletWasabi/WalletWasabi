@@ -47,16 +47,18 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 			return;
 		}
 
-		var isValidWidth = configWidth * currentScreen.PixelDensity <= currentScreen.WorkingArea.Width * currentScreen.PixelDensity;
-		var isValidHeight = configHeight * currentScreen.PixelDensity <= currentScreen.WorkingArea.Height * currentScreen.PixelDensity;
+		var scaledWidth = configWidth * currentScreen.PixelDensity;
+		var scaledHeight = configHeight * currentScreen.PixelDensity;
+
+		var isValidWidth = scaledWidth <= currentScreen.WorkingArea.Width;
+		var isValidHeight = scaledHeight <= currentScreen.WorkingArea.Height;
 
 		if (isValidWidth && isValidHeight)
 		{
-			window.Width = configWidth.Value;
-			window.Height = configHeight.Value;
+			window.Arrange(new Rect(0, 0, configWidth.Value, configHeight.Value));
 
-			var centerX = (int)((currentScreen.WorkingArea.Width - configWidth.Value) / 2);
-			var centerY = (int)((currentScreen.WorkingArea.Height - configHeight.Value) / 2);
+			var centerX = (int)((currentScreen.WorkingArea.Width - scaledWidth) / 2);
+			var centerY = (int)((currentScreen.WorkingArea.Height - scaledHeight) / 2);
 			window.Position = new PixelPoint(centerX, centerY);
 		}
 	}
