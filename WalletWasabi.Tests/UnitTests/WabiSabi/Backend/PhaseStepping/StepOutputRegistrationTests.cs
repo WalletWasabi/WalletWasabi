@@ -141,7 +141,7 @@ public class StepOutputRegistrationTests
 		var txParams = round.Parameters;
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
 		round.Alices.Add(extraAlice);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);

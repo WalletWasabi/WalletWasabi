@@ -30,19 +30,30 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class WabiSabiFactory
 {
-	public static Coin CreateCoin(Key key)
-		=> CreateCoin(key, Money.Coins(1));
+	public static Coin CreateCoin(Key? key = null, Money? amount = null)
+	{
+		key ??= new();
+		amount ??= Money.Coins(1);
+		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
+	}
 
-	public static Coin CreateCoin(Key key, Money amount)
-		=> new(
-			new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0),
-			new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
+	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null)
+	{
+		key = key ?? new();
+		var coin = WabiSabiFactory.CreateCoin(key, amount);
+		roundId ??= uint256.One;
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
+		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
+	}
+
+	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
+		=> new CoinJoinInputCommitmentData("wasabiwallet.io", RoundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
 			GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
-			new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash ?? BitcoinFactory.CreateUint256()));
+			new CoinJoinInputCommitmentData("wasabiwallet.io", roundHash ?? BitcoinFactory.CreateUint256()));
 
 	public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
 	{
@@ -113,7 +124,7 @@ public static class WabiSabiFactory
 		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
-		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);
+		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key, round.Id), round);
 
 	public static Alice CreateAlice(Money amount, Round round)
 	{
@@ -137,6 +148,7 @@ public static class WabiSabiFactory
 		return new ArenaClient(
 			roundState.CreateAmountCredentialClient(random),
 			roundState.CreateVsizeCredentialClient(random),
+			"wasabiwallet.io",
 			arena);
 	}
 
@@ -302,6 +314,7 @@ public static class WabiSabiFactory
 			keyChain,
 			destinationProvider,
 			roundStateUpdater,
+			"wasabiwallet.io",
 			int.MaxValue,
 			true,
 			redCoinIsolation,
