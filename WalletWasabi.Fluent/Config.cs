@@ -115,6 +115,10 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
+	[DefaultValue("wasabiwallet.io")]
+	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoordinatorIdentifier { get; set; } = "wasabiwallet.io";
+
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 	public Uri GetCurrentBackendUri()

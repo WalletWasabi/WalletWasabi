@@ -201,7 +201,7 @@ public class StepTransactionSigningTests
 		var alice3 = WabiSabiFactory.CreateAlice(round);
 		alice3.ConfirmedConnection = true;
 		round.Alices.Add(alice3);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin);
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin, alice3.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -240,8 +240,8 @@ public class StepTransactionSigningTests
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None);
-		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None);
+		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
+		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
 
 		while (Phase.OutputRegistration != round.Phase)
 		{
@@ -264,7 +264,7 @@ public class StepTransactionSigningTests
 			CancellationToken.None).ConfigureAwait(false);
 
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.WitHash.ScriptPubKey,
 			aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None).ConfigureAwait(false);

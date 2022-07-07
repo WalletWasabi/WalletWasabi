@@ -76,7 +76,7 @@ internal class Participant
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater, false);
 
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{

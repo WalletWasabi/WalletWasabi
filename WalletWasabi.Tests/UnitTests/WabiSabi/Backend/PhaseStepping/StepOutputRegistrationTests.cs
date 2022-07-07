@@ -141,7 +141,7 @@ public class StepOutputRegistrationTests
 		var txParams = round.Parameters;
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
 		round.Alices.Add(extraAlice);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -197,8 +197,8 @@ public class StepOutputRegistrationTests
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
-		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None);
-		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None);
+		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
+		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
 
 		while (Phase.ConnectionConfirmation != round.Phase)
 		{
