@@ -48,7 +48,7 @@ public class TorMonitor : PeriodicRunner
 	private TorHttpPool TorHttpPool { get; }
 
 	private Task? BootstrapTask { get; set; }
-	private bool TriedTorRestart { get; set; } = false;
+	private bool TriedTorRestart { get; set; }
 
 	/// <inheritdoc/>
 	public override Task StartAsync(CancellationToken cancellationToken)
