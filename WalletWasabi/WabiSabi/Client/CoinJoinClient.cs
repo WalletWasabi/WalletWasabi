@@ -540,21 +540,13 @@ public class CoinJoinClient
 			privateCoins.Length + allowedNonPrivateCoins.Count,
 			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
 
-		var allowedCoins = allowedNonPrivateCoins.Concat(privateCoins).ToArray();
+		// Let's allow only a inputCount - 1 private coins to play.
+		var allowedPrivateCoins = AnonScoreBiasedShuffle(privateCoins).Take(inputCount - 1);
+
+		var allowedCoins = allowedNonPrivateCoins.Concat(allowedPrivateCoins).ToArray();
 
 		// Shuffle coins, while randomly biasing towards lower AS.
-		var orderedAllowedCoins = new List<SmartCoin>();
-		for (int i = 0; i < allowedCoins.Length; i++)
-		{
-			var remaining = allowedCoins.Except(orderedAllowedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
-			var c = remaining.BiasedRandomElement(50);
-			if (c is null)
-			{
-				throw new NotSupportedException("This is impossible.");
-			}
-
-			orderedAllowedCoins.Add(c);
-		}
+		var orderedAllowedCoins = AnonScoreBiasedShuffle(allowedCoins).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestAmounts = allowedNonPrivateCoins
@@ -626,6 +618,23 @@ public class CoinJoinClient
 			.RandomElement();
 
 		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static IEnumerable<SmartCoin> AnonScoreBiasedShuffle(SmartCoin[] coins)
+	{
+		var orderedCoins = new List<SmartCoin>();
+		for (int i = 0; i < coins.Length; i++)
+		{
+			var remaining = coins.Except(orderedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
+			var c = remaining.BiasedRandomElement(50);
+			if (c is null)
+			{
+				throw new NotSupportedException("This is impossible.");
+			}
+
+			orderedCoins.Add(c);
+			yield return c;
+		}
 	}
 
 	private static bool TryAddGroup(RoundParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)
