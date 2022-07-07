@@ -514,38 +514,35 @@ public class CoinJoinClient
 		var privateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
+		var semiPrivateCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.ToArray();
+		var redCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet < 2)
+			.ToArray();
 
 		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
-		SmartCoin[]? nonPrivateCoins = null;
+		var nonPrivateCoins = semiPrivateCoins.ToList();
 		if (redCoinIsolation)
 		{
-			var nonPrivateCandidates = filteredCoins
-					.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet != 1)
-					.ToList();
-
-			var randomRed = filteredCoins
-				.Where(x => x.HdPubKey.AnonymitySet == 1)
-				.RandomElement();
-			if (randomRed is not null)
+			var red = redCoins.RandomElement();
+			if (red is not null)
 			{
-				nonPrivateCandidates.Add(randomRed);
+				nonPrivateCoins.Add(red);
 			}
-
-			nonPrivateCoins = nonPrivateCandidates.ToShuffled().ToArray();
 		}
 		else
 		{
-			nonPrivateCoins = filteredCoins
-				.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
-				.ToArray();
+			nonPrivateCoins.AddRange(redCoins);
 		}
+		nonPrivateCoins.Shuffle();
 
 		// Make sure it's ordered by 1 private and 1 non-private coins.
 		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
 		var organizedCoins = new List<SmartCoin>();
-		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Length); i++)
+		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Count); i++)
 		{
-			if (i < nonPrivateCoins.Length)
+			if (i < nonPrivateCoins.Count)
 			{
 				var npc = nonPrivateCoins[i];
 				organizedCoins.Add(npc);
@@ -560,7 +557,7 @@ public class CoinJoinClient
 		// How many inputs do we want to provide to the mix?
 		int inputCount = Math.Min(
 			organizedCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Length, privateCoins.Length, rnd));
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Count, privateCoins.Length, rnd));
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestAmounts = nonPrivateCoins
