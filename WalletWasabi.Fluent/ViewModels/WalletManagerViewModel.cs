@@ -232,7 +232,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		if (SelectedWallet is { IsLoggedIn: true } && (item is WalletViewModelBase && SelectedWallet != item))
 		{
-			if (/*item is not WalletActionViewModel &&*/ SelectedWallet != item)
+			if (SelectedWallet != item)
 			{
 				SelectedWallet = null;
 				result = item;
