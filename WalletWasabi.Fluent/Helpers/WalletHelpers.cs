@@ -22,21 +22,20 @@ public static class WalletHelpers
 		return keyManager.IsHardwareWallet ? WalletType.Hardware : WalletType.Normal;
 	}
 
-	public static IEnumerable<string> GetLabels()
-	{
-		// Don't refresh wallet list as it may be slow.
-		IEnumerable<SmartLabel> labels = Services.WalletManager.GetWallets(refreshWalletList: false)
+	/// <returns>Labels ordered by blockchain.</returns>
+	public static IEnumerable<SmartLabel> GetTransactionLabels() => Services.BitcoinStore.TransactionStore.GetLabels();
+
+	public static IEnumerable<SmartLabel> GetReceiveAddressLabels() =>
+		Services.WalletManager
+			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
 			.Select(x => x.KeyManager)
-			.SelectMany(x => x.GetLabels());
+			.SelectMany(x => x.GetReceiveLabels());
 
-		var txStore = Services.BitcoinStore.TransactionStore;
-		if (txStore is { })
-		{
-			labels = labels.Concat(txStore.GetLabels());
-		}
-
-		return labels.SelectMany(x => x.Labels);
-	}
+	public static IEnumerable<SmartLabel> GetChangeAddressLabels() =>
+		Services.WalletManager
+			.GetWallets(refreshWalletList: false) // Don't refresh wallet list as it may be slow.
+			.Select(x => x.KeyManager)
+			.SelectMany(x => x.GetChangeLabels());
 
 	public static (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
@@ -59,7 +58,7 @@ public static class WalletHelpers
 
 		if (!WalletGenerator.ValidateWalletName(walletName))
 		{
-			return (ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+			return (ErrorSeverity.Error, "Selected wallet name is not valid. Please try a different name.");
 		}
 
 		return null;

@@ -51,23 +51,26 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.AsObservableList();
 
 		Observable
-				.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
+			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(
-				x =>
+			.Select(x => x.Sender as Wallet)
+			.WhereNotNull()
+			.Subscribe(wallet =>
 			{
-				var wallet = x.Sender as Wallet;
-
-				if (wallet is { } && _walletDictionary.ContainsKey(wallet))
+				if (!_walletDictionary.TryGetValue(wallet, out var walletViewModel))
 				{
-					if (wallet.State == WalletState.Stopping)
-					{
-						RemoveWallet(_walletDictionary[wallet]);
-					}
-					else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
-					{
-						OpenClosedWallet(cwvm);
-					}
+					return;
+				}
+
+				if (wallet.State == WalletState.Stopping)
+				{
+					RemoveWallet(walletViewModel);
+				}
+				else if (walletViewModel is ClosedWalletViewModel { IsLoggedIn: true } cwvm &&
+				         ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
+				          cwvm.Wallet.State == WalletState.Started))
+				{
+					OpenClosedWallet(cwvm);
 				}
 
 				AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(y => y.WalletState == WalletState.Started);
@@ -104,7 +107,15 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						{
+							if (MainViewModel.Instance.IsBusy)
+							{
+								return;
+							}
+
+							wvm.NavigateAndHighlight(e.Transaction.GetHash());
+						});
 					}
 
 					if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))

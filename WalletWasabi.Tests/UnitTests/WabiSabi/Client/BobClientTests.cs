@@ -46,10 +46,12 @@ public class BobClientTests
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
+			"wasabiwallet.io",
 			wabiSabiApi);
 		var bobArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
+			"wasabiwallet.io",
 			wabiSabiApi);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
@@ -57,7 +59,7 @@ public class BobClientTests
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var keyChain = new KeyChain(km, new Kitchen(""));
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
 
 		do
 		{

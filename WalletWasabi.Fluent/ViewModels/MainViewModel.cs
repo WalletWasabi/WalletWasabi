@@ -1,10 +1,10 @@
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -14,10 +14,9 @@ using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Fluent.ViewModels.StatusBar;
+using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -33,26 +32,15 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
-	[AutoNotify] private StatusBarViewModel _statusBar;
+	[AutoNotify] private StatusIconViewModel _statusIcon;
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
-	[AutoNotify] private double _windowWidth;
-	[AutoNotify] private double _windowHeight;
-	[AutoNotify] private PixelPoint? _windowPosition;
 
 	public MainViewModel()
 	{
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
-		_windowWidth = Services.UiConfig.WindowWidth ?? 1280;
-		_windowHeight = Services.UiConfig.WindowHeight ?? 960;
-
-		var (x, y) = (Services.UiConfig.WindowX, Services.UiConfig.WindowY);
-		if (x != null && y != null)
-		{
-			_windowPosition = new PixelPoint(x.Value, y.Value);
-		}
+		ApplyUiConfigWindowSate();
 
 		_dialogScreen = new DialogScreenViewModel();
 
@@ -68,40 +56,24 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusBar = new StatusBarViewModel();
-
 		UiServices.Initialize();
+
+		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
 		_privacyMode = new PrivacyModeViewModel();
 		_navBar = new NavBarViewModel(MainScreen);
 
-		MusicControls = new MusicControlsViewModel();
-
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
 
 		RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-		this.WhenAnyValue(x => x.WindowState, x => x.WindowPosition, x => x.WindowWidth, x => x.WindowHeight)
-			.Where(x => x.Item1 != WindowState.Minimized)
-			.Where(x => x.Item2 != new PixelPoint(-32000, -32000)) // value when minimized
+		this.WhenAnyValue(x => x.WindowState)
+			.Where(state => state != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(t =>
-			{
-				var (state, position, width, height) = t;
-
-				Services.UiConfig.WindowState = state.ToString();
-				if (position is { })
-				{
-					Services.UiConfig.WindowX = position.Value.X;
-					Services.UiConfig.WindowY = position.Value.Y;
-				}
-
-				Services.UiConfig.WindowWidth = width;
-				Services.UiConfig.WindowHeight = height;
-			});
+			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
 
 		this.WhenAnyValue(
 				x => x.DialogScreen!.IsDialogOpen,
@@ -155,6 +127,11 @@ public partial class MainViewModel : ViewModelBase
 				}
 			});
 
+		CurrentWallet =
+			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.WhereNotNull()
+			.OfType<WalletViewModel>();
+
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
@@ -175,15 +152,25 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+
+		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
 
-	public TargettedNavigationStack MainScreen { get; }
+	public string NetworkBadgeName { get; }
 
-	public MusicControlsViewModel MusicControls { get; }
+	public IObservable<WalletViewModel> CurrentWallet { get; }
+
+	public TargettedNavigationStack MainScreen { get; }
 
 	public SearchBarViewModel SearchBar { get; }
 
 	public static MainViewModel Instance { get; } = new();
+
+	public bool IsBusy =>
+		MainScreen.CurrentPage is { IsBusy: true } ||
+		DialogScreen.CurrentPage is { IsBusy: true } ||
+		FullScreen.CurrentPage is { IsBusy: true } ||
+		CompactDialogScreen.CurrentPage is { IsBusy: true };
 
 	public void ClearStacks()
 	{
@@ -201,7 +188,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void Initialize()
 	{
-		StatusBar.Initialize();
+		StatusIcon.Initialize();
 
 		if (Services.Config.Network != Network.Main)
 		{
@@ -222,17 +209,10 @@ public partial class MainViewModel : ViewModelBase
 				return _settingsPage;
 			});
 
-		TorSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
-				return _settingsPage;
-			});
-
 		BitcoinTabSettingsViewModel.RegisterLazy(
 			() =>
 			{
-				_settingsPage.SelectedTab = 2;
+				_settingsPage.SelectedTab = 1;
 				return _settingsPage;
 			});
 
@@ -252,27 +232,7 @@ public partial class MainViewModel : ViewModelBase
 				return null;
 			});
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
-		{
-			try
-			{
-				await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
-
-				LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
-				{
-					var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
-					return new LegalDocumentsViewModel(document.Content);
-				});
-			}
-			catch (Exception ex)
-			{
-				if (ex is not OperationCanceledException)
-				{
-					Logger.LogError("Failed to get Legal documents.", ex);
-				}
-			}
-		});
-
+		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
@@ -281,5 +241,10 @@ public partial class MainViewModel : ViewModelBase
 		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
 		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+	}
+
+	public void ApplyUiConfigWindowSate()
+	{
+		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}
 }

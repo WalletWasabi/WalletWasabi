@@ -29,7 +29,8 @@ public class SmartCoinSelectorTests
 			.Select((key, i) => {
 				var coin =BitcoinFactory.CreateSmartCoin(key, 0.1m * (i+1));
 				coin.HdPubKey.Cluster = cluster;
-				return coin; });
+				return coin; })
+			.ToList();
 
 		var selector = new SmartCoinSelector(smartCoins);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m));
@@ -117,7 +118,7 @@ public class SmartCoinSelectorTests
 				coin.HdPubKey.Cluster = betoCluster;
 				return coin; });
 
-		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto));
+		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList());
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m)).Cast<Coin>().ToList();
 
 		Assert.Equal(2, coinsToSpend.Count);

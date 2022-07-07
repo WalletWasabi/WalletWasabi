@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ public class TorHttpClient : IHttpClient
 
 	/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
 	/// <exception cref="OperationCanceledException">When <paramref name="token"/> is canceled by the user.</exception>
+	/// <inheritdoc cref="SendAsync(HttpRequestMessage, CancellationToken)"/>
 	public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
 	{
 		if (BaseUriGetter is null)
@@ -66,7 +68,12 @@ public class TorHttpClient : IHttpClient
 		return await SendAsync(request, token).ConfigureAwait(false);
 	}
 
+	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
 	/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
+	/// <remarks>
+	/// No exception is thrown when the status code of the <see cref="HttpResponseMessage">response</see>
+	/// is, for example, <see cref="HttpStatusCode.NotFound"/>.
+	/// </remarks>
 	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 	{
 		if (Mode is Mode.NewCircuitPerRequest)

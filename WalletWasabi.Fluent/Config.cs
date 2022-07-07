@@ -39,7 +39,7 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.TestNet;
+	public Network Network { get; internal set; } = Network.Main;
 
 	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
 	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -115,15 +115,14 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
+	[DefaultValue("wasabiwallet.io")]
+	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoordinatorIdentifier { get; set; } = "wasabiwallet.io";
+
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 	public Uri GetCurrentBackendUri()
 	{
-		if (TorMonitor.RequestFallbackAddressUsage)
-		{
-			return GetFallbackBackendUri();
-		}
-
 		if (_backendUri is { })
 		{
 			return _backendUri;

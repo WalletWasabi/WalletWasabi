@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
+using System;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -39,7 +40,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 
-			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && !x.WasTransactionBroadcast))
+			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
 
 			if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
@@ -60,13 +61,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Compute but don't commit updated coinjoin to round state, it will
 			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
-			_ = round.Assert<ConstructionState>().AddInput(coin);
-
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-			}
+			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
 
 			// Generate a new GUID with the secure random source, to be sure
 			// that it is not guessable (Guid.NewGuid() documentation does
@@ -89,21 +84,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
 
-			if (alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate) <= Money.Zero)
+			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput);
 			}
 
-			if (alice.TotalInputAmount < round.MinAmountCredentialValue)
+			if (alice.TotalInputAmount < round.Parameters.MinAmountCredentialValue)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
-			if (alice.TotalInputAmount > round.MaxAmountCredentialValue)
+			if (alice.TotalInputAmount > round.Parameters.MaxAmountCredentialValue)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (alice.TotalInputVsize > round.MaxVsizeAllocationPerAlice)
+			if (alice.TotalInputVsize > round.Parameters.MaxVsizeAllocationPerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
@@ -111,7 +106,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var amountCredentialTask = round.AmountCredentialIssuer.HandleRequestAsync(request.ZeroAmountCredentialRequests, cancellationToken);
 			var vsizeCredentialTask = round.VsizeCredentialIssuer.HandleRequestAsync(request.ZeroVsizeCredentialRequests, cancellationToken);
 
-			if (round.RemainingInputVsizeAllocation < round.MaxVsizeAllocationPerAlice)
+			if (round.RemainingInputVsizeAllocation < round.Parameters.MaxVsizeAllocationPerAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
 			}
@@ -183,12 +178,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection, $"Round ({request.RoundId}): Alice ({request.AliceId}) already confirmed connection.");
 			}
 
-			if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.MaxVsizeAllocationPerAlice))
+			if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.Parameters.MaxVsizeAllocationPerAlice))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 			}
 
-			var remaining = alice.CalculateRemainingAmountCredentials(round.FeeRate, round.CoordinationFeeRate);
+			var remaining = alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate);
 			if (realAmountCredentialRequests.Delta != remaining)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
@@ -235,7 +230,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 							await vsizeRealCredentialTask.ConfigureAwait(false));
 
 						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
+						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
 						alice.ConfirmedConnection = true;
 
 						return response;
@@ -275,7 +270,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			Bob bob = new(request.Script, credentialAmount);
 
-			var outputValue = bob.CalculateOutputAmount(round.FeeRate);
+			var outputValue = bob.CalculateOutputAmount(round.Parameters.MiningFeeRate);
 
 			var vsizeCredentialRequests = request.VsizeCredentialRequests;
 			if (-vsizeCredentialRequests.Delta != bob.OutputVsize)
@@ -355,9 +350,20 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		OutPoint input = request.Input;
 
-		if (Prison.TryGet(input, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
+		if (Prison.TryGet(input, out var inmate))
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+			DateTimeOffset bannedUntil;
+			if (inmate.Punishment == Punishment.LongBanned)
+			{
+				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan;
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
+			}
+
+			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
+			{
+				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
+			}
 		}
 
 		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);

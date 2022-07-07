@@ -55,8 +55,7 @@ public class JsonRpcServer : BackgroundService
 					using var reader = new StreamReader(request.InputStream);
 					string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-					var identity = (HttpListenerBasicIdentity)context.User?.Identity;
-					if (!Config.RequiresCredentials || CheckValidCredentials(identity))
+					if (IsAuthorized(context))
 					{
 						var result = await handler.HandleAsync(body, stoppingToken).ConfigureAwait(false);
 
@@ -92,6 +91,23 @@ public class JsonRpcServer : BackgroundService
 		}
 	}
 
+	private bool IsAuthorized(HttpListenerContext context)
+	{
+		if (!Config.RequiresCredentials)
+		{
+			return true;
+		}
+
+		var user = context.User;
+		if (user is null)
+		{
+			return false;
+		}
+
+		var identity = (HttpListenerBasicIdentity?) user.Identity;
+		return CheckValidCredentials(identity);
+	}
+
 	private async Task<HttpListenerContext> GetHttpContextAsync(CancellationToken cancellationToken)
 	{
 		var getHttpContextTask = Listener.GetContextAsync();
@@ -107,7 +123,7 @@ public class JsonRpcServer : BackgroundService
 		return await getHttpContextTask.ConfigureAwait(false);
 	}
 
-	private bool CheckValidCredentials(HttpListenerBasicIdentity identity)
+	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity)
 	{
 		return identity is { } && (identity.Name == Config.JsonRpcUser && identity.Password == Config.JsonRpcPassword);
 	}

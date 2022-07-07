@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -9,13 +11,14 @@ public static class CoinPocketHelper
 {
 	public static readonly SmartLabel UnlabelledFundsText = new("Unknown People");
 	public static readonly SmartLabel PrivateFundsText = new("Private Funds");
+	public static readonly SmartLabel SemiPrivateFundsText = new("Semi-Private Funds");
 
 	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 	{
 		List<(SmartLabel SmartLabel, ICoinsView Coins)> pockets = new();
 		var clusters = new Dictionary<SmartLabel, List<SmartCoin>>();
 
-		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold))
+		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < 2))
 		{
 			var cluster = coin.HdPubKey.Cluster.Labels;
 
@@ -58,6 +61,14 @@ public static class CoinPocketHelper
 			pockets.Add(new(PrivateFundsText, privateCoins));
 		}
 
+		var semiPrivateCoins = new CoinsView(allCoins.Where(x => x.HdPubKey.AnonymitySet >= 2 && x.HdPubKey.AnonymitySet < privateAnonSetThreshold));
+		if (semiPrivateCoins.Any())
+		{
+			pockets.Add(new(SemiPrivateFundsText, semiPrivateCoins));
+		}
+
 		return pockets;
 	}
+
+	public static IEnumerable<Pocket> GetPockets(this Wallet wallet) => wallet.Coins.GetPockets(wallet.KeyManager.AnonScoreTarget).Select(x => new Pocket(x));
 }

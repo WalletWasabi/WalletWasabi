@@ -70,22 +70,17 @@ public static class Program
 
 		ReportStatus();
 
-		if (argsProcessor.IsPublish() || OnlyBinaries)
+		if (argsProcessor.IsPublish() || IsContinuousDelivery || OnlyBinaries)
 		{
 			await PublishAsync().ConfigureAwait(false);
 
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 		}
 
-#pragma warning disable CS0162 // Unreachable code detected
-		if (!OnlyBinaries)
+		if (argsProcessor.IsSign())
 		{
-			if (argsProcessor.IsSign())
-			{
-				await SignAsync().ConfigureAwait(false);
-			}
+			await SignAsync().ConfigureAwait(false);
 		}
-#pragma warning restore CS0162 // Unreachable code detected
 	}
 
 	private static void ReportStatus()
@@ -173,30 +168,35 @@ public static class Program
 		if (Directory.Exists(BinDistDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).ConfigureAwait(false);
-			Console.WriteLine($"Deleted {BinDistDirectory}");
+			Console.WriteLine($"# Deleted {BinDistDirectory}");
 		}
 
+		Console.WriteLine($"# Run dotnet restore");
 		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "restore --locked-mode");
+
+		Console.WriteLine($"# Run dotnet clean");
 		StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean --configuration Release");
 
-		var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
-		var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
+		string desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
+		string libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
+
 		if (Directory.Exists(desktopBinReleaseDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).ConfigureAwait(false);
-			Console.WriteLine($"Deleted {desktopBinReleaseDirectory}");
+			Console.WriteLine($"#Deleted {desktopBinReleaseDirectory}");
 		}
+
 		if (Directory.Exists(libraryBinReleaseDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).ConfigureAwait(false);
-			Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
+			Console.WriteLine($"# Deleted {libraryBinReleaseDirectory}");
 		}
 
 		var deterministicFileNameTag = IsContinuousDelivery ? $"{DateTimeOffset.UtcNow:ddMMyyyy}{DateTimeOffset.UtcNow.TimeOfDay.TotalSeconds}" : VersionPrefix;
 		var deliveryPath = IsContinuousDelivery ? Path.Combine(BinDistDirectory, "cdelivery") : BinDistDirectory;
 
 		IoHelpers.EnsureDirectoryExists(deliveryPath);
-		Console.WriteLine($"Binaries will be delivered here: {deliveryPath}");
+		Console.WriteLine($"# Binaries will be delivered here: {deliveryPath}");
 
 		string buildInfoJson = GetBuildInfoData();
 
@@ -214,7 +214,7 @@ public static class Program
 			if (!Directory.Exists(currentBinDistDirectory))
 			{
 				Directory.CreateDirectory(currentBinDistDirectory);
-				Console.WriteLine($"Created {currentBinDistDirectory}");
+				Console.WriteLine($"# Created {currentBinDistDirectory}");
 			}
 
 			string buildInfoPath = Path.Combine(currentBinDistDirectory, "BUILDINFO.json");
@@ -338,19 +338,19 @@ public static class Program
 				ZipFile.CreateFromDirectory(currentBinDistDirectory, zipFilePath);
 
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
-				Console.WriteLine($"Deleted {currentBinDistDirectory}");
+				Console.WriteLine($"# Deleted {currentBinDistDirectory}");
 
 				try
 				{
 					var drive = Tools.GetSingleUsbDrive();
 					var targetFilePath = Path.Combine(drive, zipFileName);
 
-					Console.WriteLine($"Trying to move unsigned zip file to removable ('{targetFilePath}').");
+					Console.WriteLine($"# Trying to move unsigned zip file to removable ('{targetFilePath}').");
 					File.Move(zipFilePath, targetFilePath, overwrite: true);
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"There was an error during copying the file to removable: '{ex.Message}'");
+					Console.WriteLine($"# There was an error during copying the file to removable: '{ex.Message}'");
 				}
 			}
 			else if (target.StartsWith("linux"))
@@ -368,7 +368,7 @@ public static class Program
 					continue;
 				}
 
-				Console.WriteLine("Create Linux .tar.gz");
+				Console.WriteLine("# Create Linux .tar.gz");
 
 				if (!Directory.Exists(publishedFolder))
 				{
@@ -389,7 +389,7 @@ public static class Program
 
 				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
-				Console.WriteLine("Create Linux .deb");
+				Console.WriteLine("# Create Linux .deb");
 
 				var debFolderRelativePath = "deb";
 				var debFolderPath = Path.Combine(BinDistDirectory, debFolderRelativePath);
@@ -483,7 +483,7 @@ public static class Program
 				File.Move(oldDeb, newDeb);
 
 				await IoHelpers.TryDeleteDirectoryAsync(publishedFolder).ConfigureAwait(false);
-				Console.WriteLine($"Deleted {publishedFolder}");
+				Console.WriteLine($"# Deleted {publishedFolder}");
 			}
 		}
 	}
@@ -592,7 +592,7 @@ public static class Program
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine($"Process failed: '{ex}'.");
+			Console.WriteLine($"# Process failed: '{ex}'.");
 		}
 
 		return false;

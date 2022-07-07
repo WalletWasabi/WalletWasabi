@@ -25,7 +25,7 @@ public class ShowFlyoutOnPointerOverBehavior : DisposingBehavior<Control>
 
 	private void OnPointerMove()
 	{
-		if (AssociatedObject.IsPointerOver)
+		if (AssociatedObject is { } obj && obj.IsPointerOver)
 		{
 			FlyoutBase.ShowAttachedFlyout(AssociatedObject);
 		}

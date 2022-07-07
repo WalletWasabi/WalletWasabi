@@ -50,10 +50,32 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 			return;
 		}
 
-		if (AssociatedObject.GetVisualRoot() is TopLevel topLevel)
+        var flyout = FlyoutBase.GetAttachedFlyout(AssociatedObject);
+        if (flyout is not null)
+        {
+            Observable.FromEventPattern(flyout, nameof(FlyoutBase.Closed))
+                .Subscribe(_ => FocusManager.Instance?.Focus(null))
+                .DisposeWith(disposables);
+        }
+
+		var visualRoot = AssociatedObject.GetVisualRoot();
+
+		if (visualRoot is TopLevel topLevel)
 		{
 			topLevel
 				.AddDisposableHandler(InputElement.PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel)
+				.DisposeWith(disposables);
+		}
+
+		if (visualRoot is WindowBase window)
+		{
+			Observable
+				.FromEventPattern(window, nameof(WindowBase.Deactivated))
+				.Subscribe(_ =>
+				{
+					FocusManager.Instance?.Focus(null);
+					HideFlyout();
+				})
 				.DisposeWith(disposables);
 		}
 
@@ -71,6 +93,12 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 		}
 	}
 
+	protected override void OnDetachedFromVisualTree()
+	{
+		HideFlyout();
+		FocusManager.Instance?.Focus(null);
+	}
+
 	private void ToggleFlyoutOpen(bool isOpen)
 	{
 		if (isOpen)
@@ -85,6 +113,11 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 
 	private void SearchBoxOnGotFocus()
 	{
+		if (AssociatedObject is { IsEffectivelyEnabled: false })
+		{
+			return;
+		}
+
 		ShowFlyout();
 	}
 
@@ -101,7 +134,7 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 	private void AssociatedObjectOnLostFocus()
 	{
 		if (AssociatedObject is { } && SearchPanel is { } &&
-		    !AssociatedObject.IsKeyboardFocusWithin && !SearchPanel.IsKeyboardFocusWithin)
+			!AssociatedObject.IsKeyboardFocusWithin && !SearchPanel.IsKeyboardFocusWithin)
 		{
 			HideFlyout();
 		}

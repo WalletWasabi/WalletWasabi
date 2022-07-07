@@ -22,10 +22,7 @@ public abstract class SpectrumDataSource
 		NumAverages = numAverages;
 	}
 
-	private void TimerOnTick(object? sender, EventArgs e)
-	{
-		OnMixData();
-	}
+	public event EventHandler<bool>? GeneratingDataStateChanged;
 
 	public int NumAverages { get; }
 
@@ -34,6 +31,11 @@ public abstract class SpectrumDataSource
 	protected int NumBins => Bins.Length;
 
 	protected int MidPointBins => NumBins / 2;
+
+	private void TimerOnTick(object? sender, EventArgs e)
+	{
+		OnMixData();
+	}
 
 	protected abstract void OnMixData();
 
@@ -51,10 +53,17 @@ public abstract class SpectrumDataSource
 	public void Start()
 	{
 		_timer.Start();
+		OnGeneratingDataStateChanged(isGenerating: true);
 	}
 
 	public void Stop()
 	{
 		_timer.Stop();
+		OnGeneratingDataStateChanged(isGenerating: false);
+	}
+
+	private void OnGeneratingDataStateChanged(bool isGenerating)
+	{
+		GeneratingDataStateChanged?.Invoke(this, isGenerating);
 	}
 }

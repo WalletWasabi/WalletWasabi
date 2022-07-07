@@ -90,22 +90,6 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
-	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, [NotNullWhen(true)] out BuildTransactionResult? transaction, bool isPayJoin = false, bool tryToSign = true)
-	{
-		transaction = null;
-
-		try
-		{
-			transaction = BuildTransaction(wallet, transactionInfo, destination, isPayJoin, tryToSign: tryToSign);
-		}
-		catch (Exception)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
 	public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)
 	{
 		var psbtBytes = await File.ReadAllBytesAsync(path);
@@ -140,7 +124,7 @@ public static class TransactionHelpers
 	public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
 	{
 		var psbtExtension = "psbt";
-		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", psbtExtension);
+		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new [] { psbtExtension });
 
 		if (!string.IsNullOrWhiteSpace(filePath))
 		{

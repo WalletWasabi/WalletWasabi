@@ -16,6 +16,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -69,23 +70,26 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					() =>
 					{
 						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-							.walletFilePath;
+						   .walletFilePath;
 
 						var result = KeyManager.Recover(
 							CurrentMnemonics!,
 							password!,
 							Services.WalletManager.Network,
 							AccountKeyPath,
-							walletFilePath,
+							"", // Make sure it is not saved into a file yet.
 							MinGapLimit);
 
 						result.AutoCoinJoin = true;
 						result.SetNetwork(Services.WalletManager.Network);
 
+						// Set the filepath but we will only write the file later when the Ui workflow is done.
+						result.SetFilePath(walletFilePath);
+
 						return result;
 					});
 
-				Navigate().To(new AddedWalletPageViewModel(keyManager));
+				await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, isNewWallet: true));
 			}
 			catch (Exception ex)
 			{
@@ -122,7 +126,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
 
-	private int MinGapLimit { get; set; } = 100;
+	private int MinGapLimit { get; set; } = 114;
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
