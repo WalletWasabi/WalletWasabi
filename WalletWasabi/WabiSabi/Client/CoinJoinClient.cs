@@ -508,7 +508,6 @@ public class CoinJoinClient
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
-			.ToShuffled()
 			.ToArray();
 
 		var privateCoins = filteredCoins
@@ -522,45 +521,43 @@ public class CoinJoinClient
 			.ToArray();
 
 		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
-		var nonPrivateCoins = semiPrivateCoins.ToList();
+		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
 		if (redCoinIsolation)
 		{
 			var red = redCoins.RandomElement();
 			if (red is not null)
 			{
-				nonPrivateCoins.Add(red);
+				allowedNonPrivateCoins.Add(red);
 			}
 		}
 		else
 		{
-			nonPrivateCoins.AddRange(redCoins);
+			allowedNonPrivateCoins.AddRange(redCoins);
 		}
-		nonPrivateCoins.Shuffle();
 
 		// How many inputs do we want to provide to the mix?
 		int inputCount = Math.Min(
-			privateCoins.Length + nonPrivateCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Count, privateCoins.Length, rnd));
+			privateCoins.Length + allowedNonPrivateCoins.Count,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
 
-		// Make sure it's ordered by 1 private and 1 non-private coins.
-		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
-		var organizedCoins = new List<SmartCoin>();
-		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Count); i++)
+		var allowedCoins = allowedNonPrivateCoins.Concat(privateCoins).ToArray();
+
+		// Shuffle coins, while randomly biasing towards lower AS.
+		var orderedAllowedCoins = new List<SmartCoin>();
+		for (int i = 0; i < allowedCoins.Length; i++)
 		{
-			if (i < nonPrivateCoins.Count)
+			var remaining = allowedCoins.Except(orderedAllowedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
+			var c = remaining.BiasedRandomElement(50);
+			if (c is null)
 			{
-				var npc = nonPrivateCoins[i];
-				organizedCoins.Add(npc);
+				throw new NotSupportedException("This is impossible.");
 			}
-			if (i < privateCoins.Length)
-			{
-				var pc = privateCoins[i];
-				organizedCoins.Add(pc);
-			}
+
+			orderedAllowedCoins.Add(c);
 		}
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
-		var largestAmounts = nonPrivateCoins
+		var largestAmounts = allowedNonPrivateCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
@@ -572,11 +569,12 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var baseGroup = organizedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			// Create a base combination just in case.
+			var baseGroup = orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
 
 			var sw2 = Stopwatch.StartNew();
-			foreach (var group in organizedCoins
+			foreach (var group in orderedAllowedCoins
 				.Except(new[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))
