@@ -537,6 +537,11 @@ public class CoinJoinClient
 		}
 		nonPrivateCoins.Shuffle();
 
+		// How many inputs do we want to provide to the mix?
+		int inputCount = Math.Min(
+			privateCoins.Length + nonPrivateCoins.Count,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Count, privateCoins.Length, rnd));
+
 		// Make sure it's ordered by 1 private and 1 non-private coins.
 		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
 		var organizedCoins = new List<SmartCoin>();
@@ -553,11 +558,6 @@ public class CoinJoinClient
 				organizedCoins.Add(pc);
 			}
 		}
-
-		// How many inputs do we want to provide to the mix?
-		int inputCount = Math.Min(
-			organizedCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Count, privateCoins.Length, rnd));
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestAmounts = nonPrivateCoins
