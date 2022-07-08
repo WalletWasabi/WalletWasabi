@@ -70,7 +70,7 @@ public static class LinqExtensions
 			}
 		}
 
-		return default;
+		return source.Any() ? source.First() : default;
 	}
 
 	public static IList<T> Shuffle<T>(this IList<T> list)
