@@ -30,12 +30,10 @@ public partial class NavBarViewModel : ViewModelBase
 			.Subscribe(CurrentPageChanged);
 
 		this.WhenAnyValue(x => x.SelectedItem)
+			.WhereNotNull()
 			.Subscribe(selectedItem =>
 			{
-				if (selectedItem is { })
-				{
-					NavigateItem(selectedItem);
-				}
+				NavigateItem(selectedItem);
 
 				if (selectedItem is WalletViewModelBase wallet)
 				{
@@ -44,18 +42,9 @@ public partial class NavBarViewModel : ViewModelBase
 			});
 
 		this.WhenAnyValue(x => x.Items.Count)
-			.Subscribe(x =>
-			{
-				if (x > 0 && SelectedItem is null)
-				{
-					if (!UiServices.WalletManager.IsLoadingWallet)
-					{
-						var lastSelectedItem = Items.FirstOrDefault(item => item is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet);
-
-						SelectedItem = lastSelectedItem ?? Items.FirstOrDefault();
-					}
-				}
-			});
+			.Where(count => count > 0 && SelectedItem is null && !UiServices.WalletManager.IsLoadingWallet)
+			.Select(_ => Items.FirstOrDefault(item => item is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet) ?? Items.FirstOrDefault())
+			.Subscribe(itemToSelect => SelectedItem = itemToSelect);
 
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
 			.WhereNotNull()
