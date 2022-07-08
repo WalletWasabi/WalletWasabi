@@ -13,20 +13,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// </summary>
 public partial class NavBarViewModel : ViewModelBase
 {
-	private const double NormalCompactPaneLength = 68;
-	private const double NormalOpenPaneLength = 280;
-
 	private NavBarItemViewModel? _selectedItem;
 	private bool _isNavigating;
 	[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
 	[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
-	[AutoNotify] private bool _isBackButtonVisible;
-	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private Action? _toggleAction;
-	[AutoNotify] private Action? _collapseOnClickAction;
-	[AutoNotify] private double _currentOpenPaneLength;
-	[AutoNotify] private double _currentCompactPaneLength;
-	[AutoNotify] private bool _isHidden;
 
 	public NavBarViewModel(TargettedNavigationStack mainScreen)
 	{
@@ -66,22 +56,6 @@ public partial class NavBarViewModel : ViewModelBase
 					}
 				}
 			});
-
-		this.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (SelectedItem is { })
-				{
-					SelectedItem.IsExpanded = x;
-				}
-			});
-
-		this.WhenAnyValue(x => x.IsHidden)
-			.Subscribe(x =>
-		   {
-			   CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
-			   CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
-		   });
 
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
 			.WhereNotNull()
@@ -126,11 +100,6 @@ public partial class NavBarViewModel : ViewModelBase
 		}
 	}
 
-	public void DoToggleAction()
-	{
-		ToggleAction?.Invoke();
-	}
-
 	private void RaiseAndChangeSelectedItem(NavBarItemViewModel? value)
 	{
 		_selectedItem = value;
@@ -156,7 +125,6 @@ public partial class NavBarViewModel : ViewModelBase
 		if (_selectedItem is { })
 		{
 			_selectedItem.IsSelected = true;
-			_selectedItem.IsExpanded = IsOpen;
 		}
 	}
 
@@ -239,7 +207,6 @@ public partial class NavBarViewModel : ViewModelBase
 				x.OpenCommand.Execute(default);
 			}
 
-			CollapseOnClickAction?.Invoke();
 			_isNavigating = false;
 		}
 	}
