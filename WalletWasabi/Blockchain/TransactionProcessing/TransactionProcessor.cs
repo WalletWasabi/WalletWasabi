@@ -17,14 +17,13 @@ public class TransactionProcessor
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
 		KeyManager keyManager,
-		Money dustThreshold,
-		int privacyLevelThreshold)
+		Money dustThreshold)
 	{
 		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-		Coins = new CoinsRegistry();
-		BlockchainAnalyzer = new BlockchainAnalyzer(privacyLevelThreshold);
+		Coins = new();
+		BlockchainAnalyzer = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
