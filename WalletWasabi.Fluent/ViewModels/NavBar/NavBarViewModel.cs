@@ -67,15 +67,6 @@ public partial class NavBarViewModel : ViewModelBase
 				}
 			});
 
-		this.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (SelectedItem is { })
-				{
-					SelectedItem.IsExpanded = x;
-				}
-			});
-
 		this.WhenAnyValue(x => x.IsHidden)
 			.Subscribe(x =>
 		   {
@@ -147,7 +138,6 @@ public partial class NavBarViewModel : ViewModelBase
 		if (_selectedItem is { })
 		{
 			_selectedItem.IsSelected = false;
-			_selectedItem.IsExpanded = false;
 		}
 
 		RaiseAndChangeSelectedItem(null);
@@ -156,7 +146,6 @@ public partial class NavBarViewModel : ViewModelBase
 		if (_selectedItem is { })
 		{
 			_selectedItem.IsSelected = true;
-			_selectedItem.IsExpanded = IsOpen;
 		}
 	}
 
