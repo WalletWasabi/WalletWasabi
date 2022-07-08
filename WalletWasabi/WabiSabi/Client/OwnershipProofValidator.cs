@@ -2,27 +2,22 @@ using NBitcoin;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto;
-using WalletWasabi.Models;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 // OwnershipProofValidator validates the ownership proofs provided by the coordinator.
-public class OwnershipProofValidator
+public class OwnershipProofValidator : IOwnershipProofValidator 
 {
-	public OwnershipProofValidator(IndexStore indexStore, TransactionStore transactionStore, IBlockProvider blockProvider)
+	public OwnershipProofValidator(TransactionStore transactionStore, IBlockProvider blockProvider)
 	{
-		IndexStore = indexStore;
 		TransactionStore = transactionStore;
 		BlockProvider = blockProvider;
 	}
 
-	private IndexStore IndexStore { get; }
 	private TransactionStore TransactionStore { get; }
 	private IBlockProvider BlockProvider { get; }
 
@@ -34,117 +29,99 @@ public class OwnershipProofValidator
 	// have to abort the process, notify the user and ban the coordinator.
 	public async ValueTask<int> VerifyOtherAlicesOwnershipProofsAsync(
 		CoinJoinInputCommitmentData coinJoinInputCommitmentData,
-		ImmutableList<(Coin Coin, OwnershipProof OwnershipProof)> othersCoins,
-		int stopAfter,
+		ImmutableList<(uint256 BlockId, OutPoint OutPoint, Money Amount, OwnershipProof OwnershipProof)> othersCoins,
+		int minimumNumberOfValidProofs,
 		CancellationToken cancellationToken)
 	{
-		var proofChannel = Channel.CreateBounded<(Coin, Coin, OwnershipProof)>(1);
-			
-		var coinsSearchingTask = Task.Run(() => FindCoinsToVerifyAsync(proofChannel.Writer, othersCoins, cancellationToken), cancellationToken);
-		var coinsValidationTask = Task.Run(() => ValidateCoinsAsync(proofChannel.Reader, coinJoinInputCommitmentData, stopAfter, cancellationToken));
-
-		await Task.WhenAll(coinsSearchingTask, coinsValidationTask).ConfigureAwait(false);
-		return await coinsValidationTask.ConfigureAwait(false);
-	}
-
-	private async Task FindCoinsToVerifyAsync(
-		ChannelWriter<(Coin, Coin, OwnershipProof)> proofChannelWriter,
-		ImmutableList<(Coin Coin, OwnershipProof OwnershipProof)> othersCoins,
-		CancellationToken cancellationToken)
-	{
-			
+		var validProofs = 0;
+		
 		// What follows is an optimization where we try to verify coins that are already known by us.
 		var mineTxIds = TransactionStore.GetTransactionHashes();
-		var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.Coin.Outpoint.Hash));
+		var alreadySeenCoins = othersCoins.Where(x => mineTxIds.Contains(x.OutPoint.Hash));
 
 		// In case one Alice is trying to spend an output from a transaction that we already have
 		// seen before then we can verify its script without downloading anything from the network.
 		// However it is impossible for us to know it the coins is unspent!.
-		foreach (var (coin, ownershipProof) in alreadySeenCoins)
-		{
-			if (TransactionStore.TryGetTransaction(coin.Outpoint.Hash, out var stx))
-			{
-				var coinIndex = (int) coin.Outpoint.N; 
-				if (coinIndex >= stx.Transaction.Outputs.Count)
-				{
-					throw new MaliciousCoordinatorException("Fake coin with impossible index.");
-				}
-				var foundCoin = new Coin(stx.Transaction, stx.Transaction.Outputs[coinIndex]);
-				await proofChannelWriter.WriteAsync((coin, foundCoin, ownershipProof), cancellationToken).ConfigureAwait(false);
-			}
-		}
+		using var alreadySeenCoinsEnumerator = alreadySeenCoins.GetEnumerator();
 
-		// In case there are no filters.
-		if (IndexStore.SmartHeaderChain.HashCount == 0)
+		while (alreadySeenCoinsEnumerator.MoveNext() && validProofs < minimumNumberOfValidProofs)
 		{
-			proofChannelWriter.Complete();
-			return;
+			var (_, outpoint, amount, ownershipProof) = alreadySeenCoinsEnumerator.Current;
+			if (TransactionStore.TryGetTransaction(outpoint.Hash, out var stx))
+			{
+				var coinIndex = (int) outpoint.N;
+				var outputs = stx.Transaction.Outputs;
+				if (coinIndex >= outputs.Count || outputs[coinIndex].Value != amount)
+				{
+					throw new MaliciousCoordinatorException("Fake coin with impossible index or different amount.");
+				}
+
+				var foundCoin = new Coin(stx.Transaction, stx.Transaction.Outputs[coinIndex]);
+				VerifyCoin(foundCoin.ScriptPubKey, coinJoinInputCommitmentData, ownershipProof);
+				validProofs++;
+			}
 		}
 
 		// In case we cannot validate enough proofs using only our already seen transactions, we
 		// would need to start downloading the blocks containing the coins that need to be
-		// validated. We use our block filters for that.
-		var scripts = othersCoins.Select(x => x.Coin.ScriptPubKey.ToCompressedBytes()).ToArray();
-			
-		// Do not query more than 10% of the blocks
-		var maxFiltersToQueryCount = (uint)(IndexStore.SmartHeaderChain.HashCount / 10.0);
-		var filters = IndexStore.GetFiltersFromHeightAsync(
-			fromHeight: new Height(IndexStore.SmartHeaderChain.TipHeight - maxFiltersToQueryCount),
-			cancellationToken).ConfigureAwait(false);
+		// validated.
+		var coinsGroupedByBlocks = othersCoins
+			.GroupBy(x => x.BlockId)
+			.Select(x => (BlockId: x.Key, OutPoints: x))
+			.OrderBy(x => Random.Shared.Next())
+			.ToList();
 
-		await foreach (var filterModel in filters)
+		using var coinsGroupedByBlocksEnumerator = coinsGroupedByBlocks.GetEnumerator();
+		while (coinsGroupedByBlocksEnumerator.MoveNext() && validProofs < minimumNumberOfValidProofs)
 		{
-			var matchFound = filterModel.Filter.MatchAny(scripts, filterModel.FilterKey);
-			if (matchFound)
-			{
-				var blockId = filterModel.Header.BlockHash;
-				var block = await BlockProvider.GetBlockAsync(blockId, cancellationToken).ConfigureAwait(false);
+			var (blockId, coinsInBlock) = coinsGroupedByBlocksEnumerator.Current; 
+			var block = await BlockProvider.GetBlockAsync(blockId, cancellationToken).ConfigureAwait(false);
 
-				foreach (var (coin, ownershipProof) in othersCoins)
+			if (block is { })
+			{
+				foreach (var (_, outpoint, amount, ownershipProof) in coinsInBlock)
 				{
-					if (block.Transactions.FirstOrDefault(x => x.GetHash() == coin.Outpoint.Hash) is { } tx)
+					var tx = block.Transactions.FirstOrDefault(x => x.GetHash() == outpoint.Hash);
+					if (tx is null)
 					{
-						var coinIndex = (int) coin.Outpoint.N; 
-						if (coinIndex >= tx.Outputs.Count)
-						{
-							throw new MaliciousCoordinatorException("Fake coin with impossible index.");
-						}
-						var foundCoin = new Coin(tx, tx.Outputs[coinIndex]);
-						await proofChannelWriter.WriteAsync((coin, foundCoin, ownershipProof), cancellationToken).ConfigureAwait(false);
+						throw new MaliciousCoordinatorException(
+							$"There is not transaction with id '{outpoint.Hash}' in block '{blockId}').");
 					}
+
+					var coinIndex = (int) outpoint.N;
+					if (coinIndex >= tx.Outputs.Count || tx.Outputs[coinIndex].Value != amount)
+					{
+						throw new MaliciousCoordinatorException("Fake coin with impossible index or different amount.");
+					}
+
+					var foundCoin = new Coin(tx, tx.Outputs[coinIndex]);
+					VerifyCoin(foundCoin.ScriptPubKey, coinJoinInputCommitmentData, ownershipProof);
+					validProofs++;
 				}
 			}
-		}
-			
-		// there are no more filters
-		//if (filterModel.Header.BlockHash == IndexStore.SmartHeaderChain.TipHash)
-		//{
-		proofChannelWriter.Complete();
-		//}
-	}
-
-	private async Task<int> ValidateCoinsAsync(
-		ChannelReader<(Coin, Coin, OwnershipProof)> proofChannelReader,
-		CoinJoinInputCommitmentData coinJoinInputCommitmentData,
-		int stopAfter,
-		CancellationToken cancellationToken)
-	{
-		// Consumes and validates the coins and their proofs.
-		var validProofs = 0;
-		while (validProofs < stopAfter && await proofChannelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-		{
-			var (aliceCoin, realCoin, ownershipProof) = await proofChannelReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-			if (realCoin is not { } coin || (aliceCoin.TxOut, aliceCoin.Outpoint) != (coin.TxOut, coin.Outpoint))
+			else
 			{
-				throw new MaliciousCoordinatorException("Coin doesn't exist or is different from the one provided by the coordinator.");
+				// FIXME: what if no peer has the block?
 			}
-			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, aliceCoin.ScriptPubKey, coinJoinInputCommitmentData))
-			{
-				throw new MaliciousCoordinatorException("The ownership proof is not valid which means Alice cannot really spend it.");
-			}
-			validProofs++;
 		}
 
 		return validProofs;
 	}
+
+	private static void VerifyCoin(Script scriptPubKey, CoinJoinInputCommitmentData coinJoinInputCommitmentData, OwnershipProof ownershipProof)
+	{
+		if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, scriptPubKey, coinJoinInputCommitmentData))
+		{
+			throw new MaliciousCoordinatorException("The ownership proof is not valid which means Alice cannot really spend it).");
+		}
+	}
+}
+
+public interface IOwnershipProofValidator
+{
+	ValueTask<int> VerifyOtherAlicesOwnershipProofsAsync(
+		CoinJoinInputCommitmentData coinJoinInputCommitmentData,
+		ImmutableList<(uint256 BlockId, OutPoint OutPoint, Money Amount, OwnershipProof OwnershipProof)> othersCoins,
+		int minimumNumberOfValidProofs,
+		CancellationToken cancellationToken);
 }

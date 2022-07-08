@@ -1,13 +1,11 @@
 using Moq;
 using NBitcoin;
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto;
@@ -26,10 +24,8 @@ public class OwnershipProofValidatorTests
 	public async Task CoinsAlreadySeenTestAsync()
 	{
 		// We need the `TransactionStore` instance to verify coins created in transactions (coinjoins by sure)
-		// that are saved in our disk (because they are relevant for us). The `BlockProvider` and the `IndexStore`
-		// are used to find and get the blocks containing the transactions that create the coins that we have
-		// to verify.
-		await using var indexStore = await CreateIndexStoreAsync().ConfigureAwait(false);
+		// that are saved in our disk (because they are relevant for us). The `BlockProvider` is used to get
+		// the blocks containing the transactions that creates the coins that we have to verify.
 		await using var transactionStore = await CreateTransactionStoreAsync().ConfigureAwait(false);
 		var blockProvider = new Mock<IBlockProvider>();
 
@@ -49,31 +45,23 @@ public class OwnershipProofValidatorTests
 			new OwnershipIdentifier(identificationKey, otherAliceKey.PubKey.WitHash.ScriptPubKey),
 			coinJoinInputCommitmentData);
 
-		var validator = new OwnershipProofValidator(indexStore, transactionStore, blockProvider.Object);
+		var validator = new OwnershipProofValidator(transactionStore, blockProvider.Object);
 
 		// Verify the ownership proof is valid.
+		var dummyBlockId = uint256.Zero;
 		var coin = tx.Transaction.Outputs.AsCoins().First();
 		var validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,
-			new[] { (coin, proof) }.ToImmutableList(),
+			new[] { (dummyBlockId, coin.Outpoint, coin.Amount, proof) }.ToImmutableList(),
 			10,
 			CancellationToken.None);
 		Assert.Equal(1, validProofs);
 
-		// Verify the ownership proof is valid (different script).
-		coin.ScriptPubKey = BitcoinFactory.CreateScript();
-		var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
-			coinJoinInputCommitmentData,
-			new[] { (coin, proof) }.ToImmutableList(),
-			10,
-			CancellationToken.None));
-		Assert.Equal(1, validProofs);
-
 		// Verify the ownership proof is valid (non-existing one).
 		coin.Outpoint.N = 10; // non-existing coin
-		ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
+		await Assert.ThrowsAsync<MaliciousCoordinatorException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,
-			new[] { (coin, proof) }.ToImmutableList(),
+			new[] { (dummyBlockId, coin.Outpoint, coin.Amount, proof) }.ToImmutableList(),
 			10,
 			CancellationToken.None));
 
@@ -81,7 +69,7 @@ public class OwnershipProofValidatorTests
 		coin.Outpoint = BitcoinFactory.CreateOutPoint(); // non-existing transaction
 		validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,
-			new[] { (coin, proof) }.ToImmutableList(),
+			new[] { (dummyBlockId, coin.Outpoint, coin.Amount, proof) }.ToImmutableList(),
 			10,
 			CancellationToken.None);
 
@@ -91,7 +79,6 @@ public class OwnershipProofValidatorTests
 	[Fact]
 	public async Task CoinsNeverSeenBeforeTestAsync()
 	{
-		await using var indexStore = await CreateIndexStoreAsync().ConfigureAwait(false);
 		await using var transactionStore = await CreateTransactionStoreAsync().ConfigureAwait(false);
 		var blockProvider = new Mock<IBlockProvider>();
 
@@ -103,19 +90,8 @@ public class OwnershipProofValidatorTests
 		// put the transaction in a block.
 		var block = Consensus.Main.ConsensusFactory.CreateBlock();
 		block.AddTransaction(stx.Transaction);
-		var blockHash = block.GetHash();
-		blockProvider.Setup(x => x.GetBlockAsync(blockHash, It.IsAny<CancellationToken>())).ReturnsAsync(block);
-
-		// index the block
-		var filter = new GolombRiceFilterBuilder()
-			.SetKey(block.GetHash())
-			.SetP(20)
-			.SetM(1 << 20)
-			.AddEntries(block.Transactions.SelectMany(tx => tx.Outputs.Select(o => o.ScriptPubKey.ToCompressedBytes())))
-			.Build();
-
-		var filterModel = new FilterModel(new SmartHeader(blockHash, uint256.Zero, 1, DateTimeOffset.Now), filter);
-		await indexStore.AddNewFiltersAsync(new[] { filterModel }, CancellationToken.None).ConfigureAwait(false);
+		var blockId = block.GetHash();
+		blockProvider.Setup(x => x.GetBlockAsync(blockId, It.IsAny<CancellationToken>())).ReturnsAsync(block);
 
 		var roundId = uint256.Zero;
 		var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData ("wasabiwallet.io", roundId);
@@ -126,23 +102,21 @@ public class OwnershipProofValidatorTests
 			coinJoinInputCommitmentData);
 
 		// verify the proof is valid.
-		var validator = new OwnershipProofValidator(indexStore, transactionStore, blockProvider.Object);
+		var validCoin = stx.Transaction.Outputs.AsCoins().First();
+		var validator = new OwnershipProofValidator(transactionStore, blockProvider.Object);
 		var validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,
-			new[] { (stx.Transaction.Outputs.AsCoins().First(), proof) }.ToImmutableList(),
+			new[] { (blockId, validCoin.Outpoint, validCoin.Amount, proof) }.ToImmutableList(),
 			10,
 			CancellationToken.None);
 		Assert.Equal(1, validProofs);
 
 		// validate a coin coming from a non-existing transaction.
-		var fakeCoin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(8.118736401m), BitcoinFactory.CreateScript()));
-		validProofs = await validator.VerifyOtherAlicesOwnershipProofsAsync(
+		await Assert.ThrowsAsync<MaliciousCoordinatorException>(async () => await validator.VerifyOtherAlicesOwnershipProofsAsync(
 			coinJoinInputCommitmentData,
-			new[] { (fakeCoin, proof) }.ToImmutableList(),
+			new[] { (blockId, BitcoinFactory.CreateOutPoint(), Money.Coins(8.118736401m), proof) }.ToImmutableList(),
 			10,
-			CancellationToken.None);
-
-		Assert.Equal(0, validProofs);
+			CancellationToken.None));
 	}
 
 	private async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
