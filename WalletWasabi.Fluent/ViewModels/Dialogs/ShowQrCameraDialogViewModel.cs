@@ -18,7 +18,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	[AutoNotify] private Bitmap? _qrImage;
 	[AutoNotify] private string _message = "";
 
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
 	private WebcamQrReader _qrReader;
 
 	public ShowQrCameraDialogViewModel(Network network)
@@ -26,6 +25,8 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 		_qrReader = new(network);
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
+
+	private CancellationTokenSource CancellationTokenSource { get; } = new();
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

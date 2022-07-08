@@ -9,9 +9,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 {
-	private string CoinJoinIdStoreFilePath { get; set; }
-	private object FileWriteLock { get; set; } = new();
-
 	// Only for testing purposes.
 	internal CoinJoinIdStore() : this(Enumerable.Empty<uint256>(), string.Empty)
 	{
@@ -21,6 +18,9 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 	{
 		CoinJoinIdStoreFilePath = coinJoinIdStoreFilePath;
 	}
+
+	private string CoinJoinIdStoreFilePath { get; set; }
+	private object FileWriteLock { get; set; } = new();
 
 	public override bool TryAdd(uint256 id)
 	{

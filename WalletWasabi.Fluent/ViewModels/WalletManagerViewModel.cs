@@ -24,15 +24,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 	private NavBarItemViewModel? _currentSelection;
 	[AutoNotify] private WalletViewModelBase? _selectedWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
-	[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
 	[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
-	[AutoNotify] private bool _anyWalletStarted;
 
 	public WalletManagerViewModel()
 	{
 		_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 		_wallets = new ObservableCollection<WalletViewModelBase>();
-		_loggedInAndSelectedAlwaysFirst = true;
 
 		static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
 		{
@@ -72,8 +69,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					OpenClosedWallet(cwvm);
 				}
-
-				AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(y => y.WalletState == WalletState.Started);
 			});
 
 		Observable
@@ -237,7 +232,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		if (SelectedWallet is { IsLoggedIn: true } && (item is WalletViewModelBase && SelectedWallet != item))
 		{
-			if (/*item is not WalletActionViewModel &&*/ SelectedWallet != item)
+			if (SelectedWallet != item)
 			{
 				SelectedWallet = null;
 				result = item;
