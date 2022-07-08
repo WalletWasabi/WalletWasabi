@@ -232,22 +232,25 @@ public class TorMonitor : PeriodicRunner
 						return;
 					}
 
-					if (!TryTorRestart && e.RepField == RepField.TtlExpired)
+					if (TryTorRestart && e.RepField == RepField.TtlExpired)
 					{
-						TryTorRestart = true;
 						Logger.LogDebug("Request Tor restart to fix TTL issues.");
 
 						// This might be a no-op in case of Tor being started. We don't mind this behavior.
 						lock (_lock)
 						{
-							ForceTorRestartCts?.Cancel();
-							ForceTorRestartCts = null;
+							if (ForceTorRestartCts is not null)
+							{
+								TryTorRestart = false;
+								ForceTorRestartCts.Cancel(); // Dispose is handled in a different method.
+								ForceTorRestartCts = null;
+							}
 						}
 
 						return;
 					}
 
-					TryTorRestart = false;
+					TryTorRestart = true;
 
 					// Check if the fallback address (clearnet through exit nodes) works. It must work.
 					try
