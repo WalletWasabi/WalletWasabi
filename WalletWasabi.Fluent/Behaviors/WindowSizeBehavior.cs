@@ -43,11 +43,8 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 			return;
 		}
 
-		var scaledWidth = configWidth * currentScreen.PixelDensity;
-		var scaledHeight = configHeight * currentScreen.PixelDensity;
-
-		var isValidWidth = scaledWidth <= currentScreen.WorkingArea.Width && scaledWidth >= window.MinWidth;
-		var isValidHeight = scaledHeight <= currentScreen.WorkingArea.Height && scaledHeight >= window.MinHeight;
+		var isValidWidth = configWidth <= currentScreen.WorkingArea.Width && configWidth >= window.MinWidth;
+		var isValidHeight = configHeight <= currentScreen.WorkingArea.Height && configHeight >= window.MinHeight;
 
 		if (isValidWidth && isValidHeight)
 		{
