@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Extensions;
@@ -63,7 +64,7 @@ public static class LinqExtensions
 	{
 		foreach (T element in source)
 		{
-			if (Random.Shared.Next(1, 101) <= biasPercent)
+			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
 			{
 				return element;
 			}
