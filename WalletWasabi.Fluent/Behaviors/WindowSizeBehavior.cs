@@ -2,7 +2,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Platform;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -17,14 +16,11 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 		}
 
 		Observable
-			.Interval(TimeSpan.FromMilliseconds(50))
-			.Select(_ => AssociatedObject.Screens.ScreenFromPoint(AssociatedObject.Position))
-			.WhereNotNull()
+			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.Opened))
 			.Take(1)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(screen =>
+			.Subscribe(_ =>
 			{
-				SetWindowSize(AssociatedObject, screen);
+				SetWindowSize(AssociatedObject);
 
 				AssociatedObject
 					.WhenAnyValue(x => x.Bounds)
@@ -36,35 +32,17 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 						Services.UiConfig.WindowHeight = b.Height;
 					})
 					.DisposeWith(disposables);
-			}).DisposeWith(disposables);
-
-		// Observable
-		// 	.FromEventPattern(AssociatedObject, nameof(AssociatedObject.Opened))
-		// 	.Take(1)
-		// 	.Subscribe(_ =>
-		// 	{
-		// 		SetWindowSize(AssociatedObject);
-		//
-		// 		AssociatedObject
-		// 			.WhenAnyValue(x => x.Bounds)
-		// 			.Skip(1)
-		// 			.Where(b => !b.IsEmpty && AssociatedObject.WindowState == WindowState.Normal)
-		// 			.Subscribe(b =>
-		// 			{
-		// 				Services.UiConfig.WindowWidth = b.Width;
-		// 				Services.UiConfig.WindowHeight = b.Height;
-		// 			})
-		// 			.DisposeWith(disposables);
-		// 	})
-		// 	.DisposeWith(disposables);
+			})
+			.DisposeWith(disposables);
 	}
 
-	private void SetWindowSize(Window window, Screen currentScreen)
+	private void SetWindowSize(Window window)
 	{
 		var configWidth = Services.UiConfig.WindowWidth;
 		var configHeight = Services.UiConfig.WindowHeight;
+		var currentScreen = window.Screens.ScreenFromPoint(window.Position);
 
-		if (configWidth is null || configHeight is null)
+		if (configWidth is null || configHeight is null || currentScreen is null)
 		{
 			return;
 		}
