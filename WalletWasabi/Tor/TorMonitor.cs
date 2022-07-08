@@ -183,6 +183,13 @@ public class TorMonitor : PeriodicRunner
 		{
 			Logger.LogError(ex);
 		}
+		finally
+		{
+			lock (_lock)
+			{
+				ForceTorRestartCts = null;
+			}
+		}
 	}
 
 	private async Task<bool> ShutDownTorAsync(TorControlClient torControlClient)
