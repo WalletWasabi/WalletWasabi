@@ -10,13 +10,9 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		if (AssociatedObject is null)
-		{
-			return;
-		}
-
-		Observable
-			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.Opened))
+		AssociatedObject?
+			.WhenAnyValue(x => x.Bounds)
+			.Where(b => !b.IsEmpty)
 			.Take(1)
 			.Subscribe(_ =>
 			{
@@ -56,10 +52,6 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 		if (isValidWidth && isValidHeight)
 		{
 			window.Arrange(new Rect(0, 0, configWidth.Value, configHeight.Value));
-
-			var centerX = (int)((currentScreen.WorkingArea.Width - scaledWidth) / 2);
-			var centerY = (int)((currentScreen.WorkingArea.Height - scaledHeight) / 2);
-			window.Position = new PixelPoint(centerX, centerY);
 		}
 	}
 }
