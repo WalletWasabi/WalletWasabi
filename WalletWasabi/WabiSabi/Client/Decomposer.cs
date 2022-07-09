@@ -74,29 +74,3 @@ public static class Decomposer
 		return list;
 	}
 }
-
-public static class LinqEx
-{
-	public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> list, Func<T, bool> predicate)
-	{
-		foreach (T el in list)
-		{
-			yield return el;
-			if (predicate(el))
-			{
-				yield break;
-			}
-		}
-	}
-}
-
-public class ReverseComparer : IComparer<long>
-{
-	public static readonly ReverseComparer Default = new();
-
-	public int Compare(long x, long y)
-	{
-		// Compare y and x in reverse order.
-		return y.CompareTo(x);
-	}
-}
