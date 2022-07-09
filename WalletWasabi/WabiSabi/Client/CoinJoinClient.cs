@@ -327,6 +327,8 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
+
+				Logger.LogWarning(wpe);
 				personCircuit?.Dispose();
 				return (null, null);
 			}
