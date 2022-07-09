@@ -327,9 +327,15 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
-				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.InputBanned)
+				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.InputBanned || wpe.ErrorCode is WabiSabiProtocolErrorCode.InputLongBanned)
 				{
-					Logger.LogDebug($"Failed to register input: {wpe.Message}");
+					var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+					if (inputBannedExData is null)
+					{
+						Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+					}
+					coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+					Logger.LogWarning($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
 				}
 				else
 				{
