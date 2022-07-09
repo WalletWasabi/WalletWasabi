@@ -123,5 +123,5 @@ public class InputRegistrationRequestTests
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
 			new OwnershipIdentifier(Key.Parse("5KbdaBwc9Eit2LrmDp1WfZd815StNstwHanbRrPpGGN6wWJKyHe", Network.Main), key.PubKey.WitHash.ScriptPubKey),
-			WabiSabiFactory.CreateCommitmentData(roundHash));
+			new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash));
 }
