@@ -74,7 +74,6 @@ public class ArenaClientTests
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
-			"wasabiwallet.io",
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -127,7 +126,6 @@ public class ArenaClientTests
 		var bobArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
-			"wasabiwallet.io",
 			wabiSabiApi);
 
 		var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
@@ -190,7 +188,7 @@ public class ArenaClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
-		var apiClient = new ArenaClient(null!, null!, "wasabiwallet.io", wabiSabiApi);
+		var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
 		round.SetPhase(Phase.InputRegistration);
 
@@ -212,7 +210,7 @@ public class ArenaClientTests
 		var coins = destinationProvider.GetNextDestinations(2)
 			.Select(dest => (
 				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), dest)),
-				OwnershipProof: keyChain.GetOwnershipProof(dest, WabiSabiFactory.CreateCommitmentData(round.Id))))
+				OwnershipProof: keyChain.GetOwnershipProof(dest, new CoinJoinInputCommitmentData("test", uint256.One))))
 			.ToArray();
 
 		Alice alice1 = WabiSabiFactory.CreateAlice(coins[0].Coin, coins[0].OwnershipProof, round: round);
@@ -233,12 +231,11 @@ public class ArenaClientTests
 		InsecureRandom rnd = InsecureRandom.Instance;
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
 		var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000L);
-		var apiClient = new ArenaClient(amountClient, vsizeClient, "wasabiwallet.io", wabiSabiApi);
+		var apiClient = new ArenaClient(amountClient, vsizeClient, wabiSabiApi);
 
 		round.SetPhase(Phase.TransactionSigning);
 
 		var emptyState = round.Assert<ConstructionState>();
-		var commitmentData = WabiSabiFactory.CreateCommitmentData(round.Id);
 
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
 		var finalizedEmptyState = new SigningState(round.Parameters, emptyState.Events);
@@ -247,14 +244,14 @@ public class ArenaClientTests
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, coins[0].OwnershipProof, keyChain, finalizedEmptyState.CreateUnsignedTransaction(), CancellationToken.None));
 
-		var oneInput = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).Finalize();
+		var oneInput = emptyState.AddInput(alice1.Coin).Finalize();
 		round.CoinjoinState = oneInput;
 
 		// Trying to sign coins those are not in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, coins[1].OwnershipProof, keyChain, oneInput.CreateUnsignedTransaction(), CancellationToken.None));
 
-		var twoInputs = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).AddInput(alice2.Coin, alice2.OwnershipProof, commitmentData).Finalize();
+		var twoInputs = emptyState.AddInput(alice1.Coin).AddInput(alice2.Coin).Finalize();
 		round.CoinjoinState = twoInputs;
 
 		Assert.False(round.Assert<SigningState>().IsFullySigned);

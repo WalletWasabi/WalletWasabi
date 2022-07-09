@@ -201,7 +201,7 @@ public class StepTransactionSigningTests
 		var alice3 = WabiSabiFactory.CreateAlice(round);
 		alice3.ConfirmedConnection = true;
 		round.Alices.Add(alice3);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin, alice3.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -264,7 +264,7 @@ public class StepTransactionSigningTests
 			CancellationToken.None).ConfigureAwait(false);
 
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.WitHash.ScriptPubKey,
+			destKey1.PubKey.WitHash.ScriptPubKey,
 			aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None).ConfigureAwait(false);

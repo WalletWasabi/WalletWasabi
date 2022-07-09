@@ -61,7 +61,13 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Compute but don't commit updated coinjoin to round state, it will
 			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
-			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
+			_ = round.Assert<ConstructionState>().AddInput(coin);
+
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
+			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+			}
 
 			// Generate a new GUID with the secure random source, to be sure
 			// that it is not guessable (Guid.NewGuid() documentation does
@@ -230,7 +236,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 							await vsizeRealCredentialTask.ConfigureAwait(false));
 
 						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
+						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
 						alice.ConfirmedConnection = true;
 
 						return response;
