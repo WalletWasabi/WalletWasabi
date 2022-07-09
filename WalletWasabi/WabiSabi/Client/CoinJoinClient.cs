@@ -329,7 +329,7 @@ public class CoinJoinClient
 				}
 				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.InputBanned)
 				{
-					Logger.LogInfo($"Failed to register input: {wpe.Message}");
+					Logger.LogDebug($"Failed to register input: {wpe.Message}");
 				}
 				else
 				{
