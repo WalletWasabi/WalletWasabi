@@ -329,13 +329,7 @@ public class CoinJoinClient
 				}
 				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.InputBanned || wpe.ErrorCode is WabiSabiProtocolErrorCode.InputLongBanned)
 				{
-					var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
-					if (inputBannedExData is null)
-					{
-						Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
-					}
-					coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-					Logger.LogWarning($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+					Logger.LogDebug($"Failed to register input: {wpe.Message}");
 				}
 				else
 				{
