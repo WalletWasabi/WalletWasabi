@@ -327,14 +327,6 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
-				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.InputBanned || wpe.ErrorCode is WabiSabiProtocolErrorCode.InputLongBanned)
-				{
-					Logger.LogDebug($"Failed to register input: {wpe.Message}");
-				}
-				else
-				{
-					Logger.LogWarning(wpe);
-				}
 
 				personCircuit?.Dispose();
 				return (null, null);
