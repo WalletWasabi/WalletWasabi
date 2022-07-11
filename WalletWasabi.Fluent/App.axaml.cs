@@ -45,6 +45,16 @@ public class App : Application
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+				desktop.ShutdownRequested += delegate
+				{
+					RxApp.MainThreadScheduler.Schedule(() =>
+						{
+							_applicationStateManager.ApplicationViewModel
+								.QuitCommand.Execute(new System.Reactive.Unit());
+						}
+					);
+				};
+
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
