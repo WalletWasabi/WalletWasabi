@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -12,7 +11,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 public interface IEvent{};
 
 public record RoundCreated(RoundParameters RoundParameters) : IEvent;
-public record InputAdded (Coin Coin, OwnershipProof ownershipProof) : IEvent;
+public record InputAdded (Coin Coin) : IEvent;
 public record OutputAdded (TxOut Output) : IEvent;
 
 public abstract record MultipartyTransactionState

@@ -20,13 +20,6 @@ public class BlockchainAnalyzer
 		68719476736L, 94143178827L, 100000000000L, 137438953472L
 	};
 
-	public BlockchainAnalyzer(int privacyLevelThreshold)
-	{
-		PrivacyLevelThreshold = privacyLevelThreshold;
-	}
-
-	public int PrivacyLevelThreshold { get; }
-
 	/// <summary>
 	/// Sets clusters and anonymity sets for related HD public keys.
 	/// </summary>
