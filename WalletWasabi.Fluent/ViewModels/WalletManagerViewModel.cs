@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -19,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class WalletManagerViewModel : ViewModelBase
 {
-	private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 	private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 	private NavBarItemViewModel? _currentSelection;
 	[AutoNotify] private WalletViewModelBase? _selectedWallet;
@@ -28,7 +28,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public WalletManagerViewModel()
 	{
-		_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 		_wallets = new ObservableCollection<WalletViewModelBase>();
 
 		static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
@@ -54,7 +53,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.WhereNotNull()
 			.Subscribe(wallet =>
 			{
-				if (!_walletDictionary.TryGetValue(wallet, out var walletViewModel))
+				if (!TryGetWalletViewModel(wallet, out var walletViewModel))
 				{
 					return;
 				}
@@ -98,7 +97,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 					return;
 				}
 
-				if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
+				if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 				{
 					if (!e.IsOwnCoinJoin)
 					{
@@ -128,14 +127,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
-		WalletViewModel? result = null;
-
-		if (_walletDictionary.ContainsKey(wallet))
-		{
-			result = _walletDictionary[wallet] as WalletViewModel;
-		}
-
-		if (result is { })
+		if (TryGetWalletViewModel(wallet, out var walletViewModel) && walletViewModel is WalletViewModel result)
 		{
 			return result;
 		}
@@ -199,13 +191,11 @@ public partial class WalletManagerViewModel : ViewModelBase
 	private void InsertWallet(WalletViewModelBase wallet)
 	{
 		_wallets.InsertSorted(wallet);
-		_walletDictionary.Add(wallet.Wallet, wallet);
 	}
 
 	private void RemoveWallet(WalletViewModelBase walletViewModel)
 	{
 		_wallets.Remove(walletViewModel);
-		_walletDictionary.Remove(walletViewModel.Wallet);
 	}
 
 	private void EnumerateWallets()
@@ -246,5 +236,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 		}
 
 		return result;
+	}
+
+	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out WalletViewModelBase? walletViewModel)
+	{
+		walletViewModel = _wallets.FirstOrDefault(x => x.Wallet == wallet);
+
+		return walletViewModel is { };
 	}
 }
