@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -60,7 +59,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 			});
 
 		Observable
-				.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(wallet =>
@@ -80,7 +79,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				var (sender, e) = arg;
 
 				if (Services.UiConfig.PrivacyMode ||
-					!e!.IsNews ||
+					!e.IsNews ||
 					sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 				{
 					return;
