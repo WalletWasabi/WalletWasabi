@@ -209,13 +209,10 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		var result = default(NavBarItemViewModel);
 
-		if (SelectedWallet is { IsLoggedIn: true } && (item is WalletViewModelBase && SelectedWallet != item))
+		if (SelectedWallet is { IsLoggedIn: true } && item is WalletViewModelBase && SelectedWallet != item)
 		{
-			if (SelectedWallet != item)
-			{
-				SelectedWallet = null;
-				result = item;
-			}
+			SelectedWallet = null;
+			result = item;
 		}
 
 		if (item is WalletViewModel { IsLoggedIn: true } walletViewModelItem)
