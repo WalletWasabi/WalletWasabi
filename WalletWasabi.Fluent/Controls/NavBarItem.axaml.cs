@@ -23,6 +23,7 @@ public class NavBarItem : ListBoxItem
 	public NavBarItem()
 	{
 		UpdateIndicatorOrientationPseudoClasses(IndicatorOrientation);
+		UpdateIsSelectablePseudoClasses(IsSelectable);
 	}
 
 	/// <summary>
