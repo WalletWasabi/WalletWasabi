@@ -13,6 +13,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
@@ -152,7 +153,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						{
 							TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
 							BackendStatus = BackendStatus.NotConnected;
-							HandleIfGenSocksServFail(ex);
 							HandleIfGenSocksServFail(innerEx);
 							throw;
 						}
@@ -266,7 +266,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 			finally
 			{
 				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				Logger.LogTrace("< Wasabi synchronizer thread ends.");
+				Logger.LogDebug("Synchronizer is fully stopped now.");
 			}
 		});
 
@@ -279,15 +279,24 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private void HandleIfGenSocksServFail(Exception ex)
 	{
-		// IS GenSocksServFail?
-		if (ex.ToString().Contains("GeneralSocksServerFailure", StringComparison.OrdinalIgnoreCase))
+		bool isFail = false;
+
+		if (ex is HttpRequestException httpRequestException && httpRequestException.InnerException is not null)
 		{
-			// IS GenSocksServFail
+			ex = httpRequestException.InnerException;
+		}
+
+		if (ex is TorConnectCommandFailedException torEx)
+		{
+			isFail = torEx.RepField == RepField.GeneralSocksServerFailure || torEx.RepField == RepField.OnionServiceIntroFailed;
+		}
+
+		if (isFail)
+		{
 			DoGenSocksServFail();
 		}
 		else
 		{
-			// NOT GenSocksServFail
 			DoNotGenSocksServFail();
 		}
 	}
