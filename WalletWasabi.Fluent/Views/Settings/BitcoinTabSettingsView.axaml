@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
@@ -40,7 +41,9 @@
     <DockPanel IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
-      <TextBox Text="{Binding BitcoinP2PEndPoint}" />
+       <c:PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" NumberOfPrivacyChars="15">
+        <TextBox Text="{Binding BitcoinP2PEndPoint}" />
+       </c:PrivacyContentControl>
     </DockPanel>
 
     <StackPanel Spacing="10"
