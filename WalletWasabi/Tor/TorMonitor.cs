@@ -79,11 +79,18 @@ public class TorMonitor : PeriodicRunner
 
 	private async Task StartBootstrapMonitorAsync(CancellationToken appShutdownToken)
 	{
-		using CancellationTokenSource linkedLoopCts = CancellationTokenSource.CreateLinkedTokenSource(appShutdownToken, LoopCts.Token);
-
-		while (!linkedLoopCts.IsCancellationRequested)
+		try
 		{
-			await MonitorEventsAsync(linkedLoopCts.Token).ConfigureAwait(false);
+			using CancellationTokenSource linkedLoopCts = CancellationTokenSource.CreateLinkedTokenSource(appShutdownToken, LoopCts.Token);
+
+			while (!linkedLoopCts.IsCancellationRequested)
+			{
+				await MonitorEventsAsync(linkedLoopCts.Token).ConfigureAwait(false);
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogDebug("Application is shutting down.");
 		}
 	}
 
@@ -162,7 +169,7 @@ public class TorMonitor : PeriodicRunner
 					if (success)
 					{
 						// Wait a bit so that we don't try to connect to Tor Control until Tor is actually started.
-						await Task.Delay(2_000, CancellationToken.None).ConfigureAwait(false);
+						await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
 					}
 				}
 				else
