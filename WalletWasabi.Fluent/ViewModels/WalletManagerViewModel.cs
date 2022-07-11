@@ -109,7 +109,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 				}
 			});
 
-		RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets());
+		EnumerateWallets();
 	}
 
 	public ObservableCollection<WalletViewModelBase> Wallets => _wallets;
