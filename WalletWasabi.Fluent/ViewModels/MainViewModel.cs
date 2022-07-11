@@ -182,7 +182,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void InvalidateIsCoinJoinActive()
 	{
-		IsCoinJoinActive = UiServices.WalletManager.Items.OfType<WalletViewModel>()
+		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
 			.Any(x => x.IsCoinJoining);
 	}
 

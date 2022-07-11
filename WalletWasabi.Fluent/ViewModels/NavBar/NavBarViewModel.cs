@@ -41,9 +41,9 @@ public partial class NavBarViewModel : ViewModelBase
 				}
 			});
 
-		this.WhenAnyValue(x => x.Items.Count)
+		this.WhenAnyValue(x => x.Wallets.Count)
 			.Where(count => count > 0 && SelectedItem is null && !UiServices.WalletManager.IsLoadingWallet)
-			.Select(_ => Items.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Items.FirstOrDefault())
+			.Select(_ => Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault())
 			.Subscribe(itemToSelect => SelectedItem = itemToSelect);
 
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
@@ -52,7 +52,7 @@ public partial class NavBarViewModel : ViewModelBase
 			.Subscribe(x => SelectedItem = x);
 	}
 
-	public ObservableCollection<WalletViewModelBase> Items => UiServices.WalletManager.Items;
+	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
 	public NavBarItemViewModel? SelectedItem
 	{
@@ -155,7 +155,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 	private void CurrentPageChanged(NavBarItemViewModel x)
 	{
-		if (UiServices.WalletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+		if (UiServices.WalletManager.Wallets.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 		{
 			if (!_isNavigating)
 			{
