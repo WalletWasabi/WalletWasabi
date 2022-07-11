@@ -105,7 +105,6 @@ public partial class NavBarViewModel : ViewModelBase
 		if (_selectedItem is { })
 		{
 			_selectedItem.IsSelected = false;
-			_selectedItem.IsExpanded = false;
 		}
 
 		RaiseAndChangeSelectedItem(null);
