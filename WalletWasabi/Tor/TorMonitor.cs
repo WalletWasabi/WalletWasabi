@@ -65,7 +65,7 @@ public class TorMonitor : PeriodicRunner
 	private Task? BootstrapTask { get; set; }
 
 	/// <summary>Whether we should try Tor process restart to fix <see cref="ReplyType.TtlExpired"/> issues.</summary>
-	private bool TryTorRestart { get; set; }
+	private bool TryTorRestart { get; set; } = true;
 
 	/// <remarks>Assignment and cancel operations must be guarded with <see cref="_lock"/>.</remarks>
 	private CancellationTokenSource? ForceTorRestartCts { get; set; }
