@@ -145,7 +145,7 @@
     <Separator DockPanel.Dock="Bottom" />
     <!-- Wallet List -->
     <DockPanel Background="Transparent">
-      <c:NavBarListBox Items="{Binding Wallets}"
+      <c:NavBarListBox Items="{Binding Items}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        ReSelectSelectedItem="False"
                        Name="ItemsListBox"

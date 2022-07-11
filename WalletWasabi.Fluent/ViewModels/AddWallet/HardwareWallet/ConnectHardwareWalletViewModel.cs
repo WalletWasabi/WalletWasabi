@@ -29,7 +29,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		_message = "";
 		WalletName = walletName;
-		Wallets = UiServices.WalletManager.Wallets;
+		Wallets = UiServices.WalletManager.Items;
 		AbandonedTasks = new AbandonedTasks();
 		CancelCts = new CancellationTokenSource();
 

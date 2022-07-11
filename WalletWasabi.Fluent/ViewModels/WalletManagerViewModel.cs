@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,31 +19,21 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class WalletManagerViewModel : ViewModelBase
 {
-	private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+	private readonly SourceList<WalletViewModelBase> _walletsSourceList = new();
+	private readonly ObservableCollectionExtended<WalletViewModelBase> _items = new();
+
 	private NavBarItemViewModel? _currentSelection;
 	[AutoNotify] private WalletViewModelBase? _selectedWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
-	[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 
 	public WalletManagerViewModel()
 	{
-		_wallets = new ObservableCollection<WalletViewModelBase>();
-
-		static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
-		{
-			return item => selected is null || item != selected;
-		}
-
-		var selectedWalletFilter = this.WhenValueChanged(t => t.SelectedWallet).Select(SelectedWalletFilter);
-
-		_wallets
-			.ToObservableChangeSet()
-			.Filter(selectedWalletFilter)
+		_walletsSourceList
+			.Connect()
 			.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(i => i.WalletState).ThenByDescending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
-			.Transform(x => x as NavBarItemViewModel)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out _items)
-			.AsObservableList();
+			.Bind(_items)
+			.Subscribe();
 
 		Observable
 			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
@@ -123,7 +112,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 		RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets());
 	}
 
-	public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
+	public ObservableCollection<WalletViewModelBase> Items => _items;
 
 	public WalletViewModel GetWalletViewModel(Wallet wallet)
 	{
@@ -174,7 +163,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	private WalletViewModel OpenWallet(Wallet wallet)
 	{
-		if (_wallets.Any(x => x.Title == wallet.WalletName))
+		if (Items.Any(x => x.Title == wallet.WalletName))
 		{
 			throw new Exception("Wallet already opened.");
 		}
@@ -190,12 +179,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	private void InsertWallet(WalletViewModelBase wallet)
 	{
-		_wallets.InsertSorted(wallet);
+		_walletsSourceList.Add(wallet);
 	}
 
 	private void RemoveWallet(WalletViewModelBase walletViewModel)
 	{
-		_wallets.Remove(walletViewModel);
+		_walletsSourceList.Remove(walletViewModel);
 	}
 
 	private void EnumerateWallets()
@@ -240,8 +229,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out WalletViewModelBase? walletViewModel)
 	{
-		walletViewModel = _wallets.FirstOrDefault(x => x.Wallet == wallet);
-
+		walletViewModel = _walletsSourceList.Items.FirstOrDefault(x => x.Wallet == wallet);
 		return walletViewModel is { };
 	}
 }

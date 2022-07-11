@@ -43,7 +43,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.Items.Count)
 			.Where(count => count > 0 && SelectedItem is null && !UiServices.WalletManager.IsLoadingWallet)
-			.Select(_ => Items.FirstOrDefault(item => item is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet) ?? Items.FirstOrDefault())
+			.Select(_ => Items.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Items.FirstOrDefault())
 			.Subscribe(itemToSelect => SelectedItem = itemToSelect);
 
 		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
@@ -52,9 +52,7 @@ public partial class NavBarViewModel : ViewModelBase
 			.Subscribe(x => SelectedItem = x);
 	}
 
-	public ReadOnlyObservableCollection<NavBarItemViewModel> Items => UiServices.WalletManager.Items;
-
-	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
+	public ObservableCollection<WalletViewModelBase> Items => UiServices.WalletManager.Items;
 
 	public NavBarItemViewModel? SelectedItem
 	{
