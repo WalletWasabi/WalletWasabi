@@ -27,6 +27,8 @@ public abstract partial class NavBarItemViewModel : RoutableViewModel
 
 	public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
+	public bool IsSelectable => SelectionMode == NavBarItemSelectionMode.Selected;
+
 	public bool IsSelected
 	{
 		get => _isSelected;
