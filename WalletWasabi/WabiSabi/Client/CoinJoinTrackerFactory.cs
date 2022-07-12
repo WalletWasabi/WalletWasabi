@@ -29,7 +29,7 @@ public class CoinJoinTrackerFactory
 	private CancellationToken CancellationToken { get; }
 	private string CoordinatorIdentifier { get; }
 
-	public CoinJoinTracker CreateAndStart(Wallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
+	public CoinJoinTracker CreateAndStart(IWallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
 		Money? liquidityClue = null;
 		if (CoinJoinClient.GetLiquidityClue() is null)
@@ -43,14 +43,14 @@ public class CoinJoinTrackerFactory
 
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
-			new KeyChain(wallet.KeyManager, wallet.Kitchen),
-			new InternalDestinationProvider(wallet.KeyManager),
+			wallet.KeyChain,
+			wallet.DestinationProvider,
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
-			wallet.KeyManager.AnonScoreTarget,
-			consolidationMode: false,
-			redCoinIsolation: wallet.KeyManager.RedCoinIsolation,
-			feeRateMedianTimeFrame: TimeSpan.FromHours(wallet.KeyManager.FeeRateMedianTimeFrameHours),
+			wallet.AnonScoreTarget,
+			consolidationMode: wallet.ConsolidationMode,
+			redCoinIsolation: wallet.RedCoinIsolation,
+			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
 			liquidityClue: liquidityClue);
 

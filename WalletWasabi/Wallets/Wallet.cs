@@ -18,11 +18,12 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
-public class Wallet : BackgroundService
+public class Wallet :  BackgroundService, IWallet
 {
 	private volatile WalletState _state;
 
@@ -40,6 +41,8 @@ public class Wallet : BackgroundService
 		HandleFiltersLock = new AsyncLock();
 
 		KeyManager.AssertCleanKeysIndexed();
+		KeyChain = new KeyChain(KeyManager, Kitchen);
+		DestinationProvider = new InternalDestinationProvider(KeyManager);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -78,6 +81,37 @@ public class Wallet : BackgroundService
 	/// </summary>
 	public ICoinsView Coins { get; private set; }
 
+	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+	public Task<bool> IsWalletPrivate()
+	{
+		var coins = new CoinsView(Coins);
+
+		if (GetPrivacyPercentage(coins, KeyManager.AnonScoreTarget) >= 1)
+		{
+			return Task.FromResult(true);
+		}
+
+		return Task.FromResult(false);
+	}
+
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidates(int bestHeight)
+	{
+		return Task.FromResult<IEnumerable<SmartCoin>>(Coins);
+	}
+
+	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
+	{
+		var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+
+		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
+		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
+		var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
+
+		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
+		return pcPrivate;
+	}
+	
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
@@ -464,4 +498,19 @@ public class Wallet : BackgroundService
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 		return wallet;
 	}
+
+	public string Identifier => WalletName;
+	public bool CoinjoinEnabled => !IsUnderPlebStop;
+
+	public bool IsMixable =>
+		State == WalletState.Started // Only running wallets
+		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
+		&& Kitchen.HasIngredients;
+
+	public IKeyChain KeyChain { get; }
+
+	public IDestinationProvider DestinationProvider { get; }
+	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
+	public bool ConsolidationMode => false;
+	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 }

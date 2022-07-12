@@ -186,7 +186,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	private void EnumerateWallets()
 	{
-		foreach (var wallet in Services.WalletManager.GetWallets())
+		foreach (var wallet in Services.WalletManager.GetWallets(true))
 		{
 			InsertWallet(ClosedWalletViewModel.Create(wallet));
 		}

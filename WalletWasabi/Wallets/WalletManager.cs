@@ -15,10 +15,11 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Wallets;
 
-public class WalletManager
+public class WalletManager : IWalletProvider
 {
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
@@ -244,7 +245,7 @@ public class WalletManager
 		WalletAdded?.Invoke(this, wallet);
 	}
 
-	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
+	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets(true).Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
 	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 	{
@@ -281,7 +282,7 @@ public class WalletManager
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			foreach (var wallet in GetWallets())
+			foreach (var wallet in GetWallets(true))
 			{
 				cancel.ThrowIfCancellationRequested();
 
@@ -381,7 +382,7 @@ public class WalletManager
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
 
-		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
+		foreach (var wallet in GetWallets(true).Where(w => w.State == WalletState.WaitingForInit))
 		{
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}
@@ -408,5 +409,10 @@ public class WalletManager
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
 		}
+	}
+
+	public Task<IEnumerable<IWallet>> GetWallets()
+	{
+		return Task.FromResult<IEnumerable<IWallet>>(GetWallets(true));
 	}
 }

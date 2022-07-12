@@ -116,7 +116,7 @@ public class TorProcessManager : IAsyncDisposable
 
 				if (isAlreadyRunning)
 				{
-					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint.Address}:{Settings.SocksEndpoint.Port}.");
+					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
 					// Tor process can crash even between these two commands too.

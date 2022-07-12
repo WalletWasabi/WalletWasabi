@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -132,6 +133,11 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
 		return transaction;
+	}
+
+	public void NotifyScriptState(IEnumerable<Script> scripts, KeyState state)
+	{
+		// Test wallet doesn't care
 	}
 
 	public IEnumerable<IDestination> GetNextDestinations(int count) =>

@@ -177,12 +177,9 @@ public class DependencyGraphTaskScheduler
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
-					Logger.LogInfo($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
-					if (keyChain is KeyChain { KeyManager: var keyManager }
-						&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
-					{
-						hdPubKey.SetKeyState(KeyState.Used);
-					}
+					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
+					keyChain.NotifyScriptState(new []{txOut.ScriptPubKey}, KeyState.Used);
+					
 				}
 				catch (Exception ex)
 				{
