@@ -209,7 +209,7 @@ public class TorMonitor : PeriodicRunner
 
 			if (reply.Success)
 			{
-				Logger.LogInfo("Tor process was forcefully shut down to be restarted again.");
+				Logger.LogInfo("Tor process was gracefully shut down to be restarted again.");
 				return true;
 			}
 			else
@@ -235,7 +235,14 @@ public class TorMonitor : PeriodicRunner
 
 			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException e)
+				Exception? latestTorException = TorHttpPool.LatestTorException;
+
+				if (latestTorException is null)
+				{
+					return;
+				}
+
+				if (latestTorException is TorConnectCommandFailedException e)
 				{
 					// Tor must be running for us to consider switching to the fallback address.
 					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
@@ -286,6 +293,10 @@ public class TorMonitor : PeriodicRunner
 					Logger.LogInfo("Switching to the fallback URL.");
 					RequestFallbackAddressUsage = true;
 					FallbackStarted = DateTime.UtcNow;
+				}
+				else if (torMisbehavedFor - CheckIfRunningAfterTorMisbehavedFor < Period)
+				{
+					Logger.LogDebug("Latest Tor exception is.", latestTorException);
 				}
 			}
 		}
