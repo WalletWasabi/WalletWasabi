@@ -331,6 +331,12 @@ public class CoinJoinClient
 				personCircuit?.Dispose();
 				return (null, null);
 			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug(ex);
+				personCircuit?.Dispose();
+				return (null, null);
+			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
