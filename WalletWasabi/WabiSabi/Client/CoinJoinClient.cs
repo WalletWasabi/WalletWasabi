@@ -505,62 +505,48 @@ public class CoinJoinClient
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
-			.ToShuffled()
 			.ToArray();
 
 		var privateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
+		var semiPrivateCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.ToArray();
+		var redCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet < 2)
+			.ToArray();
 
 		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
-		SmartCoin[]? nonPrivateCoins = null;
+		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
 		if (redCoinIsolation)
 		{
-			var nonPrivateCandidates = filteredCoins
-					.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet != 1)
-					.ToList();
-
-			var randomRed = filteredCoins
-				.Where(x => x.HdPubKey.AnonymitySet == 1)
-				.RandomElement();
-			if (randomRed is not null)
+			var red = redCoins.RandomElement();
+			if (red is not null)
 			{
-				nonPrivateCandidates.Add(randomRed);
+				allowedNonPrivateCoins.Add(red);
 			}
-
-			nonPrivateCoins = nonPrivateCandidates.ToShuffled().ToArray();
 		}
 		else
 		{
-			nonPrivateCoins = filteredCoins
-				.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
-				.ToArray();
-		}
-
-		// Make sure it's ordered by 1 private and 1 non-private coins.
-		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
-		var organizedCoins = new List<SmartCoin>();
-		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Length); i++)
-		{
-			if (i < nonPrivateCoins.Length)
-			{
-				var npc = nonPrivateCoins[i];
-				organizedCoins.Add(npc);
-			}
-			if (i < privateCoins.Length)
-			{
-				var pc = privateCoins[i];
-				organizedCoins.Add(pc);
-			}
+			allowedNonPrivateCoins.AddRange(redCoins);
 		}
 
 		// How many inputs do we want to provide to the mix?
 		int inputCount = Math.Min(
-			organizedCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Length, privateCoins.Length, rnd));
+			privateCoins.Length + allowedNonPrivateCoins.Count,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
+
+		// Let's allow only a inputCount - 1 private coins to play.
+		var allowedPrivateCoins = AnonScoreBiasedShuffle(privateCoins).Take(inputCount - 1);
+
+		var allowedCoins = allowedNonPrivateCoins.Concat(allowedPrivateCoins).ToArray();
+
+		// Shuffle coins, while randomly biasing towards lower AS.
+		var orderedAllowedCoins = AnonScoreBiasedShuffle(allowedCoins).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
-		var largestAmounts = nonPrivateCoins
+		var largestAmounts = allowedNonPrivateCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
@@ -572,11 +558,12 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var baseGroup = organizedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			// Create a base combination just in case.
+			var baseGroup = orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
 
 			var sw2 = Stopwatch.StartNew();
-			foreach (var group in organizedCoins
+			foreach (var group in orderedAllowedCoins
 				.Except(new[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))
@@ -628,6 +615,23 @@ public class CoinJoinClient
 			.RandomElement();
 
 		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static IEnumerable<SmartCoin> AnonScoreBiasedShuffle(SmartCoin[] coins)
+	{
+		var orderedCoins = new List<SmartCoin>();
+		for (int i = 0; i < coins.Length; i++)
+		{
+			var remaining = coins.Except(orderedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
+			var c = remaining.BiasedRandomElement(50);
+			if (c is null)
+			{
+				throw new NotSupportedException("This is impossible.");
+			}
+
+			orderedCoins.Add(c);
+			yield return c;
+		}
 	}
 
 	private static bool TryAddGroup(RoundParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)
