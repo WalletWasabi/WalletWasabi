@@ -108,7 +108,8 @@ public class Program
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
 			AppBuilder
-				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI()
+				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground))
+				.UseReactiveUI()
 				.SetupAppBuilder()
 				.AfterSetup(_ =>
 					{
