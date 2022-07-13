@@ -34,7 +34,7 @@ public class SmartCoinSelector : ICoinSelector
 		// This is a hacky safety check to make sure the first few iterations can go through.
 		if (IterationCount > 10)
 		{
-			var suggestedSum = suggestion.Sum(c => (Money)c.Amount);
+			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
 			if (suggestedSum < (Money)target)
 			{
 				throw new TransactionSizeException(targetMoney, suggestedSum);
