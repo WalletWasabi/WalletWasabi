@@ -35,7 +35,7 @@ public class SmartCoinSelector : ICoinSelector
 		if (IterationCount > 10)
 		{
 			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
-			if (suggestedSum < (Money)target)
+			if (suggestedSum < targetMoney)
 			{
 				throw new TransactionSizeException(targetMoney, suggestedSum);
 			}
