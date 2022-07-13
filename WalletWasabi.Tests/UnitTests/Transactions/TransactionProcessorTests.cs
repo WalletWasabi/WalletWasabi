@@ -249,8 +249,8 @@ public class TransactionProcessorTests
 			{
 				var coin = Assert.Single(doubleSpents);
 
-					// Double spend to ourselves but to a different address. So checking the address.
-					Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
+				// Double spend to ourselves but to a different address. So checking the address.
+				Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
 
 				doubleSpendReceived++;
 			}
@@ -323,12 +323,12 @@ public class TransactionProcessorTests
 		{
 			if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
 			{
-					// Move the original coin from spent to unspent - so add.
-					var originalCoin = Assert.Single(e.RestoredCoins);
+				// Move the original coin from spent to unspent - so add.
+				var originalCoin = Assert.Single(e.RestoredCoins);
 				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
 
-					// Remove the created coin by the transaction.
-					Assert.Equal(3, e.ReplacedCoins.Count);
+				// Remove the created coin by the transaction.
+				Assert.Equal(3, e.ReplacedCoins.Count);
 				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
 				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
 				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");
@@ -1408,7 +1408,6 @@ public class TransactionProcessorTests
 		return new TransactionProcessor(
 			transactionStore,
 			keyManager,
-			Money.Coins(0.0001m),
-			privacyLevelThreshold);
+			Money.Coins(0.0001m));
 	}
 }

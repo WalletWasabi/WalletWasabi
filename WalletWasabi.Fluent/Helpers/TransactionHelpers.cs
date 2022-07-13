@@ -124,7 +124,7 @@ public static class TransactionHelpers
 	public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
 	{
 		var psbtExtension = "psbt";
-		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", psbtExtension);
+		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new [] { psbtExtension });
 
 		if (!string.IsNullOrWhiteSpace(filePath))
 		{

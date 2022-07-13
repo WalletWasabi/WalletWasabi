@@ -19,7 +19,7 @@
     <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
-  <Style Selector="c|NavBarItem:not(:dragging)">
+  <Style Selector="c|NavBarItem:not(:dragging):selectable">
     <Setter Property="Transitions">
       <Setter.Value>
         <Transitions>

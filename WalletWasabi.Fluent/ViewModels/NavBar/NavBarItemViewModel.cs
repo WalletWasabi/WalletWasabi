@@ -11,11 +11,9 @@ public enum NavBarItemSelectionMode
 	Toggle = 2
 }
 
-public abstract partial class NavBarItemViewModel : RoutableViewModel
+public abstract class NavBarItemViewModel : RoutableViewModel
 {
 	private bool _isSelected;
-	[AutoNotify] private bool _isExpanded;
-	[AutoNotify] private bool _isEnabled = true;
 
 	protected NavBarItemViewModel(NavigationMode defaultNavigationMode = NavigationMode.Clear)
 	{
@@ -25,7 +23,9 @@ public abstract partial class NavBarItemViewModel : RoutableViewModel
 			() => OnOpen(defaultNavigationMode));
 	}
 
-	public NavBarItemSelectionMode SelectionMode { get; protected set; }
+	public NavBarItemSelectionMode SelectionMode { get; protected init; }
+
+	public bool IsSelectable => SelectionMode == NavBarItemSelectionMode.Selected;
 
 	public bool IsSelected
 	{

@@ -129,10 +129,27 @@ public class CurrencyEntryBox : TextBox
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
 		var input = e.Text ?? "";
+
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
 		{
 			e.Handled = true;
+			base.OnTextInput(e);
+			return;
+		}
+
+		if (IsReplacingWithImplicitDecimal(input))
+		{
+			ReplaceCurrentTextWithLeadingZero(e);
+
+			base.OnTextInput(e);
+			return;
+		}
+
+		if (IsInsertingImplicitDecimal(input))
+		{
+			InsertLeadingZeroForDecimal(e);
+
 			base.OnTextInput(e);
 			return;
 		}
@@ -151,6 +168,33 @@ public class CurrencyEntryBox : TextBox
 		}
 
 		base.OnTextInput(e);
+	}
+
+	private bool IsReplacingWithImplicitDecimal(string input)
+	{
+		return input.StartsWith(".") && SelectedText == Text;
+	}
+
+	private bool IsInsertingImplicitDecimal(string input)
+	{
+		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
+	}
+
+	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
+	{
+		var finalText = "0" + e.Text;
+		Text = "";
+		e.Text = finalText;
+		CaretIndex = finalText.Length;
+		ClearSelection();
+	}
+
+	private void InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	{
+		var prependText = "0" + e.Text;
+		Text = Text.Insert(0, prependText);
+		e.Text = "";
+		CaretIndex += prependText.Length;
 	}
 
 	private bool ValidateEntryText(string preComposedText)

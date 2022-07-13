@@ -83,6 +83,10 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
+    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
+      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
+    </Style>
+
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />

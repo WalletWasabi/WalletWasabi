@@ -31,6 +31,8 @@ public class CoinJoinTrackerFactory
 			new InternalDestinationProvider(wallet.KeyManager),
 			RoundStatusUpdater,
 			wallet.KeyManager.AnonScoreTarget,
+			consolidationMode: false,
+			redCoinIsolation: wallet.KeyManager.RedCoinIsolation,
 			feeRateMedianTimeFrame: TimeSpan.FromHours(wallet.KeyManager.FeeRateMedianTimeFrameHours),
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
