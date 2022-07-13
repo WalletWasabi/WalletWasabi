@@ -64,7 +64,4 @@ public static class ServiceFactory
 
 	public static KeyManager CreateWatchOnlyKeyManager()
 		=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
-
-	public static BlockchainAnalyzer CreateBlockchainAnalyzer(int privacyLevelThreshold = 100)
-		=> new(privacyLevelThreshold);
 }

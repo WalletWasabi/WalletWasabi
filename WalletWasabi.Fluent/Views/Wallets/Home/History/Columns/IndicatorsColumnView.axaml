@@ -24,7 +24,7 @@
                 Data="{StaticResource checkmark_filled}"
                 Height="11"
                 Opacity="0.6"
-                ToolTip.Tip="Confirmed" />
+                ToolTip.Tip="{Binding ConfirmedToolTip}" />
       <!-- Pending -->
       <PathIcon IsVisible="{Binding !IsConfirmed}"
                 Data="{StaticResource clock_regular}"

@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -55,9 +56,9 @@ public partial class MainViewModel : ViewModelBase
 		_isDialogScreenEnabled = true;
 		_isFullScreenEnabled = true;
 
-		_statusIcon = new StatusIconViewModel();
-
 		UiServices.Initialize();
+
+		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -151,7 +152,11 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+
+		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
+
+	public string NetworkBadgeName { get; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
 
