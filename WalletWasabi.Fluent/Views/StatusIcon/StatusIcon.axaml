@@ -37,7 +37,6 @@
       <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
-
   </UserControl.Styles>
   <Panel>
 
@@ -128,10 +127,16 @@
                 <PathIcon Data="{StaticResource arrow_clockwise_regular}" />
               </c:StatusItem.Icon>
             </c:StatusItem>
-            <Button Classes="activeHyperLink" Command="{Binding UpdateCommand}">
+            <Button IsVisible="{Binding IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
-                <AccessText Text="Update now" />
+                <AccessText Text="Update on Close" />
+              </StackPanel>
+            </Button>
+            <Button IsVisible="{Binding !IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding ManualUpdateCommand}">
+              <StackPanel Spacing="5" Orientation="Horizontal">
+                <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
+                <AccessText Text="Update" />
               </StackPanel>
             </Button>
 
@@ -175,6 +180,5 @@
       IsVisible="{Binding CurrentState, Converter={x:Static converters:StatusIconStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:StatusIconState.Loading}}"
       Data="{StaticResource arrow_sync_regular}"
       Classes.rotate="{Binding $self.IsVisible}" />
-
   </Panel>
 </UserControl>
