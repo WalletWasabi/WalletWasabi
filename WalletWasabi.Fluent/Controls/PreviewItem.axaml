@@ -33,7 +33,7 @@
                                   ContentTemplate="{TemplateBinding ContentTemplate}"
                                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                  IsVisible="{Binding !#PART_ContentReplacementTextElement.IsVisible}" />
+                                  IsVisible="{Binding !#PART_ContentReplacementTextBlock.IsVisible}" />
                 <TextBlock Name="PART_ContentReplacementTextBlock" IsVisible="{TemplateBinding PrivacyModeEnabled}" />
               </Panel>
             </DockPanel>
