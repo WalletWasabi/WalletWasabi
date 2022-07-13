@@ -115,9 +115,9 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
-	[DefaultValue("wasabiwallet.io")]
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoordinatorIdentifier { get; set; } = "wasabiwallet.io";
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
