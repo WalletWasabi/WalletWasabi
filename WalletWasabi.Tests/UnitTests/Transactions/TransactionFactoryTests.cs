@@ -564,8 +564,7 @@ public class TransactionFactoryTests
 	[Fact]
 	public void TooManyInputCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(
-			DemoCoinSets.LotOfCoins);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(DemoCoinSets.LotOfCoins);
 
 		using Key key = new();
 		var payment = new PaymentIntent(key, MoneyRequest.Create(Money.Coins(0.29943925m)));
