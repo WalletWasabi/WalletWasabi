@@ -24,15 +24,12 @@ public partial class WalletManagerViewModel : ViewModelBase
 	private NavBarItemViewModel? _currentSelection;
 	[AutoNotify] private WalletViewModelBase? _selectedWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
-	[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
 	[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
-	[AutoNotify] private bool _anyWalletStarted;
 
 	public WalletManagerViewModel()
 	{
 		_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 		_wallets = new ObservableCollection<WalletViewModelBase>();
-		_loggedInAndSelectedAlwaysFirst = true;
 
 		static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
 		{
@@ -51,26 +48,27 @@ public partial class WalletManagerViewModel : ViewModelBase
 			.AsObservableList();
 
 		Observable
-				.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
+			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(
-				x =>
+			.Select(x => x.Sender as Wallet)
+			.WhereNotNull()
+			.Subscribe(wallet =>
 			{
-				var wallet = x.Sender as Wallet;
-
-				if (wallet is { } && _walletDictionary.ContainsKey(wallet))
+				if (!_walletDictionary.TryGetValue(wallet, out var walletViewModel))
 				{
-					if (wallet.State == WalletState.Stopping)
-					{
-						RemoveWallet(_walletDictionary[wallet]);
-					}
-					else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
-					{
-						OpenClosedWallet(cwvm);
-					}
+					return;
 				}
 
-				AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(y => y.WalletState == WalletState.Started);
+				if (wallet.State == WalletState.Stopping)
+				{
+					RemoveWallet(walletViewModel);
+				}
+				else if (walletViewModel is ClosedWalletViewModel { IsLoggedIn: true } cwvm &&
+				         ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
+				          cwvm.Wallet.State == WalletState.Started))
+				{
+					OpenClosedWallet(cwvm);
+				}
 			});
 
 		Observable
@@ -104,7 +102,15 @@ public partial class WalletManagerViewModel : ViewModelBase
 				{
 					if (!e.IsOwnCoinJoin)
 					{
-						NotificationHelpers.Show(wallet.WalletName, e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						NotificationHelpers.Show(wallet.WalletName, e, onClick: () =>
+						{
+							if (MainViewModel.Instance.IsBusy)
+							{
+								return;
+							}
+
+							wvm.NavigateAndHighlight(e.Transaction.GetHash());
+						});
 					}
 
 					if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
@@ -139,8 +145,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public async Task LoadWalletAsync(Wallet wallet)
 	{
-		wallet.KeyManager.SetNonNewlyCreated();
-
 		if (wallet.State != WalletState.Uninitialized)
 		{
 			throw new Exception("Wallet is already being logged in.");
@@ -187,8 +191,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		InsertWallet(walletViewModel);
 
-		walletViewModel.IsExpanded = true;
-
 		return walletViewModel;
 	}
 
@@ -228,7 +230,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		if (SelectedWallet is { IsLoggedIn: true } && (item is WalletViewModelBase && SelectedWallet != item))
 		{
-			if (/*item is not WalletActionViewModel &&*/ SelectedWallet != item)
+			if (SelectedWallet != item)
 			{
 				SelectedWallet = null;
 				result = item;

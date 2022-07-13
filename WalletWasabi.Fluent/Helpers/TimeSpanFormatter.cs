@@ -15,7 +15,7 @@ public static class TimeSpanFormatter
 			GetHours(reduced, configuration),
 			GetMinutes(reduced, configuration)
 		};
-			
+
 		return parts.First(s => s is not null) ?? throw new InvalidOperationException($"Invalid timeSpan: {timeSpan}");
 	}
 
@@ -51,15 +51,15 @@ public static class TimeSpanFormatter
 
 	public class Configuration
 	{
-		public string DaysLabel { get; }
-		public string HoursLabel { get; }
-		public string MinutesLabel { get; }
-
 		public Configuration(string daysLabel, string hoursLabel, string minutesLabel)
 		{
 			DaysLabel = daysLabel;
 			HoursLabel = hoursLabel;
 			MinutesLabel = minutesLabel;
 		}
+
+		public string DaysLabel { get; }
+		public string HoursLabel { get; }
+		public string MinutesLabel { get; }
 	}
 }

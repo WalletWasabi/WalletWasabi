@@ -59,7 +59,7 @@ public static class WabiSabiFactory
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters,	new InsecureRandom());
+		new(parameters, new InsecureRandom());
 
 	public static Round CreateRound(WabiSabiConfig cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
@@ -286,14 +286,16 @@ public static class WabiSabiFactory
 			httpClientFactory,
 			new KeyChain(keyManager, new Kitchen("")),
 			new InternalDestinationProvider(keyManager),
-			roundStateUpdater);
+			roundStateUpdater,
+			keyManager.RedCoinIsolation);
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
 		IDestinationProvider destinationProvider,
-		RoundStateUpdater roundStateUpdater)
+		RoundStateUpdater roundStateUpdater,
+		bool redCoinIsolation)
 	{
 		var mock = new Mock<CoinJoinClient>(
 			httpClientFactory,
@@ -302,6 +304,7 @@ public static class WabiSabiFactory
 			roundStateUpdater,
 			int.MaxValue,
 			true,
+			redCoinIsolation,
 			TimeSpan.Zero,
 			TimeSpan.Zero);
 
@@ -317,18 +320,18 @@ public static class WabiSabiFactory
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
 		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
-		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<int>()))
+		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
 			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
 				with
-				{
-					MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-				});
+			{
+				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
+			});
 		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
 			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
 				with
-				{
-					MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-				});
+			{
+				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
+			});
 		return mockRoundParameterFactory.Object;
 	}
 }

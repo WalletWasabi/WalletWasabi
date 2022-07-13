@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Extensions;
@@ -55,6 +56,23 @@ public static class LinqExtensions
 		return current;
 	}
 
+	/// <summary>
+	/// Selects a random element based on order bias.
+	/// </summary>
+	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
+	public static T? BiasedRandomElement<T>(this IOrderedEnumerable<T> source, int biasPercent)
+	{
+		foreach (T element in source)
+		{
+			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
+			{
+				return element;
+			}
+		}
+
+		return source.Any() ? source.First() : default;
+	}
+
 	public static IList<T> Shuffle<T>(this IList<T> list)
 	{
 		int n = list.Count;
@@ -96,14 +114,15 @@ public static class LinqExtensions
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
+	=> ofLength switch
 	{
-		return (ofLength == 1)
-			? items.Select(item => new[] { item })
-			: items.SelectMany((item, i) => items
+		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
+		1 => items.Select(item => new[] { item }),
+		_ => items.SelectMany((item, i) => items
 				.Skip(i + 1)
 				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }.Concat(result)));
-	}
+				.Select(result => new T[] { item }.Concat(result)))
+	};
 
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,

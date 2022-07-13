@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
@@ -17,14 +18,13 @@ public class TransactionProcessor
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
 		KeyManager keyManager,
-		Money dustThreshold,
-		int privacyLevelThreshold)
+		Money dustThreshold)
 	{
 		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-		Coins = new CoinsRegistry();
-		BlockchainAnalyzer = new BlockchainAnalyzer(privacyLevelThreshold);
+		Coins = new();
+		BlockchainAnalyzer = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -207,6 +207,7 @@ public class TransactionProcessor
 			}
 		}
 
+		var myInputs = Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()).ToImmutableList();
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
@@ -219,7 +220,8 @@ public class TransactionProcessor
 				}
 
 				foundKey.SetKeyState(KeyState.Used, KeyManager);
-				if (output.Value <= DustThreshold)
+				var areWeSending = myInputs.Any();
+				if (output.Value <= DustThreshold && !areWeSending)
 				{
 					result.ReceivedDusts.Add(output);
 					continue;
@@ -236,12 +238,6 @@ public class TransactionProcessor
 
 					// Make sure there's always 21 clean keys generated and indexed.
 					KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
-
-					if (foundKey.IsInternal)
-					{
-						// Make sure there's always 14 internal locked keys generated and indexed.
-						KeyManager.AssertLockedInternalKeysIndexed(14);
-					}
 				}
 				else // If we had this coin already.
 				{
@@ -258,7 +254,7 @@ public class TransactionProcessor
 		}
 
 		// If spends any of our coin
-		foreach (var coin in Coins.AsAllCoinsView().OutPoints(tx.Transaction.Inputs.Select(x => x.PrevOut).ToHashSet()))
+		foreach (var coin in myInputs)
 		{
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);

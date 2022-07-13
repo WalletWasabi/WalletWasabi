@@ -17,7 +17,6 @@ public class Bip322SignatureTest
 		var message = new uint256(Encoders.Hex.DecodeData("BB06B6D65C9F4A1D245F203EB039A735D94D3ECA3E19B04DA59956413F5D5C8F"), false);
 		var bip322Signature = Bip322Signature.Generate(key, message, ScriptPubKeyType.Segwit);
 
-		Console.WriteLine(Encoders.Hex.EncodeData(bip322Signature.ToBytes()));
 		var bip322SignatureBytes = Encoders.Hex.DecodeData("0002473044022006806E4B84C490372AD4728435DBF505FA39B4257E5A5B4A343A1C34A2D4390602205321627EF5933E8D2A589552ABE07D1EEE6F6C8C716DD5BA7F99C9F324694E230121032EF68318C8F6AAA0ADEC0199C69901F0DB7D3485EB38D9AD235221DC3D61154B");
 
 		Assert.True(bip322SignatureBytes.SequenceEqual(bip322Signature.ToBytes()));
