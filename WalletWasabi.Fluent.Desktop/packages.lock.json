@@ -125,6 +125,15 @@
           "System.Reactive": "5.0.0"
         }
       },
+      "Avalonia.Themes.Fluent": {
+        "type": "Transitive",
+        "resolved": "0.10.999-cibuild0021439-beta",
+        "contentHash": "5td7vwDtjX78iJ8WxHYVznFP2pKXtNBUGaMT31CdYSZ9rSw08OeIz1sspfGdIklCuozEMgTGnUfNS1Fque7FLw==",
+        "dependencies": {
+          "Avalonia": "0.10.999-cibuild0021439-beta",
+          "System.Reactive": "5.0.0"
+        }
+      },
       "Avalonia.Win32": {
         "type": "Transitive",
         "resolved": "0.10.999-cibuild0021439-beta",
@@ -692,6 +701,7 @@
           "Avalonia.Diagnostics": "0.10.999-cibuild0021439-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0021439-beta",
           "Avalonia.Skia": "0.10.999-cibuild0021439-beta",
+          "Avalonia.Themes.Fluent": "0.10.999-cibuild0021439-beta",
           "Avalonia.Xaml.Behaviors": "0.10.16",
           "System.Drawing.Common": "6.0.0",
           "System.Runtime": "4.3.1",
