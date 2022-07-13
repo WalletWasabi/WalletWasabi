@@ -67,14 +67,6 @@
           "System.Reactive": "5.0.0"
         }
       },
-      "Avalonia.Controls.TreeDataGrid": {
-        "type": "Transitive",
-        "resolved": "0.10.14",
-        "contentHash": "GVdIFw1VBmYjtdwGRu3+RWpHmSoKzDTUYYCGWor7T60abnWkz9QZCKtoh53jO5oFEzaSBbhRP1LW28i+v+4O+w==",
-        "dependencies": {
-          "Avalonia": "0.10.14"
-        }
-      },
       "Avalonia.Diagnostics": {
         "type": "Transitive",
         "resolved": "0.10.999-cibuild0021439-beta",
@@ -152,33 +144,6 @@
           "Avalonia": "0.10.999-cibuild0021439-beta",
           "Avalonia.FreeDesktop": "0.10.999-cibuild0021439-beta",
           "Avalonia.Skia": "0.10.999-cibuild0021439-beta"
-        }
-      },
-      "Avalonia.Xaml.Behaviors": {
-        "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "Z+wcwoJCKBBds6aHQ7Fddph3027h9tXswlrOxVh7dJEqTUK0MNYHUlyjOaqIOGl2ng3uBK6cs2L2wXG5Cwzf5g==",
-        "dependencies": {
-          "Avalonia": "0.10.13",
-          "Avalonia.Xaml.Interactions": "0.10.13.1",
-          "Avalonia.Xaml.Interactivity": "0.10.13.1"
-        }
-      },
-      "Avalonia.Xaml.Interactions": {
-        "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "FfBzAwH9TXVk3P+diK8V0t/dYufXCm1tpY7Ok14bll3xMlI+vICObxE7yzXriFTfQO7oaFONaPgdspQnfGKwEg==",
-        "dependencies": {
-          "Avalonia": "0.10.13",
-          "Avalonia.Xaml.Interactivity": "0.10.13.1"
-        }
-      },
-      "Avalonia.Xaml.Interactivity": {
-        "type": "Transitive",
-        "resolved": "0.10.13.1",
-        "contentHash": "jCgTyl3sVMIBZwMEHp7PbY3SMGUQfYWVYTPj010HxvkXo9Zrisxm6iPzDlmd57NfEPgMiW0s/zt6yun4IVnVQQ==",
-        "dependencies": {
-          "Avalonia": "0.10.13"
         }
       },
       "DynamicData": {
@@ -683,6 +648,33 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
+      "avalonia.controls.treedatagrid": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.999-cibuild0021439-beta"
+        }
+      },
+      "avalonia.xaml.behaviors": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.999-cibuild0021439-beta",
+          "Avalonia.Xaml.Interactions": "0.10.16",
+          "Avalonia.Xaml.Interactivity": "0.10.16"
+        }
+      },
+      "avalonia.xaml.interactions": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.999-cibuild0021439-beta",
+          "Avalonia.Xaml.Interactivity": "0.10.16"
+        }
+      },
+      "avalonia.xaml.interactivity": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "0.10.999-cibuild0021439-beta"
+        }
+      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
@@ -696,11 +688,11 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "0.10.999-cibuild0021439-beta",
-          "Avalonia.Controls.TreeDataGrid": "0.10.14",
+          "Avalonia.Controls.TreeDataGrid": "0.10.16",
           "Avalonia.Diagnostics": "0.10.999-cibuild0021439-beta",
           "Avalonia.ReactiveUI": "0.10.999-cibuild0021439-beta",
           "Avalonia.Skia": "0.10.999-cibuild0021439-beta",
-          "Avalonia.Xaml.Behaviors": "0.10.13.1",
+          "Avalonia.Xaml.Behaviors": "0.10.16",
           "System.Drawing.Common": "6.0.0",
           "System.Runtime": "4.3.1",
           "WalletWasabi": "1.0.0"

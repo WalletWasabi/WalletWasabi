@@ -21,20 +21,24 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="0.10.14" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" Condition="'$(Configuration)' == 'Debug'" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.13.1" />
 		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\Submodules\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
+		<ProjectReference Include="..\Submodules\AvaloniaBehaviors\src\Avalonia.Xaml.Behaviors\Avalonia.Xaml.Behaviors.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="packages.lock.json" />
 	</ItemGroup>
 </Project>
