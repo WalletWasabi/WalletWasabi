@@ -16,7 +16,7 @@
 
   <Style Selector="c|NavBarItem">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
   <Style Selector="c|NavBarItem:not(:dragging)">
@@ -97,8 +97,8 @@
   </Style>
 
   <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.FontWeight" Value="Normal" />
-    <Setter Property="TextBlock.FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+    <Setter Property="TextElement.FontWeight" Value="Normal" />
+    <Setter Property="TextElement.FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
   </Style>
 
   <!-- Disabled State -->

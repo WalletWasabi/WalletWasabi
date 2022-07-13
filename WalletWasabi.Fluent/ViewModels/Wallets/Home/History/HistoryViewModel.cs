@@ -86,16 +86,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 				x => x.Children,
-				x =>
-				{
-					if (x is CoinJoinsHistoryItemViewModel coinJoinsHistoryItemViewModel
-					    && coinJoinsHistoryItemViewModel.CoinJoinTransactions.Count > 1)
-					{
-						return true;
-					}
 
-					return false;
-				},
 				x => x.IsExpanded),
 
 				// Date
