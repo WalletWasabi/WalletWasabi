@@ -562,7 +562,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public void ManyCoins()
+	public void TooManyInputCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
 			DemoCoinSets.LotOfCoins);
