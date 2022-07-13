@@ -145,6 +145,11 @@ public class Program
 
 		Logger.LogSoftwareStopped("Wasabi");
 
+		if (Services.UpdateManager.UpdateOnClose)
+		{
+			Services.UpdateManager.InstallNewVersion();
+		}
+
 		return exceptionToReport is { } ? 1 : 0;
 	}
 
