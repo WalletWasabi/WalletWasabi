@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class WalletVirtualInput
 {
-	public WalletVirtualInput(HdPubKey hdPubKey, ISet<SmartCoin> coins)
+	public WalletVirtualInput(byte[] id, ISet<SmartCoin> coins)
 	{
-		HdPubKey = hdPubKey;
+		Id = id;
 		Coins = coins;
 	}
 
-	public HdPubKey HdPubKey { get; }
+	public byte[] Id { get; }
 	public ISet<SmartCoin> Coins { get; }
 }

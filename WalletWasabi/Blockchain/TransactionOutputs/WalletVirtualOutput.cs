@@ -10,14 +10,14 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 
 public class WalletVirtualOutput
 {
-	public WalletVirtualOutput(HdPubKey hdPubKey, Money amount, ISet<OutPoint> outPoints)
+	public WalletVirtualOutput(byte[] id, Money amount, ISet<OutPoint> outPoints)
 	{
-		HdPubKey = hdPubKey;
+		Id = id;
 		Amount = amount;
 		OutPoints = outPoints;
 	}
 
-	public HdPubKey HdPubKey { get; }
+	public byte[] Id { get; }
 	public Money Amount { get; }
 	public ISet<OutPoint> OutPoints { get; }
 }

@@ -100,7 +100,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (WalletVirtualInputsCache is null)
 			{
 				WalletVirtualInputsCache = WalletInputs
-					.GroupBy(i => i.HdPubKey)
+					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes())
 					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
 					.ToHashSet();
 			}
@@ -116,7 +116,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (WalletVirtualOutputsCache is null)
 			{
 				WalletVirtualOutputsCache = WalletOutputs
-					.GroupBy(o => o.HdPubKey)
+					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes())
 					.Select(g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(GetHash(), o.Index)).ToHashSet()))
 					.ToHashSet();
 			}

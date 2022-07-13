@@ -500,13 +500,15 @@ public static class NBitcoinExtensions
 	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
 	/// </summary>
 	public static byte[] ExtractKeyId(this Script scriptPubKey)
-		=> scriptPubKey.TryGetScriptType() switch
+	{
+		return scriptPubKey.TryGetScriptType() switch
 		{
 			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			_ => scriptPubKey.ToBytes()
 		};
+	}
 
 	public static ScriptType? TryGetScriptType(this Script script)
 	{
