@@ -132,7 +132,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (ForeignVirtualOutputsCache is null)
 			{
 				ForeignVirtualOutputsCache = ForeignOutputs
-					.GroupBy(o => o.TxOut.ScriptPubKey)
+					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId())
 					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
 					.ToHashSet();
 			}
