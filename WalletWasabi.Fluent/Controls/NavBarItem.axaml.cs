@@ -59,12 +59,12 @@ public class NavBarItem : ListBoxItem
 
 		if (change.Property == IndicatorOrientationProperty)
 		{
-			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+			UpdateIndicatorOrientationPseudoClasses((Orientation)change.NewValue);
 		}
 
 		if (change.Property == IsSelectableProperty)
 		{
-			UpdateIsSelectablePseudoClasses(change.NewValue.GetValueOrDefault<bool>());
+			UpdateIsSelectablePseudoClasses((bool)change.NewValue);
 		}
 	}
 
