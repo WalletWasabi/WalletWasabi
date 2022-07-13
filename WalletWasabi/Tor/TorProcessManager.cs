@@ -172,7 +172,7 @@ public class TorProcessManager : IAsyncDisposable
 				else
 				{
 					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
-					foreach (Process torProcess in Process.GetProcessesByName(TorSettings.TorBinaryFileName))
+					foreach (Process torProcess in Process.GetProcessesByName(TorSettings.GetTorBinaryFileName()))
 					{
 						try
 						{
