@@ -27,6 +27,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _updateAvailable;
 	[AutoNotify] private bool _criticalUpdateAvailable;
+	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private string? _versionText;
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
@@ -37,9 +38,20 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
 
-		UpdateCommand = ReactiveCommand.CreateFromTask( () =>  IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		UpdateCommand = ReactiveCommand.Create(() =>
+		{
+			Services.UpdateManager.UpdateOnClose = true;
+			UpdateAvailable = false;
+		});
+
+		AskMeLaterCommand = ReactiveCommand.Create(() =>
+		{
+			Services.UpdateManager.UpdateOnClose = false;
+			UpdateAvailable = false;
+		});
+
 		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
-		AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
 
 		this.WhenAnyValue(
 				x => x.TorStatus,
@@ -76,6 +88,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	public ICommand OpenTorStatusSiteCommand { get; }
 
 	public ICommand UpdateCommand { get; }
+	public ICommand ManualUpdateCommand { get; }
 
 	public ICommand AskMeLaterCommand { get; }
 
@@ -126,6 +139,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 		var synchronizer = Services.Synchronizer;
 		var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
 		var updateChecker = Services.HostedServices.Get<UpdateChecker>();
+		var updateManager = Services.UpdateManager;
 
 		BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
 
@@ -168,7 +182,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 				.DisposeWith(Disposables);
 		}
 
-		Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
+		Observable.FromEventPattern<UpdateStatus>(updateManager, nameof(updateManager.UpdateAvailableToGet))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(e =>
 			{
@@ -176,10 +190,15 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 				UpdateAvailable = !updateStatus.ClientUpToDate;
 				CriticalUpdateAvailable = !updateStatus.BackendCompatible;
+				IsReadyToInstall = updateStatus.IsReadyToInstall;
 
 				if (CriticalUpdateAvailable)
 				{
 					VersionText = $"Critical update required";
+				}
+				else if (IsReadyToInstall)
+				{
+					VersionText = $"Version {updateStatus.ClientVersion} is now ready to install";
 				}
 				else if (UpdateAvailable)
 				{

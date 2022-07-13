@@ -54,6 +54,7 @@ public class Global
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
+	public UpdateManager UpdateManager { get; set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -102,6 +103,7 @@ public class Global
 
 			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
+			UpdateManager = new(DataDir);
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 
@@ -145,6 +147,8 @@ public class Global
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
+				UpdateManager.Initialize(HostedServices.Get<UpdateChecker>());
+
 				cancel.ThrowIfCancellationRequested();
 
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
