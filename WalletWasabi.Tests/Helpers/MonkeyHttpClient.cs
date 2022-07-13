@@ -10,10 +10,6 @@ namespace WalletWasabi.Tests.Helpers;
 /// </summary>
 public class MonkeyHttpClient : IHttpClient
 {
-	/// <summary>Monkey callback that tampers with sending of HTTP requests.</summary>
-	/// <remarks>Callback can delay HTTP request processing, it can throw an exception, it can employ randomization, etc.</remarks>
-	public delegate Task Monkey();
-
 	private readonly Monkey[] _monkeys;
 
 	public MonkeyHttpClient(IHttpClient httpClient, params Monkey[] monkeys)
@@ -21,6 +17,10 @@ public class MonkeyHttpClient : IHttpClient
 		HttpClient = httpClient;
 		_monkeys = monkeys;
 	}
+
+	/// <summary>Monkey callback that tampers with sending of HTTP requests.</summary>
+	/// <remarks>Callback can delay HTTP request processing, it can throw an exception, it can employ randomization, etc.</remarks>
+	public delegate Task Monkey();
 
 	private IHttpClient HttpClient { get; }
 

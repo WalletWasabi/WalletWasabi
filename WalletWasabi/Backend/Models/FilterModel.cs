@@ -8,6 +8,8 @@ namespace WalletWasabi.Backend.Models;
 
 public class FilterModel
 {
+	private Lazy<GolombRiceFilter> _filter;
+
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
@@ -22,7 +24,6 @@ public class FilterModel
 
 	public SmartHeader Header { get; }
 
-	private Lazy<GolombRiceFilter> _filter;
 	public GolombRiceFilter Filter => _filter.Value;
 
 	// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki

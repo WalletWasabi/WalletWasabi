@@ -1,8 +1,6 @@
 using ReactiveUI;
-using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -13,10 +11,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
 {
-	[AutoNotify] private string _titleTip;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
-	[AutoNotify(SetterModifier = AccessModifier.Protected)] private string? _statusText;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 
 	private string _title;
@@ -26,33 +22,17 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		Wallet = Guard.NotNull(nameof(wallet), wallet);
 
 		_title = WalletName;
-		var isHardware = Wallet.KeyManager.IsHardwareWallet;
-		var isWatch = Wallet.KeyManager.IsWatchOnly;
-		_titleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
-
 		WalletState = wallet.State;
 
 		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 
 		SetIcon();
 
-		this.WhenAnyValue(x => x.IsLoading, x => x.IsCoinJoining)
-			.Subscribe(tup =>
+		this.WhenAnyValue(x => x.IsCoinJoining)
+			.Skip(1)
+			.Subscribe(_ =>
 			{
-				var (isLoading, isCoinJoining) = tup;
-
-				if (isLoading)
-				{
-					StatusText = "Loading";
-				}
-				else if (isCoinJoining)
-				{
-					StatusText = "Coinjoining";
-				}
-				else
-				{
-					StatusText = null;
-				}
+				MainViewModel.Instance.InvalidateIsCoinJoinActive();
 			});
 	}
 

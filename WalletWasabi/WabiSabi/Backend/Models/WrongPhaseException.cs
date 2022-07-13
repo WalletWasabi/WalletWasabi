@@ -10,12 +10,6 @@ namespace WalletWasabi.WabiSabi.Backend.Models;
 
 public class WrongPhaseException : WabiSabiProtocolException
 {
-	public TimeSpan Late { get; }
-	public TimeSpan PhaseTimeout { get; }
-	public Phase CurrentPhase { get; }
-	public Phase[] ExpectedPhases { get; }
-	public uint256 RoundId { get; }
-
 	public WrongPhaseException(Round round, params Phase[] expectedPhases)
 		: base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).", exceptionData: new WrongPhaseExceptionData(round.Phase))
 	{
@@ -48,4 +42,10 @@ public class WrongPhaseException : WabiSabiProtocolException
 		RoundId = round.Id;
 		ExpectedPhases = expectedPhases;
 	}
+
+	public TimeSpan Late { get; }
+	public TimeSpan PhaseTimeout { get; }
+	public Phase CurrentPhase { get; }
+	public Phase[] ExpectedPhases { get; }
+	public uint256 RoundId { get; }
 }

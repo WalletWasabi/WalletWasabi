@@ -156,7 +156,11 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+
+		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
+
+	public string NetworkBadgeName { get; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
 

@@ -25,6 +25,7 @@ public class KeyManager
 {
 	public const int DefaultAnonScoreTarget = 5;
 	public const bool DefaultAutoCoinjoin = false;
+	public const bool DefaultRedCoinIsolation = false;
 	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
 	public const int AbsoluteMinGapLimit = 21;
@@ -175,6 +176,9 @@ public class KeyManager
 
 	[JsonProperty(Order = 15, PropertyName = "IsCoinjoinProfileSelected")]
 	public bool IsCoinjoinProfileSelected { get; set; } = false;
+
+	[JsonProperty(Order = 16, PropertyName = "RedCoinIsolation")]
+	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
 	[JsonProperty(Order = 999)]
 	private List<HdPubKey> HdPubKeys { get; }
