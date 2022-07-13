@@ -33,8 +33,8 @@ public static class Program
 	{
 		"win7-x64",
 		"linux-x64",
-		"osx-x64",
-		"osx-arm64"
+		"osx.10.15-x64",
+		"osx.10.15-arm64"
 	};
 
 	private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
