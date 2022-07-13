@@ -31,6 +31,11 @@ public class SmartCoinSelector : ICoinSelector
 			throw new InsufficientBalanceException(targetMoney, available);
 		}
 
+		if (IterationCount > 500)
+		{
+			throw new TimeoutException("Coin selection timed out.");
+		}
+
 		// This is a hacky safety check to make sure the first few iterations can go through.
 		if (IterationCount > 10)
 		{
@@ -39,11 +44,6 @@ public class SmartCoinSelector : ICoinSelector
 			{
 				throw new TransactionSizeException(targetMoney, suggestedSum);
 			}
-		}
-
-		if (IterationCount > 500)
-		{
-			throw new TimeoutException("Coin selection timed out.");
 		}
 
 		// Get unique clusters.
