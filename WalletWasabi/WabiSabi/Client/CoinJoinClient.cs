@@ -333,7 +333,23 @@ public class CoinJoinClient
 			}
 			catch (OperationCanceledException ex)
 			{
-				Logger.LogDebug(ex);
+				if (cancel.IsCancellationRequested)
+				{
+					Logger.LogDebug("User requested cancellation of registration and confirmation.");
+				}
+				else if (registrationsCts.IsCancellationRequested)
+				{
+					Logger.LogDebug("Registration was cancelled.");
+				}
+				else if (connConfTimeoutCts.IsCancellationRequested)
+				{
+					Logger.LogDebug("Connection confirmation was cancelled.");
+				}
+				else
+				{
+					Logger.LogDebug(ex);
+				}
+
 				personCircuit?.Dispose();
 				return (null, null);
 			}
