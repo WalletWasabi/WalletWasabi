@@ -36,7 +36,7 @@ public class SmartCoinSelector : ICoinSelector
 			var suggestedSum = suggestion.Sum(c => (Money)c.Amount);
 			if (suggestedSum < (Money)target)
 			{
-				throw new InsufficientBalanceException(targetMoney, suggestedSum);
+				throw new TransactionSizeException(targetMoney, suggestedSum);
 			}
 		}
 

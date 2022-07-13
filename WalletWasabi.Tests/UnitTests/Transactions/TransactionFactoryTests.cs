@@ -571,7 +571,7 @@ public class TransactionFactoryTests
 
 		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
 
-		Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
+		Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
 	}
 
 	[Fact]
