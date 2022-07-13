@@ -20,6 +20,7 @@ public class SmartCoinSelector : ICoinSelector
 	private int IterationCount { get; set; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
+	/// <remarks>Do not call this method repeatedly on a single <see cref="SmartCoinSelector"/> instance.</remarks>
 	public IEnumerable<ICoin> Select(IEnumerable<ICoin> suggestion, IMoney target)
 	{
 		var targetMoney = (Money)target;
