@@ -37,8 +37,8 @@ public class SmartCoinSelector : ICoinSelector
 			throw new TimeoutException("Coin selection timed out.");
 		}
 
-		// This is a hacky safety check to make sure the first few iterations can go through.
-		if (IterationCount > 10)
+		// The first iteration should never take suggested coins into account .
+		if (IterationCount > 0)
 		{
 			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
 			if (suggestedSum < targetMoney)
