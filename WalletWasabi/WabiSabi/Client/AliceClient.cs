@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
+using WalletWasabi.Extensions;
 using System.Net.Http;
 
 namespace WalletWasabi.WabiSabi.Client;
