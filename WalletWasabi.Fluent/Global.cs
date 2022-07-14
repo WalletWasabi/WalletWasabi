@@ -103,7 +103,7 @@ public class Global
 
 			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
-			UpdateManager = new(DataDir);
+			UpdateManager = new(DataDir, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 
@@ -146,8 +146,9 @@ public class Global
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
-				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
-				UpdateManager.Initialize(HostedServices.Get<UpdateChecker>());
+				var updateChecker = HostedServices.Get<UpdateChecker>();
+				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+				UpdateManager.Initialize(updateChecker);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -404,6 +405,11 @@ public class Global
 				{
 					cache.Dispose();
 					Logger.LogInfo($"{nameof(Cache)} is disposed.");
+				}
+
+				if (UpdateManager is { } updateManager)
+				{
+					updateManager.Unsubscribe();
 				}
 
 				try
