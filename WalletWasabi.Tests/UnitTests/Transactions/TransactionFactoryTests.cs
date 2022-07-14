@@ -561,17 +561,24 @@ public class TransactionFactoryTests
 		Assert.False(result.Signed);
 	}
 
+	/// <summary>
+	/// Tests that we throw <see cref="TransactionSizeException"/> when NBitcoin returns a coin selection whose sum is lower than the desired one.
+	/// This can happen because bitcoin transactions can have only a limited number of coin inputs because of the transaction size limit.
+	/// </summary>
 	[Fact]
 	public void TooManyInputCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(DemoCoinSets.LotOfCoins);
+		Money paymentAmount = Money.Coins(0.29943925m);
 
 		using Key key = new();
-		var payment = new PaymentIntent(key, MoneyRequest.Create(Money.Coins(0.29943925m)));
+		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(DemoCoinSets.LotOfCoins);
 
+		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
 		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
 
-		Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
+		TransactionSizeException ex = Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
+		Assert.Equal(paymentAmount, ex.Minimum);
+		Assert.Equal(Money.Coins(0.23022846m), ex.Actual);
 	}
 
 	[Fact]
