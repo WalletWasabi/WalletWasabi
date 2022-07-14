@@ -578,7 +578,7 @@ public class TransactionFactoryTests
 
 		TransactionSizeException ex = Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
 		Assert.Equal(paymentAmount, ex.Target);
-		Assert.Equal(Money.Coins(0.23022846m), ex.Actual);
+		Assert.Equal(Money.Coins(0.23022846m), ex.MaximumPossible);
 	}
 
 	[Fact]
