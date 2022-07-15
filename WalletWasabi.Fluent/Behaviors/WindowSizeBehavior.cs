@@ -48,7 +48,8 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 
 		if (isValidWidth && isValidHeight)
 		{
-			window.Arrange(new Rect(0, 0, configWidth.Value, configHeight.Value));
+			window.Width = configWidth.Value;
+			window.Height = configHeight.Value;
 		}
 	}
 }
