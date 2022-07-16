@@ -71,7 +71,19 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
 		throw new NotSupportedException();
+		static bool HasChildren(HistoryItemViewModelBase item)
+		{
+			if (item is CoinJoinsHistoryItemViewModel coinJoinsHistoryItemViewModel
+			    && coinJoinsHistoryItemViewModel.CoinJoinTransactions.Count > 1)
+			{
+				return true;
+			}
+
+			return false;
+		}
 	}
+
+	public virtual bool HasChildren() => false;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
