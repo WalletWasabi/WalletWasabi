@@ -16,6 +16,7 @@ namespace WalletWasabi.Services;
 public class UpdateManager
 {
 	private string InstallerName { get; set; } = "";
+	private OSPlatform CurrentOS { get; set; }
 
 	public UpdateManager(string dataDir, IHttpClient httpClient)
 	{
@@ -107,11 +108,13 @@ public class UpdateManager
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
+			CurrentOS = OSPlatform.Windows;
 			var url = urls.Where(url => url.Contains(".msi")).First();
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
+			CurrentOS = OSPlatform.OSX;
 			var url = urls.Where(url => url.Contains("arm64.dmg")).First();
 			return (url, url.Split("/").Last());
 		}
@@ -119,6 +122,7 @@ public class UpdateManager
 		{
 			if (RuntimeInformation.OSDescription.Contains("Ubuntu"))
 			{
+				CurrentOS = OSPlatform.Linux;
 				var url = urls.Where(url => url.Contains(".deb")).First();
 				return (url, url.Split("/").Last());
 			}
@@ -146,27 +150,46 @@ public class UpdateManager
 		try
 		{
 			var installerPath = Path.Combine(DataDir, "Downloads", InstallerName);
-			if (File.Exists(installerPath))
+			var cur = CurrentOS;
+			ProcessStartInfo startInfo;
+			if (!File.Exists(installerPath))
 			{
-				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
-
-				using Process? p = Process.Start(startInfo);
-				p!.WaitForExit();
-
-				// Exit code -- Reason
-				//	___________________
-				//	1602	 -- Canceled
-				//	1		 -- Terminated
-				//	0		 -- Finished
-				if (p.ExitCode == 0)
+				throw new FileNotFoundException(installerPath);
+			}
+			if (CurrentOS == OSPlatform.Windows)
+			{
+				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
+			}
+			else if (CurrentOS == OSPlatform.Linux)
+			{
+				startInfo = new()
 				{
-					Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
-					Directory.Delete(DownloadsDir, true);
-				}
-				else
-				{
-					Logger.LogError("Wasabi installer was terminated.");
-				}
+					FileName = installerPath,
+					UseShellExecute = false,
+					WindowStyle = ProcessWindowStyle.Normal
+				};
+			}
+			else
+			{
+				startInfo = new(installerPath);
+			}
+
+			using Process? p = Process.Start(startInfo);
+			p!.WaitForExit();
+
+			// Exit code -- Reason
+			//	___________________
+			//	1602	 -- Canceled
+			//	1		 -- Terminated
+			//	0		 -- Finished
+			if (p.ExitCode == 0)
+			{
+				Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
+				Directory.Delete(DownloadsDir, true);
+			}
+			else
+			{
+				Logger.LogError("Wasabi installer was terminated.");
 			}
 		}
 		catch (Exception ex)
