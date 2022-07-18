@@ -50,4 +50,4 @@ Trezor One and Trezor T are popular hardware wallets that Wasabi officially supp
 
 At the moment, Wasabi 1.0 is working properly with Trezor One and Trezor T, but after resolving these issues, we must concede guaranteeing future stability is beyond our control, hence we shan't promise to continue official support forthwith.
 
-Wasabi Wallet 2.0 will no longer support the Trezor One. Trezor Model T will continue to work with Wasabi Wallet 2.0
+Update 07/18/2022: Passphrase support with Wasabi Wallet 1.0 does not function. Wasabi Wallet 2.0 will no longer support the Trezor One. Trezor Model T will continue to work with Wasabi Wallet 2.0
