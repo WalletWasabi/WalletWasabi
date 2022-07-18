@@ -19,6 +19,7 @@ using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using static WalletWasabi.Crypto.SchnorrBlinding;
