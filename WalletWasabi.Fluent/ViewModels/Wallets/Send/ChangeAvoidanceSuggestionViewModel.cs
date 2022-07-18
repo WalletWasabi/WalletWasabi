@@ -15,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
+	private const int SignificantFiguresForFiatAmount = 3;
 	[AutoNotify] private string _amount;
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
@@ -29,15 +30,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var totalAmount = transactionResult.CalculateDestinationAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 
-		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
+		_amountFiat = total.RoundToSignificantFigures(SignificantFiguresForFiatAmount).GenerateFiatText(fiatExchangeRate, "USD");
 
 		var fiatTotal = total * fiatExchangeRate;
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
+		var roundedFiatDifference = fiatDifference.RoundToSignificantFigures(SignificantFiguresForFiatAmount);
 
 		_differenceFiat = (fiatDifference > 0
-				? $"{fiatDifference.GenerateFiatText("USD")} More"
-				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+				? $"{roundedFiatDifference.GenerateFiatText("USD")} More"
+				: $"{Math.Abs(roundedFiatDifference).GenerateFiatText("USD")} Less")
 			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
