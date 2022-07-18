@@ -10,13 +10,22 @@ This document lists all the officially supported software and devices by Wasabi 
 - Fedora 33+
 - Debian 10+
 
-# Officially Supported Hardware wallets
+# Officially Supported Hardware wallets in Wasabi 1.0
 
 - ColdCard MK1
 - ColdCard MK2
 - ColdCard MK3
 - Ledger Nano S
 - Ledger Nano X
+
+# Officially Supported Hardware wallets in Wasabi 2.0
+
+- ColdCard MK1
+- ColdCard MK2
+- ColdCard MK3
+- Ledger Nano S
+- Ledger Nano X
+- Trezor Model T
 
 # Officially Supported Architectures
 
