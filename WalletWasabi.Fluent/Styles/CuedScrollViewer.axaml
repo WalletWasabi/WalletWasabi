@@ -34,6 +34,11 @@
     </Grid>
   </Design.PreviewWith>
 
+  <Style Selector="ScrollViewer ScrollBar">
+    <Setter Property="ShowDelay" Value="0:0:0.1" />
+    <Setter Property="HideDelay" Value="0:0:2.0" />
+  </Style>
+
   <Style Selector="navBar|NavBar ScrollViewer">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Template">
