@@ -20,6 +20,7 @@ public class UpdateManager
 	public UpdateManager(string dataDir, IHttpClient httpClient)
 	{
 		DataDir = dataDir;
+		DownloadsDir = Path.Combine(DataDir, "Downloads");
 		HttpClient = httpClient;
 	}
 
@@ -33,10 +34,9 @@ public class UpdateManager
 				return;
 			}
 
-			// TODO: download MSI to DataDir/downloads
 			Version targetVersion = updateStatus.ClientVersion;
-			bool downloadSuccessful = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
-			updateStatus.IsReadyToInstall = downloadSuccessful;
+			bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
+			updateStatus.IsReadyToInstall = isReadyToInstall;
 		}
 		catch (Exception ex)
 		{
@@ -48,25 +48,38 @@ public class UpdateManager
 
 	private async Task<bool> GetInstallerAsync(Version targetVersion)
 	{
+		try
+		{
+			if (CheckIfInstallerDownloaded())
+			{
+				return true;
+			}
+		}
+		catch (DirectoryNotFoundException)
+		{
+			IoHelpers.EnsureDirectoryExists(DownloadsDir);
+		}
+
 		using HttpRequestMessage message = new(HttpMethod.Get, "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest");
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var resp = await HttpClient.SendAsync(message).ConfigureAwait(false);
+		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
-
+		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 		string softwareVersion = jsonResponse["tag_name"]?.ToString();
 		if (string.IsNullOrEmpty(softwareVersion))
 		{
-			throw new InvalidDataException("");
+			throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 		}
 
+		// If the version we are looking for is not the one on github, somethings wrong.
 		Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
 		{
-			throw new InvalidDataException("");
+			throw new InvalidDataException("Target version from backend does not match with the latest github release. This should be impossible.");
 		}
 
+		// Get all asset names and download urls to find the correct one.
 		List<JToken> assetsInfos = jsonResponse["assets"].Children().ToList();
 		List<string> assetDownloadUrls = new();
 		foreach (JToken asset in assetsInfos)
@@ -74,24 +87,23 @@ public class UpdateManager
 			assetDownloadUrls.Add(asset["browser_download_url"].ToString());
 		}
 
-		(string url, string fileName) = GetAssetToDownload(softwareVersion, assetDownloadUrls);
+		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
-		var installerPath = Path.Combine(DataDir, "Downloads");
-		IoHelpers.EnsureDirectoryExists(installerPath);
-
+		// This should also be done using Tor.
 		using System.Net.Http.HttpClient httpClient = new();
 		using HttpRequestMessage newMessage = new(HttpMethod.Get, url);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 
+		// Get file stream and copy it to downloads folder to access.
 		var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
-		using var file = File.OpenWrite(Path.Combine(installerPath, fileName));
+		using var file = File.OpenWrite(Path.Combine(DownloadsDir, fileName));
 		await stream.CopyToAsync(file).ConfigureAwait(false);
 		InstallerName = fileName;
 
 		return true;
 	}
 
-	private (string url, string fileName) GetAssetToDownload(string softwareVersion, List<string> urls)
+	private (string url, string fileName) GetAssetToDownload(List<string> urls)
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -124,19 +136,68 @@ public class UpdateManager
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
 
 	public string DataDir { get; }
+	public string DownloadsDir { get; }
 	public IHttpClient HttpClient { get; }
 	public bool UpdateOnClose { get; set; }
 	public UpdateChecker? UpdateChecker { get; set; }
 
 	public void InstallNewVersion()
 	{
-		var installerPath = Path.Combine(DataDir, "Downloads", InstallerName);
-		if (File.Exists(installerPath))
+		try
 		{
-			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(installerPath, "");
-			// Throws exception rn
-			using Process? p = Process.Start(startInfo);
+			var installerPath = Path.Combine(DataDir, "Downloads", InstallerName);
+			if (File.Exists(installerPath))
+			{
+				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
+
+				using Process? p = Process.Start(startInfo);
+				p!.WaitForExit();
+
+				// Exit code -- Reason
+				//	___________________
+				//	1602	 -- Canceled
+				//	1		 -- Terminated
+				//	0		 -- Finished
+				if (p.ExitCode == 0)
+				{
+					Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
+					Directory.Delete(DownloadsDir, true);
+				}
+				else
+				{
+					Logger.LogError("Wasabi installer was terminated.");
+				}
+			}
 		}
+		catch (Exception ex)
+		{
+			Logger.LogError("Failed to install latest release. File might be corrupted. Deleting...", ex);
+			Directory.Delete(DownloadsDir, true);
+		}
+	}
+
+	public bool CheckIfInstallerDownloaded()
+	{
+		var folder = new DirectoryInfo(DownloadsDir);
+		if (folder.Exists)
+		{
+			var files = folder.GetFileSystemInfos();
+			if (files.Length == 0)
+			{
+				return false;
+			}
+			return files.Any(file =>
+			{
+				if (file.Name.Contains("Wasabi"))
+				{
+					InstallerName = file.Name;
+					return true;
+				}
+				return false;
+			});
+		}
+
+		throw new DirectoryNotFoundException();
 	}
 
 	public void Initialize(UpdateChecker updateChecker)
