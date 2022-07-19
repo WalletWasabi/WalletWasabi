@@ -13,5 +13,6 @@ public enum WabiSabiCryptoErrorCode
 	NotEnoughZeroCredentialToFillTheRequest = 8,
 	InvalidNumberOfRequestedCredentials = 9,
 	InvalidNumberOfPresentedCredentials = 10,
-	CredentialToPresentDuplicated = 11
+	CredentialToPresentDuplicated = 11,
+	CredentialToRequestOverflow = 12
 }

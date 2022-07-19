@@ -25,6 +25,7 @@ public class WabiSabiClient
 		WasabiRandom randomNumberGenerator,
 		long rangeProofUpperBound)
 	{
+		RangeProofUpperBound = rangeProofUpperBound;
 		RangeProofWidth = (int)Math.Ceiling(Math.Log2(rangeProofUpperBound));
 		RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
@@ -37,6 +38,8 @@ public class WabiSabiClient
 	private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
 	private WasabiRandom RandomNumberGenerator { get; }
+
+	private long RangeProofUpperBound { get; }
 
 	/// <summary>
 	/// Creates a <see cref="ICredentialsRequest">credential registration request messages</see>
@@ -142,6 +145,12 @@ public class WabiSabiClient
 		for (var i = 0; i < expectedNumberOfCredentials; i++)
 		{
 			var value = credentialAmountsToRequest[i];
+
+			if (value > RangeProofUpperBound)
+			{
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.CredentialToRequestOverflow);
+			}
+
 			var scalar = new Scalar((ulong)value);
 
 			var randomness = RandomNumberGenerator.GetScalar();
