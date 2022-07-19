@@ -37,4 +37,18 @@
     <Setter Property="HideDelay" Value="0:0:2.0" />
   </Style>
 
+  <Style Selector="ScrollViewer /template/ ScrollBar#PART_HorizontalScrollBar">
+    <Setter Property="MinHeight" Value="24" />
+  </Style>
+  <Style Selector="ScrollViewer[IsExpanded=true] /template/ ScrollBar#PART_HorizontalScrollBar">
+    <Setter Property="MinHeight" Value="{DynamicResource ScrollBarSize}" />
+  </Style>
+
+  <Style Selector="ScrollViewer /template/ ScrollBar#PART_VerticalScrollBar">
+    <Setter Property="MinWidth" Value="24" />
+  </Style>
+  <Style Selector="ScrollViewer[IsExpanded=true] /template/ ScrollBar#PART_VerticalScrollBar">
+    <Setter Property="MinWidth" Value="{DynamicResource ScrollBarSize}" />
+  </Style>
+
 </Styles>
