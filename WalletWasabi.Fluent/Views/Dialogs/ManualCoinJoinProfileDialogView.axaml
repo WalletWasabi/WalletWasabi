@@ -20,6 +20,11 @@
         <ToggleSwitch IsChecked="{Binding AutoCoinjoin}" />
       </DockPanel>
 
+      <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
+        <TextBlock Text="Red coin isolation" />
+        <ToggleSwitch IsChecked="{Binding RedCoinIsolation}" />
+      </DockPanel>
+
       <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
         <TextBlock Text="Anonymity score target" />
         <DockPanel>

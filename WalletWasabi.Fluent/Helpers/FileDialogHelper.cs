@@ -17,26 +17,29 @@ public static class FileDialogHelper
 		return await GetDialogResultAsync(ofd);
 	}
 
-	public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes)
+	public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
 	{
-		var ofd = CreateOpenFileDialog(title);
+		var ofd = CreateOpenFileDialog(title, directory);
+		ofd.InitialFileName = initialFileName;
 		ofd.Filters = GenerateFilters(filterExtTypes);
 		return await GetDialogResultAsync(ofd);
 	}
 
-	public static async Task<string?> ShowSaveFileDialogAsync(string title, params string[] filterExtTypes)
+	public static async Task<string?> ShowSaveFileDialogAsync(string title, string[] filterExtTypes, string? initialFileName = null, string? directory = null)
 	{
-		var sfd = CreateSaveFileDialog(title, filterExtTypes);
+		var sfd = CreateSaveFileDialog(title, filterExtTypes, directory);
+		sfd.InitialFileName = initialFileName;
 		sfd.Filters = GenerateFilters(filterExtTypes);
 		return await GetDialogResultAsync(sfd);
 	}
 
-	private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes)
+	private static SaveFileDialog CreateSaveFileDialog(string title, IEnumerable<string> filterExtTypes, string? directory = null)
 	{
 		var sfd = new SaveFileDialog
 		{
 			DefaultExtension = filterExtTypes.FirstOrDefault(),
-			Title = title
+			Title = title,
+			Directory = directory
 		};
 
 		return sfd;
@@ -66,7 +69,7 @@ public static class FileDialogHelper
 		return null;
 	}
 
-	private static OpenFileDialog CreateOpenFileDialog(string title)
+	private static OpenFileDialog CreateOpenFileDialog(string title, string? directory = null)
 	{
 		var ofd = new OpenFileDialog
 		{
@@ -74,7 +77,14 @@ public static class FileDialogHelper
 			Title = title,
 		};
 
-		SetDefaultDirectory(ofd);
+		if (directory is null)
+		{
+			SetDefaultDirectory(ofd);
+		}
+		else
+		{
+			ofd.Directory = directory;
+		}
 
 		return ofd;
 	}

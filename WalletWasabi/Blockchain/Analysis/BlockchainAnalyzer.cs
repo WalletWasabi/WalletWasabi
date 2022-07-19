@@ -8,12 +8,17 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class BlockchainAnalyzer
 {
-	public BlockchainAnalyzer(int privacyLevelThreshold)
+	private static long[] StdDenoms = new[]
 	{
-		PrivacyLevelThreshold = privacyLevelThreshold;
-	}
-
-	public int PrivacyLevelThreshold { get; }
+		5000L, 6561L, 8192L, 10000L, 13122L, 16384L, 19683L, 20000L, 32768L, 39366L, 50000L, 59049L, 65536L, 100000L, 118098L,
+		131072L, 177147L, 200000L, 262144L, 354294L, 500000L, 524288L, 531441L, 1000000L, 1048576L, 1062882L, 1594323L, 2000000L,
+		2097152L, 3188646L, 4194304L, 4782969L, 5000000L, 8388608L, 9565938L, 10000000L, 14348907L, 16777216L, 20000000L,
+		28697814L, 33554432L, 43046721L, 50000000L, 67108864L, 86093442L, 100000000L, 129140163L, 134217728L, 200000000L,
+		258280326L, 268435456L, 387420489L, 500000000L, 536870912L, 774840978L, 1000000000L, 1073741824L, 1162261467L,
+		2000000000L, 2147483648L, 2324522934L, 3486784401L, 4294967296L, 5000000000L, 6973568802L, 8589934592L, 10000000000L,
+		10460353203L, 17179869184L, 20000000000L, 20920706406L, 31381059609L, 34359738368L, 50000000000L, 62762119218L,
+		68719476736L, 94143178827L, 100000000000L, 137438953472L
+	};
 
 	/// <summary>
 	/// Sets clusters and anonymity sets for related HD public keys.
@@ -35,7 +40,7 @@ public class BlockchainAnalyzer
 		}
 		else
 		{
-			int startingOutputAnonset;
+			double startingOutputAnonset;
 			var distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
 
 			if (foreignInputCount == 0)
@@ -46,7 +51,7 @@ public class BlockchainAnalyzer
 			}
 			else
 			{
-				AnalyzeCoinjoinWalletInputs(tx, out startingOutputAnonset, out int nonMixedAnonScore);
+				AnalyzeCoinjoinWalletInputs(tx, out startingOutputAnonset, out double nonMixedAnonScore);
 
 				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, nonMixedAnonScore, distinctWalletInputPubKeys);
 			}
@@ -57,19 +62,19 @@ public class BlockchainAnalyzer
 		AnalyzeClusters(tx);
 	}
 
-	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out int mixedAnonScore, out int nonMixedAnonScore)
+	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out double mixedAnonScore, out double nonMixedAnonScore)
 	{
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
-		mixedAnonScore = (int)(tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount) / tx.WalletInputs.Sum(x => x.Amount));
+		mixedAnonScore = tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / tx.WalletInputs.Sum(x => x.Amount);
 
 		nonMixedAnonScore = tx.WalletInputs.Min(x => x.HdPubKey.AnonymitySet);
 	}
 
-	private int AnalyzeSelfSpendWalletInputs(HashSet<HdPubKey> distinctWalletInputPubKeys)
+	private double AnalyzeSelfSpendWalletInputs(HashSet<HdPubKey> distinctWalletInputPubKeys)
 	{
-		int startingOutputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet));
+		double startingOutputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet));
 		foreach (var key in distinctWalletInputPubKeys)
 		{
 			key.SetAnonymitySet(startingOutputAnonset);
@@ -81,7 +86,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Estimate input cluster anonymity set size, penalizing input consolidations to accounting for intersection attacks.
 	/// </summary>
-	private int Intersect(IEnumerable<int> anonsets)
+	private double Intersect(IEnumerable<double> anonsets)
 	{
 		// Sanity check.
 		if (!anonsets.Any())
@@ -98,11 +103,11 @@ public class BlockchainAnalyzer
 		var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty);
 
 		// The minimum anonymity set size is 1, enforce it when the punishment is very large.
-		var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
+		var normalizedIntersectionAnonset = Math.Max(1d, intersectionAnonset);
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, int startingMixedOutputAnonset, int startingNonMixedOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
+	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingNonMixedOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
 	{
 		var indistinguishableWalletOutputs = tx.WalletOutputs
 			.GroupBy(x => x.Amount)
@@ -114,6 +119,10 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Value)
 			.ToDictionary(x => x.Key, y => y.Count());
 
+		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
+		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
+		bool? isWasabi2Cj = null;
+
 		var foreignInputCount = tx.ForeignInputs.Count;
 
 		foreach (var newCoin in tx.WalletOutputs)
@@ -123,13 +132,34 @@ public class BlockchainAnalyzer
 			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
 
 			// Anonset gain cannot be larger than others' input count.
-			var anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
+			double anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= ownEqualOutputCount;
 
-			// If not anonset gain achieved on the output, then it's best to assume it's change.
-			var startingOutputAnonset = anonset == 0 ? startingNonMixedOutputAnonset : startingMixedOutputAnonset;
+			// If no anonset gain achieved on the output, then it's best to assume it's change.
+			double startingOutputAnonset;
+			if (anonset < 1)
+			{
+				isWasabi2Cj ??=
+					tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& outputValues.Count(x => StdDenoms.Contains(x.Satoshi)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
+					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
+
+				// When WW2 denom output isn't too large, then it's not change.
+				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
+				{
+					startingOutputAnonset = startingMixedOutputAnonset;
+				}
+				else
+				{
+					startingOutputAnonset = startingNonMixedOutputAnonset;
+				}
+			}
+			else
+			{
+				startingOutputAnonset = startingMixedOutputAnonset;
+			}
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
@@ -178,7 +208,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Adjusts the anonset of the inputs to the newly calculated output anonsets.
 	/// </summary>
-	private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int startingOutputAnonset)
+	private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, double startingOutputAnonset)
 	{
 		// Sanity check.
 		if (!tx.WalletOutputs.Any())
@@ -196,7 +226,7 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, int startingOutputAnonset)
+	private void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, double startingOutputAnonset)
 	{
 		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 		{

@@ -9,6 +9,7 @@ using WalletWasabi.Tests.Helpers;
 using Xunit;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 

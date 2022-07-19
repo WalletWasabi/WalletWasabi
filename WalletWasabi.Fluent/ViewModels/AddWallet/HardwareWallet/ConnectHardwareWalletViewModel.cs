@@ -130,7 +130,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		try
 		{
 			await Task.Delay(7000, cancellationToken);
-			Message = "Check your device and enter your passphrase.";
+			Message = "Check your device and enter your passphrase, then click Rescan.";
 		}
 		catch (OperationCanceledException)
 		{

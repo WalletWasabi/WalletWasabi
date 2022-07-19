@@ -44,6 +44,7 @@ public class CoinJoinClient
 		string coordinatorIdentifier,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
+		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
@@ -54,6 +55,7 @@ public class CoinJoinClient
 		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		ConsolidationMode = consolidationMode;
+		RedCoinIsolation = redCoinIsolation;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -71,6 +73,7 @@ public class CoinJoinClient
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool ConsolidationMode { get; private set; }
+	public bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -131,7 +134,7 @@ public class CoinJoinClient
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, SecureRandom);
 
 			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
 			{
@@ -328,11 +331,35 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
+
 				personCircuit?.Dispose();
 				return (null, null);
 			}
-			catch (Exception)
+			catch (OperationCanceledException ex)
 			{
+				if (cancel.IsCancellationRequested)
+				{
+					Logger.LogDebug("User requested cancellation of registration and confirmation.");
+				}
+				else if (registrationsCts.IsCancellationRequested)
+				{
+					Logger.LogDebug("Registration was cancelled.");
+				}
+				else if (connConfTimeoutCts.IsCancellationRequested)
+				{
+					Logger.LogDebug("Connection confirmation was cancelled.");
+				}
+				else
+				{
+					Logger.LogDebug(ex);
+				}
+
+				personCircuit?.Dispose();
+				return (null, null);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex);
 				personCircuit?.Dispose();
 				return (null, null);
 			}
@@ -493,46 +520,60 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
-	internal static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, RoundParameters parameters, bool consolidationMode, int anonScoreTarget, WasabiRandom rnd)
+	internal static ImmutableList<SmartCoin> SelectCoinsForRound(
+		IEnumerable<SmartCoin> coins,
+		RoundParameters parameters,
+		bool consolidationMode,
+		int anonScoreTarget,
+		bool redCoinIsolation,
+		WasabiRandom rnd)
 	{
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
-			.ToShuffled()
 			.ToArray();
 
 		var privateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
-		var nonPrivateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget)
+		var semiPrivateCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.ToArray();
+		var redCoins = filteredCoins
+			.Where(x => x.HdPubKey.AnonymitySet < 2)
 			.ToArray();
 
-		// Make sure it's ordered by 1 private and 1 non-private coins.
-		// Otherwise we'd keep mixing private coins too much during the end of our mixing sessions.
-		var organizedCoins = new List<SmartCoin>();
-		for (int i = 0; i < Math.Max(privateCoins.Length, nonPrivateCoins.Length); i++)
+		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
+		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
+		if (redCoinIsolation)
 		{
-			if (i < nonPrivateCoins.Length)
+			var red = redCoins.RandomElement();
+			if (red is not null)
 			{
-				var npc = nonPrivateCoins[i];
-				organizedCoins.Add(npc);
+				allowedNonPrivateCoins.Add(red);
 			}
-			if (i < privateCoins.Length)
-			{
-				var pc = privateCoins[i];
-				organizedCoins.Add(pc);
-			}
+		}
+		else
+		{
+			allowedNonPrivateCoins.AddRange(redCoins);
 		}
 
 		// How many inputs do we want to provide to the mix?
 		int inputCount = Math.Min(
-			organizedCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(nonPrivateCoins.Length, privateCoins.Length, rnd));
+			privateCoins.Length + allowedNonPrivateCoins.Count,
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
+
+		// Let's allow only a inputCount - 1 private coins to play.
+		var allowedPrivateCoins = AnonScoreBiasedShuffle(privateCoins).Take(inputCount - 1);
+
+		var allowedCoins = allowedNonPrivateCoins.Concat(allowedPrivateCoins).ToArray();
+
+		// Shuffle coins, while randomly biasing towards lower AS.
+		var orderedAllowedCoins = AnonScoreBiasedShuffle(allowedCoins).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
-		var largestAmounts = nonPrivateCoins
+		var largestAmounts = allowedNonPrivateCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
@@ -544,11 +585,12 @@ public class CoinJoinClient
 		var sw1 = Stopwatch.StartNew();
 		foreach (var coin in largestAmounts)
 		{
-			var baseGroup = organizedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
+			// Create a base combination just in case.
+			var baseGroup = orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
 			TryAddGroup(parameters, groups, baseGroup);
 
 			var sw2 = Stopwatch.StartNew();
-			foreach (var group in organizedCoins
+			foreach (var group in orderedAllowedCoins
 				.Except(new[] { coin })
 				.CombinationsWithoutRepetition(inputCount - 1)
 				.Select(x => x.Concat(new[] { coin })))
@@ -581,12 +623,42 @@ public class CoinJoinClient
 		var remainingLargestAmounts = bestRepGroups
 			.Select(x => x.OrderByDescending(x => x.Amount).First())
 			.ToHashSet();
-		var largestAmount = remainingLargestAmounts.RandomElement();
+
+		// Select randomly at first just to have a starting value.
+		var selectedLargeCoin = remainingLargestAmounts.RandomElement();
+
+		// Bias selection towards larger numbers.
+		foreach (var coin in remainingLargestAmounts.OrderByDescending(x => x.Amount))
+		{
+			if (rnd.GetInt(1, 101) <= 50)
+			{
+				selectedLargeCoin = coin;
+				break;
+			}
+		}
+
 		var finalCandidate = bestRepGroups
-			.Where(x => x.OrderByDescending(x => x.Amount).First() == largestAmount)
+			.Where(x => x.OrderByDescending(x => x.Amount).First() == selectedLargeCoin)
 			.RandomElement();
 
 		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static IEnumerable<SmartCoin> AnonScoreBiasedShuffle(SmartCoin[] coins)
+	{
+		var orderedCoins = new List<SmartCoin>();
+		for (int i = 0; i < coins.Length; i++)
+		{
+			var remaining = coins.Except(orderedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
+			var c = remaining.BiasedRandomElement(50);
+			if (c is null)
+			{
+				throw new NotSupportedException("This is impossible.");
+			}
+
+			orderedCoins.Add(c);
+			yield return c;
+		}
 	}
 
 	private static bool TryAddGroup(RoundParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)

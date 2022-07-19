@@ -4,7 +4,7 @@ using System.Linq;
 namespace WalletWasabi.WabiSabi.Client;
 
 /// <summary>
-/// https://github.com/lontivero/DecompositionsPlayground/blob/master/Notebook.ipynb
+/// Notebook: https://github.com/lontivero/DecompositionsPlayground/blob/master/Notebook.ipynb
 /// </summary>
 public static class Decomposer
 {
