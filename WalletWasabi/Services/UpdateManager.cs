@@ -27,21 +27,35 @@ public class UpdateManager
 
 	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
 	{
-		try
+		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
+		Version targetVersion = updateStatus.ClientVersion;
+		Exception? downloadException = null;
+		if (!updateAvailable)
 		{
-			bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
-			if (!updateAvailable)
-			{
-				return;
-			}
-
-			Version targetVersion = updateStatus.ClientVersion;
-			bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
-			updateStatus.IsReadyToInstall = isReadyToInstall;
+			return;
 		}
-		catch (Exception ex)
+
+		byte retries = 0;
+		Logger.LogInfo($"Trying to download new version: {targetVersion}");
+		do
 		{
-			Logger.LogError("Geting new version failed with error.", ex);
+			try
+			{
+				bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
+				Logger.LogInfo($"Version {targetVersion} downloaded successfuly.");
+				updateStatus.IsReadyToInstall = isReadyToInstall;
+				break;
+			}
+			catch (Exception ex)
+			{
+				downloadException = ex;
+				Logger.LogError($"Geting version {targetVersion} failed with error. Retrying...", ex);
+			}
+		} while (retries++ <= 3);
+
+		if (retries == 3 && downloadException is { })
+		{
+			Logger.LogError($"Geting version {targetVersion} failed with error.", downloadException);
 		}
 
 		UpdateAvailableToGet?.Invoke(this, updateStatus);
@@ -145,7 +159,7 @@ public class UpdateManager
 	public bool UpdateOnClose { get; set; }
 	public UpdateChecker? UpdateChecker { get; set; }
 
-	public void InstallNewVersion()
+	public async void InstallNewVersion()
 	{
 		try
 		{
@@ -160,12 +174,12 @@ public class UpdateManager
 			{
 				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
 			}
-			else if (CurrentOS == OSPlatform.Linux)
+			else if (CurrentOS == OSPlatform.Linux || CurrentOS == OSPlatform.OSX)
 			{
 				startInfo = new()
 				{
 					FileName = installerPath,
-					UseShellExecute = false,
+					UseShellExecute = true,
 					WindowStyle = ProcessWindowStyle.Normal
 				};
 			}
@@ -175,7 +189,7 @@ public class UpdateManager
 			}
 
 			using Process? p = Process.Start(startInfo);
-			p!.WaitForExit();
+			await p!.WaitForExitAsync().ConfigureAwait(false);
 
 			// Exit code -- Reason
 			//	___________________
@@ -184,8 +198,16 @@ public class UpdateManager
 			//	0		 -- Finished
 			if (p.ExitCode == 0)
 			{
-				Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
-				Directory.Delete(DownloadsDir, true);
+				if (CurrentOS == OSPlatform.OSX)
+				{
+					p.Start();
+					await p!.WaitForExitAsync().ConfigureAwait(false);
+				}
+				else
+				{
+					Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
+					Directory.Delete(DownloadsDir, true);
+				}
 			}
 			else
 			{
