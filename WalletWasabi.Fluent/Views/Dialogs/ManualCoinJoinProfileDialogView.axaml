@@ -33,7 +33,7 @@
         </DockPanel>
       </StackPanel>
 
-      <DockPanel>
+      <DockPanel ToolTip.Tip="Only coinjoin when the fee is below the median of this time period.">
         <TextBlock Text="Coinjoin time preference" />
         <ComboBox HorizontalAlignment="Stretch"
                   Items="{Binding TimeFrames}"
