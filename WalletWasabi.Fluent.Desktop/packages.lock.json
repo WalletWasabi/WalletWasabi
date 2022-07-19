@@ -660,13 +660,13 @@
       "avalonia.controls.treedatagrid": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.999-cibuild0021439-beta"
+          "Avalonia": "0.10.999-cibuild0022234-beta"
         }
       },
       "avalonia.xaml.behaviors": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.999-cibuild0021439-beta",
+          "Avalonia": "0.10.999-cibuild0022234-beta",
           "Avalonia.Xaml.Interactions": "0.10.16",
           "Avalonia.Xaml.Interactivity": "0.10.16"
         }
@@ -674,14 +674,14 @@
       "avalonia.xaml.interactions": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.999-cibuild0021439-beta",
+          "Avalonia": "0.10.999-cibuild0022234-beta",
           "Avalonia.Xaml.Interactivity": "0.10.16"
         }
       },
       "avalonia.xaml.interactivity": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.999-cibuild0021439-beta"
+          "Avalonia": "0.10.999-cibuild0022234-beta"
         }
       },
       "walletwasabi": {
