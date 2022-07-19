@@ -144,11 +144,10 @@ public class Global
 			{
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer, UpdateManager), "Software Update Checker");
 
 				var updateChecker = HostedServices.Get<UpdateChecker>();
 				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
-				UpdateManager.Initialize(updateChecker);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -405,11 +404,6 @@ public class Global
 				{
 					cache.Dispose();
 					Logger.LogInfo($"{nameof(Cache)} is disposed.");
-				}
-
-				if (UpdateManager is { } updateManager)
-				{
-					updateManager.Unsubscribe();
 				}
 
 				try

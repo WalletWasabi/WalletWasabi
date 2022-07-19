@@ -16,7 +16,6 @@ namespace WalletWasabi.Services;
 public class UpdateManager
 {
 	private string InstallerName { get; set; } = "";
-	private OSPlatform CurrentOS { get; set; }
 
 	public UpdateManager(string dataDir, IHttpClient httpClient)
 	{
@@ -25,7 +24,7 @@ public class UpdateManager
 		HttpClient = httpClient;
 	}
 
-	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
+	public async void UpdateStatusChangedAsync(UpdateStatus updateStatus)
 	{
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
@@ -49,11 +48,11 @@ public class UpdateManager
 			catch (Exception ex)
 			{
 				downloadException = ex;
-				Logger.LogError($"Geting version {targetVersion} failed with error. Retrying...", ex);
+				Logger.LogWarning($"Geting version {targetVersion} failed. Retrying...");
 			}
-		} while (retries++ <= 3);
+		} while (retries++ < 3);
 
-		if (retries == 3 && downloadException is { })
+		if (retries == 2 && downloadException is { })
 		{
 			Logger.LogError($"Geting version {targetVersion} failed with error.", downloadException);
 		}
@@ -122,13 +121,11 @@ public class UpdateManager
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			CurrentOS = OSPlatform.Windows;
 			var url = urls.Where(url => url.Contains(".msi")).First();
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			CurrentOS = OSPlatform.OSX;
 			var url = urls.Where(url => url.Contains("arm64.dmg")).First();
 			return (url, url.Split("/").Last());
 		}
@@ -136,7 +133,6 @@ public class UpdateManager
 		{
 			if (RuntimeInformation.OSDescription.Contains("Ubuntu"))
 			{
-				CurrentOS = OSPlatform.Linux;
 				var url = urls.Where(url => url.Contains(".deb")).First();
 				return (url, url.Split("/").Last());
 			}
@@ -159,22 +155,21 @@ public class UpdateManager
 	public bool UpdateOnClose { get; set; }
 	public UpdateChecker? UpdateChecker { get; set; }
 
-	public async void InstallNewVersion()
+	public void InstallNewVersion()
 	{
 		try
 		{
 			var installerPath = Path.Combine(DataDir, "Downloads", InstallerName);
-			var cur = CurrentOS;
 			ProcessStartInfo startInfo;
 			if (!File.Exists(installerPath))
 			{
 				throw new FileNotFoundException(installerPath);
 			}
-			if (CurrentOS == OSPlatform.Windows)
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
 			}
-			else if (CurrentOS == OSPlatform.Linux || CurrentOS == OSPlatform.OSX)
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				startInfo = new()
 				{
@@ -189,7 +184,7 @@ public class UpdateManager
 			}
 
 			using Process? p = Process.Start(startInfo);
-			await p!.WaitForExitAsync().ConfigureAwait(false);
+			p!.WaitForExit();
 
 			// Exit code -- Reason
 			//	___________________
@@ -198,10 +193,12 @@ public class UpdateManager
 			//	0		 -- Finished
 			if (p.ExitCode == 0)
 			{
-				if (CurrentOS == OSPlatform.OSX)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
+					// For MacOS, you need to start the process twice, first start => permission denied
+					// TODO: find out why and fix.
 					p.Start();
-					await p!.WaitForExitAsync().ConfigureAwait(false);
+					p!.WaitForExit();
 				}
 				else
 				{
@@ -245,14 +242,12 @@ public class UpdateManager
 		throw new DirectoryNotFoundException();
 	}
 
-	public void Initialize(UpdateChecker updateChecker)
+	public void DeletePossibleLefotver()
 	{
-		UpdateChecker = updateChecker;
-		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-	}
-
-	public void Unsubscribe()
-	{
-		UpdateChecker!.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+		var folder = new DirectoryInfo(DownloadsDir);
+		if (folder.Exists)
+		{
+			Directory.Delete(DownloadsDir, true);
+		}
 	}
 }
