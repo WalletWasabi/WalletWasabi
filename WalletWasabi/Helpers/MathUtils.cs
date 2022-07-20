@@ -10,19 +10,19 @@ public static class MathUtils
 		return (int)rounded;
 	}
 
-	public static decimal RoundToSignificantFigures(this decimal num, int n)
+	public static decimal RoundToSignificantFigures(this decimal n, int precision)
 	{
-		if (num == 0)
+		if (n == 0)
 		{
 			return 0;
 		}
 
-		int d = (int)Math.Ceiling(Math.Log10((double)Math.Abs(num)));
-		int power = n - d;
+		int d = (int)Math.Ceiling(Math.Log10((double)Math.Abs(n)));
+		int power = precision - d;
 
 		decimal magnitude = (decimal)Math.Pow(10, power);
 
-		decimal shifted = Math.Round(num * magnitude, 0, MidpointRounding.AwayFromZero);
+		decimal shifted = Math.Round(n * magnitude, 0, MidpointRounding.AwayFromZero);
 		decimal ret = shifted / magnitude;
 
 		return ret;
