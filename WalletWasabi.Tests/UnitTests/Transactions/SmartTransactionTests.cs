@@ -6,6 +6,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -201,6 +202,30 @@ public class SmartTransactionTests
 				}
 			}
 		}
+	}
+
+	[Fact]
+	public void SmartTransactionVirtualMembersEqualsTest()
+	{
+		SmartTransaction st = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
+
+		var originalSentBytes = st.WalletInputs.First().HdPubKey.PubKeyHash.ToBytes();
+		var virtualSentBytes = st.WalletVirtualInputs.First().Id;
+		var originalSentCoin = st.WalletInputs.First().Coin;
+		var virtualSentCoin = st.WalletVirtualInputs.First().Coins.First().Coin;
+		Assert.Equal(originalSentBytes, virtualSentBytes);
+		Assert.Equal(originalSentCoin, virtualSentCoin);
+
+		var outputBytes = st.WalletOutputs.First().HdPubKey.PubKeyHash.ToBytes();
+		var outputVirtualBytes = st.WalletVirtualOutputs.First().Id;
+		var originalOutputAmount = st.WalletOutputs.First().Coin.Amount;
+		var virtualOutputAmount = st.WalletVirtualOutputs.First().Amount;
+		Assert.Equal(outputBytes, outputVirtualBytes);
+		Assert.Equal(originalOutputAmount, virtualOutputAmount);
+
+		var foreingOutputsAmount = st.ForeignOutputs.First().ToCoin().Amount;
+		var foreingVirtualOutputsAmount = st.ForeignVirtualOutputs.First().Amount;
+		Assert.Equal(foreingOutputsAmount, foreingVirtualOutputsAmount);
 	}
 
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()
