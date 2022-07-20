@@ -114,6 +114,8 @@ public class UpdateManager
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
+			var cpu = System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+			Logger.LogWarning(cpu);
 			var url = urls.Where(url => url.Contains("arm64.dmg")).First();
 			return (url, url.Split("/").Last());
 		}
