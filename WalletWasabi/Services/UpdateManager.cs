@@ -119,15 +119,7 @@ public class UpdateManager
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			if (RuntimeInformation.OSDescription.Contains("Ubuntu"))
-			{
-				var url = urls.Where(url => url.Contains(".deb")).First();
-				return (url, url.Split("/").Last());
-			}
-			else
-			{
-				throw new InvalidOperationException("For Linux, get the correct update manually.");
-			}
+			throw new InvalidOperationException("For Linux, get the correct update manually.");
 		}
 		else
 		{
@@ -141,7 +133,6 @@ public class UpdateManager
 	public string DownloadsDir { get; }
 	public IHttpClient HttpClient { get; }
 	public bool UpdateOnClose { get; set; }
-	public UpdateChecker? UpdateChecker { get; set; }
 
 	public void InstallNewVersion()
 	{
@@ -157,7 +148,7 @@ public class UpdateManager
 			{
 				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			else
 			{
 				startInfo = new()
 				{
@@ -165,10 +156,6 @@ public class UpdateManager
 					UseShellExecute = true,
 					WindowStyle = ProcessWindowStyle.Normal
 				};
-			}
-			else
-			{
-				startInfo = new(installerPath);
 			}
 
 			using Process? p = Process.Start(startInfo);
