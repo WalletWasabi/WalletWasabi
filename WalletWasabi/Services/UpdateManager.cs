@@ -16,6 +16,8 @@ namespace WalletWasabi.Services;
 public class UpdateManager
 {
 	private string InstallerName { get; set; } = "";
+	private const byte MaxTries = 3;
+	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
 	public UpdateManager(string dataDir, IHttpClient httpClient)
 	{
@@ -26,18 +28,17 @@ public class UpdateManager
 
 	public async void UpdateStatusChangedAsync(UpdateStatus updateStatus)
 	{
+		var tries = 0;
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
-		Exception? downloadException = null;
 		if (!updateAvailable)
 		{
 			return;
 		}
-
-		byte retries = 0;
 		Logger.LogInfo($"Trying to download new version: {targetVersion}");
 		do
 		{
+			tries++;
 			try
 			{
 				bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
@@ -47,34 +48,21 @@ public class UpdateManager
 			}
 			catch (Exception ex)
 			{
-				downloadException = ex;
-				Logger.LogWarning($"Geting version {targetVersion} failed. Retrying...");
+				Logger.LogError($"Geting version {targetVersion} failed with error.", ex);
 			}
-		} while (retries++ < 3);
-
-		if (retries == 2 && downloadException is { })
-		{
-			Logger.LogError($"Geting version {targetVersion} failed with error.", downloadException);
-		}
+		} while (tries < MaxTries);
 
 		UpdateAvailableToGet?.Invoke(this, updateStatus);
 	}
 
 	private async Task<bool> GetInstallerAsync(Version targetVersion)
 	{
-		try
+		if (CheckIfInstallerDownloaded())
 		{
-			if (CheckIfInstallerDownloaded())
-			{
-				return true;
-			}
-		}
-		catch (DirectoryNotFoundException)
-		{
-			IoHelpers.EnsureDirectoryExists(DownloadsDir);
+			return true;
 		}
 
-		using HttpRequestMessage message = new(HttpMethod.Get, "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest");
+		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
 
@@ -238,8 +226,11 @@ public class UpdateManager
 				return false;
 			});
 		}
-
-		throw new DirectoryNotFoundException();
+		else
+		{
+			IoHelpers.EnsureDirectoryExists(DownloadsDir);
+			return false;
+		}
 	}
 
 	public void DeletePossibleLefotver()
