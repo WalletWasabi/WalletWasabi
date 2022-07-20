@@ -147,7 +147,11 @@ public class Program
 
 		if (Services.UpdateManager.UpdateOnClose)
 		{
-			Services.UpdateManager.InstallNewVersion();
+			bool installed = Services.UpdateManager.InstallNewVersion();
+			if (installed)
+			{
+				AppLifetimeHelper.Restart();
+			}
 		}
 
 		return exceptionToReport is { } ? 1 : 0;

@@ -134,7 +134,7 @@ public class UpdateManager
 	public IHttpClient HttpClient { get; }
 	public bool UpdateOnClose { get; set; }
 
-	public void InstallNewVersion()
+	public bool InstallNewVersion()
 	{
 		try
 		{
@@ -179,6 +179,7 @@ public class UpdateManager
 				{
 					Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
 					Directory.Delete(DownloadsDir, true);
+					return true;
 				}
 			}
 			else
@@ -191,6 +192,7 @@ public class UpdateManager
 			Logger.LogError("Failed to install latest release. File might be corrupted. Deleting...", ex);
 			Directory.Delete(DownloadsDir, true);
 		}
+		return false;
 	}
 
 	public bool CheckIfInstallerDownloaded()
