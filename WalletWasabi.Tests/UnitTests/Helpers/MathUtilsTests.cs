@@ -1,4 +1,5 @@
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Helpers;

@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.Helpers;
+namespace WalletWasabi.Helpers;
 
 public static class MathUtils
 {

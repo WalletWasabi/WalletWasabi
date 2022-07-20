@@ -1,4 +1,5 @@
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 
