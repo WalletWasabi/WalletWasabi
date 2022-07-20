@@ -190,7 +190,7 @@ public class UpdateManager
 			}
 			else
 			{
-				Logger.LogError("Wasabi installer was terminated.");
+				Logger.LogError($"Wasabi installer was terminated with exit code {p.ExitCode}.");
 			}
 		}
 		catch (Exception ex)
@@ -206,20 +206,15 @@ public class UpdateManager
 		var folder = new DirectoryInfo(DownloadsDir);
 		if (folder.Exists)
 		{
-			var files = folder.GetFileSystemInfos();
-			if (files.Length == 0)
+			FileSystemInfo[] files = folder.GetFileSystemInfos();
+
+			FileSystemInfo? file = files.Where(file => file.Name.Contains("Wasabi")).FirstOrDefault();
+			if (file is { })
 			{
-				return false;
+				InstallerName = file.Name;
+				return true;
 			}
-			return files.Any(file =>
-			{
-				if (file.Name.Contains("Wasabi"))
-				{
-					InstallerName = file.Name;
-					return true;
-				}
-				return false;
-			});
+			return false;
 		}
 		else
 		{

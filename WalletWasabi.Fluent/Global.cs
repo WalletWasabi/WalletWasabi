@@ -146,8 +146,7 @@ public class Global
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer, UpdateManager), "Software Update Checker");
 
-				var updateChecker = HostedServices.Get<UpdateChecker>();
-				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
