@@ -115,8 +115,12 @@ public class UpdateManager
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
 			var cpu = RuntimeInformation.ProcessArchitecture;
-			Logger.LogWarning(cpu.ToString());
-			var url = urls.Where(url => url.Contains("arm64.dmg")).First();
+			if (cpu.ToString() == "Arm64")
+			{
+				var arm64url = urls.Where(url => url.Contains("arm64.dmg")).First();
+				return (arm64url, arm64url.Split("/").Last());
+			}
+			var url = urls.Where(url => url.Contains(".dmg") && !url.Contains("arm64")).First();
 			return (url, url.Split("/").Last());
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
