@@ -1,10 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Extensions;
 
@@ -92,18 +89,6 @@ public static class LinqExtensions
 		return list.ToList().Shuffle();
 	}
 
-	public static void AddToValueList<TKey, TElem>(this Dictionary<TKey, List<TElem>> myDic, TKey key, TElem elem) where TKey : notnull
-	{
-		if (myDic.ContainsKey(key))
-		{
-			myDic[key].Add(elem);
-		}
-		else
-		{
-			myDic.Add(key, new List<TElem>() { elem });
-		}
-	}
-
 	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
 		=> source?.Any() is true;
 
@@ -148,33 +133,6 @@ public static class LinqExtensions
 				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
 				{
 					yield return new T[] { item }.Concat(result);
-				}
-			}
-
-			++i;
-		}
-	}
-
-	public static IEnumerable<IEnumerable<SmartCoin>> GetPermutations(this IEnumerable<SmartCoin> items, int count, Money minAmount)
-	{
-		int i = 0;
-		foreach (var item in items)
-		{
-			if (count == 1)
-			{
-				if (item.Amount >= minAmount)
-				{
-					yield return new SmartCoin[] { item };
-				}
-			}
-			else
-			{
-				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
-				{
-					if (item.Amount + result.Sum(x => x.Amount) >= minAmount)
-					{
-						yield return new SmartCoin[] { item }.Concat(result);
-					}
 				}
 			}
 
@@ -238,14 +196,4 @@ public static class LinqExtensions
 
 	public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
 		other.All(x => me.Contains(x));
-
-	public static ulong Sum(this IEnumerable<ulong> me)
-	{
-		ulong inputSum = 0;
-		foreach (var item in me)
-		{
-			inputSum += item;
-		}
-		return inputSum;
-	}
 }
