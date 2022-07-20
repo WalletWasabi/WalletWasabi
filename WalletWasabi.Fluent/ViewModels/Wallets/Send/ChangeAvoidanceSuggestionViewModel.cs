@@ -54,16 +54,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
+		IAsyncEnumerable<IEnumerable<SmartCoin>> selectionsTask = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 			coinsToUse,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			maxInputCount,
-			cancellationToken).ConfigureAwait(false);
+			cancellationToken);
 
 		HashSet<Money> foundSolutionsByAmount = new();
 
-		await foreach (var selection in selections)
+		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			if (selection.Any())
 			{
@@ -86,7 +86,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 				if (transaction is not null)
 				{
-					var destinationAmount = transaction.CalculateDestinationAmount();
+					Money destinationAmount = transaction.CalculateDestinationAmount();
 
 					// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
 					if (!foundSolutionsByAmount.Contains(destinationAmount))

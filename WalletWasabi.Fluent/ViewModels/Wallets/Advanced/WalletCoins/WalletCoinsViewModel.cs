@@ -82,6 +82,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 		_coinsSourceList
 			.Connect()
+			.Sort(SortExpressionComparer<WalletCoinViewModel>.Descending(model => model.Amount))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_coins)
 			.DisposeMany()

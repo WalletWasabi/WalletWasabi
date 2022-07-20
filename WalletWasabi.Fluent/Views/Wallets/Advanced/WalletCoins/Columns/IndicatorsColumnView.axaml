@@ -15,7 +15,7 @@
                 Data="{StaticResource checkmark_filled}"
                 Foreground="{DynamicResource SystemAccentColor}"
                 Height="11"
-                ToolTip.Tip="Confirmed" />
+                ToolTip.Tip="{Binding ConfirmedToolTip}" />
       <!-- Pending -->
       <PathIcon IsVisible="{Binding !Confirmed}"
                 Data="{StaticResource clock_regular}"

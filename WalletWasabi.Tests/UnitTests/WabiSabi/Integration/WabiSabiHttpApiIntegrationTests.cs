@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NBitcoin;
@@ -76,7 +75,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			builder.ConfigureServices(services =>
 			{
 				var inmate = new Inmate(bannedOutPoint, Punishment.LongBanned, DateTimeOffset.UtcNow, uint256.One);
-				services.AddScoped<Prison>(_ => new Prison(new[] {inmate}));
+				services.AddScoped<Prison>(_ => new Prison(new[] { inmate }));
 			})).CreateClient();
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
@@ -116,18 +115,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		_output.WriteLine("Coins were created successfully");
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder.AddMockRpcClient(coins, rpc =>
-			{
-				// Make the coordinator believe that the transaction is being
-				// broadcasted using the RPC interface. Once we receive this tx
-				// (the `SendRawTransationAsync` was invoked) we stop waiting
-				// and finish the waiting tasks to finish the test successfully.
-				rpc.OnSendRawTransactionAsync = (tx) =>
+			builder.AddMockRpcClient(
+				coins,
+				rpc =>
 				{
-					transactionCompleted.SetResult(tx);
-					return tx.GetHash();
-				};
-			})
+					// Make the coordinator believe that the transaction is being
+					// broadcasted using the RPC interface. Once we receive this tx
+					// (the `SendRawTransationAsync` was invoked) we stop waiting
+					// and finish the waiting tasks to finish the test successfully.
+					rpc.OnSendRawTransactionAsync = (tx) =>
+					{
+						transactionCompleted.SetResult(tx);
+						return tx.GetHash();
+					};
+				})
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use these two scoped
@@ -140,9 +141,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				}
+				});
 
-				);
 				// Emulate that the first coin is coming from a coinjoin.
 				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
 			})).CreateClient();
@@ -184,7 +184,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[Fact]
 	public async Task FailToRegisterOutputsCoinJoinTestAsync()
 	{
-		var amounts = new long[] {10_000_000, 20_000_000, 30_000_000};
+		var amounts = new long[] { 10_000_000, 20_000_000, 30_000_000 };
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -314,24 +314,26 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-		builder.AddMockRpcClient(Enumerable.Concat(coins, badCoins).ToArray(), rpc =>
-		{
-			rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+		builder.AddMockRpcClient(
+			Enumerable.Concat(coins, badCoins).ToArray(),
+			rpc =>
 			{
-				var tx = Transaction.Create(Network.Main);
-				return Task.FromResult(tx);
-			};
+				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				{
+					var tx = Transaction.Create(Network.Main);
+					return Task.FromResult(tx);
+				};
 
-			// Make the coordinator believe that the transaction is being
-			// broadcasted using the RPC interface. Once we receive this tx
-			// (the `SendRawTransationAsync` was invoked) we stop waiting
-			// and finish the waiting tasks to finish the test successfully.
-			rpc.OnSendRawTransactionAsync = (tx) =>
-			{
-				transactionCompleted.SetResult(tx);
-				return tx.GetHash();
-			};
-		})
+				// Make the coordinator believe that the transaction is being
+				// broadcasted using the RPC interface. Once we receive this tx
+				// (the `SendRawTransationAsync` was invoked) we stop waiting
+				// and finish the waiting tasks to finish the test successfully.
+				rpc.OnSendRawTransactionAsync = (tx) =>
+				{
+					transactionCompleted.SetResult(tx);
+					return tx.GetHash();
+				};
+			})
 		.ConfigureServices(services =>
 		{
 			// Instruct the coordinator DI container to use this scoped
@@ -379,8 +381,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.CallBase();
 		nonSigningHttpClientMock
-			.Setup(httpClient => httpClient.SendAsync(It.Is<HttpRequestMessage>(
-				req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
+			.Setup(httpClient => httpClient.SendAsync(
+				It.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
 				It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 
@@ -400,9 +402,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 		// BadCoinsTask will throw.
-		await Assert.ThrowsAsync<TaskCanceledException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
+		var ex = await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
+		Assert.True(ex.InnerExceptions.Last() is TaskCanceledException);
 
-		Assert.True(badCoinsTask.IsCanceled);
 		Assert.True(coinJoinTask.Result.SuccessfulBroadcast);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
@@ -417,11 +419,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 	[Theory]
 	[InlineData(123456, 0.00, 0.00)]
-	//[InlineData(123456, 0.01, 0.01)]
-	//[InlineData(123456, 0.10, 0.00)] // Highly aggressive monkey.
-	//[InlineData(123456, 0.00, 0.10)] // Highly aggressive monkey.
-	//[InlineData(123456, 0.05, 0.05)] // Concurrency of aggressive monkeys
-	//[InlineData(123456, 0.10, 0.10)]
 	public async Task MultiClientsCoinJoinTestAsync(
 		int seed,
 		double faultInjectorMonkeyAggressiveness,
@@ -445,7 +442,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
-						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness)) ),
+						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness))),
 						StandardInputRegistrationTimeout = TimeSpan.FromSeconds(5 * ExpectedInputNumber),
 						BlameInputRegistrationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
 						ConnectionConfirmationTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
@@ -458,9 +455,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			using PersonCircuit personCircuit = new();
 			IHttpClient httpClientWrapper = new MonkeyHttpClient(
 				new HttpClientWrapper(app.CreateClient()),
-				// This monkey injects `HttpRequestException` randomly to simulate errors
-				// in the communication.
-				() =>
+				() => // This monkey injects `HttpRequestException` randomly to simulate errors in the communication.
 				{
 					if (Random.Shared.NextDouble() < faultInjectorMonkeyAggressiveness)
 					{
@@ -468,8 +463,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					}
 					return Task.CompletedTask;
 				},
-				// This monkey injects `Delays` randomly to simulate slow response times.
-				async () =>
+				async () => // This monkey injects `Delays` randomly to simulate slow response times.
 				{
 					double delay = Random.Shared.NextDouble();
 					await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
@@ -569,27 +563,5 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
-	}
-}
-
-public class StuttererHttpClient : HttpClientWrapper
-{
-	public StuttererHttpClient(HttpClient httpClient) : base(httpClient)
-	{
-	}
-
-	public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-	{
-		using HttpRequestMessage requestClone1 = request.Clone();
-		using HttpRequestMessage requestClone2 = request.Clone();
-
-		HttpResponseMessage result1 = await base.SendAsync(requestClone1, token).ConfigureAwait(false);
-		HttpResponseMessage result2 = await base.SendAsync(requestClone2, token).ConfigureAwait(false);
-
-		string content1 = await result1.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-		string content2 = await result2.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-
-		Assert.Equal(content1, content2);
-		return result2;
 	}
 }

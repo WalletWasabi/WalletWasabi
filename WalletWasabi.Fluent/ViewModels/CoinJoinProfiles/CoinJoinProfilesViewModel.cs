@@ -78,6 +78,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
 		keyManager.AutoCoinJoin = AutoCoinJoin;
+		keyManager.RedCoinIsolation = selected.RedCoinIsolation;
 		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 		keyManager.IsCoinjoinProfileSelected = true;
