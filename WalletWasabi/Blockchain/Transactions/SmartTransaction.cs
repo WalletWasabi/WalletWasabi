@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
