@@ -19,11 +19,12 @@ public class UpdateManager
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
-	public UpdateManager(string dataDir, IHttpClient httpClient)
+	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
 		DataDir = dataDir;
 		DownloadsDir = Path.Combine(DataDir, "Downloads");
 		HttpClient = httpClient;
+		DownloadNewVersion = downloadNewVersion;
 	}
 
 	public async void UpdateStatusChangedAsync(UpdateStatus updateStatus)
@@ -35,22 +36,25 @@ public class UpdateManager
 		{
 			return;
 		}
-		Logger.LogInfo($"Trying to download new version: {targetVersion}");
-		do
+		if (DownloadNewVersion)
 		{
-			tries++;
-			try
+			Logger.LogInfo($"Trying to download new version: {targetVersion}");
+			do
 			{
-				bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
-				Logger.LogInfo($"Version {targetVersion} downloaded successfuly.");
-				updateStatus.IsReadyToInstall = isReadyToInstall;
-				break;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"Geting version {targetVersion} failed with error.", ex);
-			}
-		} while (tries < MaxTries);
+				tries++;
+				try
+				{
+					bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
+					Logger.LogInfo($"Version {targetVersion} downloaded successfuly.");
+					updateStatus.IsReadyToInstall = isReadyToInstall;
+					break;
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Geting version {targetVersion} failed with error.", ex);
+				}
+			} while (tries < MaxTries);
+		}
 
 		UpdateAvailableToGet?.Invoke(this, updateStatus);
 	}
@@ -138,7 +142,12 @@ public class UpdateManager
 	public string DataDir { get; }
 	public string DownloadsDir { get; }
 	public IHttpClient HttpClient { get; }
-	public bool UpdateOnClose { get; set; }
+
+	///<summary>Comes from config file.</summary>
+	public bool DownloadNewVersion { get; set; }
+
+	///<summary>User's answer if installing new version on shutdown is needed.</summary>
+	public bool DoUpdateOnClose { get; set; } = false;
 
 	public bool InstallNewVersion()
 	{
@@ -165,38 +174,23 @@ public class UpdateManager
 			}
 
 			using Process? p = Process.Start(startInfo);
-			p!.WaitForExit();
 
-			// Exit code -- Reason
-			//	___________________
-			//	1602	 -- Canceled
-			//	1		 -- Terminated
-			//	0		 -- Finished
-			if (p.ExitCode == 0)
+			if (p is null)
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					// For MacOS, you need to start the process twice, first start => permission denied
-					// TODO: find out why and fix.
-					p.Start();
-					p!.WaitForExit();
-				}
-				else
-				{
-					Logger.LogInfo("Succesfuly installed new version. Deleting installer.");
-					Directory.Delete(DownloadsDir, true);
-					return true;
-				}
+				throw new InvalidOperationException($"Can't start {nameof(p)} {startInfo.FileName}.");
 			}
-			else
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				Logger.LogError($"Wasabi installer was terminated with exit code {p.ExitCode}.");
+				// For MacOS, you need to start the process twice, first start => permission denied
+				// TODO: find out why and fix.
+
+				p!.WaitForExit(5000);
+				p.Start();
 			}
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError("Failed to install latest release. File might be corrupted. Deleting...", ex);
-			Directory.Delete(DownloadsDir, true);
+			Logger.LogError("Failed to install latest release. File might be corrupted.", ex);
 		}
 		return false;
 	}
