@@ -196,4 +196,16 @@ public static class LinqExtensions
 
 	public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
 		other.All(x => me.Contains(x));
+
+	public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> list, Func<T, bool> predicate)
+	{
+		foreach (T el in list)
+		{
+			yield return el;
+			if (predicate(el))
+			{
+				yield break;
+			}
+		}
+	}
 }
