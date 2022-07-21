@@ -24,6 +24,8 @@ public class UiConfig : ConfigBase
 	private bool _autoPaste;
 	private int _feeTarget;
 	private bool _sendAmountConversionReversed;
+	private double? _windowWidth;
+	private double? _windowHeight;
 
 	public UiConfig() : base()
 	{
@@ -54,6 +56,14 @@ public class UiConfig : ConfigBase
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(
+				x => x.WindowWidth,
+				x => x.WindowHeight)
+			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Skip(1) // Won't save on UiConfig creation.
+			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ => ToFile());
 	}
 
@@ -159,5 +169,19 @@ public class UiConfig : ConfigBase
 	{
 		get => _sendAmountConversionReversed;
 		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value);
+	}
+
+	[JsonProperty(PropertyName = "WindowWidth")]
+	public double? WindowWidth
+	{
+		get => _windowWidth;
+		internal set => RaiseAndSetIfChanged(ref _windowWidth, value);
+	}
+
+	[JsonProperty(PropertyName = "WindowHeight")]
+	public double? WindowHeight
+	{
+		get => _windowHeight;
+		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
 	}
 }
