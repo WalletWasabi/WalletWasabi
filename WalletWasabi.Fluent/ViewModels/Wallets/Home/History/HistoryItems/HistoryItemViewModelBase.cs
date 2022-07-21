@@ -20,12 +20,14 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private bool _isExpanded;
+	[AutoNotify] private string _confirmedToolTip;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
 		Id = transactionSummary.TransactionId;
+		_confirmedToolTip = "Confirmed";
 
 		ClipboardCopyCommand =  ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
@@ -70,6 +72,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		throw new NotSupportedException();
 	}
+
+	public virtual bool HasChildren() => false;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{

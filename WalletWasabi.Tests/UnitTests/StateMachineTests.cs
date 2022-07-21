@@ -175,7 +175,6 @@ public class StateMachineTests
 		Assert.Equal(3, count);
 	}
 
-
 	[Fact]
 	public void Firing_special_trigger_executes_correct_action()
 	{

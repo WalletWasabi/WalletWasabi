@@ -9,7 +9,7 @@ public static class ConfirmationTimeLabel
 			return "fastest";
 		}
 
-		return TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration("d", "h", "m"));
+		return TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration("day", "hour", "min"));
 	}
 
 	public static string SliderLabel(TimeSpan timeSpan)
