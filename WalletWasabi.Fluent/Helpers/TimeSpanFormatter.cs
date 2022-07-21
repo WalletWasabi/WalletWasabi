@@ -23,7 +23,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Days > 0)
 		{
-			return timeSpan.Days + configuration.DaysLabel;
+			return $"{timeSpan.Days} {configuration.DaysLabel}{TextHelpers.AddSIfPlural(timeSpan.Days)}";
 		}
 
 		return null;
@@ -33,7 +33,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Hours > 0)
 		{
-			return timeSpan.Hours + configuration.HoursLabel;
+			return $"{timeSpan.Hours} {configuration.HoursLabel}{TextHelpers.AddSIfPlural(timeSpan.Hours)}";
 		}
 
 		return null;
@@ -43,7 +43,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Minutes > 0)
 		{
-			return timeSpan.Minutes + configuration.MinutesLabel;
+			return $"{timeSpan.Minutes} {configuration.MinutesLabel}{TextHelpers.AddSIfPlural(timeSpan.Minutes)}";
 		}
 
 		return default;
