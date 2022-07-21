@@ -137,8 +137,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.CoinJoinInProgress),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.CoinJoinInProgress),
+						CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x)),
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 
@@ -193,6 +193,26 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Select(_ => GetCoins())
 			.Subscribe(RefreshCoinsList)
 			.DisposeWith(disposables);
+	}
+
+	private static int GetOrderingPriority(WalletCoinViewModel x)
+	{
+		if (x.Confirmed)
+		{
+			return 1;
+		}
+
+		if (x.CoinJoinInProgress)
+		{
+			return 2;
+		}
+
+		if (x.IsBanned)
+		{
+			return 3;
+		}
+
+		return 0;
 	}
 
 	private ICoinsView GetCoins()
