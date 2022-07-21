@@ -191,8 +191,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		InsertWallet(walletViewModel);
 
-		walletViewModel.IsExpanded = true;
-
 		return walletViewModel;
 	}
 

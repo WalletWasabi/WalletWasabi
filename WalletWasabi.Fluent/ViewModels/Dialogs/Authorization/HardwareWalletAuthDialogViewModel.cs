@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Hwi;
