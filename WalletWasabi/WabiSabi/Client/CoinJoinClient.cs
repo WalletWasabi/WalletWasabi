@@ -73,8 +73,8 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	public bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	private static Money? LastLargestDenomOutput { get; private set; }
-	private static object LastLargestDenomOutputLock { get; } = new object();
+	private static Money? SecondLargestDenomOutput { get; set; }
+	private static object SecondLargestDenomOutputLock { get; } = new object();
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
@@ -235,13 +235,14 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
-			lock (LastLargestDenomOutputLock)
+			lock (SecondLargestDenomOutputLock)
 			{
-				LastLargestDenomOutput = unsignedCoinJoin.Outputs
+				SecondLargestDenomOutput = unsignedCoinJoin.Outputs
 					.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi))
 					.OrderByDescending(x => x.Value)
-					.First()
-					.Value;
+					.Skip(1)
+					.FirstOrDefault()
+					?.Value;
 			}
 
 			return new CoinJoinResult(
@@ -574,17 +575,17 @@ public class CoinJoinClient
 		// Let's allow only a inputCount - 1 private coins to play.
 		var biasSuffledPrivateCoins = AnonScoreBiasedShuffle(privateCoins).ToArray();
 		IEnumerable<SmartCoin> allowedPrivateCoins;
-		lock (LastLargestDenomOutputLock)
+		lock (SecondLargestDenomOutputLock)
 		{
-			if (LastLargestDenomOutput is null)
+			if (SecondLargestDenomOutput is null)
 			{
 				allowedPrivateCoins = biasSuffledPrivateCoins.Take(inputCount - 1);
 			}
 			else
 			{
 				// Deprioritize private coins those are too large.
-				var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= LastLargestDenomOutput);
-				var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > LastLargestDenomOutput);
+				var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= SecondLargestDenomOutput);
+				var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > SecondLargestDenomOutput);
 				allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1);
 			}
 		}
