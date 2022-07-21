@@ -205,7 +205,7 @@ public class SmartTransactionTests
 	}
 
 	[Fact]
-	public void SmartTransactionVirtualMembersEqualsTest()
+	public void SmartTransactionVirtualMembersEquals()
 	{
 		SmartTransaction st = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
 
