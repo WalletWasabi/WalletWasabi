@@ -30,7 +30,7 @@ public class MathUtilsTests
 	[InlineData(1751, 3, 1750)]
 	[InlineData(1751, 2, 1800)]
 	[InlineData(1751, 1, 2000)]
-	public void Round_to_significant_figures(decimal actual, int precision, decimal expected)
+	public void RoundToSignificantFigures(decimal actual, int precision, decimal expected)
 	{
 		Assert.Equal(expected, actual.RoundToSignificantFigures(precision));
 	}
