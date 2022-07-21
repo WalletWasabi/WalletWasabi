@@ -41,13 +41,12 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 		UpdateCommand = ReactiveCommand.Create(() =>
 		{
-			Services.UpdateManager.UpdateOnClose = true;
+			Services.UpdateManager.DoUpdateOnClose = true;
 			UpdateAvailable = false;
 		});
 
 		AskMeLaterCommand = ReactiveCommand.Create(() =>
 		{
-			Services.UpdateManager.UpdateOnClose = false;
 			UpdateAvailable = false;
 		});
 

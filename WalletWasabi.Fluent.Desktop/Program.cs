@@ -145,7 +145,7 @@ public class Program
 
 		Logger.LogSoftwareStopped("Wasabi");
 
-		if (Services.UpdateManager.UpdateOnClose)
+		if (Services.UpdateManager.DoUpdateOnClose)
 		{
 			bool installed = Services.UpdateManager.InstallNewVersion();
 			if (installed)
