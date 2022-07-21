@@ -11,6 +11,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;

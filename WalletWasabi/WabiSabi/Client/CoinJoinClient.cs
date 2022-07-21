@@ -331,6 +331,28 @@ public class CoinJoinClient
 				personCircuit?.Dispose();
 				return (null, null);
 			}
+			catch (OperationCanceledException ex)
+			{
+				if (cancel.IsCancellationRequested)
+				{
+					Logger.LogDebug("User requested cancellation of registration and confirmation.");
+				}
+				else if (registrationsCts.IsCancellationRequested)
+				{
+					Logger.LogDebug("Registration was cancelled.");
+				}
+				else if (connConfTimeoutCts.IsCancellationRequested)
+				{
+					Logger.LogDebug("Connection confirmation was cancelled.");
+				}
+				else
+				{
+					Logger.LogDebug(ex);
+				}
+
+				personCircuit?.Dispose();
+				return (null, null);
+			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
@@ -478,7 +500,7 @@ public class CoinJoinClient
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
 		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
+		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => !a.IsPayingZeroCoordinationFee).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
 		string[] summary = new string[]
 		{

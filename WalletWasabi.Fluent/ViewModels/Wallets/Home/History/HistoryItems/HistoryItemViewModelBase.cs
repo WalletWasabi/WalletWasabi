@@ -73,6 +73,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
+	public virtual bool HasChildren() => false;
+
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{
 		return (x, y) =>
