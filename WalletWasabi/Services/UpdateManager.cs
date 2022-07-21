@@ -65,7 +65,6 @@ public class UpdateManager
 		{
 			return true;
 		}
-
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
@@ -95,6 +94,9 @@ public class UpdateManager
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
+		var tmpFileName = Path.Combine(DownloadsDir, $"{fileName}.tmp");
+		var newFileName = Path.Combine(DownloadsDir, fileName);
+
 		// This should also be done using Tor.
 		using System.Net.Http.HttpClient httpClient = new();
 		using HttpRequestMessage newMessage = new(HttpMethod.Get, url);
@@ -102,8 +104,14 @@ public class UpdateManager
 
 		// Get file stream and copy it to downloads folder to access.
 		var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
-		using var file = File.OpenWrite(Path.Combine(DownloadsDir, fileName));
+		Logger.LogInfo("Installer stream downloaded, copying...");
+		var file = File.OpenWrite(tmpFileName);
 		await stream.CopyToAsync(file).ConfigureAwait(false);
+
+		// Closing the file to rename.
+		file.Close();
+		File.Move(tmpFileName, newFileName);
+
 		InstallerName = fileName;
 
 		return true;
@@ -203,11 +211,18 @@ public class UpdateManager
 			FileSystemInfo[] files = folder.GetFileSystemInfos();
 
 			FileSystemInfo? file = files.Where(file => file.Name.Contains("Wasabi")).FirstOrDefault();
-			if (file is { })
+
+			if (file is { } && file.Name.Contains("tmp"))
+			{
+				Logger.LogInfo("Corrupted/unfinished installer found, deleting.");
+				File.Delete(file.FullName);
+			}
+			else if (file is { })
 			{
 				InstallerName = file.Name;
 				return true;
 			}
+
 			return false;
 		}
 		else
