@@ -7,17 +7,17 @@ namespace WalletWasabi.Wallets;
 
 public interface IWallet
 {
-    string Identifier { get; }
-    bool CoinjoinEnabled { get; }
-    bool IsMixable { get; }
-    IKeyChain KeyChain { get; }
-    IDestinationProvider DestinationProvider { get; }
-    public int AnonScoreTarget { get; }
-    public bool ConsolidationMode { get; }
-    TimeSpan FeeRateMedianTimeFrame { get; }
-    bool RedCoinIsolation { get; }
+	string Identifier { get; }
+	bool CoinjoinEnabled { get; }
+	bool IsMixable { get; }
+	IKeyChain KeyChain { get; }
+	IDestinationProvider DestinationProvider { get; }
+	public int AnonScoreTarget { get; }
+	public bool ConsolidationMode { get; }
+	TimeSpan FeeRateMedianTimeFrame { get; }
+	bool RedCoinIsolation { get; }
 
-    bool IsWalletPrivate();
+	bool IsWalletPrivate();
 
-    Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidates(int bestHeight);
+	IEnumerable<SmartCoin> GetCoinjoinCoinCandidates(int bestHeight);
 }

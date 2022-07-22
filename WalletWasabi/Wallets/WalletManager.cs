@@ -107,6 +107,8 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
+	public IEnumerable<IWallet> GetWallets() => GetWallets(true);
+
 	public bool HasWallet() => AnyWallet(_ => true);
 
 	public bool AnyWallet(Func<Wallet, bool> predicate)
@@ -409,10 +411,5 @@ public class WalletManager : IWalletProvider
 		{
 			return Wallets.Single(x => x.KeyManager.WalletName == walletName);
 		}
-	}
-
-	public Task<IEnumerable<IWallet>> GetWallets()
-	{
-		return Task.FromResult<IEnumerable<IWallet>>(GetWallets(true));
 	}
 }
