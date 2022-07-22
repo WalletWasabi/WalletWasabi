@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore)
 	{
 		Parameters = parameters;
 
@@ -30,9 +30,9 @@ public class WabiSabiCoordinator : BackgroundService
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
 		CoinJoinFeeRateStatStore.NewStat += FeeRateStatStore_NewStat;
 
-		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(parameters.CoinJoinScriptStoreFilePath);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
 
+		RoundParameterFactory roundParameterFactory = new RoundParameterFactory(Config, rpc.Network);
 		Arena = new(
 			parameters.RoundProgressSteppingPeriod,
 			rpc.Network,
@@ -40,6 +40,7 @@ public class WabiSabiCoordinator : BackgroundService
 			rpc,
 			Warden.Prison,
 			coinJoinIdStore,
+			roundParameterFactory,
 			transactionArchiver,
 			coinJoinScriptStore);
 

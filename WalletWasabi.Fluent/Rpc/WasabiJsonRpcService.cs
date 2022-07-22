@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -55,7 +56,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-		var coinRegistry = activeWallet.Coins as CoinsRegistry;
+		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
+		{
+			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
+		}
 		return coinRegistry.AsAllCoinsView().Select(x => new
 		{
 			txid = x.TransactionId.ToString(),

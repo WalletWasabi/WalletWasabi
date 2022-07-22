@@ -1,10 +1,12 @@
+using NBitcoin;
+using Nito.AsyncEx;
+using ReactiveUI;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
@@ -14,9 +16,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 {
+	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
+	private readonly object _lock = new();
+
+	/// <summary>Allow at most one suggestion generation run.</summary>
+	private readonly AsyncLock _asyncLock = new();
+
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
+
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
 	public PrivacySuggestionsFlyoutViewModel()
@@ -35,38 +44,68 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
+	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
 	{
-		_suggestionCancellationTokenSource?.Cancel();
-		_suggestionCancellationTokenSource?.Dispose();
+		using CancellationTokenSource singleRunCts = new();
 
-		_suggestionCancellationTokenSource = new(TimeSpan.FromSeconds(15));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_suggestionCancellationTokenSource.Token, cancellationToken);
-
-		Suggestions.Clear();
-		SelectedSuggestion = null;
-
-		if (!info.IsPrivate)
+		lock (_lock)
 		{
-			Suggestions.Add(new PocketSuggestionViewModel(SmartLabel.Merge(transaction.SpentCoins.Select(x => x.GetLabels(wallet.KeyManager.MinAnonScoreTarget)))));
+			_suggestionCancellationTokenSource?.Cancel();
+			_suggestionCancellationTokenSource = singleRunCts;
 		}
 
-		var loadingRing = new LoadingSuggestionViewModel();
-		Suggestions.Add(loadingRing);
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
 
-		var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
-
-		if (hasChange && !isFixedAmount && !info.IsPayJoin)
+		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
-			var suggestions =
-				ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, linkedCts.Token);
-
-			await foreach (var suggestion in suggestions)
+			try
 			{
-				Suggestions.Insert(Suggestions.Count - 1, suggestion);
+				Suggestions.Clear();
+				SelectedSuggestion = null;
+
+				var loadingRing = new LoadingSuggestionViewModel();
+				Suggestions.Add(loadingRing);
+
+				var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+
+				if (hasChange && !isFixedAmount && !info.IsPayJoin)
+				{
+					// Exchange rate can change substantially during computation itself.
+					// Reporting up-to-date exchange rates would just confuse users.
+					decimal usdExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+
+					// Only allow to create 1 more input with BnB. This accounts for the change created.
+					int maxInputCount = transaction.SpentCoins.Count() + 1;
+
+					var pockets = wallet.GetPockets();
+					var spentCoins = transaction.SpentCoins;
+					var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
+					var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
+
+					IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
+						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
+
+					await foreach (var suggestion in suggestions)
+					{
+						Suggestions.Insert(Suggestions.Count - 1, suggestion);
+					}
+				}
+
+				Suggestions.Remove(loadingRing);
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogTrace("Operation was cancelled.");
+			}
+			finally
+			{
+				lock (_lock)
+				{
+					_suggestionCancellationTokenSource = null;
+				}
 			}
 		}
-
-		Suggestions.Remove(loadingRing);
 	}
 }

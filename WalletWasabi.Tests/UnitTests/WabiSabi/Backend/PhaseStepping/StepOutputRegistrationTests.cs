@@ -138,8 +138,8 @@ public class StepOutputRegistrationTests
 		// Add another input. The input must be able to pay for itself, but
 		// the remaining amount after deducting the fees needs to be less
 		// than the minimum.
-		var txParams = round.Assert<ConstructionState>().Parameters;
-		var extraAlice = WabiSabiFactory.CreateAlice(txParams.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
+		var txParams = round.Parameters;
+		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
 		round.Alices.Add(extraAlice);
 		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
 
@@ -187,24 +187,26 @@ public class StepOutputRegistrationTests
 	private async Task<(Round Round, ArenaClient ArenaClient, AliceClient[] alices)>
 			CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
-		// Create the round.
+		// Get the round.
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var round = Assert.Single(arena.Rounds);
-		round.MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead;
+
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
-		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
-		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None);
+		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
+		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
 
 		while (Phase.ConnectionConfirmation != round.Phase)
 		{
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		}
 		await Task.WhenAll(task1, task2);
-		var aliceClient1 = task1.Result;
-		var aliceClient2 = task2.Result;
+		var aliceClient1 = await task1;
+		var aliceClient2 = await task2;
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.OutputRegistration, round.Phase);

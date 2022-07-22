@@ -19,7 +19,7 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
-  <Style Selector="c|NavBarItem:not(:dragging)">
+  <Style Selector="c|NavBarItem:not(:dragging):selectable">
     <Setter Property="Transitions">
       <Setter.Value>
         <Transitions>
@@ -35,9 +35,14 @@
     <Setter Property="Template">
       <ControlTemplate>
         <!-- The margin here should be compensated with the same amount in the NavBar's topmost content-->
-        <Panel Margin="5" Height="60" Width="60" ClipToBounds="False">
+        <Panel Margin="5,5,5,0"
+               Height="{TemplateBinding Height}"
+               Width="{TemplateBinding Width}"
+               ClipToBounds="False">
           <Border Name="SelectionBackground" />
           <ContentPresenter Name="PART_ContentPresenter"
+                            Height="{TemplateBinding Height}"
+                            Width="{TemplateBinding Width}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -46,7 +51,9 @@
                             Padding="{TemplateBinding Padding}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Border Name="SelectionIndicator" />
+          <!-- NOTE: This margin value is to force the dirty rect in Avalonia's Deferred Renderer
+                     to be rounded up so that it doesnt show up the artifacts when animated on high-res displays.  -->
+          <Border Name="SelectionIndicator" Margin="0.5,0,0,0" />
         </Panel>
       </ControlTemplate>
     </Setter>

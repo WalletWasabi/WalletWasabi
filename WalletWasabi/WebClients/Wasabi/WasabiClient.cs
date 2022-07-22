@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -234,7 +235,7 @@ public class WasabiClient
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
 
-		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.LegalDocumentsVersion));
+		return (Version.Parse(resp.ClientVersion), ushort.Parse(resp.BackendMajorVersion), Version.Parse(resp.Ww2LegalDocumentsVersion));
 	}
 
 	public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
@@ -261,7 +262,7 @@ public class WasabiClient
 	{
 		using HttpResponseMessage response = await HttpClient.SendAsync(
 			HttpMethod.Get,
-			$"/api/v{ApiVersion}/wasabi/legaldocuments",
+			$"/api/v{ApiVersion}/wasabi/legaldocuments?id=ww2",
 			cancel: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)

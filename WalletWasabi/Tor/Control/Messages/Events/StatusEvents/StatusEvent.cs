@@ -49,6 +49,14 @@ public record StatusEvent : IAsyncEvent
 	/// </remarks>
 	public const string ActionCircuitEstablished = "CIRCUIT_ESTABLISHED";
 
+	/// <remarks>
+	/// From spec: We are no longer confident that we can build circuits. The "reason" keyword provides an explanation:
+	/// which other status event type caused our lack of confidence.
+	/// <para>Suggested use: Controllers may want to use this event to decide when to indicate progress
+	/// to their users, but should not interrupt the user's browsing to do so.</para>
+	/// </remarks>
+	public const string ActionCircuitNotEstablished = "CIRCUIT_NOT_ESTABLISHED";
+
 	public StatusEvent(string action, Dictionary<string, string> arguments)
 	{
 		Action = action;

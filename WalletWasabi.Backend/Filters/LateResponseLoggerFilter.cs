@@ -15,6 +15,6 @@ public class LateResponseLoggerFilter : ExceptionFilterAttribute
 
 		var actionName = ((Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)context.ActionDescriptor).ActionName;
 
-		Logger.LogInfo($"Request '{actionName}' missing the phase '{string.Join(",", ex.ExpectedPhases)}' by '{ex.Late}'. Round id '{ex.RoundId}' is in phase '{ex.CurrentPhase}'.");
+		Logger.LogInfo($"Request '{actionName}' missing the phase '{string.Join(",", ex.ExpectedPhases)}' ('{ex.PhaseTimeout}' timeout) by '{ex.Late}'. Round id '{ex.RoundId}'.");
 	}
 }

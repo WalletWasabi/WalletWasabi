@@ -1,9 +1,12 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
 
-namespace System.Linq;
+namespace WalletWasabi.Extensions;
 
 public static class LinqExtensions
 {
@@ -53,6 +56,23 @@ public static class LinqExtensions
 		return current;
 	}
 
+	/// <summary>
+	/// Selects a random element based on order bias.
+	/// </summary>
+	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
+	public static T? BiasedRandomElement<T>(this IOrderedEnumerable<T> source, int biasPercent)
+	{
+		foreach (T element in source)
+		{
+			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
+			{
+				return element;
+			}
+		}
+
+		return source.Any() ? source.First() : default;
+	}
+
 	public static IList<T> Shuffle<T>(this IList<T> list)
 	{
 		int n = list.Count;
@@ -87,18 +107,22 @@ public static class LinqExtensions
 	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
 		=> source?.Any() is true;
 
+	/// <summary>
+	/// Recursive algorithm that generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
+	/// </summary>
+	/// <remarks>If you have numbers <c>1, 2, 3, 4</c>, then the output will contain <c>(2, 3, 4)</c> but not, for example, <c>(4, 3, 2)</c>.</remarks>
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
+	=> ofLength switch
 	{
-		return (ofLength == 1)
-			? items.Select(item => new[] { item })
-			: items.SelectMany((item, i) => items
+		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
+		1 => items.Select(item => new[] { item }),
+		_ => items.SelectMany((item, i) => items
 				.Skip(i + 1)
 				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }
-				.Concat(result)));
-	}
+				.Select(result => new T[] { item }.Concat(result)))
+	};
 
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
@@ -223,5 +247,17 @@ public static class LinqExtensions
 			inputSum += item;
 		}
 		return inputSum;
+	}
+
+	public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> list, Func<T, bool> predicate)
+	{
+		foreach (T el in list)
+		{
+			yield return el;
+			if (predicate(el))
+			{
+				yield break;
+			}
+		}
 	}
 }

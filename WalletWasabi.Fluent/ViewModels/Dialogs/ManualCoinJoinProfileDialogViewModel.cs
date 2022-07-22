@@ -9,20 +9,20 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Coinjoin Settings")]
-public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
+public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
 	[AutoNotify] private bool _autoCoinjoin;
-	[AutoNotify] private int _minAnonScoreTarget;
-	[AutoNotify] private int _maxAnonScoreTarget;
+	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
-	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
+	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current, bool autoCoinJoin)
 	{
-		_autoCoinjoin = true;
+		_autoCoinjoin = autoCoinJoin;
+		_redCoinIsolation = current.RedCoinIsolation;
 
-		_minAnonScoreTarget = current.MinAnonScoreTarget;
-		_maxAnonScoreTarget = current.MaxAnonScoreTarget;
+		_anonScoreTarget = current.AnonScoreTarget;
 
 		_timeFrames = new[]
 		{
@@ -38,35 +38,14 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		EnableBack = false;
 
-		this.WhenAnyValue(x => x.MinAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x >= MaxAnonScoreTarget)
-					{
-						MaxAnonScoreTarget = x + 1;
-					}
-				});
-
-		this.WhenAnyValue(x => x.MaxAnonScoreTarget)
-			.Subscribe(
-				x =>
-				{
-					if (x <= MinAnonScoreTarget)
-					{
-						MinAnonScoreTarget = x - 1;
-					}
-				});
-
-
 		NextCommand = ReactiveCommand.Create(() =>
 		{
 			var auto = AutoCoinjoin;
-			var min = MinAnonScoreTarget;
-			var max = MaxAnonScoreTarget;
+			var isolateRed = RedCoinIsolation;
+			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, min, max, hours));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(auto, new ManualCoinJoinProfileViewModel(target, hours, isolateRed)));
 		});
 	}
 
@@ -76,5 +55,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		{
 			return Name;
 		}
+	}
+
+	public record ManualCoinJoinProfileDialogViewModelResult(bool AutoCoinJoin, ManualCoinJoinProfileViewModel Profile)
+	{
 	}
 }

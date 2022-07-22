@@ -1,54 +1,40 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(Title = "Edit Labels")]
 public partial class AddressLabelEditViewModel : RoutableViewModel
 {
-	[AutoNotify] private ObservableCollection<string> _labels;
-	[AutoNotify] private SmartLabel? _finalLabel;
 	[AutoNotify] private bool _isCurrentTextValid;
 
-	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager, HashSet<string> suggestions)
+	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{
-		Suggestions = suggestions;
-		_labels = new(hdPubKey.Label);
+		SuggestionLabels = new SuggestionLabelsViewModel(keyManager, Intent.Receive, 3, hdPubKey.Label);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		Labels
-			.WhenAnyValue(x => x.Count)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => FinalLabel = new SmartLabel(Labels));
-
 		var canExecute =
-			this.WhenAnyValue(x => x.FinalLabel, x => x.IsCurrentTextValid)
+			this.WhenAnyValue(x => x.SuggestionLabels.Labels.Count, x => x.IsCurrentTextValid)
 				.Select(tup =>
 				{
-					var (finalLabel, isCurrentTextValid) = tup;
-					return finalLabel is { IsEmpty: false } || isCurrentTextValid;
+					var (labelsCount, isCurrentTextValid) = tup;
+					return labelsCount > 0 || isCurrentTextValid;
 				});
 
 		NextCommand = ReactiveCommand.Create(
 			() =>
 			{
-				if (FinalLabel is null)
-				{
-					return;
-				}
-
-				hdPubKey.SetLabel(FinalLabel, kmToFile: keyManager);
+				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
 				Navigate().Back();
 			},
 			canExecute);
 	}
 
-	public HashSet<string> Suggestions { get; }
+	public SuggestionLabelsViewModel SuggestionLabels { get; }
 }

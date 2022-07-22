@@ -1,36 +1,35 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Windows.Input;
+using System.Text.RegularExpressions;
 using DynamicData;
+using DynamicData.Aggregation;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
 public partial class SearchBarViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
-
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
 
-	public SearchBarViewModel(IObservable<ISearchItem> itemsObservable)
+	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
-		var vms = itemsObservable.Select(item =>
-			item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item);
-
-		var source = new SourceCache<ISearchItem, ComposedKey>(item => item.Key);
-		source.PopulateFrom(vms);
-
 		var filterPredicate = this
 			.WhenAnyValue(x => x.SearchText)
 			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
 
-		source.Connect()
+		var filteredItems = itemsObservable
 			.RefCount()
-			.Filter(filterPredicate)
+			.Filter(filterPredicate);
+
+		filteredItems
+			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
 			.Bind(out _groups)
@@ -38,10 +37,13 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		ShowListCommand = ReactiveCommand.Create(() => IsSearchListVisible = true);
+		Any = filteredItems
+			.Count()
+			.Select(i => i > 0)
+			.ObserveOn(RxApp.MainThreadScheduler);
 	}
 
-	public ICommand ShowListCommand { get; }
+	public IObservable<bool> Any { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 
@@ -49,15 +51,16 @@ public partial class SearchBarViewModel : ReactiveObject
 	{
 		return searchItem =>
 		{
-			if (text is null)
+			if (string.IsNullOrWhiteSpace(text))
 			{
-				return true;
+				return searchItem.IsDefault;
 			}
 
 			var containsName = searchItem.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase);
+			var containsCategory = searchItem.Category.Contains(text, StringComparison.InvariantCultureIgnoreCase);
 			var containsAnyTag =
 				searchItem.Keywords.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
-			return containsName || containsAnyTag;
+			return containsName || containsCategory || containsAnyTag;
 		};
 	}
 }

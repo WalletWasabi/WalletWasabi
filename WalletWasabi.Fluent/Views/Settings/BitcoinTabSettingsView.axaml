@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:BitcoinTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.BitcoinTabSettingsView"
@@ -44,8 +45,8 @@
 
     <StackPanel Spacing="10"
                 ToolTip.Tip="Coins under the dust threshold won't appear.">
-      <TextBlock Text= "Dust Threshold (BTC)" />
-      <TextBox Text="{Binding DustThreshold}" />
+      <TextBlock Text= "Dust Threshold" />
+      <controls:CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </StackPanel>
   </StackPanel>
 </UserControl>

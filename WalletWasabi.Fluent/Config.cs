@@ -39,7 +39,7 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.TestNet;
+	public Network Network { get; internal set; } = Network.Main;
 
 	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
 	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -119,11 +119,6 @@ public class Config : ConfigBase
 
 	public Uri GetCurrentBackendUri()
 	{
-		if (TorMonitor.RequestFallbackAddressUsage)
-		{
-			return GetFallbackBackendUri();
-		}
-
 		if (_backendUri is { })
 		{
 			return _backendUri;

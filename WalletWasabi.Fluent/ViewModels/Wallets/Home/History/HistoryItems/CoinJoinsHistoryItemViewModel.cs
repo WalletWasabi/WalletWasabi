@@ -8,6 +8,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -27,10 +28,11 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		_updateTrigger = updateTrigger;
 
 		CoinJoinTransactions = new List<TransactionSummary>();
-		Label = "Coinjoins";
 		IsCoinJoin = true;
 
-		ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new CoinJoinDetailsViewModel(this)));
+		ShowDetailsCommand = ReactiveCommand.Create(() =>
+			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
+				new CoinJoinsDetailsViewModel(this, _updateTrigger)));
 
 		Add(firstItem);
 	}
@@ -52,7 +54,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 				item,
 				_walletViewModel,
 				balance,
-				_updateTrigger);
+				_updateTrigger,
+				false);
 
 			balance -= item.Amount;
 
@@ -60,6 +63,16 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		}
 
 		return result;
+	}
+
+	public override bool HasChildren()
+	{
+		if (CoinJoinTransactions.Count > 1)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	public void Add(TransactionSummary item)
@@ -88,8 +101,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		var lastDate = dates.Max().ToLocalTime();
 
 		DateString = firstDate.Day == lastDate.Day
-			? $"{firstDate:MM/dd/yy}"
-			: $"{firstDate:MM/dd/yy} - {lastDate:MM/dd/yy}";
+			? $"{firstDate:MM/dd/yyyy}"
+			: $"{firstDate:MM/dd/yyyy} - {lastDate:MM/dd/yyyy}";
 	}
 
 	public void SetBalance(Money balance)

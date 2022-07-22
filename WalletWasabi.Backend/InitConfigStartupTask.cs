@@ -14,14 +14,12 @@ namespace WalletWasabi.Backend;
 
 public class InitConfigStartupTask : IStartupTask
 {
-	public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
+	public InitConfigStartupTask(Global global, IMemoryCache cache)
 	{
 		Global = global;
 		Cache = cache;
-		WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 	}
 
-	public WebsiteTorifier WebsiteTorifier { get; }
 	public Global Global { get; }
 	public IMemoryCache Cache { get; }
 
@@ -50,20 +48,11 @@ public class InitConfigStartupTask : IStartupTask
 
 		var cachedRpc = new CachedRpcClient(rpc, Cache);
 		await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
-
-		try
-		{
-			await WebsiteTorifier.CloneAndUpdateOnionIndexHtmlAsync();
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning(ex);
-		}
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogWarning(e.Exception);
+		Logger.LogDebug(e.Exception);
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)

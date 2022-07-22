@@ -26,7 +26,10 @@ public class CurrencyEntryBox : TextBox
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsApproximate));
 
 	public static readonly StyledProperty<decimal> ConversionRateProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(ConversionRate));
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(ConversionRate));
+
+	public static readonly StyledProperty<bool> IsRightSideProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsRightSide));
 
 	private readonly CultureInfo _customCultureInfo;
 	private readonly char _decimalSeparator = '.';
@@ -69,11 +72,16 @@ public class CurrencyEntryBox : TextBox
 				$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 
 		PseudoClasses.Set(":noexchangerate", true);
+		PseudoClasses.Set(":isrightside", false);
+
+		this.GetObservable(IsRightSideProperty)
+			.Subscribe(x => PseudoClasses.Set(":isrightside", x));
 
 		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
 	}
 
 	public ICommand ModifiedPaste { get; }
+
 	public decimal ConversionRate
 	{
 		get => GetValue(ConversionRateProperty);
@@ -98,6 +106,12 @@ public class CurrencyEntryBox : TextBox
 		set => SetValue(IsApproximateProperty, value);
 	}
 
+	public bool IsRightSide
+	{
+		get => GetValue(IsRightSideProperty);
+		set => SetValue(IsRightSideProperty, value);
+	}
+
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
 		return fiatValue / ConversionRate;
@@ -115,10 +129,27 @@ public class CurrencyEntryBox : TextBox
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
 		var input = e.Text ?? "";
+
 		// Reject space char input when there's no text.
 		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
 		{
 			e.Handled = true;
+			base.OnTextInput(e);
+			return;
+		}
+
+		if (IsReplacingWithImplicitDecimal(input))
+		{
+			ReplaceCurrentTextWithLeadingZero(e);
+
+			base.OnTextInput(e);
+			return;
+		}
+
+		if (IsInsertingImplicitDecimal(input))
+		{
+			InsertLeadingZeroForDecimal(e);
+
 			base.OnTextInput(e);
 			return;
 		}
@@ -136,6 +167,33 @@ public class CurrencyEntryBox : TextBox
 		}
 
 		base.OnTextInput(e);
+	}
+
+	private bool IsReplacingWithImplicitDecimal(string input)
+	{
+		return input.StartsWith(".") && SelectedText == Text;
+	}
+
+	private bool IsInsertingImplicitDecimal(string input)
+	{
+		return input.StartsWith(".") && CaretIndex == 0 && Text is not null && !Text.Contains('.');
+	}
+
+	private void ReplaceCurrentTextWithLeadingZero(TextInputEventArgs e)
+	{
+		var finalText = "0" + e.Text;
+		Text = "";
+		e.Text = finalText;
+		CaretIndex = finalText.Length;
+		ClearSelection();
+	}
+
+	private void InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	{
+		var prependText = "0" + e.Text;
+		Text = Text.Insert(0, prependText);
+		e.Text = "";
+		CaretIndex += prependText.Length;
 	}
 
 	private bool ValidateEntryText(string preComposedText)
@@ -292,6 +350,10 @@ public class CurrencyEntryBox : TextBox
 		else if (change.Property == ConversionRateProperty)
 		{
 			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+		}
+		else if (change.Property == IsFiatProperty)
+		{
+			PseudoClasses.Set(":isfiat", change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 }

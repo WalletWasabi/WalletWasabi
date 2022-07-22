@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
@@ -11,27 +12,35 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 IsBusy="{Binding IsBusy}">
-    <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
-      <WrapPanel.Styles>
+                 IsBusy="{Binding IsBusy}"
+                 EnableNext="False">
+    <UniformGrid Rows="1" HorizontalAlignment="Center">
+      <UniformGrid.Styles>
         <Style Selector="c|TileButton">
-          <Setter Property="Margin" Value="4"/>
+          <Setter Property="Margin" Value="10" />
+          <Setter Property="IconSize" Value="50" />
         </Style>
-      </WrapPanel.Styles>
+      </UniformGrid.Styles>
       <c:TileButton Text="Create a new wallet"
-                    Classes="action"
+                    Classes="action doubleline"
                     Icon="{StaticResource add_regular}"
                     Command="{Binding CreateWalletCommand}"
                     IsDefault="{Binding IsActive}" />
+
       <c:TileButton Text="Connect to hardware wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource calculator_regular}"
                     Command="{Binding ConnectHardwareWalletCommand}" />
+
       <c:TileButton Text="Import a wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource import_regular}"
                     Command="{Binding ImportWalletCommand}" />
+
       <c:TileButton Text="Recover a wallet"
+                    Classes="doubleline"
                     Icon="{StaticResource recover_arrow_right_regular}"
                     Command="{Binding RecoverWalletCommand}" />
-    </WrapPanel>
+    </UniformGrid>
   </c:ContentArea>
 </UserControl>

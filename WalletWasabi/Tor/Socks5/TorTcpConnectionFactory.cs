@@ -2,8 +2,10 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -20,6 +22,9 @@ namespace WalletWasabi.Tor.Socks5;
 /// </summary>
 public class TorTcpConnectionFactory
 {
+	private static readonly VersionMethodRequest VersionMethodNoAuthRequired = new(methods: new MethodsField(MethodField.NoAuthenticationRequired));
+	private static readonly VersionMethodRequest VersionMethodUsernamePassword = new(methods: new MethodsField(MethodField.UsernamePassword));
+
 	/// <param name="endPoint">Tor SOCKS5 endpoint.</param>
 	public TorTcpConnectionFactory(EndPoint endPoint)
 	{
@@ -71,15 +76,20 @@ public class TorTcpConnectionFactory
 		{
 			tcpClient = new(TorSocks5EndPoint.AddressFamily);
 			tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-			try
+
+			// Windows 7 does not support the API we use.
+			if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Major < 10))
 			{
-				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
-				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
-				tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
-			}
-			catch (SocketException ex) when (ex.ErrorCode is 10042)
-			{
-				Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
+				try
+				{
+					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
+				}
+				catch (SocketException ex) when (ex.ErrorCode is 10042)
+				{
+					Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
+				}
 			}
 
 			transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
@@ -158,19 +168,13 @@ public class TorTcpConnectionFactory
 	/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
 	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken = default)
 	{
-		// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
-		// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
-		// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
-		// authentication method[02] is supported too, and used as a method to
-		// implement stream isolation.As an extension to support some broken clients,
-		// we allow clients to pass "USERNAME/PASSWORD" authentication message to us
-		// even if no authentication was selected.Furthermore, we allow
-		// username / password fields of this message to be empty. This technically
-		// violates RFC1929[4], but ensures interoperability with somewhat broken
-		// SOCKS5 client implementations.
-		MethodsField methods = new(MethodField.UsernamePassword);
+		VersionMethodRequest versionMethodRequest = circuit switch
+		{
+			DefaultCircuit => VersionMethodNoAuthRequired,
+			_ => VersionMethodUsernamePassword
+		};
 
-		byte[] receiveBuffer = await SendRequestAsync(tcpClient, new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
+		byte[] receiveBuffer = await SendRequestAsync(tcpClient, versionMethodRequest, cancellationToken).ConfigureAwait(false);
 
 		MethodSelectionResponse methodSelection = new(receiveBuffer);
 
@@ -260,7 +264,7 @@ public class TorTcpConnectionFactory
 			}
 
 			// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
-			// Generally also do not check anything but the success response, according to Socks5 RFC
+			// Generally also do not check anything but the success response, according to Socks5 RFC.
 
 			// If the reply code(REP value of X'00') indicates a success, and the
 			// request was either a BIND or a CONNECT, the client may now start
@@ -278,7 +282,7 @@ public class TorTcpConnectionFactory
 		}
 		catch (TorException e)
 		{
-			Logger.LogError($"Exception occurred when connecting to '{host}:{port}'.", e);
+			Logger.LogTrace($"Exception occurred when connecting to '{host}:{port}'.", e);
 			throw;
 		}
 		finally

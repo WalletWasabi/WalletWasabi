@@ -13,6 +13,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
@@ -38,9 +39,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private long _running;
 
-	private long _blockRequests; // There are priority requests in queue.
-
-	/// <param name="httpClientFactory">The class takes ownership of the instance.</param>
 	public WasabiSynchronizer(BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
 	{
 		LastResponse = null;
@@ -62,15 +60,10 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 	public SynchronizeResponse? LastResponse { get; private set; }
-
-	/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
 	public HttpClientFactory HttpClientFactory { get; }
-
 	public WasabiClient WasabiClient { get; }
 
-	/// <summary>
-	/// Gets the Bitcoin price in USD.
-	/// </summary>
+	/// <summary>Gets the Bitcoin price in USD.</summary>
 	public decimal UsdExchangeRate
 	{
 		get => _usdExchangeRate;
@@ -105,20 +98,12 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
-	/// <summary>
-	/// Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.
-	/// </summary>
+	/// <summary>Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.</summary>
 	private CancellationTokenSource StopCts { get; }
 
 	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
 
 	public bool InError => BackendStatus != BackendStatus.Connected;
-
-	public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
-
-	public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
-
-	public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
 
 	#endregion EventsPropertiesMembers
 
@@ -145,32 +130,22 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 			try
 			{
 				bool ignoreRequestInterval = false;
-				EnableRequests();
+
 				while (IsRunning)
 				{
 					try
 					{
-						while (AreRequestsBlocked())
-						{
-							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false);
-						}
-
 						SynchronizeResponse response;
 
-						var lastUsedApiVersion = WasabiClient.ApiVersion;
+						ushort lastUsedApiVersion = WasabiClient.ApiVersion;
 						try
 						{
-							if (!IsRunning)
-							{
-								return;
-							}
-
 							response = await WasabiClient
 								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
 
-								// NOT GenSocksServErr
-								BackendStatus = BackendStatus.Connected;
+							// NOT GenSocksServErr
+							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;
 							DoNotGenSocksServFail();
 						}
@@ -178,7 +153,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						{
 							TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
 							BackendStatus = BackendStatus.NotConnected;
-							HandleIfGenSocksServFail(ex);
 							HandleIfGenSocksServFail(innerEx);
 							throw;
 						}
@@ -188,14 +162,14 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							BackendStatus = BackendStatus.NotConnected;
 							try
 							{
-									// Backend API version might be updated meanwhile. Trying to update the versions.
-									var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
+								// Backend API version might be updated meanwhile. Trying to update the versions.
+								var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
 
-									// If the backend is compatible and the Api version updated then we just used the wrong API.
-									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+								// If the backend is compatible and the Api version updated then we just used the wrong API.
+								if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 								{
-										// Next request will be fine, do not throw exception.
-										ignoreRequestInterval = true;
+									// Next request will be fine, do not throw exception.
+									ignoreRequestInterval = true;
 									continue;
 								}
 								else
@@ -217,8 +191,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							throw;
 						}
 
-							// If it's not fully synced or reorg happened.
-							if (response.Filters.Count() == maxFiltersToSyncAtInitialization || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+						// If it's not fully synced or reorg happened.
+						if (response.Filters.Count() == maxFiltersToSyncAtInitialization || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 						{
 							ignoreRequestInterval = true;
 						}
@@ -247,8 +221,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 					}
 					catch (TorConnectionException ex)
 					{
-							// When stopping, we do not want to wait.
-							if (!IsRunning)
+						// When stopping, we do not want to wait.
+						if (!IsRunning)
 						{
 							Logger.LogTrace(ex);
 							return;
@@ -258,7 +232,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						try
 						{
 							await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
-							}
+						}
 						catch (TaskCanceledException ex2)
 						{
 							Logger.LogTrace(ex2);
@@ -280,7 +254,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 							{
 								int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
 								await Task.Delay(delay, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
-								}
+							}
 							catch (TaskCanceledException ex)
 							{
 								Logger.LogTrace(ex);
@@ -292,7 +266,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 			finally
 			{
 				Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-					Logger.LogTrace("< Wasabi synchronizer thread ends.");
+				Logger.LogDebug("Synchronizer is fully stopped now.");
 			}
 		});
 
@@ -305,15 +279,24 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private void HandleIfGenSocksServFail(Exception ex)
 	{
-		// IS GenSocksServFail?
-		if (ex.ToString().Contains("GeneralSocksServerFailure", StringComparison.OrdinalIgnoreCase))
+		bool isFail = false;
+
+		if (ex is HttpRequestException httpRequestException && httpRequestException.InnerException is not null)
 		{
-			// IS GenSocksServFail
+			ex = httpRequestException.InnerException;
+		}
+
+		if (ex is TorConnectCommandFailedException torEx)
+		{
+			isFail = torEx.RepField == RepField.GeneralSocksServerFailure || torEx.RepField == RepField.OnionServiceIntroFailed;
+		}
+
+		if (isFail)
+		{
 			DoGenSocksServFail();
 		}
 		else
 		{
-			// NOT GenSocksServFail
 			DoNotGenSocksServFail();
 		}
 	}
@@ -347,8 +330,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 		}
 
 		StopCts.Dispose();
-
-		EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
 
 		Logger.LogTrace("<");
 	}
