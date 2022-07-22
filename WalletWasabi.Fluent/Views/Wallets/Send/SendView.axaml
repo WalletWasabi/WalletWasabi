@@ -58,7 +58,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <destinationEntry:PaymentDestinationControl DockPanel.Dock="Top" DataContext="{Binding PaymentViewModel}" />
+      <destinationEntry:PaymentDestinationControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top" PaymentController="{Binding PaymentViewModel}" />
 
       <!-- Advanced -->
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"

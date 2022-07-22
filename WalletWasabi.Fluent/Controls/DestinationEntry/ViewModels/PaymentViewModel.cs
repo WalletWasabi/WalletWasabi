@@ -1,3 +1,4 @@
+using System.Net;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
@@ -26,6 +27,11 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
                     {
                         Amount = a.Amount.Value;
                     }
+
+                    if (a.EndPoint is not null)
+                    {
+	                    EndPoint = a.EndPoint;
+                    }
                 }
             }).DisposeWith(disposables);
 
@@ -41,6 +47,8 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
                 viewModel => viewModel.Amount, x => x > 0,
                 "Amount should be greater than 0");
         }
+
+        public Uri? EndPoint { get; set; }
 
         public ReactiveCommand<Unit, Unit> PasteCommand { get; }
 

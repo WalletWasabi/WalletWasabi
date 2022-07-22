@@ -11,7 +11,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.PaymentDestinationControl"
              x:DataType="viewModels:PaymentViewModel"
-             x:CompileBindings="True">
+             x:CompileBindings="True"
+             x:Name="UserControl">
   <UserControl.Styles>
     <Style Selector="HeaderedContentControl">
       <Setter Property="Template">
@@ -65,7 +66,7 @@
           AcceptsReturn="False"
           Classes="monoSpaced"
           x:Name="To"
-          Text="{Binding MutableAddressHost.Text, Mode=TwoWay}"
+          Text="{Binding #UserControl.PaymentController.MutableAddressHost.Text, Mode=TwoWay}"
           MaxLength="250"
           Watermark="(e.g. Bitcoin address or Payjoin URL)">
 
@@ -78,15 +79,15 @@
             <c:AnimatedButton DockPanel.Dock="Right" KeyboardNavigation.IsTabStop="False"
                               x:Name="PasteButton"
                               Focusable="False"
-                              Command="{Binding PasteCommand}"
+                              Command="{Binding #UserControl.PaymentController.PasteCommand}"
                               ToolTip.Tip="Paste"
                               NormalIcon="{StaticResource paste_regular}"
                               ClickIcon="{StaticResource copy_confirmed}">
               <i:Interaction.Behaviors>
-                <ia:DataTriggerBehavior Binding="{Binding HasNewContent^}" ComparisonCondition="Equal" Value="True">
+                <ia:DataTriggerBehavior Binding="{Binding #UserControl.PaymentController.HasNewContent^}" ComparisonCondition="Equal" Value="True">
                   <iac:AddClassAction StyledElement="PasteButton" ClassName="flash" RemoveIfExists="True" />
                 </ia:DataTriggerBehavior>
-                <ia:DataTriggerBehavior Binding="{Binding HasNewContent^}" ComparisonCondition="Equal" Value="False">
+                <ia:DataTriggerBehavior Binding="{Binding #UserControl.PaymentController.HasNewContent^}" ComparisonCondition="Equal" Value="False">
                   <iac:RemoveClassAction StyledElement="PasteButton" ClassName="flash" />
                 </ia:DataTriggerBehavior>
               </i:Interaction.Behaviors>
@@ -99,17 +100,21 @@
 
     <DockPanel>
       <Label DockPanel.Dock="Left" Content="_Amount:" Target="Amount" />
-      <c:DualCurrencyEntryBox x:Name="Amount" AmountBtc="{Binding Amount}" ConversionCurrencyCode="USD"
-                              IsReadOnly="{Binding MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
-                              ConversionRate="2" />
+      <c:DualCurrencyEntryBox x:Name="Amount"
+                              AmountBtc="{Binding #UserControl.PaymentController.Amount}"
+                              ConversionCurrencyCode="USD"
+                              CurrencyCode="BTC"
+                              IsReadOnly="{Binding #UserControl.PaymentController.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
+                              ConversionRate="{Binding #UserControl.ConversionRate}" />
     </DockPanel>
 
     <DockPanel
-      IsVisible="{Binding MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+      IsVisible="{Binding #UserControl.PaymentController.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
       <Label Content="_Address:" DockPanel.Dock="Left" Target="Address" />
       <TextBox IsReadOnly="True"
                x:Name="Address"
-               Watermark="Address" Text="{Binding Address}" />
+               Watermark="Address" Text="{Binding #UserControl.PaymentController.Address}"
+               IsTabStop="False"/>
     </DockPanel>
   </StackPanel>
 </UserControl>
