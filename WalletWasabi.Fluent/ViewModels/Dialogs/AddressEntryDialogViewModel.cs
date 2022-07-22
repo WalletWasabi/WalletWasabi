@@ -9,6 +9,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -37,6 +38,8 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
+		PaymentViewModel = Factory.Create(new BtcOnlyAddressParser(network));
+		
 		this.ValidateProperty(x => x.To, ValidateToField);
 
 		this.WhenAnyValue(x => x.To)
@@ -67,6 +70,8 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(To, _network)), nextCommandCanExecute);
 	}
+
+	public PaymentViewModel PaymentViewModel { get; }
 
 	public bool IsQrButtonVisible { get; }
 
