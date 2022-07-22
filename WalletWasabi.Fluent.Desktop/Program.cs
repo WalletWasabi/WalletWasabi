@@ -1,12 +1,15 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
-using Splat;
 using System.IO;
-using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ReactiveUI;
+using System.Linq;
 using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
@@ -38,7 +41,7 @@ public class Program
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		SetupLogger(dataDir, args);
 
-		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none") }.");
+		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
 
 		// Crash reporting must be before the "single instance checking".
 		try
@@ -91,9 +94,22 @@ public class Program
 			Global = CreateGlobal(dataDir, uiConfig, config);
 			Services.Initialize(Global, singleInstanceChecker);
 
+			RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+				{
+					if (Debugger.IsAttached)
+					{
+						Debugger.Break();
+					}
+
+					Logger.LogError(ex);
+
+					RxApp.MainThreadScheduler.Schedule(() => throw ex);
+				});
+
 			Logger.LogSoftwareStarted("Wasabi GUI");
 			AppBuilder
-				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI()
+				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground))
+				.UseReactiveUI()
 				.SetupAppBuilder()
 				.AfterSetup(_ =>
 					{

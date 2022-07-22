@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Extensions;
@@ -53,6 +54,23 @@ public static class LinqExtensions
 			}
 		}
 		return current;
+	}
+
+	/// <summary>
+	/// Selects a random element based on order bias.
+	/// </summary>
+	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
+	public static T? BiasedRandomElement<T>(this IOrderedEnumerable<T> source, int biasPercent)
+	{
+		foreach (T element in source)
+		{
+			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
+			{
+				return element;
+			}
+		}
+
+		return source.Any() ? source.First() : default;
 	}
 
 	public static IList<T> Shuffle<T>(this IList<T> list)
@@ -229,5 +247,17 @@ public static class LinqExtensions
 			inputSum += item;
 		}
 		return inputSum;
+	}
+
+	public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> list, Func<T, bool> predicate)
+	{
+		foreach (T el in list)
+		{
+			yield return el;
+			if (predicate(el))
+			{
+				yield break;
+			}
+		}
 	}
 }

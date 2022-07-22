@@ -39,7 +39,6 @@
         <Style Selector="c|Dialog /template/ Border#PART_Border">
           <Setter Property="Margin" Value="0" />
           <Setter Property="CornerRadius" Value="0" />
-          <Setter Property="BoxShadow" Value="" />
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />

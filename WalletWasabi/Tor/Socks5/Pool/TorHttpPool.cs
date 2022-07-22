@@ -83,7 +83,14 @@ public class TorHttpPool : IDisposable
 			TorDoesntWorkSince = DateTimeOffset.UtcNow;
 		}
 
-		LatestTorException = e;
+		if (e is HttpRequestException)
+		{
+			LatestTorException = e.InnerException is null ? e : e.InnerException;
+		}
+		else
+		{
+			LatestTorException = e;
+		}
 	}
 
 	/// <summary>

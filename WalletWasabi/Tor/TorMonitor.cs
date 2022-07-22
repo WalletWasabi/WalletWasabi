@@ -14,6 +14,7 @@ using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 using WalletWasabi.Tor.Control.Utils;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.Tor.Socks5.Models;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -24,7 +25,21 @@ namespace WalletWasabi.Tor;
 /// <summary>Monitors Tor process bootstrap and reachability of Wasabi Backend.</summary>
 public class TorMonitor : PeriodicRunner
 {
-	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(5);
+	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(10);
+
+	/// <summary>Tor Control events we monitor.</summary>
+	private static readonly IReadOnlyList<string> EventNames = new List<string>()
+	{
+		StatusEvent.EventNameStatusGeneral,
+		StatusEvent.EventNameStatusClient,
+		StatusEvent.EventNameStatusServer,
+		CircEvent.EventName,
+		OrConnEvent.EventName,
+		NetworkLivenessEvent.EventName,
+	};
+
+	/// <remarks>Guards <see cref="ForceTorRestartCts"/>.</remarks>
+	private readonly object _lock = new();
 
 	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
 	{
@@ -49,6 +64,12 @@ public class TorMonitor : PeriodicRunner
 
 	private Task? BootstrapTask { get; set; }
 
+	/// <summary>Whether we should try Tor process restart to fix <see cref="ReplyType.TtlExpired"/> issues.</summary>
+	private bool TryTorRestart { get; set; } = true;
+
+	/// <remarks>Assignment and cancel operations must be guarded with <see cref="_lock"/>.</remarks>
+	private CancellationTokenSource? ForceTorRestartCts { get; set; }
+
 	/// <inheritdoc/>
 	public override Task StartAsync(CancellationToken cancellationToken)
 	{
@@ -58,82 +79,156 @@ public class TorMonitor : PeriodicRunner
 
 	private async Task StartBootstrapMonitorAsync(CancellationToken appShutdownToken)
 	{
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(appShutdownToken, LoopCts.Token);
-		while (!linkedCts.IsCancellationRequested)
+		try
 		{
-			try
+			using CancellationTokenSource linkedLoopCts = CancellationTokenSource.CreateLinkedTokenSource(appShutdownToken, LoopCts.Token);
+
+			while (!linkedLoopCts.IsCancellationRequested)
 			{
-				(CancellationToken cancellationToken, TorControlClient client) = await TorProcessManager.WaitForNextAttemptAsync(linkedCts.Token).ConfigureAwait(false);
-				Logger.LogInfo("Starting Tor bootstrap monitor…");
-				List<string> eventNames = new()
+				await MonitorEventsAsync(linkedLoopCts.Token).ConfigureAwait(false);
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			Logger.LogDebug("Application is shutting down.");
+		}
+	}
+
+	/// <remarks>Method is invoked every time Tor process is started.</remarks>
+	private async Task MonitorEventsAsync(CancellationToken cancellationToken)
+	{
+		using CancellationTokenSource forceTorRestartCts = new();
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(forceTorRestartCts.Token, cancellationToken);
+
+		lock (_lock)
+		{
+			ForceTorRestartCts = forceTorRestartCts;
+		}
+
+		TorControlClient? torControlClient = null;
+
+		try
+		{
+			// We can't use linked CTS here because then we would not obtain Tor control client instance to actually shut down Tor if force restart is signalled.
+			(CancellationToken torTerminatedCancellationToken, torControlClient) = await TorProcessManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
+			using CancellationTokenSource linkedCts2 = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, torTerminatedCancellationToken);
+
+			Logger.LogInfo("Starting Tor bootstrap monitor…");
+			await torControlClient.SubscribeEventsAsync(EventNames, linkedCts2.Token).ConfigureAwait(false);
+			bool circuitEstablished = false;
+
+			await foreach (TorControlReply reply in torControlClient.ReadEventsAsync(linkedCts2.Token).ConfigureAwait(false))
+			{
+				IAsyncEvent asyncEvent;
+				try
 				{
-					StatusEvent.EventNameStatusGeneral,
-					StatusEvent.EventNameStatusClient,
-					StatusEvent.EventNameStatusServer,
-					CircEvent.EventName,
-					OrConnEvent.EventName,
-					NetworkLivenessEvent.EventName,
-				};
-				await client.SubscribeEventsAsync(eventNames, cancellationToken).ConfigureAwait(false);
-				bool circuitEstablished = false;
-				await foreach (TorControlReply reply in client.ReadEventsAsync(cancellationToken).ConfigureAwait(false))
+					asyncEvent = AsyncEventParser.Parse(reply);
+				}
+				catch (TorControlReplyParseException e)
 				{
-					IAsyncEvent asyncEvent;
-					try
+					Logger.LogError($"Exception thrown when parsing event: '{reply}'", e);
+					continue;
+				}
+				if (asyncEvent is BootstrapStatusEvent bootstrapEvent)
+				{
+					BootstrapStatusEvent.Phases.TryGetValue(bootstrapEvent.Progress, out string? bootstrapInfo);
+					Logger.LogInfo($"Bootstrap progress: {bootstrapEvent.Progress}/100 ({bootstrapInfo ?? "N/A"})");
+				}
+				else if (asyncEvent is StatusEvent statusEvent)
+				{
+					if (!circuitEstablished && statusEvent.Action == StatusEvent.ActionCircuitEstablished)
 					{
-						asyncEvent = AsyncEventParser.Parse(reply);
+						Logger.LogInfo("Tor circuit was established.");
+						circuitEstablished = true;
 					}
-					catch (TorControlReplyParseException e)
+
+					if (statusEvent.Action == StatusEvent.ActionCircuitNotEstablished)
 					{
-						Logger.LogError($"Exception thrown when parsing event: '{reply}'", e);
-						continue;
+						_ = statusEvent.Arguments.TryGetValue("REASON", out string? reason);
+						Logger.LogError($"Tor circuit failed to be established: {(reason ?? "unknown reason")}.");
 					}
-					if (asyncEvent is BootstrapStatusEvent bootstrapEvent)
+				}
+				else if (asyncEvent is CircEvent circEvent)
+				{
+					CircuitInfo info = circEvent.CircuitInfo;
+					if (!circuitEstablished && info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
 					{
-						BootstrapStatusEvent.Phases.TryGetValue(bootstrapEvent.Progress, out string? bootstrapInfo);
-						Logger.LogInfo($"Bootstrap progress: {bootstrapEvent.Progress}/100 ({bootstrapInfo ?? "N/A"})");
+						Logger.LogInfo("Tor circuit was established.");
+						circuitEstablished = true;
 					}
-					else if (asyncEvent is StatusEvent statusEvent)
+					if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
 					{
-						if (!circuitEstablished && statusEvent.Action == StatusEvent.ActionCircuitEstablished)
-						{
-							Logger.LogInfo("Tor circuit was established.");
-							circuitEstablished = true;
-						}
-					}
-					else if (asyncEvent is CircEvent circEvent)
-					{
-						CircuitInfo info = circEvent.CircuitInfo;
-						if (!circuitEstablished && info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
-						{
-							Logger.LogInfo("Tor circuit was established.");
-							circuitEstablished = true;
-						}
-						if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
-						{
-							Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
-							TorHttpPool.ReportCircuitClosed(info.UserName);
-						}
+						Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
+						TorHttpPool.ReportCircuitClosed(info.UserName);
 					}
 				}
 			}
-			catch (OperationCanceledException)
+		}
+		catch (OperationCanceledException)
+		{
+			if (forceTorRestartCts.IsCancellationRequested)
 			{
-				if (linkedCts.IsCancellationRequested)
+				// Attempt to shut down Tor. 
+				if (torControlClient is not null)
 				{
-					Logger.LogDebug("Tor Monitor is stopping.");
+					bool success = await ShutDownTorAsync(torControlClient).ConfigureAwait(false);
+					if (success)
+					{
+						// Wait a bit so that we don't try to connect to Tor Control until Tor is actually started.
+						await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
+					}
 				}
 				else
 				{
-					Logger.LogDebug("Tor Monitor is re-initializing.");
+					Logger.LogWarning("No Tor control client to restart Tor."); // This should not happen.
 				}
 			}
-			catch (Exception e)
+			else if (cancellationToken.IsCancellationRequested)
 			{
-				Logger.LogError(e);
-				break;
+				Logger.LogDebug("Tor Monitor is stopping.");
+			}
+			else
+			{
+				Logger.LogDebug("Tor Monitor is re-initializing.");
 			}
 		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+		}
+		finally
+		{
+			lock (_lock)
+			{
+				ForceTorRestartCts = null;
+			}
+		}
+	}
+
+	private async Task<bool> ShutDownTorAsync(TorControlClient torControlClient)
+	{
+		try
+		{
+			// The shutdown operation should be quick but let's not risk getting stuck for some reason.
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+			TorControlReply reply = await torControlClient.SignalShutdownAsync(timeoutCts.Token).ConfigureAwait(false);
+
+			if (reply.Success)
+			{
+				Logger.LogInfo("Tor process was gracefully shut down to be restarted again.");
+				return true;
+			}
+			else
+			{
+				Logger.LogInfo("Failed to restart Tor process.");
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug(ex);
+		}
+
+		return false;
 	}
 
 	/// <inheritdoc/>
@@ -146,7 +241,14 @@ public class TorMonitor : PeriodicRunner
 
 			if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 			{
-				if (TorHttpPool.LatestTorException is TorConnectCommandFailedException)
+				Exception? latestTorException = TorHttpPool.LatestTorException;
+
+				if (latestTorException is null)
+				{
+					return;
+				}
+
+				if (latestTorException is TorConnectCommandFailedException e)
 				{
 					// Tor must be running for us to consider switching to the fallback address.
 					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
@@ -156,6 +258,26 @@ public class TorMonitor : PeriodicRunner
 						Logger.LogInfo("Tor is not running.");
 						return;
 					}
+
+					if (TryTorRestart && e.RepField == RepField.TtlExpired)
+					{
+						Logger.LogDebug("Request Tor restart to fix TTL issues.");
+
+						// This might be a no-op in case of Tor being started. We don't mind this behavior.
+						lock (_lock)
+						{
+							if (ForceTorRestartCts is not null)
+							{
+								TryTorRestart = false;
+								ForceTorRestartCts.Cancel(); // Dispose is handled in a different method.
+								ForceTorRestartCts = null;
+							}
+						}
+
+						return;
+					}
+
+					TryTorRestart = true;
 
 					// Check if the fallback address (clearnet through exit nodes) works. It must work.
 					try
@@ -177,6 +299,10 @@ public class TorMonitor : PeriodicRunner
 					Logger.LogInfo("Switching to the fallback URL.");
 					RequestFallbackAddressUsage = true;
 					FallbackStarted = DateTime.UtcNow;
+				}
+				else if (torMisbehavedFor - CheckIfRunningAfterTorMisbehavedFor < Period)
+				{
+					Logger.LogDebug("Latest Tor exception is.", latestTorException);
 				}
 			}
 		}

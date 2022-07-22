@@ -53,8 +53,7 @@ public class RoundStateUpdater : PeriodicRunner
 
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
-		RoundStates = newRoundStates.Concat(updatedRoundStates)
-			.ToDictionary(x => x.Id, x => x);
+		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
