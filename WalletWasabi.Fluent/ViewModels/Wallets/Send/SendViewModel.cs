@@ -22,10 +22,10 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
+using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -139,7 +139,11 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+
+		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network));
 	}
+
+	public PaymentViewModel PaymentViewModel { get; }
 
 	public bool IsQrButtonVisible { get; }
 

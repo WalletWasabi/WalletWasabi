@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.BtcAddressControl"
+             x:DataType="viewModels:PaymentViewModel"
+             x:CompileBindings="True">
+	<UserControl.Styles>
+		<Style Selector="HeaderedContentControl">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<DockPanel>
+						<ContentPresenter VerticalAlignment="Center" Content="{TemplateBinding Header}"
+                                          DockPanel.Dock="Left" />
+						<ContentPresenter Content="{TemplateBinding Content}" Margin="6" />
+					</DockPanel>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+	</UserControl.Styles>
+
+	<StackPanel>
+		<StackPanel>
+			<HeaderedContentControl Header="To:">
+				<DockPanel>
+					<Button Margin="4" Content="Paste" DockPanel.Dock="Right" Command="{Binding PasteCommand}">
+						<i:Interaction.Behaviors>
+                            <iac:DataTriggerBehavior Binding="{Binding HasNewContent^}" Value="True">
+                                <iac:ChangePropertyAction PropertyName="Foreground" Value="Red" />
+                            </iac:DataTriggerBehavior>
+                            <iac:DataTriggerBehavior Binding="{Binding HasNewContent^}" Value="False">
+                                <iac:ChangePropertyAction PropertyName="Foreground" Value="Black" />
+                            </iac:DataTriggerBehavior>
+						</i:Interaction.Behaviors>
+					</Button>
+					<TextBox Text="{Binding MutableAddressHost.Text, Mode=TwoWay}" />
+				</DockPanel>
+			</HeaderedContentControl>
+        </StackPanel>
+	</StackPanel>
+</UserControl>
