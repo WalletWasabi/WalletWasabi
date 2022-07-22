@@ -212,9 +212,12 @@
         </c:LineChart.Styles>
         <i:Interaction.Behaviors>
           <behaviors:ShowSliderThumbToolTipBehavior Slider="{Binding #CursorValue2}" />
-          <ir:AdaptiveBehavior>
-            <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" />
-          </ir:AdaptiveBehavior>
+
+          <!-- Disabled it as we have enough space all the time. -->
+          <!-- I leave the code here for easy re enabling if needed. -->
+          <!-- <ir:AdaptiveBehavior> -->
+          <!--   <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="550" ClassName="narrow" /> -->
+          <!-- </ir:AdaptiveBehavior> -->
         </i:Interaction.Behaviors>
       </c:LineChart>
     </DockPanel>

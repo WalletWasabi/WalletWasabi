@@ -111,16 +111,16 @@
             <Ellipse.Styles>
               <Style Selector="Ellipse">
                 <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-                <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Enabled" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin enabled" />
               </Style>
               <Style Selector="Ellipse.waiting">
                 <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
                 <Setter Property="ToolTip.Tip"
-                        Value="Auto-start Coinjoin Enabled. Press Play to start immediately." />
+                        Value="Auto-start coinjoin enabled. Press Play to start immediately." />
               </Style>
               <Style Selector="Ellipse.disabled">
                 <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
-                <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Disabled" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin disabled" />
               </Style>
             </Ellipse.Styles>
           </Ellipse>
