@@ -1,25 +1,14 @@
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia;
-using Avalonia.Threading;
 using NBitcoin;
-using NBitcoin.Payment;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.PayJoin;
-using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -39,47 +28,41 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SendViewModel : RoutableViewModel
 {
-	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
-	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
 
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
-		_to = "";
 		_wallet = wallet;
 		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
-
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-
 		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
 		EnableBack = false;
 
 		this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
-	
+
+		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network));
+
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 			if (!string.IsNullOrWhiteSpace(result.Result))
 			{
-				To = result.Result;
+				PaymentViewModel.MutableAddressHost.Text = result.Result;
 			}
 		});
 
 		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(async () =>
 			await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen));
-
-		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network));
 
 		NextCommand = ReactiveCommand.CreateFromTask(
 			() => OnNext(wallet),
@@ -114,10 +97,6 @@ public partial class SendViewModel : RoutableViewModel
 
 	public bool IsQrButtonVisible { get; }
 
-	public ICommand PasteCommand { get; }
-
-	public ICommand AutoPasteCommand { get; }
-
 	public ICommand QrCommand { get; }
 
 	public ICommand AdvancedOptionsCommand { get; }
@@ -144,7 +123,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		if (!inHistory)
 		{
-			To = "";
+			PaymentViewModel.MutableAddressHost.Text = "";
 			AmountBtc = 0;
 			ClearValidations();
 
