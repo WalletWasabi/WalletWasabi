@@ -47,7 +47,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var selectedSmartCoins = _coins.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
-		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
+		var addressDialog = new AddressEntryDialogViewModel(wallet.Network);
 		var addressResult = await NavigateDialogAsync(addressDialog, NavigationTarget.CompactDialogScreen);
 		if (addressResult.Result is not { } address)
 		{
