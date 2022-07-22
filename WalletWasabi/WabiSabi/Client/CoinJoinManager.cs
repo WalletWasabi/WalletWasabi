@@ -132,7 +132,7 @@ public class CoinJoinManager : BackgroundService
 		async Task StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
-			
+
 			if (trackedCoinJoins.TryGetValue(walletToStart.Identifier, out var tracker))
 			{
 				if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed)
@@ -176,7 +176,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (await walletToStart.IsWalletPrivate())
+			if (walletToStart.IsWalletPrivate())
 			{
 				walletToStart.LogDebug("All mixed!");
 				if (!startCommand.StopWhenAllMixed)
@@ -474,9 +474,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task<ImmutableDictionary<string, IWallet>> GetMixableWallets() =>
 		(await WalletProvider.GetWallets().ConfigureAwait(false))
 			.Where(x => x.IsMixable)
-			.ToImmutableDictionary(x =>x.Identifier, x =>  x);
-
-	
+			.ToImmutableDictionary(x => x.Identifier, x => x);
 
 	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
 	{
@@ -487,8 +485,6 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => !x.IsBanned)
 			.Where(x => !CoinRefrigerator.IsFrozen(x));
 	}
-
-	
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
