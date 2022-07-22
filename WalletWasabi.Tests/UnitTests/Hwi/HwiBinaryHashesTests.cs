@@ -21,9 +21,9 @@ public class HwiBinaryHashesTests
 
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "bdc866fb86de074a06adb1aed50deaa9f7890062a3af431607c232ff46ef11da" },
-			{ OSPlatform.Linux, "76c6306a6936728907c958239f162a6b537cc0038d1b8a70a647d668f9bac396" },
-			{ OSPlatform.OSX, "cd3c230db3b6c6ab481befd8693926f5b54ce5ce365439f8433d4f2d0372308d" },
+			{ OSPlatform.Windows, "3efa5bcde386ca5523a4127f3a9802a7e9ef5320c2a8910ead343386c0b7dbfc" },
+			{ OSPlatform.Linux, "7f4cbe4e5c2cd1ac892f9bd8ac35fb1f837b6a547b528b61aca895a212a90062" },
+			{ OSPlatform.OSX, "1b1a903b4a9884aa06593356e7a958c19ccb56a5bc97e0c6075f968310640fd2" },
 		};
 
 		foreach (var item in expectedHashes)
