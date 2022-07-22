@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
+
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.PasteButton"
+             x:Name="UserControl">
+  <UserControl.Styles>
+    <Style Selector="c|AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+      <Style.Animations>
+        <Animation Duration="0.25" IterationCount="6"
+                   PlaybackDirection="AlternateReverse"
+                   Easing="{StaticResource FluentEasing}">
+          <KeyFrame KeyTime="0:0:0.0">
+            <Setter Property="Opacity" Value="0.1" />
+          </KeyFrame>
+          <KeyFrame KeyTime="0:0:0.25">
+            <Setter Property="Opacity" Value="1" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
+  <c:AnimatedButton DockPanel.Dock="Right" KeyboardNavigation.IsTabStop="False"
+                    x:Name="PasteButton"
+                    Focusable="False"
+                    Command="{Binding #UserControl.PasteCommand}"
+                    ToolTip.Tip="Paste"
+                    NormalIcon="{StaticResource paste_regular}"
+                    ClickIcon="{StaticResource copy_confirmed}">
+    <i:Interaction.Behaviors>
+      <ia:DataTriggerBehavior Binding="{Binding #UserControl.CanPaste}" ComparisonCondition="Equal" Value="True">
+        <iac:AddClassAction StyledElement="PasteButton" ClassName="flash" RemoveIfExists="True" />
+      </ia:DataTriggerBehavior>
+      <ia:DataTriggerBehavior Binding="{Binding #UserControl.CanPaste}" ComparisonCondition="Equal" Value="False">
+        <iac:RemoveClassAction StyledElement="PasteButton" ClassName="flash" />
+      </ia:DataTriggerBehavior>
+    </i:Interaction.Behaviors>
+  </c:AnimatedButton>
+
+</UserControl>
