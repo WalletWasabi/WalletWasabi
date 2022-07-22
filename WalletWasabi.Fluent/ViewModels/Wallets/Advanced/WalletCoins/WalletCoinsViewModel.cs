@@ -197,17 +197,17 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	private static int GetOrderingPriority(WalletCoinViewModel x)
 	{
-		if (x.Confirmed)
+		if (x.CoinJoinInProgress)
 		{
 			return 1;
 		}
 
-		if (x.CoinJoinInProgress)
+		if (x.IsBanned)
 		{
 			return 2;
 		}
 
-		if (x.IsBanned)
+		if (!x.Confirmed)
 		{
 			return 3;
 		}
