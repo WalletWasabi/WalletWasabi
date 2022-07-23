@@ -15,7 +15,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 	{
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		PaymentViewModel = Factory.Create(new BtcOnlyAddressParser(network));
+		PaymentViewModel = Factory.Create(new BtcOnlyAddressParser(network), _ => true);
 		QrCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(network);

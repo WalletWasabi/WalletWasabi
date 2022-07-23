@@ -9,12 +9,12 @@ public static class Factory
         ClipboardObserver = new ClipboardObserver();
     }
 
-    public static PaymentViewModel Create(IAddressParser parser)
+    public static PaymentViewModel Create(IAddressParser parser, Func<decimal, bool> isAmountValid)
     {
         var newContentsChanged = ClipboardObserver.ContentChanged;
         IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
         return new PaymentViewModel(newContentsChanged, mutableAddressHost,
             new ContentChecker<string>(newContentsChanged, mutableAddressHost.TextChanged,
-                s => parser.GetAddress(s) is not null));
+                s => parser.GetAddress(s) is not null), isAmountValid);
     }
 }

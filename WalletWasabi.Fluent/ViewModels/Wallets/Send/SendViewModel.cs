@@ -14,6 +14,9 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
+using ReactiveUI.Validation.Abstractions;
+using ReactiveUI.Validation.Contexts;
+using ReactiveUI.Validation.Extensions;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Helpers;
@@ -27,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class SendViewModel : RoutableViewModel
+public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 {
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
@@ -48,9 +51,7 @@ public partial class SendViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
 
-		this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
-
-		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network));
+		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network), a => a <= wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
 
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
@@ -67,7 +68,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(
 			() => OnNext(wallet),
-			PaymentViewModel.MutableAddressHost.ParsedAddress.Select(x => x is not null));
+			PaymentViewModel.IsValid());
 
 		//this.WhenAnyValue(x => x.ConversionReversed)
 		//	.Skip(1)
@@ -153,4 +154,6 @@ public partial class SendViewModel : RoutableViewModel
 			coinJoinManager.IsUserInSendWorkflow = false;
 		}
 	}
+
+	public ValidationContext ValidationContext { get; } = new();
 }

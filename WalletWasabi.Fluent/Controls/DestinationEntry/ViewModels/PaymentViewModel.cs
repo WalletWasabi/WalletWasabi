@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
         private decimal amount;
         private readonly CompositeDisposable disposables = new();
 
-        public PaymentViewModel(IObservable<string> incomingContent, IMutableAddressHost mutableAddressHost, ContentChecker<string> contentChecker)
+        public PaymentViewModel(IObservable<string> incomingContent, IMutableAddressHost mutableAddressHost, ContentChecker<string> contentChecker, Func<decimal, bool> isAmountValid)
         {
             MutableAddressHost = mutableAddressHost;
             MutableAddressHost.ParsedAddress.Subscribe(a =>
@@ -46,6 +46,11 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
             this.ValidationRule(
                 viewModel => viewModel.Amount, x => x > 0,
                 "Amount should be greater than 0");
+
+            this.ValidationRule(
+	            x => x.Amount,
+	            isAmountValid,
+	            "Insufficient funds to cover the amount requested");
         }
 
         public Uri? EndPoint { get; set; }
