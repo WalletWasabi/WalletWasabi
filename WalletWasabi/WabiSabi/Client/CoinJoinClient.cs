@@ -617,9 +617,24 @@ public class CoinJoinClient
 		var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
 		var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > liquidityClue);
 
+		// Manipulate the list so repeating tx sources get to the end.
+		var allowedPrivateCoins = new List<SmartCoin>();
+		var skipped = new List<SmartCoin>();
+		foreach (var c in smallerPrivateCoins.Concat(largerPrivateCoins))
+		{
+			if (allowedNonPrivateCoins.Any(x => x.TransactionId == c.TransactionId))
+			{
+				skipped.Add(c);
+			}
+			else
+			{
+				allowedPrivateCoins.Add(c);
+			}
+		}
+
 		// Let's allow only inputCount - 1 private coins to play.
-		var allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1);
-		Logger.LogDebug($"{nameof(allowedPrivateCoins)}: {allowedPrivateCoins.Count()} coins, valued at {Money.Satoshis(allowedPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
+		allowedPrivateCoins = allowedPrivateCoins.Concat(skipped).Take(inputCount - 1).ToList();
+		Logger.LogDebug($"{nameof(allowedPrivateCoins)}: {allowedPrivateCoins.Count} coins, valued at {Money.Satoshis(allowedPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		var allowedCoins = allowedNonPrivateCoins.Concat(allowedPrivateCoins).ToArray();
 		Logger.LogDebug($"{nameof(allowedCoins)}: {allowedCoins.Length} coins, valued at {Money.Satoshis(allowedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
