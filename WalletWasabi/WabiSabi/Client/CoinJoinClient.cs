@@ -622,7 +622,7 @@ public class CoinJoinClient
 		var skipped = new List<SmartCoin>();
 		foreach (var c in smallerPrivateCoins.Concat(largerPrivateCoins))
 		{
-			if (allowedNonPrivateCoins.Any(x => x.TransactionId == c.TransactionId))
+			if (allowedPrivateCoins.Any(x => x.TransactionId == c.TransactionId))
 			{
 				skipped.Add(c);
 			}
