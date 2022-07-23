@@ -572,7 +572,7 @@ public class CoinJoinClient
 			privateCoins.Length + allowedNonPrivateCoins.Count,
 			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
 
-		// Let's allow only a inputCount - 1 private coins to play.
+		// Let's allow only inputCount - 1 private coins to play.
 		var biasSuffledPrivateCoins = AnonScoreBiasedShuffle(privateCoins).ToArray();
 		IEnumerable<SmartCoin> allowedPrivateCoins;
 		lock (SecondLargestDenomOutputLock)
