@@ -551,6 +551,12 @@ public class CoinJoinClient
 		Money liquidityClue,
 		WasabiRandom rnd)
 	{
+		// Sanity check.
+		if (liquidityClue <= Money.Zero)
+		{
+			liquidityClue = Money.Coins(21_000_000m);
+		}
+
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
