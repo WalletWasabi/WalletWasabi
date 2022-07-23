@@ -557,6 +557,8 @@ public class CoinJoinClient
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 
+		Logger.LogDebug($"Coin selection started from {filteredCoins.Length} coins, valued at {Money.Satoshis(filteredCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
+
 		var privateCoins = filteredCoins
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
@@ -567,6 +569,10 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet < 2)
 			.ToArray();
 
+		Logger.LogDebug($"{nameof(privateCoins)}: {privateCoins.Length} coins, valued at {Money.Satoshis(privateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
+		Logger.LogDebug($"{nameof(semiPrivateCoins)}: {semiPrivateCoins.Length} coins, valued at {Money.Satoshis(semiPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
+		Logger.LogDebug($"{nameof(redCoins)}: {redCoins.Length} coins, valued at {Money.Satoshis(redCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
+
 		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
 		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
 		if (redCoinIsolation)
@@ -575,6 +581,7 @@ public class CoinJoinClient
 			if (red is not null)
 			{
 				allowedNonPrivateCoins.Add(red);
+				Logger.LogDebug($"One red coin got selected: {red.Amount.ToString(false, true)} BTC. Isolating the rest.");
 			}
 		}
 		else
@@ -582,12 +589,21 @@ public class CoinJoinClient
 			allowedNonPrivateCoins.AddRange(redCoins);
 		}
 
+		Logger.LogDebug($"{nameof(allowedNonPrivateCoins)}: {allowedNonPrivateCoins.Count} coins, valued at {Money.Satoshis(allowedNonPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
+
 		// How many inputs do we want to provide to the mix?
 		var utxoCount = allowedNonPrivateCoins.Count + privateCoins.Length;
 		var minUtxoCountTarget = (int)((allowedNonPrivateCoins.Sum(x => x.Amount) + privateCoins.Sum(x => x.Amount)) / liquidityClue.Satoshi);
+		Logger.LogDebug($"Derived {nameof(minUtxoCountTarget)} from balance and expected liquidity: {minUtxoCountTarget}.");
+
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
 			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(utxoCount, minUtxoCountTarget, rnd));
+		if (consolidationMode)
+		{
+			Logger.LogDebug($"Consolidation mode is on.");
+		}
+		Logger.LogDebug($"Targeted {nameof(inputCount)}: {inputCount}.");
 
 		var biasSuffledPrivateCoins = AnonScoreBiasedShuffle(privateCoins).ToArray();
 
@@ -597,8 +613,10 @@ public class CoinJoinClient
 
 		// Let's allow only inputCount - 1 private coins to play.
 		var allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1);
+		Logger.LogDebug($"{nameof(allowedPrivateCoins)}: {allowedPrivateCoins.Count()} coins, valued at {Money.Satoshis(allowedPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		var allowedCoins = allowedNonPrivateCoins.Concat(allowedPrivateCoins).ToArray();
+		Logger.LogDebug($"{nameof(allowedCoins)}: {allowedCoins.Length} coins, valued at {Money.Satoshis(allowedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		// Shuffle coins, while randomly biasing towards lower AS.
 		var orderedAllowedCoins = AnonScoreBiasedShuffle(allowedCoins).ToArray();
@@ -608,6 +626,7 @@ public class CoinJoinClient
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
+		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestAmounts.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
@@ -644,16 +663,21 @@ public class CoinJoinClient
 
 		if (!groups.Any())
 		{
+			Logger.LogDebug($"Couldn't create any combinations, ending.");
 			return ImmutableList<SmartCoin>.Empty;
 		}
+		Logger.LogDebug($"Created {groups.Count} combinations within {(int)sw1.Elapsed.TotalSeconds} seconds.");
 
 		// Select the group where the less coins coming from the same tx.
 		var bestRep = groups.Values.Select(x => GetReps(x)).Min(x => x);
 		var bestRepGroups = groups.Values.Where(x => GetReps(x) == bestRep);
+		Logger.LogDebug($"{nameof(bestRep)}: {bestRep}.");
+		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
 
 		var remainingLargestAmounts = bestRepGroups
 			.Select(x => x.OrderByDescending(x => x.Amount).First())
 			.ToHashSet();
+		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestAmounts.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Select randomly at first just to have a starting value.
 		var selectedLargeCoin = remainingLargestAmounts.RandomElement();
@@ -667,24 +691,28 @@ public class CoinJoinClient
 				break;
 			}
 		}
+		if (selectedLargeCoin is null)
+		{
+			Logger.LogDebug($"Couldn't select largest non-private coin, ending.");
+			return ImmutableList<SmartCoin>.Empty;
+		}
+		Logger.LogDebug($"Randomly selected large non-private coin: {selectedLargeCoin.Amount.ToString(false, true)}.");
 
 		var finalCandidate = bestRepGroups
 			.Where(x => x.OrderByDescending(x => x.Amount).First() == selectedLargeCoin)
 			.RandomElement();
+		if (finalCandidate is null)
+		{
+			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
+			return ImmutableList<SmartCoin>.Empty;
+		}
+		Logger.LogDebug($"Selected the final selection candidate: {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Let's remove some coins coming from the same tx in the final candidate:
-		int sameTxAllowance = 0;
-		foreach (var num in new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 })
-		{
-			if (rnd.GetInt(1, 101) <= 70)
-			{
-				sameTxAllowance = num;
-				break;
-			}
-		}
+		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd);
 
 		var winner = new List<SmartCoin>();
-		foreach (var coin in finalCandidate?.OrderByDescending(x => x.Amount) ?? Enumerable.Empty<SmartCoin>())
+		foreach (var coin in finalCandidate.OrderByDescending(x => x.Amount))
 		{
 			// If the coin is coming from same tx, then check our allowance.
 			if (winner.Any(x => x.TransactionId == coin.TransactionId))
@@ -701,7 +729,27 @@ public class CoinJoinClient
 			}
 		}
 
-		return winner?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+		if (bestRep != 0)
+		{
+			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
+			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
+			Logger.LogDebug($"{nameof(winner)}: {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		}
+
+		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd)
+	{
+		foreach (var num in new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 })
+		{
+			if (rnd.GetInt(1, 101) <= 70)
+			{
+				return num;
+			}
+		}
+
+		return 0;
 	}
 
 	private static IEnumerable<SmartCoin> AnonScoreBiasedShuffle(SmartCoin[] coins)
