@@ -104,9 +104,10 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	[Fact]
-	public void SelectOneNonPrivateCoinFromTwoCoinsSetOfCoins()
+	public void SelectMoreNonPrivateCoinFromTwoCoinsSetOfCoins()
 	{
-		// This test is to make sure that we select only one non-private coin.
+		// This test is to make sure that we select more non-private coins when they are coming from different txs.
+		// Note randomization can make this test fail even though that's unlikely.
 		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
@@ -124,7 +125,7 @@ public class CoinJoinCoinSelectionTests
 			liquidityClue: AllBtc,
 			ConfigureRng(1));
 
-		Assert.Single(coins);
+		Assert.Equal(2, coins.Count);
 	}
 
 	[Fact]
