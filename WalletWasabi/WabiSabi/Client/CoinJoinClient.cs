@@ -752,7 +752,7 @@ public class CoinJoinClient
 			}
 		}
 
-		if (bestRep != 0)
+		if (winner.Count != finalCandidate.Count())
 		{
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
 			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
