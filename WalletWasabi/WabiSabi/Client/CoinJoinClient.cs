@@ -675,15 +675,15 @@ public class CoinJoinClient
 		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
 
 		var remainingLargestAmounts = bestRepGroups
-			.Select(x => x.OrderByDescending(x => x.Amount).First())
+			.Select(x => x.OrderByDescending(x => x.Amount).First().Amount)
 			.ToHashSet();
-		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestAmounts.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestAmounts.Select(x => x.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Select randomly at first just to have a starting value.
 		var selectedLargeCoin = remainingLargestAmounts.RandomElement();
 
 		// Bias selection towards larger numbers.
-		foreach (var coin in remainingLargestAmounts.OrderByDescending(x => x.Amount))
+		foreach (var coin in remainingLargestAmounts.OrderByDescending(x => x))
 		{
 			if (rnd.GetInt(1, 101) <= 50)
 			{
@@ -696,10 +696,10 @@ public class CoinJoinClient
 			Logger.LogDebug($"Couldn't select largest non-private coin, ending.");
 			return ImmutableList<SmartCoin>.Empty;
 		}
-		Logger.LogDebug($"Randomly selected large non-private coin: {selectedLargeCoin.Amount.ToString(false, true)}.");
+		Logger.LogDebug($"Randomly selected large non-private coin: {selectedLargeCoin.ToString(false, true)}.");
 
 		var finalCandidate = bestRepGroups
-			.Where(x => x.OrderByDescending(x => x.Amount).First() == selectedLargeCoin)
+			.Where(x => x.OrderByDescending(x => x.Amount).First().Amount == selectedLargeCoin)
 			.RandomElement();
 		if (finalCandidate is null)
 		{
