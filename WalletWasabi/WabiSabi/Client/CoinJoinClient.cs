@@ -249,10 +249,11 @@ public class CoinJoinClient
 			{
 				SecondLargestDenomOutput = unsignedCoinJoin.Outputs
 					.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi))
-					.OrderByDescending(x => x.Value)
+					.Select(x => x.Value)
+					.Distinct()
+					.OrderByDescending(x => x)
 					.Skip(1)
-					.FirstOrDefault()
-					?.Value;
+					.FirstOrDefault();
 			}
 
 			return new CoinJoinResult(
