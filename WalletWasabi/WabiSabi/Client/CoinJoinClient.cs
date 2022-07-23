@@ -542,7 +542,6 @@ public class CoinJoinClient
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="redCoinIsolation">If true, coins under anonscore 2 will not be selected together.</param>
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	/// <returns></returns>
 	internal static ImmutableList<SmartCoin> SelectCoinsForRound(
 		IEnumerable<SmartCoin> coins,
 		RoundParameters parameters,
