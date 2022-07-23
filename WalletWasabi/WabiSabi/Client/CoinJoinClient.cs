@@ -672,7 +672,36 @@ public class CoinJoinClient
 			.Where(x => x.OrderByDescending(x => x.Amount).First() == selectedLargeCoin)
 			.RandomElement();
 
-		return finalCandidate?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+		// Let's remove some coins coming from the same tx in the final candidate:
+		int sameTxAllowance = 0;
+		foreach (var num in new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 })
+		{
+			if (rnd.GetInt(1, 101) <= 70)
+			{
+				sameTxAllowance = num;
+				break;
+			}
+		}
+
+		var winner = new List<SmartCoin>();
+		foreach (var coin in finalCandidate?.OrderByDescending(x => x.Amount) ?? Enumerable.Empty<SmartCoin>())
+		{
+			// If the coin is coming from same tx, then check our allowance.
+			if (winner.Any(x => x.TransactionId == coin.TransactionId))
+			{
+				var sameTxUsed = winner.Count - winner.Select(x => x.TransactionId).Distinct().Count();
+				if (sameTxUsed < sameTxAllowance)
+				{
+					winner.Add(coin);
+				}
+			}
+			else
+			{
+				winner.Add(coin);
+			}
+		}
+
+		return winner?.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
 	}
 
 	private static IEnumerable<SmartCoin> AnonScoreBiasedShuffle(SmartCoin[] coins)
