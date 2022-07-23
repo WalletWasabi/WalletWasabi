@@ -134,7 +134,17 @@ public class CoinJoinClient
 		{
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, SecureRandom);
+
+			Money liquidityClue = roundParameteers.MaxSuggestedAmount;
+			lock (SecondLargestDenomOutputLock)
+			{
+				if (SecondLargestDenomOutput is not null)
+				{
+					liquidityClue = Math.Min(SecondLargestDenomOutput, liquidityClue);
+				}
+			}
+
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
 
 			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
 			{
@@ -528,12 +538,18 @@ public class CoinJoinClient
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
 	}
 
+	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
+	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
+	/// <param name="redCoinIsolation">If true, coins under anonscore 2 will not be selected together.</param>
+	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
+	/// <returns></returns>
 	internal static ImmutableList<SmartCoin> SelectCoinsForRound(
 		IEnumerable<SmartCoin> coins,
 		RoundParameters parameters,
 		bool consolidationMode,
 		int anonScoreTarget,
 		bool redCoinIsolation,
+		Money liquidityClue,
 		WasabiRandom rnd)
 	{
 		var filteredCoins = coins
@@ -572,23 +588,14 @@ public class CoinJoinClient
 			privateCoins.Length + allowedNonPrivateCoins.Count,
 			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
 
-		// Let's allow only inputCount - 1 private coins to play.
 		var biasSuffledPrivateCoins = AnonScoreBiasedShuffle(privateCoins).ToArray();
-		IEnumerable<SmartCoin> allowedPrivateCoins;
-		lock (SecondLargestDenomOutputLock)
-		{
-			if (SecondLargestDenomOutput is null)
-			{
-				allowedPrivateCoins = biasSuffledPrivateCoins.Take(inputCount - 1);
-			}
-			else
-			{
-				// Deprioritize private coins those are too large.
-				var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= SecondLargestDenomOutput);
-				var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > SecondLargestDenomOutput);
-				allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1);
-			}
-		}
+
+		// Deprioritize private coins those are too large.
+		var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
+		var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > liquidityClue);
+
+		// Let's allow only inputCount - 1 private coins to play.
+		var allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1);
 
 		var allowedCoins = allowedNonPrivateCoins.Concat(allowedPrivateCoins).ToArray();
 
