@@ -257,7 +257,8 @@ public class CoinJoinClient
 
 				// Dismiss pleb round.
 				// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
-				if ((roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > secondLargestDenomOutput)
+				if (secondLargestDenomOutput is not null
+					&& (roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > secondLargestDenomOutput)
 				{
 					SecondLargestDenomOutput = secondLargestDenomOutput;
 				}
