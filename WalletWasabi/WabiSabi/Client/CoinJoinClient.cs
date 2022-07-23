@@ -247,13 +247,20 @@ public class CoinJoinClient
 
 			lock (SecondLargestDenomOutputLock)
 			{
-				SecondLargestDenomOutput = unsignedCoinJoin.Outputs
-					.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi))
-					.Select(x => x.Value)
-					.Distinct()
-					.OrderByDescending(x => x)
-					.Skip(1)
-					.FirstOrDefault();
+				var secondLargestDenomOutput = unsignedCoinJoin.Outputs
+						.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi))
+						.Select(x => x.Value)
+						.Distinct()
+						.OrderByDescending(x => x)
+						.Skip(1)
+						.FirstOrDefault();
+
+				// Dismiss pleb round.
+				// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
+				if ((roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > secondLargestDenomOutput)
+				{
+					SecondLargestDenomOutput = secondLargestDenomOutput;
+				}
 			}
 
 			return new CoinJoinResult(
