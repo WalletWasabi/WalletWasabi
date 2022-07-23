@@ -583,9 +583,11 @@ public class CoinJoinClient
 		}
 
 		// How many inputs do we want to provide to the mix?
+		var utxoCount = allowedNonPrivateCoins.Count + privateCoins.Length;
+		var minUtxoCountTarget = (int)((allowedNonPrivateCoins.Sum(x => x.Amount) + privateCoins.Sum(x => x.Amount)) / liquidityClue.Satoshi);
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(allowedNonPrivateCoins.Count, privateCoins.Length, rnd));
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(utxoCount, minUtxoCountTarget, rnd));
 
 		var biasSuffledPrivateCoins = AnonScoreBiasedShuffle(privateCoins).ToArray();
 
@@ -723,37 +725,18 @@ public class CoinJoinClient
 	}
 
 	/// <summary>
-	/// Calculates how many inputs are desirable to be registered
-	/// based on roughly the total number of coins in a wallet.
+	/// Calculates how many inputs are desirable to be registered.
 	/// Note: random biasing is applied.
 	/// </summary>
+	/// <param name="minUtxoCountTarget">We want to target to have in our wallet minimum this number of UTXOs.</param>
 	/// <returns>Desired input count.</returns>
-	private static int GetInputTarget(int nonPrivateCount, int privateCount, WasabiRandom rnd)
+	private static int GetInputTarget(int utxoCount, int minUtxoCountTarget, WasabiRandom rnd)
 	{
-		var utxoCount = nonPrivateCount + privateCount;
-		var utxoCountTarget = 21;
-		var minPrivateUtxoCountTarget = 10;
-		var maxUtxoCountTarget = 100;
+		// Let's target to have a only 1 UTXO in our wallet, unless it's specified otherwise.
+		var utxoCountTarget = Math.Max(1, minUtxoCountTarget);
 
-		int targetInputCount;
-		if (utxoCount < utxoCountTarget)
-		{
-			targetInputCount = 1;
-		}
-		else if (utxoCount > maxUtxoCountTarget
-			|| privateCount > utxoCountTarget
-			|| (privateCount > nonPrivateCount && privateCount >= minPrivateUtxoCountTarget))
-		{
-			targetInputCount = MaxInputsRegistrableByWallet;
-		}
-		else
-		{
-			var min = 2;
-			var max = MaxInputsRegistrableByWallet - 1;
-
-			var percent = (double)(utxoCount - utxoCountTarget) / (maxUtxoCountTarget - utxoCountTarget);
-			targetInputCount = (int)Math.Round((max - min) * percent + min);
-		}
+		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
+		int targetInputCount = utxoCount < utxoCountTarget ? 1 : MaxInputsRegistrableByWallet;
 
 		var distance = new Dictionary<int, int>();
 		for (int i = 1; i <= MaxInputsRegistrableByWallet; i++)
