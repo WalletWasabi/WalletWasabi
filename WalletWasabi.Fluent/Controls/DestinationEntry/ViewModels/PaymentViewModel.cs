@@ -1,6 +1,7 @@
 using System.Net;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
@@ -43,8 +44,10 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
                 MutableAddressHost.Text = clipboardContent.Value;
             }).DisposeWith(disposables);
 
+            var validAmount = this.WhenAnyValue(x => x.Amount).Select(x => x > 0);
+
             this.ValidationRule(
-                viewModel => viewModel.Amount, x => x > 0,
+                viewModel => viewModel.Amount, validAmount.Skip(1),
                 "Amount should be greater than 0");
 
             this.ValidationRule(
