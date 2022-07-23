@@ -718,7 +718,9 @@ public class CoinJoinClient
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd);
 
 		var winner = new List<SmartCoin>();
-		foreach (var coin in finalCandidate.OrderByDescending(x => x.Amount))
+		foreach (var coin in finalCandidate
+			.OrderBy(x => x.HdPubKey.AnonymitySet)
+			.ThenByDescending(x => x.Amount))
 		{
 			// If the coin is coming from same tx, then check our allowance.
 			if (winner.Any(x => x.TransactionId == coin.TransactionId))
