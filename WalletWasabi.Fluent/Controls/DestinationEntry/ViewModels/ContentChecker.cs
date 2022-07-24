@@ -4,17 +4,30 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 public class ContentChecker<T>
 {
-    public ContentChecker(IObservable<T> from, IObservable<T> to, Func<T, bool> isValid)
-    {
-        HasNewContent = from
-            .CombineLatest(to, (clipboard, current) => isValid(clipboard) &&
-                                                       !Equals(clipboard, current));
-        ActivatedWithNewContent = ApplicationUtils.IsMainWindowActive
-            .CombineLatest(HasNewContent, (isActive, newContent) =>
-                isActive && newContent);
-    }
+	public ContentChecker(IObservable<T> incoming, IObservable<T> current, Func<T, bool> isValid)
+	{
+		var contentStream =
+			incoming
+				.CombineLatest(
+					current,
+					(i, c) => new
+					{
+						IsValid = isValid(i) &&
+						          !Equals(i, c),
+						NewContent = i
+					});
 
-    public IObservable<bool> ActivatedWithNewContent { get; }
+		var activatedContentStream = ApplicationUtils.IsMainWindowActive.CombineLatest(contentStream)
+			.Where(a => a.First)
+			.Select(a => a.Second);
 
-    public IObservable<bool> HasNewContent { get; }
+		HasNewContent = activatedContentStream.Select(x => x.IsValid);
+
+		NewContent = activatedContentStream
+			.Where(a => a.IsValid)
+			.Select(a => a.NewContent);
+	}
+
+	public IObservable<bool> HasNewContent { get; }
+    public IObservable<T> NewContent { get; }
 }

@@ -70,10 +70,14 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 			() => OnNext(wallet),
 			PaymentViewModel.IsValid());
 
+		PasteCommand = ReactiveCommand.CreateFromObservable(() => PaymentViewModel.PasteCommand, PaymentViewModel.HasNewContent);
+		
 		//this.WhenAnyValue(x => x.ConversionReversed)
 		//	.Skip(1)
 		//	.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
+
+	public ICommand PasteCommand { get; }
 
 	private async Task OnNext(Wallet wallet)
 	{

@@ -38,7 +38,15 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 
             var clipboardContent = new BehaviorSubject<string>("");
             incomingContent.Subscribe(clipboardContent).DisposeWith(disposables);
-            HasNewContent = contentChecker.ActivatedWithNewContent;
+            HasNewContent = contentChecker.HasNewContent;
+
+            if (Services.UiConfig.AutoPaste)
+            {
+	            contentChecker.NewContent
+		            .Subscribe(content => MutableAddressHost.Text = content)
+		            .DisposeWith(disposables);
+            }
+
             PasteCommand = ReactiveCommand.Create(() =>
             {
                 MutableAddressHost.Text = clipboardContent.Value;
