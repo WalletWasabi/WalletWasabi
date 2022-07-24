@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRingView">
+  <UserControl.Styles>
+    <Style Selector="Path:pointerover">
+      <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+      <Setter Property="RenderTransform">
+        <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+      </Setter>
+      <Setter Property="Stroke" Value="Black" />
+      <Setter Property="StrokeThickness" Value="1" />
+    </Style>
+  </UserControl.Styles>
+  <c:ContentArea Title="{Binding Title}"
+                EnableNext="True" NextContent="Done"
+                EnableCancel="False"
+                EnableBack="True">
+    <ItemsControl Items="{Binding Items}" ClipToBounds="False" Margin="300 300 0 0">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <Panel />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Panel>
+            <Path Stretch="None" StrokeThickness="1" Fill="Red" Height="200" Width="200">
+              <Path.Data>
+                <PathGeometry>
+                  <PathFigure StartPoint="{Binding Origin1}" IsClosed="True">
+                    <ArcSegment Size="{Binding Arc1Size}" Point="{Binding Arc1}" />
+                    <LineSegment Point="{Binding Origin2}" />
+                    <ArcSegment Size="{Binding Arc2Size}" Point="{Binding Arc2}" SweepDirection="CounterClockwise" />
+                  </PathFigure>
+                </PathGeometry>
+              </Path.Data>
+            </Path>
+          </Panel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </c:ContentArea>
+</UserControl>

@@ -26,8 +26,13 @@
       </StackPanel>
 
       <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
-        <Image Height="36" Width="36" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
-               Source="{StaticResource privacy_indicator_good}" />
+
+        <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
+                ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
+                Height="36" Width="36">
+          <Image Source="{StaticResource privacy_indicator_good}" />
+        </Button>
+
         <TextBlock
           VerticalAlignment="Center" HorizontalAlignment="Center"
           TextAlignment="Center"

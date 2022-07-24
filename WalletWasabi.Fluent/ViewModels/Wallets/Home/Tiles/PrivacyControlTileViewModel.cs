@@ -1,14 +1,19 @@
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public partial class PrivacyControlTileViewModel : TileViewModel
 {
+	private readonly WalletViewModel _walletVm;
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _fullyMixed;
@@ -19,8 +24,13 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
 		_wallet = walletVm.Wallet;
+		_walletVm = walletVm;
 		_balanceChanged = balanceChanged;
+
+		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
 	}
+
+	public ICommand ShowDetailsCommand { get; }
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
@@ -29,6 +39,11 @@ public partial class PrivacyControlTileViewModel : TileViewModel
 		_balanceChanged
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
+	}
+
+	private void ShowDetails()
+	{
+		NavigationState.Instance.DialogScreenNavigation.To(new PrivacyRingViewModel(_walletVm, _balanceChanged));
 	}
 
 	private void Update()
