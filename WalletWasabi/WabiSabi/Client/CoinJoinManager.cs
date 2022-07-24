@@ -86,7 +86,7 @@ public class CoinJoinManager : BackgroundService
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			var mixableWallets = RoundStatusUpdater.AnyRound
-				? GetMixableWallets()
+				? await GetMixableWalletsAsync().ConfigureAwait(false)
 				: ImmutableDictionary<string, IWallet>.Empty;
 
 			// Notifies when a wallet meets the criteria for participating in a coinjoin.
@@ -129,7 +129,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoordinatorIdentifier, stoppingToken);
 
-		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
+		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
 
@@ -176,7 +176,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (walletToStart.IsWalletPrivate())
+			if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
 			{
 				walletToStart.LogDebug("All mixed!");
 				if (!startCommand.StopWhenAllMixed)
@@ -188,7 +188,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight).ToArray();
+			var coinCandidates = (await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false)).ToArray();
 			if (coinCandidates.Length == 0)
 			{
 				walletToStart.LogDebug("No candidate coins available to mix.");
@@ -372,7 +372,7 @@ public class CoinJoinManager : BackgroundService
 			if (result.SuccessfulBroadcast)
 			{
 				CoinRefrigerator.Freeze(result.RegisteredCoins);
-				MarkDestinationsUsed(result.RegisteredOutputs);
+				await MarkDestinationsUsedAsync(result.RegisteredOutputs).ConfigureAwait(false);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
@@ -427,10 +427,10 @@ public class CoinJoinManager : BackgroundService
 	/// <summary>
 	/// Mark all the outputs we had in any of our wallets used.
 	/// </summary>
-	private void MarkDestinationsUsed(ImmutableList<Script> outputs)
+	private async Task MarkDestinationsUsedAsync(ImmutableList<Script> outputs)
 	{
 		var hashSet = outputs.ToHashSet();
-		var wallets = WalletProvider.GetWallets();
+		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
 		foreach (var k in wallets)
 		{
 			k.KeyChain.NotifyScriptState(hashSet, KeyState.Used);
@@ -471,13 +471,13 @@ public class CoinJoinManager : BackgroundService
 			wallet,
 			coinJoinProgressEventArgs));
 
-	private ImmutableDictionary<string, IWallet> GetMixableWallets() =>
-		WalletProvider.GetWallets()
+	private async Task<ImmutableDictionary<string, IWallet>> GetMixableWalletsAsync() =>
+		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.Identifier, x => x);
 
-	private IEnumerable<SmartCoin> SelectCandidateCoins(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(openedWallet.GetCoinjoinCoinCandidates(bestHeight))
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync(bestHeight).ConfigureAwait(false))
 			.Available()
 			.Confirmed()
 			.Where(x => !x.IsImmature(bestHeight))

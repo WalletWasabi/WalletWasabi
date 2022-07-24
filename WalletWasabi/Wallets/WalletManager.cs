@@ -94,6 +94,8 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
+	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
+
 	public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
 	{
 		if (refreshWalletList)

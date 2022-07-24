@@ -83,7 +83,11 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
 
+	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
+
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), KeyManager.AnonScoreTarget) >= 1;
+
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight) => Task.FromResult(GetCoinjoinCoinCandidates(bestHeight));
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates(int bestHeight) => Coins;
 
