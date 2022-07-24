@@ -21,16 +21,17 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinManager : BackgroundService
 {
-	private readonly IWasabiBackendStatusProvider _wasabiBackendStatusProvider;
 
 	public CoinJoinManager(IWalletProvider walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
 	{
-		_wasabiBackendStatusProvider = wasabiBackendStatusProvider;
+		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = backendHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
 	}
+
+	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
 
 	public IWalletProvider WalletProvider { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
@@ -168,7 +169,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (_wasabiBackendStatusProvider.LastResponse is not { } synchronizerResponse)
+			if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
