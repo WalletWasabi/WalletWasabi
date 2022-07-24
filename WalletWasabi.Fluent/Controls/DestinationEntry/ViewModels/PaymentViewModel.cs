@@ -17,40 +17,31 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 
         public PaymentViewModel(IObservable<string> incomingContent, IMutableAddressHost mutableAddressHost, ContentChecker<string> contentChecker, Func<decimal, bool> isAmountValid)
         {
-            MutableAddressHost = mutableAddressHost;
-            MutableAddressHost.ParsedAddress.Subscribe(a =>
-            {
-                if (a is not null)
-                {
-                    Address = a.BtcAddress;
+	        MutableAddressHost = mutableAddressHost;
+	        MutableAddressHost.ParsedAddress
+		        .WhereNotNull()
+		        .Do(Transfer)
+		        .Subscribe()
+		        .DisposeWith(disposables);
 
-                    if (a.Amount is not null)
-                    {
-                        Amount = a.Amount.Value;
-                    }
-
-                    if (a.EndPoint is not null)
-                    {
-	                    EndPoint = a.EndPoint;
-                    }
-                }
-            }).DisposeWith(disposables);
-
-            var clipboardContent = new BehaviorSubject<string>("");
-            incomingContent.Subscribe(clipboardContent).DisposeWith(disposables);
-            HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.HasNewContent, (b, b1) => b && b1);
+            HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.HasNewContent, (isActive, hasNewContent) => isActive && hasNewContent);
 
             if (Services.UiConfig.AutoPaste)
             {
-	            contentChecker.NewContent
+	            ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.NewContent)
+		            .Where(a => a.First)
+		            .Select(x => x.Second)
 		            .Subscribe(content => MutableAddressHost.Text = content)
 		            .DisposeWith(disposables);
             }
 
-            PasteCommand = ReactiveCommand.Create(() =>
-            {
-                MutableAddressHost.Text = clipboardContent.Value;
-            }).DisposeWith(disposables);
+            PasteCommand = ReactiveCommand.CreateFromObservable(() => incomingContent.Take(1))
+	            .DisposeWith(disposables);
+
+            PasteCommand
+	            .Do(content => mutableAddressHost.Text = content)
+	            .Subscribe()
+	            .DisposeWith(disposables);
 
             var validAmount = this.WhenAnyValue(x => x.Amount).Select(x => x > 0);
 
@@ -64,9 +55,24 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 	            "Insufficient funds to cover the amount requested");
         }
 
+        private void Transfer(Address a)
+        {
+	        Address = a.BtcAddress;
+
+	        if (a.Amount is not null)
+	        {
+		        Amount = a.Amount.Value;
+	        }
+
+	        if (a.EndPoint is not null)
+	        {
+		        EndPoint = a.EndPoint;
+	        }
+        }
+
         public Uri? EndPoint { get; set; }
 
-        public ReactiveCommand<Unit, Unit> PasteCommand { get; }
+        public ReactiveCommand<Unit, string> PasteCommand { get; }
 
         public IObservable<bool> HasNewContent { get; }
 
