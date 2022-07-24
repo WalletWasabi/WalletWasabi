@@ -17,13 +17,9 @@ public class ContentChecker<T>
 						NewContent = i
 					});
 
-		var activatedContentStream = ApplicationUtils.IsMainWindowActive.CombineLatest(contentStream)
-			.Where(a => a.First)
-			.Select(a => a.Second);
+		HasNewContent = contentStream.Select(x => x.IsValid);
 
-		HasNewContent = activatedContentStream.Select(x => x.IsValid);
-
-		NewContent = activatedContentStream
+		NewContent = contentStream
 			.Where(a => a.IsValid)
 			.Select(a => a.NewContent);
 	}

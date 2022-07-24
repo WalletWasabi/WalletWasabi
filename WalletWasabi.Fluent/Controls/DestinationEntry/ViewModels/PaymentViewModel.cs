@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 
             var clipboardContent = new BehaviorSubject<string>("");
             incomingContent.Subscribe(clipboardContent).DisposeWith(disposables);
-            HasNewContent = contentChecker.HasNewContent;
+            HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.HasNewContent, (b, b1) => b && b1);
 
             if (Services.UiConfig.AutoPaste)
             {
