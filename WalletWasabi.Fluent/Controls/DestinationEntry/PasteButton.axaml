@@ -10,6 +10,11 @@
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.PasteButton"
              x:Name="UserControl">
   <UserControl.Styles>
+
+    <Style Selector="c|AnimatedButton.flash">
+      <Setter Property="InitialOpacity" Value="0.8" />
+    </Style>
+
     <Style Selector="c|AnimatedButton.flash /template/ PathIcon#PART_IconNormal">
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Style.Animations>

@@ -9,6 +9,7 @@
              x:DataType="viewModels:PaymentViewModel"
              x:CompileBindings="True"
              x:Name="UserControl">
+
   <UserControl.Styles>
     <Style Selector="StackPanel > DockPanel">
       <Setter Property="Margin" Value="0 10 0 0" />
