@@ -248,7 +248,9 @@ public class CoinJoinClient
 			lock (SecondLargestDenomOutputLock)
 			{
 				var secondLargestDenomOutput = unsignedCoinJoin.Outputs
-						.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi))
+						.Where(x =>
+							BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi) // We only care about denom outputs as those can be considered reasonably mixed.
+							&& !outputTxOuts.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value)) // We only care about outputs those aren't ours.
 						.Select(x => x.Value)
 						.Distinct()
 						.OrderByDescending(x => x)
