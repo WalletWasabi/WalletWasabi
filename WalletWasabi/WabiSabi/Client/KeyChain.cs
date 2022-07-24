@@ -8,8 +8,6 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class KeyChain : BaseKeyChain
 {
-	private KeyManager KeyManager { get; }
-
 	public KeyChain(KeyManager keyManager, Kitchen kitchen) : base(kitchen)
 	{
 		if (keyManager.IsWatchOnly)
@@ -18,6 +16,8 @@ public class KeyChain : BaseKeyChain
 		}
 		KeyManager = keyManager;
 	}
+
+	private KeyManager KeyManager { get; }
 
 	protected override Key GetMasterKey()
 	{
