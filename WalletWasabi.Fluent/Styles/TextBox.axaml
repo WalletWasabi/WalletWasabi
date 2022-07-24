@@ -55,6 +55,7 @@
                                Foreground="{DynamicResource SystemAccentColor}"
                                FontSize="{TemplateBinding FontSize}"
                                Text="{TemplateBinding Watermark}"
+                               IsVisible="False"
                                DockPanel.Dock="Top" />
                     <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                   VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
@@ -92,6 +93,10 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
+  </Style>
+
+  <Style Selector="TextBox[UseFloatingWatermark=true]:not(:empty) /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="IsVisible" Value="True" />
   </Style>
 
   <Style Selector="TextBox /template/ Border#PART_BorderElement">
