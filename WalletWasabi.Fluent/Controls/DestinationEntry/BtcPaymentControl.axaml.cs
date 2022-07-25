@@ -17,8 +17,8 @@ public class BtcPaymentControl : UserControl
 			o => o.Address,
 			(o, v) => o.Address = v);
 
-	public static readonly DirectProperty<BtcPaymentControl, BigController> ControllerProperty =
-		AvaloniaProperty.RegisterDirect<BtcPaymentControl, BigController>(
+	public static readonly DirectProperty<BtcPaymentControl, PaymentViewModel> ControllerProperty =
+		AvaloniaProperty.RegisterDirect<BtcPaymentControl, PaymentViewModel>(
 			"Controller",
 			o => o.Controller,
 			(o, v) => o.Controller = v);
@@ -27,7 +27,7 @@ public class BtcPaymentControl : UserControl
 
 	private string _address;
 
-	private BigController _controller;
+	private PaymentViewModel _controller;
 
 	public BtcPaymentControl()
 	{
@@ -40,7 +40,7 @@ public class BtcPaymentControl : UserControl
 		set => SetAndRaise(AddressProperty, ref _address, value);
 	}
 
-	public BigController Controller
+	public PaymentViewModel Controller
 	{
 		get => _controller;
 		set => SetAndRaise(ControllerProperty, ref _controller, value);

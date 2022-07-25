@@ -40,7 +40,7 @@
       </DockPanel.Styles>
 
       <destinationEntry:BtcAndPayjoinPaymentControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
-                                                    Controller="{Binding BigController}"
+                                                    Controller="{Binding PaymentViewModel}"
                                                     Address="{Binding Address, Mode=TwoWay}"
                                                     Amount="{Binding Amount, Mode=TwoWay}"/>
 

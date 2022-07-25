@@ -1,8 +1,7 @@
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
+using ReactiveUI.Validation.Extensions;
 using NBitcoin;
 using ReactiveUI;
-using ReactiveUI.Validation.Extensions;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -13,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAddress?>
 {
 	private readonly Network _network;
-	private BigController _bigController;
+	[AutoNotify] private PaymentViewModel? _controller;
 
 	public AddressEntryDialogViewModel(Network network)
 	{
@@ -23,24 +22,14 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		BigController = new BigController(_network, _ => true, new BtcOnlyAddressParser(_network))
+		Controller = new PaymentViewModel(_network, _ => true, new BtcOnlyAddressParser(_network))
 			.DisposeWith(disposables);
 
 		NextCommand = ReactiveCommand
-			.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)), BigController.AddressController.IsValid())
+			.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)), Controller.AddressController.IsValid())
 			.DisposeWith(disposables);
 		
 		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
-	public BigController? BigController
-	{
-		get => _bigController;
-		set
-		{
-			_bigController = value;
-			this.RaisePropertyChanged(nameof(BigController));
-		}
 	}
 
 	public string Address { get; set; }

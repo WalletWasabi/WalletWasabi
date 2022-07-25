@@ -6,9 +6,9 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public class BigController : ReactiveValidationObject, IDisposable
+public class PaymentViewModel : ReactiveValidationObject, IDisposable
 {
-	public BigController(Network network, Func<decimal, bool> isAmountValid, IAddressParser parser)
+	public PaymentViewModel(Network network, Func<decimal, bool> isAmountValid, IAddressParser parser)
 	{
 		var clipboard = new Clipboard();
 		var newContentsChanged = clipboard.ContentChanged;
@@ -18,8 +18,8 @@ public class BigController : ReactiveValidationObject, IDisposable
 			AddressController.TextChanged,
 			s => parser.GetAddress(s) is not null);
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
-		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
-		AmountController = new(isAmountValid);
+		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker, ApplicationUtils.IsMainWindowActive);
+		AmountController = new AmountViewModel(isAmountValid);
 
 		this.ValidationRule(x => x.AddressController, AddressController.IsValid(), "Address invalid");
 		this.ValidationRule(x => x.AmountController, AmountController.IsValid(), "Amount invalid");

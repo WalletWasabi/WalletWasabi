@@ -32,7 +32,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	private readonly TransactionInfo _transactionInfo;
 	private readonly Wallet _wallet;
 	[AutoNotify] private decimal _amountBtc;
-	[AutoNotify] private BigController _bigController;
+	[AutoNotify] private PaymentViewModel _paymentViewModel;
 	[AutoNotify] private decimal _exchangeRate;
 
 	public SendViewModel(
@@ -74,7 +74,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		var network = _wallet.Network;
-		BigController = new BigController(network, a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC), new FullAddressParser(network));
+		PaymentViewModel = new PaymentViewModel(network, a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC), new FullAddressParser(network));
 
 		if (!inHistory)
 		{
@@ -94,7 +94,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 
 		Balance.Activate(disposables);
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNext(_wallet), BigController.IsValid());
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNext(_wallet), PaymentViewModel.IsValid());
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}

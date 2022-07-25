@@ -2,7 +2,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Mixins;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -23,25 +22,25 @@ public class BtcAndPayjoinPaymentControl : UserControl
 			o => o.Address,
 			(o, v) => o.Address = v);
 
-	public static readonly DirectProperty<BtcAndPayjoinPaymentControl, BigController> ControllerProperty =
-		AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, BigController>(
+	public static readonly DirectProperty<BtcAndPayjoinPaymentControl, PaymentViewModel> ControllerProperty =
+		AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, PaymentViewModel>(
 			"Controller",
 			o => o.Controller,
 			(o, v) => o.Controller = v);
 
-	public static readonly DirectProperty<BtcAndPayjoinPaymentControl, double> AmountProperty =
-		AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, double>(
+	public static readonly DirectProperty<BtcAndPayjoinPaymentControl, decimal> AmountProperty =
+		AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, decimal>(
 			"Amount",
 			o => o.Amount,
 			(o, v) => o.Amount = v);
 
-	private readonly CompositeDisposable disposables = new();
+	private readonly CompositeDisposable _disposables = new();
 
 	private string _address;
 
-	private double _amount;
+	private decimal _amount;
 
-	private BigController _controller;
+	private PaymentViewModel _controller;
 
 	private decimal _conversionRate;
 
@@ -62,13 +61,13 @@ public class BtcAndPayjoinPaymentControl : UserControl
 		set => SetAndRaise(ConversionRateProperty, ref _conversionRate, value);
 	}
 
-	public BigController Controller
+	public PaymentViewModel Controller
 	{
 		get => _controller;
 		set => SetAndRaise(ControllerProperty, ref _controller, value);
 	}
 
-	public double Amount
+	public decimal Amount
 	{
 		get => _amount;
 		set => SetAndRaise(AmountProperty, ref _amount, value);
@@ -77,12 +76,18 @@ public class BtcAndPayjoinPaymentControl : UserControl
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		base.OnAttachedToVisualTree(e);
-		DisposableMixin.DisposeWith(
-			this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
-				.WhereNotNull()
-				.Do(a => Address = a.BtcAddress)
-				.Subscribe(),
-			disposables);
+
+		this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
+			.WhereNotNull()
+			.Do(a => Address = a.BtcAddress)
+			.Subscribe()
+			.DisposeWith(_disposables);
+		
+		this.WhenAnyValue(x => x.Controller.AmountController.Amount)
+			.WhereNotNull()
+			.Do(a => Amount = a)
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	private void InitializeComponent()

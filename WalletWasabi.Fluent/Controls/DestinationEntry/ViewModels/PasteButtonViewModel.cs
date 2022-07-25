@@ -9,15 +9,15 @@ public class PasteButtonViewModel : IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public PasteButtonViewModel(IObservable<string> incomingContent, ContentChecker<string> contentChecker)
+	public PasteButtonViewModel(IObservable<string> incomingContent, ContentChecker<string> contentChecker, IObservable<bool> isMainWindowActive)
 	{
-		HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.HasNewContent, (isActive, hasNewContent) => isActive && hasNewContent);
+		HasNewContent = isMainWindowActive.CombineLatest(contentChecker.HasNewContent, (isActive, hasNewContent) => isActive && hasNewContent);
 
 		PasteCommand = ReactiveCommand
 			.CreateFromObservable(() => incomingContent.Take(1))
 			.DisposeWith(_disposables);
 
-		HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(
+		HasNewContent = isMainWindowActive.CombineLatest(
 			contentChecker.HasNewContent,
 			(isActive, hasNewContent) => isActive && hasNewContent);
 	}

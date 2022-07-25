@@ -10,14 +10,14 @@ public class AddressEntryControl : UserControl
 	public static readonly StyledProperty<string> WatermarkProperty =
 		AvaloniaProperty.Register<AddressEntryControl, string>("Watermark");
 
-	private BigController _controller;
+	private PaymentViewModel _controller;
 
-	public static readonly DirectProperty<AddressEntryControl, BigController> ControllerProperty = AvaloniaProperty.RegisterDirect<AddressEntryControl, BigController>(
+	public static readonly DirectProperty<AddressEntryControl, PaymentViewModel> ControllerProperty = AvaloniaProperty.RegisterDirect<AddressEntryControl, PaymentViewModel>(
 		"Controller",
 		o => o.Controller,
 		(o, v) => o.Controller = v);
 
-	public BigController Controller
+	public PaymentViewModel Controller
 	{
 		get => _controller;
 		set => SetAndRaise(ControllerProperty, ref _controller, value);
