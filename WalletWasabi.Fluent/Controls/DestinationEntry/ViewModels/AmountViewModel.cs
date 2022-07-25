@@ -9,7 +9,7 @@ public class AmountViewModel : ReactiveValidationObject
 {
 	private decimal _amount;
 
-	public AmountViewModel(Func<decimal, bool> isAmountValid)
+	public AmountViewModel(Func<decimal, bool> withinBalance)
 	{
 		var validAmount = this.WhenAnyValue(x => x.Amount).Select(x => x > 0);
 
@@ -19,7 +19,7 @@ public class AmountViewModel : ReactiveValidationObject
 
 		this.ValidationRule(
 			x => x.Amount,
-			isAmountValid,
+			withinBalance,
 			"Insufficient funds to cover the amount requested");
 	}
 	
