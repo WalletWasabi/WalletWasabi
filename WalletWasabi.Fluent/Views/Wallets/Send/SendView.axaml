@@ -39,7 +39,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <destinationEntry:PaymentDestinationControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
+      <destinationEntry:BtcAndPayjoinPaymentControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
                                                   PaymentController="{Binding PaymentViewModel}"
                                                   ScanQrController="{Binding ScanQrViewModel}"
                                                   PasteController="{Binding PasteController}"/>

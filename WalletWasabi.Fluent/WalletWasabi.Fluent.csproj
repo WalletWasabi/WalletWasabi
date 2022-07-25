@@ -38,4 +38,13 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Controls\DestinationEntry\BtcPaymentControl.axaml.cs">
+	    <DependentUpon>BtcPaymentControl.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Controls\DestinationEntry\BtcAndPayjoinPaymentControl.axaml.cs">
+	    <DependentUpon>BtcAndPayjoinPaymentControl.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>

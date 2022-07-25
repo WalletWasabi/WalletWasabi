@@ -6,7 +6,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:l="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.PaymentDestinationControl"
+             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.BtcAndPayjoinPaymentControl"
              x:DataType="viewModels:PaymentViewModel"
              x:CompileBindings="True"
              x:Name="UserControl">

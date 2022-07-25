@@ -5,9 +5,9 @@ using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry;
 
-public partial class BtcAddressControl : UserControl
+public partial class BtcPaymentControl : UserControl
 {
-	public static readonly DirectProperty<BtcAddressControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, PaymentViewModel>(
+	public static readonly DirectProperty<BtcPaymentControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<BtcPaymentControl, PaymentViewModel>(
 		"PaymentController",
 		o => o.PaymentController,
 		(o, v) => o.PaymentController = v);
@@ -20,7 +20,7 @@ public partial class BtcAddressControl : UserControl
 		set => SetAndRaise(PaymentControllerProperty, ref _paymentController, value);
 	}
 
-	public BtcAddressControl()
+	public BtcPaymentControl()
 	{
 		InitializeComponent();
 	}
@@ -32,7 +32,7 @@ public partial class BtcAddressControl : UserControl
 
 	private ScanQrViewModel _scanQrController;
 
-	public static readonly DirectProperty<BtcAddressControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, ScanQrViewModel>(
+	public static readonly DirectProperty<BtcPaymentControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<BtcPaymentControl, ScanQrViewModel>(
 		"ScanQrController",
 		o => o.ScanQrController,
 		(o, v) => o.ScanQrController = v);
@@ -45,7 +45,7 @@ public partial class BtcAddressControl : UserControl
 
 	private PasteButtonViewModel _pasteController;
 
-	public static readonly DirectProperty<BtcAddressControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, PasteButtonViewModel>(
+	public static readonly DirectProperty<BtcPaymentControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<BtcPaymentControl, PasteButtonViewModel>(
 		"PasteController",
 		o => o.PasteController,
 		(o, v) => o.PasteController = v);

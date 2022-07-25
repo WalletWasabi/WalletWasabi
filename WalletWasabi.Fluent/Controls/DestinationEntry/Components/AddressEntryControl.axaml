@@ -5,7 +5,7 @@
              xmlns:b="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
-             xmlns:destinationEntry="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:components="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="viewModels:PaymentViewModel"
              x:CompileBindings="True"
@@ -31,7 +31,7 @@
 
         <TextBox.InnerRightContent>
           <StackPanel Orientation="Horizontal" Margin="0 0 6 0">
-            <destinationEntry:PasteButton Address="{Binding MutableAddressHost.Text, Mode=TwoWay}" Controller="{Binding #UserControl.PasteController}"/>
+            <components:PasteButton Address="{Binding MutableAddressHost.Text, Mode=TwoWay}" Controller="{Binding #UserControl.PasteController}"/>
             <ContentControl Content="{Binding #UserControl.RightContent}" />
           </StackPanel>
         </TextBox.InnerRightContent>

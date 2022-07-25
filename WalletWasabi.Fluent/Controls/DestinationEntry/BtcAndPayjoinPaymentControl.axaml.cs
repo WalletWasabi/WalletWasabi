@@ -5,18 +5,18 @@ using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry
 {
-	public partial class PaymentDestinationControl : UserControl
+	public partial class BtcAndPayjoinPaymentControl : UserControl
 	{
 		private decimal _conversionRate;
 
-		public static readonly DirectProperty<PaymentDestinationControl, decimal> ConversionRateProperty = AvaloniaProperty.RegisterDirect<PaymentDestinationControl, decimal>(
+		public static readonly DirectProperty<BtcAndPayjoinPaymentControl, decimal> ConversionRateProperty = AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, decimal>(
 			"ConversionRate",
 			o => o.ConversionRate,
 			(o, v) => o.ConversionRate = v);
 
 		private PaymentViewModel _paymentController;
 
-		public static readonly DirectProperty<PaymentDestinationControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<PaymentDestinationControl, PaymentViewModel>(
+		public static readonly DirectProperty<BtcAndPayjoinPaymentControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, PaymentViewModel>(
 			"PaymentController",
 			o => o.PaymentController,
 			(o, v) => o.PaymentController = v);
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry
 			set => SetAndRaise(ConversionRateProperty, ref _conversionRate, value);
 		}
 
-		public PaymentDestinationControl()
+		public BtcAndPayjoinPaymentControl()
 		{
 			InitializeComponent();
 		}
@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry
 
 		private ScanQrViewModel _scanQrController;
 
-		public static readonly DirectProperty<PaymentDestinationControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<PaymentDestinationControl, ScanQrViewModel>(
+		public static readonly DirectProperty<BtcAndPayjoinPaymentControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, ScanQrViewModel>(
 			"ScanQrController",
 			o => o.ScanQrController,
 			(o, v) => o.ScanQrController = v);
@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry
 
 		private PasteButtonViewModel _pasteController;
 
-		public static readonly DirectProperty<PaymentDestinationControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<PaymentDestinationControl, PasteButtonViewModel>(
+		public static readonly DirectProperty<BtcAndPayjoinPaymentControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, PasteButtonViewModel>(
 			"PasteController",
 			o => o.PasteController,
 			(o, v) => o.PasteController = v);

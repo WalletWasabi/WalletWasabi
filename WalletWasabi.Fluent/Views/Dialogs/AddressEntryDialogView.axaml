@@ -15,7 +15,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <destinationEntry:BtcAddressControl
+    <destinationEntry:BtcPaymentControl
       PaymentController="{Binding PaymentViewModel}"
       ScanQrController="{Binding ScanQrViewModel}"
       PasteController="{Binding PasteController}" />
