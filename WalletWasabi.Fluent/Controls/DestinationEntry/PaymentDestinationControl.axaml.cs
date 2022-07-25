@@ -55,5 +55,18 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry
 			get => _scanQrController;
 			set => SetAndRaise(ScanQrControllerProperty, ref _scanQrController, value);
 		}
+
+		private PasteButtonViewModel _pasteController;
+
+		public static readonly DirectProperty<PaymentDestinationControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<PaymentDestinationControl, PasteButtonViewModel>(
+			"PasteController",
+			o => o.PasteController,
+			(o, v) => o.PasteController = v);
+
+		public PasteButtonViewModel PasteController
+		{
+			get => _pasteController;
+			set => SetAndRaise(PasteControllerProperty, ref _pasteController, value);
+		}
 	}
 }

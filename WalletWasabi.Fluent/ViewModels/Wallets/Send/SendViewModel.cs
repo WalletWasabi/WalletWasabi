@@ -50,8 +50,17 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		SetupCancel(true, true, true);
 		EnableBack = false;
 
-		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network), a => a <= wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
+		var clipboard = new ClipboardObserver();
+		IAddressParser parser = new FullAddressParser(wallet.Network);
+		Func<decimal, bool> isAmountValid = a => a <= wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
+		var newContentsChanged = clipboard.ContentChanged;
+		IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
+		var contentChecker = new ContentChecker<string>(newContentsChanged, mutableAddressHost.TextChanged,
+			s => parser.GetAddress(s) is not null);
+		PaymentViewModel = new PaymentViewModel(newContentsChanged, mutableAddressHost,
+			contentChecker, isAmountValid);
 		ScanQrViewModel = new ScanQrViewModel(wallet.Network, WebcamQrReader.IsOsPlatformSupported);
+		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
 
 		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(
 			async () =>
@@ -63,10 +72,6 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 			() => OnNext(wallet),
 			PaymentViewModel.IsValid());
 
-		PasteCommand = ReactiveCommand.CreateFromObservable(
-			() => PaymentViewModel.PasteCommand,
-			PaymentViewModel.HasNewContent);
-
 		// TODO: Add this feature
 		//this.WhenAnyValue(x => x.ConversionReversed)
 		//	.Skip(1)
@@ -75,8 +80,6 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 
 	public ScanQrViewModel ScanQrViewModel { get; set; }
 
-	public ICommand PasteCommand { get; }
-
 	public PaymentViewModel PaymentViewModel { get; set; }
 
 	public ICommand AdvancedOptionsCommand { get; }
@@ -84,6 +87,8 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	public WalletBalanceTileViewModel Balance { get; }
 
 	public ValidationContext ValidationContext { get; } = new();
+
+	public PasteButtonViewModel PasteController { get; set; }
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{

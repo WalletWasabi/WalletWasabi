@@ -35,15 +35,15 @@
   <c:AnimatedButton DockPanel.Dock="Right" KeyboardNavigation.IsTabStop="False"
                     x:Name="PasteButton"
                     Focusable="False"
-                    Command="{Binding #UserControl.PasteCommand}"
+                    Command="{Binding #UserControl.Controller.PasteCommand}"
                     ToolTip.Tip="Paste"
                     NormalIcon="{StaticResource paste_regular}"
                     ClickIcon="{StaticResource copy_confirmed}">
     <i:Interaction.Behaviors>
-      <ia:DataTriggerBehavior Binding="{Binding #UserControl.CanPaste}" ComparisonCondition="Equal" Value="True">
+      <ia:DataTriggerBehavior Binding="{Binding #UserControl.Controller.HasNewContent^}" ComparisonCondition="Equal" Value="True">
         <iac:AddClassAction StyledElement="PasteButton" ClassName="flash" RemoveIfExists="True" />
       </ia:DataTriggerBehavior>
-      <ia:DataTriggerBehavior Binding="{Binding #UserControl.CanPaste}" ComparisonCondition="Equal" Value="False">
+      <ia:DataTriggerBehavior Binding="{Binding #UserControl.Controller.HasNewContent^}" ComparisonCondition="Equal" Value="False">
         <iac:RemoveClassAction StyledElement="PasteButton" ClassName="flash" />
       </ia:DataTriggerBehavior>
     </i:Interaction.Behaviors>

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry;
 public partial class AddressEntryControl : UserControl
@@ -29,5 +30,18 @@ public partial class AddressEntryControl : UserControl
 	{
 		get => GetValue(RightContentProperty);
 		set => SetValue(RightContentProperty, value);
+	}
+
+	private PasteButtonViewModel _pasteController;
+
+	public static readonly DirectProperty<AddressEntryControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<AddressEntryControl, PasteButtonViewModel>(
+		"PasteController",
+		o => o.PasteController,
+		(o, v) => o.PasteController = v);
+
+	public PasteButtonViewModel PasteController
+	{
+		get => _pasteController;
+		set => SetAndRaise(PasteControllerProperty, ref _pasteController, value);
 	}
 }

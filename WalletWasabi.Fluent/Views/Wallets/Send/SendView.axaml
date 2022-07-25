@@ -41,7 +41,8 @@
 
       <destinationEntry:PaymentDestinationControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
                                                   PaymentController="{Binding PaymentViewModel}"
-                                                  ScanQrController="{Binding ScanQrViewModel}" />
+                                                  ScanQrController="{Binding ScanQrViewModel}"
+                                                  PasteController="{Binding PasteController}"/>
 
       <!-- Advanced -->
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"

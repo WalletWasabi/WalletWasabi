@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 		        .Subscribe()
 		        .DisposeWith(disposables);
 
-            HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.HasNewContent, (isActive, hasNewContent) => isActive && hasNewContent);
+	        HasNewContent = ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.HasNewContent, (isActive, hasNewContent) => isActive && hasNewContent);
 
             if (Services.UiConfig.AutoPaste)
             {
@@ -32,14 +32,6 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 		            .Subscribe(content => MutableAddressHost.Text = content)
 		            .DisposeWith(disposables);
             }
-
-            PasteCommand = ReactiveCommand.CreateFromObservable(() => incomingContent.Take(1))
-	            .DisposeWith(disposables);
-
-            PasteCommand
-	            .Do(content => mutableAddressHost.Text = content)
-	            .Subscribe()
-	            .DisposeWith(disposables);
 
             var validAmount = this.WhenAnyValue(x => x.Amount).Select(x => x > 0);
 
