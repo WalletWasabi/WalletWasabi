@@ -69,6 +69,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		set
 		{
 			_bigController = value;
+			this.RaisePropertyChanged(nameof(BigController));
 			this.RaisePropertyChanged(nameof(ScanQrViewModel));
 			this.RaisePropertyChanged(nameof(PaymentViewModel));
 			this.RaisePropertyChanged(nameof(PasteController));
@@ -86,6 +87,9 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	public WalletBalanceTileViewModel Balance { get; }
 
 	public ValidationContext ValidationContext { get; } = new();
+
+	public string Address { get; set; }
+	public decimal Amount { get; set; }
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{

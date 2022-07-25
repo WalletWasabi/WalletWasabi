@@ -40,9 +40,9 @@
       </DockPanel.Styles>
 
       <destinationEntry:BtcAndPayjoinPaymentControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
-                                                  PaymentController="{Binding PaymentViewModel}"
-                                                  ScanQrController="{Binding ScanQrViewModel}"
-                                                  PasteController="{Binding PasteController}"/>
+                                                    Controller="{Binding BigController}"
+                                                    Address="{Binding Address, Mode=TwoWay}"
+                                                    Amount="{Binding Amount, Mode=TwoWay}"/>
 
       <!-- Advanced -->
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"

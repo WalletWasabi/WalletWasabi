@@ -25,28 +25,28 @@
       </Style>
     </StackPanel.Styles>
 
-    <l:AddressEntryControl PasteController="{Binding #UserControl.PasteController}" DataContext="{Binding #UserControl.PaymentController}" Watermark="(e.g. Bitcoin address or Payjoin URL)">
+    <l:AddressEntryControl PasteController="{Binding #UserControl.Controller.PasteController}" DataContext="{Binding #UserControl.Controller.PaymentViewModel}" Watermark="(e.g. Bitcoin address or Payjoin URL)">
       <l:AddressEntryControl.RightContent>
-        <l:QrCodeButton Address="{Binding #UserControl.PaymentController.MutableAddressHost.Text, Mode=TwoWay}" ScanQrController="{Binding #UserControl.ScanQrController}" />
+        <l:QrCodeButton Address="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.Text, Mode=TwoWay}" ScanQrController="{Binding #UserControl.Controller.ScanQrViewModel}" />
       </l:AddressEntryControl.RightContent>
     </l:AddressEntryControl>
 
     <DockPanel>
       <Label DockPanel.Dock="Left" Content="_Amount:" Target="Amount" />
       <c:DualCurrencyEntryBox x:Name="Amount"
-                              AmountBtc="{Binding #UserControl.PaymentController.Amount}"
+                              AmountBtc="{Binding #UserControl.Controller.PaymentViewModel.Amount}"
                               ConversionCurrencyCode="USD"
                               CurrencyCode="BTC"
-                              IsReadOnly="{Binding #UserControl.PaymentController.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
+                              IsReadOnly="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
                               ConversionRate="{Binding #UserControl.ConversionRate}" />
     </DockPanel>
 
     <DockPanel
-      IsVisible="{Binding #UserControl.PaymentController.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+      IsVisible="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
       <Label Content="_Address:" DockPanel.Dock="Left" Target="Address" />
       <TextBox IsReadOnly="True"
                x:Name="Address"
-               Watermark="Address" Text="{Binding #UserControl.PaymentController.Address}"
+               Watermark="Address" Text="{Binding #UserControl.Controller.PaymentViewModel.Address}"
                IsTabStop="False"/>
     </DockPanel>
   </StackPanel>
