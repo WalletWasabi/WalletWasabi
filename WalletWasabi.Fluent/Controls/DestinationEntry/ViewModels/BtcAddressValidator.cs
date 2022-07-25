@@ -1,14 +1,14 @@
-﻿using NBitcoin;
+using NBitcoin;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 public class BtcAddressValidator
 {
-    private readonly Network expectedNetwork;
+    private readonly Network _expectedNetwork;
 
     public BtcAddressValidator(Network expectedNetwork)
     {
-        this.expectedNetwork = expectedNetwork ?? throw new ArgumentNullException(nameof(expectedNetwork));
+        _expectedNetwork = expectedNetwork ?? throw new ArgumentNullException(nameof(expectedNetwork));
     }
 
     public bool IsValid(string text)
@@ -22,7 +22,7 @@ public class BtcAddressValidator
 
         try
         {
-            NBitcoin.BitcoinAddress.Create(text, expectedNetwork);
+            BitcoinAddress.Create(text, _expectedNetwork);
             return true;
         }
         catch (FormatException)

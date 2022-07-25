@@ -1,6 +1,5 @@
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -10,19 +9,22 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 public class ScanQrViewModel
 {
-	public ScanQrViewModel(Network network)
+	public bool IsVisible { get; }
+
+	public ScanQrViewModel(Network network, bool isVisible)
 	{
-		ScanQrCommand = ReactiveCommand.CreateFromObservable(GetAddressFromQrCode);
+		IsVisible = isVisible;
+		ScanQrCommand = ReactiveCommand.CreateFromObservable(() => GetAddressFromQrCode(network));
 	}
 
 	public ReactiveCommand<Unit, string> ScanQrCommand { get; set; }
 
-	private static IObservable<string> GetAddressFromQrCode()
+	private IObservable<string> GetAddressFromQrCode(Network network)
 	{
 		var dialog = Observable.FromAsync(
 			async () =>
 			{
-				ShowQrCameraDialogViewModel dialog = new(Network.TestNet);
+				ShowQrCameraDialogViewModel dialog = new(network);
 				return await RoutableViewModel.NavigateDialogAsync(
 					dialog,
 					NavigationTarget.CompactDialogScreen);

@@ -6,10 +6,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.QrCodeButton"
              x:Name="UserControl">
-  <controls:AnimatedButton
-                    KeyboardNavigation.IsTabStop="False"
-                    Focusable="False"
-                    Command="{Binding #UserControl.ScanQrController.ScanQrCommand}"
-                    ToolTip.Tip="Scan QR Code"
-                    NormalIcon="{StaticResource qr_code_regular}" />
+  <controls:AnimatedButton IsVisible="{Binding #UserControl.ScanQrController.IsVisible}"
+                           KeyboardNavigation.IsTabStop="False"
+                           Focusable="False"
+                           Command="{Binding #UserControl.ScanQrController.ScanQrCommand}"
+                           ToolTip.Tip="Scan QR Code"
+                           NormalIcon="{StaticResource qr_code_regular}" />
 </UserControl>
