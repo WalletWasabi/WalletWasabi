@@ -655,18 +655,18 @@ public class CoinJoinClient
 		var orderedAllowedCoins = AnonScoreBiasedShuffle(allowedCoins).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
-		var largestAmounts = allowedNonPrivateCoins
+		var largestNonPrivateCoins = allowedNonPrivateCoins
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
-		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestAmounts.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
 		// Create a bunch of combinations.
 		var sw1 = Stopwatch.StartNew();
-		foreach (var coin in largestAmounts)
+		foreach (var coin in largestNonPrivateCoins)
 		{
 			// Create a base combination just in case.
 			var baseGroup = orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
@@ -707,39 +707,35 @@ public class CoinJoinClient
 		Logger.LogDebug($"{nameof(bestRep)}: {bestRep}.");
 		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
 
-		var remainingLargestAmounts = bestRepGroups
-			.Select(x => x.OrderByDescending(x => x.Amount).First().Amount)
-			.ToHashSet();
-		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestAmounts.Select(x => x.ToString(false, true)).ToArray())} bitcoins.");
-
-		// Select randomly at first just to have a starting value.
-		var selectedLargeCoin = remainingLargestAmounts.RandomElement();
+		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => bestRepGroups.Any(y => y.Contains(x)));
+		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Bias selection towards larger numbers.
-		foreach (var coin in remainingLargestAmounts.OrderByDescending(x => x))
+		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
+		foreach (var coin in remainingLargestNonPrivateCoins.OrderByDescending(x => x.Amount))
 		{
 			if (rnd.GetInt(1, 101) <= 50)
 			{
-				selectedLargeCoin = coin;
+				selectedNonPrivateCoin = coin;
 				break;
 			}
 		}
-		if (selectedLargeCoin is null)
+		if (selectedNonPrivateCoin is null)
 		{
 			Logger.LogDebug($"Couldn't select largest non-private coin, ending.");
 			return ImmutableList<SmartCoin>.Empty;
 		}
-		Logger.LogDebug($"Randomly selected large non-private coin: {selectedLargeCoin.ToString(false, true)}.");
+		Logger.LogDebug($"Randomly selected large non-private coin: {selectedNonPrivateCoin.Amount.ToString(false, true)}.");
 
 		var finalCandidate = bestRepGroups
-			.Where(x => x.OrderByDescending(x => x.Amount).First().Amount == selectedLargeCoin)
+			.Where(x => x.Contains(selectedNonPrivateCoin))
 			.RandomElement();
 		if (finalCandidate is null)
 		{
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
 			return ImmutableList<SmartCoin>.Empty;
 		}
-		Logger.LogDebug($"Selected the final selection candidate: {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Let's remove some coins coming from the same tx in the final candidate:
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd);
@@ -768,7 +764,7 @@ public class CoinJoinClient
 		{
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
 			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
-			Logger.LogDebug($"{nameof(winner)}: {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 		}
 
 		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
