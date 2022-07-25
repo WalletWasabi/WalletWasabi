@@ -4,12 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.QrCodeButton"
+             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.Components.QrCodeButton"
              x:Name="UserControl">
-  <controls:AnimatedButton IsVisible="{Binding #UserControl.ScanQrController.IsVisible}"
+  <controls:AnimatedButton IsVisible="{Binding #UserControl.Controller.IsVisible}"
                            KeyboardNavigation.IsTabStop="False"
                            Focusable="False"
-                           Command="{Binding #UserControl.ScanQrController.ScanQrCommand}"
+                           Command="{Binding #UserControl.Controller.ScanQrCommand}"
                            ToolTip.Tip="Scan QR Code"
                            NormalIcon="{StaticResource qr_code_regular}" />
 </UserControl>

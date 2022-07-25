@@ -4,19 +4,32 @@ using Avalonia.Markup.Xaml;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry;
-public partial class AddressEntryControl : UserControl
+
+public class AddressEntryControl : UserControl
 {
+	public static readonly StyledProperty<string> WatermarkProperty =
+		AvaloniaProperty.Register<AddressEntryControl, string>("Watermark");
+
+	public static readonly DirectProperty<AddressEntryControl, PasteButtonViewModel> PasteControllerProperty =
+		AvaloniaProperty.RegisterDirect<AddressEntryControl, PasteButtonViewModel>(
+			"PasteController",
+			o => o.PasteController,
+			(o, v) => o.PasteController = v);
+
+	public static readonly DirectProperty<AddressEntryControl, ScanQrViewModel> QrControllerProperty =
+		AvaloniaProperty.RegisterDirect<AddressEntryControl, ScanQrViewModel>(
+			"QrController",
+			o => o.QrController,
+			(o, v) => o.QrController = v);
+
+	private PasteButtonViewModel _pasteController;
+
+	private ScanQrViewModel _qrController;
+
 	public AddressEntryControl()
 	{
 		InitializeComponent();
 	}
-
-	private void InitializeComponent()
-	{
-		AvaloniaXamlLoader.Load(this);
-	}
-
-	public static readonly StyledProperty<string> WatermarkProperty = AvaloniaProperty.Register<AddressEntryControl, string>("Watermark");
 
 	public string Watermark
 	{
@@ -24,24 +37,20 @@ public partial class AddressEntryControl : UserControl
 		set => SetValue(WatermarkProperty, value);
 	}
 
-	public static readonly StyledProperty<object> RightContentProperty = AvaloniaProperty.Register<AddressEntryControl, object>("RightContent");
-
-	public object RightContent
-	{
-		get => GetValue(RightContentProperty);
-		set => SetValue(RightContentProperty, value);
-	}
-
-	private PasteButtonViewModel _pasteController;
-
-	public static readonly DirectProperty<AddressEntryControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<AddressEntryControl, PasteButtonViewModel>(
-		"PasteController",
-		o => o.PasteController,
-		(o, v) => o.PasteController = v);
-
 	public PasteButtonViewModel PasteController
 	{
 		get => _pasteController;
 		set => SetAndRaise(PasteControllerProperty, ref _pasteController, value);
+	}
+
+	public ScanQrViewModel QrController
+	{
+		get => _qrController;
+		set => SetAndRaise(QrControllerProperty, ref _qrController, value);
+	}
+
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
 	}
 }

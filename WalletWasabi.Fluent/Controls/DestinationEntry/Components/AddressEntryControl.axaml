@@ -32,7 +32,7 @@
         <TextBox.InnerRightContent>
           <StackPanel Orientation="Horizontal" Margin="0 0 6 0">
             <components:PasteButton Address="{Binding MutableAddressHost.Text, Mode=TwoWay}" Controller="{Binding #UserControl.PasteController}"/>
-            <ContentControl Content="{Binding #UserControl.RightContent}" />
+            <components:QrCodeButton Address="{Binding MutableAddressHost.Text, Mode=TwoWay}" Controller="{Binding #UserControl.QrController}" />
           </StackPanel>
         </TextBox.InnerRightContent>
 

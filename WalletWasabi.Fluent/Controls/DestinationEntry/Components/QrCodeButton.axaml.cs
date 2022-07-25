@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry;
+namespace WalletWasabi.Fluent.Controls.DestinationEntry.Components;
 
 public class QrCodeButton : UserControl
 {
@@ -21,22 +21,22 @@ public class QrCodeButton : UserControl
 	{
 		InitializeComponent();
 
-		this.WhenAnyValue(x => x.ScanQrController.ScanQrCommand)
+		this.WhenAnyValue(x => x.Controller.ScanQrCommand)
 			.SelectMany(x => x)
 			.Subscribe(x => Address = x);
 	}
 
-	private ScanQrViewModel _scanQrController;
+	private ScanQrViewModel _controller;
 
-	public static readonly DirectProperty<QrCodeButton, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<QrCodeButton, ScanQrViewModel>(
-		"ScanQrController",
-		o => o.ScanQrController,
-		(o, v) => o.ScanQrController = v);
+	public static readonly DirectProperty<QrCodeButton, ScanQrViewModel> ControllerProperty = AvaloniaProperty.RegisterDirect<QrCodeButton, ScanQrViewModel>(
+		"Controller",
+		o => o.Controller,
+		(o, v) => o.Controller = v);
 
-	public ScanQrViewModel ScanQrController
+	public ScanQrViewModel Controller
 	{
-		get => _scanQrController;
-		set => SetAndRaise(ScanQrControllerProperty, ref _scanQrController, value);
+		get => _controller;
+		set => SetAndRaise(ControllerProperty, ref _controller, value);
 	}
 
 	public string Address

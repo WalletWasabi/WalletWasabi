@@ -24,11 +24,7 @@
       </Style>
     </StackPanel.Styles>
 
-    <l:AddressEntryControl PasteController="{Binding #UserControl.Controller.PasteController}" DataContext="{Binding #UserControl.Controller.PaymentViewModel}" Watermark="(e.g. Bitcoin address or Payjoin URL)">
-      <l:AddressEntryControl.RightContent>
-        <l:QrCodeButton Address="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.Text, Mode=TwoWay}" ScanQrController="{Binding #UserControl.Controller.ScanQrViewModel}" />
-      </l:AddressEntryControl.RightContent>
-    </l:AddressEntryControl>
+    <l:AddressEntryControl PasteController="{Binding #UserControl.Controller.PasteController}" DataContext="{Binding #UserControl.Controller.PaymentViewModel}" Watermark="(e.g. Bitcoin address or Payjoin URL)" />
 
   </StackPanel>
 </UserControl>

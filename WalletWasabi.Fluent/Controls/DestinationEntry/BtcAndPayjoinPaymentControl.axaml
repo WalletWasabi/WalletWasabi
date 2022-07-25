@@ -5,6 +5,7 @@
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:l="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:components="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.BtcAndPayjoinPaymentControl"
              x:DataType="viewModels:PaymentViewModel"
@@ -25,11 +26,7 @@
       </Style>
     </StackPanel.Styles>
 
-    <l:AddressEntryControl PasteController="{Binding #UserControl.Controller.PasteController}" DataContext="{Binding #UserControl.Controller.PaymentViewModel}" Watermark="(e.g. Bitcoin address or Payjoin URL)">
-      <l:AddressEntryControl.RightContent>
-        <l:QrCodeButton Address="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.Text, Mode=TwoWay}" ScanQrController="{Binding #UserControl.Controller.ScanQrViewModel}" />
-      </l:AddressEntryControl.RightContent>
-    </l:AddressEntryControl>
+    <l:AddressEntryControl PasteController="{Binding #UserControl.Controller.PasteController}" DataContext="{Binding #UserControl.Controller.PaymentViewModel}" Watermark="(e.g. Bitcoin address or Payjoin URL)" />
 
     <DockPanel>
       <Label DockPanel.Dock="Left" Content="_Amount:" Target="Amount" />
