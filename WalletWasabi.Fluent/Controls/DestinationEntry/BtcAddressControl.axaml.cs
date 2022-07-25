@@ -42,4 +42,17 @@ public partial class BtcAddressControl : UserControl
 		get => _scanQrController;
 		set => SetAndRaise(ScanQrControllerProperty, ref _scanQrController, value);
 	}
+
+	private PasteButtonViewModel _pasteController;
+
+	public static readonly DirectProperty<BtcAddressControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, PasteButtonViewModel>(
+		"PasteController",
+		o => o.PasteController,
+		(o, v) => o.PasteController = v);
+
+	public PasteButtonViewModel PasteController
+	{
+		get => _pasteController;
+		set => SetAndRaise(PasteControllerProperty, ref _pasteController, value);
+	}
 }

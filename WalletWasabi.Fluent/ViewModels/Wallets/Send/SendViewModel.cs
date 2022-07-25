@@ -34,6 +34,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	private readonly Wallet _wallet;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
+	private BigController _bigController;
 
 	public SendViewModel(
 		Wallet wallet,
@@ -50,18 +51,11 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		SetupCancel(true, true, true);
 		EnableBack = false;
 
-		Func<decimal, bool> isAmountValid = a => a <= wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
-		InitializeViewModels(wallet.Network, isAmountValid);
-
 		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(
 			async () =>
 				await NavigateDialogAsync(
 					new AdvancedSendOptionsViewModel(_transactionInfo),
 					NavigationTarget.CompactDialogScreen));
-
-		NextCommand = ReactiveCommand.CreateFromTask(
-			() => OnNext(wallet),
-			PaymentViewModel.IsValid());
 
 		// TODO: Add this feature
 		//this.WhenAnyValue(x => x.ConversionReversed)
@@ -69,28 +63,23 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		//	.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
-	private void InitializeViewModels(Network network, Func<decimal, bool> isAmountValid)
+	public BigController? BigController
 	{
-		var clipboard = new ClipboardObserver();
-		IAddressParser parser  = new FullAddressParser(network);
-		var newContentsChanged = clipboard.ContentChanged;
-		IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
-		var contentChecker = new ContentChecker<string>(
-			newContentsChanged,
-			mutableAddressHost.TextChanged,
-			s => parser.GetAddress(s) is not null);
-		PaymentViewModel = new PaymentViewModel(
-			newContentsChanged,
-			mutableAddressHost,
-			contentChecker,
-			isAmountValid);
-		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
-		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
+		get => _bigController;
+		set
+		{
+			_bigController = value;
+			this.RaisePropertyChanged(nameof(ScanQrViewModel));
+			this.RaisePropertyChanged(nameof(PaymentViewModel));
+			this.RaisePropertyChanged(nameof(PasteController));
+		}
 	}
 
-	public ScanQrViewModel ScanQrViewModel { get; set; }
+	public ScanQrViewModel? ScanQrViewModel => BigController?.ScanQrViewModel;
 
-	public PaymentViewModel PaymentViewModel { get; set; }
+	public PaymentViewModel? PaymentViewModel => BigController?.PaymentViewModel;
+
+	public PasteButtonViewModel? PasteController => BigController?.PasteController;
 
 	public ICommand AdvancedOptionsCommand { get; }
 
@@ -98,10 +87,11 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 
 	public ValidationContext ValidationContext { get; } = new();
 
-	public PasteButtonViewModel PasteController { get; set; }
-
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
+		Network network = _wallet.Network;
+		BigController = new BigController(network, a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC), new FullAddressParser(network));
+
 		if (!inHistory)
 		{
 			PaymentViewModel.MutableAddressHost.Text = "";
@@ -119,13 +109,13 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 			.Subscribe(x => ExchangeRate = x)
 			.DisposeWith(disposables);
 
-		PaymentViewModel = Factory
-			.Create(new FullAddressParser(_wallet.Network), a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC))
-			.DisposeWith(disposables);
-
-		ScanQrViewModel = new ScanQrViewModel(_wallet.Network, WebcamQrReader.IsOsPlatformSupported);
-
+		
+		
 		Balance.Activate(disposables);
+
+		NextCommand = ReactiveCommand.CreateFromTask(
+			() => OnNext(_wallet),
+			PaymentViewModel.IsValid());
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}
