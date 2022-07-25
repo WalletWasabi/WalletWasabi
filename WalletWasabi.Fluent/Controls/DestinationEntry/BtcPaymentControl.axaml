@@ -2,12 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
-             xmlns:l="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:components="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.BtcPaymentControl"
-             x:DataType="viewModels:PaymentViewModel"
-             x:CompileBindings="True"
              x:Name="UserControl">
 
   <UserControl.Styles>
@@ -24,7 +21,8 @@
       </Style>
     </StackPanel.Styles>
 
-    <l:AddressEntryControl PasteController="{Binding #UserControl.Controller.PasteController}" DataContext="{Binding #UserControl.Controller.PaymentViewModel}" Watermark="(e.g. Bitcoin address or Payjoin URL)" />
+    <components:AddressEntryControl Controller="{Binding #UserControl.Controller}"
+                           Watermark="(e.g. Bitcoin address or Payjoin URL)" />
 
   </StackPanel>
 </UserControl>

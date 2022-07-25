@@ -15,7 +15,15 @@ public class QrCodeButton : UserControl
 			o => o.Address,
 			(o, v) => o.Address = v);
 
+	public static readonly DirectProperty<QrCodeButton, ScanQrViewModel> ControllerProperty =
+		AvaloniaProperty.RegisterDirect<QrCodeButton, ScanQrViewModel>(
+			"Controller",
+			o => o.Controller,
+			(o, v) => o.Controller = v);
+
 	private string _address;
+
+	private ScanQrViewModel _controller;
 
 	public QrCodeButton()
 	{
@@ -25,13 +33,6 @@ public class QrCodeButton : UserControl
 			.SelectMany(x => x)
 			.Subscribe(x => Address = x);
 	}
-
-	private ScanQrViewModel _controller;
-
-	public static readonly DirectProperty<QrCodeButton, ScanQrViewModel> ControllerProperty = AvaloniaProperty.RegisterDirect<QrCodeButton, ScanQrViewModel>(
-		"Controller",
-		o => o.Controller,
-		(o, v) => o.Controller = v);
 
 	public ScanQrViewModel Controller
 	{

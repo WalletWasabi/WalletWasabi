@@ -4,12 +4,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:b="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
              xmlns:components="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="viewModels:PaymentViewModel"
-             x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.AddressEntryControl"
+             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.Components.AddressEntryControl"
              x:Name="UserControl">
   <DockPanel>
     <DockPanel>
@@ -20,7 +17,7 @@
         AcceptsReturn="False"
         Classes="monoSpaced"
         x:Name="To"
-        Text="{Binding MutableAddressHost.Text, Mode=TwoWay}"
+        Text="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.Text, Mode=TwoWay}"
         MaxLength="250"
         Watermark="{Binding  #UserControl.Watermark}">
 
@@ -31,8 +28,12 @@
 
         <TextBox.InnerRightContent>
           <StackPanel Orientation="Horizontal" Margin="0 0 6 0">
-            <components:PasteButton Address="{Binding MutableAddressHost.Text, Mode=TwoWay}" Controller="{Binding #UserControl.PasteController}"/>
-            <components:QrCodeButton Address="{Binding MutableAddressHost.Text, Mode=TwoWay}" Controller="{Binding #UserControl.QrController}" />
+            <components:PasteButton
+              Address="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.Text, Mode=TwoWay}"
+              Controller="{Binding #UserControl.Controller.PasteController}" />
+            <components:QrCodeButton
+              Address="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.Text, Mode=TwoWay}"
+              Controller="{Binding #UserControl.Controller.ScanQrViewModel}" />
           </StackPanel>
         </TextBox.InnerRightContent>
 

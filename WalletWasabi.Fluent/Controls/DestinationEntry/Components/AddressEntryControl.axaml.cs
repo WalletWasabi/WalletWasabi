@@ -1,30 +1,27 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry;
+namespace WalletWasabi.Fluent.Controls.DestinationEntry.Components;
 
 public class AddressEntryControl : UserControl
 {
 	public static readonly StyledProperty<string> WatermarkProperty =
 		AvaloniaProperty.Register<AddressEntryControl, string>("Watermark");
 
-	public static readonly DirectProperty<AddressEntryControl, PasteButtonViewModel> PasteControllerProperty =
-		AvaloniaProperty.RegisterDirect<AddressEntryControl, PasteButtonViewModel>(
-			"PasteController",
-			o => o.PasteController,
-			(o, v) => o.PasteController = v);
+	private BigController _controller;
 
-	public static readonly DirectProperty<AddressEntryControl, ScanQrViewModel> QrControllerProperty =
-		AvaloniaProperty.RegisterDirect<AddressEntryControl, ScanQrViewModel>(
-			"QrController",
-			o => o.QrController,
-			(o, v) => o.QrController = v);
+	public static readonly DirectProperty<AddressEntryControl, BigController> ControllerProperty = AvaloniaProperty.RegisterDirect<AddressEntryControl, BigController>(
+		"Controller",
+		o => o.Controller,
+		(o, v) => o.Controller = v);
 
-	private PasteButtonViewModel _pasteController;
-
-	private ScanQrViewModel _qrController;
+	public BigController Controller
+	{
+		get => _controller;
+		set => SetAndRaise(ControllerProperty, ref _controller, value);
+	}
 
 	public AddressEntryControl()
 	{
@@ -35,18 +32,6 @@ public class AddressEntryControl : UserControl
 	{
 		get => GetValue(WatermarkProperty);
 		set => SetValue(WatermarkProperty, value);
-	}
-
-	public PasteButtonViewModel PasteController
-	{
-		get => _pasteController;
-		set => SetAndRaise(PasteControllerProperty, ref _pasteController, value);
-	}
-
-	public ScanQrViewModel QrController
-	{
-		get => _qrController;
-		set => SetAndRaise(QrControllerProperty, ref _qrController, value);
 	}
 
 	private void InitializeComponent()
