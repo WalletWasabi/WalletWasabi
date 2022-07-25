@@ -94,7 +94,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 
 		Balance.Activate(disposables);
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNext(_wallet), this.IsValid());
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNext(_wallet), BigController.IsValid());
 
 		base.OnNavigatedTo(inHistory, disposables);
 	}

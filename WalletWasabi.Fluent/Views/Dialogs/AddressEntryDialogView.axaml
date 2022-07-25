@@ -15,6 +15,6 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <destinationEntry:BtcPaymentControl Address="{Binding Address}" Controller="{Binding BigController}" />
+    <destinationEntry:BtcPaymentControl Address="{Binding Address, Mode=TwoWay}" Controller="{Binding BigController}" />
   </c:ContentArea>
 </UserControl>

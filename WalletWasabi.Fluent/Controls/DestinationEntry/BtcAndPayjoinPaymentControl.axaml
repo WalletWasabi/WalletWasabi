@@ -27,7 +27,7 @@
     <DockPanel>
       <Label DockPanel.Dock="Left" Content="_Amount:" Target="Amount" />
       <c:DualCurrencyEntryBox x:Name="Amount"
-                              AmountBtc="{Binding #UserControl.Controller.AmountController.Amount}"
+                              AmountBtc="{Binding #UserControl.Controller.AmountController.Amount, Mode=TwoWay}"
                               ConversionCurrencyCode="USD"
                               CurrencyCode="BTC"
                               IsReadOnly="{Binding #UserControl.Controller.AddressController.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"

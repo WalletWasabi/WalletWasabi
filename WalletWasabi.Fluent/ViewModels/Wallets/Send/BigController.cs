@@ -1,10 +1,12 @@
 using NBitcoin;
+using ReactiveUI.Validation.Extensions;
+using ReactiveUI.Validation.Helpers;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public class BigController : IDisposable
+public class BigController : ReactiveValidationObject, IDisposable
 {
 	public BigController(Network network, Func<decimal, bool> isAmountValid, IAddressParser parser)
 	{
@@ -18,6 +20,9 @@ public class BigController : IDisposable
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
 		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
 		AmountController = new(isAmountValid);
+
+		this.ValidationRule(x => x.AddressController, AddressController.IsValid(), "Address invalid");
+		this.ValidationRule(x => x.AmountController, AmountController.IsValid(), "Amount invalid");
 	}
 
 	public AddressViewModel AddressController { get; }
