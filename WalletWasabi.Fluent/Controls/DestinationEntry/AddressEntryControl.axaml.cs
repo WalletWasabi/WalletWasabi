@@ -22,4 +22,12 @@ public partial class AddressEntryControl : UserControl
 		get => GetValue(WatermarkProperty);
 		set => SetValue(WatermarkProperty, value);
 	}
+
+	public static readonly StyledProperty<object> RightContentProperty = AvaloniaProperty.Register<AddressEntryControl, object>("RightContent");
+
+	public object RightContent
+	{
+		get => GetValue(RightContentProperty);
+		set => SetValue(RightContentProperty, value);
+	}
 }

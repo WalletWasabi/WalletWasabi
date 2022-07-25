@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:destinationEntry="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:l="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.PaymentDestinationControl"
              x:DataType="viewModels:PaymentViewModel"
@@ -25,7 +25,11 @@
       </Style>
     </StackPanel.Styles>
 
-    <destinationEntry:AddressEntryControl DataContext="{Binding #UserControl.PaymentController}" Watermark="(e.g. Bitcoin address or Payjoin URL)" />
+    <l:AddressEntryControl DataContext="{Binding #UserControl.PaymentController}" Watermark="(e.g. Bitcoin address or Payjoin URL)">
+      <l:AddressEntryControl.RightContent>
+        <l:QrCodeButton Address="{Binding #UserControl.PaymentController.MutableAddressHost.Text, Mode=TwoWay}" ScanQrController="{Binding #UserControl.ScanQrController}" />
+      </l:AddressEntryControl.RightContent>
+    </l:AddressEntryControl>
 
     <DockPanel>
       <Label DockPanel.Dock="Left" Content="_Amount:" Target="Amount" />

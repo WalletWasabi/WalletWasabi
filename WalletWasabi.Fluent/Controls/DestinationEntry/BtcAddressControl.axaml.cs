@@ -3,31 +3,43 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry
+namespace WalletWasabi.Fluent.Controls.DestinationEntry;
+
+public partial class BtcAddressControl : UserControl
 {
-	public partial class BtcAddressControl : UserControl
+	public static readonly DirectProperty<BtcAddressControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, PaymentViewModel>(
+		"PaymentController",
+		o => o.PaymentController,
+		(o, v) => o.PaymentController = v);
+
+	private PaymentViewModel _paymentController;
+
+	public PaymentViewModel PaymentController
 	{
-		public static readonly DirectProperty<BtcAddressControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, PaymentViewModel>(
-			"PaymentController",
-			o => o.PaymentController,
-			(o, v) => o.PaymentController = v);
+		get => _paymentController;
+		set => SetAndRaise(PaymentControllerProperty, ref _paymentController, value);
+	}
 
-		private PaymentViewModel _paymentController;
+	public BtcAddressControl()
+	{
+		InitializeComponent();
+	}
 
-		public PaymentViewModel PaymentController
-		{
-			get => _paymentController;
-			set => SetAndRaise(PaymentControllerProperty, ref _paymentController, value);
-		}
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
+	}
 
-		public BtcAddressControl()
-		{
-			InitializeComponent();
-		}
+	private ScanQrViewModel _scanQrController;
 
-		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+	public static readonly DirectProperty<BtcAddressControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<BtcAddressControl, ScanQrViewModel>(
+		"ScanQrController",
+		o => o.ScanQrController,
+		(o, v) => o.ScanQrController = v);
+
+	public ScanQrViewModel ScanQrController
+	{
+		get => _scanQrController;
+		set => SetAndRaise(ScanQrControllerProperty, ref _scanQrController, value);
 	}
 }

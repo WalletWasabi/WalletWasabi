@@ -30,7 +30,10 @@
         </i:Interaction.Behaviors>
 
         <TextBox.InnerRightContent>
-          <destinationEntry:PasteButton CanPaste="{Binding HasNewContent^}" PasteCommand="{Binding PasteCommand}" />
+          <StackPanel Orientation="Horizontal" Margin="0 0 6 0">
+            <destinationEntry:PasteButton CanPaste="{Binding HasNewContent^}" PasteCommand="{Binding PasteCommand}" />
+            <ContentControl Content="{Binding #UserControl.RightContent}" />
+          </StackPanel>
         </TextBox.InnerRightContent>
 
       </TextBox>

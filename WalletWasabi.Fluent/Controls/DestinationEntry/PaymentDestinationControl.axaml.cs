@@ -42,5 +42,18 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
+
+		private ScanQrViewModel _scanQrController;
+
+		public static readonly DirectProperty<PaymentDestinationControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<PaymentDestinationControl, ScanQrViewModel>(
+			"ScanQrController",
+			o => o.ScanQrController,
+			(o, v) => o.ScanQrController = v);
+
+		public ScanQrViewModel ScanQrController
+		{
+			get => _scanQrController;
+			set => SetAndRaise(ScanQrControllerProperty, ref _scanQrController, value);
+		}
 	}
 }

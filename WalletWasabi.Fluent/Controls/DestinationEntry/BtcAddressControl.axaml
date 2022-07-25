@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels"
-             xmlns:destinationEntry="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:l="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.BtcAddressControl"
              x:DataType="viewModels:PaymentViewModel"
@@ -24,7 +24,10 @@
       </Style>
     </StackPanel.Styles>
 
-    <destinationEntry:AddressEntryControl DataContext="{Binding #UserControl.PaymentController}" Watermark="Bitcoin address"/>
-
+    <l:AddressEntryControl DataContext="{Binding #UserControl.PaymentController}" Watermark="(e.g. Bitcoin address or Payjoin URL)">
+      <l:AddressEntryControl.RightContent>
+        <l:QrCodeButton Address="{Binding #UserControl.PaymentController.MutableAddressHost.Text, Mode=TwoWay}" ScanQrController="{Binding #UserControl.ScanQrController}" />
+      </l:AddressEntryControl.RightContent>
+    </l:AddressEntryControl>
   </StackPanel>
 </UserControl>

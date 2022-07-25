@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
+using WalletWasabi.Fluent.Controls.DestinationEntry;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Helpers;
@@ -52,6 +53,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		EnableBack = false;
 
 		PaymentViewModel = Factory.Create(new FullAddressParser(wallet.Network), a => a <= wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
+		ScanQrViewModel = new(wallet.Network);
 
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
@@ -76,6 +78,8 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		//	.Skip(1)
 		//	.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
+
+	public ScanQrViewModel ScanQrViewModel { get; }
 
 	public ICommand PasteCommand { get; }
 

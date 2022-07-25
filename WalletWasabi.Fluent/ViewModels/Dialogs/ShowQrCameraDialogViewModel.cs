@@ -47,7 +47,12 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args => Message = $"Invalid QR code.")
+			.Subscribe(args =>
+			{
+				// TODO: Delete this testing line
+				Close(DialogResultKind.Normal, args.EventArgs);
+				Message = $"Invalid QR code.";
+			})
 			.DisposeWith(disposables);
 
 		Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccurred))
