@@ -16,7 +16,6 @@ public class BigController : IDisposable
 			mutableAddressHost.TextChanged,
 			s => parser.GetAddress(s) is not null);
 		PaymentViewModel = new PaymentViewModel(
-			newContentsChanged,
 			mutableAddressHost,
 			contentChecker,
 			isAmountValid);

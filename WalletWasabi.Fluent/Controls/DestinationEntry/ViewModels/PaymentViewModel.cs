@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
         private decimal amount;
         private readonly CompositeDisposable disposables = new();
 
-        public PaymentViewModel(IObservable<string> incomingContent, IMutableAddressHost mutableAddressHost, ContentChecker<string> contentChecker, Func<decimal, bool> isAmountValid)
+        public PaymentViewModel(IMutableAddressHost mutableAddressHost, ContentChecker<string> contentChecker, Func<decimal, bool> isAmountValid)
         {
 	        MutableAddressHost = mutableAddressHost;
 	        MutableAddressHost.ParsedAddress
