@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
 using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -25,8 +26,8 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 		BigController = new BigController(_network, _ => true, new BtcOnlyAddressParser(_network))
 			.DisposeWith(disposables);
 
-		var nextCommandCanExecute = PaymentViewModel.MutableAddressHost.ParsedAddress.Select(x => x is not null);
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(PaymentViewModel.Address, _network)), nextCommandCanExecute)
+		NextCommand = ReactiveCommand
+			.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)), BigController.PaymentViewModel.IsValid())
 			.DisposeWith(disposables);
 		
 		base.OnNavigatedTo(isInHistory, disposables);
@@ -38,14 +39,9 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 		set
 		{
 			_bigController = value;
-			this.RaisePropertyChanged(nameof(ScanQrViewModel));
-			this.RaisePropertyChanged(nameof(PaymentViewModel));
-			this.RaisePropertyChanged(nameof(PasteController));
+			this.RaisePropertyChanged(nameof(BigController));
 		}
 	}
-	public ScanQrViewModel? ScanQrViewModel => BigController?.ScanQrViewModel;
 
-	public PaymentViewModel? PaymentViewModel => BigController?.PaymentViewModel;
-
-	public PasteButtonViewModel? PasteController => BigController?.PasteController;
+	public string Address { get; set; }
 }

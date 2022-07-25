@@ -15,9 +15,6 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <destinationEntry:BtcPaymentControl
-      PaymentController="{Binding PaymentViewModel}"
-      ScanQrController="{Binding ScanQrViewModel}"
-      PasteController="{Binding PasteController}" />
+    <destinationEntry:BtcPaymentControl Address="{Binding Address}" Controller="{Binding BigController}" />
   </c:ContentArea>
 </UserControl>

@@ -1,58 +1,63 @@
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Mixins;
 using Avalonia.Markup.Xaml;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry;
 
-public partial class BtcPaymentControl : UserControl
+public class BtcPaymentControl : UserControl
 {
-	public static readonly DirectProperty<BtcPaymentControl, PaymentViewModel> PaymentControllerProperty = AvaloniaProperty.RegisterDirect<BtcPaymentControl, PaymentViewModel>(
-		"PaymentController",
-		o => o.PaymentController,
-		(o, v) => o.PaymentController = v);
+	public static readonly DirectProperty<BtcPaymentControl, string> AddressProperty =
+		AvaloniaProperty.RegisterDirect<BtcPaymentControl, string>(
+			"Address",
+			o => o.Address,
+			(o, v) => o.Address = v);
 
-	private PaymentViewModel _paymentController;
+	public static readonly DirectProperty<BtcPaymentControl, BigController> ControllerProperty =
+		AvaloniaProperty.RegisterDirect<BtcPaymentControl, BigController>(
+			"Controller",
+			o => o.Controller,
+			(o, v) => o.Controller = v);
 
-	public PaymentViewModel PaymentController
-	{
-		get => _paymentController;
-		set => SetAndRaise(PaymentControllerProperty, ref _paymentController, value);
-	}
+	private string _address;
+
+	private BigController _controller;
+
+	private readonly CompositeDisposable disposables = new();
 
 	public BtcPaymentControl()
 	{
 		InitializeComponent();
 	}
 
+	public string Address
+	{
+		get => _address;
+		set => SetAndRaise(AddressProperty, ref _address, value);
+	}
+
+	public BigController Controller
+	{
+		get => _controller;
+		set => SetAndRaise(ControllerProperty, ref _controller, value);
+	}
+
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+		DisposableMixin.DisposeWith(
+			this.WhenAnyValue(x => x.Controller.PaymentViewModel.Address)
+				.Do(a => Address = a)
+				.Subscribe(),
+			disposables);
+	}
+
 	private void InitializeComponent()
 	{
 		AvaloniaXamlLoader.Load(this);
-	}
-
-	private ScanQrViewModel _scanQrController;
-
-	public static readonly DirectProperty<BtcPaymentControl, ScanQrViewModel> ScanQrControllerProperty = AvaloniaProperty.RegisterDirect<BtcPaymentControl, ScanQrViewModel>(
-		"ScanQrController",
-		o => o.ScanQrController,
-		(o, v) => o.ScanQrController = v);
-
-	public ScanQrViewModel ScanQrController
-	{
-		get => _scanQrController;
-		set => SetAndRaise(ScanQrControllerProperty, ref _scanQrController, value);
-	}
-
-	private PasteButtonViewModel _pasteController;
-
-	public static readonly DirectProperty<BtcPaymentControl, PasteButtonViewModel> PasteControllerProperty = AvaloniaProperty.RegisterDirect<BtcPaymentControl, PasteButtonViewModel>(
-		"PasteController",
-		o => o.PasteController,
-		(o, v) => o.PasteController = v);
-
-	public PasteButtonViewModel PasteController
-	{
-		get => _pasteController;
-		set => SetAndRaise(PasteControllerProperty, ref _pasteController, value);
 	}
 }
