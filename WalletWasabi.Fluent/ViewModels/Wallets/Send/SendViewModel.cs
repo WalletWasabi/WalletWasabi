@@ -50,17 +50,8 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		SetupCancel(true, true, true);
 		EnableBack = false;
 
-		var clipboard = new ClipboardObserver();
-		IAddressParser parser = new FullAddressParser(wallet.Network);
 		Func<decimal, bool> isAmountValid = a => a <= wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
-		var newContentsChanged = clipboard.ContentChanged;
-		IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
-		var contentChecker = new ContentChecker<string>(newContentsChanged, mutableAddressHost.TextChanged,
-			s => parser.GetAddress(s) is not null);
-		PaymentViewModel = new PaymentViewModel(newContentsChanged, mutableAddressHost,
-			contentChecker, isAmountValid);
-		ScanQrViewModel = new ScanQrViewModel(wallet.Network, WebcamQrReader.IsOsPlatformSupported);
-		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
+		InitializeViewModels(wallet.Network, isAmountValid);
 
 		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(
 			async () =>
@@ -76,6 +67,25 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		//this.WhenAnyValue(x => x.ConversionReversed)
 		//	.Skip(1)
 		//	.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+	}
+
+	private void InitializeViewModels(Network network, Func<decimal, bool> isAmountValid)
+	{
+		var clipboard = new ClipboardObserver();
+		IAddressParser parser  = new FullAddressParser(network);
+		var newContentsChanged = clipboard.ContentChanged;
+		IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
+		var contentChecker = new ContentChecker<string>(
+			newContentsChanged,
+			mutableAddressHost.TextChanged,
+			s => parser.GetAddress(s) is not null);
+		PaymentViewModel = new PaymentViewModel(
+			newContentsChanged,
+			mutableAddressHost,
+			contentChecker,
+			isAmountValid);
+		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
+		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
 	}
 
 	public ScanQrViewModel ScanQrViewModel { get; set; }
