@@ -14,16 +14,16 @@ public class ContentChecker<T>
 					{
 						IsValid = isValid(i) &&
 						          !Equals(i, c),
-						NewContent = i
+						Content = i
 					});
 
 		HasNewContent = contentStream.Select(x => x.IsValid);
 
-		NewContent = contentStream
+		Content = contentStream
 			.Where(a => a.IsValid)
-			.Select(a => a.NewContent);
+			.Select(a => a.Content);
 	}
 
 	public IObservable<bool> HasNewContent { get; }
-    public IObservable<T> NewContent { get; }
+    public IObservable<T> Content { get; }
 }

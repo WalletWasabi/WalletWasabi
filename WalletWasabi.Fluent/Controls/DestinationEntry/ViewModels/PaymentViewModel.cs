@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels
 
             if (Services.UiConfig.AutoPaste)
             {
-	            ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.NewContent)
+	            ApplicationUtils.IsMainWindowActive.CombineLatest(contentChecker.Content)
 		            .Where(a => a.First)
 		            .Select(x => x.Second)
 		            .Subscribe(content => MutableAddressHost.Text = content)

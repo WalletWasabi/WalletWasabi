@@ -19,7 +19,7 @@ public class ScanQrViewModel
 
 	public ReactiveCommand<Unit, string> ScanQrCommand { get; set; }
 
-	private IObservable<string> GetAddressFromQrCode(Network network)
+	private static IObservable<string> GetAddressFromQrCode(Network network)
 	{
 		var dialog = Observable.FromAsync(
 			async () =>

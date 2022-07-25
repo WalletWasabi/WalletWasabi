@@ -8,7 +8,7 @@ public class BigController : IDisposable
 {
 	public BigController(Network network, Func<decimal, bool> isAmountValid, IAddressParser parser)
 	{
-		var clipboard = new ClipboardObserver();
+		var clipboard = new Clipboard();
 		var newContentsChanged = clipboard.ContentChanged;
 		IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
 		var contentChecker = new ContentChecker<string>(

@@ -1,11 +1,11 @@
-﻿using System.Reactive.Linq;
+using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
-public class ClipboardObserver
+public class Clipboard
 {
-    public ClipboardObserver()
+    public Clipboard()
     {
         ContentChanged = Observable
             .Timer(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
