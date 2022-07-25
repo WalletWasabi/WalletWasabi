@@ -73,11 +73,11 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 		//	.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
-	public ScanQrViewModel ScanQrViewModel { get; }
+	public ScanQrViewModel ScanQrViewModel { get; set; }
 
 	public ICommand PasteCommand { get; }
 
-	public PaymentViewModel PaymentViewModel { get; }
+	public PaymentViewModel PaymentViewModel { get; set; }
 
 	public ICommand AdvancedOptionsCommand { get; }
 
@@ -103,6 +103,12 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => ExchangeRate = x)
 			.DisposeWith(disposables);
+
+		PaymentViewModel = Factory
+			.Create(new FullAddressParser(_wallet.Network), a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC))
+			.DisposeWith(disposables);
+
+		ScanQrViewModel = new ScanQrViewModel(_wallet.Network, WebcamQrReader.IsOsPlatformSupported);
 
 		Balance.Activate(disposables);
 
