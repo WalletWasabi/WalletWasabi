@@ -10,28 +10,26 @@ public class BigController : IDisposable
 	{
 		var clipboard = new Clipboard();
 		var newContentsChanged = clipboard.ContentChanged;
-		IMutableAddressHost mutableAddressHost = new MutableAddressHost(parser);
+		AddressController = new AddressViewModel(parser);
 		var contentChecker = new ContentChecker<string>(
 			newContentsChanged,
-			mutableAddressHost.TextChanged,
+			AddressController.TextChanged,
 			s => parser.GetAddress(s) is not null);
-		PaymentViewModel = new PaymentViewModel(
-			mutableAddressHost,
-			contentChecker,
-			isAmountValid);
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
 		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker);
+		AmountController = new(isAmountValid);
 	}
 
-	public PaymentViewModel PaymentViewModel { get; }
+	public AddressViewModel AddressController { get; }
 
 	public ScanQrViewModel ScanQrViewModel { get; }
 
 	public PasteButtonViewModel PasteController { get; }
 
+	public AmountViewModel AmountController { get; }
+
 	public void Dispose()
 	{
-		PaymentViewModel.Dispose();
 		PasteController.Dispose();
 	}
 }

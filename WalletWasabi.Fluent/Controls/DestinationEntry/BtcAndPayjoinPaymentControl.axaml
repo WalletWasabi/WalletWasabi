@@ -27,19 +27,19 @@
     <DockPanel>
       <Label DockPanel.Dock="Left" Content="_Amount:" Target="Amount" />
       <c:DualCurrencyEntryBox x:Name="Amount"
-                              AmountBtc="{Binding #UserControl.Controller.PaymentViewModel.Amount}"
+                              AmountBtc="{Binding #UserControl.Controller.AmountController.Amount}"
                               ConversionCurrencyCode="USD"
                               CurrencyCode="BTC"
-                              IsReadOnly="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
+                              IsReadOnly="{Binding #UserControl.Controller.AddressController.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
                               ConversionRate="{Binding #UserControl.ConversionRate}" />
     </DockPanel>
 
     <DockPanel
-      IsVisible="{Binding #UserControl.Controller.PaymentViewModel.MutableAddressHost.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+      IsVisible="{Binding #UserControl.Controller.AddressController.ParsedAddress^.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
       <Label Content="_Address:" DockPanel.Dock="Left" Target="Address" />
       <TextBox IsReadOnly="True"
                x:Name="Address"
-               Watermark="Address" Text="{Binding #UserControl.Controller.PaymentViewModel.Address}"
+               Watermark="Address" Text="{Binding #UserControl.Controller.AddressController.ParsedAddress^.BtcAddress}"
                IsTabStop="False"/>
     </DockPanel>
   </StackPanel>

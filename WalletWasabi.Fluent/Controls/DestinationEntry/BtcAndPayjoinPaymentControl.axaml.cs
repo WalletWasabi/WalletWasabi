@@ -35,6 +35,8 @@ public class BtcAndPayjoinPaymentControl : UserControl
 			o => o.Amount,
 			(o, v) => o.Amount = v);
 
+	private readonly CompositeDisposable disposables = new();
+
 	private string _address;
 
 	private double _amount;
@@ -42,8 +44,6 @@ public class BtcAndPayjoinPaymentControl : UserControl
 	private BigController _controller;
 
 	private decimal _conversionRate;
-
-	private readonly CompositeDisposable disposables = new();
 
 	public BtcAndPayjoinPaymentControl()
 	{
@@ -78,8 +78,9 @@ public class BtcAndPayjoinPaymentControl : UserControl
 	{
 		base.OnAttachedToVisualTree(e);
 		DisposableMixin.DisposeWith(
-			this.WhenAnyValue(x => x.Controller.PaymentViewModel.Address)
-				.Do(a => Address = a)
+			this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
+				.WhereNotNull()
+				.Do(a => Address = a.BtcAddress)
 				.Subscribe(),
 			disposables);
 	}

@@ -27,7 +27,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 			.DisposeWith(disposables);
 
 		NextCommand = ReactiveCommand
-			.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)), BigController.PaymentViewModel.IsValid())
+			.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)), BigController.AddressController.IsValid())
 			.DisposeWith(disposables);
 		
 		base.OnNavigatedTo(isInHistory, disposables);

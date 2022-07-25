@@ -23,11 +23,11 @@ public class BtcPaymentControl : UserControl
 			o => o.Controller,
 			(o, v) => o.Controller = v);
 
+	private readonly CompositeDisposable disposables = new();
+
 	private string _address;
 
 	private BigController _controller;
-
-	private readonly CompositeDisposable disposables = new();
 
 	public BtcPaymentControl()
 	{
@@ -50,8 +50,9 @@ public class BtcPaymentControl : UserControl
 	{
 		base.OnAttachedToVisualTree(e);
 		DisposableMixin.DisposeWith(
-			this.WhenAnyValue(x => x.Controller.PaymentViewModel.Address)
-				.Do(a => Address = a)
+			this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
+				.WhereNotNull()
+				.Do(a => Address = a.BtcAddress)
 				.Subscribe(),
 			disposables);
 	}
