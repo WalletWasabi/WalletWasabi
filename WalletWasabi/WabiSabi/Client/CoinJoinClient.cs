@@ -353,6 +353,11 @@ public class CoinJoinClient
 				personCircuit?.Dispose();
 				return (null, null);
 			}
+			catch (UnexpectedRoundPhaseException)
+			{
+				personCircuit?.Dispose();
+				return (null, null);
+			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
