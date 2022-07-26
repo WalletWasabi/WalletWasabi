@@ -1,6 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors">
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|Dialog">
@@ -39,8 +41,15 @@
   <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
     <Setter Property="Transitions">
       <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
+        <!-- <DoubleTransition Property="Opacity" Duration="0:0:0.25" /> -->
       </Transitions>
+    </Setter>
+    <Setter Property="(i:Interaction.Behaviors)">
+      <i:BehaviorCollectionTemplate>
+        <i:BehaviorCollection>
+          <behaviors:OpacityTransitionAttachedBehavior Duration="0:0:1.25" />
+        </i:BehaviorCollection>
+      </i:BehaviorCollectionTemplate>
     </Setter>
     <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
@@ -50,9 +59,16 @@
     <Setter Property="Margin" Value="20,30,20,20"/>
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
+        <!-- <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" /> -->
+        <!-- <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" /> -->
       </Transitions>
+    </Setter>
+    <Setter Property="(i:Interaction.Behaviors)">
+      <i:BehaviorCollectionTemplate>
+        <i:BehaviorCollection>
+          <behaviors:OpacityTransitionAttachedBehavior Duration="0:0:1.50" />
+        </i:BehaviorCollection>
+      </i:BehaviorCollectionTemplate>
     </Setter>
     <Setter Property="Opacity" Value="0"/>
   </Style>
@@ -72,6 +88,7 @@
   <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
     <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
     <Setter Property="Opacity" Value="1"/>
+    <!-- <Setter Property="IsVisible" Value="True"/> -->
     <Setter Property="IsHitTestVisible" Value="True"/>
   </Style>
   <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
@@ -83,6 +100,7 @@
     <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
     <Setter Property="Opacity" Value="0"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
+    <!-- <Setter Property="IsVisible" Value="False"/> -->
   </Style>
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
     <Setter Property="Opacity" Value="0"/>
