@@ -34,7 +34,7 @@ public class CoinJoinTrackerFactory
 			var lastCoinjoin = wallet.TransactionProcessor.TransactionStore.GetTransactions().OrderByBlockchain().LastOrDefault(x => x.IsOwnCoinjoin());
 			if (lastCoinjoin is not null)
 			{
-				liquidityClue = CoinJoinClient.CalculateLiquidityClue(lastCoinjoin.Transaction, lastCoinjoin.WalletOutputs.Select(x => x.TxOut));
+				liquidityClue = CoinJoinClient.TryCalculateLiquidityClue(lastCoinjoin.Transaction, lastCoinjoin.WalletOutputs.Select(x => x.TxOut));
 			}
 		}
 

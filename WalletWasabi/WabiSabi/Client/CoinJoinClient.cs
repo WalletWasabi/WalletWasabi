@@ -260,7 +260,7 @@ public class CoinJoinClient
 
 			lock (LiquidityClueLock)
 			{
-				Money? secondLargestDenomOutput = CalculateLiquidityClue(unsignedCoinJoin, outputTxOuts);
+				Money? secondLargestDenomOutput = TryCalculateLiquidityClue(unsignedCoinJoin, outputTxOuts);
 
 				// Dismiss pleb round.
 				// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
@@ -294,7 +294,7 @@ public class CoinJoinClient
 		}
 	}
 
-	public static Money? CalculateLiquidityClue(Transaction coinjoin, IEnumerable<TxOut>? ownTxOuts = null)
+	public static Money? TryCalculateLiquidityClue(Transaction coinjoin, IEnumerable<TxOut>? ownTxOuts = null)
 	{
 		var denoms = coinjoin.Outputs
 				.Where(x =>
@@ -304,16 +304,14 @@ public class CoinJoinClient
 				.OrderByDescending(x => x)
 				.Distinct()
 				.ToArray();
-		var avgTop = denoms
-				.Take((int)Math.Ceiling(denoms.Length * 10 / 100d)) // Take top 10% of denominations.
-				.Average(x => x.ToDecimal(MoneyUnit.BTC));
-		if (avgTop is { } && avgTop != 0m)
+		var topDenoms = denoms.Take((int)Math.Ceiling(denoms.Length * 10 / 100d)); // Take top 10% of denominations.
+		if (topDenoms.Any())
 		{
-			return Money.Coins(avgTop);
+			return Money.Coins(topDenoms.Average(x => x.ToDecimal(MoneyUnit.BTC)));
 		}
 		else
 		{
-			return Money.Zero;
+			return null;
 		}
 	}
 
