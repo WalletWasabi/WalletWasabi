@@ -29,7 +29,7 @@ public class CoinJoinTrackerFactory
 	public CoinJoinTracker CreateAndStart(Wallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
 		Money? liquidityClue = null;
-		if (CoinJoinClient.GetLiquidityClue() is not null)
+		if (CoinJoinClient.GetLiquidityClue() is null)
 		{
 			var lastCoinjoin = wallet.TransactionProcessor.TransactionStore.GetTransactions().OrderByBlockchain().LastOrDefault(x => x.IsOwnCoinjoin());
 			if (lastCoinjoin is not null)

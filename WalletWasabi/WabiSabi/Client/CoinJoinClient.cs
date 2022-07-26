@@ -296,16 +296,25 @@ public class CoinJoinClient
 
 	public static Money? CalculateLiquidityClue(Transaction coinjoin, IEnumerable<TxOut>? ownTxOuts = null)
 	{
-		var secondLargestDenomOutput = coinjoin.Outputs
+		var denoms = coinjoin.Outputs
 				.Where(x =>
 					BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi) // We only care about denom outputs as those can be considered reasonably mixed.
 					&& !ownTxOuts?.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value) is true) // We only care about outputs those aren't ours.
 				.Select(x => x.Value)
-				.Distinct()
 				.OrderByDescending(x => x)
-				.Skip(1)
-				.FirstOrDefault();
-		return secondLargestDenomOutput;
+				.Distinct()
+				.ToArray();
+		var avgTop = denoms
+				.Take((int)Math.Ceiling(denoms.Length * 10 / 100d)) // Take top 10% of denominations.
+				.Average(x => x.ToDecimal(MoneyUnit.BTC));
+		if (avgTop is { } && avgTop != 0m)
+		{
+			return Money.Coins(avgTop);
+		}
+		else
+		{
+			return Money.Zero;
+		}
 	}
 
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
