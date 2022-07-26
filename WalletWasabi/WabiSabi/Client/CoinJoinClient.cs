@@ -46,7 +46,8 @@ public class CoinJoinClient
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
+		Money? liquidityClue = null)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -58,6 +59,10 @@ public class CoinJoinClient
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
+		lock (LiquidityClueLock)
+		{
+			LiquidityClue ??= liquidityClue;
+		}
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -75,6 +80,14 @@ public class CoinJoinClient
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 	private static Money? LiquidityClue { get; set; }
 	private static object LiquidityClueLock { get; } = new object();
+
+	public static Money? GetLiquidityClue()
+	{
+		lock (LiquidityClueLock)
+		{
+			return LiquidityClue;
+		}
+	}
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
@@ -247,15 +260,7 @@ public class CoinJoinClient
 
 			lock (LiquidityClueLock)
 			{
-				var secondLargestDenomOutput = unsignedCoinJoin.Outputs
-						.Where(x =>
-							BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi) // We only care about denom outputs as those can be considered reasonably mixed.
-							&& !outputTxOuts.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value)) // We only care about outputs those aren't ours.
-						.Select(x => x.Value)
-						.Distinct()
-						.OrderByDescending(x => x)
-						.Skip(1)
-						.FirstOrDefault();
+				Money? secondLargestDenomOutput = CalculateLiquidityClue(unsignedCoinJoin, outputTxOuts);
 
 				// Dismiss pleb round.
 				// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
@@ -287,6 +292,20 @@ public class CoinJoinClient
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
+	}
+
+	public static Money? CalculateLiquidityClue(Transaction coinjoin, IEnumerable<TxOut>? ownTxOuts = null)
+	{
+		var secondLargestDenomOutput = coinjoin.Outputs
+				.Where(x =>
+					BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi) // We only care about denom outputs as those can be considered reasonably mixed.
+					&& !ownTxOuts?.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value) is true) // We only care about outputs those aren't ours.
+				.Select(x => x.Value)
+				.Distinct()
+				.OrderByDescending(x => x)
+				.Skip(1)
+				.FirstOrDefault();
+		return secondLargestDenomOutput;
 	}
 
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
