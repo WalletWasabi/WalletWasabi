@@ -63,6 +63,7 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 
 	public string Address { get; set; }
 	public decimal Amount { get; set; }
+	public bool IsFixedAmount { get; set; }
 
 	public ValidationContext ValidationContext { get; } = new();
 
@@ -123,8 +124,6 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 
 		_transactionInfo.UserLabels = label;
 
-		// TODO: Fix this
-		//var isFixedAmount = PaymentViewModel.EndPoint is not null;
-		Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, false));
+		Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, IsFixedAmount));
 	}
 }

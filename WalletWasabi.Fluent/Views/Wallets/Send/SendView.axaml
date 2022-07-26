@@ -42,6 +42,7 @@
       <destinationEntry:BtcAndPayjoinPaymentControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
                                                     Controller="{Binding PaymentViewModel}"
                                                     Address="{Binding Address, Mode=TwoWay}"
+                                                    IsFixedAmount="{Binding IsFixedAmount, Mode=TwoWay}"
                                                     Amount="{Binding Amount, Mode=TwoWay}"/>
 
       <!-- Advanced -->

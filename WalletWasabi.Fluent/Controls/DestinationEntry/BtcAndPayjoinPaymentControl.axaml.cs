@@ -34,6 +34,12 @@ public class BtcAndPayjoinPaymentControl : UserControl
 			o => o.Amount,
 			(o, v) => o.Amount = v);
 
+	public static readonly DirectProperty<BtcAndPayjoinPaymentControl, bool> IsFixedAmountProperty =
+		AvaloniaProperty.RegisterDirect<BtcAndPayjoinPaymentControl, bool>(
+			"IsFixedAmount",
+			o => o.IsFixedAmount,
+			(o, v) => o.IsFixedAmount = v);
+
 	private readonly CompositeDisposable _disposables = new();
 
 	private string _address;
@@ -44,9 +50,17 @@ public class BtcAndPayjoinPaymentControl : UserControl
 
 	private decimal _conversionRate;
 
+	private bool _isFixedAmount;
+
 	public BtcAndPayjoinPaymentControl()
 	{
 		InitializeComponent();
+	}
+
+	public bool IsFixedAmount
+	{
+		get => _isFixedAmount;
+		set => SetAndRaise(IsFixedAmountProperty, ref _isFixedAmount, value);
 	}
 
 	public string Address
@@ -79,10 +93,15 @@ public class BtcAndPayjoinPaymentControl : UserControl
 
 		this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
 			.Where(x => x.IsSuccess)
-			.Do(a => Address = a.Value.BtcAddress)
+			.Do(
+				a =>
+				{
+					Address = a.Value.BtcAddress;
+					IsFixedAmount = a.Value.EndPoint is not null;
+				})
 			.Subscribe()
 			.DisposeWith(_disposables);
-		
+
 		this.WhenAnyValue(x => x.Controller.AmountController.Amount)
 			.WhereNotNull()
 			.Do(a => Amount = a)
