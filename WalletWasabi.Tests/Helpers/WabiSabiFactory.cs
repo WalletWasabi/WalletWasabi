@@ -306,7 +306,8 @@ public static class WabiSabiFactory
 			true,
 			redCoinIsolation,
 			TimeSpan.Zero,
-			TimeSpan.Zero);
+			TimeSpan.Zero,
+			null);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
