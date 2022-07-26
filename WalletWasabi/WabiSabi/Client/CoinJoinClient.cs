@@ -73,8 +73,8 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	public bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	private static Money? SecondLargestDenomOutput { get; set; }
-	private static object SecondLargestDenomOutputLock { get; } = new object();
+	private static Money? LiquidityClue { get; set; }
+	private static object LiquidityClueLock { get; } = new object();
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
@@ -136,11 +136,11 @@ public class CoinJoinClient
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
 			Money liquidityClue = roundParameteers.MaxSuggestedAmount;
-			lock (SecondLargestDenomOutputLock)
+			lock (LiquidityClueLock)
 			{
-				if (SecondLargestDenomOutput is not null)
+				if (LiquidityClue is not null)
 				{
-					liquidityClue = Math.Min(SecondLargestDenomOutput, liquidityClue);
+					liquidityClue = Math.Min(LiquidityClue, liquidityClue);
 				}
 			}
 
@@ -245,7 +245,7 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
-			lock (SecondLargestDenomOutputLock)
+			lock (LiquidityClueLock)
 			{
 				var secondLargestDenomOutput = unsignedCoinJoin.Outputs
 						.Where(x =>
@@ -262,7 +262,7 @@ public class CoinJoinClient
 				if (secondLargestDenomOutput is not null
 					&& (roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > secondLargestDenomOutput)
 				{
-					SecondLargestDenomOutput = secondLargestDenomOutput;
+					LiquidityClue = secondLargestDenomOutput;
 				}
 			}
 
