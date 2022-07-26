@@ -1,15 +1,11 @@
 using System.Globalization;
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
