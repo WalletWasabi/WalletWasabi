@@ -97,6 +97,7 @@ public class BtcAndPayjoinPaymentControl : UserControl
 				a =>
 				{
 					Address = a.Value.BtcAddress;
+					Controller.AmountController.Amount = a.Value.Amount ?? 0;
 					IsFixedAmount = a.Value.EndPoint is not null;
 				})
 			.Subscribe()
