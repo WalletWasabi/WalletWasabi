@@ -20,7 +20,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	{
 		var filterPredicate = this
 			.WhenAnyValue(x => x.SearchText)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
 
