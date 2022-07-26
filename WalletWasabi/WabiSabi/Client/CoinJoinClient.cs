@@ -656,27 +656,11 @@ public class CoinJoinClient
 		}
 		Logger.LogDebug($"Targeted {nameof(inputCount)}: {inputCount}.");
 
-		var biasSuffledPrivateCoins = AnonScoreBiasedShuffle(privateCoins).ToArray();
-
-		// Manipulate the list so repeating tx sources get to the end.
-		var alternatingPrivateCoins = new List<SmartCoin>();
-		var skipped = new List<SmartCoin>();
-		foreach (var c in biasSuffledPrivateCoins)
-		{
-			if (alternatingPrivateCoins.Any(x => x.TransactionId == c.TransactionId))
-			{
-				skipped.Add(c);
-			}
-			else
-			{
-				alternatingPrivateCoins.Add(c);
-			}
-		}
-		alternatingPrivateCoins.AddRange(skipped);
+		var biasSuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins).ToArray();
 
 		// Deprioritize private coins those are too large.
-		var smallerPrivateCoins = alternatingPrivateCoins.Where(x => x.Amount <= liquidityClue);
-		var largerPrivateCoins = alternatingPrivateCoins.Where(x => x.Amount > liquidityClue);
+		var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
+		var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > liquidityClue);
 
 		// Let's allow only inputCount - 1 private coins to play.
 		var allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1).ToArray();
@@ -686,7 +670,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"{nameof(allowedCoins)}: {allowedCoins.Length} coins, valued at {Money.Satoshis(allowedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		// Shuffle coins, while randomly biasing towards lower AS.
-		var orderedAllowedCoins = AnonScoreBiasedShuffle(allowedCoins).ToArray();
+		var orderedAllowedCoins = AnonScoreTxSourceBiasedShuffle(allowedCoins).ToArray();
 
 		// Always use the largest amounts, so we do not participate with insignificant amounts and fragment wallet needlessly.
 		var largestNonPrivateCoins = allowedNonPrivateCoins
@@ -817,20 +801,38 @@ public class CoinJoinClient
 		return 0;
 	}
 
-	private static IEnumerable<SmartCoin> AnonScoreBiasedShuffle(SmartCoin[] coins)
+	private static IEnumerable<SmartCoin> AnonScoreTxSourceBiasedShuffle(SmartCoin[] coins)
 	{
 		var orderedCoins = new List<SmartCoin>();
 		for (int i = 0; i < coins.Length; i++)
 		{
+			// Order by anonscore first.
 			var remaining = coins.Except(orderedCoins).OrderBy(x => x.HdPubKey.AnonymitySet);
-			var c = remaining.BiasedRandomElement(50);
-			if (c is null)
+
+			// Then manipulate the list so repeating tx sources go to the end.
+			var alternating = new List<SmartCoin>();
+			var skipped = new List<SmartCoin>();
+			foreach (var c in remaining)
+			{
+				if (alternating.Any(x => x.TransactionId == c.TransactionId))
+				{
+					skipped.Add(c);
+				}
+				else
+				{
+					alternating.Add(c);
+				}
+			}
+			alternating.AddRange(skipped);
+
+			var coin = alternating.BiasedRandomElement(50);
+			if (coin is null)
 			{
 				throw new NotSupportedException("This is impossible.");
 			}
 
-			orderedCoins.Add(c);
-			yield return c;
+			orderedCoins.Add(coin);
+			yield return coin;
 		}
 	}
 
