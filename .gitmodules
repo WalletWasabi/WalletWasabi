@@ -7,4 +7,4 @@
 [submodule "Avalonia.Controls.TreeDataGrid"]
 	branch = Avalonia11
 [submodule "AvaloniaBehaviors"]
-	branch = Avalonia11
+	branch = master
