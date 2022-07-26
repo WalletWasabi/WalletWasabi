@@ -151,7 +151,7 @@ public class UpdateManager
 	public string DownloadsDir { get; }
 	public IHttpClient HttpClient { get; }
 
-	///<summary>Comes from config file.</summary>
+	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
 	public bool DownloadNewVersion { get; set; }
 
 	///<summary>User's answer if installing new version on shutdown is needed.</summary>
