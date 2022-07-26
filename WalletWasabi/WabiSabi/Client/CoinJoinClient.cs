@@ -756,7 +756,43 @@ public class CoinJoinClient
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
 
 		// Let's remove some coins coming from the same tx in the final candidate:
-		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd);
+		// The smaller our balance is the more privacy we gain and the more the user cares about the costs, so more interconnectedness allowance makes sense.
+		var toRegister = finalCandidate.Sum(x => x.Amount);
+		int percent;
+		if (toRegister < 10_000)
+		{
+			percent = 20;
+		}
+		else if (toRegister < 100_000)
+		{
+			percent = 30;
+		}
+		else if (toRegister < 1_000_000)
+		{
+			percent = 40;
+		}
+		else if (toRegister < 10_000_000)
+		{
+			percent = 50;
+		}
+		else if (toRegister < 100_000_000) // 1 BTC
+		{
+			percent = 60;
+		}
+		else if (toRegister < 1_000_000_000)
+		{
+			percent = 70;
+		}
+		else if (toRegister < 10_000_000_000)
+		{
+			percent = 80;
+		}
+		else
+		{
+			percent = 90;
+		}
+
+		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
 		var winner = new List<SmartCoin>();
 		foreach (var coin in finalCandidate
@@ -788,11 +824,11 @@ public class CoinJoinClient
 		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
 	}
 
-	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd)
+	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
 	{
 		foreach (var num in new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 })
 		{
-			if (rnd.GetInt(1, 101) <= 70)
+			if (rnd.GetInt(1, 101) <= percent)
 			{
 				return num;
 			}
