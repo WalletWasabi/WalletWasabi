@@ -470,6 +470,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 			catch (Exception ex)
 			{
+				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
 					"Wasabi was unable to send your transaction.");
 			}
@@ -481,7 +482,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (!_wallet.KeyManager.IsHardwareWallet &&
-		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show authentication dialog when password is empty
 		{
 			return true;
 		}

@@ -31,7 +31,6 @@
           <Image Height="100" Source="{Binding Generic, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
         </StackPanel>
       </Viewbox>
-      <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" DockPanel.Dock="Bottom" VerticalAlignment="Bottom"/>
       <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
         <DockPanel>
           <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>

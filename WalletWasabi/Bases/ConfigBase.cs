@@ -23,6 +23,8 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public string FilePath { get; private set; } = "";
 
+	private object FileLocker { get; } = new();
+
 	/// <inheritdoc />
 	public void AssertFilePathSet()
 	{
@@ -42,7 +44,11 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			throw new FileNotFoundException($"{GetType().Name} file did not exist at path: `{FilePath}`.");
 		}
 
-		string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
+		string jsonString;
+		lock (FileLocker)
+		{
+			jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
+		}
 
 		var newConfigObject = Activator.CreateInstance(GetType())!;
 		JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
@@ -79,7 +85,11 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	/// <inheritdoc />
 	public virtual void LoadFile()
 	{
-		var jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
+		string jsonString;
+		lock (FileLocker)
+		{
+			jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
+		}
 
 		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
 
@@ -110,7 +120,10 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		AssertFilePathSet();
 
 		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSerializationOptions.Default.Settings);
-		File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
+		lock (FileLocker)
+		{
+			File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
+		}
 	}
 
 	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;

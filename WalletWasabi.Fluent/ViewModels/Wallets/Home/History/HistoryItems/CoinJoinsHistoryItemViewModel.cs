@@ -65,6 +65,16 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		return result;
 	}
 
+	public override bool HasChildren()
+	{
+		if (CoinJoinTransactions.Count > 1)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	public void Add(TransactionSummary item)
 	{
 		if (!item.IsOwnCoinjoin)
