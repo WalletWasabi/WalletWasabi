@@ -783,13 +783,9 @@ public class CoinJoinClient
 		{
 			percent = 70;
 		}
-		else if (toRegister < 10_000_000_000)
-		{
-			percent = 80;
-		}
 		else
 		{
-			percent = 90;
+			percent = 80;
 		}
 
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
