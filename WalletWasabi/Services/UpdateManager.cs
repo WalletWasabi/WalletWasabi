@@ -21,8 +21,7 @@ public class UpdateManager
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
-		DataDir = dataDir;
-		DownloadsDir = Path.Combine(DataDir, "Downloads");
+		DownloadsDir = Path.Combine(dataDir, "Downloads");
 		HttpClient = httpClient;
 		DownloadNewVersion = downloadNewVersion;
 	}
@@ -70,11 +69,7 @@ public class UpdateManager
 		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-		string softwareVersion = jsonResponse["tag_name"]?.ToString();
-		if (string.IsNullOrEmpty(softwareVersion))
-		{
-			throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
-		}
+		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
 		// If the version we are looking for is not the one on github, somethings wrong.
 		Version githubVersion = new(softwareVersion[1..]);
@@ -85,11 +80,11 @@ public class UpdateManager
 		}
 
 		// Get all asset names and download urls to find the correct one.
-		List<JToken> assetsInfos = jsonResponse["assets"].Children().ToList();
+		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
 		List<string> assetDownloadUrls = new();
 		foreach (JToken asset in assetsInfos)
 		{
-			assetDownloadUrls.Add(asset["browser_download_url"].ToString());
+			assetDownloadUrls.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
@@ -99,11 +94,9 @@ public class UpdateManager
 
 		// This should also be done using Tor.
 		using System.Net.Http.HttpClient httpClient = new();
-		using HttpRequestMessage newMessage = new(HttpMethod.Get, url);
-		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 
 		// Get file stream and copy it to downloads folder to access.
-		var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
+		using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
 		Logger.LogInfo("Installer stream downloaded, copying...");
 		var file = File.OpenWrite(tmpFileName);
 		await stream.CopyToAsync(file).ConfigureAwait(false);
@@ -147,7 +140,6 @@ public class UpdateManager
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
 
-	public string DataDir { get; }
 	public string DownloadsDir { get; }
 	public IHttpClient HttpClient { get; }
 
@@ -157,11 +149,11 @@ public class UpdateManager
 	///<summary> Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; } = false;
 
-	public bool InstallNewVersion()
+	public void InstallNewVersion()
 	{
 		try
 		{
-			var installerPath = Path.Combine(DataDir, "Downloads", InstallerName);
+			var installerPath = Path.Combine(DownloadsDir, InstallerName);
 			ProcessStartInfo startInfo;
 			if (!File.Exists(installerPath))
 			{
@@ -200,7 +192,6 @@ public class UpdateManager
 		{
 			Logger.LogError("Failed to install latest release. File might be corrupted.", ex);
 		}
-		return false;
 	}
 
 	public bool CheckIfInstallerDownloaded()
@@ -212,12 +203,16 @@ public class UpdateManager
 
 			FileSystemInfo? file = files.Where(file => file.Name.Contains("Wasabi")).FirstOrDefault();
 
-			if (file is { } && file.Name.Contains("tmp"))
+			if (file is null)
 			{
-				Logger.LogInfo("Corrupted/unfinished installer found, deleting.");
+				Logger.LogDebug("Installer not found.");
+			}
+			else if (file.Name.Contains("tmp"))
+			{
+				Logger.LogWarning("Corrupted/unfinished installer found, deleting.");
 				File.Delete(file.FullName);
 			}
-			else if (file is { })
+			else
 			{
 				InstallerName = file.Name;
 				return true;
