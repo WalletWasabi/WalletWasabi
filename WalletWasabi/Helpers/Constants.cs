@@ -32,7 +32,6 @@ public static class Constants
 	public const long MaximumNumberOfSatoshis = 2099999997690000;
 
 	public const decimal MaximumNumberOfBitcoins = 20999999.9769m;
-	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
 	public const int FastestConfirmationTarget = 1;
 	public const int TwentyMinutesConfirmationTarget = 2;
@@ -57,6 +56,8 @@ public static class Constants
 	public const string ExecutableName = "wassabee";
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
+
+	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
 	public static readonly Version ClientVersion = new(2, 0, 1, 2);
 
