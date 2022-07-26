@@ -154,7 +154,7 @@ public class UpdateManager
 	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
 	public bool DownloadNewVersion { get; set; }
 
-	///<summary>User's answer if installing new version on shutdown is needed.</summary>
+	///<summary> Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; } = false;
 
 	public bool InstallNewVersion()
