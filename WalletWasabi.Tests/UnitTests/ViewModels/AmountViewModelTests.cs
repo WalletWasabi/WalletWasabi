@@ -12,47 +12,29 @@ public class AmountViewModelTests : ReactiveTest
 	public void Initial_state_is_invalid()
 	{
 		var sut = new AmountViewModel(_ => true);
-		var testScheduler = new TestScheduler();
-		var testableObserver = testScheduler.CreateObserver<bool>();
-		sut.IsValid().Subscribe(testableObserver);
-
-		testableObserver.Messages.Should().BeEquivalentTo(new[]
-		{
-			OnNext(0, false),
-		});
+		sut.IsValid()
+			.RecordChanges(() => { })
+			.Should()
+			.BeEquivalentTo(new[] { false });
 	}
 
 	[Fact]
-	public void Setting_a_value_turns_valid()
+	public void Any_amount_below_balance_is_valid()
 	{
 		var sut = new AmountViewModel(_ => true);
-		var testScheduler = new TestScheduler();
-		var testableObserver = testScheduler.CreateObserver<bool>();
-		sut.IsValid().Subscribe(testableObserver);
-
-		sut.Amount = 1;
-
-		testableObserver.Messages.Should().BeEquivalentTo(new[]
-		{
-			OnNext(0, false),
-			OnNext(0, true)
-		});
+		sut.IsValid()
+			.RecordChanges(() => sut.Amount = 1)
+			.Should()
+			.BeEquivalentTo(new[] { false, true });
 	}
 
 	[Fact]
-	public void Setting_value_below_balance_is_invalid()
+	public void Any_amount_below_balance_is_invalid()
 	{
 		var sut = new AmountViewModel(_ => false);
-		var testScheduler = new TestScheduler();
-		var testableObserver = testScheduler.CreateObserver<bool>();
-		sut.IsValid().Subscribe(testableObserver);
-
-		sut.Amount = 1;
-
-		testableObserver.Messages.Should().BeEquivalentTo(new[]
-		{
-			OnNext(0, false),
-			OnNext(0, false)
-		});
+		sut.IsValid()
+			.RecordChanges(() => sut.Amount = 1)
+			.Should()
+			.BeEquivalentTo(new[] { false, false });
 	}
 }
