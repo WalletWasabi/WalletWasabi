@@ -15,7 +15,12 @@ public class AddressViewModel : ReactiveValidationObject
 		var parser = addressParser;
 		ParsedAddress = this.WhenAnyValue(s => s.Text, s => parser.GetAddress(s));
 		TextChanged = this.WhenAnyValue(x => x.Text);
-		this.ValidationRule(x => x.Text, TextChanged.CombineLatest(ParsedAddress, (txt, address) => string.IsNullOrWhiteSpace(txt) || address is not null), "The address is invalid");
+		this.ValidationRule(
+			x => x.Text,
+			TextChanged.CombineLatest(
+				ParsedAddress,
+				(txt, address) => string.IsNullOrWhiteSpace(txt) || address.IsSuccess),
+			"The address is invalid");
 	}
 
 	public IObservable<string> TextChanged { get; }
