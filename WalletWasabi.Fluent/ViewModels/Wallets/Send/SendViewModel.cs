@@ -32,8 +32,8 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	private readonly TransactionInfo _transactionInfo;
 	private readonly Wallet _wallet;
 	[AutoNotify] private decimal _amountBtc;
-	[AutoNotify] private PaymentViewModel _paymentViewModel;
 	[AutoNotify] private decimal _exchangeRate;
+	[AutoNotify] private PaymentViewModel _paymentViewModel;
 
 	public SendViewModel(
 		Wallet wallet,
@@ -55,11 +55,6 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 				await NavigateDialogAsync(
 					new AdvancedSendOptionsViewModel(_transactionInfo),
 					NavigationTarget.CompactDialogScreen));
-
-		// TODO: Add this feature back
-		//this.WhenAnyValue(x => x.ConversionReversed)
-		//	.Skip(1)
-		//	.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public ICommand AdvancedOptionsCommand { get; }
@@ -74,7 +69,10 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		var network = _wallet.Network;
-		PaymentViewModel = new PaymentViewModel(network, a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC), new FullAddressParser(network));
+		PaymentViewModel = new PaymentViewModel(
+			network,
+			a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC),
+			new FullAddressParser(network));
 
 		if (!inHistory)
 		{

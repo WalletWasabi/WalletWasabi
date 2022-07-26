@@ -20,6 +20,9 @@ public class PaymentViewModel : ReactiveValidationObject, IDisposable
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
 		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker, ApplicationUtils.IsMainWindowActive);
 		AmountController = new AmountViewModel(isAmountValid);
+		AmountCurrencyDirectionController = new AmountCurrencyDirectionController(
+			Services.UiConfig.SendAmountConversionReversed,
+			b => Services.UiConfig.SendAmountConversionReversed = b);
 
 		this.ValidationRule(x => x.AddressController, AddressController.IsValid(), "Address invalid");
 		this.ValidationRule(x => x.AmountController, AmountController.IsValid(), "Amount invalid");
@@ -32,6 +35,8 @@ public class PaymentViewModel : ReactiveValidationObject, IDisposable
 	public PasteButtonViewModel PasteController { get; }
 
 	public AmountViewModel AmountController { get; }
+
+	public AmountCurrencyDirectionController AmountCurrencyDirectionController { get; }
 
 	public void Dispose()
 	{

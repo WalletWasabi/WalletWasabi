@@ -30,6 +30,7 @@
                               AmountBtc="{Binding #UserControl.Controller.AmountController.Amount, Mode=TwoWay}"
                               ConversionCurrencyCode="USD"
                               CurrencyCode="BTC"
+                              IsConversionReversed="{Binding #UserControl.Controller.AmountCurrencyDirectionController.IsReversed, Mode=TwoWay}"
                               IsReadOnly="{Binding #UserControl.Controller.AddressController.ParsedAddress^.Value.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
                               ConversionRate="{Binding #UserControl.ConversionRate}" />
     </DockPanel>
