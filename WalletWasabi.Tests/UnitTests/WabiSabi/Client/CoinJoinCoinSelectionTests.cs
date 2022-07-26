@@ -4,6 +4,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
@@ -13,8 +14,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class CoinJoinCoinSelectionTests
 {
-	private static readonly Money AllBtc = Money.Coins(21000000m);
-
 	[Fact]
 	public void SelectNothingFromEmptySetOfCoins()
 	{
@@ -25,7 +24,7 @@ public class CoinJoinCoinSelectionTests
 			consolidationMode: false,
 			anonScoreTarget: 10,
 			redCoinIsolation: false,
-			liquidityClue: AllBtc,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
 		Assert.Empty(coins);
@@ -48,7 +47,7 @@ public class CoinJoinCoinSelectionTests
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
-			liquidityClue: AllBtc,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
 		Assert.Empty(coins);
@@ -73,7 +72,7 @@ public class CoinJoinCoinSelectionTests
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
-			liquidityClue: AllBtc,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
 		Assert.Contains(smallerAnonCoin, coins);
@@ -97,7 +96,7 @@ public class CoinJoinCoinSelectionTests
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
-			liquidityClue: AllBtc,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
 		Assert.Single(coins);
@@ -122,7 +121,7 @@ public class CoinJoinCoinSelectionTests
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
-			liquidityClue: AllBtc,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
 		Assert.Equal(2, coins.Count);
@@ -146,7 +145,7 @@ public class CoinJoinCoinSelectionTests
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
-			liquidityClue: AllBtc,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
 		Assert.Equal(2, coins.Count);

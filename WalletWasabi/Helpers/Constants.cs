@@ -32,6 +32,7 @@ public static class Constants
 	public const long MaximumNumberOfSatoshis = 2099999997690000;
 
 	public const decimal MaximumNumberOfBitcoins = 20999999.9769m;
+	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
 	public const int FastestConfirmationTarget = 1;
 	public const int TwentyMinutesConfirmationTarget = 2;
