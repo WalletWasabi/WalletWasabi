@@ -26,5 +26,5 @@ public class AddressViewModel : ReactiveValidationObject
 		set => this.RaiseAndSetIfChanged(ref _text, value);
 	}
 
-	public IObservable<Address?> ParsedAddress { get; }
+	public IObservable<Result<Address>> ParsedAddress { get; }
 }

@@ -78,8 +78,8 @@ public class BtcAndPayjoinPaymentControl : UserControl
 		base.OnAttachedToVisualTree(e);
 
 		this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
-			.WhereNotNull()
-			.Do(a => Address = a.BtcAddress)
+			.Where(x => x.IsSuccess)
+			.Do(a => Address = a.Value.BtcAddress)
 			.Subscribe()
 			.DisposeWith(_disposables);
 		

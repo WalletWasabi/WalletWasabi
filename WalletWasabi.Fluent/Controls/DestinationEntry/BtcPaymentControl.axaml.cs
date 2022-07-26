@@ -51,8 +51,8 @@ public class BtcPaymentControl : UserControl
 		base.OnAttachedToVisualTree(e);
 		DisposableMixin.DisposeWith(
 			this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
-				.WhereNotNull()
-				.Do(a => Address = a.BtcAddress)
+				.Where(x => x.IsSuccess)
+				.Do(a => Address = a.Value.BtcAddress)
 				.Subscribe(),
 			disposables);
 	}

@@ -16,7 +16,7 @@ public class PaymentViewModel : ReactiveValidationObject, IDisposable
 		var contentChecker = new ContentChecker<string>(
 			newContentsChanged,
 			AddressController.TextChanged,
-			s => parser.GetAddress(s) is not null);
+			s => parser.GetAddress(s).IsSuccess);
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
 		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker, ApplicationUtils.IsMainWindowActive);
 		AmountController = new AmountViewModel(isAmountValid);

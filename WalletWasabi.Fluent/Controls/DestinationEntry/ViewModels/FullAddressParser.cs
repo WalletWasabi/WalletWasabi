@@ -1,32 +1,25 @@
 using NBitcoin;
-
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
 
 public class FullAddressParser : IAddressParser
 {
-    private readonly BtcAddressValidator btcValidator;
-    private readonly PayjoinAddressParser payjoinValidator;
+	private readonly Network _network;
 
-    public FullAddressParser(Network network)
-    {
-        btcValidator = new BtcAddressValidator(network);
-        payjoinValidator = new PayjoinAddressParser(network);
-    }
+	public FullAddressParser(Network network)
+	{
+		_network = network;
+	}
 
-    public Address? GetAddress(string str)
-    {
-        str = str.Trim();
+	public Result<Address> GetAddress(string str)
+	{
+		str = str.Trim();
 
-        if (btcValidator.IsValid(str))
-        {
-            return new Address(str);
-        }
+		var regular = Address.FromRegularAddress(str, _network);
+		if (regular.IsSuccess)
+		{
+			return regular;
+		}
 
-        if (payjoinValidator.TryParse(str, out var payjoinRequest))
-        {
-            return new Address(payjoinRequest.Address, payjoinRequest.Endpoint, payjoinRequest.Amount);
-        }
-
-        return default;
-    }
+		return Address.FromPayjoin(str, _network);
+	}
 }
