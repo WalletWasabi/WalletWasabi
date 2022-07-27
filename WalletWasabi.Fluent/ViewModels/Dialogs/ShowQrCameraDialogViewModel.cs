@@ -49,8 +49,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(args =>
 			{
-				// TODO: Delete this testing line
-				Close(DialogResultKind.Normal, args.EventArgs);
 				Message = $"Invalid QR code.";
 			})
 			.DisposeWith(disposables);
