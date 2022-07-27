@@ -2,7 +2,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Mixins;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -23,7 +22,7 @@ public class BtcPaymentControl : UserControl
 			o => o.Controller,
 			(o, v) => o.Controller = v);
 
-	private readonly CompositeDisposable disposables = new();
+	private readonly CompositeDisposable _disposables = new();
 
 	private string _address;
 
@@ -49,12 +48,12 @@ public class BtcPaymentControl : UserControl
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		base.OnAttachedToVisualTree(e);
-		DisposableMixin.DisposeWith(
-			this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
-				.Where(x => x.IsSuccess)
-				.Do(a => Address = a.Value.BtcAddress)
-				.Subscribe(),
-			disposables);
+
+		this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
+			.Where(x => x.IsSuccess)
+			.Do(a => Address = a.Value.BtcAddress)
+			.Subscribe()
+			.DisposeWith(_disposables);
 	}
 
 	private void InitializeComponent()

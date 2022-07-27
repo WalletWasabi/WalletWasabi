@@ -47,14 +47,14 @@ public class PasteButton : UserControl
 				this.WhenAnyValue(x => x.Controller)
 					.SelectMany(x => x.PasteCommand)
 					.Do(address => Address = address)
-					.Subscribe(), disposables);
+					.Subscribe(), _disposables);
 
 		base.OnAttachedToVisualTree(e);
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		disposables.Dispose();
+		_disposables.Dispose();
 		base.OnDetachedFromVisualTree(e);
 	}
 
@@ -88,7 +88,7 @@ public class PasteButton : UserControl
 		o => o.Address,
 		(o, v) => o.Address = v);
 
-	private CompositeDisposable disposables = new();
+	private CompositeDisposable _disposables = new();
 
 	public string Address
 	{
