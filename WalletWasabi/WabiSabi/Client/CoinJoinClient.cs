@@ -260,14 +260,14 @@ public class CoinJoinClient
 
 			lock (LiquidityClueLock)
 			{
-				Money? secondLargestDenomOutput = TryCalculateLiquidityClue(unsignedCoinJoin, outputTxOuts);
+				Money? liquidityClue = TryCalculateLiquidityClue(unsignedCoinJoin, outputTxOuts);
 
 				// Dismiss pleb round.
 				// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
-				if (secondLargestDenomOutput is not null
-					&& (roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > secondLargestDenomOutput)
+				if (liquidityClue is not null
+					&& (roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > liquidityClue)
 				{
-					LiquidityClue = secondLargestDenomOutput;
+					LiquidityClue = liquidityClue;
 				}
 			}
 
