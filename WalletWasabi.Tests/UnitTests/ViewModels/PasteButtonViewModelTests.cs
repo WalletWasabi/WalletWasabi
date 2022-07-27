@@ -41,7 +41,7 @@ public class PasteButtonViewModelTests
 	}
 
 	[Fact]
-	public void Pasting_empty_should_return_emtpy_list()
+	public void Pasting_empty_should_return_empty_list()
 	{
 		using var sut = new PasteButtonViewModel(
 			Observable.Empty(""),
