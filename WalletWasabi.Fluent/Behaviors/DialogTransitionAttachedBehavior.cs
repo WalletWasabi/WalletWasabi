@@ -44,10 +44,10 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 			return;
 		}
 
-		AnimateImplicit(AssociatedObject, OpacityDuration, EnableScale);
+		AnimateImplicit(AssociatedObject, OpacityDuration, EnableScale, ScaleDuration);
 	}
 
-	private static void AnimateImplicit(Control control, TimeSpan duration, bool enableScale)
+	private static void AnimateImplicit(Control control, TimeSpan opacityDuration, bool enableScale, TimeSpan scaleDuration)
 	{
 		var compositionVisual = ElementComposition.GetElementVisual(control);
 		if (compositionVisual is null)
@@ -63,7 +63,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		opacityAnimation.Target = "Opacity";
 		opacityAnimation.InsertExpressionKeyFrame(0f, "this.StartingValue", fluentEasing);
 		opacityAnimation.InsertExpressionKeyFrame(1f, "this.FinalValue", fluentEasing);
-		opacityAnimation.Duration = duration;
+		opacityAnimation.Duration = opacityDuration;
 		opacityAnimation.Direction = PlaybackDirection.Normal;
 		opacityAnimation.IterationCount = 1;
 
@@ -76,7 +76,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 			scaleAnimation.Target = "Scale";
 			scaleAnimation.InsertKeyFrame(0f, new Vector3(0.96f, 0.96f, 0f), fluentEasing);
 			scaleAnimation.InsertKeyFrame(1f, new Vector3(0.96f, 0.96f, 0f), fluentEasing);
-			scaleAnimation.Duration = TimeSpan.FromMilliseconds(350);
+			scaleAnimation.Duration = scaleDuration;
 			opacityAnimation.Direction = PlaybackDirection.Normal;
 			opacityAnimation.IterationCount = 1;
 
