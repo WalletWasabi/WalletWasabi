@@ -253,8 +253,8 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -278,7 +278,7 @@ public class HwiKatas
 
 		// USER: REFUSE
 		var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
-		Assert.Equal(HwiErrorCode.BadArgument, ex.ErrorCode);
+		Assert.Equal(HwiErrorCode.UnknownError, ex.ErrorCode);
 
 		// USER: CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
@@ -336,8 +336,9 @@ public class HwiKatas
 
 		await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network);
-		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive(1);
+		KeyPath keyPath1 = KeyManager.GetAccountKeyPath(network).Derive("0/0");
+		KeyPath keyPath2 = KeyManager.GetAccountKeyPath(network).Derive("0/1");
+
 		ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 		ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 		Assert.NotNull(xpub1);
@@ -345,7 +346,7 @@ public class HwiKatas
 		Assert.NotEqual(xpub1, xpub2);
 
 		// USER SHOULD REFUSE ACTION
-		await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+		await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(fingerprint, keyPath1, cts.Token));
 
 		// USER: CONFIRM
 		BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
@@ -361,7 +362,7 @@ public class HwiKatas
 
 		// USER: REFUSE
 		var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
-		Assert.Equal(HwiErrorCode.BadArgument, ex.ErrorCode);
+		Assert.Equal(HwiErrorCode.UnknownError, ex.ErrorCode);
 
 		// USER: CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
