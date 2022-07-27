@@ -13,10 +13,10 @@ public class ContentCheckerTests
 	[InlineData("Old", "New", false, false)]
 	[InlineData("Old", "Old", true, false)]
 	[InlineData("Old", "Old", false, false)]
-	public async Task Test(string incoming, string current, bool isValid, bool hasNewContent)
+	public async Task Has_new_content(string incoming, string current, bool isValid, bool expected)
 	{
 		var sut = new ContentChecker<string>(Observable.Return(incoming), Observable.Return(current), _ => isValid);
-		var actual = await sut.HasNewContent.LastAsync();
-		actual.Should().Be(hasNewContent);
+		var hasNewContent = await sut.HasNewContent.LastAsync();
+		hasNewContent.Should().Be(expected);
 	}
 }
