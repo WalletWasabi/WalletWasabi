@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using DynamicData;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels;
+namespace WalletWasabi.Tests.UnitTests.Payment;
 
 public static class TestMixin
 {

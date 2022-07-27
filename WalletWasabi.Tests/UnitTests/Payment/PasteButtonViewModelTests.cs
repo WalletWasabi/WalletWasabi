@@ -3,7 +3,7 @@ using FluentAssertions;
 using WalletWasabi.Fluent.Controls.Payment.ViewModels;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels;
+namespace WalletWasabi.Tests.UnitTests.Payment;
 
 public class PasteButtonViewModelTests
 {

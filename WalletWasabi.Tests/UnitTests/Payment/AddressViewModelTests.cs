@@ -1,4 +1,4 @@
-namespace WalletWasabi.Tests.UnitTests.ViewModels;
+namespace WalletWasabi.Tests.UnitTests.Payment;
 
 public class AddressViewModelTests
 {
