@@ -22,7 +22,7 @@
     </StackPanel.Styles>
 
     <components:AddressEntryControl Controller="{Binding #UserControl.Controller}"
-                           Watermark="(e.g. Bitcoin address or Payjoin URL)" />
+                           Watermark="Enter the destination bitcoin address" />
 
   </StackPanel>
 </UserControl>

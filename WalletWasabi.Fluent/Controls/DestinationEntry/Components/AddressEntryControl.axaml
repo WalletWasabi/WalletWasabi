@@ -27,7 +27,7 @@
         </i:Interaction.Behaviors>
 
         <TextBox.InnerRightContent>
-          <StackPanel Orientation="Horizontal" Margin="0 0 6 0">
+          <StackPanel Orientation="Horizontal" Margin="0 0 10 0" Spacing="10">
             <components:PasteButton
               Address="{Binding #UserControl.Controller.AddressController.Text, Mode=TwoWay}"
               Controller="{Binding #UserControl.Controller.PasteController}" />
