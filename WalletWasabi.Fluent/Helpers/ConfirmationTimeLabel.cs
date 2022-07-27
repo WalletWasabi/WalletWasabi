@@ -19,6 +19,6 @@ public static class ConfirmationTimeLabel
 			return "fastest";
 		}
 
-		return "~" + TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration(" days", " hours", " minutes"));
+		return "~" + TimeSpanFormatter.Format(timeSpan, new TimeSpanFormatter.Configuration(" day", " hour", " min"));
 	}
 }
