@@ -591,7 +591,7 @@ public class CoinJoinClient
 		// Sanity check.
 		if (liquidityClue <= Money.Zero)
 		{
-			liquidityClue = Money.Coins(21_000_000m);
+			liquidityClue = Constants.MaximumNumberOfBitcoinsMoney;
 		}
 
 		var filteredCoins = coins
