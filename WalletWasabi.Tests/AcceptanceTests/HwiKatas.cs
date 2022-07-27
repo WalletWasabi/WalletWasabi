@@ -346,7 +346,7 @@ public class HwiKatas
 		Assert.NotEqual(xpub1, xpub2);
 
 		// USER SHOULD REFUSE ACTION
-		await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(fingerprint, keyPath1, cts.Token));
+		await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
 		// USER: CONFIRM
 		BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
