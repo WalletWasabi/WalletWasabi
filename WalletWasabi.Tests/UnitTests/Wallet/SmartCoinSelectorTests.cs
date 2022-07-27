@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -20,21 +23,11 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void SelectsOnlyOneCoinWhenPossible()
 	{
-		var keys = Enumerable.Range(0, 9)
-				.Select(_ => KeyManager.GenerateNewKey(new SmartLabel("Juan"), KeyState.Clean, false));
+		var smartCoins0 = GenerateSmartCoins(
+			Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1)))
+		).ToList();
 
-		var cluster = new Cluster(keys);
-
-		var smartCoins = keys
-			.Select((key, i) =>
-			{
-				var coin = BitcoinFactory.CreateSmartCoin(key, 0.1m * (i + 1));
-				coin.HdPubKey.Cluster = cluster;
-				return coin;
-			})
-			.ToList();
-
-		var selector = new SmartCoinSelector(smartCoins);
+		var selector = new SmartCoinSelector(smartCoins0);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m));
 
 		var theOnlyOne = Assert.Single(coinsToSpend.Cast<Coin>());
@@ -44,21 +37,11 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferLessCoinsOverExactAmount()
 	{
-		var keys = Enumerable.Range(0, 10)
-				.Select(_ => KeyManager.GenerateNewKey(new SmartLabel("Juan"), KeyState.Clean, false))
-				.ToList();
+		var smartCoins = GenerateSmartCoins(
+			Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1)))
+		).ToList();
 
-		var cluster = new Cluster(keys);
-
-		var smartCoins = keys
-			.Select((key, i) =>
-			{
-				var coin = BitcoinFactory.CreateSmartCoin(key, 0.1m * (i + 1));
-				coin.HdPubKey.Cluster = cluster;
-				return coin;
-			})
-			.ToList();
-		smartCoins.Add(BitcoinFactory.CreateSmartCoin(keys[0], 0.11m));
+		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
 		var selector = new SmartCoinSelector(smartCoins);
 
@@ -72,21 +55,9 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferSameScript()
 	{
-		var keys = Enumerable.Range(0, 12)
-				.Select(_ => KeyManager.GenerateNewKey(new SmartLabel("Juan"), KeyState.Clean, false))
-				.ToList();
+		var smartCoins = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 12)).ToList();
 
-		var cluster = new Cluster(keys);
-
-		var smartCoins = keys
-			.ConvertAll(key =>
-			{
-				var coin = BitcoinFactory.CreateSmartCoin(key, 0.2m);
-				coin.HdPubKey.Cluster = cluster;
-				return coin;
-			});
-
-		smartCoins.Add(BitcoinFactory.CreateSmartCoin(keys[0], 0.11m));
+		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
 		var selector = new SmartCoinSelector(smartCoins);
 
@@ -100,33 +71,9 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferMorePrivateClusterScript()
 	{
-		var keys1 = Enumerable.Range(0, 5)
-				.Select(_ => KeyManager.GenerateNewKey(new SmartLabel("Juan"), KeyState.Clean, false))
-				.ToList();
+		var coinsKnownByJuan = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 5));
 
-		var juanCluster = new Cluster(keys1);
-
-		var coinsKnownByJuan = keys1
-			.ConvertAll(key =>
-			{
-				var coin = BitcoinFactory.CreateSmartCoin(key, 0.2m);
-				coin.HdPubKey.Cluster = juanCluster;
-				return coin;
-			});
-
-		var keys2 = Enumerable.Range(0, 2)
-				.Select(_ => KeyManager.GenerateNewKey(new SmartLabel("Juan"), KeyState.Clean, false))
-				.ToList();
-
-		var betoCluster = new Cluster(keys2);
-
-		var coinsKnownByBeto = keys2
-			.ConvertAll(key =>
-			{
-				var coin = BitcoinFactory.CreateSmartCoin(key, 0.2m);
-				coin.HdPubKey.Cluster = betoCluster;
-				return coin;
-			});
+		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 2));
 
 		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList());
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m)).Cast<Coin>().ToList();
