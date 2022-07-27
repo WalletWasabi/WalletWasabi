@@ -104,7 +104,7 @@ public class ArenaClient
 		{
 			throw new InvalidOperationException($"Reissuance amounts sum must equal the sum of the presented ones.");
 		}
-		
+
 		var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 		if (vsizesToRequest.Sum() > presentedVsize)
 		{
