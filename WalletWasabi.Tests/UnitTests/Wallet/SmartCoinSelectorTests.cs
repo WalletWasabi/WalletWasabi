@@ -134,4 +134,31 @@ public class SmartCoinSelectorTests
 		Assert.Equal(2, coinsToSpend.Count);
 		Assert.Equal(0.4m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
 	}
+
+	private IEnumerable<SmartCoin> GenerateSmartCoins(IEnumerable<(string Cluster, decimal amount)> coins)
+	{
+		Dictionary<string, List<(HdPubKey key, decimal amount)>> generatedKeyGroup = new();
+
+		// Create cluster-grouped keys
+		foreach (var targetCoin in coins)
+		{
+			var key = KeyManager.GenerateNewKey(new SmartLabel(targetCoin.Cluster), KeyState.Clean, false);
+
+			if (!generatedKeyGroup.ContainsKey(targetCoin.Cluster))
+			{
+				generatedKeyGroup.Add(targetCoin.Cluster, new());
+			}
+
+			generatedKeyGroup[targetCoin.Cluster].Add((key, targetCoin.amount));
+		}
+
+		return generatedKeyGroup.GroupBy(x => x.Key)
+			.Select(x => x.Select(y => y.Value)) // Group the coin pairs into clusters.
+			.SelectMany(x => x
+				.Select(coinPair => (coinPair,
+					cluster: new Cluster(coinPair.Select(z => z.key)))))
+			.ForEach(x => x.coinPair.ForEach(y => { y.key.Cluster = x.cluster; })) // Set each key with its corresponding cluster object.
+			.Select(x => x.coinPair)
+			.SelectMany(x => x.Select(y => BitcoinFactory.CreateSmartCoin(y.key, y.amount))); // Generate the final SmartCoins.
+	}
 }
