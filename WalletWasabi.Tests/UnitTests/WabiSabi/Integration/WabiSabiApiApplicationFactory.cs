@@ -83,6 +83,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		var arenaClient = new ArenaClient(
 			round.CreateAmountCredentialClient(insecureRandom),
 			round.CreateVsizeCredentialClient(insecureRandom),
+			round.CoinjoinState.Parameters.CoordinationIdentifier,
 			wabiSabiHttpApiClient);
 		return arenaClient;
 	}
