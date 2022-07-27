@@ -1,6 +1,9 @@
+using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
@@ -28,6 +31,16 @@ public class CoinJoinTrackerFactory
 
 	public CoinJoinTracker CreateAndStart(Wallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
+		Money? liquidityClue = null;
+		if (CoinJoinClient.GetLiquidityClue() is null)
+		{
+			var lastCoinjoin = wallet.TransactionProcessor.TransactionStore.GetTransactions().OrderByBlockchain().LastOrDefault(x => x.IsOwnCoinjoin());
+			if (lastCoinjoin is not null)
+			{
+				liquidityClue = CoinJoinClient.TryCalculateLiquidityClue(lastCoinjoin.Transaction, lastCoinjoin.WalletOutputs.Select(x => x.TxOut));
+			}
+		}
+
 		var coinJoinClient = new CoinJoinClient(
 			HttpClientFactory,
 			new KeyChain(wallet.KeyManager, wallet.Kitchen),
@@ -38,7 +51,8 @@ public class CoinJoinTrackerFactory
 			consolidationMode: false,
 			redCoinIsolation: wallet.KeyManager.RedCoinIsolation,
 			feeRateMedianTimeFrame: TimeSpan.FromHours(wallet.KeyManager.FeeRateMedianTimeFrameHours),
-			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
+			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
+			liquidityClue: liquidityClue);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, restartAutomatically, overridePlebStop, CancellationToken);
 	}
