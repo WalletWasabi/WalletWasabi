@@ -43,7 +43,6 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 		UpdateCommand = ReactiveCommand.Create(() =>
 		{
 			Services.UpdateManager.DoUpdateOnClose = true;
-			UpdateAvailable = false;
 			AppLifetimeHelper.Shutdown();
 		});
 
