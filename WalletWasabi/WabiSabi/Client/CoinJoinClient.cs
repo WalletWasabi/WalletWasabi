@@ -654,11 +654,11 @@ public class CoinJoinClient
 		}
 		Logger.LogDebug($"Targeted {nameof(inputCount)}: {inputCount}.");
 
-		var biasSuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins).ToArray();
+		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins).ToArray();
 
 		// Deprioritize private coins those are too large.
-		var smallerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
-		var largerPrivateCoins = biasSuffledPrivateCoins.Where(x => x.Amount > liquidityClue);
+		var smallerPrivateCoins = biasShuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
+		var largerPrivateCoins = biasShuffledPrivateCoins.Where(x => x.Amount > liquidityClue);
 
 		// Let's allow only inputCount - 1 private coins to play.
 		var allowedPrivateCoins = smallerPrivateCoins.Concat(largerPrivateCoins).Take(inputCount - 1).ToArray();
