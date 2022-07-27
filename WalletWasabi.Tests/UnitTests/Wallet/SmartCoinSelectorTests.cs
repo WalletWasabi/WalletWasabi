@@ -35,6 +35,22 @@ public class SmartCoinSelectorTests
 	}
 
 	[Fact]
+	public void TestUIH()
+	{
+		var smartCoins0 = GenerateSmartCoins(
+			new List<(string Cluster, decimal amount)>()
+			{
+				("Alice, Bob", 4m),
+				("Charlie, David", 1.1131492m),
+				("Eve", 0.1342342m)
+			}
+		).ToList();
+
+		var selector = new SmartCoinSelector(smartCoins0);
+		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(4.1m)).ToList();
+	}
+
+	[Fact]
 	public void PreferLessCoinsOverExactAmount()
 	{
 		var smartCoins = GenerateSmartCoins(
@@ -104,8 +120,12 @@ public class SmartCoinSelectorTests
 			.SelectMany(x => x
 				.Select(coinPair => (coinPair,
 					cluster: new Cluster(coinPair.Select(z => z.key)))))
-			.ForEach(x => x.coinPair.ForEach(y => { y.key.Cluster = x.cluster; })) // Set each key with its corresponding cluster object.
+			.ForEach(x => x.coinPair.ForEach(y =>
+			{
+				y.key.Cluster = x.cluster;
+			})) // Set each key with its corresponding cluster object.
 			.Select(x => x.coinPair)
-			.SelectMany(x => x.Select(y => BitcoinFactory.CreateSmartCoin(y.key, y.amount))); // Generate the final SmartCoins.
+			.SelectMany(x =>
+				x.Select(y => BitcoinFactory.CreateSmartCoin(y.key, y.amount))); // Generate the final SmartCoins.
 	}
 }
