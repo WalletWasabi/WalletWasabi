@@ -18,7 +18,7 @@ public class PaymentViewModel : ReactiveValidationObject, IDisposable
 			AddressController.TextChanged,
 			s => parser.GetAddress(s).IsSuccess);
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
-		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker, ApplicationUtils.IsMainWindowActive);
+		PasteController = new PasteButtonViewModel(clipboard.ContentChanged,contentChecker.HasNewContent, ApplicationUtils.IsMainWindowActive);
 		AmountController = new AmountViewModel(isAmountValid);
 		AmountCurrencyDirectionController = new AmountCurrencyDirectionController(
 			Services.UiConfig.SendAmountConversionReversed,

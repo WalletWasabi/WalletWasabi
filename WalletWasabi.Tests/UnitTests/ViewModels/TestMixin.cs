@@ -5,16 +5,16 @@ using DynamicData;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
-public static class TestHelper
+public static class TestMixin
 {
-	public static ReadOnlyCollection<T> RecordChanges<T>(this IObservable<T> observable, Action mutate)
+	public static ReadOnlyCollection<T> RecordChanges<T>(this IObservable<T> observable, Action? mutate = default)
 	{
 		using var x = observable
 			.ToObservableChangeSet(ImmediateScheduler.Instance)
 			.Bind(out var changes)
 			.Subscribe();
 
-		mutate();
+		mutate?.Invoke();
 
 		return changes.ToList().AsReadOnly();
 	}
