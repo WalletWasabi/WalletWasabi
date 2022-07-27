@@ -844,7 +844,7 @@ public class CoinJoinClient
 			var skipped = new List<SmartCoin>();
 			foreach (var c in remaining)
 			{
-				if (alternating.Any(x => x.TransactionId == c.TransactionId))
+				if (alternating.Any(x => x.TransactionId == c.TransactionId) || orderedCoins.Any(x => x.TransactionId == c.TransactionId))
 				{
 					skipped.Add(c);
 				}
