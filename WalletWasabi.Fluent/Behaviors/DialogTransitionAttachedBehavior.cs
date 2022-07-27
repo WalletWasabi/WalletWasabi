@@ -50,7 +50,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 	private static void AnimateImplicit(Control control, TimeSpan opacityDuration, bool enableScale, TimeSpan scaleDuration)
 	{
 		var compositionVisual = ElementComposition.GetElementVisual(control);
-		if (compositionVisual is null)
+		if (compositionVisual is null || compositionVisual.ImplicitAnimations is not null)
 		{
 			return;
 		}
