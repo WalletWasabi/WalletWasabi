@@ -47,7 +47,7 @@
     <Setter Property="(i:Interaction.Behaviors)">
       <i:BehaviorCollectionTemplate>
         <i:BehaviorCollection>
-          <behaviors:OpacityTransitionAttachedBehavior Duration="0:0:1.25" />
+          <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.25" EnableScale="False" />
         </i:BehaviorCollection>
       </i:BehaviorCollectionTemplate>
     </Setter>
@@ -66,7 +66,7 @@
     <Setter Property="(i:Interaction.Behaviors)">
       <i:BehaviorCollectionTemplate>
         <i:BehaviorCollection>
-          <behaviors:OpacityTransitionAttachedBehavior Duration="0:0:1.50" />
+          <behaviors:DialogTransitionAttachedBehavior OpacityDuration="0:0:0.50" ScaleDuration="0:0:0.35" />
         </i:BehaviorCollection>
       </i:BehaviorCollectionTemplate>
     </Setter>
@@ -86,7 +86,7 @@
 
   <!-- Dialog Opened State -->
   <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
-    <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
+    <!-- <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" /> -->
     <Setter Property="Opacity" Value="1"/>
     <!-- <Setter Property="IsVisible" Value="True"/> -->
     <Setter Property="IsHitTestVisible" Value="True"/>
@@ -97,7 +97,7 @@
 
   <!-- Dialog Unopened State -->
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_DialogHost">
-    <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
+    <!-- <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" /> -->
     <Setter Property="Opacity" Value="0"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
     <!-- <Setter Property="IsVisible" Value="False"/> -->
