@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
 using FluentAssertions;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Controls.Payment.ViewModels;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;

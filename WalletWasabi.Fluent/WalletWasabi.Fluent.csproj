@@ -40,10 +40,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Controls\DestinationEntry\BtcPaymentControl.axaml.cs">
+	  <Compile Update="Controls\Payment\BtcPaymentControl.axaml.cs">
 	    <DependentUpon>BtcPaymentControl.axaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Controls\DestinationEntry\BtcAndPayjoinPaymentControl.axaml.cs">
+	  <Compile Update="Controls\Payment\BtcAndPayjoinPaymentControl.axaml.cs">
 	    <DependentUpon>BtcAndPayjoinPaymentControl.axaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>

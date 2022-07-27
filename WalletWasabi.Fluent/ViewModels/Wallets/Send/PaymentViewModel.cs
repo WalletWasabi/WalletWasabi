@@ -1,7 +1,8 @@
 using NBitcoin;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Controls.Payment.ViewModels;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;

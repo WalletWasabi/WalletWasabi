@@ -3,7 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
 public class PasteButtonViewModel : IDisposable
 {

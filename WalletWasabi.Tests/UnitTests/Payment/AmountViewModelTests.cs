@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.Reactive.Testing;
 using ReactiveUI.Validation.Extensions;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Controls.Payment.ViewModels;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;

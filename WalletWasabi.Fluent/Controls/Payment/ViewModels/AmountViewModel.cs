@@ -3,7 +3,7 @@ using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
 public class AmountViewModel : ReactiveValidationObject
 {

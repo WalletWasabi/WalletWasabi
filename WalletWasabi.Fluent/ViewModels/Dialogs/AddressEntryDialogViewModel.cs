@@ -2,7 +2,7 @@ using System.Reactive.Disposables;
 using ReactiveUI.Validation.Extensions;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 

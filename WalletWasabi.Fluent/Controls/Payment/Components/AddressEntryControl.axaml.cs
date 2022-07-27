@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.Components;
+namespace WalletWasabi.Fluent.Controls.Payment.Components;
 
 public class AddressEntryControl : UserControl
 {

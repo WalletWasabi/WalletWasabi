@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.Components.QrCodeButton"
+             x:Class="WalletWasabi.Fluent.Controls.Payment.Components.QrCodeButton"
              x:Name="UserControl">
   <controls:AnimatedButton IsVisible="{Binding #UserControl.Controller.IsVisible}"
                            KeyboardNavigation.IsTabStop="False"

@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+namespace WalletWasabi.Fluent.Helpers;
 
 public class ContentChecker<T>
 {
@@ -13,7 +13,7 @@ public class ContentChecker<T>
 					(i, c) => new
 					{
 						IsValid = isValid(i) &&
-						          !Equals(i, c),
+								  !Equals(i, c),
 						Content = i
 					});
 
@@ -25,5 +25,5 @@ public class ContentChecker<T>
 	}
 
 	public IObservable<bool> HasNewContent { get; }
-    public IObservable<T> Content { get; }
+	public IObservable<T> Content { get; }
 }

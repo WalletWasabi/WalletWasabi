@@ -1,10 +1,10 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels;
+namespace WalletWasabi.Tests.UnitTests.Helpers;
 
 public class ContentCheckerTests
 {

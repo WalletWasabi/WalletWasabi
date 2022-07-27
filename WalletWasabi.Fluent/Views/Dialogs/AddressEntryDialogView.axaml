@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
-             xmlns:destinationEntry="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:payment="clr-namespace:WalletWasabi.Fluent.Controls.Payment"
              mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="270"
              x:DataType="dialogs:AddressEntryDialogViewModel"
              x:CompileBindings="True"
@@ -15,6 +15,6 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-    <destinationEntry:BtcPaymentControl Address="{Binding Address, Mode=TwoWay}" Controller="{Binding Controller}" />
+    <payment:BtcPaymentControl Address="{Binding Address, Mode=TwoWay}" Controller="{Binding Controller}" />
   </c:ContentArea>
 </UserControl>

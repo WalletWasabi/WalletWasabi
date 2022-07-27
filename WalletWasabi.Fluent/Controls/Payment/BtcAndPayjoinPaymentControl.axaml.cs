@@ -6,7 +6,7 @@ using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry;
+namespace WalletWasabi.Fluent.Controls.Payment;
 
 public class BtcAndPayjoinPaymentControl : UserControl
 {

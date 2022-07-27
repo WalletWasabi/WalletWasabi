@@ -1,9 +1,9 @@
 using FluentAssertions;
 using NBitcoin;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.ViewModels;
+namespace WalletWasabi.Tests.UnitTests.Helpers;
 
 public class AddressTests
 {

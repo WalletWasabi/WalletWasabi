@@ -7,7 +7,7 @@
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Controls.DestinationEntry.Components.PasteButton"
+             x:Class="WalletWasabi.Fluent.Controls.Payment.Components.PasteButton"
              x:Name="UserControl">
   <UserControl.Styles>
 

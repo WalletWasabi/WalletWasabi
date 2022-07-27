@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+namespace WalletWasabi.Fluent.Helpers;
 
 public class Result<T>
 {
@@ -65,7 +65,7 @@ public class Result<T>
 			return false;
 		}
 
-		return Equals((Result<T>) obj);
+		return Equals((Result<T>)obj);
 	}
 
 	public override int GetHashCode()

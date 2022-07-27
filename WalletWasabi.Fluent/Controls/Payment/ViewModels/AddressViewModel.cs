@@ -2,8 +2,10 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
 public class AddressViewModel : ReactiveValidationObject
 {

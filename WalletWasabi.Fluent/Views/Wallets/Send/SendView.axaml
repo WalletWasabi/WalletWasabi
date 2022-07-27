@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             xmlns:destinationEntry="clr-namespace:WalletWasabi.Fluent.Controls.DestinationEntry"
+             xmlns:payment="clr-namespace:WalletWasabi.Fluent.Controls.Payment"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -39,7 +39,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <destinationEntry:BtcAndPayjoinPaymentControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
+      <payment:BtcAndPayjoinPaymentControl ConversionRate="{Binding ExchangeRate}" DockPanel.Dock="Top"
                                                     Controller="{Binding PaymentViewModel}"
                                                     Address="{Binding Address, Mode=TwoWay}"
                                                     IsFixedAmount="{Binding IsFixedAmount, Mode=TwoWay}"

@@ -1,6 +1,7 @@
 using NBitcoin;
+using WalletWasabi.Fluent.Models;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+namespace WalletWasabi.Fluent.Helpers;
 
 public class FullAddressParser : IAddressParser
 {

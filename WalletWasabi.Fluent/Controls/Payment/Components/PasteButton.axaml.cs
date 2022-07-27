@@ -6,9 +6,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.Mixins;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
-using WalletWasabi.Fluent.Controls.DestinationEntry.ViewModels;
+using WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
-namespace WalletWasabi.Fluent.Controls.DestinationEntry.Components;
+namespace WalletWasabi.Fluent.Controls.Payment.Components;
 
 public class PasteButton : UserControl
 {
