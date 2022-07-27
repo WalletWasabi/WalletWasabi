@@ -72,9 +72,10 @@ public class SmartCoinSelectorTests
 				("Alice", 0.2m),
 				("Alice", 1m),
 				("Alice", 0.002m),
-				("Alice", 0.1m),
+				("Alice", 1m),
 			}
 		).ToList();
+
 
 		output.WriteLine($"SmartCointSelector Input:");
 
@@ -83,15 +84,37 @@ public class SmartCoinSelectorTests
 			output.WriteLine($"Coin Amount: {coin.Amount}");
 		}
 
+		output.WriteLine($"Input Sum {smartCoins.Sum(x=>x.Amount.ToDecimal(MoneyUnit.BTC))} BTC\n");
+
+		var changeThreshold = 1.06135855m;
+
+		output.WriteLine($"Inputs that sums up to {changeThreshold}:");
+
+		var sum = 0m;
+
+		foreach (var coin in smartCoins.OrderBy(x=>x.Amount))
+		{
+			var btcAmount = coin.Amount.ToDecimal(MoneyUnit.BTC);
+			if (sum + btcAmount > changeThreshold)
+			{
+				break;
+			}
+
+			sum += btcAmount;
+			output.WriteLine($"Coin Amount: {coin.Amount}");
+		}
+
 		var selector = new SmartCoinSelector(smartCoins);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(4m)).ToList();
 
-		output.WriteLine($"SmartCointSelector Output:");
+		output.WriteLine($"\nSmartCointSelector Output:");
 
 		foreach (var coin in coinsToSpend)
 		{
 			output.WriteLine($"Coin Amount: {coin.Amount}");
 		}
+
+		output.WriteLine($"Output Sum {coinsToSpend.Select(x=>x.Amount).Cast<Money>().Sum(x=>x.ToDecimal(MoneyUnit.BTC))} BTC");
 	}
 
 	[Fact]
