@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Engine.ClientProtocol;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -8,14 +9,19 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class SmartCoinSelectorTests
 {
-	public SmartCoinSelectorTests()
+	private readonly ITestOutputHelper output;
+
+	public SmartCoinSelectorTests(ITestOutputHelper output)
 	{
-		KeyManager = KeyManager.Recover(new Mnemonic("all all all all all all all all all all all all"), "", Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
+		this.output = output;
+		KeyManager = KeyManager.Recover(new Mnemonic("all all all all all all all all all all all all"), "",
+			Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
 	}
 
 	private KeyManager KeyManager { get; }
@@ -37,17 +43,55 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void TestUIH()
 	{
-		var smartCoins0 = GenerateSmartCoins(
+		var smartCoins = GenerateSmartCoins(
 			new List<(string Cluster, decimal amount)>()
 			{
-				("Alice, Bob", 4m),
-				("Charlie, David", 1.1131492m),
-				("Eve", 0.1342342m)
+				("Alice", 0.0001m),
+				("Alice", 0.02097152m),
+				("Alice", 2.58280326m),
+				("Alice", 0.00531441m),
+				("Alice", 0.03188646m),
+				("Alice", 0.0001m),
+				("Alice", 0.001m),
+				("Alice", 0.002m),
+				("Alice", 0.02097152m),
+				("Alice", 0.1m),
+				("Alice", 0.05m),
+				("Alice", 0.00016384m),
+				("Alice", 0.002m),
+				("Alice", 0.00039366m),
+				("Alice", 0.0001m),
+				("Alice", 0.00531441m),
+				("Alice", 0.01062882m),
+				("Alice", 0.00354294m),
+				("Alice", 0.00013122m),
+				("Alice", 0.001m),
+				("Alice", 0.00016384m),
+				("Alice", 0.02097152m),
+				("Alice", 0.00016384m),
+				("Alice", 0.2m),
+				("Alice", 1m),
+				("Alice", 0.002m),
+				("Alice", 0.1m),
 			}
 		).ToList();
 
-		var selector = new SmartCoinSelector(smartCoins0);
-		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(4.1m)).ToList();
+		output.WriteLine($"SmartCointSelector Input:");
+
+		foreach (var coin in smartCoins)
+		{
+			output.WriteLine($"Coin Amount: {coin.Amount}");
+		}
+
+		var selector = new SmartCoinSelector(smartCoins);
+		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(4m)).ToList();
+
+		output.WriteLine($"SmartCointSelector Output:");
+
+		foreach (var coin in coinsToSpend)
+		{
+			output.WriteLine($"Coin Amount: {coin.Amount}");
+		}
 	}
 
 	[Fact]
