@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Mixins;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls.Payment.ViewModels;
@@ -30,6 +29,16 @@ public class PasteButton : UserControl
 			o => o.Controller,
 			(o, v) => o.Controller = v);
 
+	public static readonly DirectProperty<PasteButton, string> AddressProperty =
+		AvaloniaProperty.RegisterDirect<PasteButton, string>(
+			"Address",
+			o => o.Address,
+			(o, v) => o.Address = v);
+
+	private readonly CompositeDisposable _disposables = new();
+
+	private string _address;
+
 	private bool _canPaste;
 
 	private PasteButtonViewModel _controller;
@@ -39,23 +48,6 @@ public class PasteButton : UserControl
 	public PasteButton()
 	{
 		InitializeComponent();
-	}
-
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		DisposableMixin.DisposeWith(
-				this.WhenAnyValue(x => x.Controller)
-					.SelectMany(x => x.PasteCommand)
-					.Do(address => Address = address)
-					.Subscribe(), _disposables);
-
-		base.OnAttachedToVisualTree(e);
-	}
-
-	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		_disposables.Dispose();
-		base.OnDetachedFromVisualTree(e);
 	}
 
 	public ICommand PasteCommand
@@ -76,23 +68,31 @@ public class PasteButton : UserControl
 		set => SetAndRaise(ControllerProperty, ref _controller, value);
 	}
 
-	private void InitializeComponent()
-	{
-		AvaloniaXamlLoader.Load(this);
-	}
-
-	private string _address;
-
-	public static readonly DirectProperty<PasteButton, string> AddressProperty = AvaloniaProperty.RegisterDirect<PasteButton, string>(
-		"Address",
-		o => o.Address,
-		(o, v) => o.Address = v);
-
-	private CompositeDisposable _disposables = new();
-
 	public string Address
 	{
 		get => _address;
 		set => SetAndRaise(AddressProperty, ref _address, value);
+	}
+
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		this.WhenAnyValue(x => x.Controller)
+			.SelectMany(x => x.PasteCommand)
+			.Do(address => Address = address)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		base.OnAttachedToVisualTree(e);
+	}
+
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		_disposables.Dispose();
+		base.OnDetachedFromVisualTree(e);
+	}
+
+	private void InitializeComponent()
+	{
+		AvaloniaXamlLoader.Load(this);
 	}
 }
