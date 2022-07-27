@@ -130,7 +130,7 @@
             <Button IsVisible="{Binding IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding UpdateCommand}">
               <StackPanel Spacing="5" Orientation="Horizontal">
                 <PathIcon Data="{StaticResource arrow_download_regular}" Height="13" />
-                <AccessText Text="Update on Close" />
+                <AccessText Text="Close and Update" />
               </StackPanel>
             </Button>
             <Button IsVisible="{Binding !IsReadyToInstall}" Classes="activeHyperLink" Command="{Binding ManualUpdateCommand}">

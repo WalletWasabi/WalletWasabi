@@ -10,6 +10,7 @@ using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.AppServices.Tor;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -43,6 +44,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 		{
 			Services.UpdateManager.DoUpdateOnClose = true;
 			UpdateAvailable = false;
+			AppLifetimeHelper.Shutdown();
 		});
 
 		AskMeLaterCommand = ReactiveCommand.Create(() =>
