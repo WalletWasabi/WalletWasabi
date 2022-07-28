@@ -146,6 +146,7 @@ public class BlockchainAnalyzer
 			if (isWasabi2Cj)
 			{
 				// Take outputs those aren't on the same level as any of our outputs.
+				// https://github.com/zkSNACKs/WalletWasabi/pull/8604#issuecomment-1197894226
 				var combinableOutputs = indistinguishableOutputs
 					.Where(x => !tx.WalletOutputs.Any(y => y.Amount.Satoshi == x.Key) && StdDenoms.Contains(x.Key))
 					.SelectMany(x => Enumerable.Repeat(x.Key, x.Value).Select(y => new LongHolder(y)))
