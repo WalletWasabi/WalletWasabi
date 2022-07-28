@@ -65,7 +65,7 @@ public class KeyChain : IKeyChain
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
 		}
-		if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != scriptPubKey)
+		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
 		{
 			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 		}
