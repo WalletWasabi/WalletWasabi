@@ -39,7 +39,7 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundOutputRegistrationTimeoutStrobeLabel, outputRegistrationTimeout)
 					   .Append(ProtocolConstants.RoundTransactionSigningTimeoutStrobeLabel, transactionSigningTimeout)
 					   .Append(ProtocolConstants.RoundAllowedInputAmountsStrobeLabel, allowedInputAmounts)
-					   .Append(ProtocolConstants.RoundAllowedInputTypesStrobeLabel, allowedInputTypes)
+					   .Append(ProtocolConstants.RoundAllowedInputScriptTypesStrobeLabel, allowedInputTypes)
 					   .Append(ProtocolConstants.RoundAllowedOutputAmountsStrobeLabel, allowedOutputAmounts)
 					   .Append(ProtocolConstants.RoundAllowedOutputTypesStrobeLabel, allowedOutputTypes)
 					   .Append(ProtocolConstants.RoundNetworkStrobeLabel, network.ToString())
