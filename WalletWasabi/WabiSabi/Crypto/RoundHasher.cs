@@ -16,7 +16,7 @@ public static class RoundHasher
 			TimeSpan outputRegistrationTimeout,
 			TimeSpan transactionSigningTimeout,
 			MoneyRange allowedInputAmounts,
-			ImmutableSortedSet<ScriptType> allowedInputTypes,
+			ImmutableSortedSet<ScriptType> allowedInputScriptTypes,
 			MoneyRange allowedOutputAmounts,
 			ImmutableSortedSet<ScriptType> allowedOutputTypes,
 			Network network,
@@ -39,7 +39,7 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundOutputRegistrationTimeoutStrobeLabel, outputRegistrationTimeout)
 					   .Append(ProtocolConstants.RoundTransactionSigningTimeoutStrobeLabel, transactionSigningTimeout)
 					   .Append(ProtocolConstants.RoundAllowedInputAmountsStrobeLabel, allowedInputAmounts)
-					   .Append(ProtocolConstants.RoundAllowedInputScriptTypesStrobeLabel, allowedInputTypes)
+					   .Append(ProtocolConstants.RoundAllowedInputScriptTypesStrobeLabel, allowedInputScriptTypes)
 					   .Append(ProtocolConstants.RoundAllowedOutputAmountsStrobeLabel, allowedOutputAmounts)
 					   .Append(ProtocolConstants.RoundAllowedOutputScriptTypesStrobeLabel, allowedOutputTypes)
 					   .Append(ProtocolConstants.RoundNetworkStrobeLabel, network.ToString())
