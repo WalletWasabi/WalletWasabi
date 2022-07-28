@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto;
 public class Bip322SignatureTest
 {
 	[Fact]
-	public void Bip322SignatureEncodingDecoding()
+	public void P2wpkhBip322SignatureEncodingDecoding()
 	{
 		// [all all all all all all all all all all all all]/84'/0'/0'/1/0
 		using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
@@ -25,7 +25,7 @@ public class Bip322SignatureTest
 	}
 
 	[Fact]
-	public void Bip322SignatureVerification()
+	public void P2wpkhBip322SignatureVerification()
 	{
 		// [all all all all all all all all all all all all]/84'/0'/0'/1/0
 		using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
