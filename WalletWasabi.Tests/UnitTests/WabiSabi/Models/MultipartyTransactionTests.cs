@@ -304,7 +304,7 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void OnlyAllowedOutputTypes()
 	{
-		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedOutputTypes = ImmutableSortedSet<ScriptType>.Empty.Add(ScriptType.P2PKH) });
+		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedOutputScriptTypes = ImmutableSortedSet<ScriptType>.Empty.Add(ScriptType.P2PKH) });
 		var p2wpkh = BitcoinFactory.CreateScript();
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddOutput(new TxOut(Money.Coins(1), p2wpkh)));
 	}

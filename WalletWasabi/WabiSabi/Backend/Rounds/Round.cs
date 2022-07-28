@@ -149,7 +149,7 @@ public class Round
 				Parameters.AllowedInputAmounts,
 				Parameters.AllowedInputScriptTypes,
 				Parameters.AllowedOutputAmounts,
-				Parameters.AllowedOutputTypes,
+				Parameters.AllowedOutputScriptTypes,
 				Parameters.Network,
 				Parameters.MiningFeeRate.FeePerK,
 				Parameters.CoordinationFeeRate,

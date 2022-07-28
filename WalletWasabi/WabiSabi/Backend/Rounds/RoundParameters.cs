@@ -61,7 +61,7 @@ public record RoundParameters
 	public TimeSpan BlameInputRegistrationTimeout { get; init; }
 
 	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes { get; init; } = OnlyP2WPKH;
-	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;
+	public ImmutableSortedSet<ScriptType> AllowedOutputScriptTypes { get; init; } = OnlyP2WPKH;
 
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
 	public Money MaxAmountCredentialValue => AllowedInputAmounts.Max;
