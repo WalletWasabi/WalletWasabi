@@ -39,11 +39,11 @@
     </Setter>
   </Style>
   <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-    <Setter Property="Transitions">
+    <!--<Setter Property="Transitions">
       <Transitions>
-        <!-- <DoubleTransition Property="Opacity" Duration="0:0:0.25" /> -->
+        <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
       </Transitions>
-    </Setter>
+    </Setter>-->
     <Setter Property="(i:Interaction.Behaviors)">
       <i:BehaviorCollectionTemplate>
         <i:BehaviorCollection>
@@ -57,12 +57,12 @@
   </Style>
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
     <Setter Property="Margin" Value="20,30,20,20"/>
-    <Setter Property="Transitions">
+    <!--<Setter Property="Transitions">
       <Transitions>
-        <!-- <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" /> -->
-        <!-- <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" /> -->
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
       </Transitions>
-    </Setter>
+    </Setter>-->
     <Setter Property="(i:Interaction.Behaviors)">
       <i:BehaviorCollectionTemplate>
         <i:BehaviorCollection>
