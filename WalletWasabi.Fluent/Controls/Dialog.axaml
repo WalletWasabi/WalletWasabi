@@ -88,7 +88,6 @@
   <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
     <!-- <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" /> -->
     <Setter Property="Opacity" Value="1"/>
-    <!-- <Setter Property="IsVisible" Value="True"/> -->
     <Setter Property="IsHitTestVisible" Value="True"/>
   </Style>
   <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
@@ -100,7 +99,6 @@
     <!-- <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" /> -->
     <Setter Property="Opacity" Value="0"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
-    <!-- <Setter Property="IsVisible" Value="False"/> -->
   </Style>
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
     <Setter Property="Opacity" Value="0"/>
