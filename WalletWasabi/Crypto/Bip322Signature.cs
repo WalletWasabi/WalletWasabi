@@ -43,7 +43,7 @@ public record Bip322Signature : IBitcoinSerializable
 	public bool Verify(uint256 hash, Script scriptPubKey) =>
 		scriptPubKey.GetScriptType() switch
 		{
-			ScriptType.P2WPKH => VerifySegwit(hash, scriptPubKey),
+			ScriptType.P2WPKH => VerifyP2wpkh(hash, scriptPubKey),
 			_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
 		};
 
@@ -58,7 +58,7 @@ public record Bip322Signature : IBitcoinSerializable
 			_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
 		};
 
-	private bool VerifySegwit(uint256 hash, Script scriptPubKey)
+	private bool VerifyP2wpkh(uint256 hash, Script scriptPubKey)
 	{
 		if (ScriptSig != Script.Empty)
 		{
