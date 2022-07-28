@@ -44,10 +44,10 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 			return;
 		}
 
-		AnimateImplicit(AssociatedObject, OpacityDuration, EnableScale, ScaleDuration);
+		AnimateImplicit(AssociatedObject, OpacityDuration, EnableScale, ScaleDuration, disposables);
 	}
 
-	private static void AnimateImplicit(Control control, TimeSpan opacityDuration, bool enableScale, TimeSpan scaleDuration)
+	private static void AnimateImplicit(Control control, TimeSpan opacityDuration, bool enableScale, TimeSpan scaleDuration, CompositeDisposable disposables)
 	{
 		var compositionVisual = ElementComposition.GetElementVisual(control);
 		if (compositionVisual is null || compositionVisual.ImplicitAnimations is not null)
@@ -74,11 +74,18 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		{
 			var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
 			scaleAnimation.Target = "Scale";
-			scaleAnimation.InsertKeyFrame(0f, new Vector3(0.96f, 0.96f, 0f), fluentEasing);
+			scaleAnimation.InsertKeyFrame(0f, new Vector3(0.56f, 0.56f, 0f), fluentEasing);
 			scaleAnimation.InsertKeyFrame(1f, new Vector3(1.00f, 1.00f, 0f), fluentEasing);
 			scaleAnimation.Duration = scaleDuration;
 			scaleAnimation.Direction = PlaybackDirection.Normal;
 			scaleAnimation.IterationCount = 1;
+
+			compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
+	
+			control.GetObservable(Visual.BoundsProperty).Subscribe(x =>
+			{
+				compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
+			}).DisposeWith(disposables);
 
 			animationGroup.Add(scaleAnimation);
 		}
