@@ -5,10 +5,10 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
-public class AmountCurrencyDirectionController : ReactiveObject, IDisposable
+public partial class AmountCurrencyDirectionController : ReactiveObject, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
-	private bool _isReversed;
+	[AutoNotify] private bool _isReversed;
 
 	public AmountCurrencyDirectionController(bool initialValue, Action<bool> setIsReversed)
 	{
@@ -18,12 +18,6 @@ public class AmountCurrencyDirectionController : ReactiveObject, IDisposable
 				.Do(setIsReversed)
 				.Subscribe(),
 			_disposables);
-	}
-
-	public bool IsReversed
-	{
-		get => _isReversed;
-		set => this.RaiseAndSetIfChanged(ref _isReversed, value);
 	}
 
 	public void Dispose()

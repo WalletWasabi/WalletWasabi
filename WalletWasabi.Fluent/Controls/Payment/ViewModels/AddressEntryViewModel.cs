@@ -7,11 +7,11 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
-public class AddressViewModel : ReactiveValidationObject
+public partial class AddressEntryViewModel : ReactiveValidationObject
 {
-	private string _text;
+	[AutoNotify] private string _text;
 
-	public AddressViewModel(IPaymentAddressParser paymentAddressParser)
+	public AddressEntryViewModel(IPaymentAddressParser paymentAddressParser)
 	{
 		_text = "";
 		var parser = paymentAddressParser;
@@ -26,12 +26,6 @@ public class AddressViewModel : ReactiveValidationObject
 	}
 
 	public IObservable<string> TextChanged { get; }
-
-	public string Text
-	{
-		get => _text;
-		set => this.RaiseAndSetIfChanged(ref _text, value);
-	}
 
 	public IObservable<Result<Address>> ParsedAddress { get; }
 }

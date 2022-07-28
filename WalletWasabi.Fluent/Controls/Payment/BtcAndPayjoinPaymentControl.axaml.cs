@@ -91,7 +91,7 @@ public class BtcAndPayjoinPaymentControl : UserControl
 	{
 		base.OnAttachedToVisualTree(e);
 
-		this.WhenAnyObservable(x => x.Controller.AddressController.ParsedAddress)
+		this.WhenAnyObservable(x => x.Controller.AddressEntryController.ParsedAddress)
 			.Where(x => x.IsSuccess)
 			.Do(
 				a =>

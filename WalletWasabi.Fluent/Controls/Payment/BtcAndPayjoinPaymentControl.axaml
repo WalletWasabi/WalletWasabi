@@ -31,16 +31,16 @@
                               ConversionCurrencyCode="USD"
                               CurrencyCode="BTC"
                               IsConversionReversed="{Binding #UserControl.Controller.AmountCurrencyDirectionController.IsReversed, Mode=TwoWay}"
-                              IsReadOnly="{Binding #UserControl.Controller.AddressController.ParsedAddress^.Value.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
+                              IsReadOnly="{Binding #UserControl.Controller.AddressEntryController.ParsedAddress^.Value.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
                               ConversionRate="{Binding #UserControl.ConversionRate}" />
     </DockPanel>
 
     <DockPanel
-      IsVisible="{Binding #UserControl.Controller.AddressController.ParsedAddress^.Value.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
+      IsVisible="{Binding #UserControl.Controller.AddressEntryController.ParsedAddress^.Value.EndPoint, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
       <Label Content="_Address:" DockPanel.Dock="Left" Target="Address" />
       <TextBox IsReadOnly="True"
                x:Name="Address"
-               Watermark="Address" Text="{Binding #UserControl.Controller.AddressController.ParsedAddress^.Value.BtcAddress}"
+               Watermark="Address" Text="{Binding #UserControl.Controller.AddressEntryController.ParsedAddress^.Value.BtcAddress}"
                IsTabStop="False"/>
     </DockPanel>
   </StackPanel>

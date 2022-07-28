@@ -17,7 +17,7 @@
         AcceptsReturn="False"
         Classes="monoSpaced"
         x:Name="To"
-        Text="{Binding #UserControl.Controller.AddressController.Text, Mode=TwoWay}"
+        Text="{Binding #UserControl.Controller.AddressEntryController.Text, Mode=TwoWay}"
         MaxLength="250"
         Watermark="{Binding  #UserControl.Watermark}">
 
@@ -29,10 +29,10 @@
         <TextBox.InnerRightContent>
           <StackPanel Orientation="Horizontal" Margin="0 0 10 0" Spacing="10">
             <components:PasteButton
-              Address="{Binding #UserControl.Controller.AddressController.Text, Mode=TwoWay}"
+              Address="{Binding #UserControl.Controller.AddressEntryController.Text, Mode=TwoWay}"
               Controller="{Binding #UserControl.Controller.PasteController}" />
             <components:QrCodeButton
-              Address="{Binding #UserControl.Controller.AddressController.Text, Mode=TwoWay}"
+              Address="{Binding #UserControl.Controller.AddressEntryController.Text, Mode=TwoWay}"
               Controller="{Binding #UserControl.Controller.ScanQrViewModel}" />
           </StackPanel>
         </TextBox.InnerRightContent>

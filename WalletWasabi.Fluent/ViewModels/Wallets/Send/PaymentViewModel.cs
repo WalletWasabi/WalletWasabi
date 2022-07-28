@@ -13,10 +13,10 @@ public class PaymentViewModel : ReactiveValidationObject, IDisposable
 	{
 		var clipboard = new Clipboard();
 		var newContentsChanged = clipboard.ContentChanged;
-		AddressController = new AddressViewModel(parser);
+		AddressEntryController = new AddressEntryViewModel(parser);
 		var contentChecker = new ContentChecker<string>(
 			newContentsChanged,
-			AddressController.TextChanged,
+			AddressEntryController.TextChanged,
 			s => parser.GetAddress(s).IsSuccess);
 		ScanQrViewModel = new ScanQrViewModel(network, WebcamQrReader.IsOsPlatformSupported);
 		PasteController = new PasteButtonViewModel(clipboard.ContentChanged, contentChecker.HasNewContent, ApplicationUtils.IsMainWindowActive);
@@ -25,11 +25,11 @@ public class PaymentViewModel : ReactiveValidationObject, IDisposable
 			Services.UiConfig.SendAmountConversionReversed,
 			b => Services.UiConfig.SendAmountConversionReversed = b);
 
-		this.ValidationRule(x => x.AddressController, AddressController.IsValid(), "Address invalid");
+		this.ValidationRule(x => x.AddressEntryController, AddressEntryController.IsValid(), "Address invalid");
 		this.ValidationRule(x => x.AmountController, AmountController.IsValid(), "Amount invalid");
 	}
 
-	public AddressViewModel AddressController { get; }
+	public AddressEntryViewModel AddressEntryController { get; }
 
 	public ScanQrViewModel ScanQrViewModel { get; }
 

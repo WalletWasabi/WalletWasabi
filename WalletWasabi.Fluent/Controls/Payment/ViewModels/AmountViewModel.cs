@@ -5,9 +5,9 @@ using ReactiveUI.Validation.Helpers;
 
 namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
-public class AmountViewModel : ReactiveValidationObject
+public partial class AmountViewModel : ReactiveValidationObject
 {
-	private decimal _amount;
+	[AutoNotify] private decimal _amount;
 
 	public AmountViewModel(Func<decimal, bool> withinBalance)
 	{
@@ -22,11 +22,5 @@ public class AmountViewModel : ReactiveValidationObject
 			x => x.Amount,
 			withinBalance,
 			"Insufficient funds to cover the amount requested");
-	}
-
-	public decimal Amount
-	{
-		get => _amount;
-		set => this.RaiseAndSetIfChanged(ref _amount, value);
 	}
 }
