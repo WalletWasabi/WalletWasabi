@@ -147,7 +147,7 @@ public class Round
 				OutputRegistrationTimeFrame.Duration,
 				TransactionSigningTimeFrame.Duration,
 				Parameters.AllowedInputAmounts,
-				Parameters.AllowedInputTypes,
+				Parameters.AllowedInputScriptTypes,
 				Parameters.AllowedOutputAmounts,
 				Parameters.AllowedOutputTypes,
 				Parameters.Network,
