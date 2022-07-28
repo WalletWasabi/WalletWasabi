@@ -10,19 +10,12 @@ This document lists all the officially supported software and devices by Wasabi 
 - Fedora 33+
 - Debian 10+
 
-# Officially Supported Hardware wallets in Wasabi 1.0
+# Officially Supported Hardware Wallets
 
 - ColdCard MK1
 - ColdCard MK2
 - ColdCard MK3
-- Ledger Nano S
-- Ledger Nano X
-
-# Officially Supported Hardware wallets in Wasabi 2.0
-
-- ColdCard MK1
-- ColdCard MK2
-- ColdCard MK3
+- ColdCard MK4
 - Ledger Nano S
 - Ledger Nano X
 - Trezor Model T
@@ -49,14 +42,3 @@ Wasabi dependencies are:
 ## What about Whonix and Tails?
 
 Whonix and Tails are privacy-oriented OSs, so it makes sense to use them with Wasabi Wallet. At the moment, Wasabi is working properly on these platforms, but our dependencies do not officially support them, so we cannot make promises regarding future stability.
-
-## What about Trezor?
-
-Trezor One and Trezor T are popular hardware wallets that Wasabi officially supported in the past. However, from April 2020 to June 2020, Trezor's new firmware releases introduced 3 backward-incompatible changes, which made us reassess our official support for the hardware wallet.
-- https://github.com/bitcoin-core/HWI/pull/319
-- https://github.com/zkSNACKs/WalletWasabi/issues/3734
-- https://github.com/trezor/trezor-firmware/issues/1044
-
-At the moment, Wasabi 1.0 is working properly with Trezor One and Trezor T, but after resolving these issues, we must concede guaranteeing future stability is beyond our control, hence we shan't promise to continue official support forthwith.
-
-Update 07/18/2022: Passphrase support with Wasabi Wallet 1.0 does not function. Wasabi Wallet 2.0 will no longer support the Trezor One. Trezor Model T will continue to work with Wasabi Wallet 2.0
