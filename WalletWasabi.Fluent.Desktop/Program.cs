@@ -103,7 +103,7 @@ public class Program
 
 					Logger.LogError(ex);
 
-					RxApp.MainThreadScheduler.Schedule(() => throw ex);
+					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Command execution crashed", ex));
 				});
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
