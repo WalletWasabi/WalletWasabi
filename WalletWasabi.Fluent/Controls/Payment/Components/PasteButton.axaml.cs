@@ -23,15 +23,15 @@ public class PasteButton : UserControl
 			o => o.Controller,
 			(o, v) => o.Controller = v);
 
-	public static readonly DirectProperty<PasteButton, string> AddressProperty =
+	public static readonly DirectProperty<PasteButton, string> TextProperty =
 		AvaloniaProperty.RegisterDirect<PasteButton, string>(
-			"Address",
-			o => o.Address,
-			(o, v) => o.Address = v);
+			"Text",
+			o => o.Text,
+			(o, v) => o.Text = v);
 
 	private readonly CompositeDisposable _disposables = new();
 
-	private string _address;
+	private string _text;
 
 	private PasteButtonViewModel _controller;
 
@@ -55,17 +55,17 @@ public class PasteButton : UserControl
 		set => SetAndRaise(ControllerProperty, ref _controller, value);
 	}
 
-	public string Address
+	public string Text
 	{
-		get => _address;
-		set => SetAndRaise(AddressProperty, ref _address, value);
+		get => _text;
+		set => SetAndRaise(TextProperty, ref _text, value);
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		this.WhenAnyValue(x => x.Controller)
 			.SelectMany(x => x.PasteCommand)
-			.Do(address => Address = address)
+			.Do(text => Text = text)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
