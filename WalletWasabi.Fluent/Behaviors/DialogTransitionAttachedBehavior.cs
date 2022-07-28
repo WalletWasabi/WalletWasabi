@@ -74,8 +74,12 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		{
 			var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
 			scaleAnimation.Target = "Scale";
-			scaleAnimation.InsertKeyFrame(0f, new Vector3(0.96f, 0.96f, 0f), fluentEasing);
-			scaleAnimation.InsertKeyFrame(1f, new Vector3(1.00f, 1.00f, 0f), fluentEasing);
+			// scaleAnimation.InsertKeyFrame(0f, new Vector3(0.96f, 0.96f, 0f), fluentEasing);
+			// scaleAnimation.InsertKeyFrame(1f, new Vector3(1.00f, 1.00f, 0f), fluentEasing);
+			// scaleAnimation.InsertExpressionKeyFrame(0f, "this.Target.Opacity == 0 ? Vector3(0.50, 0.50, 0) : Vector3(1.00, 1.00, 0)", fluentEasing);
+			// scaleAnimation.InsertExpressionKeyFrame(1f, "this.Target.Opacity == 0 ? Vector3(1.00, 1.00, 0) : Vector3(0.50, 0.50, 0)", fluentEasing);
+			scaleAnimation.InsertExpressionKeyFrame(0f, "Vector3(this.Target.Opacity+(1.0-this.Target.Opacity)*0.96, this.Target.Opacity+(1.0-this.Target.Opacity)*0.96, 0)", fluentEasing);
+			scaleAnimation.InsertExpressionKeyFrame(1f, "Vector3(this.Target.Opacity+(1.0-this.Target.Opacity)*0.96, this.Target.Opacity+(1.0-this.Target.Opacity)*0.96, 0)", fluentEasing);
 			scaleAnimation.Duration = scaleDuration;
 			scaleAnimation.Direction = PlaybackDirection.Normal;
 			// scaleAnimation.IterationCount = 1;
