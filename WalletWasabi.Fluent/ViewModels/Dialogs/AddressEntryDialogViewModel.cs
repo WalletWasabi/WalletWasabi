@@ -22,7 +22,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		Controller = new PaymentViewModel(_network, _ => true, new BtcOnlyAddressParser(_network))
+		Controller = new PaymentViewModel(_network, _ => true, new BtcOnlyPaymentAddressParser(_network))
 			.DisposeWith(disposables);
 
 		NextCommand = ReactiveCommand

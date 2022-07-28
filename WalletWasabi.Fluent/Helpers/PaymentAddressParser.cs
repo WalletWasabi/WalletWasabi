@@ -3,11 +3,11 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class FullAddressParser : IAddressParser
+public class PaymentAddressParser : IPaymentAddressParser
 {
 	private readonly Network _network;
 
-	public FullAddressParser(Network network)
+	public PaymentAddressParser(Network network)
 	{
 		_network = network;
 	}

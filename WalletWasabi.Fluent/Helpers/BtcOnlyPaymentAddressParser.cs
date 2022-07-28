@@ -3,11 +3,11 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class BtcOnlyAddressParser : IAddressParser
+public class BtcOnlyPaymentAddressParser : IPaymentAddressParser
 {
 	private readonly Network _network;
 
-	public BtcOnlyAddressParser(Network network)
+	public BtcOnlyPaymentAddressParser(Network network)
 	{
 		_network = network;
 	}

@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using ReactiveUI.Validation.Abstractions;
-using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -26,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
+public partial class SendViewModel : RoutableViewModel
 {
 	private readonly CoinJoinManager? _coinJoinManager;
 	private readonly TransactionInfo _transactionInfo;
@@ -65,15 +63,10 @@ public partial class SendViewModel : RoutableViewModel, IValidatableViewModel
 	public decimal Amount { get; set; }
 	public bool IsFixedAmount { get; set; }
 
-	public ValidationContext ValidationContext { get; } = new();
-
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		var network = _wallet.Network;
-		PaymentViewModel = new PaymentViewModel(
-			network,
-			a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC),
-			new FullAddressParser(network));
+		PaymentViewModel = new PaymentViewModel(network, a => a <= _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC), new PaymentAddressParser(network));
 
 		if (!inHistory)
 		{

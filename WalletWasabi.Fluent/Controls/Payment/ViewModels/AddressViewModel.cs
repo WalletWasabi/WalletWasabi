@@ -11,10 +11,10 @@ public class AddressViewModel : ReactiveValidationObject
 {
 	private string _text;
 
-	public AddressViewModel(IAddressParser addressParser)
+	public AddressViewModel(IPaymentAddressParser paymentAddressParser)
 	{
 		_text = "";
-		var parser = addressParser;
+		var parser = paymentAddressParser;
 		ParsedAddress = this.WhenAnyValue(s => s.Text, s => parser.GetAddress(s));
 		TextChanged = this.WhenAnyValue(x => x.Text);
 		this.ValidationRule(

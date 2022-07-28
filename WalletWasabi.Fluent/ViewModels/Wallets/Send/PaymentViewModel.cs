@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public class PaymentViewModel : ReactiveValidationObject, IDisposable
 {
-	public PaymentViewModel(Network network, Func<decimal, bool> isAmountValid, IAddressParser parser)
+	public PaymentViewModel(Network network, Func<decimal, bool> isAmountValid, IPaymentAddressParser parser)
 	{
 		var clipboard = new Clipboard();
 		var newContentsChanged = clipboard.ContentChanged;
