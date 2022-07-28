@@ -252,7 +252,7 @@ public class MultipartyTransactionTests
 	// TODO nonstandard input
 
 	[Fact]
-	public void OnlyAllowedInputTypes()
+	public void OnlyAllowedInputScriptTypes()
 	{
 		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputScriptTypes = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2PKH) });
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof();
@@ -302,7 +302,7 @@ public class MultipartyTransactionTests
 	}
 
 	[Fact]
-	public void OnlyAllowedOutputTypes()
+	public void OnlyAllowedOutputScriptTypes()
 	{
 		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedOutputScriptTypes = ImmutableSortedSet<ScriptType>.Empty.Add(ScriptType.P2PKH) });
 		var p2wpkh = BitcoinFactory.CreateScript();
