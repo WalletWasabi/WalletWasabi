@@ -13,7 +13,7 @@ public class UpdateStatus : IEquatable<UpdateStatus>
 
 	public bool ClientUpToDate { get; }
 	public bool BackendCompatible { get; }
-	public bool IsReadyToInstall { get; set; } = false;
+	public bool IsReadyToInstall { get; set; }
 
 	public Version LegalDocumentsVersion { get; }
 	public ushort CurrentBackendMajorVersion { get; }

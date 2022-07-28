@@ -21,7 +21,7 @@ public class UpdateManager
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
-		DownloadsDir = Path.Combine(dataDir, "Downloads");
+		InstallerDir = Path.Combine(dataDir, "Installer");
 		HttpClient = httpClient;
 		DownloadNewVersion = downloadNewVersion;
 	}
@@ -60,15 +60,35 @@ public class UpdateManager
 
 	private async Task<bool> GetInstallerAsync(Version targetVersion)
 	{
-		if (CheckIfInstallerDownloaded())
+		DirectoryInfo folder = new(InstallerDir);
+		if (folder.Exists)
 		{
-			return true;
+			FileSystemInfo[] files = folder.GetFileSystemInfos();
+
+			if (CheckIfInstallerDownloaded(files, targetVersion.ToString()))
+			{
+				if (InstallerName.Contains("tmp"))
+				{
+					Logger.LogWarning("Corrupted/unfinished installer found, deleting.");
+					File.Delete(Path.Combine(InstallerDir, InstallerName));
+				}
+				else
+				{
+					return true;
+				}
+			}
 		}
+		else
+		{
+			Directory.CreateDirectory(InstallerDir);
+		}
+
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
 		// If the version we are looking for is not the one on github, somethings wrong.
@@ -89,16 +109,17 @@ public class UpdateManager
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
-		var tmpFileName = Path.Combine(DownloadsDir, $"{fileName}.tmp");
-		var newFileName = Path.Combine(DownloadsDir, fileName);
+		var tmpFileName = Path.Combine(InstallerDir, $"{fileName}.tmp");
+		var newFileName = Path.Combine(InstallerDir, fileName);
 
 		// This should also be done using Tor.
-		using System.Net.Http.HttpClient httpClient = new();
+		// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
+		using HttpClient httpClient = new();
 
 		// Get file stream and copy it to downloads folder to access.
 		using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
 		Logger.LogInfo("Installer stream downloaded, copying...");
-		var file = File.OpenWrite(tmpFileName);
+		using var file = File.OpenWrite(tmpFileName);
 		await stream.CopyToAsync(file).ConfigureAwait(false);
 
 		// Closing the file to rename.
@@ -140,20 +161,20 @@ public class UpdateManager
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
 
-	public string DownloadsDir { get; }
+	public string InstallerDir { get; }
 	public IHttpClient HttpClient { get; }
 
 	///<summary> Comes from config file. Decides Wasabi should download the new installer in the background or not.</summary>
-	public bool DownloadNewVersion { get; set; }
+	public bool DownloadNewVersion { get; }
 
 	///<summary> Install new version on shutdown or not.</summary>
-	public bool DoUpdateOnClose { get; set; } = false;
+	public bool DoUpdateOnClose { get; set; }
 
-	public void InstallNewVersion()
+	public void StartInstallingNewVersion()
 	{
 		try
 		{
-			var installerPath = Path.Combine(DownloadsDir, InstallerName);
+			var installerPath = Path.Combine(InstallerDir, InstallerName);
 			ProcessStartInfo startInfo;
 			if (!File.Exists(installerPath))
 			{
@@ -194,45 +215,26 @@ public class UpdateManager
 		}
 	}
 
-	public bool CheckIfInstallerDownloaded()
+	private bool CheckIfInstallerDownloaded(FileSystemInfo[] files, string version)
 	{
-		var folder = new DirectoryInfo(DownloadsDir);
-		if (folder.Exists)
+		FileSystemInfo[] installers = files.Where(file => file.Name.Contains("Wasabi")).ToArray();
+		foreach (var file in installers)
 		{
-			FileSystemInfo[] files = folder.GetFileSystemInfos();
-
-			FileSystemInfo? file = files.Where(file => file.Name.Contains("Wasabi")).FirstOrDefault();
-
-			if (file is null)
-			{
-				Logger.LogDebug("Installer not found.");
-			}
-			else if (file.Name.Contains("tmp"))
-			{
-				Logger.LogWarning("Corrupted/unfinished installer found, deleting.");
-				File.Delete(file.FullName);
-			}
-			else
+			if (file.Name.Contains(version))
 			{
 				InstallerName = file.Name;
 				return true;
 			}
-
-			return false;
 		}
-		else
-		{
-			IoHelpers.EnsureDirectoryExists(DownloadsDir);
-			return false;
-		}
+		return false;
 	}
 
 	public void DeletePossibleLefotver()
 	{
-		var folder = new DirectoryInfo(DownloadsDir);
+		var folder = new DirectoryInfo(InstallerDir);
 		if (folder.Exists)
 		{
-			Directory.Delete(DownloadsDir, true);
+			Directory.Delete(InstallerDir, true);
 		}
 	}
 }

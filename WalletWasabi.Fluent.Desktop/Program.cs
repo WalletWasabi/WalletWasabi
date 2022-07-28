@@ -147,7 +147,7 @@ public class Program
 
 		if (Services.UpdateManager.DoUpdateOnClose)
 		{
-			Services.UpdateManager.InstallNewVersion();
+			Services.UpdateManager.StartInstallingNewVersion();
 		}
 
 		return exceptionToReport is { } ? 1 : 0;
