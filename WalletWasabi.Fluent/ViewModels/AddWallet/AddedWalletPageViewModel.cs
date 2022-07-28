@@ -37,7 +37,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		var navBar = NavigationManager.Get<NavBarViewModel>();
 
-		var wallet = navBar?.Items.OfType<WalletViewModelBase>().FirstOrDefault(x => x.WalletName == WalletName);
+		var wallet = navBar?.Wallets.FirstOrDefault(x => x.WalletName == WalletName);
 
 		if (wallet is { } && navBar is { })
 		{

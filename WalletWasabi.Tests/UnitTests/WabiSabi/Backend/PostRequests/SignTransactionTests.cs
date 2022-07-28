@@ -22,7 +22,7 @@ public class SignTransactionTests
 		using Key key = new();
 		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round);
 		round.Alices.Add(alice);
-		round.CoinjoinState = round.AddInput(alice.Coin).Finalize();
+		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id)).Finalize();
 		round.SetPhase(Phase.TransactionSigning);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 

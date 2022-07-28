@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
+using WalletWasabi.Extensions;
 using System.Net.Http;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -94,7 +95,7 @@ public class AliceClient
 		{
 			var ownershipProof = keyChain.GetOwnershipProof(
 				coin,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
+				new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Id));
 
 			var (response, isPayingZeroCoordinationFee) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);

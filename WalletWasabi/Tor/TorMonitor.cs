@@ -141,6 +141,12 @@ public class TorMonitor : PeriodicRunner
 						Logger.LogInfo("Tor circuit was established.");
 						circuitEstablished = true;
 					}
+
+					if (statusEvent.Action == StatusEvent.ActionCircuitNotEstablished)
+					{
+						_ = statusEvent.Arguments.TryGetValue("REASON", out string? reason);
+						Logger.LogError($"Tor circuit failed to be established: {(reason ?? "unknown reason")}.");
+					}
 				}
 				else if (asyncEvent is CircEvent circEvent)
 				{
