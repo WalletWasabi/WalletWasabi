@@ -17,6 +17,8 @@ public static class Constants
 
 	public const uint ProtocolVersionWitnessVersion = 70012;
 
+	public const int InputBaseSizeInBytes = 41;
+
 	public const int P2wpkhInputSizeInBytes = 41;
 	public const int P2wpkhInputVirtualSize = 69;
 	public const int P2pkhInputSizeInBytes = 145;
