@@ -408,7 +408,7 @@ public partial class Arena : PeriodicRunner
 		RoundParameters parameters = RoundParameterFactory.CreateBlameRoundParameter(feeRate, round);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		Rounds.Add(blameRound);
-		blameRound.LogInfo("Blame round created.");
+		blameRound.LogInfo($"Blame round created from round '{round.Id}'.");
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
