@@ -18,12 +18,7 @@ public class ContentChecker<T>
 					});
 
 		HasNewContent = contentStream.Select(x => x.IsValid);
-
-		Content = contentStream
-			.Where(a => a.IsValid)
-			.Select(a => a.Content);
 	}
 
 	public IObservable<bool> HasNewContent { get; }
-	public IObservable<T> Content { get; }
 }
