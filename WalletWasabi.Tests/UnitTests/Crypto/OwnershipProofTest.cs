@@ -18,7 +18,7 @@ public class OwnershipProofTest
 		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 		using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
 
-		var ownershipIdentifier = new OwnershipIdentifier(identificationKey, key.PubKey.WitHash.ScriptPubKey);
+		var ownershipIdentifier = new OwnershipIdentifier(identificationKey, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 		var commitmentData = Array.Empty<byte>();
 		var ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, false, ScriptPubKeyType.Segwit);
 		var scriptPubKey = PayToWitPubKeyHashTemplate.Instance.GenerateScriptPubKey(key.PubKey);

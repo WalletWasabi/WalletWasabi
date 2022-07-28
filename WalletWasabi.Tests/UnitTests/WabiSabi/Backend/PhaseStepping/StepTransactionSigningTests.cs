@@ -258,13 +258,13 @@ public class StepTransactionSigningTests
 		using var destKey1 = new Key();
 		using var destKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			aliceClient1.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient1.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None).ConfigureAwait(false);
 
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			aliceClient2.IssuedAmountCredentials.Take(ProtocolConstants.CredentialNumber),
 			aliceClient2.IssuedVsizeCredentials.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None).ConfigureAwait(false);

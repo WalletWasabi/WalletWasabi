@@ -91,7 +91,7 @@ public class ArenaClientTests
 
 		using var destinationKey1 = new Key();
 		using var destinationKey2 = new Key();
-		var p2wpkhScriptSize = (long)destinationKey1.PubKey.WitHash.ScriptPubKey.EstimateOutputVsize();
+		var p2wpkhScriptSize = (long)destinationKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit).EstimateOutputVsize();
 
 		var vsizesToRequest = new[] { round.Parameters.MaxVsizeAllocationPerAlice - (inputVsize + 2 * p2wpkhScriptSize), 2 * p2wpkhScriptSize };
 
@@ -151,14 +151,14 @@ public class ArenaClientTests
 
 		await bobArenaClient.RegisterOutputAsync(
 			round.Id,
-			destinationKey1.PubKey.WitHash.ScriptPubKey,
+			destinationKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			new[] { amountCred1, zeroAmountCred1 },
 			new[] { vsizeCred1, zeroVsizeCred1 },
 			CancellationToken.None);
 
 		await bobArenaClient.RegisterOutputAsync(
 			round.Id,
-			destinationKey2.PubKey.WitHash.ScriptPubKey,
+			destinationKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			new[] { amountCred2, zeroAmountCred2 },
 			new[] { vsizeCred2, zeroVsizeCred2 },
 			CancellationToken.None);

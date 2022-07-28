@@ -34,7 +34,7 @@ public static class WabiSabiFactory
 	{
 		key ??= new();
 		amount ??= Money.Coins(1);
-		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
+		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)));
 	}
 
 	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null)
@@ -52,7 +52,7 @@ public static class WabiSabiFactory
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
-			GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
+			GetOwnershipIdentifier(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)),
 			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()));
 
 	public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)

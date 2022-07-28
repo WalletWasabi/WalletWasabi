@@ -44,13 +44,13 @@ public record OwnershipProof : IBitcoinSerializable
 	private static OwnershipProof GenerateOwnershipProofSegwit(Key key, byte[] commitmentData, ProofBody proofBody) =>
 		new(
 			proofBody,
-			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.WitHash.ScriptPubKey, commitmentData), ScriptPubKeyType.Segwit));
+			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), commitmentData), ScriptPubKeyType.Segwit));
 
 	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
 		scriptPubKey.GetScriptType() switch
 		{
 			ScriptType.P2WPKH => VerifyOwnershipProofSegwit(scriptPubKey, commitmentData, requireUserConfirmation),
-			_ => throw new NotImplementedException("Only P2WPKH scripts are supported."),
+			_ => throw new NotImplementedException(),
 		};
 
 	private bool VerifyOwnershipProofSegwit(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
