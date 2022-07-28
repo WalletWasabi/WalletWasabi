@@ -25,7 +25,6 @@ public class OwnershipProofTest
 
 		var commitmentData = Array.Empty<byte>();
 		var ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, false, ScriptPubKeyType.Segwit);
-		var scriptPubKey = key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
 		var ownershipProofBytes = Encoders.Hex.DecodeData("534c00190001a122407efc198211c81af4450f40b235d54775efd934d16b9e31c6ce9bad57070002483045022100c0dc28bb563fc5fea76cacff75dba9cb4122412faae01937cdebccfb065f9a7002202e980bfbd8a434a7fc4cd2ca49da476ce98ca097437f8159b1a386b41fcdfac50121032ef68318c8f6aaa0adec0199c69901f0db7d3485eb38d9ad235221dc3d61154b");
 
