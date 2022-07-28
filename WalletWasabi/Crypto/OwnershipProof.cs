@@ -49,11 +49,11 @@ public record OwnershipProof : IBitcoinSerializable
 	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
 		scriptPubKey.GetScriptType() switch
 		{
-			ScriptType.P2WPKH => VerifyOwnershipProofSegwit(scriptPubKey, commitmentData, requireUserConfirmation),
+			ScriptType.P2WPKH => VerifyOwnershipProof(scriptPubKey, commitmentData, requireUserConfirmation),
 			_ => throw new NotImplementedException("Only P2WPKH script is supported."),
 		};
 
-	private bool VerifyOwnershipProofSegwit(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
+	private bool VerifyOwnershipProof(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
 	{
 		if (requireUserConfirmation && !_proofBody.Flags.HasFlag(ProofBodyFlags.UserConfirmation))
 		{
