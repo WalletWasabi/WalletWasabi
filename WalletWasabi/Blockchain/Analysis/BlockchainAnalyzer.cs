@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis;
 
@@ -119,17 +121,37 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Value)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
-		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
-		bool? isWasabi2Cj = null;
+		var outputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).OrderByDescending(x => x).ToArray();
+		bool isWasabi2Cj =
+					tx.Transaction.Outputs.Count >= 2 // Sanity check.
+					&& tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& outputValues.Count(x => StdDenoms.Contains(x)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
+					&& outputValues.Zip(outputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
+
+		var secondLargestOutputAmount = indistinguishableOutputs.Keys.OrderByDescending(x => x).Take(2).LastOrDefault();
+		if (secondLargestOutputAmount == default)
+		{
+			secondLargestOutputAmount = Constants.MaximumNumberOfSatoshis;
+		}
 
 		var foreignInputCount = tx.ForeignInputs.Count;
 
-		foreach (var newCoin in tx.WalletOutputs)
+		var usedOutputs = new List<LongHolder>();
+		foreach (var newCoin in tx.WalletOutputs.OrderByDescending(x => x.Amount))
 		{
 			var output = newCoin.TxOut;
-			var equalOutputCount = indistinguishableOutputs[output.Value];
 			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
+			double equalOutputCount = indistinguishableOutputs[output.Value];
+
+			if (isWasabi2Cj)
+			{
+				// Take outputs those aren't on the same level as any of our outputs.
+				var combinableOutputs = indistinguishableOutputs
+					.Where(x => !tx.WalletOutputs.Any(y => y.Amount.Satoshi == x.Key) && StdDenoms.Contains(x.Key))
+					.SelectMany(x => Enumerable.Repeat(new LongHolder(x.Key), x.Value))
+					.ToArray();
+				equalOutputCount += CalculateSumAnonScoreGain(output.Value, combinableOutputs, usedOutputs, 10, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(10));
+			}
 
 			// Anonset gain cannot be larger than others' input count.
 			double anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
@@ -141,13 +163,8 @@ public class BlockchainAnalyzer
 			double startingOutputAnonset;
 			if (anonset < 1)
 			{
-				isWasabi2Cj ??=
-					tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& outputValues.Count(x => StdDenoms.Contains(x.Satoshi)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
-					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
-
 				// When WW2 denom output isn't too large, then it's not change.
-				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
+				if (isWasabi2Cj && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 				}
@@ -203,6 +220,51 @@ public class BlockchainAnalyzer
 				hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
 			}
 		}
+	}
+
+	private double CalculateSumAnonScoreGain(long outputValue, IEnumerable<LongHolder> combinableOutputs, List<LongHolder> usedOutputs, int largestComboCount, DateTimeOffset timeoutAt)
+		=> CalculateSumAnonScoreGain(outputValue, combinableOutputs, usedOutputs, 2, largestComboCount, timeoutAt);
+
+	private double CalculateSumAnonScoreGain(long outputValue, IEnumerable<LongHolder> combinableOutputs, List<LongHolder> usedOutputs, int comboCount, int largestComboCount, DateTimeOffset timeoutAt)
+	{
+		var asGain = 0d;
+		var remainingOutputs = new List<LongHolder>();
+		foreach (var o in combinableOutputs)
+		{
+			if (!usedOutputs.Any(x => ReferenceEquals(x, o)))
+			{
+				remainingOutputs.Add(o);
+			}
+		}
+
+		foreach (var combo in remainingOutputs.CombinationsWithoutRepetition(comboCount))
+		{
+			if (DateTimeOffset.UtcNow > timeoutAt)
+			{
+				break;
+			}
+
+			if (combo.Sum(x => x.Long) == outputValue)
+			{
+				foreach (var o in combo)
+				{
+					usedOutputs.Add(o);
+				}
+
+				asGain += 1d / comboCount;
+
+				asGain += CalculateSumAnonScoreGain(outputValue, remainingOutputs, usedOutputs, comboCount, largestComboCount, timeoutAt);
+
+				break;
+			}
+		}
+
+		if (DateTimeOffset.UtcNow <= timeoutAt && comboCount <= largestComboCount)
+		{
+			asGain += CalculateSumAnonScoreGain(outputValue, remainingOutputs, usedOutputs, comboCount + 1, largestComboCount, timeoutAt);
+		}
+
+		return asGain;
 	}
 
 	/// <summary>

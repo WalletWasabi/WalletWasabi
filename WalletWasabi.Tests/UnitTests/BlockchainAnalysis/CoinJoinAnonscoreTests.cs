@@ -256,4 +256,20 @@ public class CoinJoinAnonScoreTests
 		// 10 participants, 1 is you, your anonset would be 10 normally and now too:
 		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 	}
+
+	[Fact]
+	public void SmallerSumAdded()
+	{
+		var analyser = new BlockchainAnalyzer();
+		var tx = BitcoinFactory.CreateSmartTransaction(50, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(2.1m), 1) }, new[] { (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet) });
+
+		analyser.Analyze(tx);
+
+		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
+		// 10 participants, 1 is you with 2BTC, 9 are others with 1BTC:
+		// Out of 9 1BTC outputs we can assume 4 2BTC outputs, which would add 4/2 AS:
+		// So the final AS would be 2 + 1 = 3.
+		Assert.Equal(3, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+	}
 }
