@@ -78,10 +78,7 @@ public class TorHttpPool : IDisposable
 	/// <param name="e">Tor exception.</param>
 	private void OnTorRequestFailed(Exception e)
 	{
-		if (TorDoesntWorkSince is null)
-		{
-			TorDoesntWorkSince = DateTimeOffset.UtcNow;
-		}
+		TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
 
 		if (e is HttpRequestException)
 		{
