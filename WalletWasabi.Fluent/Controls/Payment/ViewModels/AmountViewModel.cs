@@ -12,9 +12,10 @@ public class AmountViewModel : ReactiveValidationObject
 	public AmountViewModel(Func<decimal, bool> withinBalance)
 	{
 		var validAmount = this.WhenAnyValue(x => x.Amount).Select(x => x > 0);
-		
+
 		this.ValidationRule(
-			viewModel => viewModel.Amount, validAmount.Skip(1),
+			viewModel => viewModel.Amount,
+			validAmount.Skip(1),
 			"Amount should be greater than 0");
 
 		this.ValidationRule(
@@ -22,7 +23,6 @@ public class AmountViewModel : ReactiveValidationObject
 			withinBalance,
 			"Insufficient funds to cover the amount requested");
 	}
-
 
 	public decimal Amount
 	{

@@ -9,13 +9,13 @@ namespace WalletWasabi.Fluent.Controls.Payment.ViewModels;
 
 public class ScanQrViewModel
 {
-	public bool IsVisible { get; }
-
 	public ScanQrViewModel(Network network, bool isVisible)
 	{
 		IsVisible = isVisible;
 		ScanQrCommand = ReactiveCommand.CreateFromObservable(() => GetAddressFromQrCode(network));
 	}
+
+	public bool IsVisible { get; }
 
 	public ReactiveCommand<Unit, string> ScanQrCommand { get; set; }
 
