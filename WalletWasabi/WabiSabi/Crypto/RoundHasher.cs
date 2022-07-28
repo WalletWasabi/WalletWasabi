@@ -18,7 +18,7 @@ public static class RoundHasher
 			MoneyRange allowedInputAmounts,
 			ImmutableSortedSet<ScriptType> allowedInputScriptTypes,
 			MoneyRange allowedOutputAmounts,
-			ImmutableSortedSet<ScriptType> allowedOutputTypes,
+			ImmutableSortedSet<ScriptType> allowedOutputScriptTypes,
 			Network network,
 			long feePerK,
 			CoordinationFeeRate coordinationFeeRate,
@@ -41,7 +41,7 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundAllowedInputAmountsStrobeLabel, allowedInputAmounts)
 					   .Append(ProtocolConstants.RoundAllowedInputScriptTypesStrobeLabel, allowedInputScriptTypes)
 					   .Append(ProtocolConstants.RoundAllowedOutputAmountsStrobeLabel, allowedOutputAmounts)
-					   .Append(ProtocolConstants.RoundAllowedOutputScriptTypesStrobeLabel, allowedOutputTypes)
+					   .Append(ProtocolConstants.RoundAllowedOutputScriptTypesStrobeLabel, allowedOutputScriptTypes)
 					   .Append(ProtocolConstants.RoundNetworkStrobeLabel, network.ToString())
 					   .Append(ProtocolConstants.RoundFeeRateStrobeLabel, feePerK)
 					   .Append(ProtocolConstants.RoundCoordinationFeeRateStrobeLabel, coordinationFeeRate)
