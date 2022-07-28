@@ -353,6 +353,19 @@ public static class NBitcoinExtensions
 		}
 	}
 
+	public static ScriptType? GetScriptType(this Script script)
+	{
+		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH })
+		{
+			if (script.IsScriptType(scriptType))
+			{
+				return scriptType;
+			}
+		}
+
+		return null;
+	}
+
 	public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
 	{
 		if (i.WitnessUtxo is null)
