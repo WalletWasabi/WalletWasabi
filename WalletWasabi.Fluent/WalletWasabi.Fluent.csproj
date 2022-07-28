@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
@@ -37,14 +37,5 @@
 
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Controls\Payment\BtcPaymentControl.axaml.cs">
-	    <DependentUpon>BtcPaymentControl.axaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Controls\Payment\BtcAndPayjoinPaymentControl.axaml.cs">
-	    <DependentUpon>BtcAndPayjoinPaymentControl.axaml</DependentUpon>
-	  </Compile>
 	</ItemGroup>
 </Project>
