@@ -148,9 +148,9 @@ public class BlockchainAnalyzer
 				// Take outputs those aren't on the same level as any of our outputs.
 				var combinableOutputs = indistinguishableOutputs
 					.Where(x => !tx.WalletOutputs.Any(y => y.Amount.Satoshi == x.Key) && StdDenoms.Contains(x.Key))
-					.SelectMany(x => Enumerable.Repeat(new LongHolder(x.Key), x.Value))
+					.SelectMany(x => Enumerable.Repeat(x.Key, x.Value).Select(y => new LongHolder(y)))
 					.ToArray();
-				equalOutputCount += CalculateSumAnonScoreGain(output.Value, combinableOutputs, usedOutputs, 10, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(10));
+				equalOutputCount += CalculateSumAnonScoreGain(output.Value, combinableOutputs, usedOutputs, 10, DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(10));
 			}
 
 			// Anonset gain cannot be larger than others' input count.
@@ -228,14 +228,7 @@ public class BlockchainAnalyzer
 	private double CalculateSumAnonScoreGain(long outputValue, IEnumerable<LongHolder> combinableOutputs, List<LongHolder> usedOutputs, int comboCount, int largestComboCount, DateTimeOffset timeoutAt)
 	{
 		var asGain = 0d;
-		var remainingOutputs = new List<LongHolder>();
-		foreach (var o in combinableOutputs)
-		{
-			if (!usedOutputs.Any(x => ReferenceEquals(x, o)))
-			{
-				remainingOutputs.Add(o);
-			}
-		}
+		var remainingOutputs = combinableOutputs.Except(usedOutputs);
 
 		foreach (var combo in remainingOutputs.CombinationsWithoutRepetition(comboCount))
 		{
