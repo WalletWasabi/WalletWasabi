@@ -41,7 +41,7 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundAllowedInputAmountsStrobeLabel, allowedInputAmounts)
 					   .Append(ProtocolConstants.RoundAllowedInputScriptTypesStrobeLabel, allowedInputTypes)
 					   .Append(ProtocolConstants.RoundAllowedOutputAmountsStrobeLabel, allowedOutputAmounts)
-					   .Append(ProtocolConstants.RoundAllowedOutputTypesStrobeLabel, allowedOutputTypes)
+					   .Append(ProtocolConstants.RoundAllowedOutputScriptTypesStrobeLabel, allowedOutputTypes)
 					   .Append(ProtocolConstants.RoundNetworkStrobeLabel, network.ToString())
 					   .Append(ProtocolConstants.RoundFeeRateStrobeLabel, feePerK)
 					   .Append(ProtocolConstants.RoundCoordinationFeeRateStrobeLabel, coordinationFeeRate)
