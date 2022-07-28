@@ -53,7 +53,7 @@
     </Setter>
     <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
-    <Setter Property="Opacity" Value="0"/>
+    <!-- <Setter Property="Opacity" Value="0"/> -->
   </Style>
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
     <Setter Property="Margin" Value="20,30,20,20"/>
@@ -70,7 +70,7 @@
         </i:BehaviorCollection>
       </i:BehaviorCollectionTemplate>
     </Setter>
-    <Setter Property="Opacity" Value="0"/>
+    <!-- <Setter Property="Opacity" Value="0"/> -->
   </Style>
   <Style Selector="c|Dialog /template/ Border#PART_Border">
     <Setter Property="Margin" Value="40"/>
