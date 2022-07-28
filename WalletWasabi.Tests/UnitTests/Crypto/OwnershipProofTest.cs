@@ -26,7 +26,7 @@ public class OwnershipProofTest
 		var commitmentData = Array.Empty<byte>();
 		var ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, false, ScriptPubKeyType.Segwit);
 
-		var ownershipProofBytes = Encoders.Hex.DecodeData("534c00190001a122407efc198211c81af4450f40b235d54775efd934d16b9e31c6ce9bad57070002483045022100c0dc28bb563fc5fea76cacff75dba9cb4122412faae01937cdebccfb065f9a7002202e980bfbd8a434a7fc4cd2ca49da476ce98ca097437f8159b1a386b41fcdfac50121032ef68318c8f6aaa0adec0199c69901f0db7d3485eb38d9ad235221dc3d61154b");
+		var ownershipProofBytes = Encoders.Hex.DecodeData("534C00190001A122407EFC198211C81AF4450F40B235D54775EFD934D16B9E31C6CE9BAD57070002483045022100C0DC28BB563FC5FEA76CACFF75DBA9CB4122412FAAE01937CDEBCCFB065F9A7002202E980BFBD8A434A7FC4CD2CA49DA476CE98CA097437F8159B1A386B41FCDFAC50121032EF68318C8F6AAA0ADEC0199C69901F0DB7D3485EB38D9AD235221DC3D61154B");
 
 		Assert.True(ownershipProofBytes.SequenceEqual(ownershipProof.ToBytes()));
 		var deserializedOwnershipProof = OwnershipProof.FromBytes(ownershipProofBytes);
@@ -72,7 +72,7 @@ public class OwnershipProofTest
 
 		// Valid proof, invalid scriptPubKey
 		// [all all all all all all all all all all all all]/84'/0'/0'/1/1
-		using var invalidKey = new Key(Encoders.Hex.DecodeData("7b041dd735e7202d3c1b9592147894ed24da6355f0cd66573c273c0df1afa78a"));
+		using var invalidKey = new Key(Encoders.Hex.DecodeData("7B041DD735E7202D3C1B9592147894ED24DA6355F0CD66573C273C0DF1AFA78A"));
 		var invalidScriptPubKey = invalidKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
 		Assert.False(ownershipProof.VerifyOwnership(invalidScriptPubKey, commitmentData, false));
