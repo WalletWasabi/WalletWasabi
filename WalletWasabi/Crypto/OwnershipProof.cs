@@ -38,7 +38,7 @@ public record OwnershipProof : IBitcoinSerializable
 		scriptPubKeyType switch
 		{
 			ScriptPubKeyType.Segwit => GenerateOwnershipProofSegwit(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray())),
-			_ => throw new NotImplementedException()
+			_ => throw new NotImplementedException("Only P2WPKH script is supported."),
 		};
 
 	private static OwnershipProof GenerateOwnershipProofSegwit(Key key, byte[] commitmentData, ProofBody proofBody) =>
@@ -50,7 +50,7 @@ public record OwnershipProof : IBitcoinSerializable
 		scriptPubKey.GetScriptType() switch
 		{
 			ScriptType.P2WPKH => VerifyOwnershipProofSegwit(scriptPubKey, commitmentData, requireUserConfirmation),
-			_ => throw new NotImplementedException(),
+			_ => throw new NotImplementedException("Only P2WPKH script is supported."),
 		};
 
 	private bool VerifyOwnershipProofSegwit(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
