@@ -9,7 +9,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto;
 public class OwnershipProofTest
 {
 	[Fact]
-	public void OwnershipProofEncodingDecoding()
+	public void P2wpkhOwnershipProofEncodingDecoding()
 	{
 		// SLIP-19 test vector
 		// See https://github.com/satoshilabs/slips/blob/846a0a6c1dfc29f8b90fd90a9309b1174b7d91e8/slip-0019.md#test-vector-1-p2wpkh
@@ -34,7 +34,7 @@ public class OwnershipProofTest
 	}
 
 	[Fact]
-	public void OwnershipProofVerification()
+	public void P2wpkhOwnershipProofVerification()
 	{
 		OwnershipProof ownershipProof, invalidOwnershipProof;
 		Script scriptPubKey;
