@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
@@ -66,35 +61,40 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		Observable
 			.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
-			.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
+			.Select(_ =>
+			{
+				TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var estimates);
+				return estimates;
+			})
+			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate))
+			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
+
+		if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeEstimates))
 		{
-			while (feeProvider.AllFeeEstimate is null)
-			{
-				await Task.Delay(100);
-			}
+			// TODO: pop manual fee
+			Close();
+			return;
+		}
 
-			FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate);
+		FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
 
-			if (_transactionInfo.FeeRate != FeeRate.Zero)
-			{
-				FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
-			}
+		if (_transactionInfo.FeeRate != FeeRate.Zero)
+		{
+			FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
+		}
 
-			if (_isSilent)
-			{
-				_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+		if (_isSilent)
+		{
+			_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
-				Complete();
-			}
-			else
-			{
-				IsBusy = false;
-			}
-		});
+			Complete();
+		}
+		else
+		{
+			IsBusy = false;
+		}
 	}
 }
