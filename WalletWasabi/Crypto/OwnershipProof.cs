@@ -37,14 +37,14 @@ public record OwnershipProof : IBitcoinSerializable
 	public static OwnershipProof Generate(Key key, IEnumerable<OwnershipIdentifier> ownershipIdentifiers, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
 		scriptPubKeyType switch
 		{
-			ScriptPubKeyType.Segwit => GenerateOwnershipProofSegwit(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray())),
+			ScriptPubKeyType.Segwit => GenerateOwnershipProof(key, commitmentData, new ProofBody(userConfirmation ? ProofBodyFlags.UserConfirmation : 0, ownershipIdentifiers.ToArray()), scriptPubKeyType),
 			_ => throw new NotImplementedException("Only P2WPKH script is supported."),
 		};
 
-	private static OwnershipProof GenerateOwnershipProofSegwit(Key key, byte[] commitmentData, ProofBody proofBody) =>
+	private static OwnershipProof GenerateOwnershipProof(Key key, byte[] commitmentData, ProofBody proofBody, ScriptPubKeyType scriptPubKeyType) =>
 		new(
 			proofBody,
-			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), commitmentData), ScriptPubKeyType.Segwit));
+			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), commitmentData), scriptPubKeyType));
 
 	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
 		scriptPubKey.GetScriptType() switch
