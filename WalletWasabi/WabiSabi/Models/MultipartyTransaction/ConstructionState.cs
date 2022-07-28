@@ -24,7 +24,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonStandardInput);
 		}
 
-		if (!Parameters.AllowedInputTypes.Any(x => prevout.ScriptPubKey.IsScriptType(x)))
+		if (!Parameters.AllowedInputScriptTypes.Any(x => prevout.ScriptPubKey.IsScriptType(x)))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 		}

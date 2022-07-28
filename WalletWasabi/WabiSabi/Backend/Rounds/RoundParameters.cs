@@ -60,7 +60,7 @@ public record RoundParameters
 	public TimeSpan TransactionSigningTimeout { get; init; }
 	public TimeSpan BlameInputRegistrationTimeout { get; init; }
 
-	public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; } = OnlyP2WPKH;
+	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes { get; init; } = OnlyP2WPKH;
 	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;
 
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
