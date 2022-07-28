@@ -77,7 +77,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 			scaleAnimation.InsertKeyFrame(0f, new Vector3(0.96f, 0.96f, 0f), fluentEasing);
 			scaleAnimation.InsertKeyFrame(1f, new Vector3(1.00f, 1.00f, 0f), fluentEasing);
 			scaleAnimation.Duration = scaleDuration;
-			scaleAnimation.Direction = PlaybackDirection.Normal;
+			scaleAnimation.Direction = PlaybackDirection.Alternate;
 			// scaleAnimation.IterationCount = 1;
 
 			compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
