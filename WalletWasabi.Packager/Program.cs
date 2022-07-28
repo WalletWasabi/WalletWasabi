@@ -294,18 +294,19 @@ public static class Program
 				// Delete unused executables.
 				File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
 			}
+
 			File.Move(oldExecutablePath, newExecutablePath);
+
+			// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
+			if (OnlyBinaries)
+			{
+				continue;
+			}
 
 			long installedSizeKb = Tools.DirSize(new DirectoryInfo(publishedFolder)) / 1000;
 
 			if (target.StartsWith("win"))
 			{
-				// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-				if (OnlyBinaries)
-				{
-					continue; // In Windows build at this moment it does not matter though.
-				}
-
 				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
@@ -315,12 +316,6 @@ public static class Program
 			}
 			else if (target.StartsWith("osx"))
 			{
-				// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-				if (OnlyBinaries)
-				{
-					continue;
-				}
-
 				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
@@ -355,12 +350,6 @@ public static class Program
 			}
 			else if (target.StartsWith("linux"))
 			{
-				// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-				if (OnlyBinaries)
-				{
-					continue;
-				}
-
 				ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(deliveryPath, $"Wasabi-{deterministicFileNameTag}-{GetPackageTargetPostfix(target)}.zip"));
 
 				if (IsContinuousDelivery)
