@@ -1,4 +1,3 @@
-using FluentAssertions;
 using NBitcoin;
 using WalletWasabi.Fluent.Models;
 using Xunit;
@@ -19,27 +18,27 @@ public class AddressTests
 	public void Valid_regular_address()
 	{
 		var sut = Address.FromRegularAddress(BtcAddress, Network.TestNet);
-		sut.IsSuccess.Should().BeTrue();
+		Assert.True(sut.IsSuccess);
 	}
 
 	[Fact]
 	public void Invalid_regular_address()
 	{
 		var sut = Address.FromRegularAddress("", Network.TestNet);
-		sut.IsSuccess.Should().BeFalse();
+		Assert.False(sut.IsSuccess);
 	}
 
 	[Fact]
 	public void Valid_Payjoin_address()
 	{
 		var sut = Address.FromPayjoin(PayjoinAddress, Network.TestNet);
-		sut.IsSuccess.Should().BeTrue();
+		Assert.True(sut.IsSuccess);
 	}
 
 	[Fact]
 	public void Invalid_Payjoin_address()
 	{
 		var sut = Address.FromPayjoin(InvalidPayjoinAddress, Network.TestNet);
-		sut.IsSuccess.Should().BeFalse();
+		Assert.False(sut.IsSuccess);
 	}
 }

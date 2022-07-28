@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
 using WalletWasabi.Fluent.Helpers;
 using Xunit;
 
@@ -17,6 +16,6 @@ public class ContentCheckerTests
 	{
 		var sut = new ContentChecker<string>(Observable.Return(incoming), Observable.Return(current), _ => isValid);
 		var hasNewContent = await sut.HasNewContent.LastAsync();
-		hasNewContent.Should().Be(expected);
+		Assert.Equal(expected, hasNewContent);
 	}
 }

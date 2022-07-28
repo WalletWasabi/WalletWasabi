@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using FluentAssertions;
 using WalletWasabi.Fluent.Controls.Payment.ViewModels;
 using Xunit;
 
@@ -19,10 +18,7 @@ public class PasteButtonViewModelTests
 			Observable.Return(isNewContentAvailable),
 			Observable.Return(isMainWindowActive));
 
-		sut.HasNewContent
-			.RecordChanges(() => { })
-			.Should()
-			.BeEquivalentTo(new[] { hasNewContent });
+		Assert.Equal(new[] { hasNewContent }, sut.HasNewContent.RecordChanges());
 	}
 
 	[Fact]
@@ -33,11 +29,7 @@ public class PasteButtonViewModelTests
 			Observable.Empty<bool>(),
 			Observable.Empty<bool>());
 
-		sut.PasteCommand
-			.Execute()
-			.RecordChanges()
-			.Should()
-			.BeEquivalentTo("hello world");
+		Assert.Equal(new[] { "hello world" }, sut.PasteCommand.Execute().RecordChanges());
 	}
 
 	[Fact]
@@ -48,10 +40,6 @@ public class PasteButtonViewModelTests
 			Observable.Empty<bool>(),
 			Observable.Empty<bool>());
 
-		sut.PasteCommand
-			.Execute()
-			.RecordChanges()
-			.Should()
-			.BeEmpty();
+		Assert.Empty(sut.PasteCommand.Execute().RecordChanges());
 	}
 }
