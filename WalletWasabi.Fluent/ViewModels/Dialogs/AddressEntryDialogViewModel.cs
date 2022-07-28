@@ -30,7 +30,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 		NextCommand = ReactiveCommand
 			.Create(
 				() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)),
-				Controller.AddressController.IsValid())
+				Controller.AddressEntryController.IsValid())
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
