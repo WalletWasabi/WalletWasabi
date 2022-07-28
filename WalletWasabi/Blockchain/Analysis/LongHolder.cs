@@ -11,12 +11,12 @@ namespace WalletWasabi.Blockchain.Analysis;
 /// </summary>
 public class LongHolder
 {
-	public long Long { get; }
-
 	public LongHolder(long l)
 	{
 		Long = l;
 	}
+
+	public long Long { get; }
 
 	public override string ToString() => Long.ToString();
 }
