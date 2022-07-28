@@ -47,8 +47,7 @@ public class PasteButton : UserControl
 		get => _pasteCommand;
 		set => SetAndRaise(PasteCommandProperty, ref _pasteCommand, value);
 	}
-
-
+	
 	public PasteButtonViewModel Controller
 	{
 		get => _controller;
