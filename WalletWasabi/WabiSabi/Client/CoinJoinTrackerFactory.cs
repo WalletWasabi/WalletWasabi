@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -29,12 +30,12 @@ public class CoinJoinTrackerFactory
 	private CancellationToken CancellationToken { get; }
 	private string CoordinatorIdentifier { get; }
 
-	public CoinJoinTracker CreateAndStart(IWallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
 		Money? liquidityClue = null;
 		if (CoinJoinClient.GetLiquidityClue() is null)
 		{
-			var lastCoinjoin = wallet.TransactionProcessor.TransactionStore.GetTransactions().OrderByBlockchain().LastOrDefault(x => x.IsOwnCoinjoin());
+			var lastCoinjoin = (await wallet.GetTransactionsAsync().ConfigureAwait(false)).OrderByBlockchain().LastOrDefault(x=> x.IsOwnCoinjoin());
 			if (lastCoinjoin is not null)
 			{
 				liquidityClue = CoinJoinClient.TryCalculateLiquidityClue(lastCoinjoin.Transaction, lastCoinjoin.WalletOutputs.Select(x => x.TxOut));
