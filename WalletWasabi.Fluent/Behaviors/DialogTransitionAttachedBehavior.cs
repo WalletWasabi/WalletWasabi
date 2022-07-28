@@ -65,7 +65,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		opacityAnimation.InsertExpressionKeyFrame(1f, "this.FinalValue", fluentEasing);
 		opacityAnimation.Duration = opacityDuration;
 		opacityAnimation.Direction = PlaybackDirection.Normal;
-		opacityAnimation.IterationCount = 1;
+		// opacityAnimation.IterationCount = 1;
 
 		var animationGroup = compositor.CreateAnimationGroup();
 		animationGroup.Add(opacityAnimation);
@@ -78,7 +78,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 			scaleAnimation.InsertKeyFrame(1f, new Vector3(1.00f, 1.00f, 0f), fluentEasing);
 			scaleAnimation.Duration = scaleDuration;
 			scaleAnimation.Direction = PlaybackDirection.Normal;
-			scaleAnimation.IterationCount = 1;
+			// scaleAnimation.IterationCount = 1;
 
 			compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
 
