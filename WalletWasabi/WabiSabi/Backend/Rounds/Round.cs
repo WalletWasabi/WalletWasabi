@@ -46,6 +46,7 @@ public class Round
 		TransactionSigningTimeFrame = TimeFrame.Create(Parameters.TransactionSigningTimeout);
 
 		Id = CalculateHash();
+		CoinJoinInputCommitmentData = new CoinJoinInputCommitmentData(Parameters.CoordinationIdentifier, Id);
 	}
 
 	public uint256 Id { get; }
@@ -70,6 +71,8 @@ public class Round
 
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
+
+	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData { get; init; }
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
@@ -127,8 +130,8 @@ public class Round
 		return InputRegistrationTimeFrame.HasExpired;
 	}
 
-	public ConstructionState AddInput(Coin coin)
-		=> Assert<ConstructionState>().AddInput(coin);
+	public ConstructionState AddInput(Coin coin, OwnershipProof ownershipProof, CoinJoinInputCommitmentData coinJoinInputCommitmentData)
+		=> Assert<ConstructionState>().AddInput(coin, ownershipProof, coinJoinInputCommitmentData);
 
 	public ConstructionState AddOutput(TxOut output)
 		=> Assert<ConstructionState>().AddOutput(output);
@@ -156,6 +159,7 @@ public class Round
 				Parameters.MaxVsizeCredentialValue,
 				Parameters.MaxVsizeAllocationPerAlice,
 				Parameters.MaxSuggestedAmount,
+				Parameters.CoordinationIdentifier,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);
 }
