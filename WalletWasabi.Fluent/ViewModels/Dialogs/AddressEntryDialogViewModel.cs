@@ -1,7 +1,7 @@
 using System.Reactive.Disposables;
-using ReactiveUI.Validation.Extensions;
 using NBitcoin;
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -17,8 +17,10 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 	public AddressEntryDialogViewModel(Network network)
 	{
 		_network = network;
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(true, true, true);
 	}
+
+	public string Address { get; set; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -26,11 +28,11 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 			.DisposeWith(disposables);
 
 		NextCommand = ReactiveCommand
-			.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)), Controller.AddressController.IsValid())
+			.Create(
+				() => Close(DialogResultKind.Normal, BitcoinAddress.Create(Address, _network)),
+				Controller.AddressController.IsValid())
 			.DisposeWith(disposables);
-		
+
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
-
-	public string Address { get; set; }
 }
