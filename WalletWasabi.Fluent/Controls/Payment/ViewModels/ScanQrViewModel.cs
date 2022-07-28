@@ -17,7 +17,7 @@ public class ScanQrViewModel
 
 	public bool IsVisible { get; }
 
-	public ReactiveCommand<Unit, string> ScanQrCommand { get; set; }
+	public ReactiveCommand<Unit, string> ScanQrCommand { get; }
 
 	private static IObservable<string> GetAddressFromQrCode(Network network)
 	{
