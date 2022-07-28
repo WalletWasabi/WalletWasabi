@@ -11,7 +11,8 @@ public class OwnershipProofTest
 	[Fact]
 	public void OwnershipProofEncodingDecoding()
 	{
-		// Trezor test vector
+		// SLIP-19 test vector
+		// See https://github.com/satoshilabs/slips/blob/846a0a6c1dfc29f8b90fd90a9309b1174b7d91e8/slip-0019.md#test-vector-1-p2wpkh
 		// [all all all all all all all all all all all all]/84'/0'/0'/1/0
 		var allMnemonic = new Mnemonic("all all all all all all all all all all all all");
 		var identificationMasterKey = Slip21Node.FromSeed(allMnemonic.DeriveSeed());
@@ -19,6 +20,9 @@ public class OwnershipProofTest
 		using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
 
 		var ownershipIdentifier = new OwnershipIdentifier(identificationKey, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+		var ownershipIdentifierBytes = Encoders.Hex.DecodeData("A122407EFC198211C81AF4450F40B235D54775EFD934D16B9E31C6CE9BAD5707");
+		Assert.True(ownershipIdentifierBytes.SequenceEqual(ownershipIdentifier.ToBytes()));
+
 		var commitmentData = Array.Empty<byte>();
 		var ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, false, ScriptPubKeyType.Segwit);
 		var scriptPubKey = key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
@@ -33,13 +37,23 @@ public class OwnershipProofTest
 	[Fact]
 	public void OwnershipProofVerification()
 	{
+		OwnershipProof ownershipProof, invalidOwnershipProof;
+		Script scriptPubKey;
+		byte[] commitmentData;
+
+		// SLIP-19 test vector
+		// See https://github.com/satoshilabs/slips/blob/846a0a6c1dfc29f8b90fd90a9309b1174b7d91e8/slip-0019.md#test-vector-1-p2wpkh
+		commitmentData = Encoders.Hex.DecodeData("");
+		scriptPubKey = Script.FromHex("0014B2F771C370CCF219CD3059CDA92BDF7F00CF2103");
+		var ownershipProofBytes = Encoders.Hex.DecodeData("534C00190001A122407EFC198211C81AF4450F40B235D54775EFD934D16B9E31C6CE9BAD57070002483045022100C0DC28BB563FC5FEA76CACFF75DBA9CB4122412FAAE01937CDEBCCFB065F9A7002202E980BFBD8A434A7FC4CD2CA49DA476CE98CA097437F8159B1A386B41FCDFAC50121032EF68318C8F6AAA0ADEC0199C69901F0DB7D3485EB38D9AD235221DC3D61154B");
+		ownershipProof = OwnershipProof.FromBytes(ownershipProofBytes);
+		Assert.True(ownershipProof.VerifyOwnership(scriptPubKey, commitmentData, false));
+
 		// [all all all all all all all all all all all all]/84'/0'/0'/1/0
 		using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
 		var ownershipIdentifier = new OwnershipIdentifier(Encoders.Hex.DecodeData("A122407EFC198211C81AF4450F40B235D54775EFD934D16B9E31C6CE9BAD5707"));
-		var commitmentData = Encoders.Hex.DecodeData("A42E38EF564D4B05B65575D22553BB1F264332D77F8A61159ABF3E6179B0317C");
-		var scriptPubKey = key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
-
-		OwnershipProof ownershipProof, invalidOwnershipProof;
+		commitmentData = Encoders.Hex.DecodeData("A42E38EF564D4B05B65575D22553BB1F264332D77F8A61159ABF3E6179B0317C");
+		scriptPubKey = key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
 		// Valid proofs
 		ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, true, ScriptPubKeyType.Segwit);
