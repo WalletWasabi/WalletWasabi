@@ -109,8 +109,6 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public IEnumerable<IWallet> GetWallets() => GetWallets(true);
-
 	public bool HasWallet() => AnyWallet(_ => true);
 
 	public bool AnyWallet(Func<Wallet, bool> predicate)
@@ -249,7 +247,7 @@ public class WalletManager : IWalletProvider
 		WalletAdded?.Invoke(this, wallet);
 	}
 
-	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets(true).Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
+	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
 	private void TransactionProcessor_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 	{
@@ -286,7 +284,7 @@ public class WalletManager : IWalletProvider
 
 		using (await StartStopWalletLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			foreach (var wallet in GetWallets(true))
+			foreach (var wallet in GetWallets())
 			{
 				cancel.ThrowIfCancellationRequested();
 
@@ -386,7 +384,7 @@ public class WalletManager : IWalletProvider
 		FeeProvider = feeProvider;
 		BlockProvider = blockProvider;
 
-		foreach (var wallet in GetWallets(true).Where(w => w.State == WalletState.WaitingForInit))
+		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 		{
 			wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 		}

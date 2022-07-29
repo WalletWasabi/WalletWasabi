@@ -51,8 +51,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 					RemoveWallet(walletViewModel);
 				}
 				else if (walletViewModel is ClosedWalletViewModel { IsLoggedIn: true } cwvm &&
-				         ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
-				          cwvm.Wallet.State == WalletState.Started))
+						 ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
+						  cwvm.Wallet.State == WalletState.Started))
 				{
 					OpenClosedWallet(cwvm);
 				}
@@ -186,7 +186,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	private void EnumerateWallets()
 	{
-		foreach (var wallet in Services.WalletManager.GetWallets(true))
+		foreach (var wallet in Services.WalletManager.GetWallets())
 		{
 			InsertWallet(ClosedWalletViewModel.Create(wallet));
 		}
