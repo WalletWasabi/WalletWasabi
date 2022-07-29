@@ -90,7 +90,9 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight) => Task.FromResult(GetCoinjoinCoinCandidates(bestHeight));
 
-	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync()
+	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
+
+	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new List<SmartTransaction>();
 		var allCoins = ((CoinsRegistry)Coins).AsAllCoinsView();
@@ -102,8 +104,7 @@ public class Wallet : BackgroundService, IWallet
 				walletTransactions.Add(coin.SpenderTransaction);
 			}
 		}
-		walletTransactions = walletTransactions.OrderByBlockchain().ToList();
-		return Task.FromResult<IEnumerable<SmartTransaction>>(walletTransactions);
+		return walletTransactions.OrderByBlockchain().ToList();
 	}
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates(int bestHeight) => Coins;
