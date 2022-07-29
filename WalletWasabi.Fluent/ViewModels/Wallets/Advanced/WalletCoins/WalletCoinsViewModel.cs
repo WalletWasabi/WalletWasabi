@@ -1,6 +1,5 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using DynamicData;
-using ReactiveUI;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -9,8 +8,8 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
-using DynamicData.Binding;
-using NBitcoin;
+using DynamicData;
+using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -23,28 +22,92 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 [NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
+	[AutoNotify] private ObservableAsPropertyHelper<bool>? _anySelected;
+	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source;
+
 	private readonly WalletViewModel _walletViewModel;
-	private readonly IObservable<Unit> _balanceChanged;
-	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
-	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
-	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel>? _source;
-	[AutoNotify] private bool _anySelected;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
+		_walletViewModel = walletViewModel;
 		SetupCancel(false, true, true);
 		NextCommand = CancelCommand;
-		_walletViewModel = walletViewModel;
-		_balanceChanged = balanceChanged;
-		_coins = new ObservableCollectionExtended<WalletCoinViewModel>();
-
+		
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+	}
+
+	public bool IsAnySelected => _anySelected?.Value ?? false;
+
+	private static int GetOrderingPriority(WalletCoinViewModel x)
+	{
+		if (x.CoinJoinInProgress)
+		{
+			return 1;
+		}
+
+		if (x.IsBanned)
+		{
+			return 2;
+		}
+
+		if (!x.Confirmed)
+		{
+			return 3;
+		}
+
+		return 0;
+	}
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		var initial = Observable.Return(GetCoins());
+
+		var polling = Observable
+			.Timer(TimeSpan.FromSeconds(2))
+			.Repeat()
+			.Select(_ => GetCoins());
+
+		var source = initial.Concat(polling).Publish();
+
+		var observable = source
+			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
+			.AsObservableCache()
+			.Connect()
+			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
+			.Publish();
+
+		_anySelected = observable
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(items => items.Any(t => t.IsSelected))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToProperty(this, model => model.IsAnySelected)
+			.DisposeWith(disposables);
+		this.RaisePropertyChanged(nameof(IsAnySelected));
+
+		observable
+			.DisposeMany()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(out var coins)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		Source = CreateGridSource(coins)
+			.DisposeWith(disposables);
+
+		observable.Connect()
+			.DisposeWith(disposables);
+
+		source.Connect()
+			.DisposeWith(disposables);
+
+		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
 	private async Task OnSendCoins()
 	{
 		var wallet = _walletViewModel.Wallet;
-		var selectedSmartCoins = _coins.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
+		var selectedSmartCoins = _source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableList();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
 		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
@@ -67,54 +130,18 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		info.UserLabels = label;
 		info.IsSelectedCoinModificationEnabled = false;
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, isFixedAmount: true));
+		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
 	}
 
-	private IObservable<Unit> CoinsUpdated => _balanceChanged
-		.ToSignal()
-		.Merge(_walletViewModel
-			.WhenAnyValue(w => w.IsCoinJoining)
-			.ToSignal());
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
 	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		_coinsSourceList
-			.Connect()
-			.Sort(SortExpressionComparer<WalletCoinViewModel>.Descending(model => model.Amount))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(_coins)
-			.DisposeMany()
-			.Subscribe()
-			.DisposeWith(disposables);
-
-		_coinsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.WhenValueChanged(x => x.IsSelected)
-			.Select(_ => _coinsSourceList.Items.Any(x => x.IsSelected))
-			.Subscribe(anySelected => AnySelected = anySelected)
-			.DisposeWith(disposables);
-
-		Observable.Timer(TimeSpan.FromSeconds(30))
-			.Subscribe(_ =>
-			{
-				foreach (var coin in GetCoins())
-				{
-					coin.RefreshAndGetIsBanned();
-				}
-			})
-			.DisposeWith(disposables);
-
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Selection		SelectionColumnView		-			Auto		-				-			false
 		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			true
-
-		Source = new FlatTreeDataGridSource<WalletCoinViewModel>(_coins)
+		var source = new FlatTreeDataGridSource<WalletCoinViewModel>(coins)
 		{
 			Columns =
 			{
@@ -138,7 +165,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
 						CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x)),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x))
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 
@@ -177,55 +204,19 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
 						CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
 					},
-					width: new GridLength(1, GridUnitType.Star)),
+					width: new GridLength(1, GridUnitType.Star))
 			}
 		};
 
-		disposables.Add(Disposable.Create(() => _coins.Clear()));
+		source.RowSelection!.SingleSelect = true;
 
-		Source.DisposeWith(disposables);
-
-		Source.RowSelection!.SingleSelect = true;
-
-		CoinsUpdated
-			.Select(_ => GetCoins())
-			.Subscribe(RefreshCoinsList)
-			.DisposeWith(disposables);
-	}
-
-	private static int GetOrderingPriority(WalletCoinViewModel x)
-	{
-		if (x.CoinJoinInProgress)
-		{
-			return 1;
-		}
-
-		if (x.IsBanned)
-		{
-			return 2;
-		}
-
-		if (!x.Confirmed)
-		{
-			return 3;
-		}
-
-		return 0;
+		return source;
 	}
 
 	private ICoinsView GetCoins()
 	{
 		return _walletViewModel.Wallet.Coins;
-	}
-
-	private void RefreshCoinsList(ICoinsView items)
-	{
-		_coinsSourceList.Edit(x =>
-		{
-			x.Clear();
-			x.AddRange(items.Select(coin => new WalletCoinViewModel(coin)));
-		});
 	}
 }
