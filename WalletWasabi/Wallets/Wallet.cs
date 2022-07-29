@@ -90,10 +90,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight) => Task.FromResult(GetCoinjoinCoinCandidates(bestHeight));
 
-	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync()
-	{
-		return Task.FromResult(TransactionProcessor.TransactionStore.GetTransactions());
-	}
+	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(TransactionProcessor.TransactionStore.GetTransactions());
 
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates(int bestHeight) => Coins;
 
