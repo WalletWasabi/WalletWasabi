@@ -57,7 +57,7 @@ public class TorSettings
 	public string CookieAuthFilePath { get; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
-	public EndPoint SocksEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37150);
+	public EndPoint SocksEndpoint { get; } = new IPEndPoint(IPAddress.Loopback, 37150);
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37151);
@@ -88,7 +88,7 @@ public class TorSettings
 	public string GetCmdArguments()
 	{
 		ControlEndpoint.TryGetPort(out var port);
-		
+
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
 		{
