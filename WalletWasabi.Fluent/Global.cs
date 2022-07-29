@@ -145,8 +145,10 @@ public class Global
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer, UpdateManager), "Software Update Checker");
+				var updateChecker = HostedServices.Get<UpdateChecker>();
 
-				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
+				UpdateManager.Initialize(updateChecker);
+				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -331,6 +333,12 @@ public class Global
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
+				}
+
+				if (UpdateManager is { } updateManager)
+				{
+					UpdateManager.Dispose();
+					Logger.LogInfo($"{nameof(UpdateManager)} is stopped.", nameof(Global));
 				}
 
 				if (RpcServer is { } rpcServer)

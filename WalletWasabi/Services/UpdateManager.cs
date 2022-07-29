@@ -13,7 +13,7 @@ using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Services;
 
-public class UpdateManager
+public class UpdateManager : IDisposable
 {
 	private string InstallerName { get; set; } = "";
 	private const byte MaxTries = 3;
@@ -26,7 +26,7 @@ public class UpdateManager
 		DownloadNewVersion = downloadNewVersion;
 	}
 
-	public async void UpdateStatusChangedAsync(UpdateStatus updateStatus)
+	private async void UpdateChecker_UpdateStatusChangedAsync(object? sender, UpdateStatus updateStatus)
 	{
 		var tries = 0;
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
@@ -56,6 +56,36 @@ public class UpdateManager
 		}
 
 		UpdateAvailableToGet?.Invoke(this, updateStatus);
+	}
+
+	private void UpdateChecker_CleanupAfterUpdate(object? sender, EventArgs e)
+	{
+		try
+		{
+			var folder = new DirectoryInfo(InstallerDir);
+			if (folder.Exists)
+			{
+				Directory.Delete(InstallerDir, true);
+			}
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError("Failed to delete installer directory.", exc);
+		}
+	}
+
+	private bool CheckIfInstallerDownloaded(FileSystemInfo[] files, string version)
+	{
+		FileSystemInfo[] installers = files.Where(file => file.Name.Contains("Wasabi")).ToArray();
+		foreach (var file in installers)
+		{
+			if (file.Name.Contains(version))
+			{
+				InstallerName = file.Name;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private async Task<bool> GetInstallerAsync(Version targetVersion)
@@ -170,6 +200,8 @@ public class UpdateManager
 	///<summary> Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
 
+	private UpdateChecker? UpdateChecker { get; set; }
+
 	public void StartInstallingNewVersion()
 	{
 		try
@@ -215,26 +247,19 @@ public class UpdateManager
 		}
 	}
 
-	private bool CheckIfInstallerDownloaded(FileSystemInfo[] files, string version)
+	public void Initialize(UpdateChecker updateChecker)
 	{
-		FileSystemInfo[] installers = files.Where(file => file.Name.Contains("Wasabi")).ToArray();
-		foreach (var file in installers)
-		{
-			if (file.Name.Contains(version))
-			{
-				InstallerName = file.Name;
-				return true;
-			}
-		}
-		return false;
+		UpdateChecker = updateChecker;
+		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
+		updateChecker.CleanupAfterUpdate += UpdateChecker_CleanupAfterUpdate;
 	}
 
-	public void DeletePossibleLefotver()
+	public void Dispose()
 	{
-		var folder = new DirectoryInfo(InstallerDir);
-		if (folder.Exists)
+		if (UpdateChecker is { } updateChecker)
 		{
-			Directory.Delete(InstallerDir, true);
+			updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+			updateChecker.CleanupAfterUpdate -= UpdateChecker_CleanupAfterUpdate;
 		}
 	}
 }
