@@ -89,7 +89,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		AnySelected = _coinsSourceList.Connect()
+		AnySelected = _coinsSourceList
+			.Connect()
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(items => items.Any(t => t.IsSelected));
