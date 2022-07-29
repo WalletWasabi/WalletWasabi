@@ -34,18 +34,16 @@ public class KeyChain : BaseKeyChain
 
 	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
+		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
+		if (hdKey is null)
 		{
-			var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
-			if (hdKey is null)
-			{
-				throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
-			}
-			if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != scriptPubKey)
-			{
-				throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
-			}
-			var secret = hdKey.PrivateKey.GetBitcoinSecret(KeyManager.GetNetwork());
-			return secret;
+			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
 		}
+		if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != scriptPubKey)
+		{
+			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
+		}
+		var secret = hdKey.PrivateKey.GetBitcoinSecret(KeyManager.GetNetwork());
+		return secret;
 	}
 }
