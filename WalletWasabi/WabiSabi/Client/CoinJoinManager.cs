@@ -53,7 +53,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task StartAsync(IWallet wallet, bool stopWhenAllMixed, bool overridePlebStop, CancellationToken cancellationToken)
 	{
-		if (overridePlebStop && !wallet.CoinjoinEnabled)
+		if (overridePlebStop && wallet.IsUnderPlebStop)
 		{
 			// Turn off overriding if we went above the threshold meanwhile.
 			overridePlebStop = false;
@@ -163,7 +163,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (!walletToStart.CoinjoinEnabled && !startCommand.OverridePlebStop)
+			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
 				walletToStart.LogDebug("PlebStop preventing coinjoin.");
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);

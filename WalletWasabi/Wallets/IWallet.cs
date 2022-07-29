@@ -10,7 +10,7 @@ namespace WalletWasabi.Wallets;
 public interface IWallet
 {
 	string Identifier { get; }
-	bool CoinjoinEnabled { get; }
+	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
 	IKeyChain KeyChain { get; }
 	IDestinationProvider DestinationProvider { get; }

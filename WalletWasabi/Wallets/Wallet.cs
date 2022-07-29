@@ -89,6 +89,7 @@ public class Wallet : BackgroundService, IWallet
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), KeyManager.AnonScoreTarget) >= 1;
 
 	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight) => Task.FromResult(GetCoinjoinCoinCandidates(bestHeight));
+
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync()
 	{
 		return Task.FromResult(TransactionProcessor.TransactionStore.GetTransactions());
@@ -497,7 +498,6 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public string Identifier => WalletName;
-	public bool CoinjoinEnabled => !IsUnderPlebStop;
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
