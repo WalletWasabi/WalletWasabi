@@ -32,9 +32,9 @@ public class SettingsSource : ISearchItemSource
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.RunOnSystemStartup), "Run Wasabi when computer starts", "Settings", new List<string>() { "startup", "boot" }, "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.UseTor), "Network anonymization (Tor)", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.TerminateTorOnExit), "Terminate Tor when Wasabi shuts down", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StartLocalBitcoinCoreOnStartup), "Start local Bitcoin core on startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StopLocalBitcoinCoreOnShutdown), "Stop local Bitcoin core on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
-			new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.EnableGpu), "Enable GPU", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
+			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StartLocalBitcoinCoreOnStartup), "Run Bitcoin Knots on startup", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
+			new NonActionableSearchItem(new Setting<BitcoinTabSettingsViewModel, bool>(_settingsPage.BitcoinTabSettings, b => b.StopLocalBitcoinCoreOnShutdown), "Stop Bitcoin Knots on shutdown", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
+      new NonActionableSearchItem(new Setting<GeneralSettingsTabViewModel, bool>(_settingsPage.GeneralSettingsTab, b => b.EnableGpu), "Enable GPU", "Settings", new List<string>(), "nav_settings_regular") { IsDefault = false },
 		};
 	}
 }

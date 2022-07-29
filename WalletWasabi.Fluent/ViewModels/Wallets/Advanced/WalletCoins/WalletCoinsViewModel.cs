@@ -82,6 +82,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 		_coinsSourceList
 			.Connect()
+			.Sort(SortExpressionComparer<WalletCoinViewModel>.Descending(model => model.Amount))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_coins)
 			.DisposeMany()
@@ -136,8 +137,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.CoinJoinInProgress),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.CoinJoinInProgress),
+						CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x)),
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 
@@ -192,6 +193,26 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Select(_ => GetCoins())
 			.Subscribe(RefreshCoinsList)
 			.DisposeWith(disposables);
+	}
+
+	private static int GetOrderingPriority(WalletCoinViewModel x)
+	{
+		if (x.CoinJoinInProgress)
+		{
+			return 1;
+		}
+
+		if (x.IsBanned)
+		{
+			return 2;
+		}
+
+		if (!x.Confirmed)
+		{
+			return 3;
+		}
+
+		return 0;
 	}
 
 	private ICoinsView GetCoins()

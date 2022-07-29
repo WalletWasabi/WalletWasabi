@@ -67,18 +67,6 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 				.DisposeWith(disposables);
 		}
 
-		if (visualRoot is WindowBase window)
-		{
-			Observable
-				.FromEventPattern(window, nameof(WindowBase.Deactivated))
-				.Subscribe(_ =>
-				{
-					FocusManager.Instance?.Focus(null);
-					HideFlyout();
-				})
-				.DisposeWith(disposables);
-		}
-
 		if (SearchBox is { } && SearchPanel is { })
 		{
 			Observable
@@ -91,6 +79,12 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 				.Subscribe(_ => AssociatedObjectOnLostFocus())
 				.DisposeWith(disposables);
 		}
+	}
+
+	protected override void OnDetachedFromVisualTree()
+	{
+		HideFlyout();
+		FocusManager.Instance?.Focus(null);
 	}
 
 	private void ToggleFlyoutOpen(bool isOpen)

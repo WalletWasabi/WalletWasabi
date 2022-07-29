@@ -5,6 +5,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge;
 

@@ -118,6 +118,10 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "EnableGpu")]
 	public bool EnableGpu { get; internal set; } = true;
 
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
+	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
+
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 	public Uri GetCurrentBackendUri()

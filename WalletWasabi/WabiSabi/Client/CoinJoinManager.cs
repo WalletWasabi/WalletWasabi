@@ -26,18 +26,20 @@ public class CoinJoinManager : BackgroundService
 	private record StartCoinJoinCommand(Wallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(Wallet Wallet) : CoinJoinCommand(Wallet);
 
-	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
+	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration, string coordinatorIdentifier)
 	{
 		WalletManager = walletManager;
 		HttpClientFactory = backendHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		ServiceConfiguration = serviceConfiguration;
+		CoordinatorIdentifier = coordinatorIdentifier;
 	}
 
 	public WalletManager WalletManager { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
+	public string CoordinatorIdentifier { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
 
@@ -129,7 +131,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<Wallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoordinatorIdentifier, stoppingToken);
 
 		void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -400,6 +402,14 @@ public class CoinJoinManager : BackgroundService
 			{
 				wallet.LogInfo($"{nameof(CoinJoinClient)} was cancelled.");
 			}
+		}
+		catch (UnexpectedRoundPhaseException e)
+		{
+			// `UnexpectedRoundPhaseException` indicates an error in the protocol however,
+			// temporarily we are shortening the circuit by aborting the rounds if
+			// there are Alices that didn't confirm.
+			// The fix is already done but the clients have to upgrade.
+			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 		catch (Exception e)
 		{

@@ -23,7 +23,8 @@ public record RoundParameters
 		TimeSpan connectionConfirmationTimeout,
 		TimeSpan outputRegistrationTimeout,
 		TimeSpan transactionSigningTimeout,
-		TimeSpan blameInputRegistrationTimeout)
+		TimeSpan blameInputRegistrationTimeout,
+		string coordinationIdentifier)
 	{
 		Network = network;
 		MiningFeeRate = miningFeeRate;
@@ -42,6 +43,7 @@ public record RoundParameters
 		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
 		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
 		MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
+		CoordinationIdentifier = coordinationIdentifier;
 	}
 
 	public Network Network { get; init; }
@@ -68,6 +70,8 @@ public record RoundParameters
 	public int MaxVsizeCredentialValue { get; init; }
 	public int MaxVsizeAllocationPerAlice { get; init; }
 
+	public string CoordinationIdentifier { get; init; }
+
 	private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 
 	// Limitation of 100kb maximum transaction size had been changed as a function of transaction weight
@@ -75,9 +79,9 @@ public record RoundParameters
 	// Anyway, it really doesn't matter for us as it is a reasonable limit so, it doesn't affect us
 	// negatively in any way.
 	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
-	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee 
-	                                              ?? new FeeRate(Money.Satoshis(1000));
-		
+	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee
+												  ?? new FeeRate(Money.Satoshis(1000));
+
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		Network network,
@@ -98,7 +102,8 @@ public record RoundParameters
 			wabiSabiConfig.ConnectionConfirmationTimeout,
 			wabiSabiConfig.OutputRegistrationTimeout,
 			wabiSabiConfig.TransactionSigningTimeout,
-			wabiSabiConfig.BlameInputRegistrationTimeout);
+			wabiSabiConfig.BlameInputRegistrationTimeout,
+			wabiSabiConfig.CoordinatorIdentifier);
 	}
 
 	public Transaction CreateTransaction()

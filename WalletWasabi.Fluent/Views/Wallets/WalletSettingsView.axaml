@@ -28,8 +28,8 @@
         <StackPanel Spacing="10"
                     ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this."
                     IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Auto-start coinjoin threshold (BTC)" />
-          <TextBox Text="{Binding PlebStopThreshold}" />
+          <TextBlock Text="Auto-start coinjoin threshold" />
+          <c:CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
         </StackPanel>
 
         <DockPanel>

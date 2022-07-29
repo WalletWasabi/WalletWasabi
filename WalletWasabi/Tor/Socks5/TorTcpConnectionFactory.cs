@@ -22,6 +22,9 @@ namespace WalletWasabi.Tor.Socks5;
 /// </summary>
 public class TorTcpConnectionFactory
 {
+	private static readonly VersionMethodRequest VersionMethodNoAuthRequired = new(methods: new MethodsField(MethodField.NoAuthenticationRequired));
+	private static readonly VersionMethodRequest VersionMethodUsernamePassword = new(methods: new MethodsField(MethodField.UsernamePassword));
+
 	/// <param name="endPoint">Tor SOCKS5 endpoint.</param>
 	public TorTcpConnectionFactory(EndPoint endPoint)
 	{
@@ -165,19 +168,13 @@ public class TorTcpConnectionFactory
 	/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
 	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken = default)
 	{
-		// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
-		// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
-		// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
-		// authentication method[02] is supported too, and used as a method to
-		// implement stream isolation.As an extension to support some broken clients,
-		// we allow clients to pass "USERNAME/PASSWORD" authentication message to us
-		// even if no authentication was selected.Furthermore, we allow
-		// username / password fields of this message to be empty. This technically
-		// violates RFC1929[4], but ensures interoperability with somewhat broken
-		// SOCKS5 client implementations.
-		MethodsField methods = new(MethodField.UsernamePassword);
+		VersionMethodRequest versionMethodRequest = circuit switch
+		{
+			DefaultCircuit => VersionMethodNoAuthRequired,
+			_ => VersionMethodUsernamePassword
+		};
 
-		byte[] receiveBuffer = await SendRequestAsync(tcpClient, new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
+		byte[] receiveBuffer = await SendRequestAsync(tcpClient, versionMethodRequest, cancellationToken).ConfigureAwait(false);
 
 		MethodSelectionResponse methodSelection = new(receiveBuffer);
 
@@ -285,7 +282,7 @@ public class TorTcpConnectionFactory
 		}
 		catch (TorException e)
 		{
-			Logger.LogError($"Exception occurred when connecting to '{host}:{port}'.", e);
+			Logger.LogTrace($"Exception occurred when connecting to '{host}:{port}'.", e);
 			throw;
 		}
 		finally

@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -24,9 +25,6 @@ public partial class MainViewModel : ViewModelBase
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
-	[AutoNotify] private bool _isMainContentEnabled;
-	[AutoNotify] private bool _isDialogScreenEnabled;
-	[AutoNotify] private bool _isFullScreenEnabled;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
 	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
@@ -42,22 +40,14 @@ public partial class MainViewModel : ViewModelBase
 		ApplyUiConfigWindowSate();
 
 		_dialogScreen = new DialogScreenViewModel();
-
 		_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
-
 		_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
-
 		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
-
 		NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
-		_isMainContentEnabled = true;
-		_isDialogScreenEnabled = true;
-		_isFullScreenEnabled = true;
-
-		_statusIcon = new StatusIconViewModel();
-
 		UiServices.Initialize();
+
+		_statusIcon = new StatusIconViewModel(new TorStatusCheckerWrapper(Services.TorStatusChecker));
 
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
@@ -74,57 +64,23 @@ public partial class MainViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
 
-		this.WhenAnyValue(
-				x => x.DialogScreen!.IsDialogOpen,
-				x => x.FullScreen!.IsDialogOpen,
-				x => x.CompactDialogScreen!.IsDialogOpen)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(tup =>
-			{
-				var (dialogScreenIsOpen, fullScreenIsOpen, compactDialogScreenIsOpen) = tup;
-
-				IsMainContentEnabled = !(dialogScreenIsOpen || fullScreenIsOpen || compactDialogScreenIsOpen);
-			});
+		IsMainContentEnabled = this.WhenAnyValue(
+				x => x.DialogScreen.IsDialogOpen,
+				x => x.FullScreen.IsDialogOpen,
+				x => x.CompactDialogScreen.IsDialogOpen,
+				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 		this.WhenAnyValue(
 				x => x.DialogScreen.CurrentPage,
 				x => x.CompactDialogScreen.CurrentPage,
 				x => x.FullScreen.CurrentPage,
-				x => x.MainScreen.CurrentPage)
+				x => x.MainScreen.CurrentPage,
+				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
+			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(tup =>
-			{
-				var (dialog, compactDialog, fullscreenDialog, mainsScreen) = tup;
-
-				/*
-				 * Order is important.
-				 * Always the topmost content will be the active one.
-				 */
-
-				if (compactDialog is { })
-				{
-					compactDialog.SetActive();
-					return;
-				}
-
-				if (dialog is { })
-				{
-					dialog.SetActive();
-					return;
-				}
-
-				if (fullscreenDialog is { })
-				{
-					fullscreenDialog.SetActive();
-					return;
-				}
-
-				if (mainsScreen is { })
-				{
-					mainsScreen.SetActive();
-					return;
-				}
-			});
+			.Do(page => page.SetActive())
+			.Subscribe();
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
@@ -151,7 +107,13 @@ public partial class MainViewModel : ViewModelBase
 
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
+
+		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
+
+	public IObservable<bool> IsMainContentEnabled { get; }
+
+	public string NetworkBadgeName { get; }
 
 	public IObservable<WalletViewModel> CurrentWallet { get; }
 
@@ -177,8 +139,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public void InvalidateIsCoinJoinActive()
 	{
-		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>()
-			.Any(x => x.IsCoinJoining);
+		IsCoinJoinActive = UiServices.WalletManager.Wallets.OfType<WalletViewModel>().Any(x => x.IsCoinJoining);
 	}
 
 	public void Initialize()
@@ -197,36 +158,20 @@ public partial class MainViewModel : ViewModelBase
 		AddWalletPageViewModel.Register(_addWalletPage);
 		SettingsPageViewModel.Register(_settingsPage);
 
-		GeneralSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 0;
-				return _settingsPage;
-			});
+		GeneralSettingsTabViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 0;
+			return _settingsPage;
+		});
 
-		BitcoinTabSettingsViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
-				return _settingsPage;
-			});
+		BitcoinTabSettingsViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 1;
+			return _settingsPage;
+		});
 
 		AboutViewModel.RegisterLazy(() => new AboutViewModel());
-
-		BroadcastTransactionViewModel.RegisterAsyncLazy(
-			async () =>
-			{
-				var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
-
-				if (dialogResult.Result is { })
-				{
-					return new BroadcastTransactionViewModel(Services.Config.Network,
-						dialogResult.Result);
-				}
-
-				return null;
-			});
-
+		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
 		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());

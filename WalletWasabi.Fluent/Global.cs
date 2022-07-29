@@ -29,6 +29,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent;
 
@@ -52,6 +53,7 @@ public class Global
 	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
+	public TorStatusChecker TorStatusChecker { get; set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -101,6 +103,7 @@ public class Global
 			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 
 			RoundStateUpdaterCircuit = new PersonCircuit();
 
@@ -235,7 +238,8 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromSeconds(3), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
 
@@ -293,7 +297,7 @@ public class Global
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Config.ServiceConfiguration), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Config.ServiceConfiguration, Config.CoordinatorIdentifier), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
@@ -378,6 +382,12 @@ public class Global
 						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
 						Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 					}
+				}
+
+				if (TorStatusChecker is { } torStatusChecker)
+				{
+					torStatusChecker.Dispose();
+					Logger.LogInfo($"{nameof(TorStatusChecker)} is stopped.");
 				}
 
 				if (TorManager is { } torManager)

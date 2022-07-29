@@ -70,6 +70,14 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
+	[DefaultValueTimeSpan("0d 0h 3m 0s")]
+	[JsonProperty(PropertyName = "FailFastOutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan FailFastOutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+
+	[DefaultValueTimeSpan("0d 0h 1m 0s")]
+	[JsonProperty(PropertyName = "FailFastTransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan FailFastTransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
 	[DefaultValueTimeSpan("0d 0h 5m 0s")]
 	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
@@ -99,6 +107,22 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
+
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int RoundParallelization { get; set; } = 1;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancing", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool WW200CompatibleLoadBalancing { get; set; } = false;
+
+	[DefaultValue(0.75)]
+	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancingInputSplit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double WW200CompatibleLoadBalancingInputSplit { get; set; } = 0.75;
+
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
+	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
