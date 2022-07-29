@@ -24,6 +24,7 @@ public class CoinJoinManager : BackgroundService
 	private record CoinJoinCommand(IWallet Wallet);
 	private record StartCoinJoinCommand(IWallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(IWallet Wallet) : CoinJoinCommand(Wallet);
+
 	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
@@ -436,7 +437,7 @@ public class CoinJoinManager : BackgroundService
 		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
 		foreach (var k in wallets)
 		{
-			k.KeyChain.NotifyScriptState(hashSet, KeyState.Used);
+			k.KeyChain.TrySetScriptStates(KeyState.Used, hashSet);
 		}
 	}
 

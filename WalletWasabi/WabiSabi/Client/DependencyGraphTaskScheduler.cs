@@ -178,7 +178,7 @@ public class DependencyGraphTaskScheduler
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
-					keyChain.NotifyScriptState(new []{txOut.ScriptPubKey}, KeyState.Used);
+					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
 					
 				}
 				catch (Exception ex)

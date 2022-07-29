@@ -10,5 +10,6 @@ public interface IKeyChain
 	OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData);
 
 	Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof);
-	void NotifyScriptState(IEnumerable<Script> scripts, KeyState state);
+
+	void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
 }

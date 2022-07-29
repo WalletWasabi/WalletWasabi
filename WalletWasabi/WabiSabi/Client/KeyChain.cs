@@ -24,7 +24,7 @@ public class KeyChain : BaseKeyChain
 		return KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
 	}
 
-	public override void NotifyScriptState(IEnumerable<Script> scripts, KeyState state)
+	public override void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
 	{
 		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{

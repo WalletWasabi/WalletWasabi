@@ -135,7 +135,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return transaction;
 	}
 
-	public void NotifyScriptState(IEnumerable<Script> scripts, KeyState state)
+	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
 	{
 		// Test wallet doesn't care
 	}

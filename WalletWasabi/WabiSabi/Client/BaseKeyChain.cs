@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
@@ -56,7 +56,7 @@ public abstract class BaseKeyChain : IKeyChain
 		return transaction;
 	}
 
-	public abstract void NotifyScriptState(IEnumerable<Script> scripts, KeyState state);
+	public abstract void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
 
 	protected abstract BitcoinSecret GetBitcoinSecret(Script scriptPubKey);
 }
