@@ -7,19 +7,27 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRingView">
   <UserControl.Styles>
     <Style Selector="Path:pointerover">
-      <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-      <Setter Property="RenderTransform">
-        <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
-      </Setter>
-      <Setter Property="Stroke" Value="Black" />
       <Setter Property="StrokeThickness" Value="1" />
+      <Setter Property="Stroke" Value="{DynamicResource SystemAccentColor}"/>
+    </Style>
+
+    <Style Selector="Path.private">
+      <Setter Property="Fill" Value="{DynamicResource PrivacyLevelStrongBrush}"/>
+    </Style>
+
+    <Style Selector="Path.semiPrivate">
+      <Setter Property="Fill" Value="{DynamicResource PrivacyLevelMediumBrush}"/>
+    </Style>
+
+    <Style Selector="Path.nonPrivate">
+      <Setter Property="Fill" Value="{DynamicResource PrivacyLevelNoneBrush}"/>
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                 EnableNext="True" NextContent="Done"
                 EnableCancel="False"
                 EnableBack="True">
-    <ItemsControl Items="{Binding Items}" ClipToBounds="False" Margin="300 300 0 0">
+    <ItemsControl Items="{Binding Items}" ClipToBounds="False" Margin="250 250 0 0" HorizontalAlignment="Center">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <Panel />
@@ -27,8 +35,10 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <Panel>
-            <Path Stretch="None" StrokeThickness="1" Fill="Red" Height="200" Width="200">
+            <Path Stretch="None" Height="{Binding OuterRadius}" Width="{Binding OuterRadius}"
+                  Classes.private="{Binding IsPrivate}"
+                  Classes.semiPrivate="{Binding IsSemiPrivate}"
+                  Classes.nonPrivate="{Binding IsNonPrivate}">
               <Path.Data>
                 <PathGeometry>
                   <PathFigure StartPoint="{Binding Origin1}" IsClosed="True">
@@ -39,7 +49,6 @@
                 </PathGeometry>
               </Path.Data>
             </Path>
-          </Panel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
