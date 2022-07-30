@@ -20,25 +20,16 @@ using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 [NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
-public partial class WalletCoinsViewModel : RoutableViewModel
+public partial class WalletCoinsViewModel : RoutableViewModel, IDisposable
 {
+	private readonly ObservableAsPropertyHelper<bool> _anySelected;
+	private readonly CompositeDisposable _disposables = new();
 	private readonly WalletViewModel _walletViewModel;
-	[AutoNotify] private ObservableAsPropertyHelper<bool>? _anySelected;
-	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
 		_walletViewModel = walletViewModel;
-		SetupCancel(false, true, true);
-		NextCommand = CancelCommand;
 
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
-	}
-
-	public bool IsAnySelected => _anySelected?.Value ?? false;
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
 		var initial = Observable.Return(GetCoins());
 
 		var polling = Observable
@@ -61,26 +52,36 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Select(items => items.Any(t => t.IsSelected))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, model => model.IsAnySelected)
-			.DisposeWith(disposables);
-		this.RaisePropertyChanged(nameof(IsAnySelected));
+			.DisposeWith(_disposables);
 
 		observable
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out var coins)
 			.Subscribe()
-			.DisposeWith(disposables);
+			.DisposeWith(_disposables);
 
 		Source = CreateGridSource(coins)
-			.DisposeWith(disposables);
+			.DisposeWith(_disposables);
 
 		observable.Connect()
-			.DisposeWith(disposables);
+			.DisposeWith(_disposables);
 
 		source.Connect()
-			.DisposeWith(disposables);
+			.DisposeWith(_disposables);
 
-		base.OnNavigatedTo(isInHistory, disposables);
+		SetupCancel(false, true, true);
+		NextCommand = CancelCommand;
+		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+	}
+
+	public FlatTreeDataGridSource<WalletCoinViewModel> Source { get; }
+
+	public bool IsAnySelected => _anySelected.Value;
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 
 	private static int GetOrderingPriority(WalletCoinViewModel x)
@@ -106,7 +107,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private async Task OnSendCoins()
 	{
 		var wallet = _walletViewModel.Wallet;
-		var selectedSmartCoins = _source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
+		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
 		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
@@ -129,7 +130,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		info.UserLabels = label;
 		info.IsSelectedCoinModificationEnabled = false;
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, isFixedAmount: true));
+		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)

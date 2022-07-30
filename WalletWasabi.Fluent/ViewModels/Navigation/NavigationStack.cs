@@ -25,6 +25,11 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 	private void NavigationOperation(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 	{
+		if (oldPage is IDisposable d)
+		{
+			d.Dispose();
+		}
+
 		if (_operationsEnabled)
 		{
 			oldPage?.OnNavigatedFrom(oldInStack);
