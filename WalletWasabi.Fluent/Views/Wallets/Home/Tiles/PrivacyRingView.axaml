@@ -1,8 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRingView">
   <UserControl.Styles>
@@ -22,35 +24,67 @@
     <Style Selector="Path.nonPrivate">
       <Setter Property="Fill" Value="{DynamicResource PrivacyLevelNoneBrush}"/>
     </Style>
+
+    <Style Selector="ListBoxItem">
+      <Setter Property="IsSelected" Value="{Binding IsPointerOver, Mode=TwoWay}"/>
+      <Setter Property="ClipToBounds" Value="False"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="Template">
+        <ControlTemplate TargetType="ListBoxItem">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"/>
+        </ControlTemplate>
+      </Setter>
+
+      <Setter Property="(i:Interaction.Behaviors)">
+        <i:BehaviorCollectionTemplate>
+          <i:BehaviorCollection>
+            <behaviors:ListBoxItemPointerOverSelectedBehavior/>
+          </i:BehaviorCollection>
+        </i:BehaviorCollectionTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="ListBoxItem:selected">
+      <Setter Property="Background" Value="Red"/>
+    </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                 EnableNext="True" NextContent="Done"
                 EnableCancel="False"
                 EnableBack="True">
-    <ItemsControl Items="{Binding Items}" ClipToBounds="False" Margin="250 250 0 0" HorizontalAlignment="Center">
-      <ItemsControl.ItemsPanel>
+    <ListBox Items="{Binding Items}" ClipToBounds="False" Margin="250 250 0 0" HorizontalAlignment="Center">
+      <ListBox.Template>
+        <ControlTemplate TargetType="ListBox">
+          <ItemsPresenter Name="PART_ItemsPresenter"
+                     Items="{TemplateBinding Items}"
+                     ItemsPanel="{TemplateBinding ItemsPanel}"
+                     ItemTemplate="{TemplateBinding ItemTemplate}"/>
+        </ControlTemplate>
+      </ListBox.Template>
+      <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
           <Panel />
         </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
         <DataTemplate>
-            <Path Stretch="None" Height="{Binding OuterRadius}" Width="{Binding OuterRadius}"
-                  Classes.private="{Binding IsPrivate}"
-                  Classes.semiPrivate="{Binding IsSemiPrivate}"
-                  Classes.nonPrivate="{Binding IsNonPrivate}">
-              <Path.Data>
-                <PathGeometry>
-                  <PathFigure StartPoint="{Binding Origin1}" IsClosed="True">
-                    <ArcSegment Size="{Binding Arc1Size}" Point="{Binding Arc1}" />
-                    <LineSegment Point="{Binding Origin2}" />
-                    <ArcSegment Size="{Binding Arc2Size}" Point="{Binding Arc2}" SweepDirection="CounterClockwise" />
-                  </PathFigure>
-                </PathGeometry>
-              </Path.Data>
-            </Path>
+          <Path Stretch="None" Height="{Binding OuterRadius}" Width="{Binding OuterRadius}"
+                Classes.private="{Binding IsPrivate}"
+                Classes.semiPrivate="{Binding IsSemiPrivate}"
+                Classes.nonPrivate="{Binding IsNonPrivate}">
+            <Path.Data>
+              <PathGeometry>
+                <PathFigure StartPoint="{Binding Origin1}" IsClosed="True">
+                  <ArcSegment Size="{Binding Arc1Size}" Point="{Binding Arc1}" />
+                  <LineSegment Point="{Binding Origin2}" />
+                  <ArcSegment Size="{Binding Arc2Size}" Point="{Binding Arc2}" SweepDirection="CounterClockwise" />
+                </PathFigure>
+              </PathGeometry>
+            </Path.Data>
+          </Path>
         </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
+      </ListBox.ItemTemplate>
+    </ListBox>
   </c:ContentArea>
 </UserControl>
