@@ -106,7 +106,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private async Task OnSendCoins()
 	{
 		var wallet = _walletViewModel.Wallet;
-		var selectedSmartCoins = _source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableList();
+		var selectedSmartCoins = _source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
 		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
@@ -129,7 +129,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		info.UserLabels = label;
 		info.IsSelectedCoinModificationEnabled = false;
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
+		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, isFixedAmount: true));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
