@@ -22,41 +22,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 [NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
+	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private ObservableAsPropertyHelper<bool>? _anySelected;
 	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source;
-
-	private readonly WalletViewModel _walletViewModel;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
 		_walletViewModel = walletViewModel;
 		SetupCancel(false, true, true);
 		NextCommand = CancelCommand;
-		
+
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
 	}
 
 	public bool IsAnySelected => _anySelected?.Value ?? false;
-
-	private static int GetOrderingPriority(WalletCoinViewModel x)
-	{
-		if (x.CoinJoinInProgress)
-		{
-			return 1;
-		}
-
-		if (x.IsBanned)
-		{
-			return 2;
-		}
-
-		if (!x.Confirmed)
-		{
-			return 3;
-		}
-
-		return 0;
-	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -102,6 +81,26 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private static int GetOrderingPriority(WalletCoinViewModel x)
+	{
+		if (x.CoinJoinInProgress)
+		{
+			return 1;
+		}
+
+		if (x.IsBanned)
+		{
+			return 2;
+		}
+
+		if (!x.Confirmed)
+		{
+			return 3;
+		}
+
+		return 0;
 	}
 
 	private async Task OnSendCoins()
