@@ -81,6 +81,10 @@ public class TorSettings
 		return platform == OSPlatform.OSX ? $"{TorBinaryFileName}.real" : TorBinaryFileName;
 	}
 
+	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>
+	/// <seealso href="https://github.com/torproject/tor/blob/22cb4c23d0d23dfda2c91817bac74a01831f94af/doc/man/tor.1.txt#L1298-L1305">
+	/// Explains <c>MaxCircuitDirtiness</c> parameter which is affected by the <c>KeepAliveIsolateSOCKSAuth</c> flag.
+	/// </seealso>
 	public string GetCmdArguments()
 	{
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
