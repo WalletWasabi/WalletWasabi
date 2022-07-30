@@ -22,7 +22,7 @@ public class TorSettingsTests
 		string expected = string.Join(
 			" ",
 			$"--LogTimeGranularity 1",
-			$"--SOCKSPort \"127.0.0.1:37150 KeepAliveIsolateSOCKSAuth ExtendedErrors\"",
+			$"--SOCKSPort \"127.0.0.1:37150 ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--CookieAuthentication 1",
 			$"--ControlPort 37151",
 			$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
