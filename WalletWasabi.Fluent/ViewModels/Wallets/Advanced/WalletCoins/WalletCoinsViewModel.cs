@@ -30,23 +30,17 @@ public partial class WalletCoinsViewModel : RoutableViewModel, IDisposable
 	{
 		_walletViewModel = walletViewModel;
 
-		var initial = Observable.Return(GetCoins());
+		var coins = CreateCoinsObservable(balanceChanged)
+			.Publish();
 
-		var polling = Observable
-			.Timer(TimeSpan.FromSeconds(2))
-			.Repeat()
-			.Select(_ => GetCoins());
-
-		var source = initial.Concat(polling).Publish();
-
-		var observable = source
+		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
 			.Publish();
 
-		_anySelected = observable
+		_anySelected = coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(items => items.Any(t => t.IsSelected))
@@ -54,25 +48,38 @@ public partial class WalletCoinsViewModel : RoutableViewModel, IDisposable
 			.ToProperty(this, model => model.IsAnySelected)
 			.DisposeWith(_disposables);
 
-		observable
+		coinChanges
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out var coins)
+			.Bind(out var coinsCollection)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		Source = CreateGridSource(coins)
+		Source = CreateGridSource(coinsCollection)
 			.DisposeWith(_disposables);
 
-		observable.Connect()
+		coinChanges.Connect()
 			.DisposeWith(_disposables);
 
-		source.Connect()
+		coins.Connect()
 			.DisposeWith(_disposables);
 
 		SetupCancel(false, true, true);
 		NextCommand = CancelCommand;
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+	}
+
+	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
+	{
+		var initial = Observable.Return(GetCoins());
+		var coinJoinChanged = _walletViewModel.WhenAnyValue(model => model.IsCoinJoining);
+		var coinsChanged = balanceChanged.ToSignal().Merge(coinJoinChanged.ToSignal());
+
+		var coins = coinsChanged
+			.Select(_ => GetCoins());
+
+		var concat = initial.Concat(coins);
+		return concat;
 	}
 
 	public FlatTreeDataGridSource<WalletCoinViewModel> Source { get; }
@@ -133,7 +140,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel, IDisposable
 		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
 	}
 
-	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
+	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coinViewModels)
 	{
 		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Selection		SelectionColumnView		-			Auto		-				-			false
@@ -141,7 +148,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel, IDisposable
 		// Amount			AmountColumnView		Amount		Auto		-				-			true
 		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
 		// Labels			LabelsColumnView		Labels		*			-				-			true
-		var source = new FlatTreeDataGridSource<WalletCoinViewModel>(coins)
+		var source = new FlatTreeDataGridSource<WalletCoinViewModel>(coinViewModels)
 		{
 			Columns =
 			{
