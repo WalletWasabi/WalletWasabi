@@ -88,24 +88,25 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
-			"/Satoshi:0.22.0/",
-			"/Satoshi:0.21.1/",
-			"/Satoshi:0.21.0/",
-			"/Satoshi:0.20.1/",
-			"/Satoshi:0.20.0/",
-			"/Satoshi:0.19.1/",
-			"/Satoshi:0.19.0.1/",
-			"/Satoshi:0.19.0/",
-			"/Satoshi:0.18.1/",
-			"/Satoshi:0.18.0/",
-			"/Satoshi:0.17.1/",
-			"/Satoshi:0.17.0.1/",
-			"/Satoshi:0.17.0/",
-			"/Satoshi:0.16.3/",
-			"/Satoshi:0.16.2/",
-			"/Satoshi:0.16.1/",
-			"/Satoshi:0.16.0/",
-		};
+		"/Satoshi:0.23.0/",
+		"/Satoshi:0.22.0/",
+		"/Satoshi:0.21.1/",
+		"/Satoshi:0.21.0/",
+		"/Satoshi:0.20.1/",
+		"/Satoshi:0.20.0/",
+		"/Satoshi:0.19.1/",
+		"/Satoshi:0.19.0.1/",
+		"/Satoshi:0.19.0/",
+		"/Satoshi:0.18.1/",
+		"/Satoshi:0.18.0/",
+		"/Satoshi:0.17.1/",
+		"/Satoshi:0.17.0.1/",
+		"/Satoshi:0.17.0/",
+		"/Satoshi:0.16.3/",
+		"/Satoshi:0.16.2/",
+		"/Satoshi:0.16.1/",
+		"/Satoshi:0.16.0/",
+	};
 
 	public static readonly int[] ConfirmationTargets = new[]
 	{
