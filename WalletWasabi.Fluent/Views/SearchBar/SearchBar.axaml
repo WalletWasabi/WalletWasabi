@@ -7,8 +7,6 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:avalonia="clr-namespace:Zafiro.Avalonia;assembly=Zafiro.Avalonia"
-             xmlns:newFolder="clr-namespace:WalletWasabi.Fluent.Behaviors.NewFolder"
              x:CompileBindings="True"
              x:DataType="searchBar:SearchBarViewModel"
              x:Class="WalletWasabi.Fluent.Views.SearchBar.SearchBar">
