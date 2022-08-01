@@ -272,9 +272,6 @@ public class SmartTransactionTests
 		var network = km.GetNetwork();
 		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
 
-		Script samePubScript1 = hdPubKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network).ScriptPubKey;
-		Script samePubScript2 = hdPubKey.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ScriptPubKey;
-
 		Transaction t = Transaction.Create(network);
 
 		SmartTransaction st1 = new(t, 0);
