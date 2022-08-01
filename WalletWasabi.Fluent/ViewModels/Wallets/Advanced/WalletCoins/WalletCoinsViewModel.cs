@@ -28,7 +28,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
 	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
 	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel>? _source;
-	[AutoNotify] private IObservable<bool> _anySelected;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -39,7 +38,15 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		_coins = new ObservableCollectionExtended<WalletCoinViewModel>();
 
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+
+		AnySelected = _coinsSourceList
+			.Connect()
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(items => items.Any(t => t.IsSelected));
 	}
+
+	public IObservable<bool> AnySelected { get; }
 
 	private async Task OnSendCoins()
 	{
@@ -88,12 +95,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.DisposeMany()
 			.Subscribe()
 			.DisposeWith(disposables);
-
-		AnySelected = _coinsSourceList
-			.Connect()
-			.AutoRefresh(x => x.IsSelected)
-			.ToCollection()
-			.Select(items => items.Any(t => t.IsSelected));
 
 		Observable.Timer(TimeSpan.FromSeconds(30))
 			.Subscribe(_ =>
