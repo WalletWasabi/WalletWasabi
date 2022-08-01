@@ -17,8 +17,7 @@ namespace WalletWasabi.Fluent.Behaviors;
 public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 {
 	public static readonly StyledProperty<bool> IsFlyoutOpenProperty =
-		AvaloniaProperty.Register<ShowAttachedFlyoutWhenFocusedBehavior, bool>(
-			nameof(IsFlyoutOpen));
+		AvaloniaProperty.Register<ShowAttachedFlyoutWhenFocusedBehavior, bool>(nameof(IsFlyoutOpen));
 
 	private readonly CompositeDisposable _disposables = new();
 
@@ -55,30 +54,45 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 
 		DescendantPressed(visualRoot)
 			.Select(descendant => AssociatedObject.IsVisualAncestorOf(descendant))
-			.Do(isAncestor =>
-			{
-				_flyoutController.IsOpen = isAncestor;
-				IsFlyoutOpen = isAncestor;
-			})
+			.Do(
+				isAncestor =>
+				{
+					_flyoutController.IsOpen = isAncestor;
+					IsFlyoutOpen = isAncestor;
+				})
 			.Subscribe()
 			.DisposeWith(_disposables);
 
 		Observable.FromEventPattern(AssociatedObject, nameof(InputElement.GotFocus))
-			.Do(_ =>
-			{
-				_flyoutController.IsOpen = true;
-				IsFlyoutOpen = true;
-			})
+			.Do(
+				_ =>
+				{
+					_flyoutController.IsOpen = true;
+					IsFlyoutOpen = true;
+				})
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
+			.Do(
+				_ =>
+				{
+					if (AssociatedObject.IsFocused)
+					{
+						_flyoutController.IsOpen = true;
+					}
+				})
 			.Subscribe()
 			.DisposeWith(_disposables);
 
 		Observable.FromEventPattern(AssociatedObject, nameof(InputElement.LostFocus))
 			.Where(_ => !IsFocusInside(flyoutBase))
-			.Do(_ =>
-			{
-				_flyoutController.IsOpen = false;
-				IsFlyoutOpen = false;
-			})
+			.Do(
+				_ =>
+				{
+					_flyoutController.IsOpen = false;
+					IsFlyoutOpen = false;
+				})
 			.Subscribe()
 			.DisposeWith(_disposables);
 
