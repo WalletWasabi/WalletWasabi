@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -78,13 +79,24 @@ public class TorHttpClient : IHttpClient
 	{
 		if (Mode is Mode.NewCircuitPerRequest)
 		{
-			using PersonCircuit circuit = new();
-			return await TorHttpPool.SendAsync(request, circuit, token).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, token).ConfigureAwait(false);
 		}
 		else
 		{
 			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, token).ConfigureAwait(false);
 		}
+	}
+
+	/// <inheritdoc cref="TorHttpPool.PrebuildCircuitsUpfront(Uri, int, TimeSpan)"/>
+	/// <exception cref="InvalidOperationException">When no <see cref="BaseUriGetter"/> is set.</exception>
+	public void PrebuildCircuitsUpfront(int count, TimeSpan deadline)
+	{
+		if (BaseUriGetter is null)
+		{
+			throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
+		}
+
+		TorHttpPool.PrebuildCircuitsUpfront(BaseUriGetter(), count, deadline);
 	}
 
 	public Task<bool> IsTorRunningAsync()

@@ -459,15 +459,22 @@ public class CoinJoinClient
 
 	private BobClient CreateBobClient(RoundState roundState)
 	{
-		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
+		// TODO TODO TODO.
+		Tor.Http.IHttpClient httpClient = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
 
-		return new BobClient(
-			roundState.Id,
-			new(
+		if (httpClient is Tor.Http.TorHttpClient torHttpClient)
+		{
+			torHttpClient.PrebuildCircuitsUpfront(count: 5, deadline: TimeSpan.FromMinutes(1));
+		}
+
+		WabiSabiHttpApiClient arenaRequestHandler = new(httpClient);
+		ArenaClient arenaClient = new(
 				roundState.CreateAmountCredentialClient(SecureRandom),
 				roundState.CreateVsizeCredentialClient(SecureRandom),
 				CoordinatorIdentifier,
-				arenaRequestHandler));
+				arenaRequestHandler);
+
+		return new BobClient(roundState.Id, arenaClient);
 	}
 
 	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
@@ -978,6 +985,7 @@ public class CoinJoinClient
 		{
 			// Re-issuances.
 			var bobClient = CreateBobClient(roundState);
+
 			roundState.LogInfo("Starting reissuances.");
 			await scheduler.StartReissuancesAsync(registeredAliceClients, bobClient, combinedToken).ConfigureAwait(false);
 

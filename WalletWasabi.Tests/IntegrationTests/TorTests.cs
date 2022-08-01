@@ -31,7 +31,7 @@ public class TorTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		TorHttpPool.Dispose();
+		await TorHttpPool.DisposeAsync();
 		await TorManager.DisposeAsync();
 	}
 

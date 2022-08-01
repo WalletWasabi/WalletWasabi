@@ -430,20 +430,18 @@ public static class HttpMessageHelper
 		}
 	}
 
-	private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long length, CancellationToken ctsToken)
+	private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long contentLength, CancellationToken ctsToken)
 	{
-		try
+		if (contentLength < int.MinValue || contentLength > int.MaxValue)
 		{
-			Convert.ToInt32(length);
-		}
-		catch (OverflowException ex)
-		{
-			throw new NotSupportedException($"Content-Length too long: {length}.", ex);
+			throw new NotSupportedException($"Content-Length too long: {contentLength}.");
 		}
 
-		var allData = new byte[(int)length];
-		int num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
-		if (num < (int)length)
+		int length = (int)contentLength;
+		byte[] allData = new byte[length];
+
+		int num = await stream.ReadBlockAsync(allData, length, ctsToken).ConfigureAwait(false);
+		if (num < length)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// If the sender closes the connection or
@@ -456,8 +454,9 @@ public static class HttpMessageHelper
 			// supposedly chunked transfer coding fails, MUST record the message as
 			// incomplete.Cache requirements for incomplete responses are defined
 			// in Section 3 of[RFC7234].
-			throw new NotSupportedException($"Incomplete message. Expected length: {length}. Actual: {num}.");
+			throw new TorConnectionReadException($"Incomplete message. A Tor circuit probably died. Expected length: {length}. Actual: {num}.");
 		}
+
 		return allData;
 	}
 
