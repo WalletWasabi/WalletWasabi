@@ -40,8 +40,7 @@ public class CrashReportWindowViewModel : ViewModelBase
 
 	public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
 
-	public string Trace => $"{SerializedException.Message}{Environment.NewLine}" +
-						   $"{Environment.NewLine}{SerializedException.StackTrace}";
+	public string Trace => SerializedException.ToString();
 
 	public string Title => "Wasabi has crashed";
 }

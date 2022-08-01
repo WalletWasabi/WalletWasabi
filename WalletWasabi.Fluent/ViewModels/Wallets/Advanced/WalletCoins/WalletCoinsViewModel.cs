@@ -28,7 +28,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private readonly ObservableCollectionExtended<WalletCoinViewModel> _coins;
 	private readonly SourceList<WalletCoinViewModel> _coinsSourceList = new();
 	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel>? _source;
-	[AutoNotify] private bool _anySelected;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -39,7 +38,15 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		_coins = new ObservableCollectionExtended<WalletCoinViewModel>();
 
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+
+		AnySelected = _coinsSourceList
+			.Connect()
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(items => items.Any(t => t.IsSelected));
 	}
+
+	public IObservable<bool> AnySelected { get; }
 
 	private async Task OnSendCoins()
 	{
@@ -89,14 +96,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		_coinsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.WhenValueChanged(x => x.IsSelected)
-			.Select(_ => _coinsSourceList.Items.Any(x => x.IsSelected))
-			.Subscribe(anySelected => AnySelected = anySelected)
-			.DisposeWith(disposables);
-
 		Observable.Timer(TimeSpan.FromSeconds(30))
 			.Subscribe(_ =>
 			{
@@ -137,8 +136,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.CoinJoinInProgress),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.CoinJoinInProgress),
+						CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
+						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x)),
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 
@@ -193,6 +192,26 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Select(_ => GetCoins())
 			.Subscribe(RefreshCoinsList)
 			.DisposeWith(disposables);
+	}
+
+	private static int GetOrderingPriority(WalletCoinViewModel x)
+	{
+		if (x.CoinJoinInProgress)
+		{
+			return 1;
+		}
+
+		if (x.IsBanned)
+		{
+			return 2;
+		}
+
+		if (!x.Confirmed)
+		{
+			return 3;
+		}
+
+		return 0;
 	}
 
 	private ICoinsView GetCoins()

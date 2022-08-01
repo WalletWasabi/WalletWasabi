@@ -219,7 +219,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 					{
 						Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
 					}
-					catch (TorConnectionException ex)
+					catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
 					{
 						// When stopping, we do not want to wait.
 						if (!IsRunning)
