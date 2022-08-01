@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Media;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
@@ -15,38 +16,53 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 		var outerRadius = parent.OuterRadius;
 		var innerRadius = parent.InnerRadius;
 
-		Arc1Size = new Size(outerRadius, outerRadius);
-		Arc2Size = new Size(innerRadius, innerRadius);
+		var arc1Size = new Size(outerRadius, outerRadius);
+		var arc2Size = new Size(innerRadius, innerRadius);
 
-		var margin = 2d;
+		var margin =
+			end - start == 1.0
+			? 0d
+			: 2d;
 
 		var startAngle = (TotalAngle * start) - UprightAngle;
 		var endAngle = (TotalAngle * end) - UprightAngle;
+		var isLargeArc = endAngle - startAngle > Math.PI;
 
 		var outerOffset = outerRadius == 0 ? 0 : (margin / (TotalAngle * outerRadius) * TotalAngle);
 		var innerOffset = innerRadius == 0 ? 0 : (margin / (TotalAngle * innerRadius) * TotalAngle);
 
-		Origin1 = GetAnglePoint(outerRadius, startAngle + outerOffset);
-		Arc1 = GetAnglePoint(outerRadius, endAngle - outerOffset);
-		Origin2 = GetAnglePoint(innerRadius, endAngle - innerOffset);
-		Arc2 = GetAnglePoint(innerRadius, startAngle + innerOffset);
+		var origin1 = GetAnglePoint(outerRadius, startAngle + outerOffset);
+		var arc1 = GetAnglePoint(outerRadius, endAngle - outerOffset);
+		var origin2 = GetAnglePoint(innerRadius, endAngle - innerOffset);
+		var arc2 = GetAnglePoint(innerRadius, startAngle + innerOffset);
 
 		OuterRadius = outerRadius;
 		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
 		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Amount.ToFormattedString()} BTC";
+
+		Data = new PathGeometry()
+		{
+			Figures =
+			{
+				new PathFigure
+				{
+					StartPoint = origin1, IsClosed = true,
+					Segments = new PathSegments
+					{
+						new ArcSegment { Size = arc1Size, Point = arc1, IsLargeArc = isLargeArc },
+						new LineSegment { Point = origin2},
+						new ArcSegment { Size = arc2Size, Point = arc2, SweepDirection = SweepDirection.CounterClockwise, IsLargeArc = isLargeArc}
+					}
+				}
+			}
+		};
 	}
 
+	public PathGeometry Data { get; }
+
 	public double OuterRadius { get; }
-
-	public Point Origin1 { get; }
-	public Point Arc1 { get; }
-	public Size Arc1Size { get; }
-
-	public Point Origin2 { get; }
-	public Point Arc2 { get; }
-	public Size Arc2Size { get; }
 
 	public bool IsPrivate { get; }
 	public bool IsSemiPrivate { get; }

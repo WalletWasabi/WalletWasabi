@@ -71,18 +71,10 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Path Stretch="None" Height="{Binding OuterRadius}" Width="{Binding OuterRadius}"
+                  Data="{Binding Data}"
                   Classes.private="{Binding IsPrivate}"
                   Classes.semiPrivate="{Binding IsSemiPrivate}"
                   Classes.nonPrivate="{Binding IsNonPrivate}">
-              <Path.Data>
-                <PathGeometry>
-                  <PathFigure StartPoint="{Binding Origin1}" IsClosed="True">
-                    <ArcSegment Size="{Binding Arc1Size}" Point="{Binding Arc1}" />
-                    <LineSegment Point="{Binding Origin2}" />
-                    <ArcSegment Size="{Binding Arc2Size}" Point="{Binding Arc2}" SweepDirection="CounterClockwise" />
-                  </PathFigure>
-                </PathGeometry>
-              </Path.Data>
             </Path>
           </DataTemplate>
         </ListBox.ItemTemplate>
