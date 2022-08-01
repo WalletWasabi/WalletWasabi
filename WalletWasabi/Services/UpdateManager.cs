@@ -58,66 +58,45 @@ public class UpdateManager : IDisposable
 		UpdateAvailableToGet?.Invoke(this, updateStatus);
 	}
 
-	private void Cleanup()
-	{
-		try
-		{
-			var folder = new DirectoryInfo(InstallerDir);
-			if (folder.Exists)
-			{
-				Directory.Delete(InstallerDir, true);
-			}
-		}
-		catch (Exception exc)
-		{
-			Logger.LogError("Failed to delete installer directory.", exc);
-		}
-	}
-
-	private bool CheckIfInstallerDownloaded(FileSystemInfo[] files, string version)
-	{
-		FileSystemInfo[] installers = files.Where(file => file.Name.Contains("Wasabi")).ToArray();
-		foreach (var file in installers)
-		{
-			if (file.Name.Contains(version))
-			{
-				InstallerName = file.Name;
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/// <summary>
 	/// Get or download installer for the newest release.
 	/// </summary>
 	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
 	private async Task GetInstallerAsync(Version targetVersion)
 	{
-		DirectoryInfo folder = new(InstallerDir);
-		if (folder.Exists)
-		{
-			FileSystemInfo[] files = folder.GetFileSystemInfos();
+		(Version newVersion, string url, string fileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 
-			if (CheckIfInstallerDownloaded(files, targetVersion.ToString()))
-			{
-				if (InstallerName.Contains("tmp"))
-				{
-					Logger.LogWarning("Corrupted/unfinished installer found, deleting.");
-					File.Delete(Path.Combine(InstallerDir, InstallerName));
-				}
-				else
-				{
-					return;
-				}
-			}
-		}
-		else
+		var installerDownloaded = TryGetDownloadedInstaller(fileName);
+		if (installerDownloaded)
 		{
-			Directory.CreateDirectory(InstallerDir);
+			return;
 		}
 
+		EnsureToRemoveCorruptedFiles();
+
+		var tmpFilePath = Path.Combine(InstallerDir, $"{fileName}.tmp");
+		var newFilePath = Path.Combine(InstallerDir, fileName);
+
+		// This should also be done using Tor.
+		// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
 		Logger.LogInfo($"Trying to download new version: {targetVersion}");
+		using HttpClient httpClient = new();
+
+		// Get file stream and copy it to downloads folder to access.
+		using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
+		Logger.LogInfo("Installer stream downloaded, copying...");
+		using var file = File.OpenWrite(tmpFilePath);
+		await stream.CopyToAsync(file).ConfigureAwait(false);
+
+		// Closing the file to rename.
+		file.Close();
+		File.Move(tmpFilePath, newFilePath);
+
+		InstallerName = fileName;
+	}
+
+	private async Task<(Version Version, string DownloadUrl, string FileName)> GetLatestReleaseFromGithubAsync(Version targetVersion)
+	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
@@ -126,7 +105,7 @@ public class UpdateManager : IDisposable
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
-		// If the version we are looking for is not the one on github, somethings wrong.
+		// "tag_name" will have a 'v' at the beggining, needs to be removed.
 		Version githubVersion = new(softwareVersion[1..]);
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
@@ -144,24 +123,23 @@ public class UpdateManager : IDisposable
 
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
-		var tmpFileName = Path.Combine(InstallerDir, $"{fileName}.tmp");
-		var newFileName = Path.Combine(InstallerDir, fileName);
+		return (githubVersion, url, fileName);
+	}
 
-		// This should also be done using Tor.
-		// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
-		using HttpClient httpClient = new();
-
-		// Get file stream and copy it to downloads folder to access.
-		using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
-		Logger.LogInfo("Installer stream downloaded, copying...");
-		using var file = File.OpenWrite(tmpFileName);
-		await stream.CopyToAsync(file).ConfigureAwait(false);
-
-		// Closing the file to rename.
-		file.Close();
-		File.Move(tmpFileName, newFileName);
-
-		InstallerName = fileName;
+	private bool TryGetDownloadedInstaller(string fileName)
+	{
+		IoHelpers.EnsureContainingDirectoryExists(InstallerDir);
+		DirectoryInfo folder = new(InstallerDir);
+		if (folder.Exists)
+		{
+			FileSystemInfo? installer = folder.GetFileSystemInfos().Where(file => file.Name == fileName).FirstOrDefault();
+			if (installer != null)
+			{
+				InstallerName = installer.Name;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private (string url, string fileName) GetAssetToDownload(List<string> urls)
@@ -189,6 +167,33 @@ public class UpdateManager : IDisposable
 		else
 		{
 			throw new InvalidOperationException("OS not recognized, download manually.");
+		}
+	}
+
+	private void EnsureToRemoveCorruptedFiles()
+	{
+		DirectoryInfo folder = new(InstallerDir);
+
+		IEnumerable<FileSystemInfo> corruptedFiles = folder.GetFileSystemInfos().Where(file => file.Name.Contains("tmp"));
+		foreach (var file in corruptedFiles)
+		{
+			File.Delete(file.FullName);
+		}
+	}
+
+	private void Cleanup()
+	{
+		try
+		{
+			var folder = new DirectoryInfo(InstallerDir);
+			if (folder.Exists)
+			{
+				Directory.Delete(InstallerDir, true);
+			}
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError("Failed to delete installer directory.", exc);
 		}
 	}
 
