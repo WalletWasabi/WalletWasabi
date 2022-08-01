@@ -19,8 +19,6 @@ public class UpdateChecker : PeriodicRunner
 
 	public event EventHandler<UpdateStatus>? UpdateStatusChanged;
 
-	public event EventHandler? CleanupAfterUpdate;
-
 	private WasabiSynchronizer Synchronizer { get; }
 	public UpdateStatus UpdateStatus { get; private set; }
 	public WasabiClient WasabiClient { get; }
@@ -42,10 +40,6 @@ public class UpdateChecker : PeriodicRunner
 		{
 			UpdateStatus = newUpdateStatus;
 			UpdateStatusChanged?.Invoke(this, newUpdateStatus);
-		}
-		else if (UpdateStatus.ClientUpToDate)
-		{
-			CleanupAfterUpdate?.Invoke(this, EventArgs.Empty);
 		}
 	}
 

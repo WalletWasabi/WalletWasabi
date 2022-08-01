@@ -33,19 +33,19 @@ public class UpdateManager : IDisposable
 		Version targetVersion = updateStatus.ClientVersion;
 		if (!updateAvailable)
 		{
+			Cleanup();
 			return;
 		}
 		if (DownloadNewVersion)
 		{
-			Logger.LogInfo($"Trying to download new version: {targetVersion}");
 			do
 			{
 				tries++;
 				try
 				{
-					bool isReadyToInstall = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
+					await GetInstallerAsync(targetVersion).ConfigureAwait(false);
 					Logger.LogInfo($"Version {targetVersion} downloaded successfuly.");
-					updateStatus.IsReadyToInstall = isReadyToInstall;
+					updateStatus.IsReadyToInstall = true;
 					break;
 				}
 				catch (Exception ex)
@@ -58,7 +58,7 @@ public class UpdateManager : IDisposable
 		UpdateAvailableToGet?.Invoke(this, updateStatus);
 	}
 
-	private void UpdateChecker_CleanupAfterUpdate(object? sender, EventArgs e)
+	private void Cleanup()
 	{
 		try
 		{
@@ -88,7 +88,11 @@ public class UpdateManager : IDisposable
 		return false;
 	}
 
-	private async Task<bool> GetInstallerAsync(Version targetVersion)
+	/// <summary>
+	/// Get or download installer for the newest release.
+	/// </summary>
+	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
+	private async Task GetInstallerAsync(Version targetVersion)
 	{
 		DirectoryInfo folder = new(InstallerDir);
 		if (folder.Exists)
@@ -104,7 +108,7 @@ public class UpdateManager : IDisposable
 				}
 				else
 				{
-					return true;
+					return;
 				}
 			}
 		}
@@ -113,6 +117,7 @@ public class UpdateManager : IDisposable
 			Directory.CreateDirectory(InstallerDir);
 		}
 
+		Logger.LogInfo($"Trying to download new version: {targetVersion}");
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
@@ -157,8 +162,6 @@ public class UpdateManager : IDisposable
 		File.Move(tmpFileName, newFileName);
 
 		InstallerName = fileName;
-
-		return true;
 	}
 
 	private (string url, string fileName) GetAssetToDownload(List<string> urls)
@@ -251,7 +254,6 @@ public class UpdateManager : IDisposable
 	{
 		UpdateChecker = updateChecker;
 		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-		updateChecker.CleanupAfterUpdate += UpdateChecker_CleanupAfterUpdate;
 	}
 
 	public void Dispose()
@@ -259,7 +261,6 @@ public class UpdateManager : IDisposable
 		if (UpdateChecker is { } updateChecker)
 		{
 			updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
-			updateChecker.CleanupAfterUpdate -= UpdateChecker_CleanupAfterUpdate;
 		}
 	}
 }
