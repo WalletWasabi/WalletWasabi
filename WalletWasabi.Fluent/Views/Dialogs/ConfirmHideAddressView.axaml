@@ -11,8 +11,7 @@
   <c:ContentArea Title="{Binding Title}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <c:QuestionControl YesCommand="{Binding NextCommand}"
-                       NoCommand="{Binding CancelCommand}"
-                       HighlightButton="YesButton">
+                       NoCommand="{Binding CancelCommand}">
       <c:QuestionControl.IconContent>
         <Viewbox MaxHeight="150" Margin="40">
           <PathIcon Data="{StaticResource delete_regular}" Opacity="0.6" />
