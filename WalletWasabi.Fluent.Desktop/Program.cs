@@ -103,7 +103,7 @@ public class Program
 
 					Logger.LogError(ex);
 
-					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Command execution crashed", ex));
+					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
 				});
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
