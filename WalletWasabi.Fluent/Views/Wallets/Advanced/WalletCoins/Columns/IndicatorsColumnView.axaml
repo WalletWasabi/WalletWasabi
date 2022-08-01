@@ -36,7 +36,7 @@
                 Data="{StaticResource link_filled}"
                 Height="9"
                 Opacity="0.3"
-                ToolTip.Tip="Not Coinjoining" />
+                ToolTip.Tip="Not coinjoining" />
     </Panel>
 
     <!-- Banned -->
