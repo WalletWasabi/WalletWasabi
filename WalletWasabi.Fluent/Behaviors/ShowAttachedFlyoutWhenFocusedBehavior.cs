@@ -7,19 +7,16 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
+public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Control>
 {
 	public static readonly StyledProperty<bool> IsFlyoutOpenProperty =
 		AvaloniaProperty.Register<ShowAttachedFlyoutWhenFocusedBehavior, bool>(nameof(IsFlyoutOpen));
-
-	private readonly CompositeDisposable _disposables = new();
 
 	private FlyoutController? _flyoutController;
 
@@ -29,10 +26,8 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 		set => SetValue(IsFlyoutOpenProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree()
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		base.OnAttachedToVisualTree();
-
 		if (AssociatedObject is null)
 		{
 			return;
@@ -50,7 +45,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 		}
 
 		_flyoutController = new FlyoutController(flyoutBase, AssociatedObject)
-			.DisposeWith(_disposables);
+			.DisposeWith(disposable);
 
 		DescendantPressed(visualRoot)
 			.Select(descendant => AssociatedObject.IsVisualAncestorOf(descendant))
@@ -61,7 +56,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 					IsFlyoutOpen = isAncestor;
 				})
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposable);
 
 		Observable.FromEventPattern(AssociatedObject, nameof(InputElement.GotFocus))
 			.Do(
@@ -71,7 +66,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 					IsFlyoutOpen = true;
 				})
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposable);
 
 		Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
 			.Do(
@@ -83,7 +78,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 					}
 				})
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposable);
 
 		Observable.FromEventPattern(AssociatedObject, nameof(InputElement.LostFocus))
 			.Where(_ => !IsFocusInside(flyoutBase))
@@ -94,7 +89,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 					IsFlyoutOpen = false;
 				})
 			.Subscribe()
-			.DisposeWith(_disposables);
+			.DisposeWith(disposable);
 
 		this.GetObservable(IsFlyoutOpenProperty).Subscribe(b => _flyoutController.IsOpen = b);
 
@@ -102,11 +97,6 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 		{
 			_flyoutController.IsOpen = false;
 		}
-	}
-
-	protected override void OnDetachedFromVisualTree()
-	{
-		_disposables.Dispose();
 	}
 
 	private static IObservable<Visual> DescendantPressed(IInteractive interactive)
