@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
+using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
@@ -96,12 +97,12 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : Behavior<Control>
 
 	private static IObservable<Visual> DescendantPressed(IInteractive interactive)
 	{
-		return
-			from eventPattern in interactive.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
-			let source = eventPattern.EventArgs.Source as Visual
-			where source is not null
-			where source is not LightDismissOverlayLayer
-			select source;
+		return interactive
+			.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
+			.Select(x => x.EventArgs.Source)
+			.WhereNotNull()
+			.OfType<Visual>()
+			.Where(x => x is not LightDismissOverlayLayer);
 	}
 
 	private static bool IsFocusInside(IPopupHostProvider popupHostProvider)
