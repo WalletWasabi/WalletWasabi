@@ -349,10 +349,10 @@
       },
       "ReactiveUI.Validation": {
         "type": "Transitive",
-        "resolved": "1.8.6",
-        "contentHash": "H6894Tf/RxjFqsmZ5tsuYHGL/cOVepKGqBzkQomhNEMc279/yigq20cXIYlVbDxeeBWnRTkJ4roGJk8fGB4EvA==",
+        "resolved": "2.1.1",
+        "contentHash": "PckN+F0GVTx5kail27lZkGvotIpe82q4otrvKTEl8fbtnsocu1Nipf6jNjx1hP6+QahrbL1LloaCMpC6MNIPTA==",
         "dependencies": {
-          "ReactiveUI": "11.5.35"
+          "ReactiveUI": "13.1.1"
         }
       },
       "SkiaSharp": {
@@ -687,7 +687,7 @@
           "Avalonia.ReactiveUI": "0.10.17",
           "Avalonia.Skia": "0.10.17",
           "Avalonia.Xaml.Behaviors": "0.10.16",
-          "ReactiveUI.Validation": "1.8.6",
+          "ReactiveUI.Validation": "2.1.1",
           "System.Drawing.Common": "6.0.0",
           "System.Runtime": "4.3.1",
           "WalletWasabi": "1.0.0"

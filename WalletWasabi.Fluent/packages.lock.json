@@ -77,11 +77,11 @@
       },
       "ReactiveUI.Validation": {
         "type": "Direct",
-        "requested": "[1.8.6, )",
-        "resolved": "1.8.6",
-        "contentHash": "H6894Tf/RxjFqsmZ5tsuYHGL/cOVepKGqBzkQomhNEMc279/yigq20cXIYlVbDxeeBWnRTkJ4roGJk8fGB4EvA==",
+        "requested": "[2.1.1, )",
+        "resolved": "2.1.1",
+        "contentHash": "PckN+F0GVTx5kail27lZkGvotIpe82q4otrvKTEl8fbtnsocu1Nipf6jNjx1hP6+QahrbL1LloaCMpC6MNIPTA==",
         "dependencies": {
-          "ReactiveUI": "11.5.35"
+          "ReactiveUI": "13.1.1"
         }
       },
       "System.Drawing.Common": {
