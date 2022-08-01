@@ -9,12 +9,11 @@ namespace WalletWasabi.Services;
 
 public class UpdateChecker : PeriodicRunner
 {
-	public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer, UpdateManager updateManager) : base(period)
+	public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
 	{
 		Synchronizer = synchronizer;
 		UpdateStatus = new UpdateStatus(true, true, new Version(), 0, new Version());
 		WasabiClient = Synchronizer.HttpClientFactory.SharedWasabiClient;
-		UpdateManager = updateManager;
 		Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 	}
 
@@ -25,7 +24,6 @@ public class UpdateChecker : PeriodicRunner
 	private WasabiSynchronizer Synchronizer { get; }
 	public UpdateStatus UpdateStatus { get; private set; }
 	public WasabiClient WasabiClient { get; }
-	public UpdateManager UpdateManager { get; }
 
 	private void Synchronizer_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
