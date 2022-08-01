@@ -139,16 +139,15 @@ public class Program
 			// Trigger the CrashReport process if required.
 			CrashReporter.Invoke(exceptionToReport);
 		}
+		else if (Services.UpdateManager.DoUpdateOnClose)
+		{
+			Services.UpdateManager.StartInstallingNewVersion();
+		}
 
 		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
 		Logger.LogSoftwareStopped("Wasabi");
-
-		if (Services.UpdateManager.DoUpdateOnClose)
-		{
-			Services.UpdateManager.StartInstallingNewVersion();
-		}
 
 		return exceptionToReport is { } ? 1 : 0;
 	}
