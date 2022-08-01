@@ -7,11 +7,12 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
-public partial class PrivacyControlTileViewModel : TileViewModel
+public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPreviewItem
 {
 	private readonly WalletViewModel _walletVm;
 	private readonly IObservable<Unit> _balanceChanged;

@@ -3,9 +3,9 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public class PrivacyRingItemViewModel : WalletCoinViewModel
+public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreviewItem
 {
 	private const double TotalAngle = 2d * Math.PI;
 	private const double UprightAngle = Math.PI / 2d;
@@ -35,6 +35,7 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel
 		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
 		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
+		AmountText = $"{Amount.ToFormattedString()} BTC";
 	}
 
 	public double OuterRadius { get; }
@@ -50,6 +51,7 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel
 	public bool IsPrivate { get; }
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
+	public string AmountText { get; }
 
 	private Point GetAnglePoint(double r, double angle)
 	{
@@ -57,11 +59,4 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel
 		var y = r * Math.Sin(angle);
 		return new Point(x, y);
 	}
-}
-
-public enum PrivacyRingItemPrivacyState
-{
-	NonPrivate = 1,
-	SemiPrivate = 2,
-	Private = 3
 }

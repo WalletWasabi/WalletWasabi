@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -11,7 +12,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 [NavigationMetaData(
 	Title = "Wallet Coins",
@@ -20,6 +21,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 {
 	private IObservable<Unit> _coinsUpdated;
 	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
+	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
 
 	public PrivacyRingViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -29,6 +31,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		InnerRadius = 240d;
 
 		NextCommand = CancelCommand;
+
+		PreviewItems.Add(walletViewModel.Tiles.OfType<PrivacyControlTileViewModel>().FirstOrDefault());
 
 		_itemsSourceList
 			.Connect()
@@ -49,6 +53,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	}
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
+	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
 
 	public double OuterRadius { get; }
 	public double InnerRadius { get; }
@@ -79,6 +84,9 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 					start = end;
 				}
 			}
+
+			PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
+			PreviewItems.AddRange(list);
 		});
 	}
 
