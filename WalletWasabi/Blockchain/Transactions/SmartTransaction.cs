@@ -6,6 +6,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -101,7 +102,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (WalletVirtualInputsCache is null)
 			{
 				WalletVirtualInputsCache = WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes())
+					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
 					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
 					.ToHashSet();
 			}
@@ -117,7 +118,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (WalletVirtualOutputsCache is null)
 			{
 				WalletVirtualOutputsCache = WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes())
+					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
 					.Select(g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(GetHash(), o.Index)).ToHashSet()))
 					.ToHashSet();
 			}
@@ -133,7 +134,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (ForeignVirtualOutputsCache is null)
 			{
 				ForeignVirtualOutputsCache = ForeignOutputs
-					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId())
+					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
 					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
 					.ToHashSet();
 			}

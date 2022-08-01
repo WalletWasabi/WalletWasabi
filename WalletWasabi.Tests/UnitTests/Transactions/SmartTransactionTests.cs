@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -226,6 +228,41 @@ public class SmartTransactionTests
 		var foreingOutputsAmount = st.ForeignOutputs.First().ToCoin().Amount;
 		var foreingVirtualOutputsAmount = st.ForeignVirtualOutputs.First().Amount;
 		Assert.Equal(foreingOutputsAmount, foreingVirtualOutputsAmount);
+	}
+
+	[Fact]
+	public void SmartTransactionVirtualForeignOutputMerge()
+	{
+		var km = ServiceFactory.CreateKeyManager("");
+		var network = km.GetNetwork();
+		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
+
+		Script samePubScript1 = hdPubKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network).ScriptPubKey;
+		Script samePubScript2 = hdPubKey.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ScriptPubKey;
+
+		Transaction t = Transaction.Create(network);
+
+		TxOut txout = new(Money.Coins(1), samePubScript1);
+		TxOut txout2 = new(Money.Coins(1), samePubScript2);
+
+		t.Outputs.Add(txout);
+		t.Outputs.Add(txout2);
+		SmartTransaction st1 = new(t, 0);
+
+		Assert.Single(st1.ForeignVirtualOutputs);
+		Assert.Equal(2, st1.ForeignVirtualOutputs.First().OutPoints.Count);
+
+		Transaction t2 = Transaction.Create(network);
+
+		TxOut txout3 = new(Money.Coins(1), samePubScript1);
+		TxOut txout4 = new(Money.Coins(1), samePubScript1);
+
+		t2.Outputs.Add(txout3);
+		t2.Outputs.Add(txout4);
+		SmartTransaction st2 = new(t2, 0);
+
+		Assert.Equal(1, st2.ForeignVirtualOutputs.Count);
+		Assert.Equal(2, st2.ForeignVirtualOutputs.First().OutPoints.Count);
 	}
 
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()
