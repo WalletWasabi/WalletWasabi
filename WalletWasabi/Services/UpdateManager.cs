@@ -174,11 +174,13 @@ public class UpdateManager : IDisposable
 	private void EnsureToRemoveCorruptedFiles()
 	{
 		DirectoryInfo folder = new(InstallerDir);
-
-		IEnumerable<FileSystemInfo> corruptedFiles = folder.GetFileSystemInfos().Where(file => file.Name.Contains("tmp"));
-		foreach (var file in corruptedFiles)
+		if (folder.Exists)
 		{
-			File.Delete(file.FullName);
+			IEnumerable<FileSystemInfo> corruptedFiles = folder.GetFileSystemInfos().Where(file => file.Name.Contains("tmp"));
+			foreach (var file in corruptedFiles)
+			{
+				File.Delete(file.FullName);
+			}
 		}
 	}
 
