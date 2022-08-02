@@ -159,7 +159,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new CoinJoinSettingsViewModel()));
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new CoinJoinSettingsViewModel(this)));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
