@@ -220,16 +220,13 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		foreach (var exc in e.Exception.Flatten().InnerExceptions)
+		if (e.Exception.Flatten().InnerException is SocketException exc)
 		{
-			if (exc is SocketException)
-			{
-				Logger.LogTrace(exc);
-			}
-			else
-			{
-				Logger.LogDebug(exc);
-			}
+			Logger.LogTrace(exc);
+		}
+		else
+		{
+			Logger.LogDebug(e.Exception);
 		}
 	}
 
