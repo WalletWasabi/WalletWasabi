@@ -159,6 +159,8 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new CoinJoinSettingsViewModel()));
+
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
 
@@ -182,7 +184,9 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public ICommand WalletCoinsCommand { get; }
 
-	private CompositeDisposable Disposables { get; set; }
+	public ICommand CoinJoinSettingsCommand { get; }
+
+	private CompositeDisposable Disposables { get; }
 
 	public HistoryViewModel History { get; }
 
