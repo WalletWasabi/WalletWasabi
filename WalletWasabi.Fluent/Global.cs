@@ -45,6 +45,7 @@ public class Global
 
 	/// <summary>HTTP client factory for sending HTTP requests.</summary>
 	public HttpClientFactory HttpClientFactory { get; }
+	public HttpClientFactory CoordinatorHttpClientFactory { get; }
 
 	public LegalChecker LegalChecker { get; private set; }
 	public Config Config { get; }
@@ -91,6 +92,12 @@ public class Global
 		HttpClientFactory = new HttpClientFactory(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter: () => Config.GetBackendUri());
+			
+			
+			CoordinatorHttpClientFactory = new HttpClientFactory(
+			Config.UseTor ? TorSettings.SocksEndpoint : null,
+			backendUriGetter: () => Config.GetCoordinatorUri());
+
 
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
@@ -293,7 +300,7 @@ public class Global
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
@@ -372,6 +379,11 @@ public class Global
 				{
 					await httpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
+				}
+				if (CoordinatorHttpClientFactory is { } coordinatorHttpClientFactory)
+				{
+					coordinatorHttpClientFactory.Dispose();
+					Logger.LogInfo($"{nameof(CoordinatorHttpClientFactory)} is disposed.");
 				}
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
