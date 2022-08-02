@@ -96,6 +96,8 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Subscribe()
 			.DisposeWith(disposable);
 
+		// This is a workaround for the case when the user switches theme. The same behavior is detached and re-attached on theme changes.
+		// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
 		if (IsFlyoutOpen)
 		{
 			_flyoutController.SetIsOpen(false);
