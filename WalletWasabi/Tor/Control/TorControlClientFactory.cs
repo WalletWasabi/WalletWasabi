@@ -10,6 +10,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control;
 
@@ -36,9 +37,18 @@ public class TorControlClientFactory
 	/// <summary>Connects to Tor Control endpoint and authenticates using safe-cookie mechanism.</summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.5</seealso>
 	/// <exception cref="TorControlException">If TCP connection cannot be established OR if authentication fails for some reason.</exception>
-	public async Task<TorControlClient> ConnectAndAuthenticateAsync(IPEndPoint endPoint, string cookieString, CancellationToken cancellationToken = default)
+	public async Task<TorControlClient> ConnectAndAuthenticateAsync(EndPoint endPoint, string cookieString, CancellationToken cancellationToken = default)
 	{
-		TcpClient tcpClient = Connect(endPoint);
+		TcpClient tcpClient;
+		try
+		{
+			tcpClient = TcpClientConnector.Connect(endPoint);
+		}
+		catch (Exception e)
+		{
+			Logger.LogError($"Failed to connect to the Tor control: '{endPoint}'.", e);
+			throw new TorControlException($"Failed to connect to the Tor control: '{endPoint}'.", e);
+		}
 		TorControlClient? clientToDispose = null;
 
 		try
@@ -115,21 +125,4 @@ public class TorControlClientFactory
 		return controlClient;
 	}
 
-	/// <summary>
-	/// Connects to Tor control using a TCP client.
-	/// </summary>
-	private TcpClient Connect(IPEndPoint endPoint)
-	{
-		try
-		{
-			TcpClient tcpClient = new();
-			tcpClient.Connect(endPoint);
-			return tcpClient;
-		}
-		catch (Exception e)
-		{
-			Logger.LogError($"Failed to connect to the Tor control: '{endPoint}'.", e);
-			throw new TorControlException($"Failed to connect to the Tor control: '{endPoint}'.", e);
-		}
-	}
 }
