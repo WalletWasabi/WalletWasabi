@@ -47,6 +47,7 @@ public class UpdateManager : IDisposable
 					InstallerPath = installerPath;
 					Logger.LogInfo($"Version {newVersion} downloaded successfuly.");
 					updateStatus.IsReadyToInstall = true;
+					updateStatus.ClientVersion = newVersion;
 					break;
 				}
 				catch (Exception ex)
@@ -129,7 +130,7 @@ public class UpdateManager : IDisposable
 
 	private bool TryGetDownloadedInstaller(string fileName)
 	{
-		IoHelpers.EnsureContainingDirectoryExists(InstallerDir);
+		IoHelpers.EnsureDirectoryExists(InstallerDir);
 		DirectoryInfo folder = new(InstallerDir);
 		if (folder.Exists)
 		{

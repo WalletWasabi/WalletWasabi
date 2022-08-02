@@ -18,7 +18,7 @@ public class UpdateStatus : IEquatable<UpdateStatus>
 	public Version LegalDocumentsVersion { get; }
 	public ushort CurrentBackendMajorVersion { get; }
 
-	public Version ClientVersion { get; }
+	public Version ClientVersion { get; set; }
 
 	#region EqualityAndComparison
 
