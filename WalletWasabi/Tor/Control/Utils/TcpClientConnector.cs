@@ -5,7 +5,6 @@ namespace WalletWasabi.Tor.Control.Utils;
 
 public class TcpClientConnector
 {
-	
 	/// <summary>
 	/// Connects to an endpoint using a TCP client.
 	/// </summary>
@@ -24,7 +23,7 @@ public class TcpClientConnector
 			default:
 				throw new ArgumentOutOfRangeException(nameof(endPoint));
 		}
+
 		return tcpClient;
-		
 	}
 }

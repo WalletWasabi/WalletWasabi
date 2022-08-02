@@ -124,5 +124,4 @@ public class TorControlClientFactory
 
 		return controlClient;
 	}
-
 }
