@@ -279,30 +279,11 @@ public class TorHttpPool : IDisposable
 		while (true);
 	}
 
-	private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+	private async Task<TorTcpConnection> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 	{
-		TorTcpConnection? connection;
-
-		try
-		{
-			connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
-			Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
-		}
-		catch (TorException e)
-		{
-			Logger.LogDebug($"['{request.RequestUri}'][ERROR] Failed to create a new pool connection.", e);
-			throw;
-		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogTrace($"['{request.RequestUri}'] Operation was canceled.");
-			throw;
-		}
-		catch (Exception e)
-		{
-			Logger.LogTrace($"['{request.RequestUri}'][EXCEPTION] {e}");
-			throw;
-		}
+		DateTime start = DateTime.UtcNow;
+		TorTcpConnection connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
+		Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection in {DateTime.UtcNow - start}.");
 
 		Logger.LogTrace($"< connection='{connection}'");
 		return connection;
