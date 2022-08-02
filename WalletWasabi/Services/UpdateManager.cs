@@ -15,7 +15,7 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager : IDisposable
 {
-	private string InstallerName { get; set; } = "";
+	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 
@@ -43,14 +43,15 @@ public class UpdateManager : IDisposable
 				tries++;
 				try
 				{
-					await GetInstallerAsync(targetVersion).ConfigureAwait(false);
-					Logger.LogInfo($"Version {targetVersion} downloaded successfuly.");
+					(string installerPath, Version newVersion) = await GetInstallerAsync(targetVersion).ConfigureAwait(false);
+					InstallerPath = installerPath;
+					Logger.LogInfo($"Version {newVersion} downloaded successfuly.");
 					updateStatus.IsReadyToInstall = true;
 					break;
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Geting version {targetVersion} failed with error.", ex);
+					Logger.LogError($"Geting new update failed with error.", ex);
 				}
 			} while (tries < MaxTries);
 		}
@@ -62,14 +63,14 @@ public class UpdateManager : IDisposable
 	/// Get or download installer for the newest release.
 	/// </summary>
 	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
-	private async Task GetInstallerAsync(Version targetVersion)
+	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(Version targetVersion)
 	{
 		(Version newVersion, string url, string fileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 
 		var installerDownloaded = TryGetDownloadedInstaller(fileName);
 		if (installerDownloaded)
 		{
-			return;
+			return (Path.Combine(InstallerDir, fileName), newVersion);
 		}
 
 		EnsureToRemoveCorruptedFiles();
@@ -79,7 +80,7 @@ public class UpdateManager : IDisposable
 
 		// This should also be done using Tor.
 		// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
-		Logger.LogInfo($"Trying to download new version: {targetVersion}");
+		Logger.LogInfo($"Trying to download new version: {newVersion}");
 		using HttpClient httpClient = new();
 
 		// Get file stream and copy it to downloads folder to access.
@@ -92,7 +93,7 @@ public class UpdateManager : IDisposable
 		file.Close();
 		File.Move(tmpFilePath, newFilePath);
 
-		InstallerName = fileName;
+		return (newFilePath, newVersion);
 	}
 
 	private async Task<(Version Version, string DownloadUrl, string FileName)> GetLatestReleaseFromGithubAsync(Version targetVersion)
@@ -135,7 +136,6 @@ public class UpdateManager : IDisposable
 			FileSystemInfo? installer = folder.GetFileSystemInfos().Where(file => file.Name == fileName).FirstOrDefault();
 			if (installer != null)
 			{
-				InstallerName = installer.Name;
 				return true;
 			}
 		}
@@ -214,21 +214,20 @@ public class UpdateManager : IDisposable
 	{
 		try
 		{
-			var installerPath = Path.Combine(InstallerDir, InstallerName);
 			ProcessStartInfo startInfo;
-			if (!File.Exists(installerPath))
+			if (!File.Exists(InstallerPath))
 			{
-				throw new FileNotFoundException(installerPath);
+				throw new FileNotFoundException(InstallerPath);
 			}
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
+				startInfo = ProcessStartInfoFactory.Make(InstallerPath, "", true);
 			}
 			else
 			{
 				startInfo = new()
 				{
-					FileName = installerPath,
+					FileName = InstallerPath,
 					UseShellExecute = true,
 					WindowStyle = ProcessWindowStyle.Normal
 				};
