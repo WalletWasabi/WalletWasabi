@@ -68,31 +68,30 @@ public class UpdateManager : IDisposable
 	{
 		(Version newVersion, string url, string fileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 
-		var installerDownloaded = TryGetDownloadedInstaller(fileName);
-		if (installerDownloaded)
-		{
-			return (Path.Combine(InstallerDir, fileName), newVersion);
-		}
-
-		EnsureToRemoveCorruptedFiles();
-
 		var tmpFilePath = Path.Combine(InstallerDir, $"{fileName}.tmp");
 		var newFilePath = Path.Combine(InstallerDir, fileName);
 
-		// This should also be done using Tor.
-		// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
-		Logger.LogInfo($"Trying to download new version: {newVersion}");
-		using HttpClient httpClient = new();
+		var installerDownloaded = TryGetDownloadedInstaller(fileName);
+		if (!installerDownloaded)
+		{
+			EnsureToRemoveCorruptedFiles();
 
-		// Get file stream and copy it to downloads folder to access.
-		using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
-		Logger.LogInfo("Installer stream downloaded, copying...");
-		using var file = File.OpenWrite(tmpFilePath);
-		await stream.CopyToAsync(file).ConfigureAwait(false);
+			// This should also be done using Tor.
+			// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
+			Logger.LogInfo($"Trying to download new version: {newVersion}");
+			using HttpClient httpClient = new();
 
-		// Closing the file to rename.
-		file.Close();
-		File.Move(tmpFilePath, newFilePath);
+			// Get file stream and copy it to downloads folder to access.
+			using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
+			Logger.LogInfo("Installer stream downloaded, copying...");
+			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
+			using var file = File.OpenWrite(tmpFilePath);
+			await stream.CopyToAsync(file).ConfigureAwait(false);
+
+			// Closing the file to rename.
+			file.Close();
+			File.Move(tmpFilePath, newFilePath);
+		}
 
 		return (newFilePath, newVersion);
 	}
@@ -130,16 +129,17 @@ public class UpdateManager : IDisposable
 
 	private bool TryGetDownloadedInstaller(string fileName)
 	{
-		IoHelpers.EnsureDirectoryExists(InstallerDir);
-		DirectoryInfo folder = new(InstallerDir);
-		if (folder.Exists)
+		if (Directory.Exists(InstallerDir))
 		{
-			FileSystemInfo? installer = folder.GetFileSystemInfos().Where(file => file.Name == fileName).FirstOrDefault();
+			DirectoryInfo folder = new(InstallerDir);
+
+			FileSystemInfo? installer = folder.GetFileSystemInfos().FirstOrDefault(file => file.Name == fileName);
 			if (installer != null)
 			{
 				return true;
 			}
 		}
+
 		return false;
 	}
 
