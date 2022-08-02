@@ -220,6 +220,7 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
+		// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
 		if (e.Exception.Flatten().InnerException is SocketException exc)
 		{
 			Logger.LogTrace(exc);
