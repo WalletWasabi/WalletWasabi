@@ -92,6 +92,7 @@ public class TorSettings
 		{
 			$"--LogTimeGranularity 1",
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
+			$"--SocksTimeout 30", // Default is 2 minutes.
 			$"--CookieAuthentication 1",
 			$"--ControlPort {ControlEndpoint.Port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
