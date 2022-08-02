@@ -30,6 +30,7 @@ public class FlyoutController : IDisposable
 		}
 
 		Toggle(value);
+
 		_isOpen = value;
 	}
 
