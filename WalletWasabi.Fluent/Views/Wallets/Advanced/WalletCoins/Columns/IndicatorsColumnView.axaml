@@ -27,13 +27,13 @@
     <Panel IsVisible="{Binding !IsBanned}">
       <!-- CJ active -->
       <PathIcon IsVisible="{Binding CoinJoinInProgress}"
-                Data="{StaticResource link_filled}"
+                Data="{StaticResource wallet_action_coinjoin}"
                 Foreground="{DynamicResource SystemAccentColor}"
                 Height="9"
                 ToolTip.Tip="Coinjoining" />
       <!-- CJ inactive -->
       <PathIcon IsVisible="{Binding !CoinJoinInProgress}"
-                Data="{StaticResource link_filled}"
+                Data="{StaticResource wallet_action_coinjoin}"
                 Height="9"
                 Opacity="0.3"
                 ToolTip.Tip="Not coinjoining" />
