@@ -29,7 +29,7 @@ public class ArenaClient
 	public WabiSabiClient AmountCredentialClient { get; }
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public string CoordinatorIdentifier { get; }
-	public IWabiSabiApiRequestHandler RequestHandler { get; }
+	public IWabiSabiApiRequestHandler RequestHandler { get; private set; }
 
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
@@ -218,5 +218,10 @@ public class ArenaClient
 				roundId,
 				aliceId),
 			cancellationToken).ConfigureAwait(false);
+	}
+
+	public void ReplaceRequestHandler(IWabiSabiApiRequestHandler requestHandler)
+	{
+		RequestHandler = requestHandler;
 	}
 }

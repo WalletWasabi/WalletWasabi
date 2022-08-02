@@ -45,7 +45,7 @@ public class AliceClient
 
 	public Guid AliceId { get; }
 	public uint256 RoundId { get; }
-	private ArenaClient ArenaClient { get; }
+	public ArenaClient ArenaClient { get; }
 	public SmartCoin SmartCoin { get; }
 	private OwnershipProof OwnershipProof { get; }
 	private FeeRate FeeRate { get; }

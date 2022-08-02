@@ -242,6 +242,9 @@ public class CoinJoinClient
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 			var outputRegStartTime = DateTimeOffset.UtcNow;
 			var outputTxOuts = await ProceedWithOutputRegistrationAsync(roundId, registeredAliceClients, roundState, cancellationToken).ConfigureAwait(false);
+
+			ReplaceTorCircuitsWithNew(registeredAliceClientAndCircuits, registeredAliceClients);
+
 			await ProceedWithReadyToSignAsync(roundId, registeredAliceClients, roundState, outputRegStartTime, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
@@ -297,6 +300,18 @@ public class CoinJoinClient
 			}
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+		}
+	}
+
+	private void ReplaceTorCircuitsWithNew(ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits, ImmutableArray<AliceClient> registeredAliceClients)
+	{
+		foreach (var aliceClient in registeredAliceClients)
+		{
+			var previousPersonCircuit = registeredAliceClientAndCircuits.Single(x => x.AliceClient == aliceClient).PersonCircuit;
+			var personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+			var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
+			aliceClient.ArenaClient.ReplaceRequestHandler(arenaRequestHandler);
+			previousPersonCircuit.Dispose();
 		}
 	}
 
