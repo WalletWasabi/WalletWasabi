@@ -52,7 +52,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Do(
 				isAncestor =>
 				{
-					_flyoutController.IsOpen = isAncestor;
+					_flyoutController.SetIsOpen(isAncestor);
 					IsFlyoutOpen = isAncestor;
 				})
 			.Subscribe()
@@ -62,7 +62,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Do(
 				_ =>
 				{
-					_flyoutController.IsOpen = true;
+					_flyoutController.SetIsOpen(true);
 					IsFlyoutOpen = true;
 				})
 			.Subscribe()
@@ -74,7 +74,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 				{
 					if (AssociatedObject.IsFocused)
 					{
-						_flyoutController.IsOpen = true;
+						_flyoutController.SetIsOpen(true);
 					}
 				})
 			.Subscribe()
@@ -85,17 +85,20 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Do(
 				_ =>
 				{
-					_flyoutController.IsOpen = false;
+					_flyoutController.SetIsOpen(false);
 					IsFlyoutOpen = false;
 				})
 			.Subscribe()
 			.DisposeWith(disposable);
 
-		this.GetObservable(IsFlyoutOpenProperty).Subscribe(b => _flyoutController.IsOpen = b);
+		this.GetObservable(IsFlyoutOpenProperty)
+			.Do(b => _flyoutController.SetIsOpen(b))
+			.Subscribe()
+			.DisposeWith(disposable);
 
 		if (IsFlyoutOpen)
 		{
-			_flyoutController.IsOpen = false;
+			_flyoutController.SetIsOpen(false);
 		}
 	}
 

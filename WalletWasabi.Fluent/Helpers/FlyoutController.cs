@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 
@@ -5,59 +6,63 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class FlyoutController : IDisposable
 {
-	private readonly FlyoutCloseEnforcer _enforcer;
 	private readonly FlyoutBase _flyout;
 	private readonly Control _parent;
+	private bool _isForcedOpen;
 	private bool _isOpen;
 
 	public FlyoutController(FlyoutBase flyout, Control parent)
 	{
 		_flyout = flyout;
 		_parent = parent;
-		_enforcer = new FlyoutCloseEnforcer(flyout);
-	}
-
-	public bool IsOpen
-	{
-		get => _isOpen;
-		set
-		{
-			if (_isOpen == value)
-			{
-				return;
-			}
-
-			ToggleFlyout(value);
-			_isOpen = value;
-		}
 	}
 
 	public void Dispose()
 	{
-		_enforcer.Dispose();
+		_flyout.Closing -= RejectClose;
 	}
 
-	private void ToggleFlyout(bool isVisible)
+	public void SetIsOpen(bool value)
 	{
-		if (isVisible)
+		if (_isOpen == value)
 		{
-			ShowFlyout();
+			return;
+		}
+
+		Toggle(value);
+		_isOpen = value;
+	}
+
+	private static void RejectClose(object? sender, CancelEventArgs e)
+	{
+		e.Cancel = true;
+	}
+
+	private void Toggle(bool value)
+	{
+		if (_isForcedOpen == value)
+		{
+			return;
+		}
+
+		_isForcedOpen = value;
+
+		if (_isForcedOpen)
+		{
+			_flyout.Closing += RejectClose;
 		}
 		else
 		{
-			HideFlyout();
+			_flyout.Closing -= RejectClose;
 		}
-	}
 
-	private void HideFlyout()
-	{
-		_enforcer.IsForcedOpen = false;
-		_flyout.Hide();
-	}
-
-	private void ShowFlyout()
-	{
-		_enforcer.IsForcedOpen = true;
-		_flyout.ShowAt(_parent);
+		if (value)
+		{
+			_flyout.ShowAt(_parent);
+		}
+		else
+		{
+			_flyout.Hide();
+		}
 	}
 }
