@@ -83,13 +83,16 @@ public class UpdateManager : IDisposable
 
 			// Get file stream and copy it to downloads folder to access.
 			using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
-			Logger.LogInfo("Installer stream downloaded, copying...");
+			Logger.LogInfo("Installer downloaded, copying...");
 			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
-			using var file = File.OpenWrite(tmpFilePath);
-			await stream.CopyToAsync(file).ConfigureAwait(false);
+			using (var file = File.OpenWrite(tmpFilePath))
+			{
+				await stream.CopyToAsync(file).ConfigureAwait(false);
 
-			// Closing the file to rename.
-			file.Close();
+				// Closing the file to rename.
+				file.Close();
+			};
+
 			File.Move(tmpFilePath, newFilePath);
 		}
 
