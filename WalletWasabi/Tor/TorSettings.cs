@@ -90,15 +90,18 @@ public class TorSettings
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
 		{
+			$"--SafeLogging 0",
 			$"--LogTimeGranularity 1",
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
+			$"--SocksTimeout 30", // Default is 2 minutes.
+			$"--MaxCircuitDirtiness 1200", // 20 minutes, default is 10 minutes.
 			$"--CookieAuthentication 1",
 			$"--ControlPort {ControlEndpoint.Port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
 			$"--GeoIPFile \"{GeoIpPath}\"",
 			$"--GeoIPv6File \"{GeoIp6Path}\"",
-			$"--Log \"notice file {LogFilePath}\""
+			$"--Log \"info file {LogFilePath}\""
 		};
 
 		if (TerminateOnExit && OwningProcessId is not null)
