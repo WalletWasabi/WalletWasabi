@@ -23,6 +23,7 @@ using WalletWasabi.Wallets;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
+using System.Net.Sockets;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -219,7 +220,17 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogDebug(e.Exception);
+		foreach (var exc in e.Exception.Flatten().InnerExceptions)
+		{
+			if (exc is SocketException)
+			{
+				Logger.LogTrace(exc);
+			}
+			else
+			{
+				Logger.LogDebug(exc);
+			}
+		}
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
