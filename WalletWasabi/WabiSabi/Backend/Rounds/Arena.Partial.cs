@@ -3,7 +3,6 @@ using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -13,7 +12,6 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
-using System;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 

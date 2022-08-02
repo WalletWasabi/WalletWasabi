@@ -10,8 +10,6 @@ using Microsoft.OpenApi.Models;
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;

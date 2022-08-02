@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using System.IO;
 using System.Reactive;

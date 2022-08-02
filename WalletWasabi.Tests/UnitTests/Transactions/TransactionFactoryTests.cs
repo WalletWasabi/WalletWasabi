@@ -1,6 +1,5 @@
 using Moq;
 using NBitcoin;
-using NBitcoin.Policy;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;

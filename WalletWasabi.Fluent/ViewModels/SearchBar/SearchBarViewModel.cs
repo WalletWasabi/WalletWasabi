@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text.RegularExpressions;
 using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;

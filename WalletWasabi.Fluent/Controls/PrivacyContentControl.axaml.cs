@@ -1,11 +1,9 @@
 using Avalonia;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls;
 
