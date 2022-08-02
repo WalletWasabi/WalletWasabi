@@ -12,11 +12,11 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Hardware Wallets
 
-- ColdCard MK1
 - ColdCard MK2
 - ColdCard MK3
 - ColdCard MK4
 - Ledger Nano S
+- Ledger Nano S Plus
 - Ledger Nano X
 - Trezor Model T
 
