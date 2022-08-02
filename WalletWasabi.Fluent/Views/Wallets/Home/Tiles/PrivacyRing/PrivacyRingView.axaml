@@ -53,14 +53,18 @@
                SelectedItem="{Binding SelectedItem}"
                x:Name="Ring">
         <i:Interaction.Behaviors>
-          <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" />
+          <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="1000" />
         </i:Interaction.Behaviors>
         <ListBox.Template>
           <ControlTemplate TargetType="ListBox">
-            <ItemsPresenter Name="PART_ItemsPresenter"
+            <Panel>
+              <!-- "transparent" Border used for MouseMove -->
+              <Border Background="#01FFFFFF" Margin="-250 -250 0 0" />
+              <ItemsPresenter Name="PART_ItemsPresenter"
                        Items="{TemplateBinding Items}"
                        ItemsPanel="{TemplateBinding ItemsPanel}"
                        ItemTemplate="{TemplateBinding ItemTemplate}" />
+            </Panel>
           </ControlTemplate>
         </ListBox.Template>
         <ListBox.ItemsPanel>
