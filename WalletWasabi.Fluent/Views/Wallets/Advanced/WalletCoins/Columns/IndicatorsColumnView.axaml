@@ -29,12 +29,12 @@
       <PathIcon IsVisible="{Binding CoinJoinInProgress}"
                 Data="{StaticResource wallet_action_coinjoin}"
                 Foreground="{DynamicResource SystemAccentColor}"
-                Height="9"
+                Height="15"
                 ToolTip.Tip="Coinjoining" />
       <!-- CJ inactive -->
       <PathIcon IsVisible="{Binding !CoinJoinInProgress}"
                 Data="{StaticResource wallet_action_coinjoin}"
-                Height="9"
+                Height="15"
                 Opacity="0.3"
                 ToolTip.Tip="Not coinjoining" />
     </Panel>
