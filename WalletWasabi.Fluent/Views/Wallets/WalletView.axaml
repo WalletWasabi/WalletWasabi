@@ -64,7 +64,7 @@
                       <PathIcon Data="{StaticResource stats_wallet_regular}" />
                     </MenuItem.Icon>
                   </MenuItem>
-                  <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinSettingsCommand}">
+                  <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinSettingsCommand}" IsVisible="{Binding !IsWatchOnly}">
                     <MenuItem.Icon>
                       <PathIcon Data="{StaticResource stats_wallet_regular}" />
                     </MenuItem.Icon>

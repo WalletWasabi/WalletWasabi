@@ -159,10 +159,14 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new CoinJoinSettingsViewModel(this)));
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new CoinJoinSettingsViewModel(this)), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
+
+		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
 	}
+
+	public bool IsWatchOnly { get; }
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
@@ -184,7 +188,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public ICommand WalletCoinsCommand { get; }
 
-	public ICommand CoinJoinSettingsCommand { get; }
+	public ReactiveCommand<Unit, Unit> CoinJoinSettingsCommand { get; }
 
 	private CompositeDisposable Disposables { get; }
 
