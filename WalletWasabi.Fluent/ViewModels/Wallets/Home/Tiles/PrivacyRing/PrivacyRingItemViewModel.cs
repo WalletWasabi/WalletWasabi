@@ -52,8 +52,8 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 					Segments = new PathSegments
 					{
 						new ArcSegment { Size = arc1Size, Point = arc1, IsLargeArc = isLargeArc },
-						new LineSegment { Point = origin2},
-						new ArcSegment { Size = arc2Size, Point = arc2, SweepDirection = SweepDirection.CounterClockwise, IsLargeArc = isLargeArc}
+						new LineSegment { Point = origin2 },
+						new ArcSegment { Size = arc2Size, Point = arc2, SweepDirection = SweepDirection.CounterClockwise, IsLargeArc = isLargeArc }
 					}
 				}
 			}

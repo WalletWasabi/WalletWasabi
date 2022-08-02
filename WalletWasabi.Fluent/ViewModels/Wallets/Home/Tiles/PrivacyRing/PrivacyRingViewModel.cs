@@ -19,8 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
-	private IObservable<Unit> _coinsUpdated;
 	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
+	private IObservable<Unit> _coinsUpdated;
 	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
 
 	public PrivacyRingViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
