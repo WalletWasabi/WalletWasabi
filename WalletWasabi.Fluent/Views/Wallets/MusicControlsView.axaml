@@ -105,40 +105,40 @@
             <PathIcon Data="{StaticResource stop_regular}" />
           </Button>
 
-          <Panel>
-            <Ellipse Height="12" Width="12"
-                     Classes.disabled="{Binding !CoinJoinStateViewModel.AutoCoinJoinObservable^}"
-                     Classes.waiting="{Binding CoinJoinStateViewModel.IsAutoWaiting}">
-              <Ellipse.Styles>
-                <Style Selector="Ellipse">
-                  <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-                  <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin enabled" />
-                </Style>
-                <Style Selector="Ellipse.waiting">
-                  <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
-                  <Setter Property="ToolTip.Tip"
-                          Value="Auto-start coinjoin enabled. Press Play to start immediately." />
-                </Style>
-                <Style Selector="Ellipse.disabled">
-                  <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
-                  <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin disabled" />
-                </Style>
-              </Ellipse.Styles>
-            </Ellipse>
-
-            <Button DockPanel.Dock="Top" Opacity="0.6"
-                    Background="Transparent"
-                    Padding="0"
-                    Command="{Binding CoinJoinSettingsCommand}"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Right">
-              <Button.Content>
-                <PathIcon Height="12" Data="{StaticResource settings_general_regular}" />
-              </Button.Content>
-            </Button>
-
-          </Panel>
+          <Ellipse Height="12" Width="12"
+                   Classes.disabled="{Binding !CoinJoinStateViewModel.AutoCoinJoinObservable^}"
+                   Classes.waiting="{Binding CoinJoinStateViewModel.IsAutoWaiting}">
+            <Ellipse.Styles>
+              <Style Selector="Ellipse">
+                <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin enabled" />
+              </Style>
+              <Style Selector="Ellipse.waiting">
+                <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
+                <Setter Property="ToolTip.Tip"
+                        Value="Auto-start coinjoin enabled. Press Play to start immediately." />
+              </Style>
+              <Style Selector="Ellipse.disabled">
+                <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin disabled" />
+              </Style>
+            </Ellipse.Styles>
+          </Ellipse>
         </StackPanel>
+
+        <Button DockPanel.Dock="Top"
+                Opacity="0.6"
+                Margin="0 4 0 0"
+                Background="Transparent"
+                Padding="0"
+                Command="{Binding CoinJoinSettingsCommand}"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Right">
+          <Button.Content>
+            <PathIcon Height="12" Data="{StaticResource settings_general_regular}" />
+          </Button.Content>
+        </Button>
+
       </Panel>
     </Border>
   </Border>
