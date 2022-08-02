@@ -21,7 +21,7 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 
 		var margin =
 			end - start == 1.0
-			? 0d
+			? 0.01d
 			: 2d;
 
 		var startAngle = (TotalAngle * start) - UprightAngle;
