@@ -87,7 +87,7 @@ public class QrCode : Control
 
 		var path = await FileDialogHelper.ShowSaveFileDialogAsync(
 			"Save QR Code...",
-			new [] { "png" },
+			new[] { "png" },
 			$"{address}.png",
 			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
 		if (!string.IsNullOrWhiteSpace(path))

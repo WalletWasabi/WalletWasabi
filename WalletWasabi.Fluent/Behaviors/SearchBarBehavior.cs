@@ -50,13 +50,13 @@ public class SearchBarBehavior : AttachedToVisualTreeBehavior<Control>
 			return;
 		}
 
-        var flyout = FlyoutBase.GetAttachedFlyout(AssociatedObject);
-        if (flyout is not null)
-        {
-            Observable.FromEventPattern(flyout, nameof(FlyoutBase.Closed))
-                .Subscribe(_ => FocusManager.Instance?.Focus(null))
-                .DisposeWith(disposables);
-        }
+		var flyout = FlyoutBase.GetAttachedFlyout(AssociatedObject);
+		if (flyout is not null)
+		{
+			Observable.FromEventPattern(flyout, nameof(FlyoutBase.Closed))
+				.Subscribe(_ => FocusManager.Instance?.Focus(null))
+				.DisposeWith(disposables);
+		}
 
 		var visualRoot = AssociatedObject.GetVisualRoot();
 
