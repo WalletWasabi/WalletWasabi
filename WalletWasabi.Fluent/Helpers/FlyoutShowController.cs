@@ -4,14 +4,14 @@ using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class FlyoutController : IDisposable
+public class FlyoutShowController : IDisposable
 {
 	private readonly FlyoutBase _flyout;
 	private readonly Control _parent;
 	private bool _isForcedOpen;
 	private bool _isOpen;
 
-	public FlyoutController(FlyoutBase flyout, Control parent)
+	public FlyoutShowController(Control parent, FlyoutBase flyout)
 	{
 		_flyout = flyout;
 		_parent = parent;

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -15,20 +16,28 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	public static readonly StyledProperty<bool> IsFlyoutOpenProperty =
-		AvaloniaProperty.Register<ShowAttachedFlyoutWhenFocusedBehavior, bool>(nameof(IsFlyoutOpen));
+	public static readonly DirectProperty<ShowAttachedFlyoutWhenFocusedBehavior, bool> IsFlyoutOpenProperty =
+		AvaloniaProperty.RegisterDirect<ShowAttachedFlyoutWhenFocusedBehavior, bool>(
+			"IsFlyoutOpen",
+			o => o.IsFlyoutOpen,
+			(o, v) => o.IsFlyoutOpen = v);
 
-	private FlyoutController? _flyoutController;
+	private bool _isFlyoutOpen;
 
 	public bool IsFlyoutOpen
 	{
-		get => GetValue(IsFlyoutOpenProperty);
-		set => SetValue(IsFlyoutOpenProperty, value);
+		get => _isFlyoutOpen;
+		set => SetAndRaise(IsFlyoutOpenProperty, ref _isFlyoutOpen, value);
 	}
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject is null)
+		{
+			return;
+		}
+
+		if (AssociatedObject.GetVisualRoot() is not Control visualRoot)
 		{
 			return;
 		}
@@ -39,98 +48,86 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			return;
 		}
 
-		if (AssociatedObject.GetVisualRoot() is not Control visualRoot)
-		{
-			return;
-		}
+		var controller = new FlyoutShowController(AssociatedObject, flyoutBase).DisposeWith(disposable);
 
-		_flyoutController = new FlyoutController(flyoutBase, AssociatedObject)
-			.DisposeWith(disposable);
+		FocusBasedFlyoutOpener(AssociatedObject, flyoutBase, controller).DisposeWith(disposable);
+		IsOpenPropertySynchronizer(controller).DisposeWith(disposable);
 
-		DescendantPressed(visualRoot)
-			.Select(descendant => AssociatedObject.IsVisualAncestorOf(descendant))
-			.Do(
-				isAncestor =>
-				{
-					_flyoutController.SetIsOpen(isAncestor);
-					IsFlyoutOpen = isAncestor;
-				})
-			.Subscribe()
-			.DisposeWith(disposable);
-
-		Observable.FromEventPattern(AssociatedObject, nameof(InputElement.GotFocus))
-			.Do(
-				_ =>
-				{
-					_flyoutController.SetIsOpen(true);
-					IsFlyoutOpen = true;
-				})
-			.Subscribe()
-			.DisposeWith(disposable);
-
-		Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
-			.Do(
-				_ =>
-				{
-					if (AssociatedObject.IsFocused)
-					{
-						_flyoutController.SetIsOpen(true);
-					}
-				})
-			.Subscribe()
-			.DisposeWith(disposable);
-
-		Observable.FromEventPattern(AssociatedObject, nameof(InputElement.LostFocus))
-			.Where(_ => !IsFocusInside(flyoutBase))
-			.Do(
-				_ =>
-				{
-					_flyoutController.SetIsOpen(false);
-					IsFlyoutOpen = false;
-				})
-			.Subscribe()
-			.DisposeWith(disposable);
-
-		this.GetObservable(IsFlyoutOpenProperty)
-			.Do(b => _flyoutController.SetIsOpen(b))
-			.Subscribe()
-			.DisposeWith(disposable);
+		// EDGE CASES
+		// Edge case when the Visual Root becomes active and the Associated object is focused.
+		ActivateOpener(AssociatedObject, visualRoot, controller).DisposeWith(disposable);
+		DeactivateCloser(visualRoot, controller).DisposeWith(disposable);
 
 		// This is a workaround for the case when the user switches theme. The same behavior is detached and re-attached on theme changes.
 		// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
 		if (IsFlyoutOpen)
 		{
-			_flyoutController.SetIsOpen(false);
+			controller.SetIsOpen(false);
 		}
 	}
 
-	private static IObservable<Visual> DescendantPressed(IInteractive interactive)
+	private static IDisposable DeactivateCloser(Control visualRoot, FlyoutShowController controller)
 	{
-		return interactive
-			.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
-			.Select(x => x.EventArgs.Source)
-			.WhereNotNull()
-			.OfType<Visual>()
-			.Where(x => x is not LightDismissOverlayLayer);
+		return Observable.FromEventPattern(visualRoot, nameof(Window.Deactivated))
+			.Do(_ => controller.SetIsOpen(false))
+			.Subscribe();
 	}
 
-	private static bool IsFocusInside(IPopupHostProvider popupHostProvider)
+	private static IDisposable ActivateOpener(
+		IInputElement associatedObject,
+		Control visualRoot,
+		FlyoutShowController controller)
 	{
-		var focusManager = FocusManager.Instance;
+		return Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
+			.Do(
+				_ =>
+				{
+					if (associatedObject.IsFocused)
+					{
+						controller.SetIsOpen(true);
+					}
+				})
+			.Subscribe();
+	}
 
-		if (focusManager?.Current is null)
-		{
-			return false;
-		}
+	private IDisposable IsOpenPropertySynchronizer(FlyoutShowController controller)
+	{
+		return this.WhenAnyValue(x => x.IsFlyoutOpen)
+			.Do(controller.SetIsOpen)
+			.Subscribe();
+	}
 
-		var popupPresenter = popupHostProvider.PopupHost?.Presenter;
+	private IDisposable FocusBasedFlyoutOpener(
+		IInteractive associatedObject,
+		FlyoutBase flyoutBase,
+		FlyoutShowController controller)
+	{
+		var currentPopupHost = Observable
+			.FromEventPattern(flyoutBase, nameof(flyoutBase.Opened))
+			.Select(_ => ((IPopupHostProvider) flyoutBase).PopupHost?.Presenter)
+			.WhereNotNull();
 
-		if (popupPresenter is null)
-		{
-			return false;
-		}
+		var associatedGotFocus = associatedObject.OnEvent(InputElement.GotFocusEvent).ToSignal();
+		var associatedLostFocus = associatedObject.OnEvent(InputElement.LostFocusEvent).ToSignal();
+		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();
+		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
 
-		var currentlyFocused = focusManager.Current;
-		return popupPresenter.IsVisualAncestorOf(currentlyFocused);
+		var isFocused = associatedGotFocus
+			.Merge(popupGotFocus).Select(_ => true)
+			.Merge(associatedLostFocus.Merge(popupLostFocus).Select(_ => false));
+
+		return isFocused
+			.Buffer(TimeSpan.FromSeconds(0.1))
+			.Where(focusedList => focusedList.Any())
+			.Select(focusedList => focusedList.Any(focused => focused))
+			.DistinctUntilChanged()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(
+				isOpen =>
+				{
+					controller.SetIsOpen(isOpen);
+					IsFlyoutOpen = isOpen;
+				})
+			.Subscribe();
 	}
 }
