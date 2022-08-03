@@ -10,11 +10,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
-	[AutoNotify] private bool _preferPsbtWorkflow;
+	private readonly Wallet _wallet;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
-
-	private readonly Wallet _wallet;
+	[AutoNotify] private bool _preferPsbtWorkflow;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
@@ -23,22 +22,25 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
+		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
+		                     KeyManager.DefaultPlebStopThreshold.ToString();
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(false, true, true);
 
 		NextCommand = CancelCommand;
 
-		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
+		VerifyRecoveryWordsCommand =
+			ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
-			.Subscribe(value =>
-			{
-				_wallet.KeyManager.PreferPsbtWorkflow = value;
-				_wallet.KeyManager.ToFile();
-				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-			});
+			.Subscribe(
+				value =>
+				{
+					_wallet.KeyManager.PreferPsbtWorkflow = value;
+					_wallet.KeyManager.ToFile();
+					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
+				});
 
 		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 
@@ -53,7 +55,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public bool IsWatchOnly { get; }
 
-	public override sealed string Title { get; protected set; }
+	public sealed override string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
 
