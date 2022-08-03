@@ -49,6 +49,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 		Settings = new WalletSettingsViewModel(this);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
 
 		var balanceChanged =
 			Observable.FromEventPattern(
@@ -159,12 +160,14 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new CoinJoinSettingsViewModel(this)), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 
 		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
 	}
+
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
 
 	public bool IsWatchOnly { get; }
 

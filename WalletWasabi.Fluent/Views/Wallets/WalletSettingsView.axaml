@@ -22,8 +22,6 @@
         </DockPanel>
       </StackPanel>
 
-      <Separator IsVisible="{Binding !IsWatchOnly}" />
-
       <StackPanel Spacing="20" IsVisible="{Binding !IsWatchOnly}">
         <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
         <c:InfoMessage>
