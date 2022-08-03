@@ -274,11 +274,11 @@ public class SmartTransactionTests
 
 		Transaction t = Transaction.Create(network);
 
-		SmartTransaction st1 = new(t, 0);
-
-		var sc = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(1));
-		var sc2 = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(2));
+		var sc = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(1));
+		var sc2 = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(2));
 		Assert.NotEqual(sc, sc2);
+
+		var st1 = sc.Transaction;
 		st1.TryAddWalletOutput(sc);
 		st1.TryAddWalletOutput(sc2);
 
