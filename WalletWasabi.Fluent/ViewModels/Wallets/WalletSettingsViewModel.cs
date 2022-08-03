@@ -1,10 +1,8 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -16,7 +14,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
 
-	private Wallet _wallet;
+	private readonly Wallet _wallet;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
