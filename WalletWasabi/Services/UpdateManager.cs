@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
@@ -18,6 +19,7 @@ public class UpdateManager : IDisposable
 	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
+	private CancellationToken _cancellationToken;
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
@@ -48,6 +50,11 @@ public class UpdateManager : IDisposable
 					Logger.LogInfo($"Version {newVersion} downloaded successfuly.");
 					updateStatus.IsReadyToInstall = true;
 					updateStatus.ClientVersion = newVersion;
+					break;
+				}
+				catch (TaskCanceledException ex)
+				{
+					Logger.LogDebug($"Geting new update was canceled.");
 					break;
 				}
 				catch (Exception ex)
@@ -82,12 +89,12 @@ public class UpdateManager : IDisposable
 			using HttpClient httpClient = new();
 
 			// Get file stream and copy it to downloads folder to access.
-			using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
+			using var stream = await httpClient.GetStreamAsync(url, _cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo("Installer downloaded, copying...");
 			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
 			using (var file = File.OpenWrite(tmpFilePath))
 			{
-				await stream.CopyToAsync(file).ConfigureAwait(false);
+				await stream.CopyToAsync(file, _cancellationToken).ConfigureAwait(false);
 
 				// Closing the file to rename.
 				file.Close();
@@ -260,9 +267,10 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	public void Initialize(UpdateChecker updateChecker)
+	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
 	{
 		UpdateChecker = updateChecker;
+		_cancellationToken = cancelationToken;
 		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
 
