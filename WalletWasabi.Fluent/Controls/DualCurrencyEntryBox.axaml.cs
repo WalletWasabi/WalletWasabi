@@ -68,6 +68,7 @@ public class DualCurrencyEntryBox : UserControl
 	private CurrencyEntryBox? _rightEntryBox;
 	private decimal _amountBtc;
 	private bool _canUpdateDisplay = true;
+	private bool _canUpdateFiat = true;
 
 	public DualCurrencyEntryBox()
 	{
@@ -90,6 +91,8 @@ public class DualCurrencyEntryBox : UserControl
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
 
 		UpdateDisplay(false);
+
+		PseudoClasses.Set(":noexchangerate", true);
 	}
 
 	public decimal AmountBtc
@@ -238,6 +241,11 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void InputFiatString(string value)
 	{
+		if (!_canUpdateFiat)
+		{
+			return;
+		}
+
 		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
 		{
 			InputBtcValue(FiatToBitcoin(decimalValue));
@@ -248,6 +256,23 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void UpdateDisplay(bool updateTextField)
 	{
+		Watermark = FullFormatBtc(0);
+
+		if (updateTextField)
+		{
+			_canUpdateDisplay = false;
+			Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+
+			_canUpdateDisplay = true;
+		}
+
+		UpdateDisplayFiat(updateTextField);
+	}
+
+	private void UpdateDisplayFiat(bool updateTextField)
+	{
+		_canUpdateFiat = false;
+
 		if (ConversionRate == 0m)
 		{
 			return;
@@ -256,17 +281,14 @@ public class DualCurrencyEntryBox : UserControl
 		var conversion = BitcoinToFiat(AmountBtc);
 
 		IsConversionApproximate = AmountBtc > 0;
-
-		Watermark = FullFormatBtc(0);
 		ConversionWatermark = FullFormatFiat(0, ConversionCurrencyCode, true);
 
 		if (updateTextField)
 		{
-			_canUpdateDisplay = false;
-			Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
 			ConversionText = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
-			_canUpdateDisplay = true;
 		}
+
+		_canUpdateFiat = true;
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
