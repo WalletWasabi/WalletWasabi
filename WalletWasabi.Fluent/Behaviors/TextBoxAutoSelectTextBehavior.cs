@@ -19,6 +19,6 @@ internal class TextBoxAutoSelectTextBehavior : AttachedToVisualTreeBehavior<Text
 			.DisposeWith(disposable);
 		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerReleased))
 			.Subscribe(_ => AssociatedObject.SelectAll())
-			.DisposeWith(disposable); ;
+			.DisposeWith(disposable);
 	}
 }
