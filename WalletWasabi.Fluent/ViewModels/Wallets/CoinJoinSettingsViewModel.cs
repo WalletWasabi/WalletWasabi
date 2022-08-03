@@ -15,12 +15,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
+	private readonly Wallet _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
-
-	private readonly Wallet _wallet;
 
 	public CoinJoinSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
