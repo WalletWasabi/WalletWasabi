@@ -36,9 +36,10 @@ public static class Services
 	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
 
 	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
+	public static UpdateManager UpdateManager { get; private set; } = null!;
 
 	public static bool IsInitialized { get; private set; }
-	
+
 	/// <summary>
 	/// Initializes global services used by fluent project.
 	/// </summary>
@@ -57,6 +58,7 @@ public static class Services
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
 		Guard.NotNull(nameof(global.UiConfig), global.UiConfig);
 		Guard.NotNull(nameof(global.TorStatusChecker), global.TorStatusChecker);
+		Guard.NotNull(nameof(global.UpdateManager), global.UpdateManager);
 
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
@@ -71,6 +73,7 @@ public static class Services
 		UiConfig = global.UiConfig;
 		SingleInstanceChecker = singleInstanceChecker;
 		TorStatusChecker = global.TorStatusChecker;
+		UpdateManager = global.UpdateManager;
 
 		IsInitialized = true;
 	}

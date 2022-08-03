@@ -32,6 +32,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	[AutoNotify] private bool _hideOnClose;
 	[AutoNotify] private bool _useTor;
 	[AutoNotify] private bool _terminateTorOnExit;
+	[AutoNotify] private bool _downloadNewVersion;
 
 	public GeneralSettingsTabViewModel()
 	{
@@ -47,6 +48,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			: FeeDisplayUnit.Satoshis;
 		_useTor = Services.Config.UseTor;
 		_terminateTorOnExit = Services.Config.TerminateTorOnExit;
+		_downloadNewVersion = Services.Config.DownloadNewVersion;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
@@ -100,7 +102,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		this.WhenAnyValue(
 				x => x.UseTor,
 				x => x.TerminateTorOnExit,
-				x => x.EnableGpu)
+				x => x.EnableGpu,
+				x => x.DownloadNewVersion)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
@@ -117,5 +120,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		config.UseTor = UseTor;
 		config.TerminateTorOnExit = TerminateTorOnExit;
 		config.EnableGpu = EnableGpu;
+		config.DownloadNewVersion = DownloadNewVersion;
 	}
 }
