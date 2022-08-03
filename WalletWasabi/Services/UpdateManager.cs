@@ -54,7 +54,7 @@ public class UpdateManager : IDisposable
 				}
 				catch (TaskCanceledException ex)
 				{
-					Logger.LogDebug($"Geting new update was canceled.");
+					Logger.LogTrace($"Geting new update was canceled.", ex);
 					break;
 				}
 				catch (Exception ex)
@@ -110,9 +110,9 @@ public class UpdateManager : IDisposable
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
+		var response = await HttpClient.SendAsync(message, _cancellationToken).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(_cancellationToken).ConfigureAwait(false));
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
