@@ -15,7 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
-	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
@@ -27,26 +26,12 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	{
 		_wallet = walletViewModelBase.Wallet;
 		Title = $"{_wallet.WalletName} - Coinjoin Settings";
-		_preferPsbtWorkflow = _wallet.KeyManager.PreferPsbtWorkflow;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
-		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
-		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
-
-		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
-
-		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
-			.Skip(1)
-			.Subscribe(value =>
-			{
-				_wallet.KeyManager.PreferPsbtWorkflow = value;
-				_wallet.KeyManager.ToFile();
-				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-			});
 
 		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -88,17 +73,11 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 			});
 	}
 
-	public bool IsHardwareWallet { get; }
-
-	public bool IsWatchOnly { get; }
-
 	public override sealed string Title { get; protected set; }
 
 	public ICommand SetAutoCoinJoin { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
-
-	public ICommand VerifyRecoveryWordsCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
