@@ -16,11 +16,6 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Enable GPU" />
-      <ToggleSwitch IsChecked="{Binding EnableGpu}" />
-    </DockPanel>
-
-    <DockPanel>
       <TextBlock Text="Run Wasabi when computer starts" />
       <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
     </DockPanel>

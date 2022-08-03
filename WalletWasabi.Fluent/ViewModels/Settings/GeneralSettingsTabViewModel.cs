@@ -17,13 +17,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Keywords = new[]
 	{
 			"Settings", "General", "Bitcoin", "Dark", "Mode", "Run", "Wasabi", "Computer", "System", "Start", "Background", "Close",
-			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats", "Enable", "GPU"
+			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats"
 	},
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 {
 	[AutoNotify] private bool _darkModeEnabled;
-	[AutoNotify] private bool _enableGpu;
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
@@ -37,7 +36,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
-		_enableGpu = Services.Config.EnableGpu;
 		_autoCopy = Services.UiConfig.Autocopy;
 		_autoPaste = Services.UiConfig.AutoPaste;
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
@@ -102,7 +100,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		this.WhenAnyValue(
 				x => x.UseTor,
 				x => x.TerminateTorOnExit,
-				x => x.EnableGpu,
 				x => x.DownloadNewVersion)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -119,7 +116,6 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	{
 		config.UseTor = UseTor;
 		config.TerminateTorOnExit = TerminateTorOnExit;
-		config.EnableGpu = EnableGpu;
 		config.DownloadNewVersion = DownloadNewVersion;
 	}
 }

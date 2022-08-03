@@ -170,6 +170,12 @@ public partial class MainViewModel : ViewModelBase
 			return _settingsPage;
 		});
 
+		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 2;
+			return _settingsPage;
+		});
+
 		AboutViewModel.RegisterLazy(() => new AboutViewModel());
 		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
 		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
