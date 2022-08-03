@@ -12,37 +12,13 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
+
     <StackPanel Spacing="20" Margin="0 30">
-      <!-- TODO: It is getting messy... A separate settings page should be created for HW wallets. -->
+
       <StackPanel Classes="settingsLayout">
         <DockPanel IsVisible="{Binding IsHardwareWallet}">
           <TextBlock Text="PSBT workflow" />
           <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
-        </DockPanel>
-
-        <DockPanel IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Automatically start coinjoin" />
-          <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
-        </DockPanel>
-
-        <StackPanel Spacing="10"
-                    ToolTip.Tip="Coinjoin will not automatically start if the non-private wallet balance is less than this."
-                    IsVisible="{Binding !IsWatchOnly}">
-          <TextBlock Text="Auto-start coinjoin threshold" />
-          <c:CurrencyEntryBox Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
-        </StackPanel>
-
-        <DockPanel>
-          <DockPanel.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding Path="IsCoinjoinProfileSelected" />
-              <Binding Path="IsWatchOnly" Converter="{x:Static BoolConverters.Not}" />
-            </MultiBinding>
-          </DockPanel.IsVisible>
-
-          <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
-          <Button Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
-          <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
         </DockPanel>
       </StackPanel>
 
@@ -57,6 +33,8 @@
           </DockPanel>
         </c:InfoMessage>
       </StackPanel>
+
     </StackPanel>
+
   </c:ContentArea>
 </UserControl>
