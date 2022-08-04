@@ -103,7 +103,7 @@ public class Program
 
 					Logger.LogError(ex);
 
-					RxApp.MainThreadScheduler.Schedule(() => throw ex);
+					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
 				});
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
@@ -139,6 +139,10 @@ public class Program
 		{
 			// Trigger the CrashReport process if required.
 			CrashReporter.Invoke(exceptionToReport);
+		}
+		else if (Services.UpdateManager.DoUpdateOnClose)
+		{
+			Services.UpdateManager.StartInstallingNewVersion();
 		}
 
 		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;

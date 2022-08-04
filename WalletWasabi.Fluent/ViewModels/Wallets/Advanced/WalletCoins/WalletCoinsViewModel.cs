@@ -31,9 +31,9 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
-		SetupCancel(false, true, true);
-		NextCommand = CancelCommand;
+        SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
+        NextCommand = CancelCommand;
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
 	}
 
