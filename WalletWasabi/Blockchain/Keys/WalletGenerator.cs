@@ -48,6 +48,48 @@ public class WalletGenerator
 		km.SetFilePath(walletFilePath);
 		return (km, mnemonic);
 	}
+	
+	public (KeyManager, Mnemonic) CreateWalletWithMnemonic(Mnemonic mnemonic,string walletName, string password)
+	{
+		if (!ValidateWalletName(walletName))
+		{
+			throw new ArgumentException("Invalid wallet name.");
+		}
+
+		string walletFilePath = Path.Combine(WalletsDir, $"{walletName}.json");
+		if (File.Exists(walletFilePath))
+		{
+			throw new ArgumentException("Wallet name is already taken.");
+		}
+
+		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
+		PasswordHelper.Guard(password);
+
+		var km = KeyManager.CreateNewWithMnemonic(mnemonic, password, Network);
+		km.AutoCoinJoin = true;
+		km.SetNetwork(Network);
+		km.SetBestHeight(new Height(TipHeight));
+		km.SetFilePath(walletFilePath);
+		return (km, mnemonic);
+	}
+	
+	public Mnemonic GenerateDummyWalletMnemonic(string walletName)
+	{
+		if (!ValidateWalletName(walletName))
+		{
+			throw new ArgumentException("Invalid wallet name.");
+		}
+
+		var walletFilePath = Path.Combine(WalletsDir, $"{walletName}.json");
+		if (File.Exists(walletFilePath))
+		{
+			throw new ArgumentException("Wallet name is already taken.");
+		}
+
+		var km = KeyManager.CreateNew(out Mnemonic mnemonic, string.Empty, Network);
+
+		return mnemonic;
+	}
 
 	public static bool ValidateWalletName(string walletName)
 	{

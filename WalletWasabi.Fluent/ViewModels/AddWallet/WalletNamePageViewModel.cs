@@ -44,7 +44,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				await CreatePasswordAsync(walletName);
+				await CreateMnemonics(walletName);
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:
@@ -78,32 +78,25 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task CreatePasswordAsync(string walletName)
+	private async Task CreateMnemonics(string walletName)
 	{
-		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
-			NavigationTarget.CompactDialogScreen);
+		IsBusy = true;
 
-		if (dialogResult.Result is { } password)
-		{
-			IsBusy = true;
-
-			var (km, mnemonic) = await Task.Run(
-				() =>
+		var mnemonic = await Task.Run(
+			() =>
+			{
+				var walletGenerator = new WalletGenerator(
+					Services.WalletManager.WalletDirectories.WalletsDir,
+					Services.WalletManager.Network)
 				{
-					var walletGenerator = new WalletGenerator(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network)
-					{
-						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
-					};
-					return walletGenerator.GenerateWallet(walletName, password);
-				});
+					TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
+				};
+				return walletGenerator.GenerateDummyWalletMnemonic(walletName);
+			});
 
-			Navigate().To(new RecoveryWordsViewModel(km, mnemonic));
+		IsBusy = false;
 
-			IsBusy = false;
-		}
+		Navigate().To(new RecoveryWordsViewModel(mnemonic, null, walletName));
 	}
 
 	private void ValidateWalletName(IValidationErrors errors)

@@ -10,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -21,7 +22,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 	[AutoNotify] private bool _isSkipEnable;
 
-	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager)
+	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, Mnemonic mnemonic,
+		KeyManager? keyManager, string? walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
@@ -35,7 +37,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(keyManager), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(mnemonic, keyManager, walletName), nextCommandCanExecute);
 
 		if (_isSkipEnable)
 		{
@@ -58,9 +60,37 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private async Task OnNextAsync(KeyManager keyManager)
+	private async Task OnNextAsync(Mnemonic mnemonics, KeyManager? keyManager = null, string? walletName = "")
 	{
-		await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
+		if (keyManager is { })
+		{
+			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
+			return;
+		}
+
+		var dialogResult = await NavigateDialogAsync(
+			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
+			NavigationTarget.CompactDialogScreen);
+
+		if (dialogResult.Result is { } password)
+		{
+			IsBusy = true;
+
+			var (km, mnemonic) = await Task.Run(
+				() =>
+				{
+					var walletGenerator = new WalletGenerator(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network)
+					{
+						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
+					};
+					return walletGenerator.CreateWalletWithMnemonic(mnemonics, walletName, password);
+				});
+			IsBusy = false;
+			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+		}
+
 	}
 
 	private void OnCancel()
