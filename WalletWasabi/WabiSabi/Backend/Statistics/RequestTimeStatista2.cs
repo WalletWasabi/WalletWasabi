@@ -19,6 +19,7 @@ public class RequestTimeStatista2
 	private object Lock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
 	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(3);
+	private DateTimeOffset Started { get;} = DateTimeOffset.UtcNow;
 
 	public void Add(string request, TimeSpan duration, float successRatio)
 	{
@@ -57,7 +58,7 @@ public class RequestTimeStatista2
 	{
 		lock (Lock)
 		{
-			Logger.LogInfo($"Response times for the last {(int)(DateTimeOffset.UtcNow - LastDisplayed).TotalMinutes} minutes:");
+			Logger.LogInfo($"Response times for the last {(int)(DateTimeOffset.UtcNow - Started).TotalMinutes} minutes:");
 			foreach (var request in Requests.OrderByDescending(x => x.Value.Count))
 			{
 				var seconds = request.Value.Select(x => x.Duration.TotalSeconds);
