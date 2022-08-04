@@ -32,12 +32,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is null)
-		{
-			return;
-		}
-
-		if (AssociatedObject.GetVisualRoot() is not Control visualRoot)
+		if (AssociatedObject?.GetVisualRoot() is not Control visualRoot)
 		{
 			return;
 		}
