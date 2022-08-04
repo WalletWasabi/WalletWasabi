@@ -19,7 +19,6 @@ public class UpdateManager : IDisposable
 	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
-	private CancellationToken _cancellationToken;
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
@@ -89,12 +88,12 @@ public class UpdateManager : IDisposable
 			using HttpClient httpClient = new();
 
 			// Get file stream and copy it to downloads folder to access.
-			using var stream = await httpClient.GetStreamAsync(url, _cancellationToken).ConfigureAwait(false);
+			using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 			Logger.LogInfo("Installer downloaded, copying...");
 			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
 			using (var file = File.OpenWrite(tmpFilePath))
 			{
-				await stream.CopyToAsync(file, _cancellationToken).ConfigureAwait(false);
+				await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
 
 				// Closing the file to rename.
 				file.Close();
@@ -110,9 +109,9 @@ public class UpdateManager : IDisposable
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var response = await HttpClient.SendAsync(message, _cancellationToken).ConfigureAwait(false);
+		var response = await HttpClient.SendAsync(message, CancellationToken).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(_cancellationToken).ConfigureAwait(false));
+		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false));
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
@@ -222,6 +221,7 @@ public class UpdateManager : IDisposable
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker? UpdateChecker { get; set; }
+	private CancellationToken CancellationToken { get; set; }
 
 	public void StartInstallingNewVersion()
 	{
@@ -270,7 +270,7 @@ public class UpdateManager : IDisposable
 	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
 	{
 		UpdateChecker = updateChecker;
-		_cancellationToken = cancelationToken;
+		CancellationToken = cancelationToken;
 		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
 
