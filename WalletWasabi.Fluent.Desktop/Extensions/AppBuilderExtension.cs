@@ -9,7 +9,7 @@ public static class AppBuilderExtension
 {
 	public static AppBuilder SetupAppBuilder(this AppBuilder appBuilder)
 	{
-		bool useGpuLinux = true;
+		bool enableGpu = Services.Config.EnableGpu;
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -29,9 +29,9 @@ public static class AppBuilderExtension
 
 		return appBuilder
 			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 })
-			.With(new Win32PlatformOptions { AllowEglInitialization = true, UseWindowsUIComposition = true, UseCompositor = true })
-			.With(new X11PlatformOptions { UseGpu = useGpuLinux, WmClass = "Wasabi Wallet", UseCompositor = true })
-			.With(new AvaloniaNativePlatformOptions { UseGpu = true, UseCompositor = true })
+			.With(new Win32PlatformOptions { AllowEglInitialization = enableGpu, UseCompositor = true, UseWindowsUIComposition = true })
+			.With(new X11PlatformOptions { UseGpu = enableGpu, WmClass = "Wasabi Wallet", UseCompositor = true })
+			.With(new AvaloniaNativePlatformOptions { UseCompositor = true, UseGpu = enableGpu })
 			.With(new MacOSPlatformOptions { ShowInDock = true });
 	}
 }
