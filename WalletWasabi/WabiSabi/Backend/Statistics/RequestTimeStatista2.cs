@@ -15,7 +15,7 @@ public class RequestTimeStatista2
 
 	public static RequestTimeStatista2 Instance => Lazy.Value;
 
-	private Dictionary<string, List<(DateTimeOffset Time, TimeSpan Duration, float successRatio)>> Requests { get; } = new();
+	private Dictionary<string, List<(DateTimeOffset Time, TimeSpan Duration, float SuccessRatio)>> Requests { get; } = new();
 	private object Lock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
 	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(3);
@@ -61,7 +61,11 @@ public class RequestTimeStatista2
 			foreach (var request in Requests.OrderByDescending(x => x.Value.Count))
 			{
 				var seconds = request.Value.Select(x => x.Duration.TotalSeconds);
-				Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Median: {seconds.Median():0.0}s Average: {seconds.Average():0.0}s Largest {seconds.Max():0.0}s");
+
+				var fatalFailures = request.Value.Count(x => x.SuccessRatio == 0);
+				var successRatio = request.Value.Where(x => x.SuccessRatio != 0).Average(x => x.SuccessRatio);
+
+				Logger.LogInfo($"Responded to '{request.Key}'\t {request.Value.Count} times. Median: {seconds.Median():0.0}s Average: {seconds.Average():0.0}s Largest {seconds.Max():0.0}s SuccessRatio: {successRatio:0.##} FatalFails: {fatalFailures}");
 			}
 
 			LastDisplayed = DateTimeOffset.UtcNow;
