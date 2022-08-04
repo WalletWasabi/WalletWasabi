@@ -238,16 +238,10 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-			var outputRegStartTime = DateTimeOffset.UtcNow;
-			var outputTxOuts = await ProceedWithOutputRegistrationAsync(roundId, registeredAliceClients, roundState, cancellationToken).ConfigureAwait(false);
-
-			ReplaceTorCircuitsWithNew(registeredAliceClientAndCircuits, registeredAliceClients);
-
-			await ProceedWithReadyToSignAsync(roundId, registeredAliceClients, roundState, outputRegStartTime, cancellationToken).ConfigureAwait(false);
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, registeredAliceClientAndCircuits, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+
 			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
 			var msg = roundState.EndRoundState switch
@@ -952,16 +946,19 @@ public class CoinJoinClient
 		return targetInputCount;
 	}
 
-	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits, CancellationToken cancellationToken)
 	{
+		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
+		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 		var roundParameters = roundState.CoinjoinState.Parameters;
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
 		var now = DateTimeOffset.UtcNow;
 		var outputRegistrationPhaseEndTime = now + remainingTime;
 
 		// Splitting the remaining time.
-		// Both output reg and ready to sign are done under output registration phase, so we have to do the random timing taking that into account.
+		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
 		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
+		var readyToSignEndTime = outputRegistrationEndTime + remainingTime * 0.2; // 20% of the time.
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 
@@ -1009,27 +1006,13 @@ public class CoinJoinClient
 			roundState.LogDebug(e.ToString());
 		}
 
-		return outputTxOuts;
-	}
-
-	private async Task ProceedWithReadyToSignAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, RoundState roundState, DateTimeOffset outputRegStartTime, CancellationToken cancellationToken)
-	{
-		var roundParameters = roundState.CoinjoinState.Parameters;
-
-		// Both output reg and ready to sign are done under output registration phase. So we are already in Output registration Phase.
-		var totalPhaseRemainingTime = roundParameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
-		var outputRegistrationPhaseEndTime = outputRegStartTime + totalPhaseRemainingTime;
-		var remainingTime = DateTimeOffset.UtcNow - outputRegistrationPhaseEndTime;
-
-		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
+		ReplaceTorCircuitsWithNew(registeredAliceClientAndCircuits, registeredAliceClients);
 
 		// ReadyToSign.
-		var readyToSignEndTime = outputRegStartTime + roundState.CoinjoinState.Parameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
-		var timeUntilOutputRegEnd = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
-		await ReadyToSignAsync(registeredAliceClients, outputRegistrationPhaseEndTime, linkedCts.Token).ConfigureAwait(false);
+		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
+		return outputTxOuts;
 	}
 
 	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)>
