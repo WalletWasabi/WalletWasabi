@@ -5,10 +5,8 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -67,8 +65,6 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
-		this.ValidateProperty(x => x.PlebStopThreshold, ValidatePlebStopThreshold);
-
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
@@ -104,33 +100,11 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 				};
 	}
 
-	private static void ValidatePlebStopThreshold(IValidationErrors errors, string plebStopThreshold)
-	{
-		if (string.IsNullOrWhiteSpace(plebStopThreshold) || string.IsNullOrEmpty(plebStopThreshold))
-		{
-			return;
-		}
-
-		if (plebStopThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
-		{
-			errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-		}
-		else if (!decimal.TryParse(plebStopThreshold, out _))
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid coinjoin threshold.");
-		}
-	}
-
 	private async Task SelectCoinjoinProfileAsync()
 	{
 		await NavigateDialogAsync(
 			new CoinJoinProfilesViewModel(_wallet.KeyManager, false),
 			NavigationTarget.DialogScreen);
 		AutoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
-	}
-
-	private void ValidatePlebStopThreshold(IValidationErrors errors)
-	{
-		ValidatePlebStopThreshold(errors, PlebStopThreshold);
 	}
 }
