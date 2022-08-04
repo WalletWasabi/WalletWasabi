@@ -49,6 +49,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 		Settings = new WalletSettingsViewModel(this);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
 
 		var balanceChanged =
 			Observable.FromEventPattern(
@@ -159,8 +160,14 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
+
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
+
+	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
@@ -182,7 +189,9 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public ICommand WalletCoinsCommand { get; }
 
-	private CompositeDisposable Disposables { get; set; }
+	public ICommand CoinJoinSettingsCommand { get; }
+
+	private CompositeDisposable Disposables { get; }
 
 	public HistoryViewModel History { get; }
 
