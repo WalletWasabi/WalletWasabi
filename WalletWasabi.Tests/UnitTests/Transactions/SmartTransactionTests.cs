@@ -286,6 +286,28 @@ public class SmartTransactionTests
 		Assert.Equal(2, st1.WalletVirtualInputs.First().Coins.Count);
 	}
 
+	[Fact]
+	public void SmartTransactionVirtualWalletOutputMerge()
+	{
+		var km = ServiceFactory.CreateKeyManager("");
+		var network = km.GetNetwork();
+		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
+
+		Transaction t = Transaction.Create(network);
+
+		var sc = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(1));
+		var sc2 = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(2));
+		Assert.NotEqual(sc, sc2);
+
+		var st1 = sc.Transaction;
+		st1.TryAddWalletOutput(sc);
+		st1.TryAddWalletOutput(sc2);
+
+		Assert.Equal(1, st1.WalletVirtualOutputs.Count);
+		Assert.Equal(Money.Coins(3), st1.WalletVirtualOutputs.First().Amount);
+		Assert.Equal(2, st1.WalletVirtualOutputs.First().OutPoints.Count);
+	}
+
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()
 	{
 		var networks = new List<Network>

@@ -114,6 +114,11 @@ public class CurrencyEntryBox : TextBox
 
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
+		if (ConversionRate == 0m)
+		{
+			return 0m;
+		}
+
 		return fiatValue / ConversionRate;
 	}
 

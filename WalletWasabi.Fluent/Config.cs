@@ -69,6 +69,10 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool TerminateTorOnExit { get; internal set; } = false;
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "DownloadNewVersion", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool DownloadNewVersion { get; internal set; } = true;
+
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool StartLocalBitcoinCoreOnStartup { get; internal set; } = false;
