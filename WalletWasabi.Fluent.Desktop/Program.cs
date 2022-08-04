@@ -24,6 +24,7 @@ using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
+using System.Collections.ObjectModel;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -220,10 +221,12 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
+		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
+
 		// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
-		if (e.Exception.Flatten().InnerException is SocketException exc)
+		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException)
 		{
-			Logger.LogTrace(exc);
+			Logger.LogTrace(e.Exception);
 		}
 		else
 		{
