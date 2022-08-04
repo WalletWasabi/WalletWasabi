@@ -19,7 +19,7 @@ public class RequestTimeStatista2
 	private object Lock { get; } = new();
 	private DateTimeOffset LastDisplayed { get; set; } = DateTimeOffset.UtcNow;
 	private TimeSpan DisplayFrequency { get; } = TimeSpan.FromMinutes(3);
-	private DateTimeOffset Started { get;} = DateTimeOffset.UtcNow;
+	private DateTimeOffset Started { get; } = DateTimeOffset.UtcNow;
 
 	public void Add(string request, TimeSpan duration, float successRatio)
 	{
@@ -70,7 +70,6 @@ public class RequestTimeStatista2
 			}
 
 			LastDisplayed = DateTimeOffset.UtcNow;
-			// Requests.Clear(); Not clearing the data.
 		}
 	}
 }
