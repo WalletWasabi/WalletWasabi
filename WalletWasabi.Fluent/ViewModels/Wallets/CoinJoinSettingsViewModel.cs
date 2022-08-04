@@ -11,14 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-[NavigationMetaData(
-	Title = "Coinjoin Settings",
-	Category = "Coinjoin",
-	Caption = "Coinjoin Settings",
-	IconName = "wallet_action_coinjoin",
-	Keywords = new[] { "Coinjoin", "Settings", "Options", "Pleb", "Auto" },
-	Searchable = true)
-]
+[NavigationMetaData(Title = "Coinjoin Settings")]
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;

@@ -189,7 +189,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public ICommand WalletCoinsCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> CoinJoinSettingsCommand { get; }
+	public ICommand CoinJoinSettingsCommand { get; }
 
 	private CompositeDisposable Disposables { get; }
 
