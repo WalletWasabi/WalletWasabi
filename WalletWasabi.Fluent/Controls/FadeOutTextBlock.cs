@@ -22,9 +22,9 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
 		GradientStops =
 		{
-			new GradientStop {Color = Colors.White, Offset = 0},
-			new GradientStop {Color = Colors.White, Offset = 0.7},
-			new GradientStop {Color = Colors.Transparent, Offset = 0.9}
+			new GradientStop { Color = Colors.White, Offset = 0 },
+			new GradientStop { Color = Colors.White, Offset = 0.7 },
+			new GradientStop { Color = Colors.Transparent, Offset = 0.9 }
 		}
 	}.ToImmutable();
 

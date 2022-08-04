@@ -113,6 +113,7 @@ public class QrCode : Control
 			{
 				DrawQrCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
 			}
+
 			rtb.Save(path);
 		}
 	}
@@ -137,7 +138,7 @@ public class QrCode : Control
 	}
 
 	private (int indexW, int indexH) GetMatrixIndexSize(bool[,] source) =>
-	(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
+		(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
 
 	private void DrawQrCodeImage(IDrawingContextImpl ctx, bool[,] source, Size size)
 	{

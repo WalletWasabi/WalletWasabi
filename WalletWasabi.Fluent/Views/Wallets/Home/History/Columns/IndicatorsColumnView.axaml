@@ -14,7 +14,7 @@
       <Button Classes="plain" ToolTip.Tip="Show Details"
               Command="{Binding ShowDetailsCommand}">
         <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6"
-                  Foreground="{DynamicResource SystemAccentColor}"/>
+                  Foreground="{DynamicResource SystemAccentColor}" />
       </Button>
     </Panel>
 

@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
@@ -72,10 +72,10 @@
           <DoubleTransition Property="Opacity"
                             Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
-           <!--NOTE: This was previously reported to cause a glitchy transition. This is likely because of a bug in Avalonia. --> 
-           <ThicknessTransition Property="Margin" 
-                                Duration="0:0:0.127" 
-                                Easing="{StaticResource FluentEasing}" /> 
+          <!--NOTE: This was previously reported to cause a glitchy transition. This is likely because of a bug in Avalonia. -->
+          <ThicknessTransition Property="Margin"
+                               Duration="0:0:0.127"
+                               Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </Setter>
     </Style>
@@ -146,7 +146,7 @@
     <TextBox.InnerRightContent>
       <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
     </TextBox.InnerRightContent>
-    
+
   </TextBox>
 
   <FlyoutBase.AttachedFlyout>
