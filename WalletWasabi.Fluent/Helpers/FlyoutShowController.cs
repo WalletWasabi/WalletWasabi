@@ -9,7 +9,6 @@ public class FlyoutShowController : IDisposable
 	private readonly FlyoutBase _flyout;
 	private readonly Control _parent;
 	private bool _isForcedOpen;
-	private bool _isOpen;
 
 	public FlyoutShowController(Control parent, FlyoutBase flyout)
 	{
@@ -17,29 +16,7 @@ public class FlyoutShowController : IDisposable
 		_parent = parent;
 	}
 
-	public void Dispose()
-	{
-		_flyout.Closing -= RejectClose;
-	}
-
-	public void SetIsOpen(bool value)
-	{
-		if (_isOpen == value)
-		{
-			return;
-		}
-
-		Toggle(value);
-
-		_isOpen = value;
-	}
-
-	private static void RejectClose(object? sender, CancelEventArgs e)
-	{
-		e.Cancel = true;
-	}
-
-	private void Toggle(bool value)
+	public void SetIsForcedOpen(bool value)
 	{
 		if (_isForcedOpen == value)
 		{
@@ -58,5 +35,15 @@ public class FlyoutShowController : IDisposable
 			_flyout.Closing -= RejectClose;
 			_flyout.Hide();
 		}
+	}
+
+	private static void RejectClose(object? sender, CancelEventArgs e)
+	{
+		e.Cancel = true;
+	}
+
+	public void Dispose()
+	{
+		_flyout.Closing -= RejectClose;
 	}
 }
