@@ -14,11 +14,15 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Backend;
 
-public class Global
+public class Global : IDisposable
 {
+	private bool _disposedValue;
+
 	public Global(string dataDir)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
@@ -27,19 +31,21 @@ public class Global
 
 	public string DataDir { get; }
 
-	public IRPCClient RpcClient { get; private set; }
+	public IRPCClient? RpcClient { get; private set; }
 
-	public P2pNode P2pNode { get; private set; }
+	public P2pNode? P2pNode { get; private set; }
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService IndexBuilderService { get; private set; }
+	public IndexBuilderService? IndexBuilderService { get; private set; }
 
-	public Coordinator Coordinator { get; private set; }
+	public Coordinator? Coordinator { get; private set; }
 
-	public Config Config { get; private set; }
+	public Config? Config { get; private set; }
 
-	public CoordinatorRoundConfig RoundConfig { get; private set; }
+	public CoordinatorRoundConfig? RoundConfig { get; private set; }
+	public CoinJoinIdStore? CoinJoinIdStore { get; private set; }
+	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 
 	public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
 	{
@@ -53,12 +59,20 @@ public class Global
 		// Make sure P2P works.
 		await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
+		var p2pNode = Guard.NotNull(nameof(P2pNode), P2pNode);
+		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, p2pNode), "Full Node Mempool Mirror");
+
+		// Initialize index building
+		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
+		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
-		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
-		if (roundConfig.FilePath is { })
+		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
+		if (!string.IsNullOrWhiteSpace(roundConfig.FilePath))
 		{
 			HostedServices.Register<ConfigWatcher>(() =>
 			   new ConfigWatcher(
@@ -68,9 +82,9 @@ public class Global
 				   {
 					   try
 					   {
-						   Coordinator.RoundConfig.UpdateOrDefault(RoundConfig, toFile: false);
+						   coordinator.RoundConfig.UpdateOrDefault(RoundConfig, toFile: false);
 
-						   Coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
+						   coordinator.AbortAllRoundsInInputRegistration($"{nameof(RoundConfig)} has changed.");
 					   }
 					   catch (Exception ex)
 					   {
@@ -80,11 +94,11 @@ public class Global
 				"Config Watcher");
 		}
 
-		// Initialize index building
-		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
-		var blockNotifier = HostedServices.Get<BlockNotifier>();
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+		CoinJoinIdStore = CoinJoinIdStore.Create(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
+		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(coordinatorParameters.CoinJoinScriptStoreFilePath);
+
+		WabiSabiCoordinator = new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore);
+		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
@@ -94,31 +108,40 @@ public class Global
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
 
+	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
+	{
+		CoinJoinIdStore!.TryAdd(transaction.GetHash());
+	}
+
 	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
 	{
 		Guard.NotNull(nameof(network), network);
 		Guard.NotNull(nameof(endPoint), endPoint);
+		var rpcClient = Guard.NotNull(nameof(RpcClient), RpcClient);
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 		P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
 		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
 	{
+		var rpcClient = Guard.NotNull(nameof(RpcClient), RpcClient);
+		var config = Guard.NotNull(nameof(Config), Config);
+
 		try
 		{
-			var blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
+			var blockchainInfo = await rpcClient.GetBlockchainInfoAsync(cancellationToken);
 
 			var blocks = blockchainInfo.Blocks;
-			if (blocks == 0 && Config.Network != Network.RegTest)
+			if (blocks == 0 && config.Network != Network.RegTest)
 			{
 				throw new NotSupportedException($"{nameof(blocks)} == 0");
 			}
 
 			var headers = blockchainInfo.Headers;
-			if (headers == 0 && Config.Network != Network.RegTest)
+			if (headers == 0 && config.Network != Network.RegTest)
 			{
 				throw new NotSupportedException($"{nameof(headers)} == 0");
 			}
@@ -130,17 +153,17 @@ public class Global
 
 			Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is fully synchronized.");
 
-			if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
+			if (config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 			{
 				if (blocks < 101)
 				{
-					var generateBlocksResponse = await RpcClient.GenerateAsync(101, cancellationToken);
+					var generateBlocksResponse = await rpcClient.GenerateAsync(101, cancellationToken);
 					if (generateBlocksResponse is null)
 					{
 						throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
 					}
 
-					blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
+					blockchainInfo = await rpcClient.GetBlockchainInfoAsync(cancellationToken);
 					blocks = blockchainInfo.Blocks;
 					if (blocks == 0)
 					{
@@ -152,8 +175,56 @@ public class Global
 		}
 		catch (WebException)
 		{
-			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
+			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{config.FilePath}`.");
 			throw;
 		}
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			if (disposing)
+			{
+				if (Coordinator is { } coordinator)
+				{
+					coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;
+					coordinator.Dispose();
+					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
+				}
+
+				var stoppingTask = Task.Run(async () =>
+				{
+					if (IndexBuilderService is { } indexBuilderService)
+					{
+						await indexBuilderService.StopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
+					}
+
+					if (HostedServices is { } hostedServices)
+					{
+						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+						await hostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+						hostedServices.Dispose();
+					}
+
+					if (P2pNode is { } p2pNode)
+					{
+						await p2pNode.DisposeAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
+					}
+				});
+
+				stoppingTask.GetAwaiter().GetResult();
+			}
+
+			_disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

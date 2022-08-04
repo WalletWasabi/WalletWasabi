@@ -1,19 +1,21 @@
 using NBitcoin;
 using System.Linq;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 // This class represents actions of the BIP 370 creator and constructor roles
 public record ConstructionState : MultipartyTransactionState
 {
-	public ConstructionState(MultipartyTransactionParameters parameters)
+	public ConstructionState(RoundParameters parameters)
 		: base(parameters)
 	{
 	}
 
-	// TODO ownership proofs and spend status also in scope
-	public ConstructionState AddInput(Coin coin)
+	public ConstructionState AddInput(Coin coin, OwnershipProof ownershipProof, CoinJoinInputCommitmentData coinJoinInputCommitmentData)
 	{
 		var prevout = coin.TxOut;
 
@@ -42,7 +44,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 		}
 
-		if (prevout.Value <= Parameters.FeeRate.GetFee(prevout.ScriptPubKey.EstimateInputVsize()))
+		if (prevout.Value <= Parameters.MiningFeeRate.GetFee(prevout.ScriptPubKey.EstimateInputVsize()))
 		{
 			// Inputs must contribute more than they cost to spend because:
 			// - Such inputs contribute nothing to privacy and may degrade it
@@ -60,7 +62,12 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 		}
 
-		return this with { Events = Events.Add(new InputAdded(coin)) };
+		if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+		}
+
+		return this with { Events = Events.Add(new InputAdded(coin, ownershipProof)) };
 	}
 
 	public ConstructionState AddOutput(TxOut output)
@@ -103,9 +110,9 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
 		}
 
-		if (EffectiveFeeRate < Parameters.FeeRate)
+		if (EffectiveFeeRate < Parameters.MiningFeeRate)
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.FeeRate}.");
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}.");
 		}
 
 		return new SigningState(Parameters, Events);

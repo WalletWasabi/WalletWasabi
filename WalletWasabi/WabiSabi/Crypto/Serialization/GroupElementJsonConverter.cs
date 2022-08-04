@@ -3,14 +3,10 @@ using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
 
-public class GroupElementJsonConverter : JsonConverter
+public class GroupElementJsonConverter : JsonConverter<GroupElement>
 {
-	public override bool CanConvert(Type objectType)
-	{
-		return objectType == typeof(GroupElement);
-	}
-
-	public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	/// <inheritdoc />
+	public override GroupElement? ReadJson(JsonReader reader, Type objectType, GroupElement? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
 		if (reader.Value is string serialized)
 		{
@@ -19,7 +15,8 @@ public class GroupElementJsonConverter : JsonConverter
 		throw new ArgumentException($"No valid serialized {nameof(GroupElement)} passed.");
 	}
 
-	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	/// <inheritdoc />
+	public override void WriteJson(JsonWriter writer, GroupElement? value, JsonSerializer serializer)
 	{
 		if (value is GroupElement ge)
 		{

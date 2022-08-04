@@ -10,17 +10,6 @@
              x:DataType="vm:AboutViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
-  <UserControl.Styles>
-    <Style Selector="TextBlock.Hyperlink">
-      <Setter Property="TextDecorations" Value="Underline" />
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBlock.LinkSeparatorPadding">
-      <Setter Property="Margin" Value="5 -0.5" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-  </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="{Binding !EnableBack}"
                           NextContent="Close"
@@ -28,7 +17,7 @@
       <DockPanel LastChildFill="True">
         <Viewbox DockPanel.Dock="Top" Margin="25,25,25,50" Width="112" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
-          <ContentControl Template="{DynamicResource wasabi_logo_dynamic}" />
+          <Image Source="{DynamicResource wasabi_logo_dynamic}" />
         </Viewbox>
         <Viewbox ClipToBounds="False" DockPanel.Dock="Top" Width="220" VerticalAlignment="Center"
                  HorizontalAlignment="Center">
@@ -37,7 +26,7 @@
         </Viewbox>
         <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50" Opacity="0.5" />
         <DockPanel>
-          <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Orientation="Vertical">
+          <StackPanel Spacing="10" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
             <ItemsControl Items="{Binding Links}"
                           Margin="0 0 0 25"
@@ -62,7 +51,7 @@
                   <Setter Property="VerticalAlignment" Value="Center" />
                 </Style>
                 <Style Selector="ItemsControl /template/ #PART_ItemsPresenter > WrapPanel">
-                  <Setter Property="HorizontalAlignment" Value="Stretch" />
+                  <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style>
                 <Style Selector="ItemsControl.narrow /template/ #PART_ItemsPresenter > WrapPanel">
                   <Setter Property="HorizontalAlignment" Value="Center" />
@@ -71,28 +60,32 @@
               </ItemsControl.Styles>
               <ItemsControl.DataTemplates>
                 <DataTemplate DataType="vm:SeparatorViewModel">
-                  <TextBlock Classes="LinkSeparatorPadding"
+                  <TextBlock VerticalAlignment="Center"
+                             Margin="5 -0.5"
                              Text="-"
                              IsVisible="True" />
                 </DataTemplate>
               </ItemsControl.DataTemplates>
             </ItemsControl>
-            <!-- Advanced -->
-            <Button HorizontalAlignment="Center" Classes="plain obscured"
-                    Command="{Binding AboutAdvancedInfoDialogCommand}">
+          </StackPanel>
+          <!-- License -->
+          <DockPanel HorizontalAlignment="Center" DockPanel.Dock="Top">
+              <TextBlock Margin=" 0 0 0 -0.5"
+                         VerticalAlignment="Center"
+                         Text="This open source software is licensed with " />
+              <ContentControl Content="{Binding License}" />
+          </DockPanel>
+          <!-- Advanced -->
+          <Button DockPanel.Dock="Bottom"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Bottom"
+                  Classes="plain obscured"
+                  Command="{Binding AboutAdvancedInfoDialogCommand}">
               <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
                 <PathIcon Data="{StaticResource info_regular}" />
                 <TextBlock Text="Advanced Information" Classes="Hyperlink" />
               </StackPanel>
             </Button>
-            <!-- License -->
-            <WrapPanel HorizontalAlignment="Center">
-              <TextBlock Margin=" 0 0 0 -0.5"
-                         VerticalAlignment="Center"
-                         Text="This open source software is licensed with " />
-              <ContentControl Content="{Binding License}" />
-            </WrapPanel>
-          </StackPanel>
         </DockPanel>
       </DockPanel>
     </controls:ContentArea>

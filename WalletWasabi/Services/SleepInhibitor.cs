@@ -56,6 +56,12 @@ public class SleepInhibitor : PeriodicRunner
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
+			// Windows 7 does not support the API we use.
+			if (Environment.OSVersion.Version.Major < 10)
+			{
+				return null;
+			}
+
 			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(WindowsPowerAvailabilityTask.Create(Reason));
 		}
 
@@ -64,7 +70,8 @@ public class SleepInhibitor : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		switch (CoinJoinManager.HighestCoinJoinClientState)
+		var highestCoinJoinClientState = CoinJoinManager.HighestCoinJoinClientState;
+		switch (highestCoinJoinClientState)
 		{
 			case CoinJoinClientState.Idle:
 				Logger.LogTrace("Computer idle state is allowed again.");
@@ -76,7 +83,7 @@ public class SleepInhibitor : PeriodicRunner
 				break;
 
 			default:
-				throw new NotSupportedException($"Unsupported {CoinJoinManager.HighestCoinJoinClientState} value.");
+				throw new NotSupportedException($"Unsupported {highestCoinJoinClientState} value.");
 		}
 	}
 

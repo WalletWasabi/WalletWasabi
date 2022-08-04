@@ -5,7 +5,8 @@
 3. List the PR-s in order, open the [link and (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/pulls?q=is%3Apr+merged%3A%3E%3D2019-07-07+sort%3Aupdated-asc).
 4. Go trough all PR, create the Release Notes document and the Final Test issue. Create test cases according to PR-s and write a list. [Release Notes format](https://github.com/zkSNACKs/WalletWasabi/releases/tag/v1.1.6) and [Final Test format](https://github.com/zkSNACKs/WalletWasabi/issues/2227).
 5. Go trough all issues and pick the [important ones (adjust date!)](https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+closed%3A%3E%3D2019-07-07+sort%3Aupdated-asc+) and add to Release Notes or to Final Tests if required.
-6. At the end there will be a Final Test document and a Release Notes document.
+6. Check Tor status. Never release during a Tor network disruption: https://status.torproject.org/
+7. At the end there will be a Final Test document and a Release Notes document.
 
 # 2. Release candidate
 
@@ -116,5 +117,17 @@ Digicert holds our Code Signing Certificate under the name "zkSNACKs Limited".
 6. Run command `openssl pkcs12 -export -in certificatename.cer -inkey wasabiserver.key -out digicert.pfx`.
 7. Apply the default password from `secret-ssl/codesigning/windows/password.txt`.
 8. Packager needs the codesigning certificate file to be here: `c:\digicert.pfx`.
+
+## Packager environment setup
+
+### WSL
+
+You can disable WSL sudo password promt with this oneliner: 
+
+```
+echo "`whoami` ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/`whoami` && sudo chmod 0440 /etc/sudoers.d/`whoami`
+```
+
+Use WSL 1 otherwise you cannot enter anything to the console (sudo password, appleid). https://github.com/microsoft/WSL/issues/4424
 
 

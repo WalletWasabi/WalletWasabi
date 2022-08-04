@@ -4,13 +4,15 @@ namespace WalletWasabi.WabiSabi.Backend.Models;
 
 public class WabiSabiProtocolException : Exception
 {
-	public WabiSabiProtocolException(WabiSabiProtocolErrorCode errorCode, string? message = null, Exception? innerException = null)
+	public WabiSabiProtocolException(WabiSabiProtocolErrorCode errorCode, string? message = null, Exception? innerException = null, ExceptionData? exceptionData = null)
 		: base(message ?? ErrorCodeDescription(errorCode), innerException)
 	{
 		ErrorCode = errorCode;
+		ExceptionData = exceptionData;
 	}
 
 	public WabiSabiProtocolErrorCode ErrorCode { get; }
+	public ExceptionData? ExceptionData { get; }
 
 	private static string ErrorCodeDescription(WabiSabiProtocolErrorCode errorCode)
 	{

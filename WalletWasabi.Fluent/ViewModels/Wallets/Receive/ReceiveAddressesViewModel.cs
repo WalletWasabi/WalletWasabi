@@ -22,12 +22,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Receive Addresses")]
 public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
-	private readonly HashSet<string> _suggestions;
 	private ObservableCollection<AddressViewModel> _addresses;
 
-	public ReceiveAddressesViewModel(Wallet wallet, HashSet<string> suggestions)
+	public ReceiveAddressesViewModel(Wallet wallet)
 	{
-		_suggestions = suggestions;
 		Wallet = wallet;
 		Network = wallet.Network;
 		_addresses = new ObservableCollection<AddressViewModel>();
@@ -76,7 +74,9 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 					options: new ColumnOptions<AddressViewModel>
 					{
 						CanUserResizeColumn = false,
-						CanUserSortColumn = false
+						CanUserSortColumn = true,
+						CompareAscending = AddressViewModel.SortAscending(x => x.Label),
+						CompareDescending = AddressViewModel.SortDescending(x => x.Label)
 					},
 					width: new GridLength(210, GridUnitType.Pixel))
 			}
@@ -148,6 +148,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	public void NavigateToAddressEdit(HdPubKey hdPubKey, KeyManager keyManager)
 	{
-		Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(this, hdPubKey, keyManager, _suggestions));
+		Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(this, hdPubKey, keyManager));
 	}
 }

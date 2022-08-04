@@ -1,5 +1,6 @@
 using NBitcoin;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Crypto;
 
@@ -76,7 +77,12 @@ public record Bip322Signature : IBitcoinSerializable
 				return false;
 			}
 
-			return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
+			if (witnessParameters.TransactionSignature is not { } transactionSignature)
+			{
+				return false;
+			}
+
+			return witnessParameters.PublicKey.Verify(hash, transactionSignature.Signature);
 		}
 		catch (FormatException)
 		{

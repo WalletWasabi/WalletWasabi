@@ -17,8 +17,14 @@
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <Viewbox MaxHeight="150">
-      <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"/>
-    </Viewbox>
+    <StackPanel>
+      <Viewbox MaxHeight="120">
+        <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
+      </Viewbox>
+      <TextBlock TextAlignment="Center" Foreground="{StaticResource SystemErrorTextColor}"
+                 Text="{Binding AuthorizationFailedMessage}"
+                 TextWrapping="Wrap"
+                 IsVisible="{Binding HasAuthorizationFailed}" />
+    </StackPanel>
   </c:ContentArea>
 </UserControl>

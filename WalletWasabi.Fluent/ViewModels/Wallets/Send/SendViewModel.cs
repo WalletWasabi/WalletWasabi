@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SendViewModel : RoutableViewModel
 {
+	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
@@ -50,14 +51,14 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	private bool _parsingUrl;
-
 	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo(wallet.KeyManager.MinAnonScoreTarget);
+		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+
+		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
@@ -134,6 +135,10 @@ public partial class SendViewModel : RoutableViewModel
 
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
 		}, nextCommandCanExecute);
+
+		this.WhenAnyValue(x => x.ConversionReversed)
+			.Skip(1)
+			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public bool IsQrButtonVisible { get; }
@@ -164,21 +169,20 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			var text = await clipboard.GetTextAsync();
 
-			_parsingUrl = true;
-
-			if (!TryParseUrl(text) && pasteIfInvalid)
+			lock (_parsingLock)
 			{
-				To = text;
+				if (!TryParseUrl(text) && pasteIfInvalid)
+				{
+					To = text;
+				}
 			}
-
-			_parsingUrl = false;
 		}
 	}
 
 	private IPayjoinClient? GetPayjoinClient(string endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
-		    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
 			if (!Services.Config.UseTor)
@@ -233,23 +237,17 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ParseToField(string s)
 	{
-		if (_parsingUrl)
+		lock (_parsingLock)
 		{
-			return;
+			Dispatcher.UIThread.Post(() => TryParseUrl(s));
 		}
-
-		_parsingUrl = true;
-
-		Dispatcher.UIThread.Post(() =>
-		{
-			TryParseUrl(s);
-			_parsingUrl = false;
-		});
 	}
 
 	private bool TryParseUrl(string? text)
 	{
-		if (text is null || text.IsTrimmable())
+		text = text?.Trim();
+
+		if (string.IsNullOrEmpty(text))
 		{
 			return false;
 		}

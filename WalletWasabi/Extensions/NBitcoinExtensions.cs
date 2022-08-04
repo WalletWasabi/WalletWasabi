@@ -1,3 +1,4 @@
+using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
@@ -9,12 +10,13 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Models;
 
-namespace NBitcoin;
+namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
@@ -172,7 +174,7 @@ public static class NBitcoinExtensions
 		return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
 	}
 
-	public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
+	public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, CompactSignature signature)
 	{
 		PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
 		return pubKey.WitHash == address.Hash;

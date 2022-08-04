@@ -53,12 +53,14 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		{
 			services.AddHostedService<BackgroundServiceStarter<Arena>>();
 			services.AddSingleton<Arena>();
-			services.AddScoped<Network>(_ => Network.Main);
+			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddScoped<Prison>();
 			services.AddScoped<WabiSabiConfig>();
+			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
-			services.AddScoped(s => new InMemoryCoinJoinIdStore());
+			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
+			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 		});
 		builder.ConfigureLogging(o =>
@@ -81,6 +83,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		var arenaClient = new ArenaClient(
 			round.CreateAmountCredentialClient(insecureRandom),
 			round.CreateVsizeCredentialClient(insecureRandom),
+			round.CoinjoinState.Parameters.CoordinationIdentifier,
 			wabiSabiHttpApiClient);
 		return arenaClient;
 	}

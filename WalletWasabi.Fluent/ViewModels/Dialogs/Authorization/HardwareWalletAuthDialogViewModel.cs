@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Hwi;
@@ -29,11 +29,13 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
+
+		AuthorizationFailedMessage = $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
 	}
 
 	public WalletType WalletType { get; }
 
-	protected override async Task<bool> Authorize()
+	protected override async Task<bool> AuthorizeAsync()
 	{
 		try
 		{

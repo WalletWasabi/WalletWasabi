@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -10,4 +11,6 @@ public static class ObservableExtension
 			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
 			.Concat()
 			.Subscribe();
+	
+	public static IObservable<Unit> ToSignal<T>(this IObservable<T> source) => source.Select(_ => Unit.Default);
 }

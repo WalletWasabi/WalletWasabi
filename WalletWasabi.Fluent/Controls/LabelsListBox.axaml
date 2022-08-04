@@ -1,0 +1,60 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:g="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors">
+
+  <Design.PreviewWith>
+    <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
+      <c:LabelsListBox HorizontalAlignment="Left" VerticalAlignment="Center">
+        <c:LabelsListBox.Items>
+          <g:List x:TypeArguments="x:String">
+            <x:String>Label 1</x:String>
+            <x:String>Label 2</x:String>
+            <x:String>Label 3</x:String>
+            <x:String>Label 4</x:String>
+          </g:List>
+        </c:LabelsListBox.Items>
+      </c:LabelsListBox>
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="c|LabelsListBox">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ScrollViewer Name="PART_ScrollViewer"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Disabled">
+          <i:Interaction.Behaviors>
+            <behaviors:HorizontalScrollViewerBehavior IsEnabled="false" />
+          </i:Interaction.Behaviors>
+
+          <c:LabelsItemsPresenter Name="PART_ItemsPresenter"
+                                  Items="{TemplateBinding Items}"
+                                  Margin="0"
+                                  VirtualizationMode="Simple">
+            <ItemsPresenter.ItemsPanel>
+              <ItemsPanelTemplate>
+                <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
+                  <c:LabelsPanel.EllipsisControl>
+                    <c:LabelControl DataContext="..."
+                                    Margin="0 0 0 0">
+                      <ToolTip.Tip>
+                        <Panel>
+                          <c:TagsBox IsReadOnly="True"
+                                     Margin="4,6,0,0"
+                                     Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
+                        </Panel>
+                      </ToolTip.Tip>
+                    </c:LabelControl>
+                  </c:LabelsPanel.EllipsisControl>
+                </c:LabelsPanel>
+              </ItemsPanelTemplate>
+            </ItemsPresenter.ItemsPanel>
+          </c:LabelsItemsPresenter>
+        </ScrollViewer>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

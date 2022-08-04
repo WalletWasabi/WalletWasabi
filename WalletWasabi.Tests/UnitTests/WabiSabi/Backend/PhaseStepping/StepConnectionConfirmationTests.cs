@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -94,6 +95,7 @@ public class StepConnectionConfirmationTests
 		using Arena arena = await ArenaBuilder.From(cfg, prison).CreateAndStartAsync(round);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
 		Assert.Equal(2, round.Alices.Count);
 		Assert.Equal(2, prison.CountInmates().noted);

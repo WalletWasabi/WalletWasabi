@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="details:CoinJoinsDetailsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.CoinJoinsDetailsView"
+             Name="CoinJoinDetails">
+  <c:ContentArea Title="{Binding Title}"
+                 NextContent="Done" EnableNext="True"
+                 EnableCancel="{Binding EnableCancel}">
+    <StackPanel Spacing="15">
+
+      <!-- Date -->
+      <c:PreviewItem Icon="{StaticResource timer_regular}"
+                     Label="Date"
+                     TextValue="{Binding Date}">
+        <TextBlock Text="{Binding Date}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Status -->
+      <c:PreviewItem Icon="{StaticResource status_regular}"
+                     Label="Status">
+        <TextBlock Text="{Binding Status}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- TX Count  -->
+      <c:PreviewItem Icon="{StaticResource info_regular}"
+                     Label="Number of Transactions"
+                     TextValue="{Binding TxCount}">
+        <TextBlock Text="{Binding TxCount, Mode=OneWay}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- CJ fee  -->
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="Fees"
+                     TextValue="{Binding CoinJoinFeeString}">
+        <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Transaction IDs -->
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
+                     Label="Transaction IDs">
+        <ItemsRepeater Items="{Binding TransactionIds}">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+              <c:PreviewItem TextValue="{Binding }">
+                <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+      </c:PreviewItem>
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>

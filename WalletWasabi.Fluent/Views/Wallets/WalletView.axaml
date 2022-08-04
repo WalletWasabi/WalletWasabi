@@ -5,17 +5,15 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" HeaderBackground="{DynamicResource HeaderRegionColor}" IsBusy="{Binding !History.IsInitialized}">
+  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>
@@ -59,6 +57,11 @@
                   <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">
                     <MenuItem.Icon>
                       <PathIcon Data="{StaticResource settings_wallet_regular}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="Coinjoin Settings" Command="{Binding CoinJoinSettingsCommand}" IsVisible="{Binding !IsWatchOnly}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource wallet_action_coinjoin}" />
                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Wallet Statistics" Command="{Binding WalletStatisticsCommand}">

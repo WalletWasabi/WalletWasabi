@@ -4,21 +4,30 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-public interface IEvent{};
-public record InputAdded (Coin Coin) : IEvent;
-public record OutputAdded (TxOut Output) : IEvent;
+public interface IEvent
+{ };
+
+public record RoundCreated(RoundParameters RoundParameters) : IEvent;
+public record InputAdded(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
+public record OutputAdded(TxOut Output) : IEvent;
 
 public abstract record MultipartyTransactionState
 {
-	protected MultipartyTransactionState(MultipartyTransactionParameters parameters)
+	protected MultipartyTransactionState(RoundParameters parameters)
 	{
-		Parameters = parameters;
+		var builder = ImmutableList.CreateBuilder<IEvent>();
+		builder.Add(new RoundCreated(parameters));
+		Events = builder.ToImmutable();
 	}
 
-	public MultipartyTransactionParameters Parameters { get; }
+	[JsonIgnore]
+	public RoundParameters Parameters => Events.OfType<RoundCreated>().Single().RoundParameters;
 
 	[JsonIgnore]
 	public IEnumerable<Coin> Inputs => Events.OfType<InputAdded>().Select(x => x.Coin);
@@ -34,8 +43,6 @@ public abstract record MultipartyTransactionState
 
 	[JsonIgnore]
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
-	[JsonIgnore]
-	public int MaxTransactionSize => Parameters.MaxTransactionSize;
 
 	// With no coordinator fees we can't ensure that the shared overhead
 	// of the transaction also pays at the nominal feerate so this will have
@@ -47,17 +54,20 @@ public abstract record MultipartyTransactionState
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 
 	public MultipartyTransactionState GetStateFrom(int stateId) =>
-		this with {
+		this with
+		{
 			Events = Events.Skip(stateId).ToImmutableList()
 		};
 
 	public MultipartyTransactionState Merge(MultipartyTransactionState diff) =>
-		this with {
+		this with
+		{
 			Events = Events.AddRange(diff.Events)
 		};
 
 	public MultipartyTransactionState AddPreviousStates(MultipartyTransactionState origin) =>
-		this with {
+		this with
+		{
 			Events = origin.Events.AddRange(Events)
 		};
 }

@@ -352,7 +352,7 @@ public class BlockchainController : ControllerBase
 			status.FilterCreationActive = true;
 		}
 
-		// Updating the status of coinjoin
+		// Updating the status of coinjoin.
 		var validInterval = TimeSpan.FromSeconds(Global.Coordinator.RoundConfig.InputRegistrationTimeout * 2);
 		if (validInterval < TimeSpan.FromHours(1))
 		{
@@ -361,6 +361,21 @@ public class BlockchainController : ControllerBase
 		if (DateTimeOffset.UtcNow - Global.Coordinator.LastSuccessfulCoinJoinTime < validInterval)
 		{
 			status.CoinJoinCreationActive = true;
+		}
+
+		// Updating the status of WabiSabi coinjoin.
+		if (Global.WabiSabiCoordinator is { } wabiSabiCoordinator)
+		{
+			var ww2CjDownAfter = TimeSpan.FromHours(3);
+			var wabiSabiValidInterval = wabiSabiCoordinator.Config.StandardInputRegistrationTimeout * 2;
+			if (wabiSabiValidInterval < ww2CjDownAfter)
+			{
+				wabiSabiValidInterval = ww2CjDownAfter;
+			}
+			if (DateTimeOffset.UtcNow - wabiSabiCoordinator.LastSuccessfulCoinJoinTime < wabiSabiValidInterval)
+			{
+				status.WabiSabiCoinJoinCreationActive = true;
+			}
 		}
 
 		return status;

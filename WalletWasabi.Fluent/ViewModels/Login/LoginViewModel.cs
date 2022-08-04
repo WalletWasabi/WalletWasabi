@@ -54,7 +54,7 @@ public partial class LoginViewModel : RoutableViewModel
 		if (!isPasswordCorrect)
 		{
 			IsForgotPasswordVisible = true;
-			ErrorMessage = "The password is incorrect! Try Again.";
+			ErrorMessage = "The password is incorrect! Please try again.";
 			return;
 		}
 
@@ -95,12 +95,12 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task<bool> ShowLegalAsync()
 	{
-		if (!Services.LegalChecker.TryGetNewLegalDocs(out var document))
+		if (!Services.LegalChecker.TryGetNewLegalDocs(out _))
 		{
 			return true;
 		}
 
-		var legalDocs = new TermsAndConditionsViewModel(document.Content);
+		var legalDocs = new TermsAndConditionsViewModel();
 
 		var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
 

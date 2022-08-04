@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ public class RoundStateUpdater : PeriodicRunner
 	}
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-	private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
+	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private List<RoundStateAwaiter> Awaiters { get; } = new();
@@ -40,14 +41,18 @@ public class RoundStateUpdater : PeriodicRunner
 		var updatedRoundStates = statusResponse
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
-			.Select(x => x.NewRoundState with
+			.Select(
+			x => x.NewRoundState with
 			{
 				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
-			}).ToList();
+			})
+			.ToList();
 
 		var newRoundStates = statusResponse
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
+		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
+		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
 		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
@@ -95,6 +100,11 @@ public class RoundStateUpdater : PeriodicRunner
 	public Task<RoundState> CreateRoundAwaiter(Phase phase, CancellationToken cancellationToken)
 	{
 		return CreateRoundAwaiter(null, phase, null, cancellationToken);
+	}
+
+	public bool TryGetRoundState(uint256 roundId, [NotNullWhen(true)] out RoundState? roundState)
+	{
+		return RoundStates.TryGetValue(roundId, out roundState);
 	}
 
 	public override Task StopAsync(CancellationToken cancellationToken)

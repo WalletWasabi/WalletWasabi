@@ -1,3 +1,4 @@
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -11,7 +12,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInOneOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
@@ -28,7 +29,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInOneOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 0);
 
 		foreach (var coin in tx.WalletInputs)
@@ -47,7 +48,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInManyOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
@@ -64,7 +65,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInOneOutOneOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
 
 		foreach (var coin in tx.WalletInputs)
@@ -84,7 +85,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInManyOutManyOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 3);
 
 		foreach (var coin in tx.WalletInputs)
@@ -103,7 +104,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInOneOutOneOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 1);
 
 		foreach (var coin in tx.WalletInputs)
@@ -122,7 +123,7 @@ public class NormalSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInManyOutManyOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 3, 3);
 
 		foreach (var coin in tx.WalletInputs)

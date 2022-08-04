@@ -17,15 +17,18 @@ public class ArenaClient
 	public ArenaClient(
 		WabiSabiClient amountCredentialClient,
 		WabiSabiClient vsizeCredentialClient,
+		string coordinatorIdentifier,
 		IWabiSabiApiRequestHandler requestHandler)
 	{
 		AmountCredentialClient = amountCredentialClient;
 		VsizeCredentialClient = vsizeCredentialClient;
+		CoordinatorIdentifier = coordinatorIdentifier;
 		RequestHandler = requestHandler;
 	}
 
 	public WabiSabiClient AmountCredentialClient { get; }
 	public WabiSabiClient VsizeCredentialClient { get; }
+	public string CoordinatorIdentifier { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
 
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
@@ -99,10 +102,15 @@ public class ArenaClient
 		var presentedAmount = amountCredentialsToPresent.Sum(x => x.Value);
 		if (amountsToRequest.Sum() != presentedAmount)
 		{
-			throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
+			throw new InvalidOperationException($"Reissuance amounts sum must equal the sum of the presented ones.");
 		}
 
 		var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
+		if (vsizesToRequest.Sum() > presentedVsize)
+		{
+			throw new InvalidOperationException($"Reissuance vsizes sum can not be greater than the sum of the presented ones.");
+		}
+
 		var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 			vsizesToRequest,
 			vsizeCredentialsToPresent,

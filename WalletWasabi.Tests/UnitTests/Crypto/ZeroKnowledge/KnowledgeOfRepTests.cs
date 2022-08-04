@@ -46,7 +46,7 @@ public class KnowledgeOfRepTests
 				var generators = new GroupElementVector(Generators.G, Generators.Ga);
 				var publicPoint = secrets * generators;
 				var statement = new Statement(publicPoint, generators);
-				using var rand = new SecureRandom();
+				SecureRandom rand = SecureRandom.Instance;
 				var proof = ProofSystemHelpers.Prove(statement, secrets, rand);
 				Assert.True(ProofSystemHelpers.Verify(statement, proof));
 			}

@@ -32,6 +32,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	}
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";
+	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
 
 	public ICommand? NextCommand { get; protected set; }
 
@@ -137,7 +138,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
 		=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-	public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
+	public static async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialogTask = dialog.GetDialogResultAsync();
 
@@ -153,7 +154,12 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	protected async Task ShowErrorAsync(string title, string message, string caption)
 	{
 		var dialog = new ShowErrorDialogViewModel(message, title, caption);
-		await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+
+		var target = CurrentTarget == NavigationTarget.CompactDialogScreen
+			? NavigationTarget.CompactDialogScreen
+			: NavigationTarget.DialogScreen;
+
+		await NavigateDialogAsync(dialog, target);
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)

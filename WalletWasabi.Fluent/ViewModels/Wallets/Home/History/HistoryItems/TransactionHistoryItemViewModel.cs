@@ -1,10 +1,13 @@
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
@@ -18,11 +21,13 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IObservable<Unit> updateTrigger)
 		: base(orderIndex, transactionSummary)
 	{
-		Label = transactionSummary.Label.Take(1).FirstOrDefault();
-		FilteredLabel = transactionSummary.Label.Skip(1).ToList();
+		Label = transactionSummary.Label;
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
+
+		var confirmations = transactionSummary.GetConfirmations();
+		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 
 		var amount = transactionSummary.Amount;
 		if (amount < Money.Zero)
@@ -38,6 +43,17 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
+		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
+			.Select(x => !x)
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+		SpeedUpTransactionCommand = ReactiveCommand.Create(
+			() =>
+			{
+				// TODO: Show speed up transaction dialog.
+			},
+			speedUpTransactionCommandCanExecute);
+
+		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}
 }
