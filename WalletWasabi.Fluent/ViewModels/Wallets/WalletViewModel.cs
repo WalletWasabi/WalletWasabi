@@ -163,13 +163,11 @@ public partial class WalletViewModel : WalletViewModelBase
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
-
-		IsWatchOnly = wallet.KeyManager.IsWatchOnly;
 	}
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
 
-	public bool IsWatchOnly { get; }
+	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
