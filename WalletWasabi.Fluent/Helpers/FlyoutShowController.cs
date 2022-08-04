@@ -51,18 +51,11 @@ public class FlyoutShowController : IDisposable
 		if (_isForcedOpen)
 		{
 			_flyout.Closing += RejectClose;
-		}
-		else
-		{
-			_flyout.Closing -= RejectClose;
-		}
-
-		if (value)
-		{
 			_flyout.ShowAt(_parent);
 		}
 		else
 		{
+			_flyout.Closing -= RejectClose;
 			_flyout.Hide();
 		}
 	}
