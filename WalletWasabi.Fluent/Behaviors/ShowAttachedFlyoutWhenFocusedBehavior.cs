@@ -45,7 +45,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 
 		var controller = new FlyoutShowController(AssociatedObject, flyoutBase).DisposeWith(disposable);
 
-		FocusBasedFlyoutOpener(AssociatedObject, flyoutBase, controller).DisposeWith(disposable);
+		FocusBasedFlyoutOpener(AssociatedObject, flyoutBase).DisposeWith(disposable);
 		IsOpenPropertySynchronizer(controller).DisposeWith(disposable);
 
 		// EDGE CASES
@@ -85,8 +85,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 
 	private IDisposable FocusBasedFlyoutOpener(
 		IInteractive associatedObject,
-		FlyoutBase flyoutBase,
-		FlyoutShowController controller)
+		FlyoutBase flyoutBase)
 	{
 		var currentPopupHost = Observable
 			.FromEventPattern(flyoutBase, nameof(flyoutBase.Opened))
@@ -108,12 +107,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Select(focusedList => focusedList.Any(focused => focused))
 			.DistinctUntilChanged()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(
-				isOpen =>
-				{
-					controller.SetIsOpen(isOpen);
-					IsFlyoutOpen = isOpen;
-				})
+			.Do(isOpen => IsFlyoutOpen = isOpen)
 			.Subscribe();
 	}
 }
