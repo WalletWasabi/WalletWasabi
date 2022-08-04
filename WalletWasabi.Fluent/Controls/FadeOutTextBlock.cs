@@ -84,11 +84,13 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var height = constraint.Height;
 		var lineHeight = LineHeight;
 
-		_noTrimLayout = new TextLayout(text1, typeface, fontSize, foreground, textAlignment,
+		_noTrimLayout = new TextLayout(
+			text1, typeface, fontSize, foreground, textAlignment,
 			textWrapping, TextTrimming.None, textDecorations, width, height, lineHeight,
 			1);
 
-		_trimmedLayout = new TextLayout(text1, typeface, fontSize, foreground, textAlignment,
+		_trimmedLayout = new TextLayout(
+			text1, typeface, fontSize, foreground, textAlignment,
 			textWrapping, TextTrimming.CharacterEllipsis, textDecorations, width, height, lineHeight,
 			1);
 
