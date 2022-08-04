@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 	Category = "Coinjoin",
 	Caption = "Coinjoin Settings",
 	IconName = "wallet_action_coinjoin",
-	Keywords = new [] { "Coinjoin", "Settings", "Options", "Pleb", "Auto" },
+	Keywords = new[] { "Coinjoin", "Settings", "Options", "Pleb", "Auto" },
 	Searchable = true)
 ]
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
