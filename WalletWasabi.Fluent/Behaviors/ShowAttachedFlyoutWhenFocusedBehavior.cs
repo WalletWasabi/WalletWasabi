@@ -73,20 +73,11 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Subscribe();
 	}
 
-	private static IDisposable ActivateOpener(
-		IInputElement associatedObject,
-		Control visualRoot,
-		FlyoutShowController controller)
+	private static IDisposable ActivateOpener(IInputElement associatedObject, Control visualRoot, FlyoutShowController controller)
 	{
 		return Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
-			.Do(
-				_ =>
-				{
-					if (associatedObject.IsFocused)
-					{
-						controller.SetIsOpen(true);
-					}
-				})
+			.Where(_ => associatedObject.IsFocused)
+			.Do(_ => controller.SetIsOpen(true))
 			.Subscribe();
 	}
 
