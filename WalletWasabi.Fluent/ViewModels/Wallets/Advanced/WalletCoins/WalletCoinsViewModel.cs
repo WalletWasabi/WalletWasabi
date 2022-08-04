@@ -25,7 +25,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly WalletViewModel _walletViewModel;
 	private ObservableAsPropertyHelper<bool> _isAnySelected = ObservableAsPropertyHelper<bool>.Default();
-	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel>? _source;
+	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -34,7 +34,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
         SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
         NextCommand = CancelCommand;
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins, this.WhenAnyValue(x => x.Source).Select(x => x is not null));
+		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
 	}
 
 	public bool IsAnySelected => _isAnySelected.Value;
@@ -114,7 +114,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private async Task OnSendCoins()
 	{
 		var wallet = _walletViewModel.Wallet;
-		var selectedSmartCoins = Source!.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
+		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
 		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
