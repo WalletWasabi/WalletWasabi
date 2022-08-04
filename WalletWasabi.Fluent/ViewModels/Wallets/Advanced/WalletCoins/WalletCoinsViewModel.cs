@@ -24,7 +24,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly WalletViewModel _walletViewModel;
-	private ObservableAsPropertyHelper<bool>? _isAnySelected;
+	private ObservableAsPropertyHelper<bool> _isAnySelected = ObservableAsPropertyHelper<bool>.Default();
 	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source;
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
@@ -37,7 +37,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
 	}
 
-	public bool IsAnySelected => _isAnySelected?.Value ?? false;
+	public bool IsAnySelected => _isAnySelected.Value;
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -58,7 +58,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, model => model.IsAnySelected)
 			.DisposeWith(disposables);
-		this.RaisePropertyChanged(nameof(IsAnySelected));
 
 		coinChanges
 			.DisposeMany()
