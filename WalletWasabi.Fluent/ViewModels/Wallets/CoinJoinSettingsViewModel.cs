@@ -13,6 +13,14 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
+[NavigationMetaData(
+	Title = "Coinjoin Settings",
+	Category = "Coinjoin",
+	Caption = "Coinjoin Settings",
+	IconName = "wallet_action_coinjoin",
+	Keywords = new [] { "Coinjoin", "Settings", "Options", "Pleb", "Auto" },
+	Searchable = true)
+]
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
@@ -24,7 +32,6 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	public CoinJoinSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{
 		_wallet = walletViewModelBase.Wallet;
-		Title = $"{_wallet.WalletName} - Coinjoin Settings";
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
 		                     KeyManager.DefaultPlebStopThreshold.ToString();
@@ -76,8 +83,6 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 					}
 				});
 	}
-
-	public sealed override string Title { get; protected set; }
 
 	public ICommand SetAutoCoinJoin { get; }
 
