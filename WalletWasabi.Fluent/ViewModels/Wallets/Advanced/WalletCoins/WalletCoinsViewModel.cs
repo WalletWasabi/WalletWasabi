@@ -31,7 +31,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
-		SetupCancel(false, true, true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;

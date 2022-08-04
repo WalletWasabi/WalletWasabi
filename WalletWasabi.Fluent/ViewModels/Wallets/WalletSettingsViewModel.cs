@@ -25,7 +25,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
 		                     KeyManager.DefaultPlebStopThreshold.ToString();
 
-		SetupCancel(false, true, true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
 

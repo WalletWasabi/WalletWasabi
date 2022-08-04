@@ -35,7 +35,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		FeeChart = new FeeChartViewModel();
 
-		SetupCancel(false, true, false);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
 		NextCommand = ReactiveCommand.Create(() =>
