@@ -65,7 +65,7 @@ public class WalletGenerator
 		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
 		PasswordHelper.Guard(password);
 
-		var km = KeyManager.CreateNewWithMnemonic(mnemonic, password, Network);
+		var km = KeyManager.CreateNew(mnemonic, password, Network);
 		km.AutoCoinJoin = true;
 		km.SetNetwork(Network);
 		km.SetBestHeight(new Height(TipHeight));

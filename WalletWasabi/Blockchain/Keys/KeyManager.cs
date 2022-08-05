@@ -199,23 +199,14 @@ public class KeyManager
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
-		password ??= "";
-
 		mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-		ExtKey extKey = mnemonic.DeriveExtKey(password);
-		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
-
-		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-		BlockchainState blockchainState = new(network);
-		KeyPath keyPath = GetAccountKeyPath(network);
-		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
+		return CreateNew(mnemonic, password, network, filePath);
 	}
 
-	public static KeyManager CreateNewWithMnemonic(Mnemonic mnemonic, string password, Network network, string? filePath = null)
+	public static KeyManager CreateNew(Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
 		password ??= "";
-		
+
 		ExtKey extKey = mnemonic.DeriveExtKey(password);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
