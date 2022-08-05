@@ -224,7 +224,7 @@ public class Program
 		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
 
 		// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
-		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException)
+		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException socketException && socketException.SocketErrorCode == SocketError.OperationAborted)
 		{
 			Logger.LogTrace(e.Exception);
 		}
