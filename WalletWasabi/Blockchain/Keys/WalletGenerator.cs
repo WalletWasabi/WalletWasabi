@@ -86,7 +86,7 @@ public class WalletGenerator
 			throw new ArgumentException("Wallet name is already taken.");
 		}
 
-		var km = KeyManager.CreateNew(out Mnemonic mnemonic, string.Empty, Network);
+		KeyManager.CreateNew(out Mnemonic mnemonic, string.Empty, Network);
 
 		return mnemonic;
 	}
