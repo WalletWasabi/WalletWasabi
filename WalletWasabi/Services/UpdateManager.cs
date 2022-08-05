@@ -51,7 +51,7 @@ public class UpdateManager : IDisposable
 					updateStatus.ClientVersion = newVersion;
 					break;
 				}
-				catch (TaskCanceledException ex)
+				catch (OperationCanceledException ex)
 				{
 					Logger.LogTrace($"Geting new update was canceled.", ex);
 					break;
