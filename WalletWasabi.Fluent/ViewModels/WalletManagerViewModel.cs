@@ -51,8 +51,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 					RemoveWallet(walletViewModel);
 				}
 				else if (walletViewModel is ClosedWalletViewModel { IsLoggedIn: true } cwvm &&
-				         ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
-				          cwvm.Wallet.State == WalletState.Started))
+						 ((cwvm.Wallet.KeyManager.SkipSynchronization && cwvm.Wallet.State == WalletState.Starting) ||
+						  cwvm.Wallet.State == WalletState.Started))
 				{
 					OpenClosedWallet(cwvm);
 				}

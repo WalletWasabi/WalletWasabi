@@ -286,7 +286,7 @@ public class PayjoinTests
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Inputs.Clear(); // remove all the inputs
-					globalTx.Inputs.Add(GetRandomOutPoint());
+				globalTx.Inputs.Add(GetRandomOutPoint());
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 

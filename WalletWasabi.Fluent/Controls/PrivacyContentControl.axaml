@@ -21,7 +21,7 @@
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText"
-                       Text="{TemplateBinding PrivacyText}"/>
+                       Text="{TemplateBinding PrivacyText}" />
           </Panel>
         </Panel>
       </ControlTemplate>
@@ -63,7 +63,7 @@
     <Setter Property="IsVisible" Value="False" />
   </Style>
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="True"/>
+    <Setter Property="IsVisible" Value="True" />
   </Style>
 
   <!-- Text privacy mode -->

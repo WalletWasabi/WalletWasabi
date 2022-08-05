@@ -75,12 +75,12 @@ public class DualCurrencyEntryBox : UserControl
 		_customCultureInfo = new CultureInfo("")
 		{
 			NumberFormat =
-				{
-					CurrencyGroupSeparator = _groupSeparator.ToString(),
-					NumberGroupSeparator = _groupSeparator.ToString(),
-					CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-					NumberDecimalSeparator = _decimalSeparator.ToString()
-				}
+			{
+				CurrencyGroupSeparator = _groupSeparator.ToString(),
+				NumberGroupSeparator = _groupSeparator.ToString(),
+				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
+				NumberDecimalSeparator = _decimalSeparator.ToString()
+			}
 		};
 
 		this.GetObservable(TextProperty).Subscribe(InputText);
@@ -312,8 +312,8 @@ public class DualCurrencyEntryBox : UserControl
 		var part2 = value.FormattedFiat();
 		var part3 =
 			!string.IsNullOrWhiteSpace(currencyCode)
-			? $" {currencyCode}"
-			: "";
+				? $" {currencyCode}"
+				: "";
 		return part1 + part2 + part3;
 	}
 
@@ -348,8 +348,8 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		var focusOn =
 			IsConversionReversed
-			? _rightEntryBox
-			: _leftEntryBox;
+				? _rightEntryBox
+				: _leftEntryBox;
 
 		focusOn?.Focus();
 	}

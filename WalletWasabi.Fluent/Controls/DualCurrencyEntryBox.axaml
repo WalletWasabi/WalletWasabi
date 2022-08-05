@@ -85,12 +85,12 @@
           <DataValidationErrors DockPanel.Dock="Bottom" />
           <Panel>
             <Border
-               Name="PART_BorderElement"
-               BorderThickness="{TemplateBinding BorderThickness}"
-               MinWidth="{TemplateBinding MinWidth}"
-               MinHeight="{TemplateBinding MinHeight}" />
+              Name="PART_BorderElement"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              MinWidth="{TemplateBinding MinWidth}"
+              MinHeight="{TemplateBinding MinHeight}" />
             <Panel
-                Margin="{TemplateBinding BorderThickness}">
+              Margin="{TemplateBinding BorderThickness}">
               <Panel
                 Margin="{TemplateBinding Padding}">
                 <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
@@ -196,7 +196,7 @@
   </Style>
 
   <Style
-      Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    Selector="c|DualCurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
   </Style>
 

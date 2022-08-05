@@ -91,7 +91,7 @@
                                      IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                     DockPanel.Dock="Right"/>
+                                     DockPanel.Dock="Right" />
 
                           <TextPresenter Name="PART_TextPresenter"
                                          Text="{TemplateBinding Text, Mode=TwoWay}"
@@ -106,7 +106,7 @@
                                          SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
 
                         </DockPanel>
                       </Panel>
@@ -223,26 +223,26 @@
   </Style>
 
   <Style Selector="c|CurrencyEntryBox">
-    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
   </Style>
 
   <Style Selector="c|CurrencyEntryBox:isrightside">
-    <Setter Property="TextAlignment" Value="Right"/>
-    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+    <Setter Property="TextAlignment" Value="Right" />
+    <Setter Property="HorizontalContentAlignment" Value="Right" />
   </Style>
 
   <!-- Correct caret offset for empty boxes so that it fits nicely with the different watermarks -->
   <Style Selector="c|CurrencyEntryBox:empty /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="0 0 0 0"/>
+    <Setter Property="Margin" Value="0 0 0 0" />
   </Style>
   <Style Selector="c|CurrencyEntryBox:empty:isfiat /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="13 0 0 0"/>
+    <Setter Property="Margin" Value="13 0 0 0" />
   </Style>
   <Style Selector="c|CurrencyEntryBox:empty:isrightside /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="0 0 40 0"/>
+    <Setter Property="Margin" Value="0 0 40 0" />
   </Style>
   <Style Selector="c|CurrencyEntryBox:empty:isrightside:isfiat /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="Margin" Value="0 0 63 0"/>
+    <Setter Property="Margin" Value="0 0 63 0" />
   </Style>
 
 </Styles>
