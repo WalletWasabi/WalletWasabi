@@ -48,8 +48,8 @@ public class WalletGenerator
 		km.SetFilePath(walletFilePath);
 		return (km, mnemonic);
 	}
-	
-	public (KeyManager, Mnemonic) CreateWalletWithMnemonic(Mnemonic mnemonic,string walletName, string password)
+
+	public (KeyManager, Mnemonic) CreateWalletWithMnemonic(Mnemonic mnemonic, string walletName, string password)
 	{
 		if (!ValidateWalletName(walletName))
 		{
@@ -72,7 +72,7 @@ public class WalletGenerator
 		km.SetFilePath(walletFilePath);
 		return (km, mnemonic);
 	}
-	
+
 	public Mnemonic GenerateDummyWalletMnemonic(string walletName)
 	{
 		if (!ValidateWalletName(walletName))
