@@ -185,9 +185,9 @@ public class RpcClientBase : IRPCClient
 		return await Rpc.BumpFeeAsync(txid, cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual async Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
+	public virtual async Task<Transaction> GetRawTransactionAsync(uint256 txid, uint256? blockHash = null, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 	{
-		return await Rpc.GetRawTransactionAsync(txid, throwIfNotFound, cancellationToken).ConfigureAwait(false);
+		return await Rpc.GetRawTransactionAsync(txid, blockHash, throwIfNotFound, cancellationToken).ConfigureAwait(false);
 	}
 
 	public virtual async Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel)
@@ -200,7 +200,7 @@ public class RpcClientBase : IRPCClient
 			List<Task<Transaction>> tasks = new();
 			foreach (var txid in txidsChunk)
 			{
-				tasks.Add(batchingRpc.GetRawTransactionAsync(txid, throwIfNotFound: false, cancel));
+				tasks.Add(batchingRpc.GetRawTransactionAsync(txid, blockHash:null /*mempool only*/, throwIfNotFound: false, cancel));
 			}
 
 			await batchingRpc.SendBatchAsync(cancel).ConfigureAwait(false);

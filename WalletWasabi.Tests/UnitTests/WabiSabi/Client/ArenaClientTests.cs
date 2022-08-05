@@ -58,7 +58,7 @@ public class ArenaClientTests
 			});
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 		mockRpc.Setup(rpc => rpc.SendBatchAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-		mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(It.IsAny<uint256>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+		mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(It.IsAny<uint256>(),  It.IsAny<uint256>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(BitcoinFactory.CreateTransaction());
 
 		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);

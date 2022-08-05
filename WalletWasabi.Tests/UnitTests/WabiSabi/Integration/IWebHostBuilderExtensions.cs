@@ -25,7 +25,7 @@ public static class IWebHostBuilderExtensions
 			TxOut = coins.Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 		};
 
-		rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+		rpc.OnGetRawTransactionAsync = (txid, blockHash, throwIfNotFound) =>
 		{
 			var tx = coins.First(coin => coin.TransactionId == txid)?.Transaction?.Transaction;
 
@@ -36,6 +36,9 @@ public static class IWebHostBuilderExtensions
 
 			return Task.FromResult(tx);
 		};
+
+		rpc.OnGetBlockCountAsync = () => Task.FromResult(100);
+		rpc.OnGetBlockHashAsync = (height) => Task.FromResult(uint256.One);
 
 		options(rpc);
 

@@ -56,7 +56,7 @@ public interface IRPCClient
 
 	Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default);
 
-	Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default);
+	Task<Transaction> GetRawTransactionAsync(uint256 txid, uint256? blockHash = null, bool throwIfNotFound = true, CancellationToken cancellationToken = default);
 
 	Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel);
 

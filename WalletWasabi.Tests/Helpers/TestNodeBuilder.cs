@@ -44,8 +44,8 @@ public static class TestNodeBuilder
 				tryDeleteDataDir: true,
 				EndPointStrategy.Random,
 				EndPointStrategy.Random,
-				txIndex: 1,
-				prune: 0,
+				txIndex: 0,
+				prune: 1,
 				mempoolReplacement: "fee,optin",
 				userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 				fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524

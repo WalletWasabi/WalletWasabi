@@ -101,7 +101,7 @@ public static class WabiSabiFactory
 					TxOut = coin.TxOut,
 				});
 
-			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+			mockRpc.Setup(rpc => rpc.GetRawTransactionAsync(coin.Outpoint.Hash,  It.IsAny<uint256>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(BitcoinFactory.CreateTransaction());
 		}
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))

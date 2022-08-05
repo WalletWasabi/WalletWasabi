@@ -13,6 +13,7 @@ public class MockRpcClient : IRPCClient
 	public Func<Task<uint256>>? OnGetBestBlockHashAsync { get; set; }
 	public Func<uint256, int, bool, GetTxOutResponse?>? OnGetTxOutAsync { get; set; }
 	public Func<uint256, Task<Block>>? OnGetBlockAsync { get; set; }
+	public Func<Task<int>>? OnGetBlockCountAsync { get; set; }
 	public Func<int, Task<uint256>>? OnGetBlockHashAsync { get; set; }
 	public Func<uint256, Task<BlockHeader>>? OnGetBlockHeaderAsync { get; set; }
 	public Func<Task<BlockchainInfo>>? OnGetBlockchainInfoAsync { get; set; }
@@ -20,7 +21,7 @@ public class MockRpcClient : IRPCClient
 	public Func<Transaction, uint256>? OnSendRawTransactionAsync { get; set; }
 	public Func<Task<MemPoolInfo>>? OnGetMempoolInfoAsync { get; set; }
 	public Func<Task<uint256[]>>? OnGetRawMempoolAsync { get; set; }
-	public Func<uint256, bool, Task<Transaction>>? OnGetRawTransactionAsync { get; set; }
+	public Func<uint256, uint256, bool, Task<Transaction>>? OnGetRawTransactionAsync { get; set; }
 	public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>>? OnEstimateSmartFeeAsync { get; set; }
 	public Func<Task<PeerInfo[]>>? OnGetPeersInfoAsync { get; set; }
 	public Func<int, BitcoinAddress, Task<uint256[]>>? OnGenerateToAddressAsync { get; set; }
@@ -52,7 +53,7 @@ public class MockRpcClient : IRPCClient
 
 	public Task<int> GetBlockCountAsync(CancellationToken cancellationToken = default)
 	{
-		throw new NotImplementedException();
+		return OnGetBlockCountAsync?.Invoke() ?? NotImplementedTask<int>(nameof(GetBlockCountAsync));
 	}
 
 	public Task<uint256> GetBlockHashAsync(int height, CancellationToken cancellationToken = default)
@@ -90,9 +91,9 @@ public class MockRpcClient : IRPCClient
 		return OnGetRawMempoolAsync?.Invoke() ?? NotImplementedTask<uint256[]>(nameof(GetRawMempoolAsync));
 	}
 
-	public Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
+	public Task<Transaction> GetRawTransactionAsync(uint256 txid, uint256? blockHash = null, bool throwIfNotFound = true, CancellationToken cancellationToken = default)
 	{
-		return OnGetRawTransactionAsync?.Invoke(txid, throwIfNotFound) ?? NotImplementedTask<Transaction>(nameof(GetRawTransactionAsync));
+		return OnGetRawTransactionAsync?.Invoke(txid, blockHash, throwIfNotFound) ?? NotImplementedTask<Transaction>(nameof(GetRawTransactionAsync));
 	}
 
 	public Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken = default)

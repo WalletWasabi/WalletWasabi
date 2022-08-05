@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -59,9 +61,9 @@ public class P2pNode
 		Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
 		Node.VersionHandshake(cancel);
 
-		if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
+		if (Node.PeerVersion.StartHeight > SmartHeader.GetStartingHeader(Network).Height)
 		{
-			throw new InvalidOperationException("Wasabi cannot use the local node because it does not provide blocks.");
+		 	throw new InvalidOperationException("Wasabi cannot use the local node it doesn't have all the blocks since segwit activation.");
 		}
 
 		if (!Node.IsConnected)

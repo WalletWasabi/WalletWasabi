@@ -74,7 +74,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			if (!isPayingZeroCoordinationFee)
 			{
 				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
-				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
+				
+				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, coin.BlockHash, true, cancellationToken).ConfigureAwait(false);
 
 				if (tx.Inputs.All(input => CoinJoinIdStore.Contains(input.PrevOut.Hash)))
 				{
@@ -346,7 +347,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			await zeroVsizeTask.ConfigureAwait(false));
 	}
 
-	public async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	public async Task<CoinWithBlockRef> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
 
@@ -380,7 +381,10 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 		}
 
-		return new Coin(input, txOutResponse.TxOut);
+		var tipHeight = await Rpc.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+		var coinHeight = tipHeight - txOutResponse.Confirmations + 1;
+		var coinBlockHash = await Rpc.GetBlockHashAsync(coinHeight, cancellationToken).ConfigureAwait(false);
+		return new CoinWithBlockRef(input, txOutResponse.TxOut, coinBlockHash);
 	}
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -417,4 +421,15 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private static bool IsUserCheating(Exception e) =>
 		e is WabiSabiCryptoException || (e is WabiSabiProtocolException wpe && wpe.ErrorCode.IsEvidencingClearMisbehavior());
+}
+
+public class CoinWithBlockRef : Coin
+{
+	public CoinWithBlockRef(OutPoint outpoint, TxOut txOut, uint256 blockHash) 
+		: base(outpoint, txOut)
+	{
+		BlockHash = blockHash;
+	}
+
+	public uint256 BlockHash { get; }
 }

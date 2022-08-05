@@ -318,7 +318,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			Enumerable.Concat(coins, badCoins).ToArray(),
 			rpc =>
 			{
-				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				rpc.OnGetRawTransactionAsync = (txid, blockHash, throwIfNotFound) =>
 				{
 					var tx = Transaction.Create(Network.Main);
 					return Task.FromResult(tx);
@@ -547,7 +547,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					ScriptPubKeyType = "witness_v0_keyhash",
 					TxOut = coinToRegister.TxOut
 				};
-				rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+				rpc.OnGetBlockCountAsync = () => Task.FromResult(100);
+				rpc.OnGetBlockHashAsync = (_) => Task.FromResult(uint256.One);
+				rpc.OnGetRawTransactionAsync = (txid, blockHash, throwIfNotFound) =>
 				{
 					var tx = Transaction.Create(Network.Main);
 					return Task.FromResult(tx);
