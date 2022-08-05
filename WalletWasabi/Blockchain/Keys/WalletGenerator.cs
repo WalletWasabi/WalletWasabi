@@ -27,16 +27,7 @@ public class WalletGenerator
 
 	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password)
 	{
-		if (!ValidateWalletName(walletName))
-		{
-			throw new ArgumentException("Invalid wallet name.");
-		}
-
-		string walletFilePath = Path.Combine(WalletsDir, $"{walletName}.json");
-		if (File.Exists(walletFilePath))
-		{
-			throw new ArgumentException("Wallet name is already taken.");
-		}
+		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
 		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
 		PasswordHelper.Guard(password);
