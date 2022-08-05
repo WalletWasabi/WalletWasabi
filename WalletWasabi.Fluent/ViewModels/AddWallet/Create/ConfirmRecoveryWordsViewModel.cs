@@ -25,7 +25,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	public ConfirmRecoveryWordsViewModel(
 		List<RecoveryWordViewModel> mnemonicWords,
 		Mnemonic mnemonic,
-		string? walletName)
+		string walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
@@ -62,7 +62,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private async Task OnNextAsync(Mnemonic mnemonics, string? walletName = "")
+	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
 			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
