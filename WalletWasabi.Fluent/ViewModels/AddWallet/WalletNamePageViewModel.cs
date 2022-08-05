@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Helpers;
+using NBitcoin;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -85,13 +86,9 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		var mnemonic = await Task.Run(
 			() =>
 			{
-				var walletGenerator = new WalletGenerator(
-					Services.WalletManager.WalletDirectories.WalletsDir,
-					Services.WalletManager.Network)
-				{
-					TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
-				};
-				return walletGenerator.GenerateDummyWalletMnemonic(walletName);
+				// Makes sure we can create this wallet.
+				WalletGenerator.GetWalletFilePath(walletName, Services.WalletManager.WalletDirectories.WalletsDir);
+				return new Mnemonic(Wordlist.English, WordCount.Twelve);
 			});
 
 		IsBusy = false;
