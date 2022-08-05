@@ -25,29 +25,14 @@ public class WalletGenerator
 	public Network Network { get; private set; }
 	public uint TipHeight { get; set; }
 
-	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password)
+	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password, Mnemonic? mnemonic = null)
 	{
 		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
 		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
 		PasswordHelper.Guard(password);
 
-		var km = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network);
-		km.AutoCoinJoin = true;
-		km.SetNetwork(Network);
-		km.SetBestHeight(new Height(TipHeight));
-		km.SetFilePath(walletFilePath);
-		return (km, mnemonic);
-	}
-
-	public (KeyManager, Mnemonic) CreateWalletWithMnemonic(Mnemonic mnemonic, string walletName, string password)
-	{
-		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
-
-		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
-		PasswordHelper.Guard(password);
-
-		var km = KeyManager.CreateNew(mnemonic, password, Network);
+		var km = mnemonic is null ? KeyManager.CreateNew(out mnemonic, password, Network) : KeyManager.CreateNew(mnemonic, password, Network);
 		km.AutoCoinJoin = true;
 		km.SetNetwork(Network);
 		km.SetBestHeight(new Height(TipHeight));

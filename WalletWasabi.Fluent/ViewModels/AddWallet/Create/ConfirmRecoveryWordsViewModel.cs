@@ -81,7 +81,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 					{
 						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
 					};
-					return walletGenerator.CreateWalletWithMnemonic(mnemonics, walletName, password);
+					return walletGenerator.GenerateWallet(walletName, password, mnemonics);
 				});
 			IsBusy = false;
 			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
