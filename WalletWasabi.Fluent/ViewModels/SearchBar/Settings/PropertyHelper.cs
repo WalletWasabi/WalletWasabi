@@ -16,7 +16,7 @@ public static class PropertyHelper<T>
 
 		return body.NodeType switch
 		{
-			ExpressionType.MemberAccess => (PropertyInfo) ((MemberExpression) body).Member,
+			ExpressionType.MemberAccess => (PropertyInfo)((MemberExpression)body).Member,
 			_ => throw new InvalidOperationException()
 		};
 	}

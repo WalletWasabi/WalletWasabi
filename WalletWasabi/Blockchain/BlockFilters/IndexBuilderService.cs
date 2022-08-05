@@ -149,21 +149,21 @@ public class IndexBuilderService
 								syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 							}
 
-								// If wasabi filter height is the same as core we may be done.
-								if (syncInfo.BlockCount == currentHeight)
+							// If wasabi filter height is the same as core we may be done.
+							if (syncInfo.BlockCount == currentHeight)
 							{
-									// Check that core is fully synced
-									if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
+								// Check that core is fully synced
+								if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
 								{
-										// Mark the process notstarted, so it can be started again
-										// and finally block can mark it as stopped.
-										Interlocked.Exchange(ref _serviceStatus, NotStarted);
+									// Mark the process notstarted, so it can be started again
+									// and finally block can mark it as stopped.
+									Interlocked.Exchange(ref _serviceStatus, NotStarted);
 									return;
 								}
 								else
 								{
-										// Knots is catching up give it a 10 seconds
-										await Task.Delay(10000).ConfigureAwait(false);
+									// Knots is catching up give it a 10 seconds
+									await Task.Delay(10000).ConfigureAwait(false);
 									continue;
 								}
 							}
@@ -172,16 +172,16 @@ public class IndexBuilderService
 							uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
 							VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
 
-								// Check if we are still on the best chain,
-								// if not rewind filters till we find the fork.
-								if (currentHash != block.PrevBlockHash)
+							// Check if we are still on the best chain,
+							// if not rewind filters till we find the fork.
+							if (currentHash != block.PrevBlockHash)
 							{
 								Logger.LogWarning("Reorg observed on the network.");
 
 								await ReorgOneAsync().ConfigureAwait(false);
 
-									// Skip the current block.
-									continue;
+								// Skip the current block.
+								continue;
 							}
 
 							var filter = BuildFilterForBlock(block);
@@ -196,8 +196,8 @@ public class IndexBuilderService
 								Index.Add(filterModel);
 							}
 
-								// If not close to the tip, just log debug.
-								if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
+							// If not close to the tip, just log debug.
+							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 							{
 								Logger.LogInfo($"Created filter for block: {nextHeight}.");
 							}
@@ -211,15 +211,15 @@ public class IndexBuilderService
 						{
 							Logger.LogDebug(ex);
 
-								// Pause the while loop for a while to not flood logs in case of permanent error.
-								await Task.Delay(1000).ConfigureAwait(false);
+							// Pause the while loop for a while to not flood logs in case of permanent error.
+							await Task.Delay(1000).ConfigureAwait(false);
 						}
 					}
 				}
 				finally
 				{
 					Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
-						Interlocked.Decrement(ref _workerCount);
+					Interlocked.Decrement(ref _workerCount);
 				}
 			}
 			catch (Exception ex)

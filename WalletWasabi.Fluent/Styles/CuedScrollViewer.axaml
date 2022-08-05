@@ -157,7 +157,7 @@
                  Background="{DynamicResource ScrollViewerScrollBarsSeparatorBackground}" />
 
           <!-- Scroll cues (hints)  -->
-          <!-- They are disabled for now. If we want to enable them, just remove the IsVisible="False" attribute below --> 
+          <!-- They are disabled for now. If we want to enable them, just remove the IsVisible="False" attribute below -->
           <Panel x:Name="ScrollCues" Grid.Row="0" Grid.ColumnSpan="2" Grid.RowSpan="2" Grid.Column="0" IsVisible="False">
             <RepeatButton x:Name="TopCue"
                           VerticalAlignment="Top"
@@ -214,7 +214,7 @@
   <Style Selector="navBar|NavBar RepeatButton">
     <Setter Property="IsVisible" Value="False" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="Grid.ColumnSpan" Value="2"/>
+    <Setter Property="Grid.ColumnSpan" Value="2" />
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
