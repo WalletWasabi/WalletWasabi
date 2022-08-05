@@ -42,10 +42,17 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(string walletName, WalletCreationOption creationOption)
 	{
+		IsBusy = true;
+
+		// Makes sure we can create a wallet with this wallet name.
+		await Task.Run(() => WalletGenerator.GetWalletFilePath(walletName, Services.WalletManager.WalletDirectories.WalletsDir));
+
+		IsBusy = false;
+
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				await CreateMnemonicsAsync(walletName);
+				Navigate().To(new RecoveryWordsViewModel(new Mnemonic(Wordlist.English, WordCount.Twelve), walletName));
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:
@@ -77,23 +84,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
 			BackCommand.Execute(null);
 		}
-	}
-
-	private async Task CreateMnemonicsAsync(string walletName)
-	{
-		IsBusy = true;
-
-		var mnemonic = await Task.Run(
-			() =>
-			{
-				// Makes sure we can create this wallet.
-				WalletGenerator.GetWalletFilePath(walletName, Services.WalletManager.WalletDirectories.WalletsDir);
-				return new Mnemonic(Wordlist.English, WordCount.Twelve);
-			});
-
-		IsBusy = false;
-
-		Navigate().To(new RecoveryWordsViewModel(mnemonic, walletName));
 	}
 
 	private void ValidateWalletName(IValidationErrors errors)
