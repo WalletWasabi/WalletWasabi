@@ -53,7 +53,7 @@ public class FilterModel
 		}
 		catch (FormatException ex)
 		{
-			throw new FormatException("There was an error parsing Filters. Resynchronize needed, please restart Wasabi.", ex);
+			throw new FormatException("An error occurred while parsing the block filters.", ex);
 		}
 	}
 
