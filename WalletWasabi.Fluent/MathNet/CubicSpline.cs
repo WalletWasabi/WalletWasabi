@@ -266,18 +266,21 @@ public class CubicSpline
 				a3[0] = 1;
 				b[0] = 2 * (y[1] - y[0]) / (x[1] - x[0]);
 				break;
+
 			case SplineBoundaryCondition.FirstDerivative:
 				a1[0] = 0;
 				a2[0] = 1;
 				a3[0] = 0;
 				b[0] = leftBoundary;
 				break;
+
 			case SplineBoundaryCondition.SecondDerivative:
 				a1[0] = 0;
 				a2[0] = 2;
 				a3[0] = 1;
 				b[0] = (3 * ((y[1] - y[0]) / (x[1] - x[0]))) - (0.5 * leftBoundary * (x[1] - x[0]));
 				break;
+
 			default:
 				throw new NotSupportedException("Invalid Left Boundary Condition.");
 		}
@@ -300,18 +303,21 @@ public class CubicSpline
 				a3[n - 1] = 0;
 				b[n - 1] = 2 * (y[n - 1] - y[n - 2]) / (x[n - 1] - x[n - 2]);
 				break;
+
 			case SplineBoundaryCondition.FirstDerivative:
 				a1[n - 1] = 0;
 				a2[n - 1] = 1;
 				a3[n - 1] = 0;
 				b[n - 1] = rightBoundary;
 				break;
+
 			case SplineBoundaryCondition.SecondDerivative:
 				a1[n - 1] = 1;
 				a2[n - 1] = 2;
 				a3[n - 1] = 0;
 				b[n - 1] = (3 * (y[n - 1] - y[n - 2]) / (x[n - 1] - x[n - 2])) + (0.5 * rightBoundary * (x[n - 1] - x[n - 2]));
 				break;
+
 			default:
 				throw new NotSupportedException("Invalid Right Boundary Condition.");
 		}

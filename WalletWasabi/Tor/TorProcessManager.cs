@@ -53,7 +53,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
 	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
-	{		
+	{
 		return StartAsync(attempts: 1, cancellationToken);
 	}
 
@@ -185,7 +185,7 @@ public class TorProcessManager : IAsyncDisposable
 						}
 						catch
 						{
-						}						
+						}
 					}
 				}
 			}

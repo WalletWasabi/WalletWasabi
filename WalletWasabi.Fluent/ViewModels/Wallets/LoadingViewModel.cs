@@ -153,7 +153,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		if (remainingTimeSpan > TimeSpan.FromHours(1))
 		{
- 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+			remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
 		}
 
 		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);

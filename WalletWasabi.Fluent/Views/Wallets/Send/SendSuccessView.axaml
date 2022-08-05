@@ -12,10 +12,10 @@
                  EnableNext="True" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel VerticalAlignment="Center">
-      <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap"/>
+      <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" />
 
       <Viewbox MaxHeight="150" Margin="40">
-        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}"/>
+        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}" />
       </Viewbox>
     </DockPanel>
   </c:ContentArea>

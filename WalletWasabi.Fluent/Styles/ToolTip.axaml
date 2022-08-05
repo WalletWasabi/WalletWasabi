@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <Style Selector="ToolTip > TextBlock">
-    <Setter Property="ClipToBounds" Value="False"/>
+    <Setter Property="ClipToBounds" Value="False" />
   </Style>
 
 </Styles>

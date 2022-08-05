@@ -10,13 +10,13 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-  <c:ContentArea 
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="True"
-                 NextContent="Continue"
-                 EnableCancel="{Binding EnableCancel}"
-                 IsBusy="{Binding IsBusy}"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+  <c:ContentArea
+    EnableBack="{Binding EnableBack}"
+    EnableNext="True"
+    NextContent="Continue"
+    EnableCancel="{Binding EnableCancel}"
+    IsBusy="{Binding IsBusy}"
+    ScrollViewer.VerticalScrollBarVisibility="Auto">
     <c:ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Send" />
@@ -24,9 +24,9 @@
           <!-- Balance -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DataContext="{Binding Balance}" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
             <StackPanel Spacing="5" Orientation="Horizontal" VerticalAlignment="Top">
-              <TextBlock Opacity="0.6" Classes="h8" Text="Balance: "/>
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}"/>
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}"/>
+              <TextBlock Opacity="0.6" Classes="h8" Text="Balance: " />
+              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}" />
+              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}" />
             </StackPanel>
           </c:PrivacyContentControl>
         </StackPanel>

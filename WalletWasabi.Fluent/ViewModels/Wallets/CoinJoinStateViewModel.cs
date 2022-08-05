@@ -53,7 +53,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
 
-	public bool IsAutoCoinJoinEnabled => WalletVm.Settings.AutoCoinJoin;
+	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
 	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
 	{
@@ -74,7 +74,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(StatusChanged);
 
-		var initialState = walletVm.Settings.AutoCoinJoin
+		var initialState = walletVm.CoinJoinSettings.AutoCoinJoin
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
@@ -108,7 +108,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
 		});
 
-		AutoCoinJoinObservable = walletVm.Settings.WhenAnyValue(x => x.AutoCoinJoin);
+		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
 		AutoCoinJoinObservable
 			.Skip(1) // The first one is triggered at the creation.
