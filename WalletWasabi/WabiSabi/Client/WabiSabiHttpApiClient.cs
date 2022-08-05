@@ -11,6 +11,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
@@ -70,6 +71,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
+		DateTimeOffset before = DateTimeOffset.UtcNow;
 		var attempt = 1;
 		do
 		{
@@ -80,6 +82,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				// Any transport layer errors will throw an exception here.
 				HttpResponseMessage response = await _client
 					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, combinedToken).ConfigureAwait(false);
+
+				var successRatio = (float)1 / attempt;
+				RequestTimeStatista2.Instance.Add($"XXX-API-OK-{action}", DateTimeOffset.UtcNow - before, successRatio);
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
@@ -117,6 +122,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
 
+				RequestTimeStatista2.Instance.Add($"XXX-API-OK-{action}", DateTimeOffset.UtcNow - before, 0);
+
 				if (exceptions.Any())
 				{
 					AddException(exceptions, e);
@@ -141,6 +148,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			attempt++;
 		}
 		while (!combinedToken.IsCancellationRequested);
+
+		RequestTimeStatista2.Instance.Add($"XXX-API-OK-{action}", DateTimeOffset.UtcNow - before, 0);
 
 		throw new AggregateException(exceptions.Keys);
 	}
