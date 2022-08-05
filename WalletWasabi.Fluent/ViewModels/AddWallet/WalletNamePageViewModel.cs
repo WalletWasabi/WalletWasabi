@@ -44,7 +44,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				await CreateMnemonics(walletName);
+				await CreateMnemonicsAsync(walletName);
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:
@@ -78,7 +78,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task CreateMnemonics(string walletName)
+	private async Task CreateMnemonicsAsync(string walletName)
 	{
 		IsBusy = true;
 
@@ -96,7 +96,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		IsBusy = false;
 
-		Navigate().To(new RecoveryWordsViewModel(mnemonic, null, walletName));
+		Navigate().To(new RecoveryWordsViewModel(mnemonic, walletName));
 	}
 
 	private void ValidateWalletName(IValidationErrors errors)

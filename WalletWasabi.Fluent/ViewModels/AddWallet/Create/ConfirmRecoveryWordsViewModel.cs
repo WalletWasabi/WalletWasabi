@@ -22,8 +22,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 	[AutoNotify] private bool _isSkipEnable;
 
-	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, Mnemonic mnemonic,
-		KeyManager? keyManager, string? walletName)
+	public ConfirmRecoveryWordsViewModel(
+		List<RecoveryWordViewModel> mnemonicWords,
+		Mnemonic mnemonic,
+		string? walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
@@ -37,7 +39,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(mnemonic, keyManager, walletName), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(mnemonic, walletName), nextCommandCanExecute);
 
 		if (_isSkipEnable)
 		{
@@ -60,14 +62,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private async Task OnNextAsync(Mnemonic mnemonics, KeyManager? keyManager = null, string? walletName = "")
+	private async Task OnNextAsync(Mnemonic mnemonics, string? walletName = "")
 	{
-		if (keyManager is { })
-		{
-			await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
-			return;
-		}
-
 		var dialogResult = await NavigateDialogAsync(
 			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
 			NavigationTarget.CompactDialogScreen);
@@ -90,7 +86,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			IsBusy = false;
 			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
 		}
-
 	}
 
 	private void OnCancel()

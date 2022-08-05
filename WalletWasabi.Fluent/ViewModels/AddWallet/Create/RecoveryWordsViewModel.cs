@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
-	public RecoveryWordsViewModel(Mnemonic mnemonic, KeyManager keyManager = null, string? waletName = "")
+	public RecoveryWordsViewModel(Mnemonic mnemonic, string? waletName = "")
 	{
 		MnemonicWords = new List<RecoveryWordViewModel>();
 
@@ -21,15 +21,16 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => OnNext(mnemonic, keyManager, waletName));
+		NextCommand = ReactiveCommand.Create(() => OnNext(mnemonic, waletName));
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 	}
+
 	public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 
-	private void OnNext(Mnemonic mnemonic, KeyManager? keyManager, string? walletName)
+	private void OnNext(Mnemonic mnemonic, string? walletName)
 	{
-		Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, mnemonic, keyManager, walletName));
+		Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, mnemonic, walletName));
 	}
 
 	private void OnCancel()
