@@ -100,6 +100,10 @@ public static class TransactionHelpers
 		{
 			psbt = PSBT.Load(psbtBytes, network);
 		}
+		catch (FormatException ex)
+		{
+			throw new FormatException("An error occurred while loading the PSBT file.", ex);
+		}
 		catch
 		{
 			var text = await File.ReadAllTextAsync(path);

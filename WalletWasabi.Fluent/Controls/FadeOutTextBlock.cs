@@ -9,12 +9,17 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class FadeOutTextBlock : TextBlock, IStyleable
 {
-	public Type StyleKey { get; } = typeof(TextBlock);
+	private TextLayout? _trimmedLayout;
+	private Size _constraint;
+	private bool _cutOff;
+	private TextLayout? _noTrimLayout;
 
 	public FadeOutTextBlock()
 	{
 		TextWrapping = TextWrapping.NoWrap;
 	}
+
+	public Type StyleKey { get; } = typeof(TextBlock);
 
 	private static readonly IBrush FadeoutOpacityMask = new LinearGradientBrush
 	{
@@ -27,11 +32,6 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 			new GradientStop { Color = Colors.Transparent, Offset = 0.9 }
 		}
 	}.ToImmutable();
-
-	private TextLayout? _trimmedLayout;
-	private Size _constraint;
-	private bool _cutOff;
-	private TextLayout? _noTrimLayout;
 
 	public override void Render(DrawingContext context)
 	{
@@ -85,13 +85,31 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var lineHeight = LineHeight;
 
 		_noTrimLayout = new TextLayout(
-			text1, typeface, fontSize, foreground, textAlignment,
-			textWrapping, TextTrimming.None, textDecorations, width, height, lineHeight,
+			text1,
+			typeface,
+			fontSize,
+			foreground,
+			textAlignment,
+			textWrapping,
+			TextTrimming.None,
+			textDecorations,
+			width,
+			height,
+			lineHeight,
 			1);
 
 		_trimmedLayout = new TextLayout(
-			text1, typeface, fontSize, foreground, textAlignment,
-			textWrapping, TextTrimming.CharacterEllipsis, textDecorations, width, height, lineHeight,
+			text1,
+			typeface,
+			fontSize,
+			foreground,
+			textAlignment,
+			textWrapping,
+			TextTrimming.CharacterEllipsis,
+			textDecorations,
+			width,
+			height,
+			lineHeight,
 			1);
 
 		_cutOff = _trimmedLayout.TextLines[0].HasCollapsed;
