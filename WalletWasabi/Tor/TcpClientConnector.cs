@@ -6,24 +6,24 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Tor.Control.Utils;
+namespace WalletWasabi.Tor;
 
 public static class TcpClientConnector
 {
 	/// <summary>
-	/// Connects to Tor control using a TCP client.
+	/// Connects to end point using a TCP client.
 	/// </summary>
-	public static TcpClient Connect(EndPoint endPoint)
+	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint)
 	{
 		TcpClient tcpClient = new();
 		switch (endPoint)
 		{
 			case DnsEndPoint dnsEndPoint:
-				tcpClient.Connect(dnsEndPoint.Host, dnsEndPoint.Port);
+				await tcpClient.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port).ConfigureAwait(false);
 				break;
 
 			case IPEndPoint ipEndPoint:
-				tcpClient.Connect(ipEndPoint);
+				await tcpClient.ConnectAsync(ipEndPoint).ConfigureAwait(false);
 				break;
 
 			default:

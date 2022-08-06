@@ -11,7 +11,6 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
-using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control;
 
@@ -43,7 +42,7 @@ public class TorControlClientFactory
 		TcpClient tcpClient;
 		try
 		{
-			tcpClient = TcpClientConnector.Connect(endPoint);
+			tcpClient = await TcpClientConnector.ConnectAsync(endPoint).ConfigureAwait(false);
 		}
 		catch (Exception e)
 		{
