@@ -42,7 +42,12 @@ public class Wallet : BackgroundService, IWallet
 		HandleFiltersLock = new AsyncLock();
 
 		KeyManager.AssertCleanKeysIndexed();
-		KeyChain = new KeyChain(KeyManager, Kitchen);
+
+		if (!KeyManager.IsWatchOnly)
+		{
+			KeyChain = new KeyChain(KeyManager, Kitchen);
+		}
+
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 	}
 
@@ -516,7 +521,7 @@ public class Wallet : BackgroundService, IWallet
 		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
 		&& Kitchen.HasIngredients;
 
-	public IKeyChain KeyChain { get; }
+	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;

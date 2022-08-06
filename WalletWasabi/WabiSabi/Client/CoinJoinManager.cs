@@ -433,11 +433,25 @@ public class CoinJoinManager : BackgroundService
 	/// </summary>
 	private async Task MarkDestinationsUsedAsync(ImmutableList<Script> outputs)
 	{
-		var hashSet = outputs.ToHashSet();
+		var scripts = outputs.ToHashSet();
 		var wallets = await WalletProvider.GetWalletsAsync().ConfigureAwait(false);
 		foreach (var k in wallets)
 		{
-			k.KeyChain.TrySetScriptStates(KeyState.Used, hashSet);
+			var kc = k.KeyChain;
+			var state = KeyState.Used;
+
+			// Watch only wallets have no key chains.
+			if (kc is null && k is Wallet w)
+			{
+				foreach (var hdPubKey in w.KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
+				{
+					hdPubKey.SetKeyState(state);
+				}
+			}
+			else
+			{
+				k.KeyChain?.TrySetScriptStates(state, scripts);
+			}
 		}
 	}
 
