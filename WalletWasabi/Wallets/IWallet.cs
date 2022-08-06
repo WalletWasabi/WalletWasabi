@@ -12,7 +12,12 @@ public interface IWallet
 	string Identifier { get; }
 	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
-	IKeyChain KeyChain { get; }
+
+	/// <summary>
+	/// Watch only wallets have no key chains.
+	/// </summary>
+	IKeyChain? KeyChain { get; }
+
 	IDestinationProvider DestinationProvider { get; }
 	public int AnonScoreTarget { get; }
 	public bool ConsolidationMode { get; }

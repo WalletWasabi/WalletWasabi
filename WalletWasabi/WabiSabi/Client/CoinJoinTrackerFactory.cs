@@ -35,11 +35,16 @@ public class CoinJoinTrackerFactory
 		Money? liquidityClue = null;
 		if (CoinJoinClient.GetLiquidityClue() is null)
 		{
-			var lastCoinjoin = (await wallet.GetTransactionsAsync().ConfigureAwait(false)).OrderByBlockchain().LastOrDefault(x=> x.IsOwnCoinjoin());
+			var lastCoinjoin = (await wallet.GetTransactionsAsync().ConfigureAwait(false)).OrderByBlockchain().LastOrDefault(x => x.IsOwnCoinjoin());
 			if (lastCoinjoin is not null)
 			{
 				liquidityClue = CoinJoinClient.TryCalculateLiquidityClue(lastCoinjoin.Transaction, lastCoinjoin.WalletOutputs.Select(x => x.TxOut));
 			}
+		}
+
+		if (wallet.KeyChain is null)
+		{
+			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
 		var coinJoinClient = new CoinJoinClient(

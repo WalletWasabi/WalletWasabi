@@ -87,7 +87,10 @@ public class TorSettings
 	/// </seealso>
 	public string GetCmdArguments()
 	{
-		ControlEndpoint.TryGetPort(out var port);
+		if (!ControlEndpoint.TryGetPort(out int? port))
+		{
+			port = 9051; // Standard port for Tor control.
+		}
 
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
@@ -96,7 +99,7 @@ public class TorSettings
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--SocksTimeout 30", // Default is 2 minutes.
 			$"--CookieAuthentication 1",
-			$"--ControlPort {port ?? 9051}",
+			$"--ControlPort {port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
 			$"--GeoIPFile \"{GeoIpPath}\"",

@@ -39,7 +39,16 @@ public class TorControlClientFactory
 	/// <exception cref="TorControlException">If TCP connection cannot be established OR if authentication fails for some reason.</exception>
 	public async Task<TorControlClient> ConnectAndAuthenticateAsync(EndPoint endPoint, string cookieString, CancellationToken cancellationToken = default)
 	{
-		TcpClient tcpClient = Connect(endPoint);
+		TcpClient tcpClient;
+		try
+		{
+			tcpClient = await TcpClientConnector.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception e)
+		{
+			Logger.LogError($"Failed to connect to the Tor control: '{endPoint}'.", e);
+			throw new TorControlException($"Failed to connect to the Tor control: '{endPoint}'.", e);
+		}
 		TorControlClient? clientToDispose = null;
 
 		try
@@ -114,33 +123,5 @@ public class TorControlClientFactory
 		}
 
 		return controlClient;
-	}
-
-	/// <summary>
-	/// Connects to Tor control using a TCP client.
-	/// </summary>
-	private TcpClient Connect(EndPoint endPoint)
-	{
-		try
-		{
-			TcpClient tcpClient = new();
-			switch (endPoint)
-			{
-				case DnsEndPoint dnsEndPoint:
-					tcpClient.Connect(dnsEndPoint.Host, dnsEndPoint.Port);
-					break;
-				case IPEndPoint ipEndPoint:
-					tcpClient.Connect(ipEndPoint);
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(endPoint));
-			}
-			return tcpClient;
-		}
-		catch (Exception e)
-		{
-			Logger.LogError($"Failed to connect to the Tor control: '{endPoint}'.", e);
-			throw new TorControlException($"Failed to connect to the Tor control: '{endPoint}'.", e);
-		}
 	}
 }
