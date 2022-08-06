@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Tor;
@@ -13,17 +14,17 @@ public static class TcpClientConnector
 	/// <summary>
 	/// Connects to end point using a TCP client.
 	/// </summary>
-	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint)
+	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancel)
 	{
-		TcpClient tcpClient = new();
+		TcpClient tcpClient = new(endPoint.AddressFamily);
 		switch (endPoint)
 		{
 			case DnsEndPoint dnsEndPoint:
-				await tcpClient.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port).ConfigureAwait(false);
+				await tcpClient.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port, cancel).ConfigureAwait(false);
 				break;
 
 			case IPEndPoint ipEndPoint:
-				await tcpClient.ConnectAsync(ipEndPoint).ConfigureAwait(false);
+				await tcpClient.ConnectAsync(ipEndPoint, cancel).ConfigureAwait(false);
 				break;
 
 			default:

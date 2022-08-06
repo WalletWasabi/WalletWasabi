@@ -42,7 +42,7 @@ public class TorControlClientFactory
 		TcpClient tcpClient;
 		try
 		{
-			tcpClient = await TcpClientConnector.ConnectAsync(endPoint).ConfigureAwait(false);
+			tcpClient = await TcpClientConnector.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception e)
 		{
