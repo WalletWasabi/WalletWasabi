@@ -43,7 +43,7 @@ public class TorProcessManagerTests
 
 		// Set up Tor process manager.
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
-		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync())
+		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync(CancellationToken.None))
 			.ReturnsAsync(false);
 
 		// Mock TorProcessManager.

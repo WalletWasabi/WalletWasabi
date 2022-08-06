@@ -14,9 +14,11 @@ public static class TcpClientConnector
 	/// <summary>
 	/// Connects to end point using a TCP client.
 	/// </summary>
-	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancel)
+	/// <param name="builder">Runs in between creation of TCP client and connection to the end point.</param>
+	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancel, Action<TcpClient>? builder = null)
 	{
 		TcpClient tcpClient = new(endPoint.AddressFamily);
+		builder?.Invoke(tcpClient);
 		switch (endPoint)
 		{
 			case DnsEndPoint dnsEndPoint:
