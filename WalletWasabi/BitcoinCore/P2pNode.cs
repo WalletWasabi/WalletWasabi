@@ -61,11 +61,6 @@ public class P2pNode
 		Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
 		Node.VersionHandshake(cancel);
 
-		if (Node.PeerVersion.StartHeight > SmartHeader.GetStartingHeader(Network).Height)
-		{
-		 	throw new InvalidOperationException("Wasabi cannot use the local node it doesn't have all the blocks since segwit activation.");
-		}
-
 		if (!Node.IsConnected)
 		{
 			throw new InvalidOperationException(
