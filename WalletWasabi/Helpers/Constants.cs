@@ -57,9 +57,11 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-	public static readonly Version ClientVersion = new(2, 0, 1, 1);
+	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version HwiVersion = new("2.0.2");
+	public static readonly Version ClientVersion = new(2, 0, 1, 3);
+
+	public static readonly Version HwiVersion = new("2.1.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
 	public static readonly Version Ww1LegalDocumentsVersion = new(2, 0);
 	public static readonly Version Ww2LegalDocumentsVersion = new(1, 0);
@@ -86,39 +88,40 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
-			"/Satoshi:0.22.0/",
-			"/Satoshi:0.21.1/",
-			"/Satoshi:0.21.0/",
-			"/Satoshi:0.20.1/",
-			"/Satoshi:0.20.0/",
-			"/Satoshi:0.19.1/",
-			"/Satoshi:0.19.0.1/",
-			"/Satoshi:0.19.0/",
-			"/Satoshi:0.18.1/",
-			"/Satoshi:0.18.0/",
-			"/Satoshi:0.17.1/",
-			"/Satoshi:0.17.0.1/",
-			"/Satoshi:0.17.0/",
-			"/Satoshi:0.16.3/",
-			"/Satoshi:0.16.2/",
-			"/Satoshi:0.16.1/",
-			"/Satoshi:0.16.0/",
-		};
+		"/Satoshi:0.23.0/",
+		"/Satoshi:0.22.0/",
+		"/Satoshi:0.21.1/",
+		"/Satoshi:0.21.0/",
+		"/Satoshi:0.20.1/",
+		"/Satoshi:0.20.0/",
+		"/Satoshi:0.19.1/",
+		"/Satoshi:0.19.0.1/",
+		"/Satoshi:0.19.0/",
+		"/Satoshi:0.18.1/",
+		"/Satoshi:0.18.0/",
+		"/Satoshi:0.17.1/",
+		"/Satoshi:0.17.0.1/",
+		"/Satoshi:0.17.0/",
+		"/Satoshi:0.16.3/",
+		"/Satoshi:0.16.2/",
+		"/Satoshi:0.16.1/",
+		"/Satoshi:0.16.0/",
+	};
 
 	public static readonly int[] ConfirmationTargets = new[]
 	{
-			2, // Twenty Minutes
-			3, // Thirty Minutes
-			6, // One Hour
-			18, // Three Hours
-			36, // Six Hours
-			72, // Twelve Hours
-			144, // One Day
-			432, // Three Days
-			1008, // Seven Days
-		};
+		2, // Twenty Minutes
+		3, // Thirty Minutes
+		6, // One Hour
+		18, // Three Hours
+		36, // Six Hours
+		72, // Twelve Hours
+		144, // One Day
+		432, // Three Days
+		1008, // Seven Days
+	};
 
 	public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
-			? ClientSupportBackendVersionMin
-			: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+		? ClientSupportBackendVersionMin
+		: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 }

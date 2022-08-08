@@ -17,21 +17,21 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue">
-      <c:TagsBox x:Name="LabelTagBox"
-                 DataContext="{Binding SuggestionLabels}"
-                 VerticalAlignment="Top"
-                 Watermark="{StaticResource LabelsWatermarkText}"
-                 TagSeparator=","
-                 SuggestionsAreCaseSensitive="True"
-                 RestrictInputToSuggestions="False"
-                 Items="{Binding Labels}"
-                 TopItems="{Binding TopSuggestions}"
-                 Suggestions="{Binding Suggestions}"
-                 MaxTextLength="{StaticResource MaxLabelLength}"
-                 IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
-        <i:Interaction.Behaviors>
-          <behaviors:FocusOnAttachedBehavior />
-        </i:Interaction.Behaviors>
-      </c:TagsBox>
+    <c:TagsBox x:Name="LabelTagBox"
+               DataContext="{Binding SuggestionLabels}"
+               VerticalAlignment="Top"
+               Watermark="{StaticResource LabelsWatermarkText}"
+               TagSeparator=","
+               SuggestionsAreCaseSensitive="True"
+               RestrictInputToSuggestions="False"
+               Items="{Binding Labels}"
+               TopItems="{Binding TopSuggestions}"
+               Suggestions="{Binding Suggestions}"
+               MaxTextLength="{StaticResource MaxLabelLength}"
+               IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}">
+      <i:Interaction.Behaviors>
+        <behaviors:FocusOnAttachedBehavior />
+      </i:Interaction.Behaviors>
+    </c:TagsBox>
   </c:ContentArea>
 </UserControl>

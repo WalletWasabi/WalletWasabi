@@ -41,7 +41,7 @@ public static class PasswordFinderHelper
 				foundPassword = pwd;
 				return true;
 			}
-			
+
 			attempts++;
 			var percentage = (double)attempts / maxNumberAttempts * 100;
 			var remainingMilliseconds = sw.Elapsed.TotalMilliseconds / percentage * (100 - percentage);

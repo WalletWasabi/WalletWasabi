@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -99,6 +100,10 @@ public static class TransactionHelpers
 		{
 			psbt = PSBT.Load(psbtBytes, network);
 		}
+		catch (FormatException ex)
+		{
+			throw new FormatException("An error occurred while loading the PSBT file.", ex);
+		}
 		catch
 		{
 			var text = await File.ReadAllTextAsync(path);
@@ -124,7 +129,7 @@ public static class TransactionHelpers
 	public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)
 	{
 		var psbtExtension = "psbt";
-		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new [] { psbtExtension });
+		var filePath = await FileDialogHelper.ShowSaveFileDialogAsync("Export transaction", new[] { psbtExtension });
 
 		if (!string.IsNullOrWhiteSpace(filePath))
 		{

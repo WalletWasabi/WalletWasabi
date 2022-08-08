@@ -108,6 +108,7 @@
                                          CaretBrush="{TemplateBinding CaretBrush}"
                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
                         </DockPanel>
                       </Panel>
                     </DockPanel>

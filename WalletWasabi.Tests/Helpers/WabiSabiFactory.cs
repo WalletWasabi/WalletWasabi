@@ -47,13 +47,13 @@ public static class WabiSabiFactory
 	}
 
 	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
-		=> new CoinJoinInputCommitmentData("wasabiwallet.io", RoundId ?? uint256.One);
+		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, RoundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
 			GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
-			new CoinJoinInputCommitmentData("wasabiwallet.io", roundHash ?? BitcoinFactory.CreateUint256()));
+			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()));
 
 	public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
 	{
@@ -148,7 +148,7 @@ public static class WabiSabiFactory
 		return new ArenaClient(
 			roundState.CreateAmountCredentialClient(random),
 			roundState.CreateVsizeCredentialClient(random),
-			"wasabiwallet.io",
+			CoordinatorIdentifier,
 			arena);
 	}
 
@@ -314,12 +314,13 @@ public static class WabiSabiFactory
 			keyChain,
 			destinationProvider,
 			roundStateUpdater,
-			"wasabiwallet.io",
+			"CoinJoinCoordinatorIdentifier",
 			int.MaxValue,
 			true,
 			redCoinIsolation,
 			TimeSpan.Zero,
-			TimeSpan.Zero);
+			TimeSpan.Zero,
+			null);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
@@ -347,4 +348,6 @@ public static class WabiSabiFactory
 			});
 		return mockRoundParameterFactory.Object;
 	}
+
+	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
 }

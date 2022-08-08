@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
+using WalletWasabi.Extensions;
 using System.Net.Http;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -102,49 +103,47 @@ public class AliceClient
 
 			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
 		}
-		catch (System.Net.Http.HttpRequestException ex)
+		catch (WabiSabiProtocolException wpe)
 		{
-			if (ex.InnerException is WabiSabiProtocolException wpe)
+			switch (wpe.ErrorCode)
 			{
-				switch (wpe.ErrorCode)
-				{
-					case WabiSabiProtocolErrorCode.InputSpent:
-						coin.SpentAccordingToBackend = true;
-						Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
-						break;
+				case WabiSabiProtocolErrorCode.InputSpent:
+					coin.SpentAccordingToBackend = true;
+					Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+					break;
 
-					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
-						var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
-						if (inputBannedExData is null)
-						{
-							Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
-						}
-						coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-						Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
-						break;
+				case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
+					var inputBannedExData = wpe.ExceptionData as InputBannedExceptionData;
+					if (inputBannedExData is null)
+					{
+						Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
+					}
+					coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+					Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+					break;
 
-					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-						coin.SpentAccordingToBackend = false;
-						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
-						break;
+				case WabiSabiProtocolErrorCode.InputNotWhitelisted:
+					coin.SpentAccordingToBackend = false;
+					Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
+					break;
 
-					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-						Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
-						break;
+				case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
+					Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
+					break;
 
-					case WabiSabiProtocolErrorCode.WrongPhase:
-						Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late. Abort the rest of the registrations.");
-						break;
+				case WabiSabiProtocolErrorCode.WrongPhase:
+					Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late. Abort the rest of the registrations.");
+					break;
 
-					case WabiSabiProtocolErrorCode.RoundNotFound:
-						Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Abort the rest of the registrations.");
-						break;
+				case WabiSabiProtocolErrorCode.RoundNotFound:
+					Logger.LogInfo($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Abort the rest of the registrations.");
+					break;
 
-					default:
-						Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
-						break;
-				}
+				default:
+					Logger.LogInfo($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.");
+					break;
 			}
+
 			throw;
 		}
 

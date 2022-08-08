@@ -12,11 +12,11 @@
                  Caption="{Binding Caption}"
                  EnableNext="True" NextContent="OK"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-      <DockPanel VerticalAlignment="Center">
-          <TextBlock Text="{Binding Message}" DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" Margin="20 0" />
-          <Viewbox MaxHeight="150" Margin="40">
-              <PathIcon Data="{StaticResource warning_regular}" />
-          </Viewbox>
-      </DockPanel>
+    <DockPanel VerticalAlignment="Center">
+      <TextBlock Text="{Binding Message}" DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" Margin="20 0" />
+      <Viewbox MaxHeight="150" Margin="40">
+        <PathIcon Data="{StaticResource warning_regular}" />
+      </Viewbox>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>

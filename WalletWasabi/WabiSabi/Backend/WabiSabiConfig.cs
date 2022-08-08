@@ -120,9 +120,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancingInputSplit", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double WW200CompatibleLoadBalancingInputSplit { get; set; } = 0.75;
 
-	[DefaultValue("wasabiwallet.io")]
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoordinatorIdentifier { get; set; } = "wasabiwallet.io";
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 

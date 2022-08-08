@@ -29,7 +29,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		Id = transactionSummary.TransactionId;
 		_confirmedToolTip = "Confirmed";
 
-		ClipboardCopyCommand =  ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
+		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -62,7 +62,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	private async Task CopyToClipboardAsync(string text)
 	{
-		if (Application.Current is {Clipboard: { } clipboard})
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
 			await clipboard.SetTextAsync(text);
 		}
@@ -72,6 +72,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		throw new NotSupportedException();
 	}
+
+	public virtual bool HasChildren() => false;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{

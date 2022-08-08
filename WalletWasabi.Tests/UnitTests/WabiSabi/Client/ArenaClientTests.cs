@@ -11,6 +11,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
@@ -74,7 +75,7 @@ public class ArenaClientTests
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
-			"wasabiwallet.io",
+			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -127,7 +128,7 @@ public class ArenaClientTests
 		var bobArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
-			"wasabiwallet.io",
+			config.CoordinatorIdentifier,
 			wabiSabiApi);
 
 		var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
@@ -190,7 +191,7 @@ public class ArenaClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
-		var apiClient = new ArenaClient(null!, null!, "wasabiwallet.io", wabiSabiApi);
+		var apiClient = new ArenaClient(null!, null!, config.CoordinatorIdentifier, wabiSabiApi);
 
 		round.SetPhase(Phase.InputRegistration);
 
@@ -233,7 +234,7 @@ public class ArenaClientTests
 		InsecureRandom rnd = InsecureRandom.Instance;
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
 		var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000L);
-		var apiClient = new ArenaClient(amountClient, vsizeClient, "wasabiwallet.io", wabiSabiApi);
+		var apiClient = new ArenaClient(amountClient, vsizeClient, config.CoordinatorIdentifier, wabiSabiApi);
 
 		round.SetPhase(Phase.TransactionSigning);
 

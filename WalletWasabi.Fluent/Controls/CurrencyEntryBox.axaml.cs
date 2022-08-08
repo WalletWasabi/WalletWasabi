@@ -44,20 +44,20 @@ public class CurrencyEntryBox : TextBox
 		_customCultureInfo = new CultureInfo("")
 		{
 			NumberFormat =
-				{
-					CurrencyGroupSeparator = _groupSeparator.ToString(),
-					NumberGroupSeparator = _groupSeparator.ToString(),
-					CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-					NumberDecimalSeparator = _decimalSeparator.ToString()
-				}
+			{
+				CurrencyGroupSeparator = _groupSeparator.ToString(),
+				NumberGroupSeparator = _groupSeparator.ToString(),
+				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
+				NumberDecimalSeparator = _decimalSeparator.ToString()
+			}
 		};
 
 		Text = string.Empty;
 
 		_regexBtcFormat =
-		new Regex(
-			$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
-			RegexOptions.Compiled);
+			new Regex(
+				$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
+				RegexOptions.Compiled);
 
 		_regexDecimalCharsOnly =
 			new Regex(
@@ -114,6 +114,11 @@ public class CurrencyEntryBox : TextBox
 
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
+		if (ConversionRate == 0m)
+		{
+			return 0m;
+		}
+
 		return fiatValue / ConversionRate;
 	}
 
@@ -159,7 +164,7 @@ public class CurrencyEntryBox : TextBox
 		decimal fiatValue = 0;
 
 		e.Handled = !(ValidateEntryText(preComposedText) &&
-					decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+		              decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 		if (IsFiat & !e.Handled)
 		{
@@ -211,7 +216,7 @@ public class CurrencyEntryBox : TextBox
 
 		// Check for consecutive spaces (2 or more) and leading spaces.
 		var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
-												   _regexConsecutiveSpaces.IsMatch(preComposedText));
+		                                           _regexConsecutiveSpaces.IsMatch(preComposedText));
 
 		// Check for trailing spaces in the whole number part and in the last part of the precomp string.
 		var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
@@ -322,8 +327,8 @@ public class CurrencyEntryBox : TextBox
 		var selectionEnd = SelectionEnd;
 
 		if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
-											 input.Length + preComposedText.Length -
-											 Math.Abs(selectionStart - selectionEnd) <= MaxLength))
+		                                     input.Length + preComposedText.Length -
+		                                     Math.Abs(selectionStart - selectionEnd) <= MaxLength))
 		{
 			if (selectionStart != selectionEnd)
 			{

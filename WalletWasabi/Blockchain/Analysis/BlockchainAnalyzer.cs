@@ -8,7 +8,7 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class BlockchainAnalyzer
 {
-	private static long[] StdDenoms = new[]
+	public static long[] StdDenoms = new[]
 	{
 		5000L, 6561L, 8192L, 10000L, 13122L, 16384L, 19683L, 20000L, 32768L, 39366L, 50000L, 59049L, 65536L, 100000L, 118098L,
 		131072L, 177147L, 200000L, 262144L, 354294L, 500000L, 524288L, 531441L, 1000000L, 1048576L, 1062882L, 1594323L, 2000000L,
@@ -19,13 +19,6 @@ public class BlockchainAnalyzer
 		10460353203L, 17179869184L, 20000000000L, 20920706406L, 31381059609L, 34359738368L, 50000000000L, 62762119218L,
 		68719476736L, 94143178827L, 100000000000L, 137438953472L
 	};
-
-	public BlockchainAnalyzer(int privacyLevelThreshold)
-	{
-		PrivacyLevelThreshold = privacyLevelThreshold;
-	}
-
-	public int PrivacyLevelThreshold { get; }
 
 	/// <summary>
 	/// Sets clusters and anonymity sets for related HD public keys.

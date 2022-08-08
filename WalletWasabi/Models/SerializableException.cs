@@ -50,4 +50,14 @@ public record SerializableException
 		var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
 		return JsonConvert.DeserializeObject<SerializableException>(json);
 	}
+
+	public override string ToString()
+	{
+		return string.Join(
+			Environment.NewLine + Environment.NewLine,
+			$"Exception type: {ExceptionType}",
+			$"Message: {Message}",
+			$"Stack Trace: {StackTrace}",
+			$"Inner Exception: {InnerException}");
+	}
 }

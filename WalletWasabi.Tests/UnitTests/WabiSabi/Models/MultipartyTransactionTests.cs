@@ -9,6 +9,7 @@ using WalletWasabi.Tests.Helpers;
 using Xunit;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
@@ -21,7 +22,8 @@ public class MultipartyTransactionTests
 		MinRegistrableAmount = DefaultAllowedAmounts.Min,
 		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
 		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
-	}) with { MiningFeeRate = new FeeRate(0m)};
+	}) with
+	{ MiningFeeRate = new FeeRate(0m) };
 
 	private static CoinJoinInputCommitmentData commitmentData = WabiSabiFactory.CreateCommitmentData();
 

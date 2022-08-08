@@ -69,6 +69,10 @@ public class Config : ConfigBase
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool TerminateTorOnExit { get; internal set; } = false;
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "DownloadNewVersion", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool DownloadNewVersion { get; internal set; } = true;
+
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool StartLocalBitcoinCoreOnStartup { get; internal set; } = false;
@@ -115,9 +119,12 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
-	[DefaultValue("wasabiwallet.io")]
+	[JsonProperty(PropertyName = "EnableGpu")]
+	public bool EnableGpu { get; internal set; } = true;
+
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoordinatorIdentifier { get; set; } = "wasabiwallet.io";
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 

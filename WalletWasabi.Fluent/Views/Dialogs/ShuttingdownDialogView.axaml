@@ -9,8 +9,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ShuttingDownView">
   <c:ContentArea
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                 NextContent="Cancel" EnableNext="True">
+    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+    NextContent="Cancel" EnableNext="True">
     <c:ContentArea.Title>
       <TextBlock TextAlignment="Center" Text="{Binding Title}" />
     </c:ContentArea.Title>

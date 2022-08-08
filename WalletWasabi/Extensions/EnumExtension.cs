@@ -26,7 +26,7 @@ public static class EnumExtensions
 		return attribute is { } ? attribute.FriendlyName : value.ToString();
 	}
 
-	public static T? GetEnumValueOrDefault<T>(this int value, T defaultValue) where T: Enum
+	public static T? GetEnumValueOrDefault<T>(this int value, T defaultValue) where T : Enum
 	{
 		if (Enum.IsDefined(typeof(T), value))
 		{

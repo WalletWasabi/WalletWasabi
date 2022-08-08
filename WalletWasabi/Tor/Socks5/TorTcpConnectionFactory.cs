@@ -22,6 +22,9 @@ namespace WalletWasabi.Tor.Socks5;
 /// </summary>
 public class TorTcpConnectionFactory
 {
+	private static readonly VersionMethodRequest VersionMethodNoAuthRequired = new(methods: new MethodsField(MethodField.NoAuthenticationRequired));
+	private static readonly VersionMethodRequest VersionMethodUsernamePassword = new(methods: new MethodsField(MethodField.UsernamePassword));
+
 	/// <param name="endPoint">Tor SOCKS5 endpoint.</param>
 	public TorTcpConnectionFactory(EndPoint endPoint)
 	{
@@ -63,7 +66,7 @@ public class TorTcpConnectionFactory
 	/// <param name="circuit">Tor circuit we want to use in authentication.</param>
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
-	/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient, CancellationToken)"/> fails.</exception>
+	/// <exception cref="TorConnectionException">When <see cref="TcpClientSocks5Connector.ConnectAsync"/> fails.</exception>
 	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken = default)
 	{
 		TcpClient? tcpClient = null;
@@ -71,25 +74,27 @@ public class TorTcpConnectionFactory
 
 		try
 		{
-			tcpClient = new(TorSocks5EndPoint.AddressFamily);
-			tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-
-			// Windows 7 does not support the API we use.
-			if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Major < 10))
+			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken, client =>
 			{
-				try
-				{
-					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
-					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
-					tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
-				}
-				catch (SocketException ex) when (ex.ErrorCode is 10042)
-				{
-					Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
-				}
-			}
+				client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
-			transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
+				// Windows 7 does not support the API we use.
+				if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Major < 10))
+				{
+					try
+					{
+						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
+						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
+					}
+					catch (SocketException ex) when (ex.ErrorCode is 10042)
+					{
+						Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
+					}
+				}
+			}).ConfigureAwait(false);
+
+			transportStream = tcpClient.GetStream();
 			await HandshakeAsync(tcpClient, circuit, cancellationToken).ConfigureAwait(false);
 			await ConnectToDestinationAsync(tcpClient, host, port, cancellationToken).ConfigureAwait(false);
 
@@ -113,37 +118,15 @@ public class TorTcpConnectionFactory
 	}
 
 	/// <summary>
-	/// Establishes TCP connection with Tor SOCKS5 endpoint.
-	/// </summary>
-	/// <exception cref="ArgumentException">This should never happen.</exception>
-	/// <exception cref="TorException">When connection to Tor SOCKS5 endpoint fails.</exception>
-	private async Task<NetworkStream> ConnectAsync(TcpClient tcpClient, CancellationToken cancellationToken = default)
-	{
-		try
-		{
-			await tcpClient.ConnectAsync(TorHost, TorPort, cancellationToken).ConfigureAwait(false);
-			return tcpClient.GetStream();
-		}
-		catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
-		{
-			// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
-			// 111   ~ "Connection refused" on Linux.
-			// 61    ~ "Connection refused" on macOS.
-			throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{TorHost}:{TorPort}'. Is Tor running?", ex);
-		}
-	}
-
-	/// <summary>
 	/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 	/// </summary>
-	public virtual async Task<bool> IsTorRunningAsync()
+	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancel)
 	{
 		try
 		{
 			// Internal TCP client may close, so we need a new instance here.
-			using TcpClient tcpClient = new(TorSocks5EndPoint.AddressFamily);
-			await ConnectAsync(tcpClient).ConfigureAwait(false);
-			await HandshakeAsync(tcpClient, DefaultCircuit.Instance).ConfigureAwait(false);
+			using var tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancel).ConfigureAwait(false);
+			await HandshakeAsync(tcpClient, DefaultCircuit.Instance, cancel).ConfigureAwait(false);
 
 			return true;
 		}
@@ -165,19 +148,13 @@ public class TorTcpConnectionFactory
 	/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
 	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken = default)
 	{
-		// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
-		// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
-		// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
-		// authentication method[02] is supported too, and used as a method to
-		// implement stream isolation.As an extension to support some broken clients,
-		// we allow clients to pass "USERNAME/PASSWORD" authentication message to us
-		// even if no authentication was selected.Furthermore, we allow
-		// username / password fields of this message to be empty. This technically
-		// violates RFC1929[4], but ensures interoperability with somewhat broken
-		// SOCKS5 client implementations.
-		MethodsField methods = new(MethodField.UsernamePassword);
+		VersionMethodRequest versionMethodRequest = circuit switch
+		{
+			DefaultCircuit => VersionMethodNoAuthRequired,
+			_ => VersionMethodUsernamePassword
+		};
 
-		byte[] receiveBuffer = await SendRequestAsync(tcpClient, new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
+		byte[] receiveBuffer = await SendRequestAsync(tcpClient, versionMethodRequest, cancellationToken).ConfigureAwait(false);
 
 		MethodSelectionResponse methodSelection = new(receiveBuffer);
 

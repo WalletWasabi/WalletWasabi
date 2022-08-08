@@ -46,12 +46,12 @@ public class BobClientTests
 		var aliceArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
-			"wasabiwallet.io",
+			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		var bobArenaClient = new ArenaClient(
 			roundState.CreateAmountCredentialClient(insecureRandom),
 			roundState.CreateVsizeCredentialClient(insecureRandom),
-			"wasabiwallet.io",
+			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
