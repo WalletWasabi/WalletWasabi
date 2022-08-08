@@ -11,6 +11,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -267,6 +268,7 @@ public class BlockchainController : ControllerBase
 	/// </remarks>
 	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 	/// <param name="count">The number of filters to return.</param>
+	/// <param name="scriptType">Type of filter: witness_v0_keyhash or witness_v1_taproot.</param>
 	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>
@@ -277,7 +279,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? scriptType = null)
 	{
 		if (count <= 0)
 		{
@@ -286,7 +288,22 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		bool found;
+		Height bestHeight;
+		IEnumerable<FilterModel> filters;
+		var st = RpcParser.ConvertPubkeyType(scriptType);
+		if (scriptType is null || st is RpcPubkeyType.TxWitnessV0Keyhash)
+		{
+			(bestHeight, filters) = Global.V0IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out found);
+		}
+		else if (st is RpcPubkeyType.TxWitnessV1Taproot)
+		{
+			(bestHeight, filters) = Global.V1IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out found);
+		}
+		else
+		{
+			return BadRequest("No filters for specified script type.");
+		}
 
 		if (!found)
 		{
@@ -333,10 +350,10 @@ public class BlockchainController : ControllerBase
 		StatusResponse status = new();
 
 		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
+		if (DateTimeOffset.UtcNow - Global.V0IndexBuilderService.LastFilterBuildTime > FilterTimeout)
 		{
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
+			var lastFilter = Global.V0IndexBuilderService.GetLastFilter();
 			var lastFilterHash = lastFilter.Header.BlockHash;
 			var bestHash = await RpcClient.GetBestBlockHashAsync();
 			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);

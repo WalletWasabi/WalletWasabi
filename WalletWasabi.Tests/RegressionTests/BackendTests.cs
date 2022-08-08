@@ -110,7 +110,7 @@ public class BackendTests
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
-		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
+		IndexBuilderService indexBuilderService = new(BitcoinCore.Rpc.Models.RpcPubkeyType.TxWitnessV0Keyhash, rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
 		try
 		{
 			indexBuilderService.Synchronize();
@@ -177,7 +177,7 @@ public class BackendTests
 
 		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-		var indexBuilderService = global.IndexBuilderService;
+		var indexBuilderService = global.V0IndexBuilderService;
 		try
 		{
 			indexBuilderService.Synchronize();
@@ -223,7 +223,7 @@ public class BackendTests
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
 				// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.
-				global.IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
+				global.V0IndexBuilderService.LastFilterBuildTime = DateTimeOffset.UtcNow - BlockchainController.FilterTimeout;
 			}
 
 			// Third request.

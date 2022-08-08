@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -37,7 +38,8 @@ public class Global : IDisposable
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService? IndexBuilderService { get; private set; }
+	public IndexBuilderService? V0IndexBuilderService { get; private set; }
+	public IndexBuilderService? V1IndexBuilderService { get; private set; }
 
 	public Coordinator? Coordinator { get; private set; }
 
@@ -64,7 +66,8 @@ public class Global : IDisposable
 
 		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var v0IndexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var v1IndexFilePath = Path.Combine(indexBuilderServiceDir, $"TaprootIndex{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
@@ -103,9 +106,12 @@ public class Global : IDisposable
 
 		await HostedServices.StartAllAsync(cancel);
 
-		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
-		IndexBuilderService.Synchronize();
-		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+		V0IndexBuilderService = new(RpcPubkeyType.TxWitnessV0Keyhash, RpcClient, blockNotifier, v0IndexFilePath);
+		V0IndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(V0IndexBuilderService)} is successfully initialized and started synchronization.");
+		V1IndexBuilderService = new(RpcPubkeyType.TxWitnessV1Taproot, RpcClient, blockNotifier, v1IndexFilePath);
+		V1IndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(V1IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
 
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
@@ -195,7 +201,7 @@ public class Global : IDisposable
 
 				var stoppingTask = Task.Run(async () =>
 				{
-					if (IndexBuilderService is { } indexBuilderService)
+					if (V0IndexBuilderService is { } indexBuilderService)
 					{
 						await indexBuilderService.StopAsync().ConfigureAwait(false);
 						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");

@@ -29,7 +29,7 @@ public class IndexBuilderService
 
 	private long _workerCount;
 
-	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
+	public IndexBuilderService(RpcPubkeyType scriptType, IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
@@ -66,6 +66,7 @@ public class IndexBuilderService
 		}
 
 		BlockNotifier.OnBlock += BlockNotifier_OnBlock;
+		ScriptType = scriptType;
 	}
 
 	public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
@@ -79,6 +80,7 @@ public class IndexBuilderService
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
+	public RpcPubkeyType ScriptType { get; }
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -229,7 +231,7 @@ public class IndexBuilderService
 		});
 	}
 
-	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
+	internal GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
 	{
 		var scripts = FetchScripts(block);
 
@@ -250,7 +252,7 @@ public class IndexBuilderService
 		}
 	}
 
-	private static List<Script> FetchScripts(VerboseBlockInfo block)
+	private List<Script> FetchScripts(VerboseBlockInfo block)
 	{
 		var scripts = new List<Script>();
 
@@ -258,7 +260,7 @@ public class IndexBuilderService
 		{
 			foreach (var input in tx.Inputs)
 			{
-				if (input.PrevOutput is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
+				if (input.PrevOutput?.PubkeyType == ScriptType)
 				{
 					scripts.Add(input.PrevOutput.ScriptPubKey);
 				}
@@ -266,7 +268,7 @@ public class IndexBuilderService
 
 			foreach (var output in tx.Outputs)
 			{
-				if (output is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
+				if (output.PubkeyType == ScriptType)
 				{
 					scripts.Add(output.ScriptPubKey);
 				}
