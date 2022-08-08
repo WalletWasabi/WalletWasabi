@@ -74,25 +74,7 @@ public class TorTcpConnectionFactory
 
 		try
 		{
-			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken, client =>
-			{
-				client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-
-				// Windows 7 does not support the API we use.
-				if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Major < 10))
-				{
-					try
-					{
-						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
-						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
-						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
-					}
-					catch (SocketException ex) when (ex.ErrorCode is 10042)
-					{
-						Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
-					}
-				}
-			}).ConfigureAwait(false);
+			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
 
 			transportStream = tcpClient.GetStream();
 			await HandshakeAsync(tcpClient, circuit, cancellationToken).ConfigureAwait(false);
@@ -125,7 +107,7 @@ public class TorTcpConnectionFactory
 		try
 		{
 			// Internal TCP client may close, so we need a new instance here.
-			using var tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
+			using TcpClient tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
 			await HandshakeAsync(tcpClient, DefaultCircuit.Instance, cancellationToken).ConfigureAwait(false);
 
 			return true;
