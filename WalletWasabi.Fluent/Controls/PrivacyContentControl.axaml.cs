@@ -1,11 +1,9 @@
-using Avalonia;
-using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -17,7 +15,7 @@ public enum ReplacementMode
 
 public class PrivacyContentControl : ContentControl
 {
-	private CompositeDisposable? _disposable;
+	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(1.5);
 
 	public static readonly StyledProperty<bool> IsPrivacyContentVisibleProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsPrivacyContentVisible));
@@ -36,6 +34,29 @@ public class PrivacyContentControl : ContentControl
 
 	public static readonly StyledProperty<bool> ForceShowProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(ForceShow));
+
+	public PrivacyContentControl()
+	{
+		if (Design.IsDesignMode)
+		{
+			return;
+		}
+
+		var isPrivacyModeEnabled = Services.UiConfig.WhenAnyValue(x => x.PrivacyMode);
+		var isPointerOver = this.WhenAnyValue(x => x.IsPointerOver).DelayTrue(RevealDelay);
+		var isForced = this.WhenAnyValue(x => x.ForceShow);
+
+		var displayContent = isPrivacyModeEnabled.CombineLatest(
+			isPointerOver,
+			isForced,
+			(privacyModeEnabled, pointerOver, forced) => !privacyModeEnabled || pointerOver || forced);
+
+		RevealContent = displayContent
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Replay(1).RefCount();
+
+		PrivacyText = TextHelpers.GetPrivacyMask((int) NumberOfPrivacyChars);
+	}
 
 	private bool IsPrivacyContentVisible
 	{
@@ -73,38 +94,5 @@ public class PrivacyContentControl : ContentControl
 		set => SetValue(ForceShowProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		if (Design.IsDesignMode)
-		{
-			return;
-		}
-
-		base.OnAttachedToVisualTree(e);
-
-		_disposable = new CompositeDisposable();
-
-		Services.UiConfig
-			.WhenAnyValue(x => x.PrivacyMode)
-			.Merge(this.WhenAnyValue(x => x.ForceShow))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
-			{
-				var value = !Services.UiConfig.PrivacyMode || ForceShow;
-
-				IsPrivacyContentVisible = !value;
-				IsContentVisible = value;
-			})
-			.DisposeWith(_disposable);
-
-		PrivacyText = TextHelpers.GetPrivacyMask((int)NumberOfPrivacyChars);
-	}
-
-	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		base.OnDetachedFromVisualTree(e);
-
-		_disposable?.Dispose();
-		_disposable = null;
-	}
+	private IObservable<bool> RevealContent { get; }
 }

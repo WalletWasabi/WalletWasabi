@@ -10,13 +10,13 @@
       <ControlTemplate>
         <Panel Background="Transparent">
           <ContentPresenter Name="PART_Content"
-                            IsVisible="{TemplateBinding IsContentVisible}"
+                            IsVisible="{Binding RevealContent^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
           <Panel Name="PART_PrivacyReplacement"
-                 IsVisible="{TemplateBinding IsPrivacyContentVisible}">
+                 IsVisible="{Binding !RevealContent^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
