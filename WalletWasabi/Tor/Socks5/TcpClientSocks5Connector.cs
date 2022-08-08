@@ -11,7 +11,7 @@ public static class TcpClientSocks5Connector
 	/// <summary>
 	/// Establishes TCP connection with Tor SOCKS5 endpoint.
 	/// </summary>
-	/// <exception cref="ArgumentException">This should never happen.</exception>
+	/// <exception cref="NotSupportedException">This should never happen.</exception>
 	/// <exception cref="TorException">When connection to Tor SOCKS5 endpoint fails.</exception>
 	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
 	{
