@@ -199,9 +199,14 @@ public class KeyManager
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
+		mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+		return CreateNew(mnemonic, password, network, filePath);
+	}
+
+	public static KeyManager CreateNew(Mnemonic mnemonic, string password, Network network, string? filePath = null)
+	{
 		password ??= "";
 
-		mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey(password);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 

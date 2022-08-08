@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class LoadedEventArgs : StatusChangedEventArgs
 {
-	public LoadedEventArgs(Wallet wallet)
+	public LoadedEventArgs(IWallet wallet)
 		: base(wallet)
 	{
 	}

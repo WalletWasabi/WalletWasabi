@@ -64,9 +64,9 @@ public class TorHttpPool : IDisposable
 
 	public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
-	public Task<bool> IsTorRunningAsync()
+	public Task<bool> IsTorRunningAsync(CancellationToken cancel)
 	{
-		return TcpConnectionFactory.IsTorRunningAsync();
+		return TcpConnectionFactory.IsTorRunningAsync(cancel);
 	}
 
 	public static Exception? LatestTorException { get; private set; } = null;
