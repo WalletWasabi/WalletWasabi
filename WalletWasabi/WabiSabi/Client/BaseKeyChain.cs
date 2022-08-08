@@ -32,8 +32,7 @@ public abstract class BaseKeyChain : IKeyChain
 			signingKey,
 			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
 			commitmentData,
-			ScriptPubKeyType.TaprootBIP86
-			);
+			ScriptPubKeyType.TaprootBIP86);
 		return ownershipProof;
 	}
 
