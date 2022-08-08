@@ -66,7 +66,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		var exceptions = new Dictionary<Exception, int>();
 		var start = DateTime.UtcNow;
 
-		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
+		var totalTimeout = TimeSpan.FromMinutes(30);
+
+		using CancellationTokenSource absoluteTimeoutCts = new(totalTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
@@ -77,7 +79,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
-				using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : TimeSpan.MaxValue);
+				using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : totalTimeout);
 				using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
 				// Any transport layer errors will throw an exception here.
