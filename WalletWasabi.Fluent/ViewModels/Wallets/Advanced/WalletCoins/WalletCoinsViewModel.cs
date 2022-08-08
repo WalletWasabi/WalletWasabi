@@ -50,7 +50,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
-			.Replay()
+			.Replay(1)
 			.RefCount();
 
 		IsAnySelected = coinChanges
