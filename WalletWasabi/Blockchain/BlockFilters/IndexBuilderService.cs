@@ -38,7 +38,7 @@ public class IndexBuilderService
 		Index = new List<FilterModel>();
 		IndexLock = new AsyncLock();
 
-		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
+		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network, scriptType).Height;
 
 		_serviceStatus = NotStarted;
 

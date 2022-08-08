@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
@@ -14,6 +15,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -23,7 +25,7 @@ public class IndexStore : IAsyncDisposable
 {
 	private int _throttleId;
 
-	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
+	public IndexStore(RpcPubkeyType scriptType, string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
@@ -33,7 +35,7 @@ public class IndexStore : IAsyncDisposable
 		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, useLastCharacterDigest: true);
 
 		Network = network;
-		StartingFilter = StartingFilters.GetStartingFilter(Network);
+		StartingFilter = StartingFilters.GetStartingFilter(Network, scriptType);
 		SmartHeaderChain = smartHeaderChain;
 	}
 

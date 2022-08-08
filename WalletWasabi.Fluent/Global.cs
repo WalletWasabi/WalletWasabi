@@ -30,6 +30,7 @@ using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Tor.StatusChecker;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.Fluent;
 
@@ -83,7 +84,7 @@ public class Global
 			var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 			AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 			SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
-			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+			IndexStore = new IndexStore(RpcPubkeyType.TxWitnessV0Keyhash, Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
@@ -164,7 +165,7 @@ public class Global
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
 					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network, RpcPubkeyType.TxWitnessV0Keyhash).Height);
 					throw;
 				}
 

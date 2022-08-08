@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -34,7 +35,7 @@ public class P2pBasedTests
 			var walletName = "wallet";
 			await rpc.CreateWalletAsync(walletName);
 
-			await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
+			await using IndexStore indexStore = new(RpcPubkeyType.TxWitnessV0Keyhash, Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			MempoolService mempoolService = new();
 			FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);

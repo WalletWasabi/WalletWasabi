@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;
@@ -25,7 +26,7 @@ public class IndexStoreTests
 		{
 			Directory.Delete(dir, true);
 		}
-		await using var indexStore = new IndexStore(dir, network, new SmartHeaderChain());
+		await using var indexStore = new IndexStore(RpcPubkeyType.TxWitnessV0Keyhash, dir, network, new SmartHeaderChain());
 		await indexStore.InitializeAsync();
 	}
 
@@ -37,7 +38,7 @@ public class IndexStoreTests
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
 
-		await using var indexStore = new IndexStore(dir, network, headersChain);
+		await using var indexStore = new IndexStore(RpcPubkeyType.TxWitnessV0Keyhash, dir, network, headersChain);
 		var dummyFilter = GolombRiceFilter.Parse("00");
 
 		var matureIndexStoreContent = new[]
@@ -63,10 +64,10 @@ public class IndexStoreTests
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
-		await using var indexStore = new IndexStore(dir, network, headersChain);
+		await using var indexStore = new IndexStore(RpcPubkeyType.TxWitnessV0Keyhash, dir, network, headersChain);
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
-		var startingFilter = StartingFilters.GetStartingFilter(network);
+		var startingFilter = StartingFilters.GetStartingFilter(network, RpcPubkeyType.TxWitnessV0Keyhash);
 
 		var immatureIndexStoreContent = new[]
 		{
@@ -91,7 +92,7 @@ public class IndexStoreTests
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
-		await using var indexStore = new IndexStore(dir, network, headersChain);
+		await using var indexStore = new IndexStore(RpcPubkeyType.TxWitnessV0Keyhash, dir, network, headersChain);
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
 
@@ -123,7 +124,7 @@ public class IndexStoreTests
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
-		await using var indexStore = new IndexStore(dir, network, headersChain);
+		await using var indexStore = new IndexStore(RpcPubkeyType.TxWitnessV0Keyhash, dir, network, headersChain);
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
 
