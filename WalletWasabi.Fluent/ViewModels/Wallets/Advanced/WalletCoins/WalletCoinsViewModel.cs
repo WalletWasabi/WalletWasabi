@@ -41,16 +41,14 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged)
-			.Replay()
-			.RefCount();
+		var coins = CreateCoinsObservable(_balanceChanged);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
-			.Replay()
+			.Replay(1)
 			.RefCount();
 
 		IsAnySelected = coinChanges
