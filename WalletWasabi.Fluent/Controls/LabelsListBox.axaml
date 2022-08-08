@@ -25,25 +25,25 @@
                                 Items="{TemplateBinding Items}"
                                 Margin="0"
                                 VirtualizationMode="Simple">
-            <ItemsPresenter.ItemsPanel>
-              <ItemsPanelTemplate>
-                <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
-                  <c:LabelsPanel.EllipsisControl>
-                    <c:LabelControl DataContext="..."
-                                    Margin="0 0 0 0">
-                      <ToolTip.Tip>
-                        <Panel>
-                          <c:TagsBox IsReadOnly="True"
-                                     Margin="4,6,0,0"
-                                     Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
-                        </Panel>
-                      </ToolTip.Tip>
-                    </c:LabelControl>
-                  </c:LabelsPanel.EllipsisControl>
-                </c:LabelsPanel>
-              </ItemsPanelTemplate>
-            </ItemsPresenter.ItemsPanel>
-          </c:LabelsItemsPresenter>
+          <ItemsPresenter.ItemsPanel>
+            <ItemsPanelTemplate>
+              <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
+                <c:LabelsPanel.EllipsisControl>
+                  <c:LabelControl DataContext="..."
+                                  Margin="0 0 0 0">
+                    <ToolTip.Tip>
+                      <Panel>
+                        <c:TagsBox IsReadOnly="True"
+                                   Margin="4,6,0,0"
+                                   Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
+                      </Panel>
+                    </ToolTip.Tip>
+                  </c:LabelControl>
+                </c:LabelsPanel.EllipsisControl>
+              </c:LabelsPanel>
+            </ItemsPanelTemplate>
+          </ItemsPresenter.ItemsPanel>
+        </c:LabelsItemsPresenter>
       </ControlTemplate>
     </Setter>
   </Style>
