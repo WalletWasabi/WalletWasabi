@@ -33,7 +33,7 @@ public class RoundStateUpdater : PeriodicRunner
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
-		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(40));
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(40));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var response = await ArenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
