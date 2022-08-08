@@ -42,7 +42,7 @@ public partial class SearchBarViewModel : ReactiveObject
 		HasResults = filteredItems
 			.Count()
 			.Select(i => i > 0)
-			.Replay()
+			.Replay(1)
 			.RefCount();
 	}
 

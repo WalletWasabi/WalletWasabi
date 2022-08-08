@@ -33,12 +33,15 @@ public class RoundStateUpdater : PeriodicRunner
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
-		var response = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
-		RoundState[] statusResponse = response.RoundStates;
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(30));
+		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+		var response = await ArenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
+		RoundState[] roundStates = response.RoundStates;
 
 		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
 
-		var updatedRoundStates = statusResponse
+		var updatedRoundStates = roundStates
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
 			.Select(
@@ -48,7 +51,7 @@ public class RoundStateUpdater : PeriodicRunner
 			})
 			.ToList();
 
-		var newRoundStates = statusResponse
+		var newRoundStates = roundStates
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
