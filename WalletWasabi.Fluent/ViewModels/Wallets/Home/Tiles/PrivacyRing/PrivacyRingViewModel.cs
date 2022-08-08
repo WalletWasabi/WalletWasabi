@@ -32,7 +32,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		PreviewItems.Add(walletViewModel.Tiles.OfType<PrivacyControlTileViewModel>().FirstOrDefault());
+		PreviewItems.Add(walletViewModel.Tiles.OfType<PrivacyControlTileViewModel>().First());
 
 		_itemsSourceList
 			.Connect()
@@ -49,7 +49,10 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		_coinsUpdated
 			.Select(_ => walletViewModel.Wallet.GetPockets())
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
+
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();

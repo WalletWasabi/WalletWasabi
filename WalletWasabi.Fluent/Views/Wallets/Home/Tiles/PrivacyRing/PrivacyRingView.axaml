@@ -88,7 +88,7 @@
                 SelectedItem="{Binding SelectedItem, Mode=OneWay}"
                 VerticalAlignment="Center" HorizontalAlignment="Center">
         <Carousel.PageTransition>
-          <CrossFade Duration="0.75" />
+          <CrossFade Duration="0.25" />
         </Carousel.PageTransition>
         <Carousel.DataTemplates>
           <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
