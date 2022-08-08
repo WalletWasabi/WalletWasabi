@@ -120,13 +120,13 @@ public class TorTcpConnectionFactory
 	/// <summary>
 	/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 	/// </summary>
-	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancel)
+	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
 			// Internal TCP client may close, so we need a new instance here.
-			using var tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancel).ConfigureAwait(false);
-			await HandshakeAsync(tcpClient, DefaultCircuit.Instance, cancel).ConfigureAwait(false);
+			using var tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
+			await HandshakeAsync(tcpClient, DefaultCircuit.Instance, cancellationToken).ConfigureAwait(false);
 
 			return true;
 		}
