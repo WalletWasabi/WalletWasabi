@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -10,7 +8,9 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(Title = "Advanced")]
+[NavigationMetaData(
+	Title = "Advanced",
+	NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class SendFeeAdvancedOptionsViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
@@ -53,7 +53,7 @@ public partial class SendFeeAdvancedOptionsViewModel : DialogViewModelBase<FeeRa
 		else
 		{
 			_transactionInfo.IsCustomFeeUsed = false;
-			Close();
+			Close(DialogResultKind.Normal, FeeRate.Zero); // must return zero which indicates that it was cleared.
 		}
 	}
 

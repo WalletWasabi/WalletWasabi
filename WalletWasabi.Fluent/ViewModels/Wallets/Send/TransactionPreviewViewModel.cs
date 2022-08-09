@@ -183,23 +183,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		if (_info.IsCustomFeeUsed)
+		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
+			? new SendFeeAdvancedOptionsViewModel(_info)
+			: new SendFeeViewModel(_wallet, _info, false);
+
+		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
+
+		if (feeDialogResult.Kind == DialogResultKind.Normal &&
+		    feeDialogResult.Result is { } feeRate &&
+		    feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
 		{
-			var customFeeResult = await NavigateDialogAsync(new SendFeeAdvancedOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
-			if (customFeeResult.Kind == DialogResultKind.Normal && customFeeResult.Result is { } customFeeRate)
-			{
-				_info.FeeRate = customFeeRate;
-				await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
-			}
-		}
-		else
-		{
-			var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
-			if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } feeRate)
-			{
-				_info.FeeRate = feeRate;
-				await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
-			}
+			_info.FeeRate = feeRate;
+			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
 	}
 
