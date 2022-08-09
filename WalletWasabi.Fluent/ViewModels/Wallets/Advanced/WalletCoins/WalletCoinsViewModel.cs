@@ -24,40 +24,38 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly WalletViewModel _walletViewModel;
-	private ObservableAsPropertyHelper<bool> _isAnySelected = ObservableAsPropertyHelper<bool>.Default();
-	[AutoNotify] private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
+	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
+
+	[AutoNotify]
+	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
 	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
-        SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-        NextCommand = CancelCommand;
+		NextCommand = CancelCommand;
 		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
 	}
 
-	public bool IsAnySelected => _isAnySelected.Value;
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged)
-			.Publish();
+		var coins = CreateCoinsObservable(_balanceChanged);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
-			.Publish();
+			.Replay(1)
+			.RefCount();
 
-		_isAnySelected = coinChanges
+		IsAnySelected = coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(items => items.Any(t => t.IsSelected))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, model => model.IsAnySelected)
-			.DisposeWith(disposables);
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 		coinChanges
 			.DisposeMany()
@@ -67,12 +65,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		Source = CreateGridSource(coinsCollection)
-			.DisposeWith(disposables);
-
-		coinChanges.Connect()
-			.DisposeWith(disposables);
-
-		coins.Connect()
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);

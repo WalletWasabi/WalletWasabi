@@ -11,7 +11,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 
@@ -41,14 +40,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 					_wallet.KeyManager.ToFile();
 					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 				});
-
-		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-
-		this.WhenAnyValue(x => x.AnonScoreTarget)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
 	}
 
 	public bool IsHardwareWallet { get; }
@@ -58,10 +49,4 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public sealed override string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
-	}
 }

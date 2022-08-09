@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 public partial class SearchBarViewModel : ReactiveObject
 {
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
-	private readonly ObservableAsPropertyHelper<bool> _hasResults;
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
 
@@ -29,7 +28,10 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Filter(filterPredicate);
 
 		filteredItems
-			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
+			.Transform(
+				item => item is ActionableItem i
+					? new AutocloseActionableItem(i, () => IsSearchListVisible = false)
+					: item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
 			.Bind(out _groups)
@@ -37,13 +39,14 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		_hasResults = filteredItems
+		HasResults = filteredItems
 			.Count()
 			.Select(i => i > 0)
-			.ToProperty(this, x => x.HasResults);
+			.Replay(1)
+			.RefCount();
 	}
 
-	public bool HasResults => _hasResults.Value;
+	public IObservable<bool> HasResults { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 

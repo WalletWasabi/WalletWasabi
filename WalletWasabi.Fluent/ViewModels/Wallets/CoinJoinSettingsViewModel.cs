@@ -16,6 +16,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
+	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
@@ -58,6 +59,14 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
+		_anonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
+
+		this.WhenAnyValue(x => x.AnonScoreTarget)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(1000))
+			.Skip(1)
+			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
+
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
@@ -81,6 +90,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 		PlebStopThreshold = _wallet.KeyManager.PlebStopThreshold.ToString();
+		AnonScoreTarget = _wallet.KeyManager.AnonScoreTarget;
 
 		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
