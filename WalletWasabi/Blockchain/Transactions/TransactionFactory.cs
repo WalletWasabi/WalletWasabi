@@ -287,15 +287,11 @@ public class TransactionFactory
 			}
 		}
 
-		var sumIn = smartTransaction.WalletInputs.Sum(x => x.Amount);
-		var minIn = smartTransaction.WalletInputs.Min(x => x.Amount);
-		
-		var sumOut = smartTransaction.WalletOutputs.Sum(x => x.Amount);
-		var minOut = smartTransaction.WalletOutputs.Min(x => x.Amount);
+		var inputsSumMin = smartTransaction.WalletInputs.Sum(x => x.Amount)
+		                   - smartTransaction.WalletInputs.Min(x => x.Amount);
+		var outputsSumMin = smartTransaction.WalletOutputs.Sum(x => x.Amount)
+		                    - smartTransaction.WalletOutputs.Min(x => x.Amount);
 
-		var inputsSumMin = sumIn - minIn;
-		var outputsSumMin = sumOut - minOut;
-		
 		if (inputsSumMin >= outputsSumMin + fee)
 		{
 			Logger.LogWarning($"Transaction {smartTransaction.GetHash()} potentially has an unnecessary input.");
