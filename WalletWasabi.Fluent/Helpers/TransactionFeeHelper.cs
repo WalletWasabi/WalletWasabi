@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
@@ -24,6 +25,26 @@ public static class TransactionFeeHelper
 		[432] = 1,
 		[1008] = 1
 	};
+
+	public static async Task<Dictionary<int, int>?> GetFeeEstimatesWhenReadyAsync(Wallet wallet)
+	{
+		var feeProvider = wallet.FeeProvider;
+
+		bool RpcFeeProviderInError() => feeProvider.RpcFeeProvider?.InError ?? true;
+		bool ThirdPartyFeeProviderInError() => feeProvider.ThirdPartyFeeProvider.InError;
+
+		while (!RpcFeeProviderInError() || !ThirdPartyFeeProviderInError())
+		{
+			if (TryGetFeeEstimates(wallet, out var feeEstimates))
+			{
+				return feeEstimates;
+			}
+
+			await Task.Delay(100);
+		}
+
+		return null;
+	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out Dictionary<int, int>? estimates)
 	{

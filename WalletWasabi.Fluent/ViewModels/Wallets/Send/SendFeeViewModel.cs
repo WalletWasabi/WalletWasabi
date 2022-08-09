@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -6,7 +5,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
@@ -92,7 +90,9 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeEstimates))
+			var feeEstimates = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet);
+
+			if (feeEstimates is null)
 			{
 				await ShowErrorAsync(
 					"Transaction fee",
