@@ -27,7 +27,6 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
-using System.Diagnostics;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -522,7 +521,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						continue;
 					}
 
-					if (DateTimeOffset.UtcNow - allTaskCompletedTime > TimeSpan.FromSeconds(10))
+					if (DateTimeOffset.UtcNow - allTaskCompletedTime > TimeSpan.FromSeconds(30))
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool.");
 					}
