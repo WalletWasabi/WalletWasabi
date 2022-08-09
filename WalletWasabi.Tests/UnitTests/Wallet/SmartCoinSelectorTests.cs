@@ -14,8 +14,11 @@ public class SmartCoinSelectorTests
 {
 	public SmartCoinSelectorTests()
 	{
-		KeyManager = KeyManager.Recover(new Mnemonic("all all all all all all all all all all all all"), "",
-			Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
+		KeyManager = KeyManager.Recover(
+			new Mnemonic("all all all all all all all all all all all all"),
+			"",
+			Network.Main,
+			KeyManager.GetAccountKeyPath(Network.Main));
 	}
 
 	private KeyManager KeyManager { get; }
@@ -24,8 +27,8 @@ public class SmartCoinSelectorTests
 	public void SelectsOnlyOneCoinWhenPossible()
 	{
 		var availableCoins = GenerateSmartCoins(
-			Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1)))
-		).ToList();
+			Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1))))
+			.ToList();
 
 		var selector = new SmartCoinSelector(availableCoins);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m));
@@ -38,8 +41,8 @@ public class SmartCoinSelectorTests
 	public void PreferLessCoinsOverExactAmount()
 	{
 		var smartCoins = GenerateSmartCoins(
-			Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1)))
-		).ToList();
+			Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))))
+			.ToList();
 
 		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
 
