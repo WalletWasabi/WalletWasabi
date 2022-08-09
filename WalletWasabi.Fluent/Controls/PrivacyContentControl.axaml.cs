@@ -94,5 +94,5 @@ public class PrivacyContentControl : ContentControl
 		set => SetValue(ForceShowProperty, value);
 	}
 
-	private IObservable<bool> RevealContent { get; }
+	private IObservable<bool> RevealContent { get; } = Observable.Empty<bool>();
 }
