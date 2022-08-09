@@ -57,11 +57,17 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private async Task ShowAdvancedOptionsAsync()
 	{
-		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
-		if (result.Result is { } feeRate && feeRate != FeeRate.Zero)
+		var result = await ShowCustomFeeRateDialogAsync();
+		if (result is { } feeRate && feeRate != FeeRate.Zero)
 		{
-			Close(DialogResultKind.Normal, result.Result);
+			Close(DialogResultKind.Normal, feeRate);
 		}
+	}
+
+	private async Task<FeeRate?> ShowCustomFeeRateDialogAsync()
+	{
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		return result.Result;
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -86,15 +92,25 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			while (feeProvider.AllFeeEstimate is null)
-			{
-				await Task.Delay(100);
-			}
-
 			if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeEstimates))
 			{
-				// TODO: pop manual fee
-				Close();
+				await ShowErrorAsync(
+					"Transaction fee",
+					"Transaction fee estimations are not available at the moment. Alternatively, you can enter the fee rate manually.",
+					"",
+					NavigationTarget.CompactDialogScreen);
+
+				var customFeeRate = await ShowCustomFeeRateDialogAsync();
+
+				if (customFeeRate is { })
+				{
+					Close(DialogResultKind.Normal, customFeeRate);
+				}
+				else
+				{
+					Close();
+				}
+
 				return;
 			}
 
