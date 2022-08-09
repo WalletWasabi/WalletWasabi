@@ -17,12 +17,6 @@ public class PrivacyContentControl : ContentControl
 {
 	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(1.5);
 
-	public static readonly StyledProperty<bool> IsPrivacyContentVisibleProperty =
-		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsPrivacyContentVisible));
-
-	public static readonly StyledProperty<bool> IsContentVisibleProperty =
-		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(IsContentVisible));
-
 	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
 
@@ -57,19 +51,7 @@ public class PrivacyContentControl : ContentControl
 
 		PrivacyText = TextHelpers.GetPrivacyMask((int) NumberOfPrivacyChars);
 	}
-
-	private bool IsPrivacyContentVisible
-	{
-		get => GetValue(IsPrivacyContentVisibleProperty);
-		set => SetValue(IsPrivacyContentVisibleProperty, value);
-	}
-
-	private bool IsContentVisible
-	{
-		get => GetValue(IsContentVisibleProperty);
-		set => SetValue(IsContentVisibleProperty, value);
-	}
-
+	
 	public uint NumberOfPrivacyChars
 	{
 		get => GetValue(NumberOfPrivacyCharsProperty);
