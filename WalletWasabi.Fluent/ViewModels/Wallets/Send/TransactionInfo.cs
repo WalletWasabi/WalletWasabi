@@ -55,7 +55,7 @@ public partial class TransactionInfo
 	public bool SubtractFee { get; set; }
 
 	public bool IsOtherPocketSelectionPossible { get; set; }
-	
+
 	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
 
 	public void Reset()

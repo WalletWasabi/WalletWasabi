@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis;
@@ -322,6 +321,8 @@ public class CoinJoinClient
 	{
 		int eventInvokedAlready = 0;
 
+		UnexpectedRoundPhaseException? lastAbortedNotEnoughAlicesException = null;
+
 		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
 		using CancellationTokenSource strictInputRegTimeoutCts = new(remainingInputRegTime);
@@ -341,15 +342,18 @@ public class CoinJoinClient
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+				Tor.Http.IHttpClient httpClientReadyAndSigning = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
 
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
+				var arenaRequestHandlerReadyAndSigning = new WabiSabiHttpApiClient(httpClientReadyAndSigning);
 
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					CoordinatorIdentifier,
-					arenaRequestHandler);
+					arenaRequestHandler,
+					arenaRequestHandlerReadyAndSigning);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
@@ -417,6 +421,13 @@ public class CoinJoinClient
 				personCircuit?.Dispose();
 				return (null, null);
 			}
+			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
+			{
+				lastAbortedNotEnoughAlicesException = ex;
+				Logger.LogTrace(ex);
+				personCircuit?.Dispose();
+				return (null, null);
+			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
@@ -450,11 +461,19 @@ public class CoinJoinClient
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
-		return aliceClients
+		var successfulAlices = aliceClients
 			.Select(x => x.Result)
 			.Where(r => r.AliceClient is not null && r.PersonCircuit is not null)
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
+
+		if (!successfulAlices.Any() && lastAbortedNotEnoughAlicesException is { })
+		{
+			// In this case the coordinator aborted the round - throw only one exception and log outside.
+			throw lastAbortedNotEnoughAlicesException;
+		}
+
+		return successfulAlices;
 	}
 
 	private BobClient CreateBobClient(RoundState roundState)

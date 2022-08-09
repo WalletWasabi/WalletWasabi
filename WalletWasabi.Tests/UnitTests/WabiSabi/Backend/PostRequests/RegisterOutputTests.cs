@@ -47,7 +47,8 @@ public class RegisterOutputTests
 	{
 		WabiSabiConfig cfg = new();
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
-			with { MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead };
+			with
+		{ MaxVsizeAllocationPerAlice = 11 + 34 + MultipartyTransactionParameters.SharedOverhead };
 		var round = WabiSabiFactory.CreateRound(parameters);
 
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
@@ -68,7 +69,8 @@ public class RegisterOutputTests
 	{
 		WabiSabiConfig cfg = new();
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
-			with { MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead + 13 };
+			with
+		{ MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead + 13 };
 		var round = WabiSabiFactory.CreateRound(parameters);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 

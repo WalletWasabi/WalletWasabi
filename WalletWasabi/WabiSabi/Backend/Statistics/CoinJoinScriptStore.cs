@@ -14,7 +14,7 @@ public class CoinJoinScriptStore
 		: this(Enumerable.Empty<Script>())
 	{
 	}
-	
+
 	public CoinJoinScriptStore(IEnumerable<Script> scripts)
 	{
 		Scripts = new HashSet<Script>(scripts);

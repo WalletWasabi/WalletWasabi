@@ -8,11 +8,11 @@
         <Panel>
           <Panel.Styles>
             <Style Selector="Border.dummyLine">
-              <Setter Property="Opacity" Value="{Binding .}"/>
-              <Setter Property="Background" Value="{DynamicResource SystemChromeGrayColor}"/>
-              <Setter Property="Height" Value="10"/>
-              <Setter Property="CornerRadius" Value="5"/>
-              <Setter Property="Margin" Value="5 0"/>
+              <Setter Property="Opacity" Value="{Binding .}" />
+              <Setter Property="Background" Value="{DynamicResource SystemChromeGrayColor}" />
+              <Setter Property="Height" Value="10" />
+              <Setter Property="CornerRadius" Value="5" />
+              <Setter Property="Margin" Value="5 0" />
             </Style>
           </Panel.Styles>
           <ItemsControl x:Name="PART_DummyRows" x:CompileBindings="False">
@@ -25,12 +25,12 @@
               <DataTemplate>
                 <Grid ColumnDefinitions="80,150,*,145,145,145"
                       Height="{StaticResource HistoryTableRowHeight}">
-                  <Border Grid.Column="0" Grid.ColumnSpan="1" Classes="dummyLine"/>
-                  <Border Grid.Column="1" Grid.ColumnSpan="1" Classes="dummyLine"/>
-                  <Border Grid.Column="2" Grid.ColumnSpan="1" Classes="dummyLine"/>
-                  <Border Grid.Column="3" Grid.ColumnSpan="1" Classes="dummyLine"/>
-                  <Border Grid.Column="4" Grid.ColumnSpan="1" Classes="dummyLine"/>
-                  <Border Grid.Column="5" Grid.ColumnSpan="1" Classes="dummyLine"/>
+                  <Border Grid.Column="0" Grid.ColumnSpan="1" Classes="dummyLine" />
+                  <Border Grid.Column="1" Grid.ColumnSpan="1" Classes="dummyLine" />
+                  <Border Grid.Column="2" Grid.ColumnSpan="1" Classes="dummyLine" />
+                  <Border Grid.Column="3" Grid.ColumnSpan="1" Classes="dummyLine" />
+                  <Border Grid.Column="4" Grid.ColumnSpan="1" Classes="dummyLine" />
+                  <Border Grid.Column="5" Grid.ColumnSpan="1" Classes="dummyLine" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

@@ -1,7 +1,12 @@
+using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
@@ -30,25 +35,33 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		FeeChart = new FeeChartViewModel();
 
-		SetupCancel(false, true, false);
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() =>
-	   {
-		   _transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+		NextCommand = ReactiveCommand.Create(OnNext);
 
-		   Complete();
-	   });
+		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(ShowAdvancedOptionsAsync);
 	}
 
 	public FeeChartViewModel FeeChart { get; }
 
-	private void Complete()
+	public ICommand AdvancedOptionsCommand { get; }
+
+	private void OnNext()
 	{
 		var blockTarget = FeeChart.CurrentConfirmationTarget;
-
+		_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
 		Services.UiConfig.FeeTarget = (int)blockTarget;
 		Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
+	}
+
+	private async Task ShowAdvancedOptionsAsync()
+	{
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		if (result.Result is { } feeRate && feeRate != FeeRate.Zero)
+		{
+			Close(DialogResultKind.Normal, result.Result);
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -71,30 +84,37 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
-
-		if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeEstimates))
+		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			// TODO: pop manual fee
-			Close();
-			return;
-		}
+			while (feeProvider.AllFeeEstimate is null)
+			{
+				await Task.Delay(100);
+			}
 
-		FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
+			if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeEstimates))
+			{
+				// TODO: pop manual fee
+				Close();
+				return;
+			}
 
-		if (_transactionInfo.FeeRate != FeeRate.Zero)
-		{
-			FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
-		}
+			FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
 
-		if (_isSilent)
-		{
-			_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+			if (_transactionInfo.FeeRate != FeeRate.Zero)
+			{
+				FeeChart.InitCurrentConfirmationTarget(_transactionInfo.FeeRate);
+			}
 
-			Complete();
-		}
-		else
-		{
-			IsBusy = false;
-		}
+			if (_isSilent)
+			{
+				_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+
+				OnNext();
+			}
+			else
+			{
+				IsBusy = false;
+			}
+		});
 	}
 }

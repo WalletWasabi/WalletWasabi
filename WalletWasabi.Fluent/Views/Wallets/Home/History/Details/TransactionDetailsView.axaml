@@ -17,7 +17,7 @@
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Label="Date / Time"
                      TextValue="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}">
-        <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}"  Classes="monoSpaced" />
+        <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}', Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
 
       <Separator />
