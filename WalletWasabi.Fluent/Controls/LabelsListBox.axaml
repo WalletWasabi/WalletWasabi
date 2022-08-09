@@ -19,37 +19,31 @@
   </Design.PreviewWith>
 
   <Style Selector="c|LabelsListBox">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <c:LabelsItemsPresenter Name="PART_ItemsPresenter"
-                                Items="{TemplateBinding Items}"
-                                Margin="0"
-                                VirtualizationMode="Simple">
-          <ItemsPresenter.ItemTemplate>
-            <DataTemplate>
-              <c:LabelControl />
-            </DataTemplate>
-          </ItemsPresenter.ItemTemplate>
-          <ItemsPresenter.ItemsPanel>
-            <ItemsPanelTemplate>
-              <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
-                <c:LabelsPanel.EllipsisControl>
-                  <c:LabelControl DataContext="..."
-                                  Margin="0 0 0 0">
-                    <ToolTip.Tip>
-                      <Panel>
-                        <c:TagsBox IsReadOnly="True"
-                                   Margin="4,6,0,0"
-                                   Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
-                      </Panel>
-                    </ToolTip.Tip>
-                  </c:LabelControl>
-                </c:LabelsPanel.EllipsisControl>
-              </c:LabelsPanel>
-            </ItemsPanelTemplate>
-          </ItemsPresenter.ItemsPanel>
-        </c:LabelsItemsPresenter>
-      </ControlTemplate>
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="VirtualizationMode" Value="Simple" />
+    <Setter Property="ItemTemplate">
+      <DataTemplate>
+        <c:LabelControl />
+      </DataTemplate>
+    </Setter>
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
+          <c:LabelsPanel.EllipsisControl>
+            <c:LabelControl DataContext="..."
+                            Margin="0 0 0 0">
+              <ToolTip.Tip>
+                <Panel>
+                  <c:TagsBox IsReadOnly="True"
+                             Margin="4,6,0,0"
+                             Items="{Binding $parent[c:LabelsPanel].FilteredItems}" />
+                </Panel>
+              </ToolTip.Tip>
+            </c:LabelControl>
+          </c:LabelsPanel.EllipsisControl>
+        </c:LabelsPanel>
+      </ItemsPanelTemplate>
     </Setter>
   </Style>
+
 </Styles>
