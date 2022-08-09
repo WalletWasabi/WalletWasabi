@@ -76,7 +76,7 @@ public class SmartCoinSelectorTests
 	{
 		var coinsKnownByJuan = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 5));
 
-		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 2));
+		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Beto", 0.2m), 2));
 
 		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList());
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m)).Cast<Coin>().ToList();
