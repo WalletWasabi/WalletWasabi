@@ -21,7 +21,7 @@
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText"
-                       Text="{TemplateBinding PrivacyText}" />
+                       Text="{Binding PrivacyText^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
           </Panel>
         </Panel>
       </ControlTemplate>

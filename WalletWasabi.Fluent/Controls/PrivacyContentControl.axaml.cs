@@ -20,9 +20,6 @@ public class PrivacyContentControl : ContentControl
 	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
 
-	public static readonly StyledProperty<string> PrivacyTextProperty =
-		AvaloniaProperty.Register<PrivacyContentControl, string>(nameof(PrivacyText));
-
 	public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
 
@@ -50,19 +47,20 @@ public class PrivacyContentControl : ContentControl
 			.Replay(1)
 			.RefCount();
 
-		PrivacyText = TextHelpers.GetPrivacyMask((int) NumberOfPrivacyChars);
+		PrivacyText =this.WhenAnyValue(x => x.NumberOfPrivacyChars)
+			.Select(n => TextHelpers.GetPrivacyMask((int) NumberOfPrivacyChars))
+			.Replay(1)
+			.RefCount();
 	}
-	
+
+	public IObservable<string> PrivacyText { get; } = Observable.Empty<string>();
+
+	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
+
 	public uint NumberOfPrivacyChars
 	{
 		get => GetValue(NumberOfPrivacyCharsProperty);
 		set => SetValue(NumberOfPrivacyCharsProperty, value);
-	}
-
-	private string PrivacyText
-	{
-		get => GetValue(PrivacyTextProperty);
-		set => SetValue(PrivacyTextProperty, value);
 	}
 
 	public ReplacementMode PrivacyReplacementMode
@@ -76,6 +74,4 @@ public class PrivacyContentControl : ContentControl
 		get => GetValue(ForceShowProperty);
 		set => SetValue(ForceShowProperty, value);
 	}
-
-	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
 }
