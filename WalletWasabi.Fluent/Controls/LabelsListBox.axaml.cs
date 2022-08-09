@@ -1,18 +1,27 @@
-﻿using Avalonia.Controls;
+﻿using System.Collections;
+using Avalonia;
+using Avalonia.Collections;
+using Avalonia.Controls;
 using Avalonia.Controls.Generators;
+using Avalonia.Controls.Primitives;
+using Avalonia.Metadata;
 using Avalonia.Styling;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class LabelsListBox : ListBox, IStyleable
+public class LabelsListBox : TemplatedControl, IStyleable
 {
 	Type IStyleable.StyleKey => typeof(LabelsListBox);
 
-	protected override IItemContainerGenerator CreateItemContainerGenerator()
+	public static readonly DirectProperty<LabelsListBox, IEnumerable> ItemsProperty =
+		AvaloniaProperty.RegisterDirect<LabelsListBox, IEnumerable>(nameof(Items), o => o.Items, (o, v) => o.Items = v);
+
+	private IEnumerable _items = new AvaloniaList<object>();
+
+	[Content]
+	public IEnumerable Items
 	{
-		return new ItemContainerGenerator<LabelControl>(
-			this,
-			ContentControl.ContentProperty,
-			ContentControl.ContentTemplateProperty);
+		get { return _items; }
+		set { SetAndRaise(ItemsProperty, ref _items, value); }
 	}
 }
