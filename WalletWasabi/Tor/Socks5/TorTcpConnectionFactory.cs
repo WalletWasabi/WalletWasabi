@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
@@ -100,7 +101,7 @@ public class TorTcpConnectionFactory
 
 			if (useSsl)
 			{
-				transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
+				transportStream = await UpgradeToSslAsync(tcpClient, host, cancellationToken).ConfigureAwait(false);
 			}
 
 			bool allowRecycling = !useSsl && (circuit is DefaultCircuit or PersonCircuit);
@@ -200,10 +201,18 @@ public class TorTcpConnectionFactory
 		}
 	}
 
-	private static async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
+	private static async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host, CancellationToken cancellationToken)
 	{
 		SslStream sslStream = new(tcpClient.GetStream(), leaveInnerStreamOpen: true);
-		await sslStream.AuthenticateAsClientAsync(host, clientCertificates: new(), checkCertificateRevocation: true).ConfigureAwait(false);
+
+		SslClientAuthenticationOptions options = new()
+		{
+			TargetHost = host,
+			ClientCertificates = new(),
+			CertificateRevocationCheckMode = X509RevocationMode.Online,
+		};
+
+		await sslStream.AuthenticateAsClientAsync(options, cancellationToken).ConfigureAwait(false);
 		return sslStream;
 	}
 
