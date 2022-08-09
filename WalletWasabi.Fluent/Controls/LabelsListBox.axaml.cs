@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class LabelsListBox : TemplatedControl, IStyleable
 {
-	Type IStyleable.StyleKey => typeof(LabelsListBox);
-
 	public static readonly DirectProperty<LabelsListBox, IEnumerable> ItemsProperty =
 		AvaloniaProperty.RegisterDirect<LabelsListBox, IEnumerable>(nameof(Items), o => o.Items, (o, v) => o.Items = v);
 
 	private IEnumerable _items = new AvaloniaList<object>();
+
+	Type IStyleable.StyleKey => typeof(LabelsListBox);
 
 	[Content]
 	public IEnumerable Items
