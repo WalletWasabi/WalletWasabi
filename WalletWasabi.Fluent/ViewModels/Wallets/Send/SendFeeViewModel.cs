@@ -96,7 +96,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			{
 				await ShowErrorAsync(
 					"Transaction fee",
-					"Transaction fee estimations are not available at the moment. Alternatively, you can enter the fee rate manually.",
+					"Transaction fee estimations are not available at the moment. Try again later or you can enter the fee rate manually.",
 					"",
 					NavigationTarget.CompactDialogScreen);
 
