@@ -47,7 +47,8 @@ public class PrivacyContentControl : ContentControl
 
 		IsContentRevealed = displayContent
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Replay(1).RefCount();
+			.Replay(1)
+			.RefCount();
 
 		PrivacyText = TextHelpers.GetPrivacyMask((int) NumberOfPrivacyChars);
 	}
