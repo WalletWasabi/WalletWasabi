@@ -315,6 +315,27 @@ public class RegisterInputFailureTests
 		await arena.StopAsync(CancellationToken.None);
 	}
 
+	public async Task TaprootNotAllowed()
+	{
+		WabiSabiConfig cfg = new() { AllowP2trInputs = false };
+		var round = WabiSabiFactory.CreateRound(cfg);
+
+		using Key key = new();
+		var coin = WabiSabiFactory.CreateCoin(key, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
+		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
+
+		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
+
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+		Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
 	[Fact]
 	public async Task WrongScriptPubKeyInOwnershipProofAsync()
 	{
@@ -330,7 +351,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task WrongCoordinatorIdentifierInOwnershipProofAsync()
 	{
-		await TestOwnershipProof((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.WitHash.ScriptPubKey), new CoinJoinInputCommitmentData("test", roundId)));
+		await TestOwnershipProof((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId), ScriptPubKeyType.Segwit));
 	}
 
 	[Fact]
