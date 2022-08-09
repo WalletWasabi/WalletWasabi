@@ -53,7 +53,7 @@ public class PrivacyContentControl : ContentControl
 			.RefCount();
 	}
 
-	public IObservable<string> PrivacyText { get; } = Observable.Empty<string>();
+	private IObservable<string> PrivacyText { get; } = Observable.Empty<string>();
 
 	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
 
