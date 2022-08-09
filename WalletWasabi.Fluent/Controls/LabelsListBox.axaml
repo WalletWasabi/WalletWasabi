@@ -25,6 +25,11 @@
                                 Items="{TemplateBinding Items}"
                                 Margin="0"
                                 VirtualizationMode="Simple">
+          <ItemsPresenter.ItemTemplate>
+            <DataTemplate>
+              <c:LabelControl />
+            </DataTemplate>
+          </ItemsPresenter.ItemTemplate>
           <ItemsPresenter.ItemsPanel>
             <ItemsPanelTemplate>
               <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
