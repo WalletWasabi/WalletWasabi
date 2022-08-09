@@ -7,16 +7,16 @@
 
   <Style Selector="controls|PrivacyContentControl">
     <Setter Property="Template">
-      <ControlTemplate>
+      <ControlTemplate TargetType="controls:PrivacyContentControl">
         <Panel Background="Transparent">
           <ContentPresenter Name="PART_Content"
-                            IsVisible="{Binding RevealContent^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                            IsVisible="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
           <Panel Name="PART_PrivacyReplacement"
-                 IsVisible="{Binding !RevealContent^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                 IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>

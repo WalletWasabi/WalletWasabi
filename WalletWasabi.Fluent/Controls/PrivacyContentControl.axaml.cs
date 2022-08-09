@@ -51,7 +51,7 @@ public class PrivacyContentControl : ContentControl
 			isForced,
 			(privacyModeEnabled, pointerOver, forced) => !privacyModeEnabled || pointerOver || forced);
 
-		RevealContent = displayContent
+		IsContentRevealed = displayContent
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Replay(1).RefCount();
 
@@ -94,5 +94,5 @@ public class PrivacyContentControl : ContentControl
 		set => SetValue(ForceShowProperty, value);
 	}
 
-	private IObservable<bool> RevealContent { get; } = Observable.Empty<bool>();
+	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
 }
