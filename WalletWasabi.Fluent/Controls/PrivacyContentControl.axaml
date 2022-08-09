@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+        xmlns:controls="using:WalletWasabi.Fluent.Controls"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity">
   <Design.PreviewWith>
     <controls:PrivacyContentControl />
   </Design.PreviewWith>
@@ -9,20 +10,31 @@
     <Setter Property="Template">
       <ControlTemplate TargetType="controls:PrivacyContentControl">
         <Panel Background="Transparent">
+
           <ContentPresenter Name="PART_Content"
-                            IsVisible="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Panel Name="PART_PrivacyReplacement"
-                 IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+
+          <Panel Name="PART_PrivacyReplacement">
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
-            <TextBlock Name="PART_PrivacyText"
-                       Text="{Binding PrivacyText^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+            <TextBlock Name="PART_PrivacyText" Text="{Binding PrivacyText^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
           </Panel>
+
+          <i:Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="True">
+              <ChangeAvaloniaPropertyAction TargetObject="PART_Content" TargetProperty="Opacity" Value="1" />
+              <ChangeAvaloniaPropertyAction TargetObject="PART_PrivacyReplacement" TargetProperty="Opacity" Value="0" />
+            </DataTriggerBehavior>
+            <DataTriggerBehavior Binding="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="False">
+              <ChangeAvaloniaPropertyAction TargetObject="PART_Content" TargetProperty="Opacity" Value="0" />
+              <ChangeAvaloniaPropertyAction TargetObject="PART_PrivacyReplacement" TargetProperty="Opacity" Value="1" />
+            </DataTriggerBehavior>
+          </i:Interaction.Behaviors>
+
         </Panel>
       </ControlTemplate>
     </Setter>
@@ -42,15 +54,7 @@
       </Transitions>
     </Setter>
   </Style>
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=True],
-                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=True]">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=False],
-                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=False]">
-    <Setter Property="Opacity" Value="0" />
-  </Style>
-
+ 
   <Style Selector="controls|PrivacyContentControl.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
@@ -66,7 +70,7 @@
     <Setter Property="IsVisible" Value="True" />
   </Style>
 
-  <!-- Text privacy mode -->
+  <!-- Text privacy mode --> 
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
     <Setter Property="IsVisible" Value="True" />
   </Style>

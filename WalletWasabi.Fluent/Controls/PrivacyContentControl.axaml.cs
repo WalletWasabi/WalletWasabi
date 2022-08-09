@@ -34,8 +34,15 @@ public class PrivacyContentControl : ContentControl
 		}
 
 		var isPrivacyModeEnabled = Services.UiConfig.WhenAnyValue(x => x.PrivacyMode);
-		var isPointerOver = this.WhenAnyValue(x => x.IsPointerOver).DelayTrue(RevealDelay);
 		var isForced = this.WhenAnyValue(x => x.ForceShow);
+		var isPointerOver = this.WhenAnyValue(x => x.IsPointerOver)
+			.Select(
+				isTrue => isTrue
+					? Observable.Return(true).Delay(RevealDelay)
+						.Concat(Observable.Return(false).Delay(TimeSpan.FromSeconds(5)))
+					: Observable.Return(false)
+			)
+			.Switch();
 
 		var displayContent = isPrivacyModeEnabled.CombineLatest(
 			isPointerOver,
