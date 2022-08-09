@@ -14,9 +14,8 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
@@ -59,11 +58,11 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
-		// Date				DateColumnView				Date / Time		Auto		150				-			true
+		// Date				PrivacyContentControl		Date / Time		Auto		150				-			true
 		// Labels			LabelsColumnView			Labels			*			75				-			true
-		// Incoming			IncomingColumnView			Incoming (BTC)	Auto		145				210			true
-		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		145				210			true
-		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
+		// Incoming			PrivacyContentControl		Incoming (BTC)	Auto		145				210			true
+		// Outgoing			PrivacyContentControl		Outgoing (BTC)	Auto		145				210			true
+		// Balance			PrivacyContentControl		Balance (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
 
@@ -90,9 +89,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x => x.IsExpanded),
 
 				// Date
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new TemplateColumn<HistoryItemViewModelBase>(
 					"Date / Time",
-					x => x.DateString,
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new PrivacyContentControl { Content = node.DateString, NumberOfPrivacyChars = 15 }, true),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
@@ -101,8 +100,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
 						MinWidth = new GridLength(150, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 15),
+					width: new GridLength(0, GridUnitType.Auto)),
 
 				// Labels
 				new TemplateColumn<HistoryItemViewModelBase>(
@@ -119,9 +117,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 					width: new GridLength(1, GridUnitType.Star)),
 
 				// Incoming
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new TemplateColumn<HistoryItemViewModelBase>(
 					"Incoming (BTC)",
-					x => x.IncomingAmount?.ToFormattedString(),
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new PrivacyContentControl { Content = node.IncomingAmount, NumberOfPrivacyChars = 9 }, true),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
@@ -131,13 +129,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(145, GridUnitType.Pixel),
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					width: new GridLength(0, GridUnitType.Auto)),
 
 				// Outgoing
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new TemplateColumn<HistoryItemViewModelBase>(
 					"Outgoing (BTC)",
-					x => x.OutgoingAmount?.ToFormattedString(),
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new PrivacyContentControl { Content = node.OutgoingAmount, NumberOfPrivacyChars = 9 }, true),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
@@ -147,13 +144,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(145, GridUnitType.Pixel),
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					width: new GridLength(0, GridUnitType.Auto)),
 
 				// Balance
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new TemplateColumn<HistoryItemViewModelBase>(
 					"Balance (BTC)",
-					x => x.Balance?.ToFormattedString(),
+					new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new PrivacyContentControl { Content = node.Balance, NumberOfPrivacyChars = 9 }, true),
 					options: new ColumnOptions<HistoryItemViewModelBase>
 					{
 						CanUserResizeColumn = false,
@@ -163,8 +159,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(145, GridUnitType.Pixel),
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					width: new GridLength(0, GridUnitType.Auto))
 			}
 		};
 
