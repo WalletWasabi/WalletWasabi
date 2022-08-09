@@ -353,19 +353,6 @@ public static class NBitcoinExtensions
 		}
 	}
 
-	public static ScriptType? GetScriptType(this Script script)
-	{
-		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.Taproot })
-		{
-			if (script.IsScriptType(scriptType))
-			{
-				return scriptType;
-			}
-		}
-
-		return null;
-	}
-
 	public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
 	{
 		if (i.WitnessUtxo is null)
@@ -475,7 +462,7 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.GetScriptType() switch
+		scriptPubKey.TryGetScriptType() switch
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
 			ScriptType.Taproot => Constants.P2trInputVirtualSize,
