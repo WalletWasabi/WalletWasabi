@@ -15,7 +15,7 @@ public enum ReplacementMode
 
 public class PrivacyContentControl : ContentControl
 {
-	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(1.5);
+	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(0.75);
 
 	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
