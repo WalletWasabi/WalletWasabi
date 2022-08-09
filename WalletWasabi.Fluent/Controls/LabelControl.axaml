@@ -13,6 +13,7 @@
         <Border Name="PART_Border" ToolTip.Tip="{Binding}">
           <TextBlock Text="{Binding}"
                      TextTrimming="CharacterEllipsis"
+                     TextWrapping="NoWrap"
                      MaxWidth="120" />
         </Border>
       </ControlTemplate>
