@@ -15,11 +15,8 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 
 public class SmartCoinSelectorTests
 {
-	private readonly ITestOutputHelper output;
-
-	public SmartCoinSelectorTests(ITestOutputHelper output)
+	public SmartCoinSelectorTests()
 	{
-		this.output = output;
 		KeyManager = KeyManager.Recover(new Mnemonic("all all all all all all all all all all all all"), "",
 			Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
 	}
@@ -29,11 +26,11 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void SelectsOnlyOneCoinWhenPossible()
 	{
-		var smartCoins0 = GenerateSmartCoins(
+		var availableCoins = GenerateSmartCoins(
 			Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1)))
 		).ToList();
 
-		var selector = new SmartCoinSelector(smartCoins0);
+		var selector = new SmartCoinSelector(availableCoins);
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), Money.Coins(0.3m));
 
 		var theOnlyOne = Assert.Single(coinsToSpend.Cast<Coin>());
