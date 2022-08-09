@@ -1,15 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Engine.ClientProtocol;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
