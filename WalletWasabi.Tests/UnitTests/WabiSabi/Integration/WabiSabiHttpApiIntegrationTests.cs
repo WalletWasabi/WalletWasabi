@@ -7,6 +7,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -431,7 +433,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 		try
 		{
-			var rpc = node.RpcClient;
+			var rpc = new TesteableRpcClient(node.RpcClient as RpcClientBase);
+
+			TaskCompletionSource<Transaction> coinJoinBoadcasted = new();
+			rpc.AfterSendRawTransaction = (tx) =>
+			{
+				if (tx.Inputs.Count > 1)
+				{
+					coinJoinBoadcasted.SetResult(tx);
+				}
+			};
 
 			var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
 				builder.ConfigureServices(services =>
@@ -483,7 +494,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				.Returns(httpClientWrapper);
 
 			// Total test timeout.
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(70 * ExpectedInputNumber));
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 
 			var participants = Enumerable
 				.Range(0, NumberOfParticipants)
@@ -504,49 +515,24 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
-			DateTimeOffset? allTaskCompletedTime = null;
-			while ((await rpc.GetRawMempoolAsync()).Length == 0)
+			try
 			{
-				if (cts.IsCancellationRequested)
-				{
-					throw new TimeoutException("Coinjoin was not propagated.");
-				}
-				await Task.Delay(1_000, cts.Token);
+				var broadcastedCoinjoinTransaction = await coinJoinBoadcasted.Task.WaitAsync(cts.Token);
+				await Task.Delay(TimeSpan.FromSeconds(2));
+				var mempool = await rpc.GetRawMempoolAsync();
+				var coinjoinFromMempool = await rpc.GetRawTransactionAsync(mempool.Single());
 
-				if (tasks.All(t => t.IsCompleted))
-				{
-					if (allTaskCompletedTime is null)
-					{
-						allTaskCompletedTime = DateTimeOffset.UtcNow;
-						continue;
-					}
-
-					if (DateTimeOffset.UtcNow - allTaskCompletedTime > TimeSpan.FromSeconds(60))
-					{
-						throw new Exception("All participants finished, but CoinJoin still not in the mempool.");
-					}
-				}
+				Assert.Equal(broadcastedCoinjoinTransaction.GetHash(), coinjoinFromMempool.GetHash());
 			}
-
-			foreach (var (task, index) in tasks.Where(t => !t.IsCompletedSuccessfully).Select((value, i) => (value, i)))
+			catch (OperationCanceledException e)
 			{
-				string resultText = "Failed";
-				if (task.IsCanceled)
+				if (tasks.All(t => t.IsCompleted) && !cts.IsCancellationRequested)
 				{
-					resultText = "Cancelled";
-				}
-				else if (task.IsFaulted && task.Exception is { } ex)
-				{
-					resultText = ex.Message;
+					throw new Exception("All participants finished, but CoinJoin still not in the mempool.");
 				}
 
-				_output.WriteLine($"Participant task[{index}] not completed successfully, status: {task.Status}, reason: '{resultText}'.");
+				throw new TimeoutException("Coinjoin was not propagated.");
 			}
-
-			var mempool = await rpc.GetRawMempoolAsync();
-			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
-
-			Assert.True(coinjoin.Outputs.Count <= ExpectedInputNumber);
 		}
 		finally
 		{
@@ -589,5 +575,22 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
+	}
+
+	public class TesteableRpcClient : RpcClientBase
+	{
+		public Action<Transaction>? AfterSendRawTransaction { get; set; }
+
+		public TesteableRpcClient(RpcClientBase rpc)
+			: base(rpc.Rpc)
+		{
+		}
+
+		public override async Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
+		{
+			var ret = await base.SendRawTransactionAsync(transaction, cancellationToken).ConfigureAwait(false);
+			AfterSendRawTransaction?.Invoke(transaction);
+			return ret;
+		}
 	}
 }
