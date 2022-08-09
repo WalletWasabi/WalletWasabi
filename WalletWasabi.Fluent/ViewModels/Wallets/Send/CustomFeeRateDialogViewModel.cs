@@ -1,7 +1,4 @@
-using System;
 using System.Globalization;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -11,14 +8,16 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(Title = "Advanced")]
-public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
+[NavigationMetaData(
+	Title = "Advanced",
+	NavigationTarget = NavigationTarget.CompactDialogScreen)]
+public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
 
 	[AutoNotify] private string _customFee;
 
-	public AdvancedSendOptionsViewModel(TransactionInfo transactionInfo)
+	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{
 		_transactionInfo = transactionInfo;
 
@@ -48,30 +47,22 @@ public partial class AdvancedSendOptionsViewModel : DialogViewModelBase<Unit>
 	{
 		if (decimal.TryParse(CustomFee, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var feeRate))
 		{
-			_transactionInfo.FeeRate = new FeeRate(feeRate);
 			_transactionInfo.IsCustomFeeUsed = true;
+			Close(DialogResultKind.Normal, new FeeRate(feeRate));
 		}
-		else if (_transactionInfo.IsCustomFeeUsed)
+		else
 		{
-			_transactionInfo.FeeRate = FeeRate.Zero;
 			_transactionInfo.IsCustomFeeUsed = false;
+			Close(DialogResultKind.Normal, FeeRate.Zero); // must return zero which indicates that it was cleared.
 		}
-
-		Close(DialogResultKind.Normal, Unit.Default);
 	}
 
 	private void ValidateCustomFee(IValidationErrors errors)
 	{
 		var customFeeString = CustomFee;
 
-		if (customFeeString is null or "")
+		if (customFeeString is "")
 		{
-			return;
-		}
-
-		if (customFeeString.Any(c => !char.IsDigit(c) && c != '.'))
-		{
-			errors.Add(ErrorSeverity.Error, "The field only accepts numbers.");
 			return;
 		}
 

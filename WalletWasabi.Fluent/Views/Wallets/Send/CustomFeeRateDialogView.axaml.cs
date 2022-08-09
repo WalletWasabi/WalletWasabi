@@ -2,10 +2,9 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Send;
-
-public class AdvancedSendOptionsView : UserControl
+public class CustomFeeRateDialogView : UserControl
 {
-	public AdvancedSendOptionsView()
+	public CustomFeeRateDialogView()
 	{
 		InitializeComponent();
 	}
