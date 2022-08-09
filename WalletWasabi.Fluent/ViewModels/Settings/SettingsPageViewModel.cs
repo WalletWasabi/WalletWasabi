@@ -34,6 +34,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
+		AdvancedSettingsTab = new AdvancedSettingsTabViewModel();
 
 		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
 		NextCommand = CancelCommand;
@@ -43,6 +44,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
+	public AdvancedSettingsTabViewModel AdvancedSettingsTab { get; }
 
 	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
 	{

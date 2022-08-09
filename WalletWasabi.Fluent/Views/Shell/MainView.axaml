@@ -1,17 +1,17 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-                    xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
-                    xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
-                    xmlns:c="using:WalletWasabi.Fluent.Controls"
-                    xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
-                    x:Class="WalletWasabi.Fluent.Views.Shell.MainView"
-                    x:DataType="viewModels:MainViewModel"
-                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
-                    xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
-                    d:DesignWidth="1000" d:DesignHeight="1000"
-                    x:CompileBindings="True">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Views.Wallets"
+             xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
+             x:Class="WalletWasabi.Fluent.Views.Shell.MainView"
+             x:DataType="viewModels:MainViewModel"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+             xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
+             d:DesignWidth="1000" d:DesignHeight="1000"
+             x:CompileBindings="True">
 
   <DockPanel IsEnabled="{Binding IsMainContentEnabled^}">
     <shell:TitleBarView DockPanel.Dock="Top" />
@@ -37,7 +37,7 @@
               </spectrum:SpectrumControl.Styles>
               <spectrum:SpectrumControl.Transitions>
                 <Transitions>
-                  <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}"/>
+                  <BrushTransition Property="Foreground" Duration="0:0:2" Easing="{StaticResource FluentEasing}" />
                 </Transitions>
               </spectrum:SpectrumControl.Transitions>
             </spectrum:SpectrumControl>

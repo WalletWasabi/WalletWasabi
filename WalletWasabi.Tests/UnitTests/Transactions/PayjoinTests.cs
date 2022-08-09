@@ -22,7 +22,7 @@ public class PayjoinTests
 		var key = new Key();
 		var tx =
 			Network.Main.CreateTransactionBuilder()
-			.AddCoins(Coin(0.5m, key.PubKey.WitHash.ScriptPubKey))
+			.AddCoins(Coin(0.5m, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)))
 			.AddKeys(key)
 			.Send(BitcoinFactory.CreateScript(), Money.Coins(0.5m))
 			.BuildPSBT(true);
@@ -116,7 +116,7 @@ public class PayjoinTests
 					input.WitScript = WitScript.Empty;
 				}
 				var serverCoinKey = new Key();
-				var serverCoin = Coin(0.345m, serverCoinKey.PubKey.WitHash.ScriptPubKey);
+				var serverCoin = Coin(0.345m, serverCoinKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 				clientTx.Inputs.Add(serverCoin.Outpoint);
 				var paymentOutput = clientTx.Outputs.First(x => x.Value == amountToPay);
 				paymentOutput.Value += (Money)serverCoin.Amount;
@@ -286,7 +286,7 @@ public class PayjoinTests
 			{
 				var globalTx = psbt.GetGlobalTransaction();
 				globalTx.Inputs.Clear(); // remove all the inputs
-					globalTx.Inputs.Add(GetRandomOutPoint());
+				globalTx.Inputs.Add(GetRandomOutPoint());
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			}));
 

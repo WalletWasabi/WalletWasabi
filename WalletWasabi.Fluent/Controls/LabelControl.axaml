@@ -3,7 +3,7 @@
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
 
   <Design.PreviewWith>
-      <c:LabelControl DataContext="Label 1" />
+    <c:LabelControl DataContext="Label 1" />
   </Design.PreviewWith>
 
   <Style Selector="c|LabelControl">
@@ -13,6 +13,7 @@
         <Border Name="PART_Border" ToolTip.Tip="{Binding}">
           <TextBlock Text="{Binding}"
                      TextTrimming="CharacterEllipsis"
+                     TextWrapping="NoWrap"
                      MaxWidth="120" />
         </Border>
       </ControlTemplate>

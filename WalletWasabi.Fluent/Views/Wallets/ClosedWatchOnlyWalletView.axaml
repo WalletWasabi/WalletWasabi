@@ -8,5 +8,5 @@
              x:DataType="wallets:ClosedWatchOnlyWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedWatchOnlyWalletView">
-    <local:LoadingControl DataContext="{Binding Loading}" />
+  <local:LoadingControl DataContext="{Binding Loading}" />
 </UserControl>

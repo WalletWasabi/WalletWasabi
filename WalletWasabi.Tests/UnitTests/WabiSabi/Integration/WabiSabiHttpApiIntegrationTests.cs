@@ -203,7 +203,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		keyManager.AssertLockedInternalKeysIndexed(14);
 		var outputScriptCandidates = keyManager
 			.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked)
-			.Select(x => x.PubKey.WitHash.ScriptPubKey)
+			.Select(x => x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))
 			.ToImmutableArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -534,7 +534,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using Key signingKey = new();
 		Coin coinToRegister = new(
 			fromOutpoint: BitcoinFactory.CreateOutPoint(),
-			fromTxOut: new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
+			fromTxOut: new TxOut(Money.Coins(1), signingKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)));
 
 		using HttpClient httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.ConfigureServices(services =>
