@@ -521,12 +521,28 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						continue;
 					}
 
-					if (DateTimeOffset.UtcNow - allTaskCompletedTime > TimeSpan.FromSeconds(30))
+					if (DateTimeOffset.UtcNow - allTaskCompletedTime > TimeSpan.FromSeconds(60))
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool.");
 					}
 				}
 			}
+
+			foreach (var (task, index) in tasks.Where(t => !t.IsCompletedSuccessfully).Select((value, i) => (value, i)))
+			{
+				string resultText = "Failed";
+				if (task.IsCanceled)
+				{
+					resultText = "Cancelled";
+				}
+				else if (task.IsFaulted && task.Exception is { } ex)
+				{
+					resultText = ex.Message;
+				}
+
+				_output.WriteLine($"Participant task[{index}] not completed successfully, status: {task.Status}, reason: '{resultText}'.");
+			}
+
 			var mempool = await rpc.GetRawMempoolAsync();
 			var coinjoin = await rpc.GetRawTransactionAsync(mempool.Single());
 
