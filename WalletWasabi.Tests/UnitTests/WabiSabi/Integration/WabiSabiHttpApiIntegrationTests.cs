@@ -27,6 +27,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Xunit.Abstractions;
+using System.Diagnostics;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -504,6 +505,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			var tasks = participants.Select(x => x.StartParticipatingAsync(cts.Token)).ToArray();
 
+			DateTimeOffset? allTaskCompletedTime = null;
 			while ((await rpc.GetRawMempoolAsync()).Length == 0)
 			{
 				if (cts.IsCancellationRequested)
@@ -514,7 +516,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				if (tasks.All(t => t.IsCompleted))
 				{
-					throw new Exception();
+					if (allTaskCompletedTime is null)
+					{
+						allTaskCompletedTime = DateTimeOffset.UtcNow;
+						continue;
+					}
+
+					if (DateTimeOffset.UtcNow - allTaskCompletedTime > TimeSpan.FromSeconds(10))
+					{
+						throw new Exception("All participants finished, but CoinJoin still not in the mempool.");
+					}
 				}
 			}
 			var mempool = await rpc.GetRawMempoolAsync();
