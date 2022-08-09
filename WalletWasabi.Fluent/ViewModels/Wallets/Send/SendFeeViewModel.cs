@@ -49,19 +49,10 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private void OnNext()
 	{
-		if (!_transactionInfo.IsCustomFeeUsed)
-		{
-			_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
-
-			var blockTarget = FeeChart.CurrentConfirmationTarget;
-
-			Services.UiConfig.FeeTarget = (int)blockTarget;
-			Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
-		}
-		else
-		{
-			Close(DialogResultKind.Normal, _transactionInfo.FeeRate);
-		}
+		var blockTarget = FeeChart.CurrentConfirmationTarget;
+		_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
+		Services.UiConfig.FeeTarget = (int)blockTarget;
+		Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
 	}
 
 	private async Task ShowAdvancedOptionsAsync()
