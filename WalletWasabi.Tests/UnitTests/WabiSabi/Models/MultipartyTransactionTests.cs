@@ -130,7 +130,6 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void WitnessValidation()
 	{
-
 		using Key key1 = new();
 		using Key key2 = new();
 
@@ -253,9 +252,9 @@ public class MultipartyTransactionTests
 	// TODO nonstandard input
 
 	[Fact]
-	public void OnlyAllowedInputScriptTypes()
+	public void OnlyAllowedInputTypes()
 	{
-		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputScriptTypes = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2PKH) });
+		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputTypes = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2PKH) });
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof();
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(coin, ownershipProof, commitmentData));
 	}
@@ -303,9 +302,9 @@ public class MultipartyTransactionTests
 	}
 
 	[Fact]
-	public void OnlyAllowedOutputScriptTypes()
+	public void OnlyAllowedOutputTypes()
 	{
-		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedOutputScriptTypes = ImmutableSortedSet<ScriptType>.Empty.Add(ScriptType.P2PKH) });
+		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedOutputTypes = ImmutableSortedSet<ScriptType>.Empty.Add(ScriptType.P2PKH) });
 		var p2wpkh = BitcoinFactory.CreateScript();
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddOutput(new TxOut(Money.Coins(1), p2wpkh)));
 	}

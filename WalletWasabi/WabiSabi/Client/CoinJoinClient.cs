@@ -161,7 +161,7 @@ public class CoinJoinClient
 
 			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
 
-			if (!roundParameteers.AllowedInputScriptTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputScriptTypes.Contains(ScriptType.P2WPKH))
+			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
 				excludeRound = currentRoundState.Id;
 				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
@@ -611,7 +611,7 @@ public class CoinJoinClient
 
 		var filteredCoins = coins
 			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-			.Where(x => parameters.AllowedInputScriptTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
+			.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
 			.ToArray();
 

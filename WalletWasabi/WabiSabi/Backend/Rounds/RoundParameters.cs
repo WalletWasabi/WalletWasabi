@@ -21,8 +21,8 @@ public record RoundParameters
 		int maxInputCountByRound,
 		MoneyRange allowedInputAmounts,
 		MoneyRange allowedOutputAmounts,
-		ImmutableSortedSet<ScriptType> allowedInputScriptTypes,
-		ImmutableSortedSet<ScriptType> allowedOutputScriptTypes,
+		ImmutableSortedSet<ScriptType> allowedInputTypes,
+		ImmutableSortedSet<ScriptType> allowedOutputTypes,
 		TimeSpan standardInputRegistrationTimeout,
 		TimeSpan connectionConfirmationTimeout,
 		TimeSpan outputRegistrationTimeout,
@@ -38,8 +38,8 @@ public record RoundParameters
 		MaxInputCountByRound = maxInputCountByRound;
 		AllowedInputAmounts = allowedInputAmounts;
 		AllowedOutputAmounts = allowedOutputAmounts;
-		AllowedInputScriptTypes = allowedInputScriptTypes;
-		AllowedOutputScriptTypes = allowedOutputScriptTypes;
+		AllowedInputTypes = allowedInputTypes;
+		AllowedOutputTypes = allowedOutputTypes;
 		StandardInputRegistrationTimeout = standardInputRegistrationTimeout;
 		ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 		OutputRegistrationTimeout = outputRegistrationTimeout;
@@ -60,8 +60,8 @@ public record RoundParameters
 	public int MaxInputCountByRound { get; init; }
 	public MoneyRange AllowedInputAmounts { get; init; }
 	public MoneyRange AllowedOutputAmounts { get; init; }
-	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes { get; init; }
-	public ImmutableSortedSet<ScriptType> AllowedOutputScriptTypes { get; init; }
+	public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; }
+	public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; }
 	public TimeSpan StandardInputRegistrationTimeout { get; init; }
 	public TimeSpan ConnectionConfirmationTimeout { get; init; }
 	public TimeSpan OutputRegistrationTimeout { get; init; }
@@ -103,8 +103,8 @@ public record RoundParameters
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
-			wabiSabiConfig.AllowedInputScriptTypes,
-			wabiSabiConfig.AllowedOutputScriptTypes,
+			wabiSabiConfig.AllowedInputTypes,
+			wabiSabiConfig.AllowedOutputTypes,
 			wabiSabiConfig.StandardInputRegistrationTimeout,
 			wabiSabiConfig.ConnectionConfirmationTimeout,
 			wabiSabiConfig.OutputRegistrationTimeout,

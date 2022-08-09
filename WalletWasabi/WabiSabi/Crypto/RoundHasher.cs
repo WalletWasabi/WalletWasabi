@@ -16,9 +16,9 @@ public static class RoundHasher
 			TimeSpan outputRegistrationTimeout,
 			TimeSpan transactionSigningTimeout,
 			MoneyRange allowedInputAmounts,
-			ImmutableSortedSet<ScriptType> allowedInputScriptTypes,
+			ImmutableSortedSet<ScriptType> allowedInputTypes,
 			MoneyRange allowedOutputAmounts,
-			ImmutableSortedSet<ScriptType> allowedOutputScriptTypes,
+			ImmutableSortedSet<ScriptType> allowedOutputTypes,
 			Network network,
 			long feePerK,
 			CoordinationFeeRate coordinationFeeRate,
@@ -39,9 +39,9 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundOutputRegistrationTimeoutStrobeLabel, outputRegistrationTimeout)
 					   .Append(ProtocolConstants.RoundTransactionSigningTimeoutStrobeLabel, transactionSigningTimeout)
 					   .Append(ProtocolConstants.RoundAllowedInputAmountsStrobeLabel, allowedInputAmounts)
-					   .Append(ProtocolConstants.RoundAllowedInputScriptTypesStrobeLabel, allowedInputScriptTypes)
+					   .Append(ProtocolConstants.RoundAllowedInputTypesStrobeLabel, allowedInputTypes)
 					   .Append(ProtocolConstants.RoundAllowedOutputAmountsStrobeLabel, allowedOutputAmounts)
-					   .Append(ProtocolConstants.RoundAllowedOutputScriptTypesStrobeLabel, allowedOutputScriptTypes)
+					   .Append(ProtocolConstants.RoundAllowedOutputTypesStrobeLabel, allowedOutputTypes)
 					   .Append(ProtocolConstants.RoundNetworkStrobeLabel, network.ToString())
 					   .Append(ProtocolConstants.RoundFeeRateStrobeLabel, feePerK)
 					   .Append(ProtocolConstants.RoundCoordinationFeeRateStrobeLabel, coordinationFeeRate)

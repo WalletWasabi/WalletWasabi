@@ -14,8 +14,8 @@ public static class ProtocolConstants
 
 	public const string RoundAllowedInputAmountsStrobeLabel = "allowed-input-amounts";
 	public const string RoundAllowedOutputAmountsStrobeLabel = "allowed-output-amounts";
-	public const string RoundAllowedInputScriptTypesStrobeLabel = "allowed-input-script-types";
-	public const string RoundAllowedOutputScriptTypesStrobeLabel = "allowed-output-script-types";
+	public const string RoundAllowedInputTypesStrobeLabel = "allowed-input-types";
+	public const string RoundAllowedOutputTypesStrobeLabel = "allowed-output-types";
 	public const string RoundNetworkStrobeLabel = "network";
 	public const string RoundMaxTransactionSizeStrobeLabel = "max-transaction-size";
 	public const string RoundMinRelayTxFeeStrobeLabel = "min-relay-tx-fee";

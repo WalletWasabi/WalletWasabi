@@ -142,9 +142,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2trOutputs { get; set; } = false;
 
-	public ImmutableSortedSet<ScriptType> AllowedInputScriptTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
+	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
 
-	public ImmutableSortedSet<ScriptType> AllowedOutputScriptTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
+	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
