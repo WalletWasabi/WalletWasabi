@@ -47,16 +47,14 @@ public partial class SendFeeAdvancedOptionsViewModel : DialogViewModelBase<FeeRa
 	{
 		if (decimal.TryParse(CustomFee, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var feeRate))
 		{
-			_transactionInfo.FeeRate = new FeeRate(feeRate);
 			_transactionInfo.IsCustomFeeUsed = true;
+			Close(DialogResultKind.Normal, new FeeRate(feeRate));
 		}
-		else if (_transactionInfo.IsCustomFeeUsed)
+		else
 		{
-			_transactionInfo.FeeRate = FeeRate.Zero;
 			_transactionInfo.IsCustomFeeUsed = false;
+			Close();
 		}
-
-		Close(DialogResultKind.Normal, _transactionInfo.FeeRate);
 	}
 
 	private void ValidateCustomFee(IValidationErrors errors)
