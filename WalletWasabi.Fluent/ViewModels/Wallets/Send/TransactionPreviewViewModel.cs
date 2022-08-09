@@ -184,7 +184,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnAdjustFeeAsync()
 	{
 		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
-			? new SendFeeAdvancedOptionsViewModel(_info)
+			? new CustomFeeRateDialogViewModel(_info)
 			: new SendFeeViewModel(_wallet, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);

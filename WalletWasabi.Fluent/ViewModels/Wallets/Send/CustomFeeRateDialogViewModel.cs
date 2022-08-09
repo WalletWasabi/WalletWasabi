@@ -11,13 +11,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 [NavigationMetaData(
 	Title = "Advanced",
 	NavigationTarget = NavigationTarget.CompactDialogScreen)]
-public partial class SendFeeAdvancedOptionsViewModel : DialogViewModelBase<FeeRate>
+public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
 
 	[AutoNotify] private string _customFee;
 
-	public SendFeeAdvancedOptionsViewModel(TransactionInfo transactionInfo)
+	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{
 		_transactionInfo = transactionInfo;
 

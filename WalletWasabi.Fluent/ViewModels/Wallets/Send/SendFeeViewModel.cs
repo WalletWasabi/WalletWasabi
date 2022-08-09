@@ -57,7 +57,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private async Task ShowAdvancedOptionsAsync()
 	{
-		var result = await NavigateDialogAsync(new SendFeeAdvancedOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
 		if (result.Result is { } feeRate && feeRate != FeeRate.Zero)
 		{
 			Close(DialogResultKind.Normal, result.Result);
