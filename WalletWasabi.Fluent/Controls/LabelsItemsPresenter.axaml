@@ -5,20 +5,20 @@
 
   <Design.PreviewWith>
     <Border BorderBrush="Black" BorderThickness="1" Width="250" Height="50">
-      <c:LabelsListBox HorizontalAlignment="Left" VerticalAlignment="Center">
-        <c:LabelsListBox.Items>
+      <c:LabelsItemsPresenter HorizontalAlignment="Left" VerticalAlignment="Center">
+        <c:LabelsItemsPresenter.Items>
           <g:List x:TypeArguments="x:String">
             <x:String>Label 1</x:String>
             <x:String>Label 2</x:String>
             <x:String>Label 3</x:String>
             <x:String>Label 4</x:String>
           </g:List>
-        </c:LabelsListBox.Items>
-      </c:LabelsListBox>
+        </c:LabelsItemsPresenter.Items>
+      </c:LabelsItemsPresenter>
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="c|LabelsListBox">
+  <Style Selector="c|LabelsItemsPresenter">
     <Setter Property="Margin" Value="0" />
     <Setter Property="VirtualizationMode" Value="Simple" />
     <Setter Property="ItemTemplate">

@@ -20,9 +20,9 @@
             <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
           </Button>
         </StackPanel>
-        <c:LabelsListBox Items="{Binding Label}"
-                         HorizontalAlignment="Left"
-                         VerticalAlignment="Center" />
+        <c:LabelsItemsPresenter Items="{Binding Label}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
       </DockPanel>
     </c:PrivacyContentControl>
   </DockPanel>
