@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -26,7 +27,7 @@ public static class TransactionFeeHelper
 		[1008] = 1
 	};
 
-	public static async Task<Dictionary<int, int>?> GetFeeEstimatesWhenReadyAsync(Wallet wallet)
+	public static async Task<Dictionary<int, int>> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		var feeProvider = wallet.FeeProvider;
 
@@ -40,10 +41,10 @@ public static class TransactionFeeHelper
 				return feeEstimates;
 			}
 
-			await Task.Delay(100);
+			await Task.Delay(100, cancellationToken);
 		}
 
-		return null;
+		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out Dictionary<int, int>? estimates)

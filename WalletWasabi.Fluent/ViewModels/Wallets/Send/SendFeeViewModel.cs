@@ -1,12 +1,15 @@
+using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -68,6 +71,26 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		return result.Result;
 	}
 
+	private async Task FeeEstimationsAreNotAvailableAsync()
+	{
+		await ShowErrorAsync(
+			"Transaction fee",
+			"Transaction fee estimations are not available at the moment. Try again later or you can enter the fee rate manually.",
+			"",
+			NavigationTarget.CompactDialogScreen);
+
+		var customFeeRate = await ShowCustomFeeRateDialogAsync();
+
+		if (customFeeRate is { })
+		{
+			Close(DialogResultKind.Normal, customFeeRate);
+		}
+		else
+		{
+			Close();
+		}
+	}
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		IsBusy = true;
@@ -90,27 +113,17 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			var feeEstimates = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet);
+			Dictionary<int, int> feeEstimates;
+			using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
-			if (feeEstimates is null)
+			try
 			{
-				await ShowErrorAsync(
-					"Transaction fee",
-					"Transaction fee estimations are not available at the moment. Try again later or you can enter the fee rate manually.",
-					"",
-					NavigationTarget.CompactDialogScreen);
-
-				var customFeeRate = await ShowCustomFeeRateDialogAsync();
-
-				if (customFeeRate is { })
-				{
-					Close(DialogResultKind.Normal, customFeeRate);
-				}
-				else
-				{
-					Close();
-				}
-
+				feeEstimates = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet, cancelTokenSource.Token);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogInfo(ex);
+				await FeeEstimationsAreNotAvailableAsync();
 				return;
 			}
 
