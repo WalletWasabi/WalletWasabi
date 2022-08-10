@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -11,23 +12,11 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private readonly IDisposable _subscription;
+	private IDisposable _subscription = Disposable.Empty;
 	private FormattedText? _formattedText;
 	private bool _isContentVisible = true;
 	private int _numberOfPrivacyChars;
 	private string? _value;
-
-	public TreeDataGridPrivacyTextCell()
-	{
-		var displayContent = ObservableMixin.DelayedRevealAndHide(
-			this.WhenAnyValue(x => x.IsPointerOver),
-			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
-
-		_subscription = displayContent
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(SetContentVisible)
-			.Subscribe();
-	}
 
 	private string? Text => _isContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
 
@@ -56,8 +45,24 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		}
 	}
 
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		var displayContent = ObservableMixin.DelayedRevealAndHide(
+			this.WhenAnyValue(x => x.IsPointerOver),
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
+
+		_subscription = displayContent
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(SetContentVisible)
+			.Subscribe();
+	}
+
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
+		base.OnDetachedFromVisualTree(e);
+
 		_subscription.Dispose();
 	}
 
