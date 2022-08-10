@@ -15,8 +15,6 @@ public enum ReplacementMode
 
 public class PrivacyContentControl : ContentControl
 {
-	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(0.75);
-
 	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
 
@@ -33,21 +31,10 @@ public class PrivacyContentControl : ContentControl
 			return;
 		}
 
-		var isPrivacyModeEnabled = Services.UiConfig.WhenAnyValue(x => x.PrivacyMode);
-		var isForced = this.WhenAnyValue(x => x.ForceShow);
-		var isPointerOver = this.WhenAnyValue(x => x.IsPointerOver)
-			.Select(
-				isTrue => isTrue
-					? Observable.Return(true).Delay(RevealDelay)
-						.Concat(Observable.Return(false).Delay(TimeSpan.FromSeconds(5)))
-					: Observable.Return(false)
-			)
-			.Switch();
-
-		var displayContent = isPrivacyModeEnabled.CombineLatest(
-			isPointerOver,
-			isForced,
-			(privacyModeEnabled, pointerOver, forced) => !privacyModeEnabled || pointerOver || forced);
+		var displayContent = ObservableMixin.DelayedRevealAndHide(
+			this.WhenAnyValue(x => x.IsPointerOver),
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode),
+			this.WhenAnyValue(x => x.ForceShow));
 
 		IsContentRevealed = displayContent
 			.ObserveOn(RxApp.MainThreadScheduler)

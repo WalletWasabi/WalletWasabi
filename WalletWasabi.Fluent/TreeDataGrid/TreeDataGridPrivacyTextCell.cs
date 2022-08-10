@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,23 +5,35 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private static readonly List<TreeDataGridPrivacyTextCell> Realized = new();
-	private static IDisposable? Subscription;
-	private static bool IsContentVisible = true;
-	private string? _value;
+	private readonly IDisposable _subscription;
 	private FormattedText? _formattedText;
+	private bool _isContentVisible = true;
 	private int _numberOfPrivacyChars;
+	private string? _value;
 
-	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
+	public TreeDataGridPrivacyTextCell()
+	{
+		var displayContent = ObservableMixin.DelayedRevealAndHide(
+			this.WhenAnyValue(x => x.IsPointerOver),
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
+
+		_subscription = displayContent
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(SetContentVisible)
+			.Subscribe();
+	}
+
+	private string? Text => _isContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var privacyTextCell = (PrivacyTextCell)model;
+		var privacyTextCell = (PrivacyTextCell) model;
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
@@ -45,30 +56,9 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		}
 	}
 
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		base.OnAttachedToVisualTree(e);
-
-		if (Realized.Count == 0)
-		{
-			Subscription = Services.UiConfig
-				.WhenAnyValue(x => x.PrivacyMode)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => SetContentVisible(!x));
-		}
-
-		Realized.Add(this);
-	}
-
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		Realized.Remove(this);
-
-		if (Realized.Count == 0)
-		{
-			Subscription?.Dispose();
-			Subscription = null;
-		}
+		_subscription.Dispose();
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
@@ -92,14 +82,10 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		return _formattedText.Bounds.Size;
 	}
 
-	private static void SetContentVisible(bool value)
+	private void SetContentVisible(bool value)
 	{
-		IsContentVisible = value;
-
-		foreach (var c in Realized)
-		{
-			c._formattedText = null;
-			c.InvalidateMeasure();
-		}
+		_isContentVisible = value;
+		_formattedText = null;
+		InvalidateMeasure();
 	}
 }
