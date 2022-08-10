@@ -110,7 +110,7 @@
             </i:BehaviorCollectionTemplate>
           </Setter>
         </Style>
-        <Style Selector="c|PrivacyContentControl">
+        <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />
