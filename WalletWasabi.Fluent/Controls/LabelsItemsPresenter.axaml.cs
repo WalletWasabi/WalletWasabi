@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 {
-	Type IStyleable.StyleKey => typeof(ItemsPresenter);
+	Type IStyleable.StyleKey => typeof(LabelsItemsPresenter);
 
 	protected override void PanelCreated(IPanel panel)
 	{
