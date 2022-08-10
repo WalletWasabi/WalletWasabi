@@ -26,13 +26,20 @@ public class IndexBuilderServiceTests
 			}),
 		};
 		using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+
+		var indexes = new[]
+		{
+			(new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot }, "filters.txt"),
+			(new[] { RpcPubkeyType.TxWitnessV1Taproot }, "taprootFilters.txt")
+		};
+		var indexer = new IndexBuilderService(indexes, rpc, blockNotifier);
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.Indices.First().GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.Indices.Skip(1).First().GetLastFilter());  // There are no filters
 	}
 
 	[Fact]
@@ -53,13 +60,20 @@ public class IndexBuilderServiceTests
 			}
 		};
 		using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+
+		var indexes = new[]
+		{
+			(new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot }, "filters.txt"),
+			(new[] { RpcPubkeyType.TxWitnessV1Taproot }, "taprootFilters.txt")
+		};
+		var indexer = new IndexBuilderService(indexes, rpc, blockNotifier);
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(2));
 		Assert.True(indexer.IsRunning);  // It is still working
-		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.Indices.First().GetLastFilter());  // There are no filters
+		Assert.Throws<ArgumentOutOfRangeException>(() => indexer.Indices.Skip(1).First().GetLastFilter());  // There are no filters
 		Assert.True(called > 1);
 	}
 
@@ -84,15 +98,24 @@ public class IndexBuilderServiceTests
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
 		using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+
+		var indexes = new[]
+		{
+			(new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot }, "filters.txt"),
+			(new[] { RpcPubkeyType.TxWitnessV1Taproot }, "taprootFilters.txt")
+		};
+		var indexer = new IndexBuilderService(indexes, rpc, blockNotifier);
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(10));
 		Assert.True(indexer.IsRunning);  // It is still working
 
-		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter.Header.Height);
+		var lastFilter1 = indexer.Indices.First().GetLastFilter();
+		var lastFilter2 = indexer.Indices.Skip(1).First().GetLastFilter();
+		Assert.Equal(9, (int)lastFilter1.Header.Height);
+		Assert.True(called > 1);
+		Assert.Equal(9, (int)lastFilter2.Header.Height);
 		Assert.True(called > 1);
 	}
 
@@ -112,14 +135,21 @@ public class IndexBuilderServiceTests
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
 		using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+
+		var segwitTaproot = new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot };
+		var indexes = new[]
+		{
+			(segwitTaproot, "filters.txt"),
+			(new[] { RpcPubkeyType.TxWitnessV1Taproot }, "taprootFilters.txt")
+		};
+		var indexer = new IndexBuilderService(indexes, rpc, blockNotifier);
 
 		indexer.Synchronize();
 
 		await Task.Delay(TimeSpan.FromSeconds(5));
 		Assert.False(indexer.IsRunning);  // we are done
 
-		var result = indexer.GetFilterLinesExcluding(blockchain[0].Hash, 100, out var found);
+		var result = indexer.GetFilterLinesExcluding(segwitTaproot, blockchain[0].Hash, 100, out var found);
 		Assert.True(found);
 		Assert.Equal(9, result.bestHeight.Value);
 		Assert.Equal(9, result.filters.Count());

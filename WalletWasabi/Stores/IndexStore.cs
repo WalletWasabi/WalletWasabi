@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
@@ -14,6 +15,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -33,7 +35,7 @@ public class IndexStore : IAsyncDisposable
 		ImmatureIndexFileManager = new DigestableSafeIoManager(immatureIndexFilePath, useLastCharacterDigest: true);
 
 		Network = network;
-		StartingFilter = StartingFilters.GetStartingFilter(Network);
+		StartingFilter = StartingFilters.GetStartingFilter(Network, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot });
 		SmartHeaderChain = smartHeaderChain;
 	}
 

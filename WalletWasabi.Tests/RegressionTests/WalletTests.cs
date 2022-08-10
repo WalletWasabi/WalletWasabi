@@ -18,6 +18,7 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using Index = WalletWasabi.Blockchain.BlockFilters.Index;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -105,7 +106,7 @@ public class WalletTests
 				var filter = filters[i];
 				Assert.Equal(i, (int)filter.Header.Height);
 				Assert.Equal(expectedHash, filter.Header.BlockHash);
-				Assert.Equal(IndexBuilderService.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
+				Assert.Equal(Index.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
 			}
 		}
 		finally
@@ -200,7 +201,7 @@ public class WalletTests
 				Assert.Equal(expectedHash, filter.Header.BlockHash);
 				if (i < 101) // Later other tests may fill the filter.
 				{
-					Assert.Equal(IndexBuilderService.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
+					Assert.Equal(Index.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
 				}
 			}
 

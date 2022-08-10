@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
@@ -53,7 +54,7 @@ public class LiveServerTests : IAsyncLifetime
 		TorHttpClient torHttpClient = MakeTorHttpClient(network);
 		WasabiClient client = new(torHttpClient);
 
-		var filterModel = StartingFilters.GetStartingFilter(network);
+		var filterModel = StartingFilters.GetStartingFilter(network, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot });
 
 		FiltersResponse? filtersResponse = await client.GetFiltersAsync(filterModel.Header.BlockHash, 2);
 

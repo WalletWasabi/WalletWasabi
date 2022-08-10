@@ -1,9 +1,11 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Logging;
@@ -108,9 +111,13 @@ public class BackendTests
 		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
-
-		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
+		var segwitTaproot = new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot };
+		var indexes = new[]
+		{
+			(segwitTaproot, Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat")),
+			(new[] { RpcPubkeyType.TxWitnessV1Taproot }, Path.Combine(indexBuilderServiceDir, $"TaprootIndex{rpc.Network}.dat"))
+		};
+		IndexBuilderService indexBuilderService = new(indexes, rpc, global.HostedServices.Get<BlockNotifier>());
 		try
 		{
 			indexBuilderService.Synchronize();
@@ -118,7 +125,7 @@ public class BackendTests
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while (indexBuilderService.GetFilterLinesExcluding(segwitTaproot, firstHash, 101, out _).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{
@@ -131,7 +138,7 @@ public class BackendTests
 			// Test later synchronization.
 			await rpc.GenerateAsync(10);
 			times = 0;
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found5).filters.Count() != 111)
+			while (indexBuilderService.GetFilterLinesExcluding(segwitTaproot, firstHash, 111, out bool found5).filters.Count() != 111)
 			{
 				Assert.True(found5);
 				if (times > 500) // 30 sec
@@ -144,15 +151,15 @@ public class BackendTests
 
 			// Test correct number of filters is received.
 			var hundredthHash = await rpc.GetBlockHashAsync(100);
-			Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 11, out bool found).filters.Count());
+			Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(segwitTaproot, hundredthHash, 11, out bool found).filters.Count());
 			Assert.True(found);
 			var bestHash = await rpc.GetBestBlockHashAsync();
-			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
-			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3).filters);
+			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(segwitTaproot, bestHash, 1, out bool found2).filters);
+			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(segwitTaproot, uint256.Zero, 1, out bool found3).filters);
 			Assert.False(found3);
 
 			// Test filter block hashes are correct.
-			var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found4).filters.ToArray();
+			var filters = indexBuilderService.GetFilterLinesExcluding(segwitTaproot, firstHash, 111, out bool found4).filters.ToArray();
 			Assert.True(found4);
 			for (int i = 0; i < 111; i++)
 			{
@@ -184,7 +191,8 @@ public class BackendTests
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			var segwitTaproot = new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot };
+			while (indexBuilderService.GetFilterLinesExcluding(segwitTaproot, firstHash, 101, out _).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{

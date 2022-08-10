@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Coordinator;
@@ -64,7 +65,11 @@ public class Global : IDisposable
 
 		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var indexes = new[]
+		{
+			(new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot }, Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat")),
+			(new[] { RpcPubkeyType.TxWitnessV1Taproot }, Path.Combine(indexBuilderServiceDir, $"TaprootIndex{RpcClient.Network}.dat"))
+		};
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
@@ -103,7 +108,7 @@ public class Global : IDisposable
 
 		await HostedServices.StartAllAsync(cancel);
 
-		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
+		IndexBuilderService = new(indexes, RpcClient, blockNotifier);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}

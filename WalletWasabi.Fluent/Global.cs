@@ -30,6 +30,7 @@ using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Tor.StatusChecker;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.Fluent;
 
@@ -164,7 +165,7 @@ public class Global
 				catch (Exception ex) when (ex is not OperationCanceledException)
 				{
 					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot }).Height);
 					throw;
 				}
 

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;
@@ -66,7 +67,7 @@ public class IndexStoreTests
 		await using var indexStore = new IndexStore(dir, network, headersChain);
 
 		var dummyFilter = GolombRiceFilter.Parse("00");
-		var startingFilter = StartingFilters.GetStartingFilter(network);
+		var startingFilter = StartingFilters.GetStartingFilter(network, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot });
 
 		var immatureIndexStoreContent = new[]
 		{

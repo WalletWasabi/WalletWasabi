@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -267,6 +269,7 @@ public class BlockchainController : ControllerBase
 	/// </remarks>
 	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 	/// <param name="count">The number of filters to return.</param>
+	/// <param name="scriptType">Type of filter. Only valid value is witness_v1_taproot. If left empty, then ALL: (witness_v0_keyhash AND witness_v1_taproot).</param>
 	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>
@@ -277,7 +280,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? scriptType = null)
 	{
 		if (count <= 0)
 		{
@@ -286,7 +289,12 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		if (!TryGetValidScriptTypes(scriptType, out var scriptTypes))
+		{
+			return BadRequest("Not supported script type.");
+		}
+
+		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(scriptTypes, knownHash, count, out bool found);
 
 		if (!found)
 		{
@@ -305,6 +313,28 @@ public class BlockchainController : ControllerBase
 		};
 
 		return Ok(response);
+	}
+
+	public static bool TryGetValidScriptTypes(string? scriptType, [NotNullWhen(true)] out RpcPubkeyType[]? scriptTypes)
+	{
+		scriptTypes = null;
+		var types = new List<RpcPubkeyType>();
+		if (string.IsNullOrEmpty(scriptType))
+		{
+			types.Add(RpcPubkeyType.TxWitnessV0Keyhash);
+			types.Add(RpcPubkeyType.TxWitnessV1Taproot);
+		}
+		else if (RpcParser.ConvertPubkeyType(scriptType) is RpcPubkeyType.TxWitnessV1Taproot)
+		{
+			types.Add(RpcPubkeyType.TxWitnessV1Taproot);
+		}
+		else
+		{
+			return false;
+		}
+
+		scriptTypes = types.ToArray();
+		return true;
 	}
 
 	[HttpGet("status")]
@@ -336,8 +366,27 @@ public class BlockchainController : ControllerBase
 		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
 		{
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
-			var lastFilterHash = lastFilter.Header.BlockHash;
+
+			FilterModel? worstFilter = null;
+			foreach (var index in Global.IndexBuilderService.Indices)
+			{
+				var current = index.GetLastFilter();
+				if (worstFilter is null)
+				{
+					worstFilter = current;
+				}
+				else if (current.Header.Height < worstFilter.Header.Height)
+				{
+					worstFilter = current;
+				}
+			}
+
+			if (worstFilter is null)
+			{
+				throw new NotSupportedException("This is impossible, indices cannot be empty.");
+			}
+
+			var lastFilterHash = worstFilter.Header.BlockHash;
 			var bestHash = await RpcClient.GetBestBlockHashAsync();
 			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
 			var prevHash = lastBlockHeader.HashPrevBlock;
