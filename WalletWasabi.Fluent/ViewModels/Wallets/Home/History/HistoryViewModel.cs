@@ -223,6 +223,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
 			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
+			MessageBus.Current.SendMessage(new TransactionsChangedMessage(this, newHistoryList));
 
 			_transactionSourceList.Edit(x =>
 			{

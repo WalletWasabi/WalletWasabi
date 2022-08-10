@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.AppServices.Tor;
@@ -12,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
+using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
@@ -105,7 +108,7 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
+		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage), new TransactionsSource());
 		SearchBar = new SearchBarViewModel(source.Changes);
 
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
