@@ -15,6 +15,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Tor.Socks5.Pool;
 
@@ -258,7 +259,18 @@ public class TorHttpPool : IDisposable
 
 			if (canBeAdded)
 			{
-				connection = await CreateNewConnectionAsync(request, circuit, token).ConfigureAwait(false);
+				var before = DateTimeOffset.UtcNow;
+				try
+				{
+					connection = await CreateNewConnectionAsync(request, circuit, token).ConfigureAwait(false);
+				}
+				catch
+				{
+					RequestTimeStatista2.Instance.Add($"TorHttpPool-CreateNewConnectionAsync", DateTimeOffset.UtcNow - before, 0);
+					throw;
+				}
+
+				RequestTimeStatista2.Instance.Add($"TorHttpPool-CreateNewConnectionAsync", DateTimeOffset.UtcNow - before, 1);
 
 				if (connection is not null)
 				{

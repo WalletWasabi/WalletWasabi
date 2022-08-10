@@ -72,6 +72,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
+		DateTimeOffset before = DateTimeOffset.UtcNow;
 		var attempt = 1;
 		do
 		{
@@ -82,9 +83,26 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : totalTimeout);
 				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
+				var requestStart = DateTimeOffset.UtcNow;
+				HttpResponseMessage response;
+
 				// Any transport layer errors will throw an exception here.
-				HttpResponseMessage response = await _client
-					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
+				try
+				{
+					response = await _client
+					   .SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token)
+					   .ConfigureAwait(false);
+				}
+				catch
+				{
+					RequestTimeStatista2.Instance.Add($"XXX-API-{action}-REQ", DateTimeOffset.UtcNow - requestStart, 0);
+					throw;
+				}
+
+				RequestTimeStatista2.Instance.Add($"XXX-API-{action}-REQ", DateTimeOffset.UtcNow - requestStart, 1);
+
+				var successRatio = (float)1 / attempt;
+				RequestTimeStatista2.Instance.Add($"XXX-API-{action}-OK", DateTimeOffset.UtcNow - before, successRatio);
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
@@ -122,6 +140,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
 
+				RequestTimeStatista2.Instance.Add($"XXX-API-{action}-OK", DateTimeOffset.UtcNow - before, 0);
+
 				if (exceptions.Any())
 				{
 					AddException(exceptions, e);
@@ -146,6 +166,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			attempt++;
 		}
 		while (!combinedToken.IsCancellationRequested);
+
+		RequestTimeStatista2.Instance.Add($"XXX-API-{action}-OK", DateTimeOffset.UtcNow - before, 0);
 
 		throw new AggregateException(exceptions.Keys);
 	}
