@@ -38,11 +38,13 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	public override void Render(DrawingContext context)
 	{
-		if (_formattedText is not null)
+		if (_formattedText is null)
 		{
-			var r = Bounds.CenterRect(_formattedText.Bounds);
-			context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
+			return;
 		}
+
+		var r = Bounds.CenterRect(_formattedText.Bounds);
+		context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
