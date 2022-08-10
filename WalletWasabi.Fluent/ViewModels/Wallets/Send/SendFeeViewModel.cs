@@ -1,14 +1,15 @@
-using System.Linq;
+using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -57,10 +58,36 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private async Task ShowAdvancedOptionsAsync()
 	{
-		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
-		if (result.Result is { } feeRate && feeRate != FeeRate.Zero)
+		var result = await ShowCustomFeeRateDialogAsync();
+		if (result is { } feeRate && feeRate != FeeRate.Zero)
 		{
-			Close(DialogResultKind.Normal, result.Result);
+			Close(DialogResultKind.Normal, feeRate);
+		}
+	}
+
+	private async Task<FeeRate?> ShowCustomFeeRateDialogAsync()
+	{
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		return result.Result;
+	}
+
+	private async Task FeeEstimationsAreNotAvailableAsync()
+	{
+		await ShowErrorAsync(
+			"Transaction fee",
+			"Transaction fee estimations are not available at the moment. Try again later or you can enter the fee rate manually.",
+			"",
+			NavigationTarget.CompactDialogScreen);
+
+		var customFeeRate = await ShowCustomFeeRateDialogAsync();
+
+		if (customFeeRate is { })
+		{
+			Close(DialogResultKind.Normal, customFeeRate);
+		}
+		else
+		{
+			Close();
 		}
 	}
 
@@ -74,19 +101,33 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		Observable
 			.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
-			.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
+			.Select(_ =>
+			{
+				TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var estimates);
+				return estimates;
+			})
+			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate))
+			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			while (feeProvider.AllFeeEstimate is null)
+			Dictionary<int, int> feeEstimates;
+			using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+			try
 			{
-				await Task.Delay(100);
+				feeEstimates = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet, cancelTokenSource.Token);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogInfo(ex);
+				await FeeEstimationsAreNotAvailableAsync();
+				return;
 			}
 
-			FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate);
+			FeeChart.UpdateFeeEstimates(feeEstimates, _transactionInfo.MaximumPossibleFeeRate);
 
 			if (_transactionInfo.FeeRate != FeeRate.Zero)
 			{
