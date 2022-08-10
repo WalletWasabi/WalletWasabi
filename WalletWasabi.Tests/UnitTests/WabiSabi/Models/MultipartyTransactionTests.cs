@@ -130,7 +130,6 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void WitnessValidation()
 	{
-
 		using Key key1 = new();
 		using Key key2 = new();
 

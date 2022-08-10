@@ -1,5 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
@@ -124,9 +126,29 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2wpkhInputs { get; set; } = true;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2trInputs { get; set; } = false;
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2wpkhOutputs { get; set; } = true;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2trOutputs { get; set; } = false;
+
+	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
+
+	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
-	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
 	public void MakeNextCoordinatorScriptDirty()
 	{
@@ -135,5 +157,23 @@ public class WabiSabiConfig : ConfigBase
 		{
 			ToFile();
 		}
+	}
+
+	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr)
+	{
+		var scriptTypes = new List<ScriptType>();
+		if (p2wpkh)
+		{
+			scriptTypes.Add(ScriptType.P2WPKH);
+		}
+		if (p2tr)
+		{
+			scriptTypes.Add(ScriptType.Taproot);
+		}
+
+		// When adding new script types, please see
+		// https://github.com/zkSNACKs/WalletWasabi/issues/5440
+
+		return scriptTypes.ToImmutableSortedSet();
 	}
 }
