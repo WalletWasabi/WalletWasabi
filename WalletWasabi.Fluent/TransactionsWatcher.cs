@@ -24,7 +24,7 @@ public class TransactionsWatcher
 					r.Remove(toRemove);
 					r.AddOrUpdate(msg.NewHistoryList
 						.OrderByDescending(r => r.Date)
-						.Select(b => new TransactionEntry(msg.HistoryViewModel, b)));
+						.Select(b => new TransactionEntry(msg.HistoryViewModel, b, msg.WalletViewModel)));
 				});
 			});
 

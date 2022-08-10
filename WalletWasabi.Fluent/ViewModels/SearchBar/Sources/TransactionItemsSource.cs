@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -14,8 +15,7 @@ public class TransactionsSource : ISearchItemSource
 
 	private static ISearchItem ToSearchItem(TransactionEntry r)
 	{
-		var transactionId = r.HistoryItem.Id.ToString().Trim('0');
-		var keywords = r.HistoryItem.Label?.Concat(new[] { transactionId }) ?? Enumerable.Empty<string>();
-		return new NonActionableSearchItem(new TransactionSearchItem(r.HistoryItem), "", "Transactions", keywords.ToList(), "normal_transaction");
+		var transactionId = new string(r.HistoryItem.Id.ToString().Trim('0').Take(10).ToArray());
+		return new ActionableItem(transactionId, $"Found in {r.Wallet.WalletName}", async () => r.Parent.SelectTransaction(r.HistoryItem.Id), "Transactions");
 	}
 }
