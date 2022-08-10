@@ -16,16 +16,18 @@ public static class TcpClientConnector
 
 		try
 		{
-			client = new(endPoint.AddressFamily);
-
 			switch (endPoint)
 			{
 				case DnsEndPoint dnsEndPoint:
+					client = new();
 					await client.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port, cancellationToken).ConfigureAwait(false);
 					break;
+
 				case IPEndPoint ipEndPoint:
+					client = new(endPoint.AddressFamily);
 					await client.ConnectAsync(ipEndPoint, cancellationToken).ConfigureAwait(false);
 					break;
+
 				default:
 					throw new NotSupportedException($"Endpoint of type '{endPoint.GetType().FullName}' is not supported.");
 			}
