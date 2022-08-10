@@ -32,7 +32,7 @@ public static class TcpClientConnector
 					throw new NotSupportedException($"Endpoint of type '{endPoint.GetType().FullName}' is not supported.");
 			}
 		}
-		catch (Exception)
+		catch
 		{
 			client?.Dispose();
 			throw;
