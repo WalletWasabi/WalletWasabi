@@ -117,17 +117,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_nextButtonText = "Confirm";
 		}
 
-		AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			if (_info.IsCustomFeeUsed)
-			{
-				await ShowAdvancedDialogAsync();
-			}
-			else
-			{
-				await OnAdjustFeeAsync();
-			}
-		});
+		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
 		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -158,16 +148,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand ChangePocketCommand { get; }
 
 	public ICommand UndoCommand { get; }
-
-	private async Task ShowAdvancedDialogAsync()
-	{
-		var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
-
-		if (result.Kind == DialogResultKind.Normal)
-		{
-			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
-		}
-	}
 
 	private async Task OnExportPsbtAsync()
 	{
@@ -203,13 +183,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
+		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
+			? new CustomFeeRateDialogViewModel(_info)
+			: new SendFeeViewModel(_wallet, _info, false);
 
-		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-		    newFeeRate != _info.FeeRate)
+		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
+
+		if (feeDialogResult.Kind == DialogResultKind.Normal &&
+		    feeDialogResult.Result is { } feeRate &&
+		    feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
 		{
-			_info.FeeRate = feeRateDialogResult.Result;
-
+			_info.FeeRate = feeRate;
 			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
 	}
@@ -246,7 +230,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var privacyControlDialogResult =
 				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-			    privacyControlDialogResult.Result is { } coins)
+				privacyControlDialogResult.Result is { } coins)
 			{
 				_info.Coins = coins;
 			}
@@ -353,7 +337,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				: FeeRate.Zero;
 
 		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
-		    (differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
+			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 			_info.FeeRate = maximumPossibleFeeRate;
@@ -482,7 +466,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (!_wallet.KeyManager.IsHardwareWallet &&
-		    string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show authentication dialog when password is empty
+			string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show authentication dialog when password is empty
 		{
 			return true;
 		}

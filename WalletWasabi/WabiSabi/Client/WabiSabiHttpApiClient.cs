@@ -38,35 +38,37 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	}
 
 	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request, cancellationToken);
+		SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request, cancellationToken);
+		SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<OutputRegistrationRequest>(RemoteAction.RegisterOutput, request, cancellationToken);
+		SendAndReceiveAsync<OutputRegistrationRequest>(RemoteAction.RegisterOutput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken);
+		SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<InputsRemovalRequest>(RemoteAction.RemoveInput, request, cancellationToken);
+		SendAndReceiveAsync<InputsRemovalRequest>(RemoteAction.RemoveInput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
+		SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken);
+		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
+		SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
-	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
+	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, TimeSpan? retryTimeout = null)
 	{
 		var exceptions = new Dictionary<Exception, int>();
 		var start = DateTime.UtcNow;
 
-		using CancellationTokenSource absoluteTimeoutCts = new(TimeSpan.FromMinutes(30));
+		var totalTimeout = TimeSpan.FromMinutes(30);
+
+		using CancellationTokenSource absoluteTimeoutCts = new(totalTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
@@ -77,9 +79,12 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
+				using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : totalTimeout);
+				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
+
 				// Any transport layer errors will throw an exception here.
 				HttpResponseMessage response = await _client
-					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, combinedToken).ConfigureAwait(false);
+					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
@@ -160,9 +165,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		}
 	}
 
-	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
-		using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken).ConfigureAwait(false);
+		using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken, retryTimeout).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -172,14 +177,14 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
-		await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
+		await SendWithRetriesAsync(action, request, cancellationToken, retryTimeout).ConfigureAwait(false);
 	}
 
-	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
-		var jsonString = await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
+		var jsonString = await SendWithRetriesAsync(action, request, cancellationToken, retryTimeout).ConfigureAwait(false);
 		return Deserialize<TResponse>(jsonString);
 	}
 

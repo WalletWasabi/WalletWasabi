@@ -369,7 +369,7 @@ public class TagsBox : TemplatedControl
 		var typedFullText = autoCompleteBox.SearchText + e.Text;
 
 		if (!_isInputEnabled ||
-		    (typedFullText is {Length: 1} && typedFullText.StartsWith(TagSeparator)) ||
+		    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
 		    string.IsNullOrEmpty(typedFullText.ParseLabel()))
 		{
 			e.Handled = true;

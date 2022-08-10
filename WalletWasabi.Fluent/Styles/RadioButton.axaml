@@ -1,26 +1,26 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.PreviewWith>
-        <Border Padding="20">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <RadioButton Classes="text" Content="1D" />
-                <RadioButton Classes="text" Content="1W" />
-                <RadioButton Classes="text" Content="1M" />
-                <RadioButton Classes="text" Content="1Y" />
-            </StackPanel>
-        </Border>
-    </Design.PreviewWith>
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <RadioButton Classes="text" Content="1D" />
+        <RadioButton Classes="text" Content="1W" />
+        <RadioButton Classes="text" Content="1M" />
+        <RadioButton Classes="text" Content="1Y" />
+      </StackPanel>
+    </Border>
+  </Design.PreviewWith>
 
-    <Style Selector="RadioButton.text">
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="FontSize" Value="10" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Template">
-            <ControlTemplate TargetType="RadioButton">
-                <Border Name="RootBorder"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
+  <Style Selector="RadioButton.text">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RadioButton">
+        <Border Name="RootBorder"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}">
 
 
                     <ContentPresenter Name="PART_ContentPresenter"

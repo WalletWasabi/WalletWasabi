@@ -23,7 +23,7 @@ public static class CoinPocketHelper
 			var cluster = coin.HdPubKey.Cluster.Labels;
 
 			if (clusters.Keys.FirstOrDefault(x => string.Equals(x, cluster, StringComparison.OrdinalIgnoreCase)) is { } key &&
-			    clusters.TryGetValue(key, out var clusterCoins))
+				clusters.TryGetValue(key, out var clusterCoins))
 			{
 				clusterCoins.Add(coin);
 			}

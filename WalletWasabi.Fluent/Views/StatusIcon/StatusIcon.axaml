@@ -102,8 +102,8 @@
             </c:StatusItem>
             <c:StatusItem
               Title="{Binding BitcoinCoreName}"
-                          StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
-                          IsVisible="{Binding UseBitcoinCore}">
+              StatusText="{Binding BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
+              IsVisible="{Binding UseBitcoinCore}">
               <c:StatusItem.Icon>
                 <PathIcon Data="{StaticResource btc_logo}" />
               </c:StatusItem.Icon>

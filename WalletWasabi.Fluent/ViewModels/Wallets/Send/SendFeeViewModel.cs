@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -38,22 +38,30 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() =>
-	   {
-		   _transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
+		NextCommand = ReactiveCommand.Create(OnNext);
 
-		   Complete();
-	   });
+		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(ShowAdvancedOptionsAsync);
 	}
 
 	public FeeChartViewModel FeeChart { get; }
 
-	private void Complete()
+	public ICommand AdvancedOptionsCommand { get; }
+
+	private void OnNext()
 	{
 		var blockTarget = FeeChart.CurrentConfirmationTarget;
-
+		_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
 		Services.UiConfig.FeeTarget = (int)blockTarget;
 		Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
+	}
+
+	private async Task ShowAdvancedOptionsAsync()
+	{
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		if (result.Result is { } feeRate && feeRate != FeeRate.Zero)
+		{
+			Close(DialogResultKind.Normal, result.Result);
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -89,7 +97,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			{
 				_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(FeeChart.CurrentConfirmationTarget);
 
-				Complete();
+				OnNext();
 			}
 			else
 			{

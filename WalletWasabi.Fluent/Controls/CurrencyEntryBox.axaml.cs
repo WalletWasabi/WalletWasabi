@@ -31,6 +31,9 @@ public class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<bool> IsRightSideProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsRightSide));
 
+	public static readonly StyledProperty<int> MaxDecimalsProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
+
 	private readonly CultureInfo _customCultureInfo;
 	private readonly char _decimalSeparator = '.';
 	private readonly char _groupSeparator = ' ';
@@ -112,6 +115,12 @@ public class CurrencyEntryBox : TextBox
 		set => SetValue(IsRightSideProperty, value);
 	}
 
+	public int MaxDecimals
+	{
+		get => GetValue(MaxDecimalsProperty);
+		set => SetValue(MaxDecimalsProperty, value);
+	}
+
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
 		if (ConversionRate == 0m)
@@ -164,8 +173,7 @@ public class CurrencyEntryBox : TextBox
 		decimal fiatValue = 0;
 
 		e.Handled = !(ValidateEntryText(preComposedText) &&
-		              decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number,
-			              _customCultureInfo, out fiatValue));
+					  decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 		if (IsFiat & !e.Handled)
 		{
@@ -255,7 +263,7 @@ public class CurrencyEntryBox : TextBox
 		{
 			// Bitcoin input restriction is to only allow 8 decimal places max
 			// and also 8 whole number places.
-			if ((whole > 8 && !trailingDecimal) || frac > 8)
+			if ((whole > 8 && !trailingDecimal) || frac > MaxDecimals)
 			{
 				return false;
 			}

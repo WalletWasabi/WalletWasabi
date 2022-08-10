@@ -22,7 +22,8 @@ public class MultipartyTransactionTests
 		MinRegistrableAmount = DefaultAllowedAmounts.Min,
 		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
 		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
-	}) with { MiningFeeRate = new FeeRate(0m)};
+	}) with
+	{ MiningFeeRate = new FeeRate(0m) };
 
 	private static CoinJoinInputCommitmentData commitmentData = WabiSabiFactory.CreateCommitmentData();
 
@@ -129,7 +130,6 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void WitnessValidation()
 	{
-
 		using Key key1 = new();
 		using Key key2 = new();
 

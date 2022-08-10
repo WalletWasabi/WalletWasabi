@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using WalletWasabi.Extensions;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -52,20 +53,27 @@ public record SigningState : MultipartyTransactionState
 		}
 
 		// Verify witness.
-		// 1. Copy UnsignedCoinJoin.
-		Transaction cjCopy = CreateUnsignedTransaction();
-
-		// 2. Sign the copy.
-		cjCopy.Inputs[index].WitScript = witness;
-
-		// 3. Convert the current input to IndexedTxIn.
-		IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
-
-		// 4. Find the corresponding registered input.
+		// 1. Find the corresponding registered input.
 		Coin registeredCoin = SortedInputs[index];
 
-		// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
-		if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
+		// 2. Check the witness is not too long.
+		if (ScriptSizeHelpers.VirtualSize(Constants.InputBaseSizeInBytes, witness.ToBytes().Length) > registeredCoin.ScriptPubKey.EstimateInputVsize())
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SignatureTooLong);
+		}
+
+		// 3. Copy UnsignedCoinJoin.
+		Transaction cjCopy = CreateUnsignedTransaction();
+
+		// 4. Sign the copy.
+		cjCopy.Inputs[index].WitScript = witness;
+
+		// 5. Convert the current input to IndexedTxIn.
+		IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
+
+		// 6. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
+		var precomputedTransactionData = cjCopy.PrecomputeTransactionData(SortedInputs.Select(x => x.TxOut).ToArray());
+		if (!currentIndexedInput.VerifyScript(registeredCoin, ScriptVerify.Standard, precomputedTransactionData, out ScriptError error))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature); // TODO keep script error
 		}

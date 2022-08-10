@@ -30,7 +30,7 @@
                                   Content="{TemplateBinding Content}"
                                   Padding="{TemplateBinding Padding}"
                                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
               </Panel>
             </Border>
           </Panel>
@@ -73,15 +73,15 @@
     <!-- <Setter Property="Opacity" Value="0"/> -->
   </Style>
   <Style Selector="c|Dialog /template/ Border#PART_Border">
-    <Setter Property="Margin" Value="40"/>
-    <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CornerRadius" Value="4"/>
-    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
+    <Setter Property="Margin" Value="40" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}" />
   </Style>
   <Style Selector="c|Dialog /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="MinWidth" Value="382" />
     <Setter Property="MinHeight" Value="284" />
-    <Setter Property="Margin" Value="16 28 16 16"/>
+    <Setter Property="Margin" Value="16 28 16 16" />
   </Style>
 
   <!-- Dialog Opened State -->
@@ -91,7 +91,7 @@
     <Setter Property="IsHitTestVisible" Value="True"/>
   </Style>
   <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
-    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="Opacity" Value="1" />
   </Style>
 
   <!-- Dialog Unopened State -->
@@ -101,7 +101,7 @@
     <Setter Property="IsHitTestVisible" Value="False"/>
   </Style>
   <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
-    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="Opacity" Value="0" />
   </Style>
 
   <!-- Dialog Increased width State -->
@@ -129,7 +129,7 @@
     <Setter Property="Margin" Value="0" />
   </Style>
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ Panel#PART_Overlay">
-    <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
+    <Setter Property="Background" Value="{DynamicResource RegionColor}" />
   </Style>
   <Style Selector="c|Dialog[FullScreenEnabled=True] /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Margin" Value="16 0 16 16" />
