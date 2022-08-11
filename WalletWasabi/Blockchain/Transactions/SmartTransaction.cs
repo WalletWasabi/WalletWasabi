@@ -99,13 +99,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (WalletVirtualInputsCache is null)
-			{
-				WalletVirtualInputsCache = WalletInputs
+			WalletVirtualInputsCache ??= WalletInputs
 					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
 					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
 					.ToHashSet();
-			}
 			return WalletVirtualInputsCache;
 		}
 	}
@@ -115,13 +112,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (WalletVirtualOutputsCache is null)
-			{
-				WalletVirtualOutputsCache = WalletOutputs
+			WalletVirtualOutputsCache ??= WalletOutputs
 					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(GetHash(), o.Index)).ToHashSet()))
+					.Select(g => new WalletVirtualOutput(g.Key, g.ToHashSet()))
 					.ToHashSet();
-			}
 			return WalletVirtualOutputsCache;
 		}
 	}
@@ -131,13 +125,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (ForeignVirtualOutputsCache is null)
-			{
-				ForeignVirtualOutputsCache = ForeignOutputs
+			ForeignVirtualOutputsCache ??= ForeignOutputs
 					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
 					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
 					.ToHashSet();
-			}
 			return ForeignVirtualOutputsCache;
 		}
 	}

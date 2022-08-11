@@ -109,7 +109,7 @@ public class BlockchainAnalyzer
 
 	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingNonMixedOutputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
 	{
-		var indistinguishableWalletOutputs = tx.WalletOutputs
+		var indistinguishableWalletOutputs = tx.WalletVirtualOutputs
 			.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
@@ -125,11 +125,10 @@ public class BlockchainAnalyzer
 
 		var foreignInputCount = tx.ForeignInputs.Count;
 
-		foreach (var newCoin in tx.WalletOutputs)
+		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
-			var output = newCoin.TxOut;
-			var equalOutputCount = indistinguishableOutputs[output.Value];
-			var ownEqualOutputCount = indistinguishableWalletOutputs[output.Value];
+			var equalOutputCount = indistinguishableOutputs[virtualOutput.Amount];
+			var ownEqualOutputCount = indistinguishableWalletOutputs[virtualOutput.Amount];
 
 			// Anonset gain cannot be larger than others' input count.
 			double anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
@@ -147,7 +146,7 @@ public class BlockchainAnalyzer
 					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
 
 				// When WW2 denom output isn't too large, then it's not change.
-				if (isWasabi2Cj is true && StdDenoms.Contains(newCoin.Amount.Satoshi) && newCoin.Amount < secondLargestOutputAmount)
+				if (isWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 				}
@@ -165,42 +164,39 @@ public class BlockchainAnalyzer
 			// anonymity set size estimate.
 			anonset += startingOutputAnonset;
 
-			HdPubKey hdPubKey = newCoin.HdPubKey;
-			uint256 txid = tx.GetHash();
-			if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
+			foreach (var hdPubKey in virtualOutput.Coins.Select(x => x.HdPubKey).ToHashSet())
 			{
-				// If the new coin's HD pubkey haven't been used yet
-				// then its anonset haven't been set yet.
-				// In that case the acquired anonset does not have to be intersected with the default anonset,
-				// so this coin gets the acquired anonset.
-				hdPubKey.SetAnonymitySet(anonset, txid);
-			}
-			else if (distinctWalletInputPubKeys.Contains(hdPubKey))
-			{
-				// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-				hdPubKey.SetAnonymitySet(startingOutputAnonset, txid);
-			}
-			else if (tx.WalletOutputs.Where(x => x != newCoin).Select(x => x.HdPubKey).Contains(hdPubKey))
-			{
-				// If it's a reuse of another output's pubkey, then intersection punishment can only go as low as the inherited anonset.
-				hdPubKey.SetAnonymitySet(Math.Max(startingOutputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet })), txid);
-			}
-			else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
-			{
-				// If we already processed this transaction for this script
-				// then we'll go with normal processing.
-				// It may be a duplicated processing or new information arrived (like other wallet loaded)
-				// If there are more anonsets already
-				// then it's address reuse that we have already punished so leave it alone.
-				if (hdPubKey.OutputAnonSetReasons.Count == 1)
+				uint256 txid = tx.GetHash();
+				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
 				{
+					// If the new coin's HD pubkey haven't been used yet
+					// then its anonset haven't been set yet.
+					// In that case the acquired anonset does not have to be intersected with the default anonset,
+					// so this coin gets the acquired anonset.
 					hdPubKey.SetAnonymitySet(anonset, txid);
 				}
-			}
-			else
-			{
-				// It's address reuse.
-				hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
+				else if (distinctWalletInputPubKeys.Contains(hdPubKey))
+				{
+					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
+					hdPubKey.SetAnonymitySet(startingOutputAnonset, txid);
+				}
+				else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
+				{
+					// If we already processed this transaction for this script
+					// then we'll go with normal processing.
+					// It may be a duplicated processing or new information arrived (like other wallet loaded)
+					// If there are more anonsets already
+					// then it's address reuse that we have already punished so leave it alone.
+					if (hdPubKey.OutputAnonSetReasons.Count == 1)
+					{
+						hdPubKey.SetAnonymitySet(anonset, txid);
+					}
+				}
+				else
+				{
+					// It's address reuse.
+					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
+				}
 			}
 		}
 	}
