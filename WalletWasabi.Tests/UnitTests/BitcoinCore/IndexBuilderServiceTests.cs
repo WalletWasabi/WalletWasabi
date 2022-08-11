@@ -120,6 +120,27 @@ public class IndexBuilderServiceTests
 	}
 
 	[Fact]
+	public void TaprootOnlyScriptInFilters()
+	{
+		var getBlockRpcRawResponse = File.ReadAllText("./UnitTests/Data/VerboseBlock.json");
+
+		var block = RpcParser.ParseVerboseBlockResponse(getBlockRpcRawResponse);
+		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV1Taproot });
+
+		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
+		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
+		var allOutputs = txOutputs.Concat(prevTxOutputs);
+
+		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV1Taproot);
+		var nonIndexableOutputs = allOutputs.Except(indexableOutputs);
+
+		static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
+
+		Assert.All(indexableOutputs, x => Assert.True(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
+		Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
+	}
+
+	[Fact]
 	public async Task SynchronizedBitcoinNodeAsync()
 	{
 		var blockchain = GenerateBlockchain().Take(10).ToArray();
