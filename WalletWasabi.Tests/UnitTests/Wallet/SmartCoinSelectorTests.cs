@@ -117,7 +117,7 @@ public class SmartCoinSelectorTests
 			}
 		}
 
-		return  coinPairClusters.Select(x => x.coinPair)
+		return coinPairClusters.Select(x => x.coinPair)
 			.SelectMany(x =>
 				x.Select(y => BitcoinFactory.CreateSmartCoin(y.key, y.amount))); // Generate the final SmartCoins.
 	}
