@@ -15,12 +15,9 @@
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Panel Name="PART_PrivacyReplacement"
-                 IsVisible="{TemplateBinding IsPrivacyContentVisible}">
-            <Viewbox Name="PART_Icon">
-              <PathIcon Data="{StaticResource incognito_pathicon}" />
-            </Viewbox>
-          </Panel>
+          <Viewbox Name="PART_Icon">
+            <PathIcon Data="{StaticResource incognito_pathicon}" />
+          </Viewbox>
         </Panel>
       </ControlTemplate>
     </Setter>
@@ -36,11 +33,8 @@
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          <Panel Name="PART_PrivacyReplacement"
-                 IsVisible="{TemplateBinding IsPrivacyContentVisible}">
-            <TextBlock Name="PART_PrivacyText"
-                       Text="{TemplateBinding PrivacyText}" />
-          </Panel>
+          <TextBlock Name="PART_PrivacyText"
+                     Text="{TemplateBinding PrivacyText}" />
         </Panel>
       </ControlTemplate>
     </Setter>
@@ -64,28 +58,46 @@
   </Style>
   <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=False]">
     <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsHitTestVisible" Value="False" />
   </Style>
 
-  <!-- Transitions PART_PrivacyReplacement -->
-  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
+  <!-- Transitions PART_Icon -->
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
     <Setter Property="Transitions">
       <Transitions>
         <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
   </Style>
-  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=True]">
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon][IsPrivacyContentVisible=True] /template/ Viewbox#PART_Icon">
     <Setter Property="Opacity" Value="1" />
   </Style>
-  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=False]">
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon][IsPrivacyContentVisible=False] /template/ Viewbox#PART_Icon">
     <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+
+  <!-- Transitions PART_PrivacyText -->
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text][IsPrivacyContentVisible=True] /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text][IsPrivacyContentVisible=False] /template/ TextBlock#PART_PrivacyText">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsHitTestVisible" Value="False" />
   </Style>
 
   <!-- monoSpaced -->
   <Style Selector="controls|PrivacyContentControl.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
-  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ TextBlock#PART_PrivacyText">
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text].monoSpacedPrivacyReplacement /template/ TextBlock#PART_PrivacyText">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 
