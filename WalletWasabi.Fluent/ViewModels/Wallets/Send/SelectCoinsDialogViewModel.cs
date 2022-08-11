@@ -63,7 +63,7 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		SelectedAmount = selectedCoins
-			.Select(x => x.Sum(z => z.Coin.Amount.ToDecimal(MoneyUnit.BTC)).FormattedBtc())
+			.Select(Sum)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		coinChanges
@@ -77,6 +77,11 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private static string Sum(IEnumerable<WalletCoinViewModel> coinViewModels)
+	{
+		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount.ToDecimal(MoneyUnit.BTC)).FormattedBtc();
 	}
 
 	private static int GetOrderingPriority(WalletCoinViewModel x)
