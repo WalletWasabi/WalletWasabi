@@ -43,32 +43,27 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged)
-			.Replay()
-			.RefCount();
+		var coins = CreateCoinsObservable(_balanceChanged);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
-			.Replay()
+			.Replay(1)
 			.RefCount();
 
-		IsAnySelected = coinChanges
+		var selectedCoins = coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Select(items => items.Any(t => t.IsSelected))
+			.Select(items => items.Where(t => t.IsSelected));
+		
+		IsAnySelected = selectedCoins
+			.Any()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		SelectedAmount = coinChanges
-			.AutoRefresh(x => x.IsSelected)
-
-			.ToCollection()
-			.Select(x =>
-				x.Where(y=>y.IsSelected)
-					.Sum(z => z.Coin.Amount.ToDecimal(MoneyUnit.BTC))
-					.FormattedBtc())
+		SelectedAmount = selectedCoins
+			.Select(x => x.Sum(z => z.Coin.Amount.ToDecimal(MoneyUnit.BTC)).FormattedBtc())
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		coinChanges
