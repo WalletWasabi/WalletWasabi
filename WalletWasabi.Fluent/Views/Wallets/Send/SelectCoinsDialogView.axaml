@@ -24,7 +24,7 @@
             <Setter Property="IsVisible" Value="False" />
           </Style>
         </DockPanel.Styles>
-        <CheckBox DockPanel.Dock="Left" Content="Group by Labels" />
+        <CheckBox x:Name="GroupByLabels" DockPanel.Dock="Left" Content="Group by Labels" />
         <TextBox Watermark="Filter" UseFloatingWatermark="True" Margin="20 0 0 0" />
       </DockPanel>
       <DockPanel DockPanel.Dock="Bottom">
@@ -35,16 +35,20 @@
         </StackPanel>
 
       </DockPanel>
-      <TreeDataGrid Source="{Binding Source}"
-                    CanUserSortColumns="True">
-        <TreeDataGrid.Styles>
-          <Style Selector="TreeDataGridRow">
-            <Setter Property="Focusable" Value="False" />
-            <Setter Property="Height" Value="47.5" />
-          </Style>
-        </TreeDataGrid.Styles>
-      </TreeDataGrid>
+      <Panel>
+        <TreeDataGrid
+          IsVisible="{Binding !#GroupByLabels.IsChecked}"
+          Source="{Binding CoinSelection.Source}"
+          CanUserSortColumns="True">
+          <TreeDataGrid.Styles>
+            <Style Selector="TreeDataGridRow">
+              <Setter Property="Focusable" Value="False" />
+              <Setter Property="Height" Value="47.5" />
+            </Style>
+          </TreeDataGrid.Styles>
+        </TreeDataGrid>
+        <ListBox IsVisible="{Binding #GroupByLabels.IsChecked}" />
+      </Panel>
     </DockPanel>
   </controls:ContentArea>
 </UserControl>
-
