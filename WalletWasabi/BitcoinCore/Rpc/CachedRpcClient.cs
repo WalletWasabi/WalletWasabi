@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
 
@@ -65,6 +66,16 @@ public class CachedRpcClient : RpcClientBase
 			cacheKey,
 			CacheOptions(10, 4),
 			() => base.GetBlockAsync(blockHeight, cancellationToken)).ConfigureAwait(false);
+	}
+
+	public override async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	{
+		string cacheKey = $"{nameof(GetVerboseBlockAsync)}:{blockId}";
+
+		return await Cache.AtomicGetOrCreateAsync(
+			cacheKey,
+			CacheOptions(10, 4),
+			() => base.GetVerboseBlockAsync(blockId, cancellationToken)).ConfigureAwait(false);
 	}
 
 	public override async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash, CancellationToken cancellationToken = default)
