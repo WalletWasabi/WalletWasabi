@@ -206,11 +206,11 @@ public class IndexBuilderService
 							// If not close to the tip, just log debug.
 							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 							{
-								Logger.LogInfo($"Created filter for block: {nextHeight}.");
+								Logger.LogInfo($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
 							}
 							else
 							{
-								Logger.LogDebug($"Created filter for block: {nextHeight}.");
+								Logger.LogDebug($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
 							}
 							LastFilterBuildTime = DateTimeOffset.UtcNow;
 						}
