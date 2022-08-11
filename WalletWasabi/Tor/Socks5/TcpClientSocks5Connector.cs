@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -15,14 +11,13 @@ public static class TcpClientSocks5Connector
 	/// <summary>
 	/// Establishes TCP connection with Tor SOCKS5 endpoint.
 	/// </summary>
-	/// <param name="builder">Runs in between creation of TCP client and connection to the end point.</param>
-	/// <exception cref="ArgumentException">This should never happen.</exception>
+	/// <exception cref="NotSupportedException">This should never happen.</exception>
 	/// <exception cref="TorException">When connection to Tor SOCKS5 endpoint fails.</exception>
-	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancel, Action<TcpClient>? builder = null)
+	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
 	{
 		try
 		{
-			return await TcpClientConnector.ConnectAsync(endPoint, cancel, builder).ConfigureAwait(false);
+			return await TcpClientConnector.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
 		}
 		catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
 		{

@@ -189,7 +189,15 @@ public class CoinJoinClient
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
 		while (true)
 		{
-			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false);
+			using CancellationTokenSource coinJoinRoundTimeoutCts = new(
+				currentRoundState.InputRegistrationTimeout +
+				currentRoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout +
+				currentRoundState.CoinjoinState.Parameters.OutputRegistrationTimeout +
+				currentRoundState.CoinjoinState.Parameters.TransactionSigningTimeout +
+				ExtraPhaseTimeoutMargin);
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
+
+			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
 			if (!result.GoForBlameRound)
 			{
 				return result;
