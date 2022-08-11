@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:DataType="send:SelectCoinsDialogViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SelectCoinsDialogView">
+  <controls:ContentArea
+    Title="{Binding Title}"
+    EnableBack="{Binding EnableBack}"
+    EnableNext="True"
+    NextContent="Continue"
+    EnableCancel="{Binding EnableCancel}"
+    IsBusy="{Binding IsBusy}"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Top">
+        <DockPanel.Styles>
+          <Style Selector="TextBox /template/ DataValidationErrors">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+        </DockPanel.Styles>
+        <CheckBox DockPanel.Dock="Left" Content="Group by Labels" />
+        <TextBox Watermark="Filter" UseFloatingWatermark="True" Margin="20 0 0 0" />
+      </DockPanel>
+      <DockPanel DockPanel.Dock="Bottom">
+        <StackPanel Spacing="10" Orientation="Horizontal" Margin="0 10 0 0">
+          <TextBlock Text="Selected:" />
+          <TextBlock Text="{Binding SelectedAmount^}" />
+          <TextBlock Text="BTC" />
+        </StackPanel>
+
+      </DockPanel>
+      <TreeDataGrid Source="{Binding Source}"
+                    CanUserSortColumns="True">
+        <TreeDataGrid.Styles>
+          <Style Selector="TreeDataGridRow">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Height" Value="47.5" />
+          </Style>
+        </TreeDataGrid.Styles>
+      </TreeDataGrid>
+    </DockPanel>
+  </controls:ContentArea>
+</UserControl>
+

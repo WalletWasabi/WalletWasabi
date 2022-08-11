@@ -21,11 +21,13 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _isBanned;
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
 	[AutoNotify] private string? _confirmedToolTip;
+	[AutoNotify] private string? _address;
 
 	public WalletCoinViewModel(SmartCoin coin)
 	{
 		Coin = coin;
 		Amount = Coin.Amount;
+		Address = Coin.TransactionId.ToString();
 
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);

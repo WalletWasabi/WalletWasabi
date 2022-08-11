@@ -27,6 +27,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Fluent.Views.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -41,6 +42,7 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
+	private readonly WalletViewModel _walletViewModel;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private string _to;
@@ -51,11 +53,12 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
+	public SendViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
 		_to = "";
-		_wallet = wallet;
-		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
+		_walletViewModel = walletViewModel;
+		_wallet = walletViewModel.Wallet;
+		_transactionInfo = new TransactionInfo(_wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
@@ -64,7 +67,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
+		Balance = new WalletBalanceTileViewModel(_wallet, balanceChanged, history);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -116,7 +119,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var address = BitcoinAddress.Create(To, wallet.Network);
+			Navigate().To(new SelectCoinsDialogViewModel(_walletViewModel, balanceChanged));
+			/*var address = BitcoinAddress.Create(To, wallet.Network);
 
 			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
@@ -131,6 +135,7 @@ public partial class SendViewModel : RoutableViewModel
 			_transactionInfo.UserLabels = label;
 
 			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
+			*/
 		}, nextCommandCanExecute);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
