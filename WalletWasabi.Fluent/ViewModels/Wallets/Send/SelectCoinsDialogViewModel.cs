@@ -28,6 +28,7 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 	[AutoNotify] private IObservable<string> _selectedAmount = Observable.Return((0.0M).FormattedBtc());
 	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
+	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -61,6 +62,7 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		CoinSelection = new CoinSelectionViewModel(coinChanges).DisposeWith(disposables);
+		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
