@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:send="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:walletCoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="send:SelectCoinsDialogViewModel"
@@ -53,28 +54,21 @@
             </Style>
           </TreeDataGrid.Styles>
         </TreeDataGrid>
-        <ListBox Items="{Binding LabelBasedSelection.Items}" IsVisible="{Binding #GroupByLabels.IsChecked}">
-          <ListBox.ItemTemplate>
-            <DataTemplate DataType="send:CoinGroup">
-              <DockPanel>
-                <controls:TagsBox  EnableDelete="False" DockPanel.Dock="Top" Items="{Binding Labels}" />
-                <DataGrid Items="{Binding Items}">
-                  <DataGrid.Columns>
-                    <DataGridTemplateColumn>
-                      <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="walletCoins:WalletCoinViewModel">
-                          <CheckBox IsChecked="{Binding IsSelected}" />
-                        </DataTemplate>
-                      </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn x:DataType="walletCoins:WalletCoinViewModel" Binding="{Binding Amount}" />
-                    <DataGridTextColumn x:DataType="walletCoins:WalletCoinViewModel" Binding="{Binding AnonymitySet}" />
-                  </DataGrid.Columns>
-                </DataGrid>
-              </DockPanel>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <ScrollViewer IsVisible="{Binding #GroupByLabels.IsChecked}" HorizontalScrollBarVisibility="Hidden">
+          <ItemsControl Items="{Binding LabelBasedSelection.Items}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="send:CoinGroup">
+                  <CheckBox IsChecked="{Binding IsSelected}">
+                    <StackPanel Orientation="Horizontal">
+                      <controls:TagsBox IsReadOnly="True" DockPanel.Dock="Top" Items="{Binding Labels}" />
+                      <TextBlock VerticalAlignment="Center"
+                                 Text="{Binding TotalAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
+                      </StackPanel>
+                  </CheckBox>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
       </Panel>
     </DockPanel>
   </controls:ContentArea>

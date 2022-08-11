@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -24,9 +25,9 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 
 		coinChanges
 			.Group(x => x.SmartLabel)
-			.Transform(group => new CoinGroup(group.Key, group.Cache))
+			.TransformWithInlineUpdate(group => new CoinGroup(group.Key, group.Cache))
 			.Filter(filterPredicate)
-			.DisposeMany()
+			//.DisposeMany()	// Disposal behavior of Filter is unwanted
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out _items)
 			.Subscribe()

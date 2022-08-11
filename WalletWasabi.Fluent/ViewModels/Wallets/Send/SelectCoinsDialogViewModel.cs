@@ -34,6 +34,8 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
+
+		EnableCancel = true;
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
