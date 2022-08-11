@@ -5,7 +5,7 @@
     <controls:PrivacyContentControl />
   </Design.PreviewWith>
 
-  <Style Selector="controls|PrivacyContentControl">
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon]">
     <Setter Property="Template">
       <ControlTemplate>
         <Panel Background="Transparent">
@@ -20,6 +20,24 @@
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
+          </Panel>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text]">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel Background="Transparent">
+          <ContentPresenter Name="PART_Content"
+                            IsVisible="{TemplateBinding IsContentVisible}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Content="{TemplateBinding Content}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          <Panel Name="PART_PrivacyReplacement"
+                 IsVisible="{TemplateBinding IsPrivacyContentVisible}">
             <TextBlock Name="PART_PrivacyText"
                        Text="{TemplateBinding PrivacyText}" />
           </Panel>
@@ -33,24 +51,37 @@
     <Setter Property="Opacity" Value="0.15" />
   </Style>
 
-  <!-- Transitions -->
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content,
-                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
+  <!-- Transitions PART_Content -->
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content">
     <Setter Property="Transitions">
       <Transitions>
         <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
   </Style>
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=True],
-                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=True]">
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=True]">
     <Setter Property="Opacity" Value="1" />
   </Style>
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=False],
-                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=False]">
+  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content[IsVisible=False]">
     <Setter Property="Opacity" Value="0" />
   </Style>
 
+  <!-- Transitions PART_PrivacyReplacement -->
+  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=True]">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement[IsVisible=False]">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+
+  <!-- monoSpaced -->
   <Style Selector="controls|PrivacyContentControl.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
@@ -58,19 +89,4 @@
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 
-  <!-- Icon privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ TextBlock#PART_PrivacyText">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
-
-  <!-- Text privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
 </Styles>
