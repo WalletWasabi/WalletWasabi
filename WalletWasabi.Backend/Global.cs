@@ -37,7 +37,8 @@ public class Global : IDisposable
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService? IndexBuilderService { get; private set; }
+	public IndexBuilderService? SegwitTaprootIndexBuilderService { get; private set; }
+	public IndexBuilderService? TaprootIndexBuilderService { get; private set; }
 
 	public Coordinator? Coordinator { get; private set; }
 
@@ -64,7 +65,8 @@ public class Global : IDisposable
 
 		// Initialize index building
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var segwitTaprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var taprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"TaprootIndex{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
@@ -103,9 +105,12 @@ public class Global : IDisposable
 
 		await HostedServices.StartAllAsync(cancel);
 
-		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
-		IndexBuilderService.Synchronize();
-		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, blockNotifier, segwitTaprootIndexFilePath);
+		SegwitTaprootIndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is successfully initialized and started synchronization.");
+		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, blockNotifier, taprootIndexFilePath);
+		TaprootIndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is successfully initialized and started synchronization.");
 	}
 
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
@@ -195,10 +200,16 @@ public class Global : IDisposable
 
 				var stoppingTask = Task.Run(async () =>
 				{
-					if (IndexBuilderService is { } indexBuilderService)
+					if (SegwitTaprootIndexBuilderService is { } stibs)
 					{
-						await indexBuilderService.StopAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
+						await stibs.StopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
+					}
+
+					if (TaprootIndexBuilderService is { } tibs)
+					{
+						await tibs.StopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
 					}
 
 					if (HostedServices is { } hostedServices)
