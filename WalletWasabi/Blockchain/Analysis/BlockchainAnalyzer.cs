@@ -113,10 +113,8 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var indistinguishableOutputs = tx.Transaction.Outputs
-			.GroupBy(x => x.ScriptPubKey)
-			.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
-			.GroupBy(x => x.Value)
+		var indistinguishableForeignOutputs = tx.ForeignVirtualOutputs
+			.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
 		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
@@ -127,11 +125,14 @@ public class BlockchainAnalyzer
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
-			var equalOutputCount = indistinguishableOutputs[virtualOutput.Amount];
+			if (!indistinguishableForeignOutputs.TryGetValue(virtualOutput.Amount, out int equalForeignOutputCount))
+			{
+				equalForeignOutputCount = 0;
+			}
 			var ownEqualOutputCount = indistinguishableWalletOutputs[virtualOutput.Amount];
 
 			// Anonset gain cannot be larger than others' input count.
-			double anonset = Math.Min(equalOutputCount - ownEqualOutputCount, foreignInputCount);
+			double anonset = Math.Min(equalForeignOutputCount, foreignInputCount);
 
 			// Picking randomly an output would make our anonset: total/ours.
 			anonset /= ownEqualOutputCount;
