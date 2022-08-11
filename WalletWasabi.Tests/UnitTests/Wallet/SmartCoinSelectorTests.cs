@@ -102,16 +102,22 @@ public class SmartCoinSelectorTests
 			generatedKeyGroup[targetCoin.Cluster].Add((key, targetCoin.amount));
 		}
 
-		return generatedKeyGroup.GroupBy(x => x.Key)
+		var coinPairClusters = generatedKeyGroup.GroupBy(x => x.Key)
 			.Select(x => x.Select(y => y.Value)) // Group the coin pairs into clusters.
 			.SelectMany(x => x
 				.Select(coinPair => (coinPair,
-					cluster: new Cluster(coinPair.Select(z => z.key)))))
-			.ForEach(x => x.coinPair.ForEach(y =>
+					cluster: new Cluster(coinPair.Select(z => z.key))))).ToList();
+
+		// Set each key with its corresponding cluster object.
+		foreach (var x in coinPairClusters)
+		{
+			foreach (var y in x.coinPair)
 			{
 				y.key.Cluster = x.cluster;
-			})) // Set each key with its corresponding cluster object.
-			.Select(x => x.coinPair)
+			}
+		}
+
+		return  coinPairClusters.Select(x => x.coinPair)
 			.SelectMany(x =>
 				x.Select(y => BitcoinFactory.CreateSmartCoin(y.key, y.amount))); // Generate the final SmartCoins.
 	}
