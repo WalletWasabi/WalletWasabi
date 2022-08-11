@@ -1,15 +1,13 @@
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
@@ -70,9 +68,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 		using CancellationTokenSource absoluteTimeoutCts = new(totalTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
-		var combinedToken = linkedCts.Token;
+		CancellationToken combinedToken = linkedCts.Token;
 
-		var attempt = 1;
+		int attempt = 1;
 		do
 		{
 			try
@@ -83,8 +81,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
 				// Any transport layer errors will throw an exception here.
-				HttpResponseMessage response = await _client
-					.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
+				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
@@ -93,12 +90,9 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 					Logger.LogDebug(
 						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
 				}
-				else
+				else if (action != RemoteAction.GetStatus)
 				{
-					if (action != RemoteAction.GetStatus)
-					{
-						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
-					}
+					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
 				}
 
 				return response;
@@ -106,11 +100,6 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			catch (HttpRequestException e)
 			{
 				Logger.LogTrace($"Attempt {attempt} failed with {nameof(HttpRequestException)}: {e.Message}.");
-				AddException(exceptions, e);
-			}
-			catch (TorException e)
-			{
-				Logger.LogTrace($"Attempt {attempt} failed with {nameof(TorException)}: {e.Message}.");
 				AddException(exceptions, e);
 			}
 			catch (OperationCanceledException e)
@@ -127,10 +116,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 					AddException(exceptions, e);
 					throw new AggregateException(exceptions.Keys);
 				}
-				else
-				{
-					throw;
-				}
+
+				throw;
 			}
 
 			try
