@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis;
 
@@ -117,9 +118,24 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var outputValues = tx.Transaction.Outputs.Select(x => x.Value).OrderByDescending(x => x).ToArray();
-		var secondLargestOutputAmount = outputValues.Distinct().OrderByDescending(x => x).Take(2).Last();
-		bool? isWasabi2Cj = null;
+		var outputValues = tx
+			.WalletVirtualOutputs
+			.Select(x => x.Amount.Satoshi)
+			.Concat(tx.ForeignVirtualOutputs.Select(x => x.Amount.Satoshi))
+			.OrderByDescending(x => x)
+			.ToArray();
+
+		bool isWasabi2Cj =
+					tx.Transaction.Outputs.Count >= 2 // Sanity check.
+					&& tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& outputValues.Count(x => StdDenoms.Contains(x)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
+					&& outputValues.Zip(outputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
+
+		var secondLargestOutputAmount = outputValues.Take(2).LastOrDefault();
+		if (secondLargestOutputAmount == default)
+		{
+			secondLargestOutputAmount = Constants.MaximumNumberOfSatoshis;
+		}
 
 		var foreignInputCount = tx.ForeignInputs.Count;
 
@@ -141,11 +157,6 @@ public class BlockchainAnalyzer
 			double startingOutputAnonset;
 			if (anonset < 1)
 			{
-				isWasabi2Cj ??=
-					tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& outputValues.Count(x => StdDenoms.Contains(x.Satoshi)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
-					&& outputValues.SequenceEqual(outputValues); // Outputs are ordered descending.
-
 				// When WW2 denom output isn't too large, then it's not change.
 				if (isWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
 				{
