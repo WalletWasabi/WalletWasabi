@@ -9,23 +9,22 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 {
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is not { SelectionInteraction: { } selection, RowSelection: { } rowSelection })
+		if (AssociatedObject is { SelectionInteraction: { } selection, RowSelection: { } rowSelection })
 		{
-			return;
+			Observable.FromEventPattern(selection, nameof(selection.SelectionChanged))
+				.Select(x => rowSelection.SelectedIndex.FirstOrDefault())
+				.WhereNotNull()
+				.Do(ScrollToItemIndex)
+				.Subscribe()
+				.DisposeWith(disposable);
 		}
+	}
 
-		Observable.FromEventPattern(selection, nameof(selection.SelectionChanged))
-			.Select(x => rowSelection.SelectedIndex.FirstOrDefault())
-			.WhereNotNull()
-			.Do(
-				index =>
-			{
-				if (AssociatedObject.RowsPresenter is not null)
-				{
-					AssociatedObject.RowsPresenter.BringIntoView(index);
-				}
-			})
-			.Subscribe()
-			.DisposeWith(disposable);
+	private void ScrollToItemIndex(int index)
+	{
+		if (AssociatedObject is { RowsPresenter: { } rowsPresenter })
+		{
+			rowsPresenter.BringIntoView(index);
+		}
 	}
 }
