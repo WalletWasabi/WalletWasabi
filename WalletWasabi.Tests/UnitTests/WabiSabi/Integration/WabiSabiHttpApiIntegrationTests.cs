@@ -543,11 +543,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						var mempool = await rpc.GetRawMempoolAsync();
 						Assert.Single(mempool);
 					}
-					else if(participantsFinishedSuccessully.All(x => x.GoForBlameRound == false && x.SuccessfulBroadcast == false))
+					else if (participantsFinishedSuccessully.All(x => x.GoForBlameRound == false && x.SuccessfulBroadcast == false))
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 					}
-					else if(!participantsFinishedSuccessully.Any() && !cts.IsCancellationRequested)
+					else if (!participantsFinishedSuccessully.Any() && !cts.IsCancellationRequested)
 					{
 						var exceptions = tasks
 							.Where(x => x.IsFaulted)
@@ -564,7 +564,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				{
 					throw new Exception("This is not so possible.");
 				}
-
 			}
 			catch (OperationCanceledException e)
 			{
@@ -616,26 +615,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 	public class TesteableRpcClient : RpcClientBase
 	{
-		public Action<Transaction>? AfterSendRawTransaction { get; set; }
-
 		public TesteableRpcClient(RpcClientBase rpc)
 			: base(rpc.Rpc)
 		{
 		}
 
+		public Action<Transaction>? AfterSendRawTransaction { get; set; }
+
 		public override async Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
 		{
-			try
-			{
-				var ret = await base.SendRawTransactionAsync(transaction, cancellationToken).ConfigureAwait(false);
-				AfterSendRawTransaction?.Invoke(transaction);
-				return ret;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-				throw;
-			}
+			var ret = await base.SendRawTransactionAsync(transaction, cancellationToken).ConfigureAwait(false);
+			AfterSendRawTransaction?.Invoke(transaction);
+			return ret;
 		}
 	}
 }
