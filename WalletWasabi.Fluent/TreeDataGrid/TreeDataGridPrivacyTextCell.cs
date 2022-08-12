@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
@@ -18,7 +19,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private int _numberOfPrivacyChars;
 	private string? _value;
 
-	private string? Text => _isContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
+	private string? Text => _isContentVisible ? _value : TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
