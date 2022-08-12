@@ -19,6 +19,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
 
+	private Lazy<long[]> _outputValues;
+	private Lazy<bool> _isWasabi2Cj;
+
 	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, SmartLabel? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
 	{
 		Transaction = transaction;
@@ -39,25 +42,25 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
-		OutputValues = Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();
-		IsWasabi2Cj = Transaction.Outputs.Count >= 2 // Sanity check.
+		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
+		_isWasabi2Cj = new Lazy<bool>(() => Transaction.Outputs.Count >= 2 // Sanity check.
 					&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
 					&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
-					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
+					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), true); // Outputs are ordered descending.
 	}
 
 	#endregion Constructors
 
 	#region Members
 
+	public long[] OutputValues => _outputValues.Value;
+	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
+
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletInputsInternal { get; }
 
 	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletOutputsInternal { get; }
-
-	public long[] OutputValues { get; }
-	public bool IsWasabi2Cj { get; }
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
