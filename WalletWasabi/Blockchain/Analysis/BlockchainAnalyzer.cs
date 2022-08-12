@@ -64,12 +64,14 @@ public class BlockchainAnalyzer
 
 	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out double mixedAnonScore, out double nonMixedAnonScore)
 	{
+		CoinjoinAnalyzer cjAnal = new(tx);
+
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
-		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
+		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
 
-		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet);
+		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x));
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)

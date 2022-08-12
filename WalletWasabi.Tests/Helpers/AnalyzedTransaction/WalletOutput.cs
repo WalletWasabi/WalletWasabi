@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 
 public record WalletOutput(SmartCoin Coin)
 {
-	public int Anonymity => Coin.HdPubKey.AnonymitySet;
+	public double Anonymity => Coin.HdPubKey.AnonymitySet;
 
 	public SmartCoin ToSmartCoin() => Coin;
 
@@ -21,7 +21,7 @@ public record WalletOutput(SmartCoin Coin)
 		ForeignOutput output = ForeignOutput.Create(amount, hdPubKey.P2wpkhScript);
 		SmartTransaction smartTransaction = new(output.Transaction, 0);
 		SmartCoin smartCoin = new(smartTransaction, output.Index, hdPubKey);
-		smartTransaction.AddWalletOutput(smartCoin);
+		smartTransaction.TryAddWalletOutput(smartCoin);
 		return new WalletOutput(smartCoin);
 	}
 }

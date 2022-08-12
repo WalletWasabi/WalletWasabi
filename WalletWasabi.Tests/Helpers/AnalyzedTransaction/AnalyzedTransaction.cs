@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Transactions;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis;
 
 namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 
@@ -70,7 +71,7 @@ public class AnalyzedTransaction : SmartTransaction
 	public void AddWalletInput(WalletOutput walletOutput)
 	{
 		AddForeignInput(walletOutput.ToForeignOutput());
-		AddWalletInput(walletOutput.ToSmartCoin());
+		AddWalletInput(walletOutput);
 	}
 
 	public WalletOutput AddWalletInput(decimal amount = 1, string? label = null, int anonymity = 1)
@@ -93,13 +94,13 @@ public class AnalyzedTransaction : SmartTransaction
 	{
 		ForeignOutput foreignOutput = AddForeignOutput(amount, label);
 		SmartCoin smartCoin = new(this, foreignOutput.Index, CreateHdPubKey(label));
-		AddWalletOutput(smartCoin);
+		TryAddWalletOutput(smartCoin);
 		return new WalletOutput(smartCoin);
 	}
 
 	public void AnalyzeRecursively()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		HashSet<SmartTransaction> analyzedTransactions = new();
 
 		// Analyze transactions in topological sorting

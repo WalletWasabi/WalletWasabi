@@ -8,20 +8,23 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class CoinjoinAnalyzer
 {
-	public CoinjoinAnalyzer(SmartTransaction analyzedTransaction)
+	public CoinjoinAnalyzer(SmartTransaction transaction)
 	{
-		AnalyzedTransaction = analyzedTransaction;
+		AnalyzedTransaction = transaction;
 		AnalyzedTransactionPrevOuts = AnalyzedTransaction.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
 	}
 
 	private HashSet<OutPoint> AnalyzedTransactionPrevOuts { get; }
-	private Dictionary<SmartCoin, decimal> CachedInputSanctions { get; } = new();
+	private Dictionary<SmartCoin, double> CachedInputSanctions { get; } = new();
 
 	public SmartTransaction AnalyzedTransaction { get; }
 
-	public decimal ComputeInputSanction(SmartCoin transactionInput)
+	public double ComputeInputSanction(WalletVirtualInput virtualInput)
+		=> virtualInput.Coins.Select(ComputeInputSanction).Max();
+
+	public double ComputeInputSanction(SmartCoin transactionInput)
 	{
-		decimal ComputeInputSanctionHelper(SmartCoin transactionOutput)
+		double ComputeInputSanctionHelper(SmartCoin transactionOutput)
 		{
 			// If we already analyzed the sanction for this output, then return the cached result.
 			if (CachedInputSanctions.ContainsKey(transactionOutput))
@@ -33,7 +36,7 @@ public class CoinjoinAnalyzer
 			// We are searching for any transaction inputs of analyzedTransaction that might have come from this transaction.
 			// If we find such remixed outputs, then we determine how much they contributed to our anonymity set.
 			SmartTransaction transaction = transactionOutput.Transaction;
-			decimal sanction = ComputeAnonymityContribution(transactionOutput, AnalyzedTransactionPrevOuts);
+			double sanction = ComputeAnonymityContribution(transactionOutput, AnalyzedTransactionPrevOuts);
 
 			// Recursively branch out into all of the transaction inputs' histories and compute the sanction for each branch.
 			// Add the worst-case branch to the resulting sanction.
@@ -52,7 +55,7 @@ public class CoinjoinAnalyzer
 	/// Sometimes we are only interested in how much a certain subset of foreign outputs contributed.
 	/// This subset can be specified in relevantOutpoints, otherwise all outputs are considered relevant.
 	/// </summary>
-	public static decimal ComputeAnonymityContribution(SmartCoin transactionOutput, HashSet<OutPoint>? relevantOutpoints = null)
+	public static double ComputeAnonymityContribution(SmartCoin transactionOutput, HashSet<OutPoint>? relevantOutpoints = null)
 	{
 		SmartTransaction transaction = transactionOutput.Transaction;
 		IEnumerable<WalletVirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
@@ -69,6 +72,6 @@ public class CoinjoinAnalyzer
 		// If we have multiple equal-valued wallet outputs, then we divide the increase evenly between them.
 		// The rationale behind this is that picking randomly an output would make our anonset:
 		// total/ours = 1 + foreign/ours, so the increase in anonymity is foreign/ours.
-		return (decimal)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
+		return (double)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
 }
