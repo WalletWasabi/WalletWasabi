@@ -2,7 +2,7 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class ObservableMixin
+public static class PrivacyModeHelper
 {
 	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(0.75);
 	private static readonly TimeSpan HideDelay = TimeSpan.FromSeconds(10);

@@ -49,7 +49,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		var displayContent = ObservableMixin.DelayedRevealAndHide(
+		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
 			this.WhenAnyValue(x => x.IsPointerOver),
 			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
 

@@ -31,7 +31,7 @@ public class PrivacyContentControl : ContentControl
 			return;
 		}
 
-		var displayContent = ObservableMixin.DelayedRevealAndHide(
+		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
 			this.WhenAnyValue(x => x.IsPointerOver),
 			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode),
 			this.WhenAnyValue(x => x.ForceShow));
