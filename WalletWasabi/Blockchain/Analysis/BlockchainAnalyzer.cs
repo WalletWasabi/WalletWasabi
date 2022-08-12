@@ -118,20 +118,22 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x.Amount)
 			.ToDictionary(x => x.Key, y => y.Count());
 
-		var outputValues = tx
+		var virtualOutputValues = tx
 			.WalletVirtualOutputs
 			.Select(x => x.Amount.Satoshi)
 			.Concat(tx.ForeignVirtualOutputs.Select(x => x.Amount.Satoshi))
 			.OrderByDescending(x => x)
 			.ToArray();
 
+		var outputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();
+
 		bool isWasabi2Cj =
 					tx.Transaction.Outputs.Count >= 2 // Sanity check.
 					&& tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& outputValues.Count(x => StdDenoms.Contains(x)) > tx.Transaction.Outputs.Count * 0.8 // Most of the outputs contains the denomination.
+					&& outputValues.Count(x => StdDenoms.Contains(x)) > outputValues.Length * 0.8 // Most of the outputs contains the denomination.
 					&& outputValues.Zip(outputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
 
-		var secondLargestOutputAmount = outputValues.Take(2).LastOrDefault();
+		var secondLargestOutputAmount = virtualOutputValues.Take(2).LastOrDefault();
 		if (secondLargestOutputAmount == default)
 		{
 			secondLargestOutputAmount = Constants.MaximumNumberOfSatoshis;
