@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:s="clr-namespace:WalletWasabi.Fluent.Views.SearchBar"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:searchBar="clr-namespace:WalletWasabi.Fluent.ViewModels.SearchBar"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
@@ -72,10 +72,6 @@
           <DoubleTransition Property="Opacity"
                             Duration="0:0:0.127"
                             Easing="{StaticResource FluentEasing}" />
-           <!--NOTE: This was previously reported to cause a glitchy transition. This is likely because of a bug in Avalonia. --> 
-           <ThicknessTransition Property="Margin" 
-                                Duration="0:0:0.127" 
-                                Easing="{StaticResource FluentEasing}" /> 
         </Transitions>
       </Setter>
     </Style>
@@ -113,6 +109,7 @@
     </Style>
 
     <!-- Focused State -->
+
     <Style Selector="TextBox:focus-within">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Cursor" Value="Arrow" />
@@ -129,7 +126,6 @@
     <Style Selector="FlyoutPresenter">
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
     </Style>
-
   </UserControl.Styles>
 
   <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="50" HorizontalAlignment="Stretch"
@@ -138,6 +134,7 @@
     <i:Interaction.Behaviors>
       <behaviors:TextBoxAutoSelectTextBehavior />
       <behaviors:SwallowEnterKeyBehavior />
+      <behaviors:ShowAttachedFlyoutWhenFocusedBehavior IsFlyoutOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
     </i:Interaction.Behaviors>
 
     <TextBox.InnerLeftContent>
@@ -146,18 +143,11 @@
     <TextBox.InnerRightContent>
       <PathIcon Name="RightIcon" Data="{DynamicResource search_regular}" />
     </TextBox.InnerRightContent>
-    
+
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="Bottom" ShowMode="Transient">
+        <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
   </TextBox>
-
-  <FlyoutBase.AttachedFlyout>
-    <Flyout Placement="Bottom" ShowMode="Transient">
-      <s:SearchBarDropdown x:Name="SearchBarDropdown" Width="400" />
-    </Flyout>
-  </FlyoutBase.AttachedFlyout>
-
-  <i:Interaction.Behaviors>
-    <behaviors:SearchBarBehavior SearchBox="SearchBox" SearchPanel="SearchBarDropdown"
-                                 IsSearchPanelOpen="{Binding IsSearchListVisible, Mode=TwoWay}" />
-  </i:Interaction.Behaviors>
-
 </UserControl>

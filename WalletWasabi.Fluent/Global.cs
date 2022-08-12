@@ -54,6 +54,7 @@ public class Global
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
+	public UpdateManager UpdateManager { get; set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -102,6 +103,7 @@ public class Global
 
 			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 			LegalChecker = new(DataDir);
+			UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
 
@@ -143,8 +145,11 @@ public class Global
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				var updateChecker = HostedServices.Get<UpdateChecker>();
 
-				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
+				UpdateManager.Initialize(updateChecker, cancel);
+				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+
 				cancel.ThrowIfCancellationRequested();
 
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
@@ -296,8 +301,8 @@ public class Global
 	private void RegisterCoinJoinComponents()
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
-		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Config.ServiceConfiguration, Config.CoordinatorIdentifier), "CoinJoin Manager");
+		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
@@ -328,6 +333,12 @@ public class Global
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
+				}
+
+				if (UpdateManager is { } updateManager)
+				{
+					UpdateManager.Dispose();
+					Logger.LogInfo($"{nameof(UpdateManager)} is stopped.", nameof(Global));
 				}
 
 				if (RpcServer is { } rpcServer)

@@ -65,12 +65,12 @@ public static class HttpResponseMessageExtensions
 		{
 			await me.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
-		catch (Exception e) when (e.InnerException is {} innerException)
+		catch (Exception e) when (e.InnerException is { } innerException)
 		{
 			throw innerException;
 		}
 	}
-	
+
 	public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
 	{
 		var errorMessage = "";

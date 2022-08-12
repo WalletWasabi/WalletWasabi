@@ -64,9 +64,9 @@ public class BlurBehind : Control
 			using var backgroundSnapshot = skia.SkSurface.Snapshot();
 
 			using var preBlur =
-				   DrawingContextHelper.CreateDrawingContext(
-					   new Size(backgroundSnapshot.Width, backgroundSnapshot.Height), new Vector(96, 96),
-					   skia.GrContext);
+				DrawingContextHelper.CreateDrawingContext(
+					new Size(backgroundSnapshot.Width, backgroundSnapshot.Height), new Vector(96, 96),
+					skia.GrContext);
 			using (var filter = SKImageFilter.CreateBlur((int)_blurRadius.X, (int)_blurRadius.Y, SKShaderTileMode.Clamp))
 			using (var blurPaint = new SKPaint { ImageFilter = filter })
 			{

@@ -8,5 +8,5 @@
              x:DataType="wallets:ClosedHardwareWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedHardwareWalletView">
-    <local:LoadingControl DataContext="{Binding Loading}" />
+  <local:LoadingControl DataContext="{Binding Loading}" />
 </UserControl>

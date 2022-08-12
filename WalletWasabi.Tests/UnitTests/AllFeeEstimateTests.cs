@@ -149,7 +149,7 @@ public class AllFeeEstimateTests
 			.ReturnsAsync(new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000 // 1 s/b (default value)
-				});
+			});
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>(), It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new NoEstimationException(1));
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
@@ -171,7 +171,7 @@ public class AllFeeEstimateTests
 			.ReturnsAsync(new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000 // 1 s/b (default value)
-				});
+			});
 
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 
@@ -234,7 +234,7 @@ public class AllFeeEstimateTests
 			new MemPoolInfo
 			{
 				MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-					Histogram = MempoolInfoGenerator.FeeRanges.Select((x, i) => new FeeRateGroup
+				Histogram = MempoolInfoGenerator.FeeRanges.Select((x, i) => new FeeRateGroup
 				{
 					Count = (uint)(200 * (i + 1)),
 					Sizes = (uint)(40 * 100 * (i + 1)),
@@ -307,7 +307,7 @@ public class AllFeeEstimateTests
 			new MemPoolInfo
 			{
 				MemPoolMinFee = memPoolMinFee, // 1 s/b (default value)
-					Histogram = Array.Empty<FeeRateGroup>()
+				Histogram = Array.Empty<FeeRateGroup>()
 			});
 		mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 

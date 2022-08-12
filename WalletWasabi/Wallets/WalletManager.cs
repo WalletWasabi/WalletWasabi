@@ -15,10 +15,11 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Wallets;
 
-public class WalletManager
+public class WalletManager : IWalletProvider
 {
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
@@ -92,6 +93,8 @@ public class WalletManager
 			}
 		}
 	}
+
+	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets(refreshWalletList: true));
 
 	public IEnumerable<Wallet> GetWallets(bool refreshWalletList = true)
 	{

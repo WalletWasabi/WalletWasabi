@@ -87,8 +87,8 @@ public class TorHttpClient : IHttpClient
 		}
 	}
 
-	public Task<bool> IsTorRunningAsync()
+	public Task<bool> IsTorRunningAsync(CancellationToken cancel)
 	{
-		return TorHttpPool.IsTorRunningAsync();
+		return TorHttpPool.IsTorRunningAsync(cancel);
 	}
 }
