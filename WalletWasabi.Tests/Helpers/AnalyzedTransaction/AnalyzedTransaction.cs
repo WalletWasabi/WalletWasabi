@@ -71,7 +71,7 @@ public class AnalyzedTransaction : SmartTransaction
 	public void AddWalletInput(WalletOutput walletOutput)
 	{
 		AddForeignInput(walletOutput.ToForeignOutput());
-		AddWalletInput(walletOutput);
+		TryAddWalletInput(walletOutput.ToSmartCoin());
 	}
 
 	public WalletOutput AddWalletInput(decimal amount = 1, string? label = null, int anonymity = 1)
