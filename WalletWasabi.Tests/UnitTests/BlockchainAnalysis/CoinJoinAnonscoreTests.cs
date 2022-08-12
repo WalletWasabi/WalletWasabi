@@ -306,8 +306,8 @@ public class CoinJoinAnonScoreTests
 		tx3.AnalyzeRecursively();
 
 		Assert.Equal(11, b.Anonymity);
-		Assert.Equal(11, d.Anonymity);
-		Assert.Equal(11, e.Anonymity);
+		Assert.Equal(11.5, d.Anonymity);
+		Assert.Equal(11.5, e.Anonymity);
 		Assert.Equal(12, l.Anonymity);
 	}
 }
