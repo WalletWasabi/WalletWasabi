@@ -103,9 +103,6 @@ public partial class SendViewModel : RoutableViewModel
 			}
 		});
 
-		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(async () =>
-			await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen));
-
 		var nextCommandCanExecute =
 			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
 				.Select(tup =>
@@ -148,8 +145,6 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand AutoPasteCommand { get; }
 
 	public ICommand QrCommand { get; }
-
-	public ICommand AdvancedOptionsCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 

@@ -30,17 +30,17 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class WabiSabiFactory
 {
-	public static Coin CreateCoin(Key? key = null, Money? amount = null)
+	public static Coin CreateCoin(Key? key = null, Money? amount = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		key ??= new();
 		amount ??= Money.Coins(1);
-		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.WitHash.ScriptPubKey));
+		return new(new OutPoint(Hashes.DoubleSHA256(key.PubKey.ToBytes()), 0), new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
 	}
 
-	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null)
+	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		key = key ?? new();
-		var coin = WabiSabiFactory.CreateCoin(key, amount);
+		var coin = WabiSabiFactory.CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
 		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
@@ -49,11 +49,12 @@ public static class WabiSabiFactory
 	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
 		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, RoundId ?? uint256.One);
 
-	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null)
+	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
-			GetOwnershipIdentifier(key.PubKey.WitHash.ScriptPubKey),
-			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()));
+			GetOwnershipIdentifier(key.PubKey.GetScriptPubKey(scriptPubKeyType)),
+			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()),
+			scriptPubKeyType);
 
 	public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
 	{
@@ -123,8 +124,8 @@ public static class WabiSabiFactory
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
 		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
-	public static Alice CreateAlice(Key key, Money amount, Round round)
-		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key, round.Id), round);
+	public static Alice CreateAlice(Key key, Money amount, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+		=> CreateAlice(CreateCoin(key, amount, scriptPubKeyType), CreateOwnershipProof(key, round.Id, scriptPubKeyType), round);
 
 	public static Alice CreateAlice(Money amount, Round round)
 	{
@@ -132,8 +133,8 @@ public static class WabiSabiFactory
 		return CreateAlice(key, amount, round);
 	}
 
-	public static Alice CreateAlice(Key key, Round round)
-		=> CreateAlice(key, Money.Coins(1), round);
+	public static Alice CreateAlice(Key key, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+		=> CreateAlice(key, Money.Coins(1), round, scriptPubKeyType);
 
 	public static Alice CreateAlice(Round round)
 	{

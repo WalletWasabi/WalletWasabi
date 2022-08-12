@@ -161,6 +161,14 @@ public class CoinJoinClient
 
 			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
 
+			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
+			{
+				excludeRound = currentRoundState.Id;
+				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
+
+				continue;
+			}
+
 			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
@@ -321,6 +329,8 @@ public class CoinJoinClient
 	{
 		int eventInvokedAlready = 0;
 
+		UnexpectedRoundPhaseException? lastAbortedNotEnoughAlicesException = null;
+
 		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
 		using CancellationTokenSource strictInputRegTimeoutCts = new(remainingInputRegTime);
@@ -419,6 +429,13 @@ public class CoinJoinClient
 				personCircuit?.Dispose();
 				return (null, null);
 			}
+			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
+			{
+				lastAbortedNotEnoughAlicesException = ex;
+				Logger.LogTrace(ex);
+				personCircuit?.Dispose();
+				return (null, null);
+			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
@@ -452,11 +469,19 @@ public class CoinJoinClient
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
-		return aliceClients
+		var successfulAlices = aliceClients
 			.Select(x => x.Result)
 			.Where(r => r.AliceClient is not null && r.PersonCircuit is not null)
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
+
+		if (!successfulAlices.Any() && lastAbortedNotEnoughAlicesException is { })
+		{
+			// In this case the coordinator aborted the round - throw only one exception and log outside.
+			throw lastAbortedNotEnoughAlicesException;
+		}
+
+		return successfulAlices;
 	}
 
 	private BobClient CreateBobClient(RoundState roundState)
