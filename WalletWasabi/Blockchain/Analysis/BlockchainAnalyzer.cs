@@ -142,10 +142,8 @@ public class BlockchainAnalyzer
 			var ownEqualOutputCount = indistinguishableWalletOutputs[virtualOutput.Amount];
 
 			// Anonset gain cannot be larger than others' input count.
-			double anonset = Math.Min(equalForeignOutputCount, foreignInputCount);
-
 			// Picking randomly an output would make our anonset: total/ours.
-			anonset /= ownEqualOutputCount;
+			double anonset = Math.Min(equalForeignOutputCount / ownEqualOutputCount, foreignInputCount);
 
 			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			double startingOutputAnonset;
