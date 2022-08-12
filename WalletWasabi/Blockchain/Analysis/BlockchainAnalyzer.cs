@@ -145,7 +145,7 @@ public class BlockchainAnalyzer
 
 			// Anonset gain cannot be larger than others' input count.
 			// Picking randomly an output would make our anonset: total/ours.
-			double anonset = Math.Min(equalForeignOutputCount / ownEqualOutputCount, foreignInputCount);
+			double anonset = Math.Min(equalForeignOutputCount / (double)ownEqualOutputCount, foreignInputCount);
 
 			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			double startingOutputAnonset;
