@@ -287,6 +287,16 @@ public class TransactionFactory
 			}
 		}
 
+		var inputsSumMin = smartTransaction.WalletInputs.Sum(x => x.Amount)
+		                   - smartTransaction.WalletInputs.Min(x => x.Amount);
+		var outputsSumMin = smartTransaction.WalletOutputs.Sum(x => x.Amount)
+		                    - smartTransaction.WalletOutputs.Min(x => x.Amount);
+
+		if (inputsSumMin >= outputsSumMin + fee)
+		{
+			Logger.LogWarning($"Transaction {smartTransaction.GetHash()} potentially has an unnecessary input.");
+		}
+
 		Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 		var sign = !KeyManager.IsWatchOnly;
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc);
