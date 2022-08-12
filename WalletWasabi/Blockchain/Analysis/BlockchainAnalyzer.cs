@@ -125,14 +125,6 @@ public class BlockchainAnalyzer
 			.OrderByDescending(x => x)
 			.ToArray();
 
-		var outputValues = tx.Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();
-
-		bool isWasabi2Cj =
-					tx.Transaction.Outputs.Count >= 2 // Sanity check.
-					&& tx.Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
-					&& outputValues.Count(x => StdDenoms.Contains(x)) > outputValues.Length * 0.8 // Most of the outputs contains the denomination.
-					&& outputValues.Zip(outputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
-
 		var secondLargestOutputAmount = virtualOutputValues.Take(2).LastOrDefault();
 		if (secondLargestOutputAmount == default)
 		{
@@ -160,7 +152,7 @@ public class BlockchainAnalyzer
 			if (anonset < 1)
 			{
 				// When WW2 denom output isn't too large, then it's not change.
-				if (isWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
+				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
 				{
 					startingOutputAnonset = startingMixedOutputAnonset;
 				}

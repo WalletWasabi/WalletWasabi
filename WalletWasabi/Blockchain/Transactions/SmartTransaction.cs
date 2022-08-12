@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
@@ -37,6 +38,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+
+		OutputValues = Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray();
+		IsWasabi2Cj = Transaction.Outputs.Count >= 2 // Sanity check.
+					&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second); // Outputs are ordered descending.
 	}
 
 	#endregion Constructors
@@ -48,6 +55,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletOutputsInternal { get; }
+
+	public long[] OutputValues { get; }
+	public bool IsWasabi2Cj { get; }
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
