@@ -5,7 +5,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Shell.BackgroundView">
   <Panel x:Name="Background" IsHitTestVisible="False">
-    <ExperimentalAcrylicBorder>
+    <!-- HACK: Temporary workaround for hit-testing issue by setting IsHitTestVisible="False" on panel children. -->
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial BackgroundSource="Digger"
                                      TintColor="Transparent"
@@ -14,6 +15,7 @@
                                      MaterialOpacity="0" />
       </ExperimentalAcrylicBorder.Material>
     </ExperimentalAcrylicBorder>
-    <Panel Background="{DynamicResource AcrylicTrimBackground}" />
+    <!-- HACK: Temporary workaround for hit-testing issue by setting IsHitTestVisible="False" on panel children. -->
+    <Panel IsHitTestVisible="False" Background="{DynamicResource AcrylicTrimBackground}" />
   </Panel>
 </UserControl>

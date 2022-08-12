@@ -1,0 +1,10 @@
+[submodule "Submodules/AvaloniaBehaviors"]
+	path = Submodules/AvaloniaBehaviors
+	url = https://github.com/wieslawsoltes/AvaloniaBehaviors/
+[submodule "Submodules/Avalonia.Controls.TreeDataGrid"]
+	path = Submodules/Avalonia.Controls.TreeDataGrid
+	url = https://github.com/AvaloniaUI/Avalonia.Controls.TreeDataGrid/
+[submodule "Avalonia.Controls.TreeDataGrid"]
+	branch = Avalonia11
+[submodule "AvaloniaBehaviors"]
+	branch = master

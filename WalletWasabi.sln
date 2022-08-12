@@ -33,6 +33,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent.Generat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent", "WalletWasabi.Fluent\WalletWasabi.Fluent.csproj", "{1E9A8055-DC14-4C7D-8878-887D50B55A10}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Submodules", "Submodules", "{23CBD9F2-0457-4F1F-9D26-BF744BD8BF8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Controls.TreeDataGrid", "Submodules\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj", "{02930795-363F-4100-ADA5-E5BC9203E4B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Xaml.Behaviors", "Submodules\AvaloniaBehaviors\src\Avalonia.Xaml.Behaviors\Avalonia.Xaml.Behaviors.csproj", "{65807E1B-3886-431F-BC32-601775A76017}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Xaml.Interactivity", "Submodules\AvaloniaBehaviors\src\Avalonia.Xaml.Interactivity\Avalonia.Xaml.Interactivity.csproj", "{A28A496A-A620-4CB9-BBE9-7603CFB582D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Xaml.Interactions", "Submodules\AvaloniaBehaviors\src\Avalonia.Xaml.Interactions\Avalonia.Xaml.Interactions.csproj", "{8DA48578-614D-4857-A8D6-C1F678B2F5B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,11 +112,49 @@ Global
 		{1E9A8055-DC14-4C7D-8878-887D50B55A10}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E9A8055-DC14-4C7D-8878-887D50B55A10}.Release|x64.ActiveCfg = Release|Any CPU
 		{1E9A8055-DC14-4C7D-8878-887D50B55A10}.Release|x64.Build.0 = Release|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Debug|x64.Build.0 = Debug|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Release|x64.ActiveCfg = Release|Any CPU
+		{02930795-363F-4100-ADA5-E5BC9203E4B3}.Release|x64.Build.0 = Release|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Debug|x64.Build.0 = Debug|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Release|x64.ActiveCfg = Release|Any CPU
+		{65807E1B-3886-431F-BC32-601775A76017}.Release|x64.Build.0 = Release|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Debug|x64.Build.0 = Debug|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Release|x64.ActiveCfg = Release|Any CPU
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3}.Release|x64.Build.0 = Release|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Debug|x64.Build.0 = Debug|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Release|x64.ActiveCfg = Release|Any CPU
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F367BF06-2061-479C-9FE1-184C87CD39B4}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{02930795-363F-4100-ADA5-E5BC9203E4B3} = {23CBD9F2-0457-4F1F-9D26-BF744BD8BF8F}
+		{65807E1B-3886-431F-BC32-601775A76017} = {23CBD9F2-0457-4F1F-9D26-BF744BD8BF8F}
+		{A28A496A-A620-4CB9-BBE9-7603CFB582D3} = {23CBD9F2-0457-4F1F-9D26-BF744BD8BF8F}
+		{8DA48578-614D-4857-A8D6-C1F678B2F5B5} = {23CBD9F2-0457-4F1F-9D26-BF744BD8BF8F}
 	EndGlobalSection
 EndGlobal

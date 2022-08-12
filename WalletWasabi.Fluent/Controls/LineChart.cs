@@ -24,7 +24,7 @@ public partial class LineChart : Control
 		AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
 		AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
 		AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
-		AddHandler(PointerLeaveEvent, PointerLeaveHandler, RoutingStrategies.Tunnel);
+		AddHandler(PointerExitedEvent, PointerLeaveHandler, RoutingStrategies.Tunnel);
 	}
 
 	private static double Clamp(double val, double min, double max)
@@ -65,14 +65,11 @@ public partial class LineChart : Control
 	private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment,
 		double fontSize, Size constraint)
 	{
-		return new FormattedText()
+		return new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize,
+			null)
 		{
-			Typeface = typeface,
-			Text = text,
-			TextAlignment = alignment,
-			TextWrapping = TextWrapping.NoWrap,
-			FontSize = fontSize,
-			Constraint = constraint
+			MaxTextHeight = constraint.Height,
+			MaxTextWidth = constraint.Width
 		};
 	}
 
@@ -88,7 +85,7 @@ public partial class LineChart : Control
 		var areaWidth = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
 		var value = Clamp(x - AreaMargin.Left, 0, areaWidth);
 		var factor = value / areaWidth;
-		var index = (int)((xAxisValues.Count - 1) * factor);
+		var index = (int) ((xAxisValues.Count - 1) * factor);
 		var currentValue = xAxisValues[index];
 		XAxisCurrentValue = currentValue;
 	}
@@ -513,7 +510,8 @@ public partial class LineChart : Control
 		opacityState.Dispose();
 	}
 
-	private static Point AlignXAxisLabelOffset(Point offsetCenter, double width, int index, int count, LabelAlignment alignment)
+	private static Point AlignXAxisLabelOffset(Point offsetCenter, double width, int index, int count,
+		LabelAlignment alignment)
 	{
 		var isFirst = index == 0;
 		var isLast = index == count - 1;
@@ -565,8 +563,8 @@ public partial class LineChart : Control
 			var label = labels[i];
 			var formattedText = CreateFormattedText(label, typeface, TextAlignment.Left, fontSize, Size.Empty);
 			formattedTextLabels.Add(formattedText);
-			constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
-			constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
+			constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Width);
+			constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Height);
 		}
 
 		var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
@@ -574,11 +572,14 @@ public partial class LineChart : Control
 
 		for (var i = 0; i < formattedTextLabels.Count; i++)
 		{
-			formattedTextLabels[i].Constraint = constraintMax;
+			formattedTextLabels[i].MaxTextHeight = constraintMax.Height;
+			formattedTextLabels[i].MaxTextWidth = constraintMax.Width;
+
 			var origin = new Point(i * state.XAxisLabelStep + constraintMax.Width / 2 + state.AreaMargin.Left,
 				originTop);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
-			offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Bounds.Width, i, formattedTextLabels.Count, alignment);
+			offsetCenter = AlignXAxisLabelOffset(offsetCenter, formattedTextLabels[i].Width, i,
+				formattedTextLabels.Count, alignment);
 			var xPosition = origin.X + constraintMax.Width / 2;
 			var yPosition = origin.Y + constraintMax.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -586,7 +587,8 @@ public partial class LineChart : Control
 			             * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushPreTransform(matrix);
 			var opacityState = context.PushOpacity(opacity);
-			context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
+			formattedTextLabels[i].SetForegroundBrush(foreground);
+			context.DrawText(formattedTextLabels[i], origin + offsetCenter);
 			opacityState.Dispose();
 			labelTransform.Dispose();
 		}
@@ -633,7 +635,8 @@ public partial class LineChart : Control
 		var labelTransform = context.PushPreTransform(matrix);
 		var offsetCenter = new Point(0, 0);
 		var opacityState = context.PushOpacity(opacity);
-		context.DrawText(foreground, origin + offsetCenter, formattedText);
+		formattedText.SetForegroundBrush(foreground);
+		context.DrawText(formattedText, origin + offsetCenter);
 		opacityState.Dispose();
 		labelTransform.Dispose();
 		offsetTransform.Dispose();
@@ -686,7 +689,8 @@ public partial class LineChart : Control
 		};
 	}
 
-	private static Point AlignYAxisLabelOffset(Point offsetCenter, double height, int index, int count, LabelAlignment alignment)
+	private static Point AlignYAxisLabelOffset(Point offsetCenter, double height, int index, int count,
+		LabelAlignment alignment)
 	{
 		var isFirst = index == 0;
 		var isLast = index == count - 1;
@@ -739,8 +743,8 @@ public partial class LineChart : Control
 			var textAlignment = GetYAxisLabelTextAlignment(alignment);
 			var formattedText = CreateFormattedText(label, typeface, textAlignment, fontSize, Size.Empty);
 			formattedTextLabels.Add(formattedText);
-			constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
-			constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
+			constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Width);
+			constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Height);
 		}
 
 		var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
@@ -748,12 +752,14 @@ public partial class LineChart : Control
 
 		for (var i = 0; i < formattedTextLabels.Count; i++)
 		{
-			formattedTextLabels[i].Constraint = constraintMax;
+			formattedTextLabels[i].MaxTextHeight = constraintMax.Height;
+			formattedTextLabels[i].MaxTextWidth = constraintMax.Width;
 
 			var origin = new Point(originLeft,
 				i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 			var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
-			offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Bounds.Height, i, formattedTextLabels.Count, alignment);
+			offsetCenter = AlignYAxisLabelOffset(offsetCenter, formattedTextLabels[i].Height, i,
+				formattedTextLabels.Count, alignment);
 			var xPosition = origin.X + constraintMax.Width / 2;
 			var yPosition = origin.Y + constraintMax.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -761,7 +767,8 @@ public partial class LineChart : Control
 			             * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushPreTransform(matrix);
 			var opacityState = context.PushOpacity(opacity);
-			context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
+			formattedTextLabels[i].SetForegroundBrush(foreground);
+			context.DrawText(formattedTextLabels[i], origin + offsetCenter);
 			opacityState.Dispose();
 			labelTransform.Dispose();
 		}
@@ -805,9 +812,10 @@ public partial class LineChart : Control
 		             * Matrix.CreateRotation(angleRadians)
 		             * Matrix.CreateTranslation(xPosition, yPosition);
 		var labelTransform = context.PushPreTransform(matrix);
-		var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
+		var offsetCenter = new Point(0, size.Height / 2 - formattedText.Height / 2);
 		var opacityState = context.PushOpacity(opacity);
-		context.DrawText(foreground, origin + offsetCenter, formattedText);
+		formattedText.SetForegroundBrush(foreground);
+		context.DrawText(formattedText, origin + offsetCenter);
 		opacityState.Dispose();
 		labelTransform.Dispose();
 		offsetTransform.Dispose();
@@ -842,7 +850,8 @@ public partial class LineChart : Control
 		{
 			newValue.CollectionChanged += ItemsPropertyCollectionChanged;
 
-			_collectionChangedSubscriptions[newValue] = Disposable.Create(() => newValue.CollectionChanged -= ItemsPropertyCollectionChanged);
+			_collectionChangedSubscriptions[newValue] =
+				Disposable.Create(() => newValue.CollectionChanged -= ItemsPropertyCollectionChanged);
 		}
 	}
 
@@ -851,7 +860,7 @@ public partial class LineChart : Control
 		InvalidateVisual();
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
@@ -859,8 +868,8 @@ public partial class LineChart : Control
 		    change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
 		{
 			UpdateSubscription(
-				change.OldValue.GetValueOrDefault<INotifyCollectionChanged>(),
-				change.NewValue.GetValueOrDefault<INotifyCollectionChanged>());
+				(INotifyCollectionChanged) change.OldValue,
+				(INotifyCollectionChanged) change.NewValue);
 		}
 	}
 

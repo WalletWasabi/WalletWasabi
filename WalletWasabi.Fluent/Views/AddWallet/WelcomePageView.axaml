@@ -41,7 +41,7 @@
               <Setter Property="Background" Value="Transparent" />
             </Style>
             <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
             </Style>
             <Style Selector="ListBoxItem">
               <Setter Property="Opacity" Value="0.3" />
@@ -85,11 +85,11 @@
             </Style>
             <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPointerOver}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
             </Style>
             <Style Selector="Button:pressed  /template/ ContentPresenter#PART_ContentPresenter">
               <Setter Property="Background" Value="{DynamicResource WelcomeScreenButtonBackgroundPressed}" />
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
+              <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemChromeAltLowColor}" />
             </Style>
             <Style Selector="Button > PathIcon">
               <Setter Property="Width" Value="5" />
@@ -114,7 +114,7 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Opacity" Value="0.5" />
             <Setter Property="LineHeight" Value="22" />
-            <Setter Property="FontWeight" Value="Light" />
+            <Setter Property="TextElement.FontWeight" Value="Light" />
           </Style>
 
           <Style Selector="TextBlock.title">
@@ -122,7 +122,7 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="FontSize" Value="31" />
+            <Setter Property="TextElement.FontSize" Value="31" />
             <Setter Property="Margin" Value="0 10" />
           </Style>
 

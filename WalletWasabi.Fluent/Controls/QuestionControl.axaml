@@ -30,7 +30,7 @@
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             HorizontalContentAlignment="Center"
-                            TextBlock.FontSize="{TemplateBinding FontSize}"
+                            TextElement.FontSize="{TemplateBinding FontSize}"
                             DockPanel.Dock="Bottom"
                             Margin="0 10 0 50" />
           <Panel DockPanel.Dock="Top">

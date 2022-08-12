@@ -189,7 +189,8 @@ public class TagsBox : TemplatedControl
 		var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
 		presenter.ApplyTemplate();
 		_containerControl = presenter.Panel;
-		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>().FirstOrDefault();
+		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>()
+			.FirstOrDefault();
 
 		if (_autoCompleteBox is null)
 		{
@@ -353,7 +354,8 @@ public class TagsBox : TemplatedControl
 	{
 		if (_watermark is { })
 		{
-			_watermark.IsVisible = (Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(CurrentText);
+			_watermark.IsVisible =
+				(Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(CurrentText);
 		}
 	}
 
@@ -388,7 +390,7 @@ public class TagsBox : TemplatedControl
 			}
 		}
 
-		if (e.Text is { Length: 1 } && e.Text.StartsWith(TagSeparator))
+		if (e.Text is {Length: 1} && e.Text.StartsWith(TagSeparator))
 		{
 			autoCompleteBox.Text = autoCompleteBox.SearchText;
 			RequestAdd = true;
@@ -396,15 +398,16 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
-	protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+	/// <inheritdoc />
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
 		if (property == ItemsProperty)
 		{
-			DataValidationErrors.SetError(this, value.Error);
+			DataValidationErrors.SetError(this, error);
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
 	{
 		base.OnPropertyChanged(e);
 
@@ -422,7 +425,7 @@ public class TagsBox : TemplatedControl
 
 	private void RemoveLastTag()
 	{
-		if (Items is IList { Count: > 0 } items)
+		if (Items is IList {Count: > 0} items)
 		{
 			RemoveAt(items.Count - 1);
 		}

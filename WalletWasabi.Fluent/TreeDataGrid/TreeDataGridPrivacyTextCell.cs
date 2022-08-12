@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -40,8 +41,9 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		if (_formattedText is not null)
 		{
-			var r = Bounds.CenterRect(_formattedText.Bounds);
-			context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
+			var r = Bounds.CenterRect(new Rect(new Point(0,0), new Size(_formattedText.Width, _formattedText.Height)));
+			_formattedText.SetForegroundBrush(Foreground);
+			context.DrawText(_formattedText, new Point(0, r.Position.Y));
 		}
 	}
 
@@ -78,18 +80,20 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			return default;
 		}
 
-		if (availableSize != _formattedText?.Constraint)
+		if (availableSize.Width != _formattedText?.MaxTextWidth || availableSize.Height != _formattedText?.MaxTextHeight )
 		{
 			_formattedText = new FormattedText(
-				Text,
+				Text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
 				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				availableSize);
+				FontSize, null)
+			{
+				TextAlignment =
+					TextAlignment.Left,
+				MaxTextHeight = availableSize.Height, MaxTextWidth = availableSize.Width
+			};
 		}
 
-		return _formattedText.Bounds.Size;
+		return new Size(_formattedText.Width, _formattedText.Height);
 	}
 
 	private static void SetContentVisible(bool value)

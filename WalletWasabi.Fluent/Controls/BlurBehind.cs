@@ -44,12 +44,15 @@ public class BlurBehind : Control
 
 		public void Render(IDrawingContextImpl context)
 		{
-			if (context is not ISkiaDrawingContextImpl skia)
+			var leaseFeature = context.GetFeature<ISkiaSharpApiLeaseFeature>();
+			if (leaseFeature is null)
 			{
 				return;
 			}
 
-			if (!skia.SkCanvas.TotalMatrix.TryInvert(out var currentInvertedTransform))
+			using var lease = leaseFeature.Lease();
+
+			if (!lease.SkCanvas.TotalMatrix.TryInvert(out var currentInvertedTransform))
 			{
 				return;
 			}
@@ -61,32 +64,40 @@ public class BlurBehind : Control
 				return;
 			}
 
-			using var backgroundSnapshot = skia.SkSurface.Snapshot();
+			using var backgroundSnapshot = lease.SkSurface.Snapshot();
 
 			using var preBlur =
-				DrawingContextHelper.CreateDrawingContext(
-					new Size(backgroundSnapshot.Width, backgroundSnapshot.Height), new Vector(96, 96),
-					skia.GrContext);
+				   DrawingContextHelper.CreateDrawingContext(
+					   new Size(backgroundSnapshot.Width, backgroundSnapshot.Height), new Vector(96, 96),
+					   lease.GrContext);
+
+			var leaseCustomFeature = preBlur.GetFeature<ISkiaSharpApiLeaseFeature>();
+			if (leaseCustomFeature is null)
+			{
+				return;
+			}
+			using var leaseCustom = leaseCustomFeature.Lease();
+
 			using (var filter = SKImageFilter.CreateBlur((int)_blurRadius.X, (int)_blurRadius.Y, SKShaderTileMode.Clamp))
 			using (var blurPaint = new SKPaint { ImageFilter = filter })
 			{
-				var canvas = preBlur.SkSurface.Canvas;
-				canvas.DrawSurface(skia.SkSurface, 0f, 0f, blurPaint);
+				var canvas = leaseCustom.SkSurface.Canvas;
+				canvas.DrawSurface(lease.SkSurface, 0f, 0f, blurPaint);
 				canvas.Flush();
 			}
 
-			using var preBlurredSnapshot = preBlur.SkSurface.Snapshot();
+			using var preBlurredSnapshot = leaseCustom.SkSurface.Snapshot();
 
 			using var backdropShader = SKShader.CreateImage(preBlurredSnapshot, SKShaderTileMode.Clamp,
 				SKShaderTileMode.Clamp, currentInvertedTransform);
 
-			using var blurred = DrawingContextHelper.CreateDrawingContext(_bounds.Size, new Vector(96, 96), skia.GrContext);
+			using var blurred = DrawingContextHelper.CreateDrawingContext(_bounds.Size, new Vector(96, 96), lease.GrContext);
 			using (var blurPaint = new SKPaint { Shader = backdropShader })
 			{
-				blurred.SkSurface.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
+				leaseCustom.SkSurface.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
 			}
 
-			blurred.DrawTo(skia);
+			blurred.DrawTo(context);
 		}
 
 		public Rect Bounds => _bounds.Inflate(_blurRadius.X);

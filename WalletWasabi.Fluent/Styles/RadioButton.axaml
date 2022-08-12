@@ -23,25 +23,25 @@
                 BorderThickness="{TemplateBinding BorderThickness}">
 
 
-          <ContentPresenter Name="PART_ContentPresenter"
-                            Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}"
-                            TextBlock.Foreground="{TemplateBinding Foreground}"
-                            Margin="{TemplateBinding Padding}"
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-        </Border>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      TextElement.Foreground="{TemplateBinding Foreground}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 
-  <Style Selector="RadioButton.text /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Opacity" Value="0.6" />
-  </Style>
-  <Style Selector="RadioButton.text:checked /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="(TextBlock.Foreground)" Value="{DynamicResource SystemAccentColor}" />
-  </Style>
-  <Style Selector="RadioButton.text:pointerover:not(:pressed) /template/ ContentPresenter#PART_ContentPresenter, RadioButton.text:checked /template/ ContentPresenter#PART_ContentPresenter, RadioButton.text:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
+    <Style Selector="RadioButton.text /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="RadioButton.text:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="RadioButton.text:pointerover:not(:pressed) /template/ ContentPresenter#PART_ContentPresenter, RadioButton.text:checked /template/ ContentPresenter#PART_ContentPresenter, RadioButton.text:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
 </Styles>

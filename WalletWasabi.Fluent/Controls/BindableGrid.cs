@@ -29,7 +29,7 @@ public class BindableGrid : Grid
 		set => SetValue(RowDefinitionsSourceProperty, value);
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 

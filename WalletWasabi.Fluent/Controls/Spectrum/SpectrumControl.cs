@@ -118,7 +118,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
@@ -128,7 +128,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 		else if (change.Property == IsDockEffectVisibleProperty)
 		{
-			if (change.NewValue.GetValueOrDefault<bool>() && !IsActive)
+			if ((bool)change.NewValue && !IsActive)
 			{
 				_splashEffectDataSource.Start();
 			}
@@ -208,17 +208,20 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		var bounds = Bounds;
 
-		if (context is not ISkiaDrawingContextImpl skia)
+		var leaseFeature = context.GetFeature<ISkiaSharpApiLeaseFeature>();
+		if (leaseFeature is null)
 		{
 			return;
 		}
 
+		using var lease = leaseFeature.Lease();
+
 		if (_surface is null)
 		{
-			if (skia.GrContext is { })
+			if (lease.GrContext is { })
 			{
 				_surface =
-					SKSurface.Create(skia.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+					SKSurface.Create(lease.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
 			}
 			else
 			{
@@ -235,7 +238,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 
 		using var snapshot = _surface.Snapshot();
 
-		skia.SkCanvas.DrawImage(
+		lease.SkCanvas.DrawImage(
 			snapshot,
 			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
 			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height), _blur);

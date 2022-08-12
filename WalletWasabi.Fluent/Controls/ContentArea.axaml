@@ -117,10 +117,10 @@
     <Setter Property="Margin" Value="31,10" />
   </Style>
 
-  <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
-    <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
-    <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeH3}" />
-  </Style>
+    <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource TextControlForeground}" />
+        <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH3}" />
+    </Style>
 
   <Style Selector="c|ContentArea :is(Control).title TextBlock, c|ContentArea :is(TextBlock).title">
     <Setter Property="TextWrapping" Value="Wrap" />

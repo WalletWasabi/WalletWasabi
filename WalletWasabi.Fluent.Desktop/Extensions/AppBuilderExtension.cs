@@ -29,9 +29,9 @@ public static class AppBuilderExtension
 
 		return appBuilder
 			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 })
-			.With(new Win32PlatformOptions { AllowEglInitialization = enableGpu, UseDeferredRendering = true, UseWindowsUIComposition = true })
-			.With(new X11PlatformOptions { UseGpu = enableGpu, WmClass = "Wasabi Wallet" })
-			.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = enableGpu })
+			.With(new Win32PlatformOptions { AllowEglInitialization = enableGpu, UseCompositor = true, UseWindowsUIComposition = true })
+			.With(new X11PlatformOptions { UseGpu = enableGpu, WmClass = "Wasabi Wallet", UseCompositor = true })
+			.With(new AvaloniaNativePlatformOptions { UseCompositor = true, UseGpu = enableGpu })
 			.With(new MacOSPlatformOptions { ShowInDock = true });
 	}
 }
