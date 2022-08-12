@@ -12,6 +12,7 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Hardware Wallets
 
+- ColdCard MK1
 - ColdCard MK2
 - ColdCard MK3
 - ColdCard MK4
