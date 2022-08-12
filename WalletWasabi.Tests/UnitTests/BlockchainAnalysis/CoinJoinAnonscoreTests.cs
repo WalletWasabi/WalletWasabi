@@ -216,14 +216,14 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
-	public void InputSanityBeforeSelfAnonsetSanityCheck()
+	public void SelfAnonsetSanityBeforeInputSanityCheck()
 	{
-		// Input sanity check is executed before self anonset sanity check.
+		// Self anonset sanity check is executed before input sanity check is executed.
 		var analyser = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
-			2,
+			1,
 			othersOutputs.Select(x => Money.Coins(x)),
 			new[] { (Money.Coins(3.2m), 1) },
 			ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
@@ -233,9 +233,8 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
 		// The increase in the anonymity set would naively be 3 as there are 3 equal non-wallet outputs.
-		// But there are only 2 non-wallet inputs, so that limits the increase to 2.
-		// Since 2 outputs are ours, we divide the increase in anonymity between them and add that
-		// to the inherited anonymity, getting an anonymity set of 1 + 2/2 = 2.
+		// But there is only 1 non-wallet input, so that limits the increase to 1.
+		// We are getting an anonymity set of 1 + min(3/2, 1) = 1 + 1 = 2.
 		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
 	}
 
