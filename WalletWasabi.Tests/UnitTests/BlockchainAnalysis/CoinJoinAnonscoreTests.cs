@@ -3,6 +3,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis;
@@ -215,14 +216,14 @@ public class CoinJoinAnonScoreTests
 	}
 
 	[Fact]
-	public void InputSanityBeforeSelfAnonsetSanityCheck()
+	public void SelfAnonsetSanityBeforeInputSanityCheck()
 	{
-		// Input sanity check is executed before self anonset sanity check.
+		// Self anonset sanity check is executed before input sanity check is executed.
 		var analyser = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
-			2,
+			1,
 			othersOutputs.Select(x => Money.Coins(x)),
 			new[] { (Money.Coins(3.2m), 1) },
 			ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
@@ -232,9 +233,8 @@ public class CoinJoinAnonScoreTests
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
 		// The increase in the anonymity set would naively be 3 as there are 3 equal non-wallet outputs.
-		// But there are only 2 non-wallet inputs, so that limits the increase to 2.
-		// Since 2 outputs are ours, we divide the increase in anonymity between them and add that
-		// to the inherited anonymity, getting an anonymity set of 1 + 2/2 = 2.
+		// But there is only 1 non-wallet input, so that limits the increase to 1.
+		// We are getting an anonymity set of 1 + min(3/2, 1) = 1 + 1 = 2.
 		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
 	}
 
@@ -255,5 +255,59 @@ public class CoinJoinAnonScoreTests
 
 		// 10 participants, 1 is you, your anonset would be 10 normally and now too:
 		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+	}
+
+	[Fact]
+	public void SiblingCoinjoinDoesntContributeToAnonScore()
+	{
+		var tx1 = new AnalyzedTransaction();
+		tx1.AddForeignInput();
+		tx1.AddWalletInput();
+		var a = tx1.AddForeignOutput();
+		var b = tx1.AddWalletOutput();
+
+		var tx2 = new AnalyzedTransaction();
+		tx2.AddForeignInput(a);
+		tx2.AddWalletInput(b);
+		tx2.AddForeignOutput();
+		var f = tx2.AddWalletOutput();
+
+		tx2.AnalyzeRecursively();
+
+		Assert.Equal(2, b.Anonymity);
+		Assert.Equal(2, f.Anonymity);
+	}
+
+	[Fact]
+	public void EarlierSiblingCoinjoinDoesntContributeToAnonScore()
+	{
+		var tx1 = new AnalyzedTransaction();
+		tx1.AddForeignInput();
+		tx1.AddWalletInput(anonymity: 10);
+		var a = tx1.AddForeignOutput();
+		var b = tx1.AddWalletOutput();
+
+		var tx2 = new AnalyzedTransaction();
+		tx2.AddForeignInput();
+		tx2.AddWalletInput(b);
+		var c = tx2.AddForeignOutput();
+		var d = tx2.AddWalletOutput();
+		var e = tx2.AddWalletOutput();
+
+		var tx3 = new AnalyzedTransaction();
+		tx3.AddForeignInput(a);
+		tx3.AddForeignInput(c);
+		tx3.AddWalletInput(d);
+		tx3.AddForeignOutput();
+		tx3.AddForeignOutput();
+		tx3.AddForeignOutput();
+		var l = tx3.AddWalletOutput();
+
+		tx3.AnalyzeRecursively();
+
+		Assert.Equal(11, b.Anonymity);
+		Assert.Equal(11.5, d.Anonymity);
+		Assert.Equal(11.5, e.Anonymity);
+		Assert.Equal(12, l.Anonymity);
 	}
 }
