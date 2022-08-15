@@ -1,10 +1,10 @@
 # Script downloads Tor Browsers, then extract the downloaded archives and copies Tor binaries to "temp/<version/Tor/<os-platform>" folders to be consumed by Wasabi Wallet.
 
 # # Examples
-# 1] `.\UpgradeTorBinaries.ps1` runs the script which downloads Tor Browser binaries, extract them to "temp" (where the script is placed) and copies Tor binaries to "temp/<tor-browser-version>/Tor/<os-platform>".
+# 1] `.\UpgradeTorBinaries.ps1 -version "11.5.1"` runs the script which downloads Tor Browser binaries, extract them to "temp" (where the script is placed) and copies Tor binaries to "temp/<tor-browser-version>/Tor/<os-platform>".
 #   Then the Tor binaries used by Wasabi Wallet are replaced with the just extracted ones.
-# 2] `.\UpgradeTorBinaries.ps1 -Debug` to show debug information what the script does.
-# 3] `.\UpgradeTorBinaries.ps1 -skipDownloading` skips downloading Tor Browser binaries and continues as in 1]. Useful for script testing.
+# 2] `.\UpgradeTorBinaries.ps1 -version "11.5.1" -Debug` to show debug information what the script does.
+# 3] `.\UpgradeTorBinaries.ps1 -version "11.5.1" -skipDownloading` skips downloading Tor Browser binaries and continues as in 1]. Useful for script testing.
 #
 # # Notes
 #
@@ -15,6 +15,7 @@
 
 [CmdletBinding()]
 param(
+  [Parameter(Mandatory=$true)]$version, # Version of the Tor Browser (not Tor itself). So e.g. "11.5.1". See folder names here https://dist.torproject.org/torbrowser/.
   [Parameter(Mandatory=$false)][Switch]$skipDownloading,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingBrowserArchives,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingTorBinaries,
@@ -24,7 +25,6 @@ Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
 
 # <Settings>
-$version = "11.0.15"
 $distUri = "https://www.torproject.org/dist/torbrowser/${version}"
 
 $supportedPlatforms = @(
