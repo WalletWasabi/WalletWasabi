@@ -525,38 +525,39 @@ public class TorHttpPool : IAsyncDisposable
 				TorPrebuildCircuitRequest request = await PreBuildingRequestChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				long i = ++counter;
 
-				Task task = Task.Run(async () =>
-				{
-					OneOffCircuit circuit = new();
-					prebuildingTasks.TryAdd(i, circuit);
-
-					try
+				Task task = Task.Run(
+					async () =>
 					{
-						Logger.LogTrace($"[{i}][{circuit.Name}] Wait {request.RandomDelay} before pre-building.");
-						await Task.Delay(request.RandomDelay, cancellationToken).ConfigureAwait(false);
+						OneOffCircuit circuit = new();
+						prebuildingTasks.TryAdd(i, circuit);
 
-						Logger.LogTrace($"[{i}][{circuit.Name}] Start pre-building the Tor circuit.");
-						Stopwatch sw = Stopwatch.StartNew();
+						try
+						{
+							Logger.LogTrace($"[{i}][{circuit.Name}] Wait {request.RandomDelay} before pre-building.");
+							await Task.Delay(request.RandomDelay, cancellationToken).ConfigureAwait(false);
 
-						// Not to be disposed now.
-						TorTcpConnection? _ = await CreateNewConnectionAsync(request.BaseUri, circuit, cancellationToken).ConfigureAwait(false);
-						sw.Stop();
+							Logger.LogTrace($"[{i}][{circuit.Name}] Start pre-building the Tor circuit.");
+							Stopwatch sw = Stopwatch.StartNew();
 
-						Logger.LogTrace($"[{i}][{circuit.Name}] Tor circuit built in {sw.ElapsedMilliseconds} ms.");
-					}
-					catch (OperationCanceledException)
-					{
-						Logger.LogDebug("Operation was cancelled.");
-					}
-					catch (Exception e)
-					{
-						Logger.LogError(e);
-					}
-					finally
-					{
-						prebuildingTasks.TryRemove(i, out _);
-					}
-				},
+							// Not to be disposed now.
+							TorTcpConnection? _ = await CreateNewConnectionAsync(request.BaseUri, circuit, cancellationToken).ConfigureAwait(false);
+							sw.Stop();
+
+							Logger.LogTrace($"[{i}][{circuit.Name}] Tor circuit built in {sw.ElapsedMilliseconds} ms.");
+						}
+						catch (OperationCanceledException)
+						{
+							Logger.LogDebug("Operation was cancelled.");
+						}
+						catch (Exception e)
+						{
+							Logger.LogError(e);
+						}
+						finally
+						{
+							prebuildingTasks.TryRemove(i, out _);
+						}
+					},
 				cancellationToken);
 			}
 
