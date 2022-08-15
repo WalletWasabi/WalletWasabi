@@ -556,7 +556,8 @@ public class TorHttpPool : IAsyncDisposable
 					{
 						prebuildingTasks.TryRemove(i, out _);
 					}
-				}, cancellationToken);
+				},
+				cancellationToken);
 			}
 
 			Logger.LogDebug("Circuit pre-building loop gracefully terminated.");
