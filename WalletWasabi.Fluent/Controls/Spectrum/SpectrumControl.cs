@@ -185,10 +185,10 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
 			var rect = new SKRect(
-				(float) x,
-				(float) height,
-				(float) (x + thickness),
-				(float) (height - multiplier * _data[i] * (height * 0.8)));
+				(float)x,
+				(float)height,
+				(float)(x + thickness),
+				(float)(height - multiplier * _data[i] * (height * 0.8)));
 			path.AddRect(rect);
 
 			x += thickness;

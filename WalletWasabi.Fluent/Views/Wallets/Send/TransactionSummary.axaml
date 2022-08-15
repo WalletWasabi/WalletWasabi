@@ -20,9 +20,9 @@
     <!-- Recipient -->
     <c:PreviewItem Icon="{StaticResource person_regular}"
                    Label="will be sent to">
-      <c:LabelsListBox Items="{Binding Recipient}"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Center" />
+      <c:LabelsItemsPresenter Items="{Binding Recipient}"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center" />
     </c:PreviewItem>
     <Separator />
 
@@ -48,9 +48,9 @@
       </Button>
       <c:PreviewItem Icon="{StaticResource incognito_pathicon}"
                      Label="other people or companies could know about this">
-        <c:LabelsListBox Items="{Binding Labels}"
-                         HorizontalAlignment="Left"
-                         VerticalAlignment="Center" />
+        <c:LabelsItemsPresenter Items="{Binding Labels}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
       </c:PreviewItem>
     </DockPanel>
     <Separator IsVisible="{Binding TransactionHasPockets}" />

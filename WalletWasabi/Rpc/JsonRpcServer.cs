@@ -104,7 +104,7 @@ public class JsonRpcServer : BackgroundService
 			return false;
 		}
 
-		var identity = (HttpListenerBasicIdentity?) user.Identity;
+		var identity = (HttpListenerBasicIdentity?)user.Identity;
 		return CheckValidCredentials(identity);
 	}
 

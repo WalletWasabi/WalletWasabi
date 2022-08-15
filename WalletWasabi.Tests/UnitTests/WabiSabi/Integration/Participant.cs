@@ -66,7 +66,7 @@ internal class Participant
 		SplitTransaction = new SmartTransaction(splitTx, new Height(1));
 	}
 
-	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartParticipatingAsync(CancellationToken cancellationToken)
 	{
 		if (SplitTransaction is null)
 		{
@@ -92,8 +92,10 @@ internal class Participant
 			.ToList();
 
 		// Run the coinjoin client task.
-		await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
+		var ret = await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
 
 		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+
+		return ret;
 	}
 }

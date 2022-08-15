@@ -79,7 +79,7 @@ public class StepInputRegistrationTests
 		round.Alices.Add(alice3);
 		var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 
-		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync( blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(blameRound);
 
 		blameRound.Alices.Add(alice1);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -137,7 +137,7 @@ public class StepInputRegistrationTests
 		blameRound.Alices.Add(alice1);
 		blameRound.Alices.Add(alice2);
 
-		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync( blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.ConnectionConfirmation, blameRound.Phase);
 
@@ -185,7 +185,7 @@ public class StepInputRegistrationTests
 		var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 		blameRound.Alices.Add(alice1);
 
-		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync( blameRound);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.Ended, blameRound.Phase);
 		Assert.DoesNotContain(blameRound, arena.GetActiveRounds());

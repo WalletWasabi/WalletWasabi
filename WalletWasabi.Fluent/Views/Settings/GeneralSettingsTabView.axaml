@@ -52,6 +52,11 @@
       <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
     </DockPanel>
 
+    <DockPanel>
+      <TextBlock Text="Auto download new version" />
+      <ToggleSwitch IsChecked="{Binding DownloadNewVersion}" />
+    </DockPanel>
+
     <StackPanel Spacing="10">
       <TextBlock Text="Fee display unit" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayUnits}" SelectedItem="{Binding SelectedFeeDisplayUnit}">
@@ -62,6 +67,5 @@
         </ComboBox.ItemTemplate>
       </ComboBox>
     </StackPanel>
-
   </StackPanel>
 </UserControl>

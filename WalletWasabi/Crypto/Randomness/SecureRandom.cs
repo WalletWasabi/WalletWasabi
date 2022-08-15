@@ -9,7 +9,7 @@ public class SecureRandom : WasabiRandom
 	public SecureRandom()
 	{
 	}
-	
+
 	public override void GetBytes(byte[] buffer)
 	{
 		RandomNumberGenerator.Fill(buffer);
@@ -22,6 +22,6 @@ public class SecureRandom : WasabiRandom
 
 	public override int GetInt(int fromInclusive, int toExclusive)
 	{
-		return RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);		
+		return RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
 	}
 }

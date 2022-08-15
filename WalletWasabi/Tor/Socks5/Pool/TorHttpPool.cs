@@ -97,9 +97,9 @@ public class TorHttpPool : IAsyncDisposable
 
 	public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
-	public Task<bool> IsTorRunningAsync()
+	public Task<bool> IsTorRunningAsync(CancellationToken cancel)
 	{
-		return TcpConnectionFactory.IsTorRunningAsync();
+		return TcpConnectionFactory.IsTorRunningAsync(cancel);
 	}
 
 	public static Exception? LatestTorException { get; private set; } = null;
@@ -263,12 +263,12 @@ public class TorHttpPool : IAsyncDisposable
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogTrace($"[{connection}] Request was canceled: '{request.RequestUri}'.");
+			Logger.LogTrace($"['{connection}'] Request was canceled: '{request.RequestUri}'.");
 			throw;
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"[{connection}] Request failed with exception", e);
+			Logger.LogTrace($"['{connection}'] Request failed with exception", e);
 			OnTorRequestFailed(e);
 			throw;
 		}

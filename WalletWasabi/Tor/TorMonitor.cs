@@ -171,7 +171,7 @@ public class TorMonitor : PeriodicRunner
 		{
 			if (forceTorRestartCts.IsCancellationRequested)
 			{
-				// Attempt to shut down Tor. 
+				// Attempt to shut down Tor.
 				if (torControlClient is not null)
 				{
 					bool success = await ShutDownTorAsync(torControlClient).ConfigureAwait(false);
@@ -254,7 +254,7 @@ public class TorMonitor : PeriodicRunner
 				if (latestTorException is TorConnectCommandFailedException e)
 				{
 					// Tor must be running for us to consider switching to the fallback address.
-					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
+					bool isRunning = await HttpClient.IsTorRunningAsync(token).ConfigureAwait(false);
 
 					if (!isRunning)
 					{

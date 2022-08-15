@@ -13,12 +13,13 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider
+public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
 	private const long StateNotStarted = 0;
 
@@ -219,7 +220,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 					{
 						Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
 					}
-					catch (TorConnectionException ex)
+					catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException)
 					{
 						// When stopping, we do not want to wait.
 						if (!IsRunning)
