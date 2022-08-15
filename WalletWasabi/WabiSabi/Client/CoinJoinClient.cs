@@ -796,7 +796,9 @@ public class CoinJoinClient
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
 		var winner = new List<SmartCoin>();
+		winner.Add(selectedNonPrivateCoin);
 		foreach (var coin in finalCandidate
+			.Except(new [] {selectedNonPrivateCoin})
 			.OrderBy(x => x.HdPubKey.AnonymitySet)
 			.ThenByDescending(x => x.Amount))
 		{
@@ -813,6 +815,30 @@ public class CoinJoinClient
 			{
 				winner.Add(coin);
 			}
+		}
+
+		double winnerCost = 0;
+		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerCost/winner.Sum(x => x.Amount) < 3))
+		{
+			List<SmartCoin> bestReducedWinner = winner;
+			var minimumAnonScore = bestReducedWinner.Min(x => x.HdPubKey.AnonymitySet);
+			var minCost = bestReducedWinner.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi);
+
+			foreach (SmartCoin coin in winner.Except(new [] {selectedNonPrivateCoin}))
+			{
+				var reducedWinner = winner.Except(new [] { coin });
+				minimumAnonScore = reducedWinner.Min(x => x.HdPubKey.AnonymitySet);
+				var cost = reducedWinner.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi);
+
+				if (cost < minCost)
+				{
+					minCost = cost;
+					bestReducedWinner = reducedWinner.ToList();
+				}
+			}
+
+			winner = bestReducedWinner;
+			winnerCost = minCost;
 		}
 
 		if (winner.Count != finalCandidate.Count())
