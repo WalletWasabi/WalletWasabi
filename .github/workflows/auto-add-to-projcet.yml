@@ -18,4 +18,4 @@ jobs:
       if: github.event.action == 'opened'
       with:
         project: 'https://github.com/orgs/zkSNACKs/projects/18'
-        column_name: 'Title'   
+        column_name: 'Title'
