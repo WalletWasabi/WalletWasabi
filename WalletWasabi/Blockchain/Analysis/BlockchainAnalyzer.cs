@@ -69,9 +69,9 @@ public class BlockchainAnalyzer
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
-		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (Math.Max(1, x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x))) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
+		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
 
-		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => Math.Max(1, x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x)));
+		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x));
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
