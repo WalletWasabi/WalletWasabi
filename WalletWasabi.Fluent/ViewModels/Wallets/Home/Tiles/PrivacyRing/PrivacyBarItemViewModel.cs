@@ -8,10 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public class PrivacyBarItemViewModel : WalletCoinViewModel
 {
-	public bool IsPrivate { get; }
-	public bool IsSemiPrivate { get; }
-	public bool IsNonPrivate { get; }
-
 	public PrivacyBarItemViewModel(PrivacyBarViewModel parent, SmartCoin coin, double start, double width) : base(coin)
 	{
 		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
@@ -25,4 +21,8 @@ public class PrivacyBarItemViewModel : WalletCoinViewModel
 	}
 
 	public RectangleGeometry Data { get; }
+
+	public bool IsPrivate { get; }
+	public bool IsSemiPrivate { get; }
+	public bool IsNonPrivate { get; }
 }
