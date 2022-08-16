@@ -225,8 +225,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				});
 
-				// Emulate that the all our outputs had been already used in the past.
-				// the server will prevent the registration and fail with an WabiSabiProtocolError.
+				// Emulate that all our outputs had been already used in the past.
+				// the server will prevent the registration and fail with a WabiSabiProtocolError.
 				services.AddScoped(s => new CoinJoinScriptStore(outputScriptCandidates));
 			})).CreateClient();
 
