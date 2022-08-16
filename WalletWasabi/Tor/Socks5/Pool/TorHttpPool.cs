@@ -332,7 +332,7 @@ public class TorHttpPool : IAsyncDisposable
 		}
 		catch (TorException e)
 		{
-			Logger.LogDebug($"['{requestUri}'][ERROR] Failed to create a new pool connection.", e);
+			Logger.LogTrace($"['{requestUri}'][ERROR] Failed to create a new pool connection.", e);
 			throw;
 		}
 		catch (OperationCanceledException)
@@ -357,7 +357,7 @@ public class TorHttpPool : IAsyncDisposable
 
 					if (!ConnectionPerHost.ContainsKey(host))
 					{
-						ConnectionPerHost.Add(host, new());
+						ConnectionPerHost.Add(host, new List<TorTcpConnection>());
 					}
 
 					ConnectionPerHost[host].Add(connection);
