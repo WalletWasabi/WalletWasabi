@@ -353,7 +353,7 @@ public class CoinJoinClient
 				personCircuit?.Dispose();
 				return (null, null);
 			}
-			catch (UnexpectedRoundPhaseException)
+			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
 			{
 				personCircuit?.Dispose();
 				return (null, null);
