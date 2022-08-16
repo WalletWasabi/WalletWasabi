@@ -64,14 +64,12 @@ public class BlockchainAnalyzer
 
 	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out double mixedAnonScore, out double nonMixedAnonScore)
 	{
-		CoinjoinAnalyzer cjAnal = new(tx);
-
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
-		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
+		mixedAnonScore = tx.WalletInputs.Sum(x => x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / tx.WalletInputs.Sum(x => x.Amount);
 
-		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x));
+		nonMixedAnonScore = tx.WalletInputs.Min(x => x.HdPubKey.AnonymitySet);
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
@@ -144,8 +142,10 @@ public class BlockchainAnalyzer
 			var ownEqualOutputCount = indistinguishableWalletOutputs[virtualOutput.Amount];
 
 			// Anonset gain cannot be larger than others' input count.
+			double anonset = Math.Min(equalForeignOutputCount, foreignInputCount);
+
 			// Picking randomly an output would make our anonset: total/ours.
-			double anonset = Math.Min(equalForeignOutputCount / (double)ownEqualOutputCount, foreignInputCount);
+			anonset /= ownEqualOutputCount;
 
 			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			double startingOutputAnonset;
