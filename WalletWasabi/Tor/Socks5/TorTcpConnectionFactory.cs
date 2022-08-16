@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
@@ -74,25 +75,7 @@ public class TorTcpConnectionFactory
 
 		try
 		{
-			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken, client =>
-			{
-				client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-
-				// Windows 7 does not support the API we use.
-				if (!(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Major < 10))
-				{
-					try
-					{
-						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
-						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 5);
-						client.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 5);
-					}
-					catch (SocketException ex) when (ex.ErrorCode is 10042)
-					{
-						Logger.LogWarning("KeepAlive settings are not allowed by your OS. Ignoring.");
-					}
-				}
-			}).ConfigureAwait(false);
+			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
 
 			transportStream = tcpClient.GetStream();
 			await HandshakeAsync(tcpClient, circuit, cancellationToken).ConfigureAwait(false);
@@ -100,7 +83,7 @@ public class TorTcpConnectionFactory
 
 			if (useSsl)
 			{
-				transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
+				transportStream = await UpgradeToSslAsync(tcpClient, host, cancellationToken).ConfigureAwait(false);
 			}
 
 			bool allowRecycling = !useSsl && (circuit is DefaultCircuit or PersonCircuit);
@@ -125,7 +108,7 @@ public class TorTcpConnectionFactory
 		try
 		{
 			// Internal TCP client may close, so we need a new instance here.
-			using var tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
+			using TcpClient tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
 			await HandshakeAsync(tcpClient, DefaultCircuit.Instance, cancellationToken).ConfigureAwait(false);
 
 			return true;
@@ -200,10 +183,18 @@ public class TorTcpConnectionFactory
 		}
 	}
 
-	private static async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
+	private static async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host, CancellationToken cancellationToken)
 	{
 		SslStream sslStream = new(tcpClient.GetStream(), leaveInnerStreamOpen: true);
-		await sslStream.AuthenticateAsClientAsync(host, clientCertificates: new(), checkCertificateRevocation: true).ConfigureAwait(false);
+
+		SslClientAuthenticationOptions options = new()
+		{
+			TargetHost = host,
+			ClientCertificates = new(),
+			CertificateRevocationCheckMode = X509RevocationMode.Online,
+		};
+
+		await sslStream.AuthenticateAsClientAsync(options, cancellationToken).ConfigureAwait(false);
 		return sslStream;
 	}
 
