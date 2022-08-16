@@ -151,16 +151,14 @@ public class TorMonitor : PeriodicRunner
 				else if (asyncEvent is CircEvent circEvent)
 				{
 					CircuitInfo info = circEvent.CircuitInfo;
-					if (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
+
+					if (!circuitEstablished && (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT))
 					{
-						if (!circuitEstablished)
-						{
-							Logger.LogInfo("Tor circuit was established.");
-							circuitEstablished = true;
-						}
+						Logger.LogInfo("Tor circuit was established.");
+						circuitEstablished = true;
 					}
 
-					if (info.CircStatus is CircStatus.BUILT or CircStatus.CLOSED && info.UserName is not null)
+					if ((info.CircStatus is CircStatus.BUILT or CircStatus.CLOSED) && info.UserName is not null)
 					{
 						TorHttpPool.ReportCircuitStatus(info.CircStatus, info.CircuitID, info.UserName);
 					}

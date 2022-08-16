@@ -170,14 +170,7 @@ public class TorHttpPool : IAsyncDisposable
 
 					// Let others use the client.
 					TcpConnectionState state = connection.Unreserve();
-
-					string? responseStr = null;
-
-					if (response.Content is not null)
-					{
-						responseStr = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-					}
-					Logger.LogTrace($"['{connection}'][Attempt #{i}] Unreserve. State is: '{state}', response: '{responseStr}'.");
+					Logger.LogTrace($"['{connection}'][Attempt #{i}] Unreserve. State is: '{state}'.");
 
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
