@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Media;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -9,30 +10,20 @@ using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-[NavigationMetaData(
-	Title = "Wallet Coins",
-	NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class PrivacyRingViewModel : RoutableViewModel
+public partial class PrivacyBarViewModel : ViewModelBase
 {
-	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
+	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
-	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
 
-	public PrivacyRingViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	[AutoNotify] private double _width;
+
+	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
 		Wallet = walletViewModel.Wallet;
-
-		OuterRadius = 250d;
-		InnerRadius = 240d;
-
-		NextCommand = CancelCommand;
-
-		PreviewItems.Add(walletViewModel.Tiles.OfType<PrivacyControlTileViewModel>().First());
 
 		_itemsSourceList
 			.Connect()
@@ -48,18 +39,13 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 						  .ToSignal());
 
 		_coinsUpdated
+			.CombineLatest(this.WhenAnyValue(x => x.Width))
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
-
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
-	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
-
-	public double OuterRadius { get; }
-	public double InnerRadius { get; }
+	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
 	public Wallet Wallet { get; }
 
@@ -69,8 +55,15 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		{
 			list.Clear();
 
+			if (Width == 0d)
+			{
+				return;
+			}
+
 			var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 			var start = 0.0m;
+
+			var usableWidth = Width - (pockets.SelectMany(x => x.Coins).Count() * 2);
 
 			foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
 			{
@@ -78,28 +71,29 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 				foreach (var coin in pocketCoins)
 				{
-					var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+					var margin = 2;
+					var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+					var width = Math.Abs((decimal)usableWidth * amount / total);
 
-					var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end);
+					// Artificially enlarge UTXOs smaller than 2 px in order to make them visible.
+					if (width < 2)
+					{
+						width++;
+						margin--;
+					}
+
+					var item = new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
 
 					list.Add(item);
 
-					start = end;
+					start += width + margin;
 				}
 			}
-
-			PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
-			PreviewItems.AddRange(list);
 		});
 	}
 
 	public void Dispose()
 	{
-		foreach (var item in Items)
-		{
-			item.Dispose();
-		}
-
 		_itemsSourceList.Dispose();
 	}
 }

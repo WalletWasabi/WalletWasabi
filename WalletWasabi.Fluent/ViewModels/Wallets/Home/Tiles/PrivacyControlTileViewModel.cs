@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -29,9 +28,13 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_balanceChanged = balanceChanged;
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
+
+		PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
 	}
 
 	public ICommand ShowDetailsCommand { get; }
+
+	public PrivacyBarViewModel PrivacyBar { get; }
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
