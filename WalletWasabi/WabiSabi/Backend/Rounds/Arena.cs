@@ -105,10 +105,10 @@ public partial class Arena : PeriodicRunner
 				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			.ToArray();
 
-		// Let's make sure WW2.0.1 clients prefer rounds that WW2.0.0 clients don't.
+		// Let's make sure that newer clients prefer rounds that WW2.0.0 clients don't.
 		// In WW2.0.0 on client side we accidentally order rounds by calling .ToImmutableDictionary(x => x.Id, x => x)
 		// therefore whichever round ToImmutableDictionary would make to be the first round, we send it to the back of our list.
-		// With this we can achieve that WW2.0.0 and WW2.0.1 clients prefer different rounds in parallel round configuration.
+		// With this we can make sure that WW2.0.0 and newer clients prefer different rounds in parallel round configuration.
 		if (standardRegistrableRounds.Any())
 		{
 			var firstRegistrableRoundAccordingToWW200 = standardRegistrableRounds
@@ -116,7 +116,7 @@ public partial class Arena : PeriodicRunner
 				.First()
 				.Value;
 
-			// Remove from wherever WW2.0.0's most preferred round is, then add it back to the end of our list.
+			// Remove from whatever WW2.0.0's most preferred round is, then add it back to the end of our list.
 			rounds.Remove(firstRegistrableRoundAccordingToWW200);
 			rounds.Add(firstRegistrableRoundAccordingToWW200);
 		}
