@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,24 +10,34 @@ public static class TcpClientConnector
 	/// <summary>
 	/// Connects to end point using a TCP client.
 	/// </summary>
-	/// <param name="builder">Runs in between creation of TCP client and connection to the end point.</param>
-	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancel, Action<TcpClient>? builder = null)
+	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
 	{
-		TcpClient tcpClient = new(endPoint.AddressFamily);
-		builder?.Invoke(tcpClient);
-		switch (endPoint)
+		TcpClient? client = null;
+
+		try
 		{
-			case DnsEndPoint dnsEndPoint:
-				await tcpClient.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port, cancel).ConfigureAwait(false);
-				break;
+			switch (endPoint)
+			{
+				case DnsEndPoint dnsEndPoint:
+					client = new();
+					await client.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port, cancellationToken).ConfigureAwait(false);
+					break;
 
-			case IPEndPoint ipEndPoint:
-				await tcpClient.ConnectAsync(ipEndPoint, cancel).ConfigureAwait(false);
-				break;
+				case IPEndPoint ipEndPoint:
+					client = new(endPoint.AddressFamily);
+					await client.ConnectAsync(ipEndPoint, cancellationToken).ConfigureAwait(false);
+					break;
 
-			default:
-				throw new ArgumentOutOfRangeException(nameof(endPoint));
+				default:
+					throw new NotSupportedException($"Endpoint of type '{endPoint.GetType().FullName}' is not supported.");
+			}
 		}
-		return tcpClient;
+		catch
+		{
+			client?.Dispose();
+			throw;
+		}
+
+		return client;
 	}
 }

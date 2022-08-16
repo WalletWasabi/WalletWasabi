@@ -10,8 +10,8 @@
              x:CompileBindings="True">
   <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15"
                            Classes="monoSpacedPrivacyReplacement">
-    <c:LabelsListBox Items="{Binding Label}"
-                     HorizontalAlignment="Left"
-                     VerticalAlignment="Center" />
+    <c:LabelsItemsPresenter Items="{Binding Label}"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
   </c:PrivacyContentControl>
 </UserControl>
