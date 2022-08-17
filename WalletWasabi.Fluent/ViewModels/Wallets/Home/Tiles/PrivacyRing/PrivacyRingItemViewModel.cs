@@ -49,6 +49,8 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Amount.ToFormattedString()} BTC";
+		Unconfirmed = !coin.Confirmed;
+		Confirmations = coin.GetConfirmations();
 
 		Data = new PathGeometry()
 		{
@@ -76,6 +78,8 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
 	public string AmountText { get; }
+	public bool Unconfirmed { get; }
+	public int Confirmations { get; }
 
 	private Point GetAnglePoint(double r, double angle)
 	{

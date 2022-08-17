@@ -28,6 +28,10 @@
       <Setter Property="Fill" Value="{DynamicResource PrivacyLevelNoneBrush}" />
     </Style>
 
+    <Style Selector="Path.unconfirmed">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
     <Style Selector="ListBoxItem">
       <Setter Property="IsSelected" Value="{Binding IsPointerOver, Mode=TwoWay}" />
       <Setter Property="ClipToBounds" Value="False" />
@@ -80,7 +84,8 @@
                   Data="{Binding Data}"
                   Classes.private="{Binding IsPrivate}"
                   Classes.semiPrivate="{Binding IsSemiPrivate}"
-                  Classes.nonPrivate="{Binding IsNonPrivate}">
+                  Classes.nonPrivate="{Binding IsNonPrivate}"
+                  Classes.unconfirmed="{Binding Unconfirmed}">
             </Path>
           </DataTemplate>
         </ListBox.ItemTemplate>
@@ -118,11 +123,13 @@
                   </StackPanel>
                 </StackPanel>
 
-                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 3">
                   <TextBlock
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     TextAlignment="Center"
-                    Text="{Binding AmountText}" Classes="h2" />
+                    Text="{Binding AmountText}" Classes="h3" />
+
+                  <TextBlock Text="{Binding Confirmations, StringFormat='Confirmations: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </StackPanel>
               </DockPanel>
             </c:TileControl>
