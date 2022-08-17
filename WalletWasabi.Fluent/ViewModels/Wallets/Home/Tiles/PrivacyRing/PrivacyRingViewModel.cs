@@ -27,8 +27,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	{
 		Wallet = walletViewModel.Wallet;
 
-		OuterRadius = 250d;
-		InnerRadius = 240d;
+		OuterRadius = 240d;
+		InnerRadius = 230d;
 
 		NextCommand = CancelCommand;
 

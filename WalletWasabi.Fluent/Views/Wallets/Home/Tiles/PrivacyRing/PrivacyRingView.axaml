@@ -45,21 +45,23 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
-                EnableNext="True" NextContent="Done"
-                EnableCancel="False"
-                EnableBack="True">
+                 EnableNext="True" NextContent="Done"
+                 EnableCancel="False"
+                 EnableBack="True"
+                 Caption="Hover over the ring segments to see coin details">
     <Panel>
-      <ListBox Items="{Binding Items}" ClipToBounds="False" Margin="250 250 0 0" HorizontalAlignment="Center"
+      <ListBox Items="{Binding Items}" ClipToBounds="False" Margin="240 240 0 0" HorizontalAlignment="Center"
                SelectedItem="{Binding SelectedItem}"
                x:Name="Ring">
         <i:Interaction.Behaviors>
           <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="1000" />
+          <behaviors:ItemsControlAnimationBehavior />
         </i:Interaction.Behaviors>
         <ListBox.Template>
           <ControlTemplate TargetType="ListBox">
             <Panel>
               <!-- "transparent" Border used for MouseMove -->
-              <Border Background="#01FFFFFF" Margin="-250 -250 0 0" />
+              <Border Background="White" Margin="-240 -240 0 0" Opacity="0.0001" />
               <ItemsPresenter Name="PART_ItemsPresenter"
                        Items="{TemplateBinding Items}"
                        ItemsPanel="{TemplateBinding ItemsPanel}"
@@ -92,12 +94,16 @@
         </Carousel.PageTransition>
         <Carousel.DataTemplates>
           <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
-            <tilesView:PrivacyControlTileView Width="300" Height="150" />
+            <tilesView:PrivacyControlTileView Width="300" Height="150" IsEnabled="False">
+              <i:Interaction.Behaviors>
+                <behaviors:FadeInBehavior InitialDelay="0:0:1" />
+              </i:Interaction.Behaviors>
+            </tilesView:PrivacyControlTileView>
           </DataTemplate>
           <DataTemplate DataType="{x:Type ring:PrivacyRingItemViewModel}">
             <c:TileControl TileSize="Medium" Width="300" Height="150">
               <DockPanel>
-                <c:LabelsListBox Items="{Binding SmartLabel}" DockPanel.Dock="Top" />
+                <c:LabelsItemsPresenter Items="{Binding SmartLabel}" DockPanel.Dock="Top" />
                 <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
                   <Separator />
                   <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
