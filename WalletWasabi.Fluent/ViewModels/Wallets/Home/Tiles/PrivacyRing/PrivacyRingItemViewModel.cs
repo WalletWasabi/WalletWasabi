@@ -24,9 +24,17 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 			? 0.01d
 			: 2d;
 
-		var startAngle = ((TotalAngle * start) - UprightAngle) - 0.001;
-		var endAngle = ((TotalAngle * end) - UprightAngle) + 0.001;
+		var startAngle = ((TotalAngle * start) - UprightAngle);
+		var endAngle = ((TotalAngle * end) - UprightAngle);
 		var isLargeArc = endAngle - startAngle > Math.PI;
+
+		// Compensate for angles that are too small
+		if (endAngle - startAngle < 0.03)
+		{
+			startAngle -= 0.005;
+			endAngle += 0.005;
+			margin -= 0.01;
+		}
 
 		var outerOffset = outerRadius == 0 ? 0 : (margin / (TotalAngle * outerRadius) * TotalAngle);
 		var innerOffset = innerRadius == 0 ? 0 : (margin / (TotalAngle * innerRadius) * TotalAngle);
