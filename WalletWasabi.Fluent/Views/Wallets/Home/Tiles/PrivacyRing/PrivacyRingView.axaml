@@ -113,13 +113,6 @@
                 </StackPanel>
 
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
-
-                  <!--<Button Command="{Binding ShowDetailsCommand}" Classes="plain"
-                          ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
-                          Height="36" Width="36">
-                    <Image Source="{StaticResource privacy_indicator_good}" />
-                  </Button>-->
-
                   <TextBlock
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     TextAlignment="Center"
@@ -127,19 +120,6 @@
                 </StackPanel>
               </DockPanel>
             </c:TileControl>
-
-            <!--<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Amount:" />
-                <TextBlock Text="{Binding Amount}" />
-              </StackPanel>
-
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Anonymity Score:" />
-                <TextBlock Text="{Binding AnonymitySet}" />
-              </StackPanel>
-            </StackPanel>-->
           </DataTemplate>
         </Carousel.DataTemplates>
       </Carousel>
