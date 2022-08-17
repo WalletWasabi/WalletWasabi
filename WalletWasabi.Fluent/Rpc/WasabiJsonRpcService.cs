@@ -250,7 +250,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("startcoinjoin")]
-	public void StartCoinJoining(bool stopWhenAllMixed, bool overridePlebStop)
+	public void StartCoinJoining(bool stopWhenAllMixed = true, bool overridePlebStop = true)
 	{
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
