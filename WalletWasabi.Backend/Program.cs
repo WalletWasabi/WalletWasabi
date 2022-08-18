@@ -22,6 +22,10 @@ public static class Program
 
 	public static IHostBuilder CreateHostBuilder(string[] args) =>
 		Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder => webBuilder
+			.ConfigureKestrel((context, options) =>
+			{
+				options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(15);
+			})
 			.UseStartup<Startup>()
 			.UseUrls(Environment.GetEnvironmentVariable("WASABI_BIND") ?? "http://localhost:37127/"));
 }
