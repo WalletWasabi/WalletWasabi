@@ -15,11 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 [NavigationMetaData(Title = "Camera")]
 public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 {
+	private readonly WebcamQrReader _qrReader;
 	[AutoNotify] private Bitmap? _qrImage;
 	[AutoNotify] private string _errorMessage = "";
 	[AutoNotify] private string _qrContent = "";
-
-	private readonly WebcamQrReader _qrReader;
 
 	public ShowQrCameraDialogViewModel(Network network)
 	{
