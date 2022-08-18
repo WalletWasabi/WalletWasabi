@@ -45,16 +45,6 @@
     <Setter Property="Opacity" Value="0.15" />
   </Style>
 
-  <!-- Transitions -->
-  <Style Selector="controls|PrivacyContentControl /template/ ContentPresenter#PART_Content,
-                   controls|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="{StaticResource FluentEasing}" />
-      </Transitions>
-    </Setter>
-  </Style>
- 
   <Style Selector="controls|PrivacyContentControl.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
