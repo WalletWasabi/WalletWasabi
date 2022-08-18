@@ -74,7 +74,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(10, 4),
+			CacheOptions(20, 4),
 			() => base.GetVerboseBlockAsync(blockId, cancellationToken)).ConfigureAwait(false);
 	}
 
