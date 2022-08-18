@@ -12,7 +12,7 @@ public class CoinJoinTracker : IDisposable
 	private bool _disposedValue;
 
 	public CoinJoinTracker(
-		Wallet wallet,
+		IWallet wallet,
 		CoinJoinClient coinJoinClient,
 		IEnumerable<SmartCoin> coinCandidates,
 		bool stopWhenAllMixed,
@@ -35,10 +35,10 @@ public class CoinJoinTracker : IDisposable
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
 
-	public Wallet Wallet { get; }
+	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public IEnumerable<SmartCoin> CoinCandidates { get; }
-	public bool StopWhenAllMixed { get; }
+	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
@@ -48,7 +48,10 @@ public class CoinJoinTracker : IDisposable
 	public void Stop()
 	{
 		IsStopped = true;
-		CancellationTokenSource.Cancel();
+		if (!InCriticalCoinJoinState)
+		{
+			CancellationTokenSource.Cancel();
+		}
 	}
 
 	private void CoinJoinClient_CoinJoinClientProgress(object? sender, CoinJoinProgressEventArgs coinJoinProgressEventArgs)

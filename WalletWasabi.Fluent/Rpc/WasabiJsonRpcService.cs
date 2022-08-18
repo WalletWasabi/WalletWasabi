@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.BitcoinP2p;
@@ -7,10 +8,12 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.Services.Terminate;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Rpc;
@@ -244,6 +247,28 @@ public class WasabiJsonRpcService : IJsonRpcService
 			pubKeyHash = x.PubKeyHash.ToString(),
 			address = x.GetP2wpkhAddress(Global.Network).ToString()
 		}).ToArray();
+	}
+
+	[JsonRpcMethod("startcoinjoin")]
+	public void StartCoinJoining(bool stopWhenAllMixed = true, bool overridePlebStop = true)
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+
+		coinJoinManager.StartAsync(activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+	}
+
+	[JsonRpcMethod("stopcoinjoin")]
+	public void StopCoinJoining()
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+
+		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("selectwallet")]

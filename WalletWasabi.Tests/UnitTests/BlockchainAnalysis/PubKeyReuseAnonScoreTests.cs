@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -12,7 +13,7 @@ public class PubKeyReuseAnonScoreTests
 	public void AddressReusePunishment()
 	{
 		// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -35,7 +36,7 @@ public class PubKeyReuseAnonScoreTests
 	[Fact]
 	public void AddressReusePunishmentProcessTwice()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -56,14 +57,14 @@ public class PubKeyReuseAnonScoreTests
 		var newOutputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
 
 		// Anonsets should not change.
-		Assert.Equal<int[]>(inputAnonsets, newInputAnonsets);
-		Assert.Equal<int[]>(outputAnonsets, newOutputAnonsets);
+		Assert.Equal(inputAnonsets, newInputAnonsets);
+		Assert.Equal(outputAnonsets, newOutputAnonsets);
 	}
 
 	[Fact]
 	public void SelfSpendReuse()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -87,7 +88,7 @@ public class PubKeyReuseAnonScoreTests
 	{
 		// In normal transactions we expose to someone that we own the inputs and the changes
 		// So we cannot test address reuse here, because anonsets would be 1 regardless of anything.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -106,7 +107,7 @@ public class PubKeyReuseAnonScoreTests
 	public void InputSideAddressReuseHaveNoConsolidationPunishmentInSelfSpend()
 	{
 		// Consolidation can't hurt any more than reuse already has.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -124,7 +125,7 @@ public class PubKeyReuseAnonScoreTests
 	[Fact]
 	public void InputSideAddressReuseHaveNoConsolidationPunishmentInCoinJoin()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -143,7 +144,7 @@ public class PubKeyReuseAnonScoreTests
 	public void InputOutputSideAddress()
 	{
 		// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var key = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			othersInputCount: 9,
@@ -161,7 +162,7 @@ public class PubKeyReuseAnonScoreTests
 	public void InputOutputSidePreviouslyUsedAddress()
 	{
 		// If there's reuse in output side, input anonsets should be adjusted down, too.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var reuse = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			othersInputCount: 9,
@@ -180,8 +181,7 @@ public class PubKeyReuseAnonScoreTests
 	[Fact]
 	public void OutputSideAddressReusePunished()
 	{
-		// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -202,7 +202,7 @@ public class PubKeyReuseAnonScoreTests
 	public void OutputSideAddressReuseDoesntPunishedMoreThanInheritance()
 	{
 		// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -224,7 +224,7 @@ public class PubKeyReuseAnonScoreTests
 	{
 		// If there's reuse in output side by another participant, then we should not gain anonsets by them.
 		// https://github.com/zkSNACKs/WalletWasabi/pull/4724/commits/6f5893ca57e35eadb6e20f164bdf0696bb14eea1#r530847724
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var km = ServiceFactory.CreateKeyManager();
 		var equalOutputAmount = Money.Coins(1m);
 		using var destination = new Key();
@@ -246,7 +246,7 @@ public class PubKeyReuseAnonScoreTests
 	[Fact]
 	public void CoinJoinSend()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(2, 2, 40, 0);
 
 		// Make sure that Analyze won't throw in case of no own outputs.

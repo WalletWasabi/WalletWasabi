@@ -19,7 +19,6 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	[AutoNotify] private string _errorMessage = "";
 	[AutoNotify] private string _qrContent = "";
 
-	private CancellationTokenSource CancellationTokenSource { get; } = new();
 	private readonly WebcamQrReader _qrReader;
 
 	public ShowQrCameraDialogViewModel(Network network)
@@ -27,6 +26,8 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 		_qrReader = new(network);
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
+
+	private CancellationTokenSource CancellationTokenSource { get; } = new();
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -58,16 +59,28 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(async args =>
 			{
-				Close();
 				await ShowErrorAsync(
 					Title,
 					args.EventArgs.Message,
 					"Something went wrong");
+
+				Close();
 			})
 			.DisposeWith(disposables);
 
-		disposables.Add(Disposable.Create(() => RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None))));
+		if (!isInHistory)
+		{
+			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
+		}
+	}
 
-		RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StartAsync(CancellationTokenSource.Token));
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		base.OnNavigatedFrom(isInHistory);
+
+		if (!isInHistory)
+		{
+			RxApp.MainThreadScheduler.Schedule(async () => await _qrReader.StopAsync(CancellationToken.None));
+		}
 	}
 }

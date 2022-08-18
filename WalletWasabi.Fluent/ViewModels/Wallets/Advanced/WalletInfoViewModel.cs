@@ -1,5 +1,5 @@
-using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
@@ -40,14 +40,15 @@ public partial class WalletInfoViewModel : RoutableViewModel
 			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.AccountKeyPath).GetWif(network).ToWif();
 			ExtendedMasterZprv = secret.ToZPrv(network);
 			ExtendedAccountZprv = secret.Derive(wallet.KeyManager.AccountKeyPath).ToZPrv(network);
+
+			// TODO: Should work for every type of wallet, temporarily disabling it.
+			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
 		}
 
 		ExtendedAccountPublicKey = wallet.KeyManager.ExtPubKey.ToString(network);
 		ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
 		AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
-
-		WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
 	}
 
 	public string ExtendedAccountPublicKey { get; }
@@ -66,7 +67,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 	public string? ExtendedAccountZprv { get; }
 
-	public WpkhDescriptors WpkhOutputDescriptors { get; }
+	public WpkhDescriptors? WpkhOutputDescriptors { get; }
 
 	public bool IsHardwareWallet { get; }
 }

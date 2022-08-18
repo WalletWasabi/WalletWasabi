@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
@@ -20,7 +21,7 @@ public class RpcClientBase : IRPCClient
 
 	public Network Network => Rpc.Network;
 
-	private RPCClient Rpc { get; }
+	protected internal RPCClient Rpc { get; }
 
 	public RPCCredentialString CredentialString => Rpc.CredentialString;
 

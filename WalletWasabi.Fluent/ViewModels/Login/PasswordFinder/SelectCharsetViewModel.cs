@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
@@ -10,31 +8,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 [NavigationMetaData(Title = "Password Finder")]
 public partial class SelectCharsetViewModel : RoutableViewModel
 {
-	[AutoNotify] private Charset? _selectedCharset;
-
 	public SelectCharsetViewModel(PasswordFinderOptions options)
 	{
-		Title = "Password Finder";
-
+		Options = options;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = true;
 
-		this.WhenAnyValue(x => x.SelectedCharset)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
-			{
-				if (x is null)
-				{
-					return;
-				}
-
-				options.Charset = (Charset)x;
-				Navigate().To(new ContainsNumbersViewModel(options));
-
-				SelectedCharset = null;
-			});
+		Charsets = Enum.GetValues(typeof(Charset)).Cast<Charset>().Select(x => new CharsetViewModel(this, x));
 	}
 
-	public IEnumerable<Charset> Charsets => Enum.GetValues(typeof(Charset)).Cast<Charset>();
+	public PasswordFinderOptions Options { get; }
+
+	public IEnumerable<CharsetViewModel> Charsets { get; }
 }

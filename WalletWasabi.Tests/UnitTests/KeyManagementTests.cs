@@ -165,17 +165,17 @@ public class KeyManagementTests
 	public void GapCountingTests()
 	{
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(false));
+		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		Assert.Equal(0, km.CountConsecutiveUnusedKeys(false, ignoreTail: false));
 
 		var k = km.GenerateNewKey("", KeyState.Clean, true);
-		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true));
+		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
 
 		km.GenerateNewKey("", KeyState.Locked, true);
-		Assert.Equal(2, km.CountConsecutiveUnusedKeys(true));
+		Assert.Equal(2, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
 
 		k.SetKeyState(KeyState.Used);
-		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true));
+		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
 
 		for (int i = 0; i < 100; i++)
 		{
@@ -185,11 +185,11 @@ public class KeyManagementTests
 				k = k2;
 			}
 		}
-		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true));
+		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
 		k.SetKeyState(KeyState.Locked);
-		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true));
+		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
 		k.SetKeyState(KeyState.Used);
-		Assert.Equal(51, km.CountConsecutiveUnusedKeys(true));
+		Assert.Equal(51, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
 	}
 
 	private static void DeleteFileAndDirectoryIfExists(string filePath)

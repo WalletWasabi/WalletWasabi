@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class StartErrorEventArgs : StatusChangedEventArgs
 {
-	public StartErrorEventArgs(Wallet wallet, CoinjoinError error)
+	public StartErrorEventArgs(IWallet wallet, CoinjoinError error)
 		: base(wallet)
 	{
 		Error = error;

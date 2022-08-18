@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
+using DynamicData.Aggregation;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -18,21 +19,34 @@ public partial class SearchBarViewModel : ReactiveObject
 	{
 		var filterPredicate = this
 			.WhenAnyValue(x => x.SearchText)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
 
-		itemsObservable
+		var filteredItems = itemsObservable
 			.RefCount()
-			.Filter(filterPredicate)
-			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
+			.Filter(filterPredicate);
+
+		filteredItems
+			.Transform(
+				item => item is ActionableItem i
+					? new AutocloseActionableItem(i, () => IsSearchListVisible = false)
+					: item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
 			.Bind(out _groups)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
+
+		HasResults = filteredItems
+			.Count()
+			.Select(i => i > 0)
+			.Replay(1)
+			.RefCount();
 	}
+
+	public IObservable<bool> HasResults { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 

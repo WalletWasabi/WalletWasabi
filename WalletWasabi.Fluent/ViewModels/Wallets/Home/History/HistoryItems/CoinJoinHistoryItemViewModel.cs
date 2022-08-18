@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -26,6 +27,9 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		CoinJoinTransaction = transactionSummary;
 		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
 
+		var confirmations = transactionSummary.GetConfirmations();
+		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
+
 		var amount = transactionSummary.Amount;
 		if (amount < Money.Zero)
 		{
@@ -40,11 +44,10 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinDetailsViewModel(this, updateTrigger)));
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
+		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}
 
 	public bool IsSingleCoinJoinTransaction { get; }
 
 	public TransactionSummary CoinJoinTransaction { get; private set; }
-
 }

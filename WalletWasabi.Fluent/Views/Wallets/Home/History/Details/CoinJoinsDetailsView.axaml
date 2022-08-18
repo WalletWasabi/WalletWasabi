@@ -23,9 +23,35 @@
 
       <Separator />
 
+      <!-- Status -->
+      <c:PreviewItem Icon="{StaticResource status_regular}"
+                     Label="Status">
+        <TextBlock Text="{Binding Status}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- TX Count  -->
+      <c:PreviewItem Icon="{StaticResource info_regular}"
+                     Label="Number of Transactions"
+                     TextValue="{Binding TxCount}">
+        <TextBlock Text="{Binding TxCount, Mode=OneWay}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- CJ fee  -->
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="Fees"
+                     TextValue="{Binding CoinJoinFeeString}">
+        <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
+      </c:PreviewItem>
+
+      <Separator />
+
       <!-- Transaction IDs -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Label="Transaction ID">
+                     Label="Transaction IDs">
         <ItemsRepeater Items="{Binding TransactionIds}">
           <ItemsRepeater.ItemTemplate>
             <DataTemplate>
@@ -37,23 +63,6 @@
             </DataTemplate>
           </ItemsRepeater.ItemTemplate>
         </ItemsRepeater>
-      </c:PreviewItem>
-
-      <Separator />
-
-      <!-- Status -->
-      <c:PreviewItem Icon="{StaticResource status_regular}"
-                     Label="Status">
-        <TextBlock Text="{Binding Status}" />
-      </c:PreviewItem>
-
-      <Separator />
-
-      <!-- CJ fee  -->
-      <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Fees:"
-                     TextValue="{Binding CoinJoinFee}">
-        <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

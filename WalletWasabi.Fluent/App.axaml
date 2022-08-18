@@ -39,8 +39,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileControl.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/StatusItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/PrivacyContentControl.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsListBox.axaml" />
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelControl.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
   </Application.Styles>
@@ -54,7 +53,7 @@
       <TrayIcon Icon="{Binding TrayIcon}" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
         <NativeMenu.Menu>
           <NativeMenu>
-            <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand} " />
+            <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>

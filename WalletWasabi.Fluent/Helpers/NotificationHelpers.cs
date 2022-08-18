@@ -7,6 +7,7 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -59,7 +60,7 @@ public static class NotificationHelpers
 			bool isReceived = result.NewlyReceivedCoins.Any();
 			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
 			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
-			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray()) ?? Money.Zero;
+			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
 
 			if (isReceived || isSpent)
 			{

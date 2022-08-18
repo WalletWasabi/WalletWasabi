@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -24,6 +25,9 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		IsConfirmed = transactionSummary.IsConfirmed();
 		Date = transactionSummary.DateTime.ToLocalTime();
 		Balance = balance;
+
+		var confirmations = transactionSummary.GetConfirmations();
+		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 
 		var amount = transactionSummary.Amount;
 		if (amount < Money.Zero)
@@ -50,6 +54,6 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			},
 			speedUpTransactionCommandCanExecute);
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
+		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}
 }
