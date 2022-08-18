@@ -61,8 +61,8 @@ public class Startup
 				});
 
 			// Set the comments path for the Swagger JSON and UI.
-			var basePath = AppContext.BaseDirectory;
-			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
+			string basePath = AppContext.BaseDirectory;
+			string xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
 			c.IncludeXmlComments(xmlPath);
 		});
 
@@ -70,9 +70,7 @@ public class Startup
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		services.AddSingleton<IdempotencyRequestCache>();
-#pragma warning disable CA2000 // Dispose objects before losing scope, reason: https://github.com/dotnet/roslyn-analyzers/issues/3836
-		services.AddSingleton(new Global(Configuration["datadir"]));
-#pragma warning restore CA2000 // Dispose objects before losing scope
+		services.AddSingleton(() => new Global(Configuration["datadir"]));
 		services.AddSingleton(serviceProvider =>
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
@@ -98,7 +96,7 @@ public class Startup
 		// Enable middleware to serve generated Swagger as a JSON endpoint.
 		app.UseSwagger();
 
-		// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+		// Enable middleware to serve Swagger-UI (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 		app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", $"Wasabi Wallet API V{Constants.BackendMajorVersion}"));
 
 		app.UseRouting();
@@ -112,7 +110,7 @@ public class Startup
 
 		app.UseEndpoints(endpoints => endpoints.MapControllers());
 
-		var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+		IHostApplicationLifetime applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
 		applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
 	}
 
