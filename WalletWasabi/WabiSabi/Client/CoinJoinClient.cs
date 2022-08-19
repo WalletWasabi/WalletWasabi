@@ -981,11 +981,13 @@ public class CoinJoinClient
 		{
 			roundState.LogInfo("Some of the my coins are registered by someone else.");
 			registerOutputs = false;
+			CoinJoinClientProgress.SafeInvoke(this, new OwnCoinsRegisteredBySomeoneElse());
 		}
 		if (alicesRegisteredScriptPubkeys.Except(myRegisteredScriptPubKeys).Any())
 		{
 			roundState.LogInfo("Some of the my coins are not registered. This should never happen.");
 			registerOutputs = false;
+			CoinJoinClientProgress.SafeInvoke(this, new MissingCoinsInRound());
 		}
 
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
