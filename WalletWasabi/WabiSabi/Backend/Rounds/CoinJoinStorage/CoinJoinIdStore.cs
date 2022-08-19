@@ -81,6 +81,7 @@ public class CoinJoinIdStore : InMemoryCoinJoinIdStore
 				Logger.LogError("Failed to import WW1 coinjoins. Reason:", exc);
 			}
 		}
+
 		// Checking duplicates.
 		var distinctCoinJoins = coinjoins.Distinct();
 		if (distinctCoinJoins.Count() != coinjoins.Count())

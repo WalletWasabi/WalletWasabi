@@ -10,7 +10,8 @@ public record ApiResponseItem(
 	 ReportInfoSection Report_info_section,
 	 CscoreSection Cscore_section,
 	 ProfileSection Profile_section,
-	 //FinancialAnalysisSection Financial_analysis_section,
+
+	 // FinancialAnalysisSection Financial_analysis_section,
 	 OtherInformationSection Other_information_section
 );
 
@@ -61,7 +62,7 @@ public record Relation(
 	string Description
 );
 
-//public record FinancialAnalysisSection(int Cc_balance);
+// public record FinancialAnalysisSection(int Cc_balance);
 
 public record IndicatorsSection(
 	 string Cat_name,

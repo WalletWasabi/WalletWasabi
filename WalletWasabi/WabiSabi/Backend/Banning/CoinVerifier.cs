@@ -9,25 +9,10 @@ using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
+public record CoinVerifyInfo(bool ShouldBan, Coin Coin);
+
 public class CoinVerifier
 {
-	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
-	{
-		CoinJoinIdStore = coinJoinIdStore;
-		CoinVerifierApiClient = apiClient;
-		Whitelist = whitelist;
-		WabiSabiConfig = wabiSabiConfig;
-	}
-
-	// Blank constructor used for testing
-	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient)
-	{
-		CoinJoinIdStore = coinJoinIdStore;
-		CoinVerifierApiClient = apiClient;
-		Whitelist = new();
-		WabiSabiConfig = new();
-	}
-
 	public Whitelist Whitelist { get; }
 	public WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
@@ -56,6 +41,23 @@ public class CoinVerifier
 		272,
 		340
 	};
+
+	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
+	{
+		CoinJoinIdStore = coinJoinIdStore;
+		CoinVerifierApiClient = apiClient;
+		Whitelist = whitelist;
+		WabiSabiConfig = wabiSabiConfig;
+	}
+
+	// Blank constructor used for testing
+	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient)
+	{
+		CoinJoinIdStore = coinJoinIdStore;
+		CoinVerifierApiClient = apiClient;
+		Whitelist = new();
+		WabiSabiConfig = new();
+	}
 
 	private bool CheckIfAlreadyVerified(Coin coin)
 	{
@@ -135,5 +137,3 @@ public class CoinVerifier
 		return shouldBan;
 	}
 }
-
-public record CoinVerifyInfo(bool ShouldBan, Coin Coin);
