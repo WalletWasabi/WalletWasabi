@@ -104,7 +104,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		return isFocused
 			.Buffer(TimeSpan.FromSeconds(0.1))
 			.Where(focusedList => focusedList.Any())
-			.Select(focusedList => focusedList.Any(focused => focused))
+			.Select(focusedList => focusedList.Last())
 			.DistinctUntilChanged()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(isOpen => IsFlyoutOpen = isOpen)

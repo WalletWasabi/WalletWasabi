@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using Avalonia.Controls.ApplicationLifetimes;
 using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;
@@ -30,7 +31,7 @@ public partial class SearchBarViewModel : ReactiveObject
 		filteredItems
 			.Transform(
 				item => item is ActionableItem i
-					? new AutocloseActionableItem(i, () => IsSearchListVisible = false)
+					? new AutocloseActionableItem(i, () => MessageBus.Current.SendMessage(new CloseSearchBarMessage()))
 					: item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
