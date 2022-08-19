@@ -13,11 +13,6 @@ public record CoinVerifyInfo(bool ShouldBan, Coin Coin);
 
 public class CoinVerifier
 {
-	public Whitelist Whitelist { get; }
-	public WabiSabiConfig WabiSabiConfig { get; }
-	private CoinJoinIdStore CoinJoinIdStore { get; }
-	private CoinVerifierApiClient CoinVerifierApiClient { get; }
-
 	/// <summary>
 	/// A list of indicator Id's that we use to filter out utxos from CoinJoin rounds based on API response.
 	/// </summary>
@@ -58,6 +53,11 @@ public class CoinVerifier
 		Whitelist = new();
 		WabiSabiConfig = new();
 	}
+
+	public Whitelist Whitelist { get; }
+	public WabiSabiConfig WabiSabiConfig { get; }
+	private CoinJoinIdStore CoinJoinIdStore { get; }
+	private CoinVerifierApiClient CoinVerifierApiClient { get; }
 
 	private bool CheckIfAlreadyVerified(Coin coin)
 	{
