@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -75,13 +76,19 @@ public class CoinVerifier
 
 	public async IAsyncEnumerable<CoinVerifyInfo> VerifyCoinsAsync(IEnumerable<Coin> coinsToCheck, [EnumeratorCancellation] CancellationToken cancellationToken, string roundId = "")
 	{
+		var before = DateTimeOffset.UtcNow;
+
 		var coinDictionary = coinsToCheck.ToDictionary(c => c.ScriptPubKey);
-		using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+
+		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(90));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
+
 		var lastChangeId = Whitelist.ChangeId;
 		Whitelist.RemoveAllExpired(WabiSabiConfig.ReleaseFromWhitelistAfter);
+
 		var scriptsToCheck = new HashSet<Script>();
 		var innocentsCounter = 0;
+
 		foreach (var coin in coinsToCheck)
 		{
 			if (CheckIfAlreadyVerified(coin))
@@ -94,6 +101,7 @@ public class CoinVerifier
 				scriptsToCheck.Add(coin.ScriptPubKey);
 			}
 		}
+
 		Logger.LogInfo($"{innocentsCounter} out of {coinsToCheck.Count()} utxo is already verified in Round({roundId}).");
 		await foreach (var response in CoinVerifierApiClient.VerifyScriptsAsync(scriptsToCheck, linkedCts.Token))
 		{
@@ -112,6 +120,9 @@ public class CoinVerifier
 		{
 			Whitelist.WriteToFile();
 		}
+
+		var duration = DateTimeOffset.UtcNow - before;
+		RequestTimeStatista.Instance.Add("verifier-period", duration);
 	}
 
 	private bool CheckForFlags(ApiResponseItem response)

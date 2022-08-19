@@ -40,9 +40,9 @@ public class CoinVerifierApiClient
 			throw new HttpRequestException($"The connection to the API is not safe. Expected https but was {HttpClient.BaseAddress.Scheme}.");
 		}
 
-		var address = script.GetDestinationAddress(Network.Main);
+		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(40));
+		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(20));
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 		content.Headers.Authorization = new("Bearer", ApiToken);
@@ -81,6 +81,11 @@ public class CoinVerifierApiClient
 					var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
 
 					response = await completedTask.ConfigureAwait(false);
+				}
+				catch (OperationCanceledException exc)
+				{
+					Logger.LogInfo("API response didn't arrive in time.", exc);
+					continue;
 				}
 				catch (Exception ex)
 				{

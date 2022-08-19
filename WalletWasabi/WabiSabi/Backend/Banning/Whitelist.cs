@@ -73,11 +73,6 @@ public class Whitelist
 		{
 			Logger.LogInfo($"{removedCounter} utxo was expired and removed from Whitelist.");
 		}
-
-		if (removedCounter > 0)
-		{
-			Logger.LogInfo($"{removedCounter} utxo was expired and removed from Whitelist.");
-		}
 	}
 
 	public bool TryGet(OutPoint utxo, [NotNullWhen(true)] out Innocent? innocent)
