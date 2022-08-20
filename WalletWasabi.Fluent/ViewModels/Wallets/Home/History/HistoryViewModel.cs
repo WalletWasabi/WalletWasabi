@@ -33,8 +33,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private bool _isTransactionHistoryEmpty;
+	[AutoNotify(SetterModifier = AccessModifier.Public)]
+	private bool _isTransactionHistoryLoaded;
+	[AutoNotify(SetterModifier = AccessModifier.Public)]
+	private bool _isTransactionHistoryLoadedAndEmpty;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
@@ -43,9 +45,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
-
-		this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
-			.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
 
 		_transactionSourceList
 			.Connect()

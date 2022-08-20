@@ -89,8 +89,20 @@ public partial class WalletViewModel : WalletViewModelBase
 				.DisposeWith(Disposables);
 		}
 
-		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
-			.Subscribe(x => IsEmptyWallet = x);
+		this.WhenAnyValue(x => x.History.IsTransactionHistoryLoaded, x => x.History.IsTransactionHistoryLoadedAndEmpty)
+			.Subscribe(tuple =>
+			{
+				var (isTransactionHistoryLoaded, isTransactionHistoryLoadedAndEmpty) = tuple;
+				IsEmptyWallet = !isTransactionHistoryLoaded || isTransactionHistoryLoadedAndEmpty;
+			});
+
+		this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.History.UnfilteredTransactions.Count)
+			.Subscribe(tuple =>
+			{
+				var (isSelected, isWalletBalanceZero, unfilteredTransactionCount) = tuple;
+				History.IsTransactionHistoryLoadedAndEmpty = isSelected && isWalletBalanceZero && unfilteredTransactionCount <= 0;
+				History.IsTransactionHistoryLoaded = History.IsTransactionHistoryLoadedAndEmpty || (isSelected && unfilteredTransactionCount > 0);
+			});
 
 		_smallLayoutHeightBreakpoint = double.MaxValue;
 		_wideLayoutWidthBreakpoint = double.MaxValue;
