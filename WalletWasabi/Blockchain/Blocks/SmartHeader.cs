@@ -69,7 +69,7 @@ public class SmartHeader
 		Network.RegTest.GetGenesis().Header.BlockTime);
 
 	/// <summary>
-	/// Where the first possible transaction can ever can be found with the specified script types.
+	/// Where the first possible transaction can ever be found with the specified script types.
 	/// </summary>
 	public static SmartHeader GetStartingHeader(Network network, IndexType indexType)
 	{
