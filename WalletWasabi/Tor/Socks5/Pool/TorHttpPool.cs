@@ -214,12 +214,12 @@ public class TorHttpPool : IDisposable
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogTrace($"[{connection}] Request was canceled: '{request.RequestUri}'.");
+			Logger.LogTrace($"['{connection}'] Request was canceled: '{request.RequestUri}'.");
 			throw;
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"[{connection}] Request failed with exception", e);
+			Logger.LogTrace($"['{connection}'] Request failed with exception", e);
 			OnTorRequestFailed(e);
 			throw;
 		}
