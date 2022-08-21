@@ -144,7 +144,7 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 
-				if (CoinVerifier is not null)
+				if (round is not BlameRound && CoinVerifier is not null)
 				{
 					try
 					{
