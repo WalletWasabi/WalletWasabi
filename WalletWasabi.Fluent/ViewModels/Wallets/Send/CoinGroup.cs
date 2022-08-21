@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public partial class CoinGroup : IDisposable
+public partial class CoinGroup : ReactiveObject, IDisposable
 {
 	private readonly ReadOnlyObservableCollection<WalletCoinViewModel> _items;
 	private readonly CompositeDisposable _disposables = new();

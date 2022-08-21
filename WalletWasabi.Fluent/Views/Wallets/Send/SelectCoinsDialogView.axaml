@@ -54,21 +54,17 @@
             </Style>
           </TreeDataGrid.Styles>
         </TreeDataGrid>
-        <ScrollViewer IsVisible="{Binding #GroupByLabels.IsChecked}" HorizontalScrollBarVisibility="Hidden">
-          <ItemsControl Items="{Binding LabelBasedSelection.Items}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="send:CoinGroup">
-                  <CheckBox IsChecked="{Binding IsSelected}">
-                    <StackPanel Orientation="Horizontal">
-                      <controls:TagsBox IsReadOnly="True" DockPanel.Dock="Top" Items="{Binding Labels}" />
-                      <TextBlock VerticalAlignment="Center"
-                                 Text="{Binding TotalAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
-                      </StackPanel>
-                  </CheckBox>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
+        <TreeDataGrid
+          IsVisible="{Binding #GroupByLabels.IsChecked}"
+          Source="{Binding LabelBasedSelection.Source}"
+          CanUserSortColumns="True">
+          <TreeDataGrid.Styles>
+            <Style Selector="TreeDataGridRow">
+              <Setter Property="Focusable" Value="False" />
+              <Setter Property="Height" Value="47.5" />
+            </Style>
+          </TreeDataGrid.Styles>
+        </TreeDataGrid>
       </Panel>
     </DockPanel>
   </controls:ContentArea>
