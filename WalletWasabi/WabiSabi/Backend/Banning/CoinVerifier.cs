@@ -82,7 +82,7 @@ public class CoinVerifier
 
 		var coinDictionary = coinsToCheck.ToDictionary(c => c.ScriptPubKey);
 
-		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(90));
+		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(7));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
 		var lastChangeId = Whitelist.ChangeId;
