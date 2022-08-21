@@ -108,11 +108,15 @@ __Fact__: code review is one of the few scientifically proven code improvement t
    ```
    [alias]
       upd = "!f(){ git fetch upstream && git checkout master && git rebase upstream/master && git push -f origin master && git branch --merged; };f"
+      res = "!f(){ git reset --hard; };f"
+      hres = "!f(){ git res; git upd; };f"
       del = "!f(){ git checkout master && for arg; do (git branch -D \"$arg\"; git push origin --delete \"$arg\"); done; git branch; };f"
       pr = "!f(){ git checkout -b $(date +'%s') && git add . && git commit -S -m \"$1\" && git push -u origin $(git branch --show) && start \"$(echo $(git config --get remote.upstream.url) | sed 's/.git$//g')/compare/master...USERNAME:$(git branch --show)?expand=1\"; };f" // Replace USERNAME with your GitHub username here.
    ```
   You can use it with the console in the project library by the following commands:  
-   - `git upd` -> Update the forked repository  
+   - `git upd` -> Update the forked repository
+   - `git res` -> Discard your current changes
+   - `git hres` -> Hard reset, resets your current changes, update and checkout master.
    - `git del` -> Delete the current branch remotely and locally  
    - `git pr "Commit message"` -> Create a new branch, commit then push your work, open your browser with a new PR waiting for you to fill the title and the description.
 
