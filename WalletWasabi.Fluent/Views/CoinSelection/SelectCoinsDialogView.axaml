@@ -32,7 +32,7 @@
         <Setter Property="Margin" Value="5 0 10 0"></Setter>
       </Style>
 
-      <Style Selector="TreeDataGridCell > TextBlock">
+      <Style Selector="ContentPresenter > TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
       </Style>
 
