@@ -33,9 +33,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
 
-	[AutoNotify(SetterModifier = AccessModifier.Public)]
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryLoaded;
-	[AutoNotify(SetterModifier = AccessModifier.Public)]
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryLoadedAndEmpty;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
@@ -222,12 +222,13 @@ public partial class HistoryViewModel : ActivatableViewModel
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
 			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
-
 			_transactionSourceList.Edit(x =>
 			{
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
+			IsTransactionHistoryLoadedAndEmpty = _transactionSourceList.Count <= 0;
+			IsTransactionHistoryLoaded = true;
 		}
 		catch (Exception ex)
 		{
