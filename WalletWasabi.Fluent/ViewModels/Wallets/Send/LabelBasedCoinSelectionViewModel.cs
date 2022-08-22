@@ -1,23 +1,17 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Templates;
-using Avalonia.Data;
-using Avalonia.Layout;
 using DynamicData;
 using ReactiveUI;
-using WalletWasabi.Fluent.Controls;
-using WalletWasabi.Fluent.Converters;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.TreeDataGrid;
+using WalletWasabi.Fluent.ViewModels.CoinSelection;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -71,62 +65,15 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 	}
 
-	public static FlatTreeDataGridSource<CoinGroup> CreateGridSource(IEnumerable<CoinGroup> groups)
+	private static FlatTreeDataGridSource<CoinGroup> CreateGridSource(IEnumerable<CoinGroup> groups)
 	{
-		// [Column]			[View]					[Header]	[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
-		// Selection		SelectionColumnView		-			Auto		-				-			false
-		// Indicators		IndicatorsColumnView	-			Auto		-				-			true
-		// Amount			AmountColumnView		Amount		Auto		-				-			true
-		// AnonymityScore	AnonymityColumnView		<custom>	50			-				-			true
-		// Labels			LabelsColumnView		Labels		*			-				-			true
 		var source = new FlatTreeDataGridSource<CoinGroup>(groups)
 		{
 			Columns =
 			{
-				// Selection
-				new TemplateColumn<CoinGroup>(
-					null,
-					new FuncDataTemplate<CoinGroup>(
-						(node, ns) => new CheckBox
-						{
-							[!ToggleButton.IsCheckedProperty] = new Binding("IsSelected"),
-						},
-						true),
-					options: new ColumnOptions<CoinGroup>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = false
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-				// Amount
-				new TemplateColumn<CoinGroup>(
-					"Amount",
-					new FuncDataTemplate<CoinGroup>((node, ns) => new TextBlock()
-					{
-						VerticalAlignment = VerticalAlignment.Center,
-						[!TextBlock.TextProperty] = node.TotalAmount.Select(x => MoneyConverters.ToFormattedStringBtc.Convert(x, typeof(string), null, CultureInfo.CurrentUICulture)).ToBinding(),
-					}, true),
-					options: new ColumnOptions<CoinGroup>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = false,
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-				// Amount
-				new TemplateColumn<CoinGroup>(
-					"Labels",
-					new FuncDataTemplate<CoinGroup>((node, ns) => new TagsBox()
-					{
-						VerticalAlignment = VerticalAlignment.Center,
-						IsReadOnly = true,
-						[!TagsBox.ItemsProperty] = new Binding("Labels"),
-					}, true),
-					options: new ColumnOptions<CoinGroup>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = false,
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
+				new TemplateColumn<CoinGroup>("", new ConstantTemplate<CoinGroup>(group => new IsSelectedViewModel(group.IsSelected, b => group.IsSelected = b))),
+				new TemplateColumn<CoinGroup>("Amount", new ObservableTemplate<CoinGroup, string>(group => group.TotalAmount.Select(x => x.ToFormattedString()))),
+				new TemplateColumn<CoinGroup>("Labels (Cluster)", new ConstantTemplate<CoinGroup>(group => new LabelsViewModel(group.Labels))),
 			}
 		};
 

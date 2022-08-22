@@ -19,7 +19,7 @@ public partial class CoinGroup : ReactiveObject, IDisposable
 
 	[AutoNotify] private bool _isSelected;
 
-	public CoinGroup(SmartLabel labels, IObservableCache<WalletCoinViewModel, int> coins)
+	public CoinGroup(SmartLabel labels, IConnectableCache<WalletCoinViewModel, int> coins)
 	{
 		Labels = labels;
 

@@ -37,4 +37,8 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="ViewModels\CoinSelection\" />
+	</ItemGroup>
 </Project>
