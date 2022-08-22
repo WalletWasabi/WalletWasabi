@@ -10,10 +10,10 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
-using WalletWasabi.Fluent.ViewModels.CoinSelection;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposable
 {
@@ -24,7 +24,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
 	{
 		var filterPredicate = this
-			.WhenAnyValue(x => x.Filter)
+			.WhenAnyValue<LabelBasedCoinSelectionViewModel, string>(x => x.Filter)
 			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
@@ -71,7 +71,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		{
 			Columns =
 			{
-				new TemplateColumn<CoinGroup>("", new ConstantTemplate<CoinGroup>(group => new IsSelectedViewModel(group.IsSelected, b => group.IsSelected = b))),
+				new TemplateColumn<CoinGroup>("", new ConstantTemplate<CoinGroup>(group => new Columns.IsSelectedViewModel(group.IsSelected, b => group.IsSelected = b))),
 				new TemplateColumn<CoinGroup>("Amount", new ObservableTemplate<CoinGroup, string>(group => group.TotalAmount.Select(x => x.ToFormattedString()))),
 				new TemplateColumn<CoinGroup>("Labels (Cluster)", new ConstantTemplate<CoinGroup>(group => new LabelsViewModel(group.Labels))),
 			}

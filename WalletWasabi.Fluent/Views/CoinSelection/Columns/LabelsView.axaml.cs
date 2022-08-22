@@ -1,10 +1,11 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.CoinSelection;
-public class IsSelectedView : UserControl
+namespace WalletWasabi.Fluent.Views.CoinSelection.Columns;
+public partial class LabelsView : UserControl
 {
-	public IsSelectedView()
+	public LabelsView()
 	{
 		InitializeComponent();
 	}

@@ -5,7 +5,7 @@ using Avalonia.Controls.Templates;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public class CoinListUtils
 {

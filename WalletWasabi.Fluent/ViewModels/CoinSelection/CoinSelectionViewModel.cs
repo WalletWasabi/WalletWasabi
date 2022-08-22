@@ -6,7 +6,7 @@ using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public partial class CoinSelectionViewModel : ViewModelBase, IDisposable
 {

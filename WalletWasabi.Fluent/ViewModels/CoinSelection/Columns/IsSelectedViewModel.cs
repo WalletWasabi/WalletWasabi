@@ -1,6 +1,6 @@
 using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 
 public partial class IsSelectedViewModel : ViewModelBase
 {
@@ -9,6 +9,6 @@ public partial class IsSelectedViewModel : ViewModelBase
 	public IsSelectedViewModel(bool initialValue, Action<bool> setter)
 	{
 		IsSelected = initialValue;
-		this.WhenAnyValue(model => model.IsSelected).Subscribe(setter);
+		this.WhenAnyValue<IsSelectedViewModel, bool>(model => model.IsSelected).Subscribe(setter);
 	}
 }

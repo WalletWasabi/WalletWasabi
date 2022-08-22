@@ -1,6 +1,6 @@
 using WalletWasabi.Blockchain.Analysis.Clustering;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 
 public class LabelsViewModel : ViewModelBase
 {

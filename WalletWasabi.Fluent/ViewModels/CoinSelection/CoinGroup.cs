@@ -9,7 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public partial class CoinGroup : ReactiveObject, IDisposable
 {
@@ -36,7 +36,7 @@ public partial class CoinGroup : ReactiveObject, IDisposable
 			.ToCollection()
 			.Select(coinViewModels => new Money(coinViewModels.Sum(walletCoinViewModel => walletCoinViewModel.Amount.ToDecimal(MoneyUnit.BTC)), MoneyUnit.BTC));
 
-		this.WhenAnyValue(x => x.IsSelected)
+		this.WhenAnyValue<CoinGroup, bool>(x => x.IsSelected)
 			.Do(isSelected => Source.Items.ToList().ForEach(vm => vm.IsSelected = isSelected))
 			.Subscribe()
 			.DisposeWith(_disposables);

@@ -119,7 +119,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			Navigate().To(new SelectCoinsDialogViewModel(_walletViewModel, balanceChanged));
+			Navigate().To(new CoinSelection.SelectCoinsDialogViewModel(_walletViewModel, balanceChanged));
 			/*var address = BitcoinAddress.Create(To, wallet.Network);
 
 			_transactionInfo.Reset();
