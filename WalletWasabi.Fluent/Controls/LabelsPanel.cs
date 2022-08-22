@@ -87,6 +87,8 @@ public class LabelsPanel : VirtualizingStackPanel
 			var child = Children[i];
 			var childWidth = child.DesiredSize.Width;
 
+			height = Math.Max(height, child.DesiredSize.Height);
+
 			if (width + childWidth > finalWidth)
 			{
 				while (true)
@@ -121,7 +123,6 @@ public class LabelsPanel : VirtualizingStackPanel
 			}
 
 			width += child.DesiredSize.Width + spacing;
-			height = Math.Max(height, child.DesiredSize.Height);
 			count++;
 		}
 

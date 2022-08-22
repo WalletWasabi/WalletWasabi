@@ -14,30 +14,30 @@
                  Caption="To continue using Wasabi, please accept the terms and conditions"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <DockPanel>
-            <CheckBox Margin="0 10 0 0" IsChecked="{Binding IsAgreed}"
-                      DockPanel.Dock="Bottom" Name="CheckBox_Agree"
-                      HorizontalAlignment="Center">
-                <i:Interaction.Behaviors>
-                    <behaviors:FocusOnAttachedBehavior />
-                    <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}" IsEnabled="{Binding IsAgreed}" Key="Enter" EventRoutingStrategy="Tunnel"/>
-                </i:Interaction.Behaviors>
-                <StackPanel Orientation="Horizontal">
-                    <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"
-                           Padding="0" IsHitTestVisible="False" />
-                    <Button Classes="plain" Command="{Binding ViewTermsCommand}">
-                        <TextBlock Text="Terms and conditions" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
-                    </Button>
-                </StackPanel>
-            </CheckBox>
-            <Viewbox MaxHeight="300">
-                <Image>
-                    <Image.Source>
-                        <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}"/>
-                    </Image.Source>
-                </Image>
-            </Viewbox>
-        </DockPanel>
-    </c:ContentArea>
+    <DockPanel>
+      <CheckBox Margin="0 10 0 0" IsChecked="{Binding IsAgreed}"
+                DockPanel.Dock="Bottom" Name="CheckBox_Agree"
+                HorizontalAlignment="Center">
+        <i:Interaction.Behaviors>
+          <behaviors:FocusOnAttachedBehavior />
+          <behaviors:ExecuteCommandOnKeyDownBehavior Command="{Binding NextCommand}" IsEnabled="{Binding IsAgreed}" Key="Enter" EventRoutingStrategy="Tunnel" />
+        </i:Interaction.Behaviors>
+        <StackPanel Orientation="Horizontal">
+          <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"
+                 Padding="0" IsHitTestVisible="False" />
+          <Button Classes="plain" Command="{Binding ViewTermsCommand}">
+            <TextBlock Text="Terms and conditions" TextDecorations="Underline"
+                       Foreground="{DynamicResource SystemAccentColor}" />
+          </Button>
+        </StackPanel>
+      </CheckBox>
+      <Viewbox MaxHeight="300">
+        <Image>
+          <Image.Source>
+            <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}" />
+          </Image.Source>
+        </Image>
+      </Viewbox>
+    </DockPanel>
+  </c:ContentArea>
 </UserControl>

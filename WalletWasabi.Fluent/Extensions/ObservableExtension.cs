@@ -11,6 +11,11 @@ public static class ObservableExtension
 			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
 			.Concat()
 			.Subscribe();
-	
+
+	public static IObservable<Unit> DoAsync<T>(this IObservable<T> source, Func<T, Task> onNextAsync) =>
+		source
+			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
+			.Concat();
+
 	public static IObservable<Unit> ToSignal<T>(this IObservable<T> source) => source.Select(_ => Unit.Default);
 }

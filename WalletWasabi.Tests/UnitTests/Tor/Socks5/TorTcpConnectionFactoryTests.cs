@@ -78,7 +78,7 @@ public class TorTcpConnectionFactoryTests
 
 			// Read SOCKS version.
 			int methodByte = stream.ReadByte();
-			Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
+			Assert.Equal(MethodField.NoAuthenticationRequired.ToByte(), methodByte); // Default circuits use this MethodField.
 
 			// Write response: version + method selected.
 			stream.WriteByte(VerField.Socks5.Value);
@@ -116,6 +116,9 @@ public class TorTcpConnectionFactoryTests
 
 		try
 		{
+			// Use a person circuit to test MethodField being sent to Tor.
+			using PersonCircuit personCircuit = new();
+
 			// Start local TCP server.
 			listener = new(IPAddress.Loopback, port: 0);
 			listener.Start();
@@ -130,7 +133,7 @@ public class TorTcpConnectionFactoryTests
 					TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-					using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
+					using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, personCircuit, timeoutToken);
 					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
 				},
 				timeoutToken);

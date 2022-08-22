@@ -78,13 +78,13 @@
             <UniformGrid Rows="1" />
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
-        <ListBox.DataTemplates>
+        <ListBox.ItemTemplate>
           <DataTemplate>
             <c:SuggestionItem MaxHeight="280">
               <prof:CoinJoinProfileControl />
             </c:SuggestionItem>
           </DataTemplate>
-        </ListBox.DataTemplates>
+        </ListBox.ItemTemplate>
       </ListBox>
     </DockPanel>
   </c:ContentArea>

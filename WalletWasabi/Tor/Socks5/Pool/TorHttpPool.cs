@@ -1,4 +1,3 @@
-using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -39,7 +38,7 @@ public class TorHttpPool : IDisposable
 {
 	/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 	/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
-	public const int MaxConnectionsPerHost = 100;
+	public const int MaxConnectionsPerHost = 1000;
 
 	private bool _disposedValue;
 
@@ -55,19 +54,19 @@ public class TorHttpPool : IDisposable
 	}
 
 	/// <summary>Key is always a URI host. Value is a list of pool connections that can connect to the URI host.</summary>
-	/// <remarks>All access to this object must be guarded by <see cref="ObtainPoolConnectionLock"/>.</remarks>
+	/// <remarks>All access to this object must be guarded by <see cref="ConnectionsLock"/>.</remarks>
 	private Dictionary<string, List<TorTcpConnection>> ConnectionPerHost { get; } = new();
 
-	/// <remarks>Lock object required for the combination of <see cref="TorTcpConnection"/> selection or creation in <see cref="ObtainFreeConnectionAsync(HttpRequestMessage, ICircuit, CancellationToken)"/>.</remarks>
-	private AsyncLock ObtainPoolConnectionLock { get; } = new();
+	/// <remarks>Lock object to guard <see cref="ConnectionPerHost"/>.</remarks>
+	private object ConnectionsLock { get; } = new();
 
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
 	public static DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
-	public Task<bool> IsTorRunningAsync()
+	public Task<bool> IsTorRunningAsync(CancellationToken cancel)
 	{
-		return TcpConnectionFactory.IsTorRunningAsync();
+		return TcpConnectionFactory.IsTorRunningAsync(cancel);
 	}
 
 	public static Exception? LatestTorException { get; private set; } = null;
@@ -79,12 +78,16 @@ public class TorHttpPool : IDisposable
 	/// <param name="e">Tor exception.</param>
 	private void OnTorRequestFailed(Exception e)
 	{
-		if (TorDoesntWorkSince is null)
-		{
-			TorDoesntWorkSince = DateTimeOffset.UtcNow;
-		}
+		TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
 
-		LatestTorException = e;
+		if (e is HttpRequestException)
+		{
+			LatestTorException = e.InnerException is null ? e : e.InnerException;
+		}
+		else
+		{
+			LatestTorException = e;
+		}
 	}
 
 	/// <summary>
@@ -97,7 +100,7 @@ public class TorHttpPool : IDisposable
 	/// <item>Keep waiting 1 second until any of the previous rules cannot be used.</item>
 	/// </list>
 	/// </para>
-	/// <para><see cref="ObtainPoolConnectionLock"/> is acquired only for <see cref="TorTcpConnection"/> selection.</para>
+	/// <para><see cref="ConnectionsLock"/> is acquired only for <see cref="TorTcpConnection"/> selection.</para>
 	/// </summary>
 	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
 	/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
@@ -112,11 +115,13 @@ public class TorHttpPool : IDisposable
 			do
 			{
 				i++;
-				connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
-				TorTcpConnection? connectionToDispose = connection;
+				TorTcpConnection? connectionToDispose = null;
 
 				try
 				{
+					connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
+					connectionToDispose = connection;
+
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
 					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
 
@@ -167,6 +172,16 @@ public class TorHttpPool : IDisposable
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
 					}
 				}
+				catch (TorConnectCommandFailedException e)
+				{
+					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connect command failed.", e);
+
+					if (i == attemptsNo)
+					{
+						Logger.LogDebug($"['{connection}'] All {attemptsNo} attempts failed.");
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
+					}
+				}
 				catch (IOException e)
 				{
 					Logger.LogTrace($"['{connection}'] Failed to read/write HTTP(s) request.", e);
@@ -199,12 +214,12 @@ public class TorHttpPool : IDisposable
 		}
 		catch (OperationCanceledException)
 		{
-			Logger.LogTrace($"[{connection}] Request was canceled: '{request.RequestUri}'.");
+			Logger.LogTrace($"['{connection}'] Request was canceled: '{request.RequestUri}'.");
 			throw;
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"[{connection}] Request failed with exception", e);
+			Logger.LogTrace($"['{connection}'] Request failed with exception", e);
 			OnTorRequestFailed(e);
 			throw;
 		}
@@ -216,37 +231,45 @@ public class TorHttpPool : IDisposable
 	{
 		Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
 
+		DateTime start = DateTime.UtcNow;
 		string host = GetRequestHost(request);
 
 		do
 		{
-			using (await ObtainPoolConnectionLock.LockAsync(token).ConfigureAwait(false))
+			bool canBeAdded;
+			TorTcpConnection? connection;
+
+			lock (ConnectionsLock)
 			{
-				bool canBeAdded = GetPoolConnectionNoLock(host, circuit, out TorTcpConnection? connection);
+				canBeAdded = GetPoolConnectionNoLock(host, circuit, out connection);
 
 				if (connection is not null)
 				{
 					Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
 					return connection;
 				}
+			}
 
-				// The circuit may be disposed almost immediately after this check but we don't mind.
-				if (!circuit.IsActive)
+			// The circuit may be disposed almost immediately after this check but we don't mind.
+			if (!circuit.IsActive)
+			{
+				throw new TorCircuitExpiredException();
+			}
+
+			if (canBeAdded)
+			{
+				connection = await CreateNewConnectionAsync(request, circuit, token).ConfigureAwait(false);
+
+				if (connection is not null)
 				{
-					throw new TorCircuitExpiredException();
-				}
-
-				if (canBeAdded)
-				{
-					connection = await CreateNewConnectionAsync(request, circuit, token).ConfigureAwait(false);
-
-					if (connection is not null)
+					lock (ConnectionsLock)
 					{
 						ConnectionPerHost[host].Add(connection);
-
-						Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Using new Tor SOCKS5 connection.");
-						return connection;
 					}
+
+					DateTime end = DateTime.UtcNow;
+					Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
+					return connection;
 				}
 			}
 
@@ -256,33 +279,9 @@ public class TorHttpPool : IDisposable
 		while (true);
 	}
 
-	private async Task<TorTcpConnection?> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+	private async Task<TorTcpConnection> CreateNewConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 	{
-		TorTcpConnection? connection;
-
-		try
-		{
-			connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
-			Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
-		}
-		catch (TorException e)
-		{
-			Logger.LogDebug($"['{request.RequestUri}'][ERROR] Failed to create a new pool connection.", e);
-			throw;
-		}
-		catch (OperationCanceledException)
-		{
-			Logger.LogTrace($"['{request.RequestUri}'] Operation was canceled.");
-			throw;
-		}
-		catch (Exception e)
-		{
-			Logger.LogTrace($"['{request.RequestUri}'][EXCEPTION] {e}");
-			throw;
-		}
-
-		Logger.LogTrace($"< connection='{connection}'");
-		return connection;
+		return await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>
@@ -327,9 +326,9 @@ public class TorHttpPool : IDisposable
 	/// Useful to clean up <see cref="ConnectionPerHost"/> so that we do not exhaust <see cref="MaxConnectionsPerHost"/> limit.
 	/// <para>If client code forgets to dispose <see cref="PersonCircuit"/>, this should help us to recover eventually.</para>
 	/// </remarks>
-	public async Task ReportCircuitClosedAsync(string circuitName, CancellationToken cancellationToken)
+	public void ReportCircuitClosed(string circuitName)
 	{
-		using (await ObtainPoolConnectionLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		lock (ConnectionsLock)
 		{
 			foreach ((string host, List<TorTcpConnection> tcpConnections) in ConnectionPerHost)
 			{
@@ -353,7 +352,7 @@ public class TorHttpPool : IDisposable
 	/// <param name="host">URI's host value.</param>
 	/// <param name="circuit">Tor circuit for which to get a TCP connection.</param>
 	/// <returns>Whether a connection can be added to <see cref="ConnectionPerHost"/> and reserved connection to use, if any.</returns>
-	/// <remarks>Guarded by <see cref="ObtainPoolConnectionLock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="ConnectionsLock"/>.</remarks>
 	private bool GetPoolConnectionNoLock(string host, ICircuit circuit, out TorTcpConnection? connection)
 	{
 		if (!ConnectionPerHost.ContainsKey(host))

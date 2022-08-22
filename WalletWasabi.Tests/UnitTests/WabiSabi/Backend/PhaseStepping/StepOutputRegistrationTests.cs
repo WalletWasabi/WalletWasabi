@@ -38,14 +38,14 @@ public class StepOutputRegistrationTests
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destKey1 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
 
 		using var destKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -86,7 +86,7 @@ public class StepOutputRegistrationTests
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destKey = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey.PubKey.WitHash.ScriptPubKey,
+			destKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -124,13 +124,13 @@ public class StepOutputRegistrationTests
 		using var destKey1 = new Key();
 		using var destKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
 
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -141,7 +141,7 @@ public class StepOutputRegistrationTests
 		var txParams = round.Parameters;
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
 		round.Alices.Add(extraAlice);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -173,7 +173,7 @@ public class StepOutputRegistrationTests
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destKey = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey.PubKey.WitHash.ScriptPubKey,
+			destKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -197,8 +197,8 @@ public class StepOutputRegistrationTests
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
-		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None);
-		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None);
+		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
+		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, CancellationToken.None, CancellationToken.None, CancellationToken.None);
 
 		while (Phase.ConnectionConfirmation != round.Phase)
 		{

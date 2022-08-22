@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Shell.ShellView">
   <Panel>
     <shell:BackgroundView />
-    <shell:MainView x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled, FallbackValue=True}" />
+    <shell:MainView x:CompileBindings="False" IsHitTestVisible="{Binding $parent.DataContext.IsMainContentEnabled^, FallbackValue=True}" />
     <shell:DialogsView />
   </Panel>
 </UserControl>

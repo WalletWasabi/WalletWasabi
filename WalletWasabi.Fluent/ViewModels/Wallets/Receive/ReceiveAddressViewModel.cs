@@ -100,7 +100,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "We were unable to send the address to the device");
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Unable to send the address to the device");
 			}
 		});
 	}

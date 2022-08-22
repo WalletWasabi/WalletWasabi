@@ -15,7 +15,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
 
-	private int _anonymitySet = DefaultHighAnonymitySet;
+	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
@@ -29,7 +29,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 		P2pkScript = PubKey.ScriptPubKey;
 		P2pkhScript = PubKey.Hash.ScriptPubKey;
-		P2wpkhScript = PubKey.WitHash.ScriptPubKey;
+		P2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		P2shOverP2wpkhScript = P2wpkhScript.Hash.ScriptPubKey;
 
 		PubKeyHash = PubKey.Hash;
@@ -61,7 +61,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public HashSet<uint256> OutputAnonSetReasons { get; } = new();
 
-	public int AnonymitySet
+	public double AnonymitySet
 	{
 		get => _anonymitySet;
 		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
@@ -97,7 +97,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	private int HashCode { get; }
 
-	public void SetAnonymitySet(int anonset, uint256? outputAnonSetReason = null)
+	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReason = null)
 	{
 		if (outputAnonSetReason is not null)
 		{

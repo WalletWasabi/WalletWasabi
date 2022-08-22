@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text.RegularExpressions;
 using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;
@@ -20,7 +19,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	{
 		var filterPredicate = this
 			.WhenAnyValue(x => x.SearchText)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
 
@@ -29,7 +28,10 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Filter(filterPredicate);
 
 		filteredItems
-			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
+			.Transform(
+				item => item is ActionableItem i
+					? new AutocloseActionableItem(i, () => IsSearchListVisible = false)
+					: item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
 			.Bind(out _groups)
@@ -37,13 +39,14 @@ public partial class SearchBarViewModel : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		Any = filteredItems
+		HasResults = filteredItems
 			.Count()
 			.Select(i => i > 0)
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Replay(1)
+			.RefCount();
 	}
 
-	public IObservable<bool> Any { get; }
+	public IObservable<bool> HasResults { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
 

@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(
 	Title = "Bitcoin",
 	Caption = "Manage Bitcoin settings",
-	Order = 3,
+	Order = 1,
 	Category = "Settings",
 	Keywords = new[]
 	{

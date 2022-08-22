@@ -1,5 +1,3 @@
-using Microsoft.VisualBasic;
-
 namespace WalletWasabi.Tor.Socks5.Models;
 
 /// <seealso href="https://github.com/torproject/torspec/blob/main/proposals/304-socks5-extending-hs-error-codes.txt"/>
@@ -12,7 +10,16 @@ public enum ReplyType : byte
 	NetworkUnreachable = 0x03,
 	HostUnreachable = 0x04,
 	ConnectionRefused = 0x05,
+
+	/// <summary>An operation failed because we waited too long for an [Tor] exit to do something.</summary>
+	/// <remarks>
+	/// This error can happen if the host you're trying to connect to isn't
+	/// responding to traffic. It can also happen if an exit is overloaded, and
+	/// unable to answer your replies in a timely manner.
+	/// <para>In either case, trying later, or on a different circuit, might help.</para>
+	/// </remarks>
 	TtlExpired = 0x06,
+
 	CommandNotSupported = 0x07,
 	AddressTypeNotSupported = 0x08,
 
@@ -59,7 +66,7 @@ public enum ReplyType : byte
 	/// Tor was able to download the requested onion service descriptor but is
 	/// unable to decrypt its content using the client authorization information
 	/// it has.This means the client access were revoked.
-    /// </remarks>
+	/// </remarks>
 	OnionServiceBadClientAuth = 0xF5,
 
 	/// <summary>Onion service invalid address</summary>
