@@ -2,7 +2,6 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Avalonia.Controls;
-using Avalonia.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.AppServices.Tor;
@@ -110,11 +109,6 @@ public partial class MainViewModel : ViewModelBase
 		SearchBar = new SearchBarViewModel(source.Changes);
 
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
-	}
-
-	private void Focus()
-	{
-		;
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
