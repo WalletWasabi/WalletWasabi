@@ -27,7 +27,7 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
-	[AutoNotify] private IObservable<string> _selectedAmount = Observable.Return((0.0M).FormattedBtc());
+	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	
@@ -70,9 +70,9 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 	
-	private static string Sum(IEnumerable<WalletCoinViewModel> coinViewModels)
+	private static Money Sum(IEnumerable<WalletCoinViewModel> coinViewModels)
 	{
-		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount.ToDecimal(MoneyUnit.BTC)).FormattedBtc();
+		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount);
 	}
 
 	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
