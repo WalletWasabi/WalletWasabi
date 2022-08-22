@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
@@ -22,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class SelectCoinsDialogViewModel : RoutableViewModel
+public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<WalletCoinViewModel>>
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly WalletViewModel _walletViewModel;
@@ -57,8 +58,10 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 			.Select(items => items.Where(t => t.IsSelected));
 		
 		IsAnySelected = selectedCoins
-			.Any()
+			.Select(coins => coins.Any())
 			.ObserveOn(RxApp.MainThreadScheduler);
+
+		IsAnySelected.Subscribe(b => { });
 
 		SelectedAmount = selectedCoins
 			.Select(Sum)
@@ -66,6 +69,8 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 
 		CoinSelection = new CoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
+		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, IsAnySelected);
+		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models));
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
@@ -74,6 +79,8 @@ public partial class SelectCoinsDialogViewModel : RoutableViewModel
 	{
 		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount);
 	}
+
+	private new ReactiveCommand<Unit, IEnumerable<WalletCoinViewModel>> NextCommand { get; set; }
 
 	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
 	{
