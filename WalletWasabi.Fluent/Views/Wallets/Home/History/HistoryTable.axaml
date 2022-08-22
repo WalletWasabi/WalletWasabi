@@ -267,19 +267,14 @@
 
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <Panel IsVisible="{Binding !IsTransactionHistoryLoaded}">
+    <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                  RowHeight="{StaticResource HistoryTableRowHeight}" />
       <Panel Background="{DynamicResource RegionColor}" Opacity="0.75" />
-    </Panel>
-    <Panel IsVisible="{Binding IsTransactionHistoryLoadedAndEmpty}"
-           Margin="{StaticResource HistoryTablePlaceholderPanelMargin}">
-      <c:HistoryPlaceholderPanel RowHeight="{StaticResource HistoryTableRowHeight}" />
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.75" />
-      <Grid RowDefinitions="26,1*,1.5*">
+      <Grid RowDefinitions="26,1*,1.5*" IsVisible="{Binding IsTransactionHistoryLoaded}">
         <Panel Grid.Row="1">
-          <c:InfoMessage  VerticalAlignment="Center"
-                          HorizontalAlignment="Center">
+          <c:InfoMessage VerticalAlignment="Center"
+                         HorizontalAlignment="Center">
             <TextBlock Text="Transaction history is empty" />
           </c:InfoMessage>
         </Panel>
