@@ -49,8 +49,10 @@ public class KeyChain : BaseKeyChain
 
 	public override IEnumerable<Script> FilterMine(IEnumerable<Script> scriptPubKeys)
 	{
+		KeyManager.AssertCleanKeysIndexed();
+		var scriptPubKeysSet = scriptPubKeys.ToHashSet();
 		return KeyManager
-			.GetSecrets(Kitchen.SaltSoup(), scriptPubKeys.ToArray())
-			.Select(x => x.PrivateKey.PubKey.WitHash.ScriptPubKey);
+			.GetKeys(x => scriptPubKeysSet.Contains(x.P2wpkhScript))
+			.Select(x => x.P2wpkhScript); 
 	}
 }
