@@ -15,7 +15,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	[AutoNotify] private bool _isSearchListVisible;
 	[AutoNotify] private string _searchText = "";
 
-	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable, Action onClose)
+	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
 		var filterPredicate = this
 			.WhenAnyValue(x => x.SearchText)
