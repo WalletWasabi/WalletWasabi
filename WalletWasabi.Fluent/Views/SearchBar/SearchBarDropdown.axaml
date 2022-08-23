@@ -82,6 +82,7 @@
                         VerticalContentAlignment="Stretch"
                         Content="{Binding Content}" />
       </DockPanel>
+
     </DataTemplate>
 
     <DataTemplate DataType="searchItems:ActionableItem">
@@ -89,13 +90,15 @@
       <Button Command="{Binding Command}" ClickMode="Press" Classes="searchItem" Background="Transparent"
               Foreground="{DynamicResource AcrylicTrimForeground}" HorizontalAlignment="Stretch" Padding="0" Cursor="Hand">
 
-        <DockPanel Background="Transparent" Margin="10">
+        <Grid ColumnDefinitions="16 Auto *" Background="Transparent" Margin="10">
           <PathIcon Width="16" Height="16" Opacity="0.8" VerticalAlignment="Center" Foreground="{DynamicResource AcrylicTrimForeground}"
                     Data="{Binding Icon, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
-          <TextBlock Margin="10 0 10 0" Text="{Binding Name}" VerticalAlignment="Center" />
-          <TextBlock Opacity="0.5" VerticalAlignment="Center" Text="{Binding Description}"
+          <TextBlock Grid.Column="1" Margin="10 0 10 0" Text="{Binding Name}"
+                     ToolTip.Tip="{Binding Name}"
+                     VerticalAlignment="Center"  TextTrimming="CharacterEllipsis" MaxWidth="150" />
+          <TextBlock Grid.Column="2" Opacity="0.5" VerticalAlignment="Center" ToolTip.Tip="{Binding Description}" Text="{Binding Description}"
                      TextTrimming="CharacterEllipsis" />
-        </DockPanel>
+        </Grid>
 
         <i:Interaction.Behaviors>
           <EventTriggerBehavior EventName="Click">
@@ -113,10 +116,10 @@
     <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-          <DockPanel Margin="0 0 0 10">
+          <Grid Margin="0 0 0 10" RowDefinitions="Auto,*">
             <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-            <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
-          </DockPanel>
+            <ItemsControl Grid.Row="1" x:Name="ListBox" Items="{Binding Items}" />
+          </Grid>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

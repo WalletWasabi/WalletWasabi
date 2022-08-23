@@ -15,7 +15,7 @@ public class TransactionsSource : ISearchItemSource
 
 	private static ISearchItem ToSearchItem(TransactionEntry r)
 	{
-		var transactionId = new string(r.HistoryItem.Id.ToString().Trim('0').Take(10).ToArray());
+		var transactionId = r.HistoryItem.Id.ToString();
 		var keywords = new[] { r.HistoryItem.Id.ToString() };
 		return new ActionableItem(
 			transactionId,
