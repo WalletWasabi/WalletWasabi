@@ -8,26 +8,29 @@ namespace WalletWasabi.Fluent;
 
 public class TransactionsWatcher
 {
-	public IObservable<IChangeSet<TransactionEntry, ComposedKey>> TransactionChanges { get; }
-	public static TransactionsWatcher Instance { get; set; } = new();
-
 	public TransactionsWatcher()
 	{
 		var cache = new SourceCache<TransactionEntry, ComposedKey>(x => x.Key);
 
 		MessageBus.Current.Listen<TransactionsChangedMessage>()
-			.Subscribe(msg =>
-			{
-				cache.Edit(r =>
+			.Subscribe(
+				msg =>
 				{
-					var toRemove = r.Items.Where(r => r.Parent == msg.HistoryViewModel).ToList();
-					r.Remove(toRemove);
-					r.AddOrUpdate(msg.NewHistoryList
-						.OrderByDescending(r => r.Date)
-						.Select(b => new TransactionEntry(msg.HistoryViewModel, b, msg.WalletViewModel)));
+					cache.Edit(
+						r =>
+						{
+							var toRemove = r.Items.Where(r => r.Parent == msg.HistoryViewModel).ToList();
+							r.Remove(toRemove);
+							r.AddOrUpdate(
+								msg.NewHistoryList
+									.OrderByDescending(r => r.Date)
+									.Select(b => new TransactionEntry(msg.HistoryViewModel, b, msg.WalletViewModel)));
+						});
 				});
-			});
 
 		TransactionChanges = cache.Connect();
 	}
+
+	public IObservable<IChangeSet<TransactionEntry, ComposedKey>> TransactionChanges { get; }
+	public static TransactionsWatcher Instance { get; set; } = new();
 }

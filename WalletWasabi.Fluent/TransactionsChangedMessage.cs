@@ -6,14 +6,17 @@ namespace WalletWasabi.Fluent;
 
 public class TransactionsChangedMessage
 {
-	public HistoryViewModel HistoryViewModel { get; }
-	public HistoryItemViewModelBase[] NewHistoryList { get; }
-	public WalletViewModel WalletViewModel { get; }
-
-	public TransactionsChangedMessage(HistoryViewModel historyViewModel, HistoryItemViewModelBase[] newHistoryList, WalletViewModel walletViewModel)
+	public TransactionsChangedMessage(
+		HistoryViewModel historyViewModel,
+		HistoryItemViewModelBase[] newHistoryList,
+		WalletViewModel walletViewModel)
 	{
 		HistoryViewModel = historyViewModel;
 		NewHistoryList = newHistoryList;
 		WalletViewModel = walletViewModel;
 	}
+
+	public HistoryViewModel HistoryViewModel { get; }
+	public HistoryItemViewModelBase[] NewHistoryList { get; }
+	public WalletViewModel WalletViewModel { get; }
 }

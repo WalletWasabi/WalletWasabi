@@ -7,8 +7,6 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 internal class TransactionSearchItem
 {
-	public HistoryItemViewModelBase Transaction { get; }
-
 	public TransactionSearchItem(HistoryItemViewModelBase transaction)
 	{
 		Transaction = transaction;
@@ -18,6 +16,8 @@ internal class TransactionSearchItem
 		Amount = transaction.IncomingAmount ?? -transaction.OutgoingAmount ?? Money.Zero;
 		Balance = transaction.Balance;
 	}
+
+	public HistoryItemViewModelBase Transaction { get; }
 
 	public Money Balance { get; }
 

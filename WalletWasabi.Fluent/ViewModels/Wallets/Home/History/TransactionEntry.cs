@@ -5,9 +5,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 public class TransactionEntry
 {
-	public HistoryItemViewModelBase HistoryItem { get; }
-	public WalletViewModel Wallet { get; }
-
 	public TransactionEntry(
 		HistoryViewModel parent,
 		HistoryItemViewModelBase historyItem,
@@ -18,6 +15,9 @@ public class TransactionEntry
 		Wallet = wallet;
 		Key = new ComposedKey(Parent, HistoryItem.Id);
 	}
+
+	public HistoryItemViewModelBase HistoryItem { get; }
+	public WalletViewModel Wallet { get; }
 
 	public ComposedKey Key { get; }
 	public HistoryViewModel Parent { get; }

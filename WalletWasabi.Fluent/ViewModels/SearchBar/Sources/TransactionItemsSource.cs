@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -20,11 +20,15 @@ public class TransactionsSource : ISearchItemSource
 		return new ActionableItem(
 			transactionId,
 			$"Found in {r.Wallet.WalletName}",
-			async () => { r.Wallet.NavigateAndHighlight(r.HistoryItem.Id); },
+			() =>
+			{
+				r.Wallet.NavigateAndHighlight(r.HistoryItem.Id);
+				return Task.CompletedTask;
+			},
 			"Transactions",
 			keywords)
 		{
-			Icon = GetIcon(r),
+			Icon = GetIcon(r)
 		};
 	}
 
@@ -35,7 +39,7 @@ public class TransactionsSource : ISearchItemSource
 			CoinJoinHistoryItemViewModel cj => "shield_regular",
 			CoinJoinsHistoryItemViewModel cjs => "shield_regular",
 			TransactionHistoryItemViewModel tx => "normal_transaction",
-			_ => "",
+			_ => ""
 		};
 	}
 }
