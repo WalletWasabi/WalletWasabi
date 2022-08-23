@@ -34,6 +34,7 @@ public class TorMonitor : PeriodicRunner
 		StatusEvent.EventNameStatusClient,
 		StatusEvent.EventNameStatusServer,
 		CircEvent.EventName,
+		StreamEvent.EventName,
 		OrConnEvent.EventName,
 		NetworkLivenessEvent.EventName,
 	};
