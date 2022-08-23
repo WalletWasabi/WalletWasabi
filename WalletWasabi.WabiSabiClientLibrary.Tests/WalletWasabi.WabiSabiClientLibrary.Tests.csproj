@@ -27,5 +27,6 @@
     <EmbeddedResource Include="IntegrationTests/TestVectors/GetRealCredentialRequests.json" />
     <EmbeddedResource Include="IntegrationTests/TestVectors/GetOutputsAmounts.json" />
     <EmbeddedResource Include="IntegrationTests/TestVectors/SelectInputsForRound.json" />
+    <EmbeddedResource Include="IntegrationTests/TestVectors/GetAnonymityScores.json" />
   </ItemGroup>
 </Project>

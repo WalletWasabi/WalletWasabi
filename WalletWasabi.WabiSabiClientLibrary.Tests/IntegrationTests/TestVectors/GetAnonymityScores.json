@@ -1,0 +1,59 @@
+[
+  {
+    "name": "",
+    "request": {
+      "transactions": [
+        {
+          "internalInputs": [],
+          "externalInputs": [
+            {
+              "scriptPubKey": "76a914343f14545ae181898cced42a280e25cc20f7972c88ac",
+              "value": 4979995320
+            }
+          ],
+          "internalOutputs": [
+            {
+              "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+              "value": 1000000000
+            }
+          ],
+          "externalOutputs": [
+            {
+              "scriptPubKey": "76a914d51d49df61c406305f14cae176e0e05f200d40b288ac",
+              "value": 3979990640
+            }
+          ]
+        },
+        {
+          "internalInputs": [],
+          "externalInputs": [
+            {
+              "scriptPubKey": "76a9143833d325bfc715ec1e902e75456265c0f7d2e41988ac",
+              "value": 5000000000
+            }
+          ],
+          "internalOutputs": [
+            {
+              "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+              "value": 20000000
+            }
+          ],
+          "externalOutputs": [
+            {
+              "scriptPubKey": "76a914343f14545ae181898cced42a280e25cc20f7972c88ac",
+              "value": 4979995320
+            }
+          ]
+        }
+      ]
+    },
+    "expectedResponse": {
+      "results": [
+        {
+          "address": "bcrt1p0hghqgks9z83pwh3a3jzq3eldgzj8ezjrs247szks3w2nq7s7fhsqtqgg7",
+          "anonymitySet": 1.0
+        }
+      ]
+    }
+  }
+]

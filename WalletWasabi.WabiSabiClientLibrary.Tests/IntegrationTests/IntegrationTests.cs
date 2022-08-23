@@ -21,6 +21,7 @@ public class IntegrationsTest
 	[ClassData(typeof(GetCredentialsVectors))]
 	[ClassData(typeof(GetOutpusAmountsTestVectors))]
 	[ClassData(typeof(SelectInputsForRoundTestVectors))]
+	[ClassData(typeof(GetAnonymityScoresTestVectors))]
 	public async Task TestPostAsync([System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "xUnit1026")] string name, string method, string requestContentString, string expectedResponseContentString)
 	{
 		HttpClient client = _factory.CreateClient();
@@ -87,6 +88,13 @@ public class GetOutpusAmountsTestVectors : TestVectors
 public class SelectInputsForRoundTestVectors : TestVectors
 {
 	public SelectInputsForRoundTestVectors() : base("SelectInputsForRound.json", "select-inputs-for-round")
+	{
+	}
+}
+
+public class GetAnonymityScoresTestVectors : TestVectors
+{
+	public GetAnonymityScoresTestVectors() : base("GetAnonymityScores.json", "get-anonymity-scores")
 	{
 	}
 }
