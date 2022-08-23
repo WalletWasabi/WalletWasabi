@@ -21,7 +21,7 @@ public class RpcClientBase : IRPCClient
 
 	public Network Network => Rpc.Network;
 
-	private RPCClient Rpc { get; }
+	protected internal RPCClient Rpc { get; }
 
 	public RPCCredentialString CredentialString => Rpc.CredentialString;
 

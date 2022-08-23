@@ -1,5 +1,6 @@
 namespace WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
+/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/tor-spec.txt">See section "5.4. Tearing down circuits".</seealso>
 public enum Reason
 {
 	/// <summary>No reason given.</summary>

@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
@@ -14,6 +15,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 
@@ -38,6 +40,7 @@ public class Global : IDisposable
 	public HostedServices HostedServices { get; }
 
 	public IndexBuilderService? IndexBuilderService { get; private set; }
+	public HttpClient? HttpClient { get; set; }
 
 	public Coordinator? Coordinator { get; private set; }
 
@@ -68,7 +71,38 @@ public class Global : IDisposable
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+
+		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), coordinatorParameters.CoinJoinIdStoreFilePath);
+		bool shouldBuildCoinVerifier = coordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
+		CoinVerifier? coinVerifier = null;
+		if (shouldBuildCoinVerifier)
+		{
+			try
+			{
+				if (!Uri.TryCreate(coordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
+				{
+					throw new ArgumentException("Blacklist API URL is invalid in WabiSabiConfig.json.");
+				}
+				if (string.IsNullOrEmpty(coordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken))
+				{
+					throw new ArgumentException("Blacklist API token was not provided in WabiSabiConfig.json.");
+				}
+
+				HttpClient = new HttpClient();
+				HttpClient.BaseAddress = url;
+
+				var coinVerifierApiClient = new CoinVerifierApiClient(coordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, rpc.Network, HttpClient);
+				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(coordinatorParameters.WhitelistFilePath, cancel).ConfigureAwait(false);
+				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, coordinatorParameters.RuntimeCoordinatorConfig);
+				Logger.LogInfo("CoinVerifier created successfully.");
+			}
+			catch (Exception exc)
+			{
+				Logger.LogCritical($"There was an error when creating CoinVerifier. Details: '{exc}'");
+			}
+		}
+
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, roundConfig.IsCoinVerifierEnabledForWW1 ? coinVerifier : null);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
 		var coordinator = Guard.NotNull(nameof(Coordinator), Coordinator);
@@ -94,11 +128,11 @@ public class Global : IDisposable
 				"Config Watcher");
 		}
 
-		CoinJoinIdStore = CoinJoinIdStore.Create(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(coordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore);
+		WabiSabiCoordinator = new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, coordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled ? coinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
+
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
@@ -186,6 +220,11 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
+				if (HttpClient is { } httpClient)
+				{
+					httpClient.Dispose();
+				}
+
 				if (Coordinator is { } coordinator)
 				{
 					coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;

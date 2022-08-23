@@ -35,6 +35,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isTransactionHistoryLoaded;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
@@ -230,6 +232,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
+
+			IsTransactionHistoryLoaded = true;
 		}
 		catch (Exception ex)
 		{
