@@ -71,13 +71,6 @@
       </settings:SettingSelector.DataTemplates>
     </settings:SettingSelector>
 
-    <DataTemplate DataType="searchItems:TransactionSearchItem">
-      <DockPanel ToolTip.Tip="{Binding Id}">
-        <TextBlock VerticalAlignment="Center" DockPanel.Dock="Right" Text="{Binding Amount, Converter={x:Static conv:MoneyConverters.ToFormattedString}}" Margin="10 0" />
-        <TextBlock VerticalAlignment="Center" DockPanel.Dock="Right" Text="{Binding Date, StringFormat='{}{0:d}'}" Margin="10 0" />
-      </DockPanel>
-    </DataTemplate>
-
     <DataTemplate DataType="searchItems:NonActionableSearchItem">
 
       <DockPanel Background="Transparent" Margin="10">
