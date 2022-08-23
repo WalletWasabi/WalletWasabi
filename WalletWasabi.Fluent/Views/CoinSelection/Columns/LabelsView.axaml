@@ -8,5 +8,5 @@
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Columns.LabelsView"
              x:DataType="columns:LabelsViewModel"
              x:CompileBindings="True">
-  <controls:TagsBox IsReadOnly="True" Items="{Binding SmartLabel}" />
+  <controls:LabelsItemsPresenter Items="{Binding SmartLabel}" />
 </UserControl>
