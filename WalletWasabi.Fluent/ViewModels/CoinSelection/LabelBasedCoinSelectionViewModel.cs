@@ -1,12 +1,13 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -18,67 +19,130 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
-	private readonly ReadOnlyObservableCollection<CoinGroup> _items;
 	[AutoNotify] private string _filter = "";
 
 	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
 	{
 		var filterPredicate = this
-			.WhenAnyValue<LabelBasedCoinSelectionViewModel, string>(x => x.Filter)
+			.WhenAnyValue(x => x.Filter)
 			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
 			.DistinctUntilChanged()
 			.Select(SearchItemFilterFunc);
 
 		coinChanges
 			.Group(x => x.SmartLabel)
-			.TransformWithInlineUpdate(group => new CoinGroup(group.Key, group.Cache))
+			.TransformWithInlineUpdate(
+				group =>
+				{
+					var coinGroup = new CoinGroupViewModel(group.Key, group.Cache);
+					return new TreeNode(coinGroup, coinGroup.Items.Select(x => new TreeNode(x)));
+				})
 			.Filter(filterPredicate)
 			//.DisposeMany()	// Disposal behavior of Filter is unwanted
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out _items)
+			.Bind(out var items)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		Source = CreateGridSource(_items);
+		Source = CreateGridSource(items);
 	}
 
-	public FlatTreeDataGridSource<CoinGroup> Source { get; }
-
-	public ReadOnlyObservableCollection<CoinGroup> Items => _items;
+	public HierarchicalTreeDataGridSource<TreeNode> Source { get; }
 
 	public void Dispose()
 	{
 		_disposables.Dispose();
+		Source.Dispose();
 	}
 
-	private static Func<CoinGroup, bool> SearchItemFilterFunc(string? text)
+	private static Func<TreeNode, bool> SearchItemFilterFunc(string? text)
 	{
-		return coinGroup =>
+		return tn =>
 		{
 			if (string.IsNullOrWhiteSpace(text))
 			{
 				return true;
 			}
 
-			var containsLabel = coinGroup.Labels.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
-			return containsLabel;
+			if (tn.Value is CoinGroupViewModel cg)
+			{
+				var containsLabel = cg.Labels.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
+				return containsLabel;
+			}
+
+			return false;
 		};
 	}
 
-	private static FlatTreeDataGridSource<CoinGroup> CreateGridSource(IEnumerable<CoinGroup> groups)
+	private static TemplateColumn<TreeNode> LabelsColumn()
 	{
-		var source = new FlatTreeDataGridSource<CoinGroup>(groups)
+		return new TemplateColumn<TreeNode>(
+			"Labels (Cluster)",
+			new ConstantTemplate<TreeNode>(
+				group =>
+				{
+					if (group.Value is CoinGroupViewModel vm)
+					{
+						return new LabelsViewModel(vm.Labels);
+					}
+
+					return new LabelsViewModel(new SmartLabel());
+				}));
+	}
+
+	private static TemplateColumn<TreeNode> AmountColumn()
+	{
+		return new TemplateColumn<TreeNode>(
+			"Amount",
+			new ObservableTemplate<TreeNode, string>(
+				group =>
+				{
+					return group.Value switch
+					{
+						CoinGroupViewModel cg => cg.TotalAmount.Select(x => x.ToFormattedString()),
+						WalletCoinViewModel coin => new BehaviorSubject<string>(coin.Amount.ToFormattedString()),
+						_ => Observable.Return("")
+					};
+				}));
+	}
+
+	private static HierarchicalExpanderColumn<TreeNode> ChildrenColumn()
+	{
+		return new HierarchicalExpanderColumn<TreeNode>(
+			new TextColumn<TreeNode, string>("", group => ""),
+			group => group.Children,
+			node => node.Children.Any());
+	}
+
+	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> groups)
+	{
+		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
 		{
 			Columns =
 			{
-				new TemplateColumn<CoinGroup>("", new ConstantTemplate<CoinGroup>(group => new Columns.IsSelectedViewModel(group.IsSelected, b => group.IsSelected = b))),
-				new TemplateColumn<CoinGroup>("Amount", new ObservableTemplate<CoinGroup, string>(group => group.TotalAmount.Select(x => x.ToFormattedString()))),
-				new TemplateColumn<CoinGroup>("Labels (Cluster)", new ConstantTemplate<CoinGroup>(group => new LabelsViewModel(group.Labels))),
+				SelectionColumn(),
+				ChildrenColumn(),
+				AmountColumn(),
+				LabelsColumn()
 			}
 		};
 
 		source.RowSelection!.SingleSelect = true;
 
 		return source;
+	}
+
+	private TemplateColumn<TreeNode> SelectionColumn()
+	{
+		return new TemplateColumn<TreeNode>(
+			"",
+			new ConstantTemplate<TreeNode>(
+				n =>
+				{
+					var selectable = (ISelectable) n.Value;
+					var isSelectedViewModel = new IsSelectedViewModel(selectable);
+					_disposables.Add(isSelectedViewModel);
+					return isSelectedViewModel;
+				}));
 	}
 }

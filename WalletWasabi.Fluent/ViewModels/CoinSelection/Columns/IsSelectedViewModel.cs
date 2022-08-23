@@ -1,14 +1,23 @@
+using System.Reactive.Disposables;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 
-public partial class IsSelectedViewModel : ViewModelBase
+public partial class IsSelectedViewModel : ViewModelBase, ISelectable, IDisposable
 {
 	[AutoNotify] private bool _isSelected;
+	private readonly CompositeDisposable _disposable = new();
 
-	public IsSelectedViewModel(bool initialValue, Action<bool> setter)
+	public IsSelectedViewModel(ISelectable selectable)
 	{
-		IsSelected = initialValue;
-		this.WhenAnyValue<IsSelectedViewModel, bool>(model => model.IsSelected).Subscribe(setter);
+		selectable.WhenAnyValue(h => h.IsSelected).Subscribe(b => IsSelected = b)
+			.DisposeWith(_disposable);
+		this.WhenAnyValue(model => model.IsSelected).Subscribe(b => selectable.IsSelected = b)
+			.DisposeWith(_disposable);
+	}
+
+	public void Dispose()
+	{
+		_disposable.Dispose();
 	}
 }

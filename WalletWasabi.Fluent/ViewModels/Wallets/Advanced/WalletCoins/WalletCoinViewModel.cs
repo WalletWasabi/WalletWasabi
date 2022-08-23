@@ -6,10 +6,11 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-public partial class WalletCoinViewModel : ViewModelBase, IDisposable
+public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectable
 {
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private Money _amount = Money.Zero;

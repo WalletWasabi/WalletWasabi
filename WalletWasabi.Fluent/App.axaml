@@ -42,7 +42,6 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
-    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>

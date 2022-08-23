@@ -16,9 +16,11 @@ public class ObservableTemplate<T, TOutput> : IDataTemplate
 
 	public IControl Build(object param)
 	{
+		var binding = _build((T)param).ToBinding();
+
 		return new ContentPresenter()
 		{
-			[!ContentControl.ContentProperty] = _build((T)param).ToBinding(),
+			[!ContentControl.ContentProperty] = binding,
 		};
 	}
 

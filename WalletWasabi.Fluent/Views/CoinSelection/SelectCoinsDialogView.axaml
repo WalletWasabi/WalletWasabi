@@ -68,12 +68,6 @@
           IsVisible="{Binding #GroupByLabels.IsChecked}"
           Source="{Binding LabelBasedSelection.Source}"
           CanUserSortColumns="True">
-          <TreeDataGrid.Styles>
-            <Style Selector="TreeDataGridRow">
-              <Setter Property="Focusable" Value="False" />
-              <Setter Property="Height" Value="47.5" />
-            </Style>
-          </TreeDataGrid.Styles>
         </TreeDataGrid>
       </Panel>
     </DockPanel>
