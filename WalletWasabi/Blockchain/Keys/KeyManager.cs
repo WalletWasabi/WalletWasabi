@@ -20,7 +20,6 @@ using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Blockchain.Keys;
 
-[JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
 	public const int DefaultAnonScoreTarget = 5;
@@ -39,6 +38,16 @@ public class KeyManager
 
 	private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
 
+	private static readonly JsonConverter[] JsonConverters =
+	{
+		new BitcoinEncryptedSecretNoECJsonConverter(),
+		new ByteArrayJsonConverter(),
+		new HDFingerprintJsonConverter(),
+		new ExtPubKeyJsonConverter(),
+		new KeyPathJsonConverter(),
+		new MoneyBtcJsonConverter(),
+	};
+		
 	[JsonConstructor]
 	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 	{
@@ -99,68 +108,48 @@ public class KeyManager
 		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 	}
 
-	[JsonProperty(Order = 1)]
-	[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
 	public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
 
-	[JsonProperty(Order = 2)]
-	[JsonConverter(typeof(ByteArrayJsonConverter))]
 	public byte[] ChainCode { get; }
 
-	[JsonProperty(Order = 3)]
-	[JsonConverter(typeof(HDFingerprintJsonConverter))]
 	public HDFingerprint? MasterFingerprint { get; private set; }
 
-	[JsonProperty(Order = 4)]
-	[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 	public ExtPubKey ExtPubKey { get; }
 
-	[JsonProperty(Order = 5)] public bool SkipSynchronization { get; private set; } = false;
+	public bool SkipSynchronization { get; private set; } = false;
 
-	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
 
-	[JsonProperty(Order = 7)]
-	[JsonConverter(typeof(KeyPathJsonConverter))]
 	public KeyPath AccountKeyPath { get; private set; }
 
+	[JsonIgnore]
 	public string? FilePath { get; private set; }
 
-	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
+	[JsonIgnore, MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
 	public bool IsWatchOnly => EncryptedSecret is null;
 
-	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
+	[JsonIgnore, MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
-	[JsonProperty(Order = 8)]
-	private BlockchainState BlockchainState { get; }
+	public BlockchainState BlockchainState { get; }
 
-	[JsonProperty(Order = 9, PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(Order = 10, PropertyName = "AutoCoinJoin")]
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
 	/// <summary>
 	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
 	/// </summary>
-	[JsonProperty(Order = 11, PropertyName = "PlebStopThreshold")]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
 
-	[JsonProperty(Order = 12, PropertyName = "Icon")]
 	public string? Icon { get; private set; }
 
-	[JsonProperty(Order = 13, PropertyName = "AnonScoreTarget")]
 	public int AnonScoreTarget { get; private set; } = DefaultAnonScoreTarget;
 
-	[JsonProperty(Order = 14, PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
-	[JsonProperty(Order = 15, PropertyName = "IsCoinjoinProfileSelected")]
 	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
-	[JsonProperty(Order = 16, PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
 	[JsonProperty(Order = 999)] 
@@ -178,6 +167,8 @@ public class KeyManager
 
 	private object ScriptHdPubKeyMapLock { get; } = new ();
 	private object ToFileLock { get; } = new ();
+
+	[JsonIgnore]
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
@@ -237,7 +228,7 @@ public class KeyManager
 		SafeIoManager safeIoManager = new(filePath);
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
-		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString)
+		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString, JsonConverters)
 			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
@@ -647,6 +638,7 @@ public class KeyManager
 		ToFileNoLock(FilePath);
 	}
 
+
 	private void ToFileNoLock(string filePath)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
@@ -657,7 +649,7 @@ public class KeyManager
 
 		BlockchainState.Height = new Height(matureHeight);
 
-		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
 
 		SafeIoManager safeIoManager = new(filePath);
 		safeIoManager.WriteAllText(jsonString, Encoding.UTF8);
