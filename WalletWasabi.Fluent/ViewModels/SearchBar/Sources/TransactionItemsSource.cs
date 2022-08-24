@@ -1,45 +1,95 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public class TransactionsSource : ISearchItemSource
+public class TransactionsSource : ReactiveObject, ISearchSource
 {
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes =>
-		TransactionsWatcher.Instance.TransactionChanges
-			.Transform(ToSearchItem);
-
-	private static ISearchItem ToSearchItem(TransactionEntry r)
+	public TransactionsSource(IObservable<string> query)
 	{
-		var transactionId = r.HistoryItem.Id.ToString();
-		var keywords = new[] { r.HistoryItem.Id.ToString() };
-		return new ActionableItem(
-			transactionId,
-			$"Found in {r.Wallet.WalletName}",
-			() =>
-			{
-				r.Wallet.NavigateAndHighlight(r.HistoryItem.Id);
-				return Task.CompletedTask;
-			},
-			"Transactions",
-			keywords)
+		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key);
+
+		query
+			.Select(s => s.Length > 5 ? PerformSearch(s) : Enumerable.Empty<ISearchItem>())
+			.Do(results => sourceCache.Edit(e => e.Load(results)))
+			.Subscribe();
+
+		Changes = sourceCache.Connect();
+	}
+
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+
+	private static bool Contains(string queryStr, HistoryItemViewModelBase historyItemViewModelBase)
+	{
+		return historyItemViewModelBase.Id.ToString().Contains(queryStr, StringComparison.CurrentCultureIgnoreCase);
+	}
+
+	private static Task NavigateTo(WalletViewModel wallet, HistoryItemViewModelBase item)
+	{
+		wallet.NavigateAndHighlight(item.Id);
+		return Task.CompletedTask;
+	}
+
+	private static string GetIcon(HistoryItemViewModelBase historyItemViewModelBase)
+	{
+		return historyItemViewModelBase switch
 		{
-			Icon = GetIcon(r)
+			CoinJoinHistoryItemViewModel => "shield_regular",
+			CoinJoinsHistoryItemViewModel => "shield_regular",
+			TransactionHistoryItemViewModel => "normal_transaction",
+			_ => ""
 		};
 	}
 
-	private static string GetIcon(TransactionEntry transactionEntry)
+	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Flatten(
+		IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)>
+			walletTransactions)
 	{
-		return transactionEntry.HistoryItem switch
+		return walletTransactions.SelectMany(t => t.Transactions.Select(tran => (t.Wallet, tran)));
+	}
+
+	private static ISearchItem ToSearchItem(WalletViewModel wallet, HistoryItemViewModelBase item)
+	{
+		return new ActionableItem(
+			item.Id.ToString(),
+			@$"Found in ""{wallet.WalletName}""",
+			() => NavigateTo(wallet, item),
+			"Transactions",
+			new List<string>())
 		{
-			CoinJoinHistoryItemViewModel cj => "shield_regular",
-			CoinJoinsHistoryItemViewModel cjs => "shield_regular",
-			TransactionHistoryItemViewModel tx => "normal_transaction",
-			_ => ""
+			Icon = GetIcon(item)
 		};
+	}
+
+	private static IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)>
+		GetTransactionsByWallet()
+	{
+		return UiServices.WalletManager.Wallets
+			.Where(x => x.IsLoggedIn && x.WalletState == WalletState.Started)
+			.OfType<WalletViewModel>()
+			.Select(x => (Wallet: x, x.History.Transactions.Concat(x.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().SelectMany(y => y.Children))));
+	}
+
+	private IEnumerable<ISearchItem> PerformSearch(string s)
+	{
+		return Filter(s)
+			.Take(5)
+			.Select(tuple => ToSearchItem(tuple.Item1, tuple.Item2));
+	}
+
+	private IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
+	{
+		return Flatten(GetTransactionsByWallet())
+			.Where(tuple => Contains(queryStr, tuple.Item2));
 	}
 }
