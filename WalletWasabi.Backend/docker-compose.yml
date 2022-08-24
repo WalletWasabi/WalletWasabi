@@ -1,0 +1,31 @@
+version: "3"
+services:
+
+  bitcoind:
+    restart: unless-stopped
+    image: btcpayserver/bitcoinknots:21.2
+    environment:
+      BITCOIN_NETWORK: regtest
+      BITCOIN_EXTRA_ARGS: |-
+        rpcuser=ceiwHEbqWI83
+        rpcpassword=DwubwWsoo3
+        rpcport=18443
+        rpcbind=0.0.0.0:18443
+        rpcallowip=0.0.0.0/0
+        port=18444
+        whitelist=0.0.0.0/0
+        zmqpubrawblock=tcp://0.0.0.0:18445
+        zmqpubrawtx=tcp://0.0.0.0:18446
+        deprecatedrpc=signrawtransaction
+        fallbackfee=0.0002
+        mempoolreplacement=fee,optin
+        txindex=1
+    ports:
+      - "18443:18443"
+      - "18444:18444"
+    volumes:
+      - "bitcoin_datadir:/data"
+
+
+volumes:
+  bitcoin_datadir:

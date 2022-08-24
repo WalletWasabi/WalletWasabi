@@ -12,7 +12,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
@@ -35,7 +35,7 @@
           </c:PrivacyContentControl>
         </DockPanel>
         <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" HorizontalAlignment="Center">
-          <c:LabelsListBox Items="{Binding Labels}" />
+          <c:LabelsItemsPresenter Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>
 
@@ -50,7 +50,7 @@
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20" MinHeight="100">
           <c:PrivacyContentControl Height="250" Margin="0 0 0 -18" PrivacyReplacementMode="Icon">
-            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}"  />
+            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
           </c:PrivacyContentControl>
         </Viewbox>
       </c:AdorningContentControl>

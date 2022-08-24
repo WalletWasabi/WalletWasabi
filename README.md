@@ -62,7 +62,7 @@
 
 <br>
 
-![](https://i.imgur.com/gI75EKu.png)
+![](https://raw.githubusercontent.com/zkSNACKs/WalletWasabi/master/WalletWasabi.Backend/wwwroot/img/screenshots/webpage_ui_compilation-02.png)
 
 # Build From Source Code
 

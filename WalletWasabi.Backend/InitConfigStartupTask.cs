@@ -19,10 +19,8 @@ public class InitConfigStartupTask : IStartupTask
 		Global = global;
 		Config = config;
 		Cache = cache;
-		WebsiteTorifier = new WebsiteTorifier(hostingEnvironment.WebRootPath);
 	}
 
-	public WebsiteTorifier WebsiteTorifier { get; }
 	private Global Global { get; }
 	private Config Config { get; }
 	private IMemoryCache Cache { get; }
@@ -48,20 +46,11 @@ public class InitConfigStartupTask : IStartupTask
 
 		var cachedRpc = new CachedRpcClient(rpc, Cache);
 		await Global.InitializeAsync(roundConfig, cancellationToken);
-
-		try
-		{
-			await WebsiteTorifier.CloneAndUpdateOnionIndexHtmlAsync();
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning(ex);
-		}
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogWarning(e.Exception);
+		Logger.LogDebug(e.Exception);
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)

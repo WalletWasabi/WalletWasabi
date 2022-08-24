@@ -100,7 +100,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.IsNewlyCreated)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
@@ -153,7 +153,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		if (remainingTimeSpan > TimeSpan.FromHours(1))
 		{
- 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+			remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
 		}
 
 		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);

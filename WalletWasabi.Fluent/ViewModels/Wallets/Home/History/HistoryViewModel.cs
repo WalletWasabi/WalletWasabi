@@ -35,6 +35,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isTransactionHistoryLoaded;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
@@ -65,6 +67,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Outgoing			OutgoingColumnView			Outgoing (BTC)	Auto		145				210			true
 		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
+		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
+
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(_transactions)
 		{
 			Columns =
@@ -84,16 +88,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					},
 					width: new GridLength(0, GridUnitType.Auto)),
 				x => x.Children,
-				x =>
-				{
-					if (x is CoinJoinsHistoryItemViewModel coinJoinsHistoryItemViewModel
-					    && coinJoinsHistoryItemViewModel.CoinJoinTransactions.Count > 1)
-					{
-						return true;
-					}
-
-					return false;
-				},
+				x => x.HasChildren(),
 				x => x.IsExpanded),
 
 				// Date
@@ -228,13 +223,16 @@ public partial class HistoryViewModel : ActivatableViewModel
 		{
 			var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
-			var newHistoryList = GenerateHistoryList(rawHistoryList).ToArray();
+			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
+			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
 
 			_transactionSourceList.Edit(x =>
 			{
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
+
+			IsTransactionHistoryLoaded = true;
 		}
 		catch (Exception ex)
 		{
@@ -271,11 +269,20 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-			    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
-			     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
+				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 			{
-				cjg.SetBalance(balance);
-				yield return cjg;
+				if (cjg.CoinJoinTransactions.Count == 1)
+				{
+					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletViewModel, balance, _updateTrigger, true);
+					yield return singleCjItem;
+				}
+				else
+				{
+					cjg.SetBalance(balance);
+					yield return cjg;
+				}
+
 				coinJoinGroup = null;
 			}
 		}

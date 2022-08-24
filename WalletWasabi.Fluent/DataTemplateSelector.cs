@@ -8,15 +8,15 @@ namespace WalletWasabi.Fluent;
 
 public class DataTemplateSelector : IDataTemplate
 {
+	[Content] public IEnumerable<IDataTemplate> Templates { get; set; } = new List<IDataTemplate>();
+
 	public IControl Build(object param)
 	{
-		return Templates.FirstOrDefault()?.Build(param) ?? new TextBlock {Text = "Not found "};
+		return Templates.FirstOrDefault()?.Build(param) ?? new TextBlock { Text = "Not found " };
 	}
 
 	public bool Match(object data)
 	{
 		return true;
 	}
-
-	[Content] public IEnumerable<IDataTemplate> Templates { get; set; } = new List<IDataTemplate>();
 }

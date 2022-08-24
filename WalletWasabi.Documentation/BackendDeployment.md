@@ -5,6 +5,10 @@ Consider updating the versions in `WalletWasabi.Helpers.Constants`. If the versi
 ```sh
 sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~/WalletWasabi/WalletWasabi.Backend && dotnet restore && cd ~
 
+# Check if rounds are not in critical phase
+
+https://wasabiwallet.io/api/v4/btc/ChaumianCoinJoin/states
+
 # Stop
 sudo service nginx stop
 sudo systemctl stop walletwasabi.service

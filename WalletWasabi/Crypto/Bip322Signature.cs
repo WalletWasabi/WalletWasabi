@@ -1,5 +1,6 @@
 using NBitcoin;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Crypto;
 
@@ -40,10 +41,11 @@ public record Bip322Signature : IBitcoinSerializable
 		NBitcoinExtensions.FromBytes<Bip322Signature>(bip322SignatureBytes);
 
 	public bool Verify(uint256 hash, Script scriptPubKey) =>
-		scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
+		scriptPubKey.TryGetScriptType() switch
 		{
-			true => VerifySegwit(hash, scriptPubKey),
-			false => throw new NotImplementedException("Only P2WPKH scripts are supported.")
+			ScriptType.P2WPKH => VerifyP2wpkh(hash, scriptPubKey),
+			ScriptType.Taproot => VerifyP2tr(hash, scriptPubKey),
+			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported.")
 		};
 
 	public static Bip322Signature Generate(Key key, uint256 hash, ScriptPubKeyType scriptPubKeyType) =>
@@ -54,10 +56,14 @@ public record Bip322Signature : IBitcoinSerializable
 				PayToWitPubKeyHashTemplate.Instance.GenerateWitScript(
 					key.Sign(hash, new SigningOptions(SigHash.All, useLowR: false)),
 					key.PubKey)),
-			_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
+			ScriptPubKeyType.TaprootBIP86 => new Bip322Signature(
+				Script.Empty,
+				PayToTaprootTemplate.Instance.GenerateWitScript(
+					key.SignTaprootKeySpend(hash, null, uint256.Zero, TaprootSigHash.Default))),
+			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported.")
 		};
 
-	private bool VerifySegwit(uint256 hash, Script scriptPubKey)
+	private bool VerifyP2wpkh(uint256 hash, Script scriptPubKey)
 	{
 		if (ScriptSig != Script.Empty)
 		{
@@ -82,6 +88,33 @@ public record Bip322Signature : IBitcoinSerializable
 			}
 
 			return witnessParameters.PublicKey.Verify(hash, transactionSignature.Signature);
+		}
+		catch (FormatException)
+		{
+			return false;
+		}
+	}
+
+	private bool VerifyP2tr(uint256 hash, Script scriptPubKey)
+	{
+		if (ScriptSig != Script.Empty)
+		{
+			return false;
+		}
+
+		try
+		{
+			if (PayToTaprootTemplate.Instance.ExtractWitScriptParameters(Witness) is not { } witnessParameters)
+			{
+				return false;
+			}
+
+			if (PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey) is not { } publicKey)
+			{
+				return false;
+			}
+
+			return publicKey.VerifySignature(hash, witnessParameters.TransactionSignature.SchnorrSignature);
 		}
 		catch (FormatException)
 		{
