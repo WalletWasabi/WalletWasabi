@@ -1,7 +1,7 @@
-# Script downloads Tor Browsers, then extract the downloaded archives and copies Tor binaries to "temp/<version/Tor/<os-platform>" folders to be consumed by Wasabi Wallet.
+# Script downloads Tor Browsers, then extracts the downloaded archives and copies Tor binaries to "temp/<version>/Tor/<os-platform>" folders to be consumed by Wasabi Wallet.
 
 # # Examples
-# 1] `.\UpgradeTorBinaries.ps1 -version "11.5.1"` runs the script which downloads Tor Browser binaries, extract them to "temp" (where the script is placed) and copies Tor binaries to "temp/<tor-browser-version>/Tor/<os-platform>".
+# 1] `.\UpgradeTorBinaries.ps1 -version "11.5.1"` runs the script which downloads Tor Browser binaries, extracts them to "temp" (where the script is placed) and copies Tor binaries to "temp/<tor-browser-version>/Tor/<os-platform>".
 #   Then the Tor binaries used by Wasabi Wallet are replaced with the just extracted ones.
 # 2] `.\UpgradeTorBinaries.ps1 -version "11.5.1" -Debug` to show debug information what the script does.
 # 3] `.\UpgradeTorBinaries.ps1 -version "11.5.1" -skipDownloading` skips downloading Tor Browser binaries and continues as in 1]. Useful for script testing.
