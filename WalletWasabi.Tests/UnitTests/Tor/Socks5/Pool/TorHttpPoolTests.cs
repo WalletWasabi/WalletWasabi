@@ -71,7 +71,7 @@ public class TorHttpPoolTests
 				return Task.FromResult(httpResponse);
 			});
 
-		using TorHttpPool pool = mockTorHttpPool.Object;
+		await using TorHttpPool pool = mockTorHttpPool.Object;
 
 		using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
 
@@ -110,7 +110,7 @@ public class TorHttpPoolTests
 		using StreamReader serverReader = new(transportStream.Server);
 		using StreamWriter serverWriter = new(transportStream.Server);
 
-		using TorHttpPool pool = new(mockFactory.Object);
+		await using TorHttpPool pool = new(mockFactory.Object);
 		using HttpRequestMessage request = new(HttpMethod.Get, "http://somesite.com");
 
 		Task sendTask = Task.Run(async () =>
@@ -127,11 +127,11 @@ public class TorHttpPoolTests
 		// We expect to get this plaintext HTTP request headers from the client.
 		string[] expectedResponse = new[]
 		{
-				"GET / HTTP/1.1",
-				"Accept-Encoding:gzip",
-				"Host:somesite.com",
-				""
-			};
+			"GET / HTTP/1.1",
+			"Accept-Encoding:gzip",
+			"Host:somesite.com",
+			""
+		};
 
 		// Assert replies line by line.
 		foreach (string expectedLine in expectedResponse)
@@ -163,6 +163,29 @@ public class TorHttpPoolTests
 	}
 
 	/// <summary>
+	/// Tests that <see cref="TorHttpPool.PrebuildCircuitsUpfront(Uri, int, TimeSpan)"/> method creates
+	/// the correct number of Tor circuits.
+	/// </summary>
+	[Fact]
+	public async Task PreBuildingAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+
+		ICircuit circuit = DefaultCircuit.Instance;
+		using TorTcpConnection connection = new(tcpClient: null!, transportStream: null!, circuit, allowRecycling: true);
+
+		Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
+		mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+
+		await using TorHttpPool pool = new(mockFactory.Object);
+		pool.PrebuildCircuitsUpfront(new Uri("http://walletwasabi.io"), count: 3, deadline: TimeSpan.FromSeconds(3));
+
+		await Task.Delay(5_000, timeoutCts.Token);
+
+		mockFactory.Verify(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
+	}
+
+	/// <summary>
 	/// Tests that once <see cref="PersonCircuit"/> is disposed, it cannot be used to send a new HTTP(s) request.
 	/// </summary>
 	[Fact]
@@ -188,7 +211,7 @@ public class TorHttpPoolTests
 				throw new NotSupportedException();
 			});
 
-		using TorHttpPool pool = mockTorHttpPool.Object;
+		await using TorHttpPool pool = mockTorHttpPool.Object;
 		using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
 
 		// Alice circuit is NOT yet disposed.

@@ -14,8 +14,10 @@ public class WalletVirtualInput
 	{
 		Id = id;
 		Coins = coins;
+		HdPubKey = coins.Select(x => x.HdPubKey).Distinct().Single();
 	}
 
 	public byte[] Id { get; }
 	public ISet<SmartCoin> Coins { get; }
+	public HdPubKey HdPubKey { get; }
 }

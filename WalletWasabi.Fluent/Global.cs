@@ -379,7 +379,7 @@ public class Global
 
 				if (HttpClientFactory is { } httpClientFactory)
 				{
-					httpClientFactory.Dispose();
+					await httpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
 				}
 
