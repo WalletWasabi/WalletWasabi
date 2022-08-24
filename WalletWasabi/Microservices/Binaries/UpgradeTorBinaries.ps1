@@ -8,10 +8,12 @@
 #
 # # Notes
 #
-# Before running the script, you need to install 7zip
-# $ winget install --id 7zip.7zip
-# $ brew install sevenzip
-# $ apt-add-repository multiverse && apt update && apt install 7zip # or install using https://www.7-zip.org/download.html. Note that "apt install p7zip-full" distributes 7z version 16 which is old and does not work with this script.
+# Before running the script:
+# 1) Make sure you use PowerShell 7+
+# 2) You need to install 7zip
+#    $ winget install --id 7zip.7zip
+#    $ brew install sevenzip
+#    $ apt-add-repository multiverse && apt update && apt install 7zip # or install using https://www.7-zip.org/download.html. Note that "apt install p7zip-full" distributes 7z version 16 which is old and does not work with this script.
 
 [CmdletBinding()]
 param(
