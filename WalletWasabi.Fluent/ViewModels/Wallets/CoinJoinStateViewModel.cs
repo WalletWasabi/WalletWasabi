@@ -320,6 +320,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	{
 		switch (coinJoinProgress)
 		{
+			case RoundEndedUserPressedPause:
+				StopCountDown();
+				_stateMachine.Fire(Trigger.WalletStoppedCoinJoin);
+				break;
+
 			case RoundEnded roundEnded:
 				CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
 				{

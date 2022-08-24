@@ -231,6 +231,10 @@ public class CoinJoinClient
 
 				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, linkedCts.Token).ConfigureAwait(false);
 			}
+			catch(OperationCanceledException ex)
+			{
+				return new CoinJoinResult(false);
+			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
 				roundState = ex.RoundState;
@@ -1089,9 +1093,12 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
 		}
 
-		// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
-		var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
-		CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
+		if(!result.IsDefaultOrEmpty)
+		{
+			// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+			var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
+		}
 
 		return result;
 	}

@@ -65,6 +65,11 @@ public class CoinJoinTracker : IDisposable
 			case LeavingCriticalPhase:
 				InCriticalCoinJoinState = false;
 				break;
+			case RoundEnded roundEnded:
+				coinJoinProgressEventArgs = IsStopped
+					? new RoundEndedUserPressedPause(roundEnded.LastRoundState)
+					: coinJoinProgressEventArgs;
+				break;
 		}
 
 		WalletCoinJoinProgressChanged?.Invoke(Wallet, coinJoinProgressEventArgs);
