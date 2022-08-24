@@ -66,9 +66,10 @@ public class CoinJoinTracker : IDisposable
 				InCriticalCoinJoinState = false;
 				break;
 			case RoundEnded roundEnded:
-				coinJoinProgressEventArgs = IsStopped
-					? new RoundEndedUserPressedPause(roundEnded.LastRoundState)
-					: coinJoinProgressEventArgs;
+				if (IsStopped)
+				{
+					coinJoinProgressEventArgs = new RoundEndedUserPressedPause(roundEnded.LastRoundState);
+				}
 				break;
 		}
 
