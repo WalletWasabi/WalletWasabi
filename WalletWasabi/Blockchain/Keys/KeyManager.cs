@@ -677,16 +677,7 @@ public class KeyManager
 		}
 		return res;
 	}
-
-	public void SetNetwork(Network network)
-	{
-		lock (BlockchainStateLock)
-		{
-			BlockchainState.Network = network;
-			ToFileNoBlockchainStateLock();
-		}
-	}
-
+	
 	public Network GetNetwork()
 	{
 		lock (BlockchainStateLock)
