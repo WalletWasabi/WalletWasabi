@@ -20,13 +20,15 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	private string? _value;
 
 	private string? Text => _isContentVisible ? _value : TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
-
+	private string _mask = "";
+	
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell) model;
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
+		_mask = TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
 
 		if (text != _value)
 		{
@@ -41,6 +43,16 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		if (_formattedText is null)
 		{
+			var placeHolder = new FormattedText(
+				_mask,
+				new Typeface(FontFamily, FontStyle, FontWeight),
+				FontSize,
+				TextAlignment.Left,
+				TextWrapping.NoWrap,
+				Size.Infinity);
+
+			var rc = Bounds.CenterRect(placeHolder.Bounds);
+			context.DrawText(Brushes.Transparent, new Point(0, rc.Position.Y), placeHolder);
 			return;
 		}
 
