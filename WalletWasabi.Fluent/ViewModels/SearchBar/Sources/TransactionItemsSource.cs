@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -13,16 +13,20 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public class TransactionsSource : ReactiveObject, ISearchSource
+public class TransactionsSource : ReactiveObject, ISearchSource, IDisposable
 {
+	private readonly CompositeDisposable _disposables = new();
+
 	public TransactionsSource(IObservable<string> query)
 	{
-		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key);
+		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key)
+			.DisposeWith(_disposables);
 
 		query
 			.Select(s => s.Length > 5 ? PerformSearch(s) : Enumerable.Empty<ISearchItem>())
 			.Do(results => sourceCache.Edit(e => e.Load(results)))
-			.Subscribe();
+			.Subscribe()
+			.DisposeWith(_disposables);
 
 		Changes = sourceCache.Connect();
 	}
@@ -91,5 +95,10 @@ public class TransactionsSource : ReactiveObject, ISearchSource
 	{
 		return Flatten(GetTransactionsByWallet())
 			.Where(tuple => Contains(queryStr, tuple.Item2));
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
 	}
 }

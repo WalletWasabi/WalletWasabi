@@ -106,12 +106,29 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		var subject = new Subject<string>();
-		var source = new CompositeSearchSource(new ActionsSource(subject), new SettingsSearchSource(_settingsPage, subject), new TransactionsSource(subject));
-		SearchBar = new SearchBarViewModel(source.Changes);
-		SearchBar.WhenAnyValue(a => a.SearchText).WhereNotNull().Subscribe(subject);
-		
+		SearchBar = CreateSearchBar();
+
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+	}
+
+	private SearchBarViewModel CreateSearchBar()
+	{
+		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
+		var filterChanged = new Subject<string>();
+
+		var source = new CompositeSearchSource(
+			new ActionsSource(filterChanged),
+			new SettingsSearchSource(_settingsPage, filterChanged),
+			new TransactionsSource(filterChanged));
+
+		var searchBar = new SearchBarViewModel(source.Changes);
+
+		searchBar
+			.WhenAnyValue(a => a.SearchText)
+			.WhereNotNull()
+			.Subscribe(filterChanged);
+
+		return searchBar;
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -122,7 +139,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
-	public SearchBarViewModel SearchBar { get; }
+	public SearchBarViewModel SearchBar { get; set; }
 
 	public static MainViewModel Instance { get; } = new();
 
