@@ -41,6 +41,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible = true;
 	[AutoNotify] private bool _pauseVisible;
+	[AutoNotify] private bool _pauseLoading;
 	[AutoNotify] private bool _stopVisible;
 	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
 	[AutoNotify] private bool _isProgressReversed;
@@ -103,10 +104,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
+		IsPauseButtonEnabled = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseLoading,
+			(isInCriticalPhase,pauseLoading) => !isInCriticalPhase && !pauseLoading);
+			
 		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
-		});
+		}, IsPauseButtonEnabled);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
@@ -168,6 +172,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
 
+	public IObservable<bool> IsPauseButtonEnabled { get; }
+
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
 
 	private bool IsCounting => _countdownTimer.IsEnabled;
@@ -212,10 +218,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.OnEntry(() =>
 			{
+				StopCountDown();
 				PlayVisible = true;
 				PauseVisible = false;
+				PauseLoading = false;
 				StopVisible = false;
-
 				CurrentStatus = IsAutoCoinJoinEnabled ? _pauseMessage : _stoppedMessage;
 				ElapsedTime = "Press Play to start";
 			})
@@ -323,7 +330,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case RoundEnded roundEnded:
 				if (roundEnded.IsStopped)
 				{
-					_stateMachine.Fire(Trigger.WalletStoppedCoinJoin);
+					PauseLoading = true;
 				}
 				else
 				{ 
@@ -333,8 +340,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 						EndRoundState.AbortedNotEnoughAlices => _abortedNotEnoughAlicesMessage,
 						_ => _roundFinishedMessage
 					};
+					StopCountDown();
 				}
-				StopCountDown();
 				break;
 
 			case EnteringOutputRegistrationPhase outputRegPhase:
