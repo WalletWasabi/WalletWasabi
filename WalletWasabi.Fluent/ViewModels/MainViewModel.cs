@@ -117,9 +117,9 @@ public partial class MainViewModel : ViewModelBase
 		var filterChanged = new Subject<string>();
 
 		var source = new CompositeSearchSource(
-			new ActionsSource(filterChanged),
+			new ActionsSearchSource(filterChanged),
 			new SettingsSearchSource(_settingsPage, filterChanged),
-			new TransactionsSource(filterChanged));
+			new TransactionsSearchSource(filterChanged));
 
 		var searchBar = new SearchBarViewModel(source.Changes);
 

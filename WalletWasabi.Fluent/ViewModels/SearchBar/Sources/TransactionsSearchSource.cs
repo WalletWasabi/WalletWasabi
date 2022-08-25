@@ -13,11 +13,11 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public class TransactionsSource : ReactiveObject, ISearchSource, IDisposable
+public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public TransactionsSource(IObservable<string> query)
+	public TransactionsSearchSource(IObservable<string> query)
 	{
 		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key)
 			.DisposeWith(_disposables);

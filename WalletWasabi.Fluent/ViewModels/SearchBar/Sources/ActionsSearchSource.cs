@@ -10,26 +10,9 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public static class SearchSource
+public class ActionsSearchSource : ISearchSource
 {
-	public static Func<ISearchItem, bool> DefaultFilter(string query)
-	{
-		return item =>
-		{
-			if (string.IsNullOrWhiteSpace(query))
-			{
-				return item.IsDefault;
-			}
-
-			return new[] { item.Name, item.Description, }.Concat(item.Keywords)
-				.Any(s => s.Contains(query, StringComparison.InvariantCultureIgnoreCase));
-		};
-	}
-}
-
-public class ActionsSource : ISearchSource
-{
-	public ActionsSource(IObservable<string> query)
+	public ActionsSearchSource(IObservable<string> query)
 	{
 		var filter = query.Select(SearchSource.DefaultFilter);
 		

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Aggregation;
@@ -19,7 +18,7 @@ public partial class SearchBarViewModel : ReactiveObject
 	{
 		itemsObservable
 			.Group(s => s.Category)
-			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
+			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
 			.Bind(out _groups)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
