@@ -42,7 +42,6 @@ public class App : Application
 					new ApplicationStateManager(desktop, _startInBg);
 
 				DataContext = _applicationStateManager.ApplicationViewModel;
-				TransactionsWatcher.Instance = new TransactionsWatcher();
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
