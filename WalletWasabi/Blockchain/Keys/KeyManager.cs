@@ -431,31 +431,14 @@ public class KeyManager
 		ToFile();
 	}
 
-	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
-	{
-		if (keyState is null)
+	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null) =>
+		(keyState, isInternal) switch
 		{
-			if (isInternal is null)
-			{
-				return GetKeys(x => true);
-			}
-			else
-			{
-				return GetKeys(x => x.IsInternal == isInternal);
-			}
-		}
-		else
-		{
-			if (isInternal is null)
-			{
-				return GetKeys(x => x.KeyState == keyState);
-			}
-			else
-			{
-				return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
-			}
-		}
-	}
+			(null, null) => GetKeys(x => true),
+			(null, { } i) => GetKeys(x => x.IsInternal == i),
+			({ } k, null) => GetKeys(x => x.KeyState == k),
+			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
+		};
 
 	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
 	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
