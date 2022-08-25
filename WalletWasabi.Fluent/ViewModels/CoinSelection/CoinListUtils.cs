@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using WalletWasabi.Fluent.TreeDataGrid;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
@@ -9,6 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public class CoinListUtils
 {
+
 	private static int GetOrderingPriority(WalletCoinViewModel x)
 	{
 		if (x.CoinJoinInProgress)
