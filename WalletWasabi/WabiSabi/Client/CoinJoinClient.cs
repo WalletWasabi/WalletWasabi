@@ -231,10 +231,6 @@ public class CoinJoinClient
 
 				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, linkedCts.Token).ConfigureAwait(false);
 			}
-			catch(OperationCanceledException ex)
-			{
-				return new CoinJoinResult(false);
-			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
 				roundState = ex.RoundState;
