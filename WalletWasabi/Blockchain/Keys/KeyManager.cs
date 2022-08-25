@@ -42,14 +42,6 @@ public class KeyManager
 	[JsonConstructor]
 	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 	{
-		HdPubKeys = new List<HdPubKey>();
-		HdPubKeyScriptBytes = new List<byte[]>();
-		ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
-		HdPubKeysLock = new object();
-		HdPubKeyScriptBytesLock = new object();
-		ScriptHdPubKeyMapLock = new object();
-		BlockchainStateLock = new object();
-
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
 		MasterFingerprint = masterFingerprint;
@@ -63,20 +55,12 @@ public class KeyManager
 		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 
 		SetFilePath(filePath);
-		ToFileLock = new object();
 		ToFile();
 	}
 
 	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network)
 	{
-		HdPubKeys = new List<HdPubKey>();
-		HdPubKeyScriptBytes = new List<byte[]>();
-		ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
-		HdPubKeysLock = new object();
-		HdPubKeyScriptBytesLock = new object();
-		ScriptHdPubKeyMapLock = new object();
 		BlockchainState = new BlockchainState(network);
-		BlockchainStateLock = new object();
 
 		password ??= "";
 
@@ -89,7 +73,6 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
-		ToFileLock = new object();
 	}
 
 	[OnDeserialized]
@@ -180,21 +163,21 @@ public class KeyManager
 	[JsonProperty(Order = 16, PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
-	[JsonProperty(Order = 999)]
-	private List<HdPubKey> HdPubKeys { get; }
+	[JsonProperty(Order = 999)] 
+	private List<HdPubKey> HdPubKeys { get; } = new ();
 
-	private object BlockchainStateLock { get; }
+	private object BlockchainStateLock { get; } = new ();
 
-	private object HdPubKeysLock { get; }
+	private object HdPubKeysLock { get; } = new ();
 
-	private List<byte[]> HdPubKeyScriptBytes { get; }
+	private List<byte[]> HdPubKeyScriptBytes { get; } = new ();
 
-	private object HdPubKeyScriptBytesLock { get; }
+	private object HdPubKeyScriptBytesLock { get; } = new ();
 
-	private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
+	private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; } = new ();
 
-	private object ScriptHdPubKeyMapLock { get; }
-	private object ToFileLock { get; }
+	private object ScriptHdPubKeyMapLock { get; } = new ();
+	private object ToFileLock { get; } = new ();
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
