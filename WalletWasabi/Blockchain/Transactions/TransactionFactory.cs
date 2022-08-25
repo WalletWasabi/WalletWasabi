@@ -143,7 +143,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			KeyManager.AssertCleanKeysIndexed(isInternal: true);
+			KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: true);
 			changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
 
 			builder.SetChange(changeHdPubKey.P2wpkhScript);
