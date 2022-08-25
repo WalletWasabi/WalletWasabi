@@ -116,10 +116,10 @@
     <ItemsControl IsVisible="{Binding HasResults^}" Items="{Binding Groups}">
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type sb:SearchItemGroup}">
-          <Grid Margin="0 0 0 10" RowDefinitions="Auto,*">
+          <DockPanel Margin="0 0 0 10">
             <TextBlock Text="{Binding Title}" DockPanel.Dock="Top" />
-            <ItemsControl Grid.Row="1" x:Name="ListBox" Items="{Binding Items}" />
-          </Grid>
+            <ItemsControl x:Name="ListBox" Items="{Binding Items}" />
+          </DockPanel>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
