@@ -41,8 +41,7 @@ public class Global : IDisposable
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
 
 		// Initialize index building
-		string indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
-		string indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		string indexFilePath = Path.Combine(DataDir, "IndexBuilderService", $"Index{RpcClient.Network}.dat");
 		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 	}
 
