@@ -55,7 +55,7 @@ public class Global : IDisposable
 
 	public IndexBuilderService IndexBuilderService { get; }
 
-	public HttpClient HttpClient { get; set; }
+	private HttpClient HttpClient { get; }
 
 	public Coordinator? Coordinator { get; private set; }
 
