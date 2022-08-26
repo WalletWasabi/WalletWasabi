@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -13,18 +12,17 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
-	private ReadOnlyObservableCollection<TreeNode> _nodes;
 
 	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
 	{
 		coinChanges
 			.Transform(model => new TreeNode(model))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out _nodes)
+			.Bind(out var nodes)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		Source = CreateGridSource(_nodes).DisposeWith(_disposables);
+		Source = CreateGridSource(nodes).DisposeWith(_disposables);
 	}
 
 	public FlatTreeDataGridSource<TreeNode> Source { get; }

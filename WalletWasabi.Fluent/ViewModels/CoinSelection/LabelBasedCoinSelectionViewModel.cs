@@ -15,7 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
-	private readonly ReadOnlyObservableCollection<TreeNode> _nodes;
 	[AutoNotify] private string _filter = "";
 
 	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
@@ -36,11 +35,11 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 				})
 			.Filter(filterPredicate)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out _nodes)
+			.Bind(out var nodes)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		Source = CreateGridSource(_nodes).DisposeWith(_disposables);
+		Source = CreateGridSource(nodes).DisposeWith(_disposables);
 	}
 
 	public HierarchicalTreeDataGridSource<TreeNode> Source { get; }
