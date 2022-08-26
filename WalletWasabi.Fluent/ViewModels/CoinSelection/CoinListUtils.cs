@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
+using AnonymityScoreHeaderView = WalletWasabi.Fluent.Views.CoinSelection.Columns.AnonymityScoreHeaderView;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -84,7 +85,7 @@ public class CoinListUtils
 
 				// AnonymityScore
 				new TemplateColumn<WalletCoinViewModel>(
-					new AnonymitySetHeaderView(),
+					new AnonymityScoreHeaderView(),
 					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
 					options: new ColumnOptions<WalletCoinViewModel>
 					{

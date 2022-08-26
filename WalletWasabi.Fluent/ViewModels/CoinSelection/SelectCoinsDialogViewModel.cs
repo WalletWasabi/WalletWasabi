@@ -59,8 +59,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Select(coins => coins.Any())
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		IsAnySelected.Subscribe(b => { });
-
 		SelectedAmount = selectedCoins
 			.Select(Sum)
 			.ObserveOn(RxApp.MainThreadScheduler);
