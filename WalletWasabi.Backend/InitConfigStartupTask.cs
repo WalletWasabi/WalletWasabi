@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using NBitcoin.RPC;
 using System.IO;
 using System.Threading;
@@ -14,7 +12,7 @@ namespace WalletWasabi.Backend;
 
 public class InitConfigStartupTask : IStartupTask
 {
-	public InitConfigStartupTask(Global global, Config config, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
+	public InitConfigStartupTask(Global global, Config config, IMemoryCache cache)
 	{
 		Global = global;
 		Config = config;
