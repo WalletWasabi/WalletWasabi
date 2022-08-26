@@ -10,12 +10,12 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
-public class CoinSelectionViewModel : ViewModelBase, IDisposable
+public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 	private ReadOnlyObservableCollection<TreeNode> _nodes;
 
-	public CoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
 	{
 		coinChanges
 			.Transform(model => new TreeNode(model))
@@ -29,14 +29,12 @@ public class CoinSelectionViewModel : ViewModelBase, IDisposable
 
 	public FlatTreeDataGridSource<TreeNode> Source { get; }
 
-	public ReadOnlyObservableCollection<TreeNode> Nodes { get; set; }
-
 	public void Dispose()
 	{
 		_disposables.Dispose();
 	}
 
-	public FlatTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins)
+	private FlatTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins)
 	{
 		var source = new FlatTreeDataGridSource<TreeNode>(coins)
 		{

@@ -11,13 +11,13 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
-public partial class CoinGroupViewModel : IDisposable, ISelectable
+public partial class CoinGroupViewModel : IDisposable, IThreeState
 {
 	private readonly ReadOnlyObservableCollection<WalletCoinViewModel> _items;
 	private readonly CompositeDisposable _disposables = new();
 	public SmartLabel Labels { get; }
+	[AutoNotify] private SelectionState _selectionState;
 
-	[AutoNotify] private bool _isSelected;
 	private bool _canUpdate = true;
 
 	public CoinGroupViewModel(SmartLabel labels, IConnectableCache<WalletCoinViewModel, int> coins)
@@ -40,18 +40,34 @@ public partial class CoinGroupViewModel : IDisposable, ISelectable
 			.Connect()
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Select(x => x.All(x => x.IsSelected))
+			.Select(GetState)
 			.Do(_ => _canUpdate = false)
-			.Do(b => IsSelected = b)
+			.Do(b => SelectionState = b)
 			.Do(_ => _canUpdate = true)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		this.WhenAnyValue(x => x.IsSelected)
-			.Where(b => _canUpdate)
-			.Do(isSelected => Items.ToList().ForEach(vm => vm.IsSelected = isSelected))
+		this.WhenAnyValue(x => x.SelectionState)
+			.Where(_ => _canUpdate)
+			.Do(isSelected => Items.ToList().ForEach(vm => vm.IsSelected = isSelected == SelectionState.True))
 			.Subscribe()
 			.DisposeWith(_disposables);
+	}
+
+	private static SelectionState GetState(IReadOnlyCollection<WalletCoinViewModel> walletCoinViewModels)
+	{
+		var all = walletCoinViewModels.All(model => model.IsSelected);
+		if (all)
+		{
+			return SelectionState.True;
+		}
+
+		if (walletCoinViewModels.Any(x => x.IsSelected))
+		{
+			return SelectionState.Partial;
+		}
+
+		return SelectionState.False;
 	}
 
 	public IObservable<Money> TotalAmount { get; }
@@ -60,7 +76,7 @@ public partial class CoinGroupViewModel : IDisposable, ISelectable
 
 	public void Dispose()
 	{
-		IsSelected = false;
+		SelectionState = SelectionState.False;
 		_disposables.Dispose();
 	}
 }

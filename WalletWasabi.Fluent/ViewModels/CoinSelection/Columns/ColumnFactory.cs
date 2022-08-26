@@ -91,16 +91,28 @@ public static class ColumnFactory
 				}));
 	}
 
-	public static TemplateColumn<TreeNode> SelectionColumn(Action<IsSelectedViewModel> onCellCreated)
+	public static TemplateColumn<TreeNode> SelectionColumn(Action<IDisposable> onCellCreated)
 	{
 		return new TemplateColumn<TreeNode>(
 			"",
 			new ConstantTemplate<TreeNode>(
 				n =>
 				{
-					var isSelectedViewModel = new IsSelectedViewModel((ISelectable)n.Value);
-					onCellCreated(isSelectedViewModel);
-					return isSelectedViewModel;
+					if (n.Value is CoinGroupViewModel cg)
+					{
+						var isSelectedViewModel = new IsSelectedThreeStateViewModel(cg);
+						onCellCreated(isSelectedViewModel);
+						return isSelectedViewModel;
+					}
+
+					if (n.Value is WalletCoinViewModel coin)
+					{
+						var isSelectedViewModel = new IsSelectedViewModel(coin);
+						onCellCreated(isSelectedViewModel);
+						return isSelectedViewModel;
+					}
+
+					throw new NotSupportedException();
 				}));
 	}
 

@@ -27,7 +27,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
-	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
+	[AutoNotify] private CoinBasedSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
@@ -63,7 +63,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Select(Sum)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		CoinSelection = new CoinSelectionViewModel(coinChanges).DisposeWith(disposables);
+		CoinSelection = new CoinBasedSelectionViewModel(coinChanges).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, IsAnySelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models));
