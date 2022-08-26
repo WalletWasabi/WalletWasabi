@@ -36,28 +36,43 @@
         <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
       </Style>
 
+      <Style Selector="TextBox.FilterBox">
+        <Setter Property="Transitions">
+          <Setter.Value>
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
+            </Transitions>
+          </Setter.Value>
+        </Setter>
+      </Style>
+
+      <Style Selector="TextBox.FilterBox.Visible">
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+      <Style Selector="TextBox.FilterBox.Hidden">
+        <Setter Property="Opacity" Value="0" />
+      </Style>
+
     </controls:ContentArea.Styles>
 
     <DockPanel>
-      <DockPanel DockPanel.Dock="Top">
+      <DockPanel DockPanel.Dock="Top" Margin="8">
         <DockPanel.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
           </Style>
         </DockPanel.Styles>
         <CheckBox x:Name="GroupByLabels" DockPanel.Dock="Left" Content="Group by Labels" />
-        <TextBox
+        <TextBox Classes="FilterBox"
+                 Classes.Visible="{Binding #GroupByLabels.IsChecked}"
+                 Classes.Hidden="{Binding !#GroupByLabels.IsChecked}"
           Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
-          Watermark="Filter"
-                 IsVisible="{Binding #GroupByLabels.IsChecked}"
-                 UseFloatingWatermark="True"
-                 Margin="20 0 0 0" />
+          Watermark="Filter" Margin="20 0 0 0">
+        </TextBox>
       </DockPanel>
-      <DockPanel DockPanel.Dock="Bottom">
-        <StackPanel Spacing="10" Orientation="Horizontal" Margin="0 10 0 0">
-          <TextBlock Text="{Binding SelectedAmount^, StringFormat='{}{0} selected', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
-        </StackPanel>
-      </DockPanel>
+
+      <TextBlock DockPanel.Dock="Bottom" Margin="8" Classes="h4" TextAlignment="Center" Text="{Binding SelectedAmount^, StringFormat='{}{0} selected', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
+
       <Panel>
         <TreeDataGrid
           IsVisible="{Binding !#GroupByLabels.IsChecked}"
