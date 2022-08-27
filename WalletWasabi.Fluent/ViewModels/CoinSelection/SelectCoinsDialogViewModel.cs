@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<WalletCoinViewModel>>
+public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly WalletViewModel _walletViewModel;
@@ -29,7 +29,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
-	
+
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
 		_walletViewModel = walletViewModel;
@@ -54,7 +54,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(items => items.Where(t => t.IsSelected));
-		
+
 		IsAnySelected = selectedCoins
 			.Select(coins => coins.Any())
 			.ObserveOn(RxApp.MainThreadScheduler);
@@ -68,11 +68,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		CoinSelection = new CoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, IsAnySelected);
-		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models));
+		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
-	
+
 	private static Money Sum(IEnumerable<WalletCoinViewModel> coinViewModels)
 	{
 		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount);
@@ -92,7 +92,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var concat = initial.Concat(coins);
 		return concat;
 	}
-	
+
 	private ICoinsView GetCoins()
 	{
 		return _walletViewModel.Wallet.Coins;
