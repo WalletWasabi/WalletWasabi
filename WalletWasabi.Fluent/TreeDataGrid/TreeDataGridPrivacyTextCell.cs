@@ -13,15 +13,15 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private IDisposable _subscription = Disposable.Empty;
 	private FormattedText? _formattedText;
 	private bool _isContentVisible = true;
+	private string _mask = "";
 	private int _numberOfPrivacyChars;
+	private IDisposable _subscription = Disposable.Empty;
 	private string? _value;
 
 	private string? Text => _isContentVisible ? _value : TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
-	private string _mask = "";
-	
+
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
 		var privacyTextCell = (PrivacyTextCell) model;
