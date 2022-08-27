@@ -24,16 +24,18 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly IObservable<Unit> _balanceChanged;
+	private readonly IEnumerable<SmartCoin>? _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged, IEnumerable<SmartCoin>? usedCoins)
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
+		_usedCoins = usedCoins;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -47,7 +49,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
 			.AsObservableCache()
 			.Connect()
-			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
+			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x) { IsSelected = _usedCoins?.Any(coin => coin == x) ?? false })
 			.Replay(1)
 			.RefCount();
 
