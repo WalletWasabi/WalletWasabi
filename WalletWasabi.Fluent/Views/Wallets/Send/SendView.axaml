@@ -108,6 +108,26 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
         </DockPanel>
       </DockPanel>
+
+      <!-- Funding mode -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 -38 0 0" DockPanel.Dock="Top" Opacity="0.6" Spacing="5">
+        <PathIcon Data="{StaticResource info_regular}" Width="14" VerticalAlignment="Center" />
+        <Button Classes="activeHyperLink FontSizeH9" Command="{Binding FundingModeCommand}">
+          <Panel>
+            <Panel.Styles>
+              <Style Selector="Panel:pointerover > TextBlock">
+                <Setter Property="TextDecorations" Value="Underline" />
+              </Style>
+              <Style Selector="TextBlock">
+                <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+              </Style>
+            </Panel.Styles>
+            <TextBlock Text="Funding mode: Automatic" IsVisible="{Binding IsAutomaticSelectionEnabled}" />
+            <TextBlock Text="Funding mode: Manual" IsVisible="{Binding !IsAutomaticSelectionEnabled}" />
+          </Panel>
+        </Button>
+      </StackPanel>
     </DockPanel>
   </c:ContentArea>
 </UserControl>

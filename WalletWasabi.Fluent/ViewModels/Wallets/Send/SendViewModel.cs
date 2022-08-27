@@ -52,6 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify] private bool _isAutomaticSelectionEnabled = true;
 
 	public SendViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -119,11 +120,12 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var result = await NavigateDialogAsync(new CoinSelection.SelectCoinsDialogViewModel(_walletViewModel, balanceChanged));
-			/*var address = BitcoinAddress.Create(To, wallet.Network);
+			// var result = await NavigateDialogAsync(new CoinSelection.SelectCoinsDialogViewModel(_walletViewModel, balanceChanged));
+			var address = BitcoinAddress.Create(To, _wallet.Network);
 
 			_transactionInfo.Reset();
 			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+			_transactionInfo.IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled;
 
 			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
 			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
@@ -134,9 +136,11 @@ public partial class SendViewModel : RoutableViewModel
 
 			_transactionInfo.UserLabels = label;
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
-			*/
+			Navigate().To(new TransactionPreviewViewModel(_wallet, _transactionInfo, address, _isFixedAmount));
+
 		}, nextCommandCanExecute);
+
+		FundingModeCommand = ReactiveCommand.Create(() => IsAutomaticSelectionEnabled = !IsAutomaticSelectionEnabled);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
@@ -150,6 +154,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand AutoPasteCommand { get; }
 
 	public ICommand QrCommand { get; }
+
+	public ICommand FundingModeCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 

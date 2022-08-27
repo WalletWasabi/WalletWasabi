@@ -58,6 +58,8 @@ public partial class TransactionInfo
 
 	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
 
+	public bool IsAutomaticSelectionEnabled { get; set; }
+
 	public void Reset()
 	{
 		Amount = Money.Zero;
@@ -69,6 +71,7 @@ public partial class TransactionInfo
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
 		SubtractFee = default;
 		IsOtherPocketSelectionPossible = default;
+		IsAutomaticSelectionEnabled = default;
 
 		if (!IsCustomFeeUsed)
 		{
