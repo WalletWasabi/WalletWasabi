@@ -1,7 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:WalletWasabi.Fluent.Controls"
-        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity">
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
     <controls:PrivacyContentControl />
   </Design.PreviewWith>
@@ -12,28 +11,18 @@
         <Panel Background="Transparent">
 
           <ContentPresenter Name="PART_Content"
+                            IsVisible="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Content="{TemplateBinding Content}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
 
-          <Panel Name="PART_PrivacyReplacement">
+          <Panel Name="PART_PrivacyReplacement" IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
             <TextBlock Name="PART_PrivacyText" Text="{Binding PrivacyText^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
           </Panel>
-
-          <i:Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="True">
-              <ChangeAvaloniaPropertyAction TargetObject="PART_Content" TargetProperty="Opacity" Value="1" />
-              <ChangeAvaloniaPropertyAction TargetObject="PART_PrivacyReplacement" TargetProperty="Opacity" Value="0" />
-            </DataTriggerBehavior>
-            <DataTriggerBehavior Binding="{Binding IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="False">
-              <ChangeAvaloniaPropertyAction TargetObject="PART_Content" TargetProperty="Opacity" Value="0" />
-              <ChangeAvaloniaPropertyAction TargetObject="PART_PrivacyReplacement" TargetProperty="Opacity" Value="1" />
-            </DataTriggerBehavior>
-          </i:Interaction.Behaviors>
 
         </Panel>
       </ControlTemplate>

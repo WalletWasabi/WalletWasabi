@@ -9,9 +9,11 @@
              x:DataType="historyItems:HistoryItemViewModelBase"
              x:CompileBindings="True">
   <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" FontSize="15"
-                           HorizontalAlignment="Left"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
                            Classes="monoSpacedPrivacyReplacement">
-    <c:LabelsItemsPresenter Items="{Binding Label}"
-                            VerticalAlignment="Center" />
+    <Border BorderBrush="Red" Background="Transparent">
+      <c:LabelsItemsPresenter Items="{Binding Label}" />
+    </Border>
   </c:PrivacyContentControl>
 </UserControl>
