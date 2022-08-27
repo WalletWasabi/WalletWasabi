@@ -38,18 +38,16 @@ public class TorControlClient : IAsyncDisposable
 		TcpClient = null;
 		PipeReader = pipeReader;
 		PipeWriter = pipeWriter;
-		ReaderCts = new();
 
 		SyncChannel = Channel.CreateUnbounded<TorControlReply>(Options);
 		AsyncChannels = new List<Channel<TorControlReply>>();
 		ReaderLoopTask = Task.Run(ReaderLoopAsync);
-		MessageLock = new();
 	}
 
 	private TcpClient? TcpClient { get; }
 	private PipeReader PipeReader { get; }
 	private PipeWriter PipeWriter { get; }
-	private CancellationTokenSource ReaderCts { get; }
+	private CancellationTokenSource ReaderCts { get; } = new();
 	private Task ReaderLoopTask { get; }
 
 	/// <summary>Channel only for synchronous replies from Tor control.</summary>
@@ -68,7 +66,7 @@ public class TorControlClient : IAsyncDisposable
 
 	/// <summary>Lock to when sending a request to Tor control and waiting for a reply.</summary>
 	/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
-	private AsyncLock MessageLock { get; }
+	private AsyncLock MessageLock { get; } = new();
 
 	/// <summary>Key represents an event name and value represents a subscription counter.</summary>
 	private SortedDictionary<string, int> SubscribedEvents { get; } = new();

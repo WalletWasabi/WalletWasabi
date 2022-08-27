@@ -42,14 +42,6 @@ public class KeyManager
 	[JsonConstructor]
 	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
 	{
-		HdPubKeys = new List<HdPubKey>();
-		HdPubKeyScriptBytes = new List<byte[]>();
-		ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
-		HdPubKeysLock = new object();
-		HdPubKeyScriptBytesLock = new object();
-		ScriptHdPubKeyMapLock = new object();
-		BlockchainStateLock = new object();
-
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
 		MasterFingerprint = masterFingerprint;
@@ -63,20 +55,12 @@ public class KeyManager
 		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 
 		SetFilePath(filePath);
-		ToFileLock = new object();
 		ToFile();
 	}
 
 	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network)
 	{
-		HdPubKeys = new List<HdPubKey>();
-		HdPubKeyScriptBytes = new List<byte[]>();
-		ScriptHdPubKeyMap = new Dictionary<Script, HdPubKey>();
-		HdPubKeysLock = new object();
-		HdPubKeyScriptBytesLock = new object();
-		ScriptHdPubKeyMapLock = new object();
 		BlockchainState = new BlockchainState(network);
-		BlockchainStateLock = new object();
 
 		password ??= "";
 
@@ -89,7 +73,6 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
-		ToFileLock = new object();
 	}
 
 	[OnDeserialized]
@@ -180,21 +163,21 @@ public class KeyManager
 	[JsonProperty(Order = 16, PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
-	[JsonProperty(Order = 999)]
-	private List<HdPubKey> HdPubKeys { get; }
+	[JsonProperty(Order = 999)] 
+	private List<HdPubKey> HdPubKeys { get; } = new ();
 
-	private object BlockchainStateLock { get; }
+	private object BlockchainStateLock { get; } = new ();
 
-	private object HdPubKeysLock { get; }
+	private object HdPubKeysLock { get; } = new ();
 
-	private List<byte[]> HdPubKeyScriptBytes { get; }
+	private List<byte[]> HdPubKeyScriptBytes { get; } = new ();
 
-	private object HdPubKeyScriptBytesLock { get; }
+	private object HdPubKeyScriptBytesLock { get; } = new ();
 
-	private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; }
+	private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; } = new ();
 
-	private object ScriptHdPubKeyMapLock { get; }
-	private object ToFileLock { get; }
+	private object ScriptHdPubKeyMapLock { get; } = new ();
+	private object ToFileLock { get; } = new ();
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
@@ -313,7 +296,14 @@ public class KeyManager
 		}
 	}
 
-	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, bool toFile = true)
+	public HdPubKey GenerateNewPersistentKey(SmartLabel label, KeyState keyState, bool isInternal)
+	{
+		var newKey = GenerateNewKey(label, keyState, isInternal);
+		ToFile();
+		return newKey;
+	}
+	
+	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal)
 	{
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -358,11 +348,6 @@ public class KeyManager
 			lock (ScriptHdPubKeyMapLock)
 			{
 				ScriptHdPubKeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
-			}
-
-			if (toFile)
-			{
-				ToFile();
 			}
 
 			return hdPubKey;
@@ -429,31 +414,14 @@ public class KeyManager
 		ToFile();
 	}
 
-	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
-	{
-		if (keyState is null)
+	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null) =>
+		(keyState, isInternal) switch
 		{
-			if (isInternal is null)
-			{
-				return GetKeys(x => true);
-			}
-			else
-			{
-				return GetKeys(x => x.IsInternal == isInternal);
-			}
-		}
-		else
-		{
-			if (isInternal is null)
-			{
-				return GetKeys(x => x.KeyState == keyState);
-			}
-			else
-			{
-				return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
-			}
-		}
-	}
+			(null, null) => GetKeys(x => true),
+			(null, { } i) => GetKeys(x => x.IsInternal == i),
+			({ } k, null) => GetKeys(x => x.KeyState == k),
+			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
+		};
 
 	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
 	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
@@ -578,7 +546,18 @@ public class KeyManager
 	/// Make sure there's always clean keys generated and indexed.
 	/// Call SetMinGapLimit() to set how many keys should be asserted.
 	/// </summary>
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null, bool toFile = true)
+	public IEnumerable<HdPubKey> AssertCleanKeysIndexedAndPersist(bool? isInternal = null)
+	{
+		var newKeys = AssertCleanKeysIndexed(isInternal);
+		if (newKeys.Any())
+		{
+			ToFile();
+		}
+
+		return newKeys;
+	}
+
+	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
 	{
 		var newKeys = new List<HdPubKey>();
 
@@ -586,24 +565,19 @@ public class KeyManager
 		{
 			while (CountConsecutiveUnusedKeys(isInternal.Value, ignoreTail: false) < MinGapLimit)
 			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value, toFile: false));
+				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value));
 			}
 		}
 		else
 		{
 			while (CountConsecutiveUnusedKeys(true, ignoreTail: false) < MinGapLimit)
 			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true, toFile: false));
+				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true));
 			}
 			while (CountConsecutiveUnusedKeys(false, ignoreTail: false) < MinGapLimit)
 			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false, toFile: false));
+				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false));
 			}
-		}
-
-		if (toFile && newKeys.Any())
-		{
-			ToFile();
 		}
 
 		return newKeys;
@@ -612,6 +586,14 @@ public class KeyManager
 	/// <summary>
 	/// Make sure there's always locked internal keys generated and indexed.
 	/// </summary>
+	public void AssertLockedInternalKeysIndexedAndPersist(int howMany)
+	{
+		if (AssertLockedInternalKeysIndexed(howMany))
+		{
+			ToFile();
+		}
+	}
+	
 	public bool AssertLockedInternalKeysIndexed(int howMany)
 	{
 		var changed = false;
@@ -623,7 +605,7 @@ public class KeyManager
 			if (firstUnusedInternalKey is null)
 			{
 				// If not found, generate a new.
-				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
+				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true);
 			}
 			else
 			{
@@ -633,14 +615,9 @@ public class KeyManager
 			changed = true;
 		}
 
-		AssertCleanKeysIndexed(isInternal: true, toFile: false);
+		var newKeys = AssertCleanKeysIndexed(isInternal: true);
 
-		if (changed)
-		{
-			ToFile();
-		}
-
-		return changed;
+		return changed || newKeys.Any();
 	}
 
 	private void SetMinGapLimit(int? minGapLimit)

@@ -40,7 +40,7 @@ public class LiveServerTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		TorHttpPool.Dispose();
+		await TorHttpPool.DisposeAsync();
 		await TorManager.DisposeAsync();
 	}
 

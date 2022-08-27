@@ -47,7 +47,11 @@ public static class Tokenizer
 		string remainder = input[(valueStartAt + 1)..];
 		string value;
 
-		if (allowValueAsQuotedString && remainder.Length > 0 && remainder[0] == '"')
+		if (remainder.Length == 0)
+		{
+			value = "";
+		} 
+		else if (allowValueAsQuotedString && remainder.Length > 0 && remainder[0] == '"')
 		{
 			(value, remainder) = ReadQuotedString(remainder);
 		}
