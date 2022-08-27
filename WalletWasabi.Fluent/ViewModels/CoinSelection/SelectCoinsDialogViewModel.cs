@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -26,16 +27,18 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
-	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
+	private readonly Money _targetAmount;
+	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged, IEnumerable<SmartCoin>? usedCoins)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, TransactionInfo transactionInfo, IObservable<Unit> balanceChanged, IEnumerable<SmartCoin>? usedCoins)
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
 		_usedCoins = usedCoins;
+		_targetAmount = transactionInfo.MinimumRequiredAmount == Money.Zero ? transactionInfo.Amount : transactionInfo.MinimumRequiredAmount;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -58,11 +61,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.ToCollection()
 			.Select(items => items.Where(t => t.IsSelected));
 
-		IsAnySelected = selectedCoins
-			.Select(coins => coins.Any())
+		EnoughSelected = selectedCoins
+			.Select(coins => coins.Sum(x => x.Amount) >= _targetAmount)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		IsAnySelected.Subscribe(b => { });
+		EnoughSelected.Subscribe(b => { });
 
 		SelectedAmount = selectedCoins
 			.Select(Sum)
@@ -70,7 +73,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		CoinSelection = new CoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
-		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, IsAnySelected);
+		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
 
 		base.OnNavigatedTo(isInHistory, disposables);
