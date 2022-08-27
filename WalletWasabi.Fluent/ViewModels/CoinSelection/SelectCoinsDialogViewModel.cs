@@ -35,7 +35,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
 
-		EnableCancel = true;
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
+		EnableBack = true;
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
