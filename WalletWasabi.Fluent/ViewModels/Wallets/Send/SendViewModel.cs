@@ -136,7 +136,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			_transactionInfo.UserLabels = label;
 
-			Navigate().To(new TransactionPreviewViewModel(_wallet, _transactionInfo, address, _isFixedAmount));
+			Navigate().To(new TransactionPreviewViewModel(_walletViewModel, _transactionInfo, address, _isFixedAmount, balanceChanged));
 
 		}, nextCommandCanExecute);
 
