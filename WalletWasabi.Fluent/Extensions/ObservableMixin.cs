@@ -14,4 +14,9 @@ public static class ObservableMixin
 	{
 		return DelayWhen(observable, b => !b, ts);
 	}
+
+	public static IObservable<T> ReplayLastOnly<T>(this IObservable<T> obs)
+	{
+		return obs.Replay(1).RefCount();
+	}
 }

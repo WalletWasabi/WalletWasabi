@@ -78,6 +78,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 			{
 				ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables)),
 				ColumnFactory.ChildrenColumn(),
+				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
 				ColumnFactory.LabelsColumnForGroups()
 			}

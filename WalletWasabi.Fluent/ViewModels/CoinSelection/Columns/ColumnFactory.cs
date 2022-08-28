@@ -100,6 +100,22 @@ public static class ColumnFactory
 				}));
 	}
 
+	public static TemplateColumn<TreeNode> IndicatorsColumn()
+	{
+		return new TemplateColumn<TreeNode>(
+			"",
+			new ConstantTemplate<TreeNode>(
+				n =>
+				{
+					if (n.Value is WalletCoinViewModel coin)
+					{
+						return new IndicatorsCellViewModel(coin);
+					}
+
+					return "";
+				}));
+	}
+
 	public static HierarchicalExpanderColumn<TreeNode> ChildrenColumn()
 	{
 		return new HierarchicalExpanderColumn<TreeNode>(

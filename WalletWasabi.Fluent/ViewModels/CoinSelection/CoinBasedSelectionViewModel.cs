@@ -39,6 +39,7 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 			Columns =
 			{
 				ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables)),
+				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
 				ColumnFactory.AnonymityScore(),
 				ColumnFactory.LabelsColumnForCoins(),
