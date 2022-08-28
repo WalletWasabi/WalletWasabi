@@ -43,22 +43,6 @@ public static class ColumnFactory
 				}));
 	}
 
-	public static TemplateColumn<TreeNode> Address()
-	{
-		return new TemplateColumn<TreeNode>(
-			"Address",
-			new ObservableTemplate<TreeNode, string>(
-				group =>
-				{
-					return group.Value switch
-					{
-						WalletCoinViewModel coin => new BehaviorSubject<string>(coin.Address ?? ""),
-						_ => throw new NotSupportedException()
-					};
-				}),
-			GridLength.Star);
-	}
-
 	public static TemplateColumn<TreeNode> LabelsColumnForCoins()
 	{
 		return new TemplateColumn<TreeNode>(

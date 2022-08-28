@@ -41,8 +41,7 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 				ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables)),
 				ColumnFactory.AmountColumn(),
 				ColumnFactory.AnonymityScore(),
-				ColumnFactory.LabelsColumnForGroups(),
-				ColumnFactory.Address()
+				ColumnFactory.LabelsColumnForCoins(),
 			}
 		};
 
