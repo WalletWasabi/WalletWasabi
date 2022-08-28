@@ -30,7 +30,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly Money _targetAmount;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
-	[AutoNotify] private CoinSelectionViewModel? _coinSelection;
+	[AutoNotify] private CoinBasedSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, TransactionInfo transactionInfo, IObservable<Unit> balanceChanged, IEnumerable<SmartCoin>? usedCoins)
@@ -65,13 +65,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Select(coins => coins.Sum(x => x.Amount) >= _targetAmount)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		EnoughSelected.Subscribe(b => { });
-
 		SelectedAmount = selectedCoins
 			.Select(Sum)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		CoinSelection = new CoinSelectionViewModel(coinChanges).DisposeWith(disposables);
+		CoinSelection = new CoinBasedSelectionViewModel(coinChanges).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));

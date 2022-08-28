@@ -37,4 +37,13 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\CoinSelection\Columns\AnonymityScoreHeaderView.axaml.cs">
+	    <DependentUpon>AnonymityScoreHeaderView.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\CoinSelection\Columns\IsSelectedThreeStateView.axaml.cs">
+	    <DependentUpon>IsSelectedThreeStateView.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>
