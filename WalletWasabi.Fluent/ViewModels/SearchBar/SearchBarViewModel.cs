@@ -28,10 +28,6 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Filter(filterPredicate);
 
 		filteredItems
-			.Transform(
-				item => item is ActionableItem i
-					? new AutocloseActionableItem(i, () => IsSearchListVisible = false)
-					: item)
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
 			.Bind(out _groups)

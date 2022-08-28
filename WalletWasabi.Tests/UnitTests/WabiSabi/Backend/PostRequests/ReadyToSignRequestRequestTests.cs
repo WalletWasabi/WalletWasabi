@@ -1,6 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests;

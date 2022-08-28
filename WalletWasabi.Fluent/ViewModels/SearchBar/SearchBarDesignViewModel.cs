@@ -44,7 +44,7 @@ public class SearchBarDesignViewModel : ReactiveObject
 			{
 				Icon = "settings_bitcoin_regular"
 			}
-		}.Select(item => (ISearchItem)new AutocloseActionableItem(item, () => { }));
+		};
 
 		_items = actionable.ToList();
 	}
