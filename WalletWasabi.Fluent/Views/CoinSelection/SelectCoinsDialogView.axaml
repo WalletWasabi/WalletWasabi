@@ -82,6 +82,7 @@
         <StackPanel Margin="8">
           <TextBlock Text="{Binding SelectedAmount^, StringFormat='{}{0} selected', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
           <TextBlock Text="{Binding SelectedCount^, StringFormat='{}{0} coin/s selected'}" />
+          <TextBlock IsVisible="{Binding !EnoughSelected^}" Text="Please, select more coins" />
         </StackPanel>
       </StackPanel>
 
