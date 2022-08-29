@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Templates;
+using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
@@ -21,6 +22,7 @@ public class ObservableTemplate<T, TOutput> : IDataTemplate
 		return new ContentPresenter()
 		{
 			[!ContentControl.ContentProperty] = binding,
+			HorizontalContentAlignment = HorizontalAlignment.Center,
 		};
 	}
 
