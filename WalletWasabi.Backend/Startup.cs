@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
@@ -78,7 +79,13 @@ public class Startup
 		});
 
 		services.AddSingleton<IdempotencyRequestCache>();
-		services.AddSingleton(serviceProvider => ActivatorUtilities.CreateInstance<Global>(serviceProvider, dataDir));
+		services.AddSingleton(serviceProvider =>
+		{
+			IRPCClient rpcClient = serviceProvider.GetRequiredService<IRPCClient>();
+			Config config = serviceProvider.GetRequiredService<Config>();
+
+			return new Global(dataDir, rpcClient, config);
+		});
 		services.AddSingleton(serviceProvider =>
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
