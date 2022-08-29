@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using NBitcoin.RPC;
 using System.IO;
 using System.Threading;
@@ -14,14 +12,16 @@ namespace WalletWasabi.Backend;
 
 public class InitConfigStartupTask : IStartupTask
 {
-	public InitConfigStartupTask(Global global, IMemoryCache cache)
+	public InitConfigStartupTask(Global global, Config config, IMemoryCache cache)
 	{
 		Global = global;
+		Config = config;
 		Cache = cache;
 	}
 
-	public Global Global { get; }
-	public IMemoryCache Cache { get; }
+	private Global Global { get; }
+	private Config Config { get; }
+	private IMemoryCache Cache { get; }
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
@@ -30,24 +30,20 @@ public class InitConfigStartupTask : IStartupTask
 
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-		var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-		var config = new Config(configFilePath);
-		config.LoadOrCreateDefaultFile();
-		Logger.LogInfo("Config is successfully initialized.");
 
 		var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
 		var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
 		roundConfig.LoadOrCreateDefaultFile();
 		Logger.LogInfo("RoundConfig is successfully initialized.");
 
-		string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
+		string host = Config.GetBitcoinCoreRpcEndPoint().ToString(Config.Network.RPCPort);
 		var rpc = new RPCClient(
-				authenticationString: config.BitcoinRpcConnectionString,
+				authenticationString: Config.BitcoinRpcConnectionString,
 				hostOrUri: host,
-				network: config.Network);
+				network: Config.Network);
 
 		var cachedRpc = new CachedRpcClient(rpc, Cache);
-		await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
+		await Global.InitializeAsync(roundConfig, cancellationToken);
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
