@@ -72,9 +72,16 @@ public class TorTcpConnectionFactory
 	{
 		TcpClient? tcpClient = null;
 		Stream? transportStream = null;
+		OneOffCircuit? oneOffCircuitToDispose = null;
 
 		try
 		{
+			if (circuit is AnyOneOffCircuit)
+			{
+				oneOffCircuitToDispose = new OneOffCircuit();
+				circuit = oneOffCircuitToDispose;
+			}
+
 			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
 
 			transportStream = tcpClient.GetStream();
@@ -91,12 +98,15 @@ public class TorTcpConnectionFactory
 
 			transportStream = null;
 			tcpClient = null;
+			oneOffCircuitToDispose = null;
+
 			return result;
 		}
 		finally
 		{
 			transportStream?.Dispose();
 			tcpClient?.Dispose();
+			oneOffCircuitToDispose?.Dispose();
 		}
 	}
 
@@ -129,7 +139,7 @@ public class TorTcpConnectionFactory
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
 	/// <exception cref="NotSupportedException">When authentication fails due to unsupported authentication method.</exception>
 	/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
-	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken = default)
+	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken)
 	{
 		VersionMethodRequest versionMethodRequest = circuit switch
 		{
@@ -208,7 +218,7 @@ public class TorTcpConnectionFactory
 	/// <exception cref="TorConnectCommandFailedException">When response to <see cref="CmdField.Connect"/> request is NOT <see cref="RepField.Succeeded"/>.</exception>
 	/// <exception cref="TorException">When sending of the HTTP(s) request fails for any reason.</exception>
 	/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
-	private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken = default)
+	private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken)
 	{
 		Logger.LogTrace($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
