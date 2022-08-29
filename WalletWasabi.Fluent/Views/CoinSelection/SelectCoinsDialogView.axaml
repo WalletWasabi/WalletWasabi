@@ -5,7 +5,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:coinSelection="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              x:CompileBindings="True"
              x:DataType="coinSelection:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.SelectCoinsDialogView">
@@ -64,27 +64,40 @@
         </DockPanel.Styles>
         <CheckBox x:Name="GroupByLabels" DockPanel.Dock="Left" Content="Group by Labels" />
         <TextBox Classes="FilterBox"
+                 Width="200"
                  Classes.Visible="{Binding #GroupByLabels.IsChecked}"
                  Classes.Hidden="{Binding !#GroupByLabels.IsChecked}"
           Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
           Watermark="Filter" Margin="20 0 0 0">
         </TextBox>
+        <TextBlock VerticalAlignment="Center" TextAlignment="Right" IsVisible="{Binding !EnoughSelected^}"
+                   Text="Please, select more coins" Foreground="{DynamicResource SystemErrorTextColor}" />
       </DockPanel>
 
-      <StackPanel DockPanel.Dock="Bottom" Margin="12">
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="* *" Margin="0 16 0 0">
+
+        <StackPanel Spacing="8" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{}{0} selected in {1} coin/s">
+                <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedStringBtc}" />
+                <Binding Path="SelectedCount^" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+          <ProgressBar Maximum="{Binding TargetAmount.Satoshi}"
+                       Value="{Binding SelectedAmount^.Satoshi}"
+                       ToolTip.Tip="{Binding RemainingAmount^, StringFormat='{}{0} BTC remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
+        </StackPanel>
+
+        <WrapPanel Grid.Column="1" HorizontalAlignment="Center">
           <Button>Select all private</Button>
           <Button>Select all</Button>
           <Button>Clear selection</Button>
           <Button>Automatic</Button>
-        </StackPanel>
+        </WrapPanel>
 
-        <StackPanel Margin="8">
-          <TextBlock Text="{Binding SelectedAmount^, StringFormat='{}{0} selected', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
-          <TextBlock Text="{Binding SelectedCount^, StringFormat='{}{0} coin/s selected'}" />
-          <TextBlock IsVisible="{Binding !EnoughSelected^}" Text="Please, select more coins" />
-        </StackPanel>
-      </StackPanel>
+      </Grid>
 
       <Panel>
         <TreeDataGrid
