@@ -80,6 +80,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 				ColumnFactory.ChildrenColumn(),
 				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
+				ColumnFactory.AnonymityScore(),
 				ColumnFactory.LabelsColumnForGroups()
 			}
 		};

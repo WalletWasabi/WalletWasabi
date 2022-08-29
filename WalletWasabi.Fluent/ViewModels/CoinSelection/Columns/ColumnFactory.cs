@@ -38,7 +38,7 @@ public static class ColumnFactory
 					return group.Value switch
 					{
 						WalletCoinViewModel coin => new BehaviorSubject<int>(coin.AnonymitySet),
-						_ => throw new NotSupportedException()
+						_ => Observable.Empty<int>(),
 					};
 				}));
 	}
