@@ -182,7 +182,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
 			{
-				walletToStart.LogDebug("All mixed!");
+				walletToStart.LogTrace("All mixed!");
 				if (!startCommand.StopWhenAllMixed)
 				{
 					ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
