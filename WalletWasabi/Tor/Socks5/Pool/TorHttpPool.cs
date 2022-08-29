@@ -137,7 +137,7 @@ public class TorHttpPool : IAsyncDisposable
 	/// </summary>
 	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
 	/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
-	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken = default)
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
 	{
 		int i = 0;
 		int attemptsNo = 3;
