@@ -90,6 +90,10 @@ public abstract class PeriodicRunner : BackgroundService
 			{
 				Logger.LogTrace(ex);
 			}
+			catch (NBitcoin.RPC.NoEstimationException ex)
+			{
+				Logger.LogInfo("Couldn't get fee estimation from Bitcoin Core, probably because it was not yet initialized");
+			}
 			catch (Exception ex)
 			{
 				// Exception encountered, process it.
