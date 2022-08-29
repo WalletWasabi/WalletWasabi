@@ -39,6 +39,7 @@ public enum StreamStatusFlag
 	/// <summary>XOFF has been sent for this stream.</summary>
 	/// <remarks>New in 0.4.7.5-alpha.</remarks>
 	XOFF_SENT,
+
 	/// <summary>XOFF has been received for this stream.</summary>
 	/// <remarks>New in 0.4.7.5-alpha.</remarks>
 	XOFF_RECV,
