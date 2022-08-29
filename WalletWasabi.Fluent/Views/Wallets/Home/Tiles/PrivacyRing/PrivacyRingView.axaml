@@ -9,7 +9,8 @@
              xmlns:tilesView="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingView"
+             x:Name="View">
   <UserControl.Styles>
     <Style Selector="Path:pointerover">
       <Setter Property="StrokeThickness" Value="1" />
@@ -52,11 +53,19 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="False"
                  EnableBack="True"
-                 Caption="Hover over the ring segments to see coin details">
-    <Panel>
-      <ListBox Items="{Binding Items}" ClipToBounds="False" Margin="240 240 0 0" HorizontalAlignment="Center"
+                 Caption="Hover over the ring segments to see coin details"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <Panel x:Name="Panel">
+      <i:Interaction.Behaviors>
+        <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
+                                          Width="{Binding Width, Mode=TwoWay}"
+                                          Height="{Binding Height, Mode=TwoWay}" />
+      </i:Interaction.Behaviors>
+
+      <ListBox Items="{Binding Items}" ClipToBounds="False"
                SelectedItem="{Binding SelectedItem}"
-               x:Name="Ring">
+               x:Name="Ring" Margin="{Binding Margin}">
         <i:Interaction.Behaviors>
           <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="1000" />
           <behaviors:ItemsControlAnimationBehavior />
@@ -65,7 +74,7 @@
           <ControlTemplate TargetType="ListBox">
             <Panel>
               <!-- "transparent" Border used for MouseMove -->
-              <Border Background="White" Margin="-240 -240 0 0" Opacity="0.0001" />
+              <Border Background="White" Margin="{Binding NegativeMargin}" Opacity="0.0001" />
               <ItemsPresenter Name="PART_ItemsPresenter"
                        Items="{TemplateBinding Items}"
                        ItemsPanel="{TemplateBinding ItemsPanel}"
@@ -80,7 +89,7 @@
         </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <Path Stretch="None" Height="{Binding OuterRadius}" Width="{Binding OuterRadius}"
+            <Path Stretch="None" Height="{Binding Height}" Width="{Binding Width}"
                   Data="{Binding Data}"
                   Classes.private="{Binding IsPrivate}"
                   Classes.semiPrivate="{Binding IsSemiPrivate}"

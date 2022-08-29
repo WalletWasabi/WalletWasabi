@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using DynamicData;
 using DynamicData.Binding;
@@ -22,13 +23,14 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
 	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
+	[AutoNotify] private double _height;
+	[AutoNotify] private double _width;
+	[AutoNotify] private Thickness _margin;
+	[AutoNotify] private Thickness _negativeMargin;
 
 	public PrivacyRingViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
 		Wallet = walletViewModel.Wallet;
-
-		OuterRadius = 240d;
-		InnerRadius = 230d;
 
 		NextCommand = CancelCommand;
 
@@ -52,14 +54,21 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
 
+		this.WhenAnyValue(x => x.Width, x => x.Height)
+			.Subscribe(x =>
+			{
+				var usableHeight = x.Item2;
+				var usableWidth = x.Item1;
+				Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
+				NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
+				RefreshCoinsList(walletViewModel.Wallet.GetPockets());
+			});
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
 	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
-
-	public double OuterRadius { get; }
-	public double InnerRadius { get; }
 
 	public Wallet Wallet { get; }
 

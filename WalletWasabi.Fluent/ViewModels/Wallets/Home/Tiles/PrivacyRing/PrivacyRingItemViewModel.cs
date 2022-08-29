@@ -10,11 +10,12 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 {
 	private const double TotalAngle = 2d * Math.PI;
 	private const double UprightAngle = Math.PI / 2d;
+	private const double SegmentWidth = 10.0;
 
 	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, SmartCoin coin, double start, double end) : base(coin)
 	{
-		var outerRadius = parent.OuterRadius;
-		var innerRadius = parent.InnerRadius;
+		var outerRadius = Math.Min(parent.Height / 2, parent.Width / 2);
+		var innerRadius = outerRadius - SegmentWidth;
 
 		var arc1Size = new Size(outerRadius, outerRadius);
 		var arc2Size = new Size(innerRadius, innerRadius);
