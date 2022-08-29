@@ -19,4 +19,10 @@ public class AnyOneOffCircuit : ICircuit
 
 	/// <inheritdoc/>
 	public string? Purpose { get; }
+
+	/// <inheritdoc/>
+	public override string ToString()
+	{
+		return $"[{nameof(AnyOneOffCircuit)}]";
+	}
 }

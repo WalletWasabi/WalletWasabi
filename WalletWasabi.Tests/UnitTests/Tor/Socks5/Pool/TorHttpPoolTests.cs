@@ -75,13 +75,13 @@ public class TorHttpPoolTests
 
 		using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
 
-		using HttpResponseMessage aliceResponse = await pool.SendAsync(request, aliceIdentity);
+		using HttpResponseMessage aliceResponse = await pool.SendAsync(request, aliceIdentity, timeoutCts.Token);
 		Assert.Equal("Alice circuit!", await aliceResponse.Content.ReadAsStringAsync(timeoutCts.Token));
 
-		using HttpResponseMessage bobResponse = await pool.SendAsync(request, bobIdentity);
+		using HttpResponseMessage bobResponse = await pool.SendAsync(request, bobIdentity, timeoutCts.Token);
 		Assert.Equal("Bob circuit!", await bobResponse.Content.ReadAsStringAsync(timeoutCts.Token));
 
-		using HttpResponseMessage defaultResponse = await pool.SendAsync(request, defaultIdentity);
+		using HttpResponseMessage defaultResponse = await pool.SendAsync(request, defaultIdentity, timeoutCts.Token);
 		Assert.Equal("Default circuit!", await defaultResponse.Content.ReadAsStringAsync(timeoutCts.Token));
 
 		mockTcpConnectionFactory.VerifyAll();
@@ -116,7 +116,7 @@ public class TorHttpPoolTests
 		Task sendTask = Task.Run(async () =>
 		{
 			Debug.WriteLine("[client] About send HTTP request.");
-			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit).ConfigureAwait(false);
+			using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit, timeoutCts.Token).ConfigureAwait(false);
 			Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 			Debug.WriteLine("[client] Done sending HTTP request.");
 		});
@@ -215,14 +215,14 @@ public class TorHttpPoolTests
 		using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
 
 		// Alice circuit is NOT yet disposed.
-		using HttpResponseMessage aliceResponse = await pool.SendAsync(request, aliceCircuit);
+		using HttpResponseMessage aliceResponse = await pool.SendAsync(request, aliceCircuit, timeoutCts.Token);
 		Assert.True(aliceResponse.IsSuccessStatusCode);
 
 		// Dispose Alice circuit.
 		aliceCircuit.Dispose();
 
 		// Alice circuit is already disposed and thus it cannot be used.
-		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit).ConfigureAwait(false));
+		HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit, timeoutCts.Token).ConfigureAwait(false));
 		_ = Assert.IsType<TorCircuitExpiredException>(httpRequestException.InnerException);
 
 		mockTcpConnectionFactory.VerifyAll();
