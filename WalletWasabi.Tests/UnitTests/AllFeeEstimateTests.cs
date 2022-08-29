@@ -11,6 +11,7 @@ using WalletWasabi.Tests.Helpers;
 using Xunit;
 using Moq;
 using System.Threading;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
 
