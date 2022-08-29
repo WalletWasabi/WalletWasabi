@@ -15,23 +15,19 @@ public class TorTcpConnection : IDisposable
 {
 	private volatile bool _disposedValue = false;
 
-	/// <summary>ID generator.</summary>
-	private static long LastId;
-
 	/// <param name="tcpClient">TCP client connected to Tor SOCKS5 endpoint.</param>
 	/// <param name="transportStream">Transport stream to actually send the data to Tor SOCKS5 endpoint (the difference is SSL).</param>
 	/// <param name="circuit">Tor circuit under which we operate with this TCP connection.</param>
 	/// <param name="allowRecycling">Whether it is allowed to re-use this Tor TCP connection.</param>
 	public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
 	{
-		long id = Interlocked.Increment(ref LastId);
 		string prefix = circuit switch
 		{
 			DefaultCircuit _ => "DC",
 			PersonCircuit _ => "PC",
 			_ => "UC" // Unknown circuit type.
 		};
-		Name = $"{prefix}#{id:0000}#{circuit.Name[0..10]}";
+		Name = $"{prefix}#{circuit.Name[0..5]}";
 
 		TcpClient = tcpClient;
 		TransportStream = transportStream;
