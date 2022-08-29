@@ -30,6 +30,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly Money _targetAmount;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
+	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinSelection;
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 
@@ -46,7 +47,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged);
+		var coins = CreateCoinsObservable(_balanceChanged)
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
@@ -62,12 +64,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Select(items => items.Where(t => t.IsSelected));
 
 		EnoughSelected = selectedCoins
-			.Select(coins => coins.Sum(x => x.Amount) >= _targetAmount)
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Select(coins => coins.Sum(x => x.Amount) >= _targetAmount);
 
 		SelectedAmount = selectedCoins
-			.Select(Sum)
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Select(Sum);
+
+		SelectedCount = selectedCoins
+			.Select(models => models.Count());
 
 		CoinSelection = new CoinBasedSelectionViewModel(coinChanges).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
