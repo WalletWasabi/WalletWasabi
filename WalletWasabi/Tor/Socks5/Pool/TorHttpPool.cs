@@ -10,11 +10,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Control.Messages.CircuitStatus;
+using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Models;
@@ -47,6 +46,13 @@ public record TorPrebuildCircuitRequest
 	public Uri BaseUri { get; }
 	public TimeSpan RandomDelay { get; }
 }
+
+/// <summary>Latest Tor stream state update.</summary>
+/// <remarks>
+/// Informs that a Tor stream (corresponds to our <see cref="TorTcpConnection"/>) is currently using
+/// the <paramref name="CircuitId">Tor circuit</paramref> and has a certain <paramref name="Status"/>.
+/// </remarks>
+public record TorStreamInfo(string CircuitId, StreamStatusFlag Status);
 
 /// <summary>
 /// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are
@@ -82,15 +88,15 @@ public class TorHttpPool : IAsyncDisposable
 	/// <summary>Channel with pre-building requests.</summary>
 	private Channel<TorPrebuildCircuitRequest> PreBuildingRequestChannel { get; }
 
-	/// <summary>Key is always a circuit username. Value is the circuit being built.</summary>
+	/// <summary>Key is always Tor SOCKS5 username. Value is the corresponding latest Tor stream update received over Tor control protocol.</summary>
 	/// <remarks>All access to this object must be guarded by <see cref="ConnectionsLock"/>.</remarks>
-	private Dictionary<string, ICircuit> CircuitsBeingBuilt { get; } = new();
+	private Dictionary<string, TorStreamInfo?> TorStreamsBeingBuilt { get; } = new();
 
 	/// <summary>Key is always a URI host. Value is a list of pool connections that can connect to the URI host.</summary>
 	/// <remarks>All access to this object must be guarded by <see cref="ConnectionsLock"/>.</remarks>
 	private Dictionary<string, List<TorTcpConnection>> ConnectionPerHost { get; } = new();
 
-	/// <remarks>Lock object to guard <see cref="ConnectionPerHost"/> and <see cref="CircuitsBeingBuilt"/>.</remarks>
+	/// <remarks>Lock object to guard <see cref="ConnectionPerHost"/> and <see cref="TorStreamsBeingBuilt"/>.</remarks>
 	private object ConnectionsLock { get; } = new();
 
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
@@ -320,7 +326,7 @@ public class TorHttpPool : IAsyncDisposable
 	{
 		lock (ConnectionsLock)
 		{
-			CircuitsBeingBuilt[circuit.Name] = circuit;
+			TorStreamsBeingBuilt[circuit.Name] = null;
 		}
 
 		TorTcpConnection? connection = null;
@@ -349,7 +355,13 @@ public class TorHttpPool : IAsyncDisposable
 		{
 			lock (ConnectionsLock)
 			{
-				CircuitsBeingBuilt.Remove(circuit.Name);
+				if (TorStreamsBeingBuilt.Remove(circuit.Name, out TorStreamInfo? streamInfo))
+				{
+					if (connection is not null && streamInfo is not null)
+					{
+						connection.SetLatestStreamInfo(streamInfo, ifEmpty: true);
+					}
+				}
 
 				if (connection is not null)
 				{
@@ -371,7 +383,7 @@ public class TorHttpPool : IAsyncDisposable
 
 	/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>
 	/// <exception cref="TorConnectionReadException">When a failure during receiving HTTP response from Tor SOCKS5 occurs.</exception>
-	internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token = default)
+	internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-2.6
 		// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -409,43 +421,44 @@ public class TorHttpPool : IAsyncDisposable
 	/// Allows to report that a Tor circuit status changed.
 	/// </summary>
 	/// <param name="circuitID">Tor circuit ID for logging purposes. Example is: <c>35</c>.</param>
-	/// <param name="circuitName">Name of the Tor circuit. Example is: <c>IK1DG1HZCZFEQUTF86O86</c>.</param>
+	/// <param name="streamUsername">Username of the Tor stream. Example is: <c>IK1DG1HZCZFEQUTF86O86</c>.</param>
 	/// <remarks>
 	/// Useful to clean up <see cref="ConnectionPerHost"/> so that we do not exhaust <see cref="MaxConnectionsPerHost"/> limit.
 	/// <para>If client code forgets to dispose <see cref="PersonCircuit"/>, this should help us to recover eventually.</para>
 	/// </remarks>
-	public void ReportCircuitStatus(CircStatus circStatus, string circuitID, string circuitName)
+	public void ReportCircuitStatus(string streamUsername, StreamStatusFlag streamStatus, string circuitID)
 	{
 		lock (ConnectionsLock)
 		{
-			switch (circStatus)
+			// If the key is not present, then are not the ones starting that Tor stream.
+			if (TorStreamsBeingBuilt.ContainsKey(streamUsername))
 			{
-				case CircStatus.BUILT:
-					{
-						if (CircuitsBeingBuilt.TryGetValue(circuitName, out ICircuit? circuit))
-						{
-							Logger.LogTrace($"Tor circuit was built: #{circuitID} ('{circuit}').");
-						}
+				// We can receive multiple such reports potentially. We don't mind.
+				TorStreamsBeingBuilt[streamUsername] = new TorStreamInfo(circuitID, streamStatus);
+			}
 
-						break;
-					}
+			TorTcpConnection? tcpConnection = null;
 
-				case CircStatus.CLOSED:
-					{
-						foreach ((string host, List<TorTcpConnection> tcpConnections) in ConnectionPerHost)
-						{
-							foreach (TorTcpConnection tcpConnection in tcpConnections)
-							{
-								if (tcpConnection.Circuit.Name == circuitName)
-								{
-									Logger.LogTrace($"Tor circuit was closed: #{circuitID} ('{tcpConnection.Circuit}').");
-									tcpConnection.MarkAsToDispose(force: false);
-								}
-							}
-						}
+			// Find our TCP connection based on username we provided when connecting to Tor SOCKS5.
+			foreach ((string host, List<TorTcpConnection> tcpConnections) in ConnectionPerHost)
+			{
+				tcpConnection = tcpConnections.FirstOrDefault(connection => connection.Circuit.Name == streamUsername);
 
-						break;
-					}
+				if (tcpConnection is not null)
+				{
+					break;
+				}
+			}
+
+			if (tcpConnection is not null)
+			{
+				tcpConnection.SetLatestStreamInfo(new TorStreamInfo(circuitID, streamStatus));
+
+				if (streamStatus is StreamStatusFlag.CLOSED or StreamStatusFlag.FAILED)
+				{
+					Logger.LogTrace($"Tor circuit was closed: #{circuitID} ('{tcpConnection.Circuit}').");
+					tcpConnection.MarkAsToDispose(force: false);
+				}
 			}
 		}
 	}
