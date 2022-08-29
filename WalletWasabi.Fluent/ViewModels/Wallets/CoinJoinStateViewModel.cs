@@ -41,7 +41,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible = true;
 	[AutoNotify] private bool _pauseVisible;
-	[AutoNotify] private bool _pauseLoading;
+	[AutoNotify] private bool _pauseSpreading;
 	[AutoNotify] private bool _stopVisible;
 	[AutoNotify] private MusicStatusMessageViewModel? _currentStatus;
 	[AutoNotify] private bool _isProgressReversed;
@@ -104,8 +104,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		IsPauseButtonEnabled = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseLoading,
-			(isInCriticalPhase,pauseLoading) => !isInCriticalPhase && !pauseLoading);
+		IsPauseButtonEnabled = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
+			(isInCriticalPhase,pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 			
 		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -221,7 +221,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopCountDown();
 				PlayVisible = true;
 				PauseVisible = false;
-				PauseLoading = false;
+				PauseSpreading = false;
 				StopVisible = false;
 				CurrentStatus = IsAutoCoinJoinEnabled ? _pauseMessage : _stoppedMessage;
 				ElapsedTime = "Press Play to start";
@@ -330,7 +330,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			case RoundEnded roundEnded:
 				if (roundEnded.IsStopped)
 				{
-					PauseLoading = true;
+					PauseSpreading = true;
 				}
 				else
 				{ 
