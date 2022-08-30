@@ -18,6 +18,21 @@
     IsBusy="{Binding IsBusy}"
     ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
+    <controls:ContentArea.Caption>
+
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*" Margin="0 16 0 0">
+
+        <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="1" HorizontalAlignment="Center">
+          <Button>Select all private</Button>
+          <Button>Select all</Button>
+          <Button>Clear selection</Button>
+          <Button>Automatic</Button>
+        </StackPanel>
+
+      </Grid>
+      
+    </controls:ContentArea.Caption>
+
     <controls:ContentArea.Styles>
       <Style Selector="TreeDataGridRow">
         <Setter Property="Focusable" Value="False" />
@@ -56,7 +71,7 @@
     </controls:ContentArea.Styles>
 
     <DockPanel>
-      <DockPanel DockPanel.Dock="Top" Margin="8">
+      <DockPanel DockPanel.Dock="Top" Margin="8" LastChildFill="False">
         <DockPanel.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
@@ -70,14 +85,11 @@
           Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
           Watermark="Filter" Margin="20 0 0 0">
         </TextBox>
-        <TextBlock VerticalAlignment="Center" TextAlignment="Right" IsVisible="{Binding !EnoughSelected^}"
-                   Text="Please, select more coins" Foreground="{DynamicResource SystemErrorTextColor}" />
       </DockPanel>
 
       <Grid DockPanel.Dock="Bottom" ColumnDefinitions="* *" Margin="0 16 0 0">
-
-        <StackPanel Spacing="8" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-          <TextBlock>
+        <StackPanel Grid.Column="0" DockPanel.Dock="Bottom" Margin="20 0">
+          <TextBlock Margin="0 0 0 8">
             <TextBlock.Text>
               <MultiBinding StringFormat="{}{0} selected in {1} coin/s">
                 <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedStringBtc}" />
@@ -86,31 +98,30 @@
             </TextBlock.Text>
           </TextBlock>
           <ProgressBar Maximum="{Binding TargetAmount.Satoshi}"
-                       Value="{Binding SelectedAmount^.Satoshi}"
-                       ToolTip.Tip="{Binding RemainingAmount^, StringFormat='{}{0} BTC remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}" />
+                       Value="{Binding SelectedAmount^.Satoshi}" />
+          <TextBlock TextAlignment="Right" Classes="h9 monoSpaced" Opacity="0.6"
+                     Text="{Binding RemainingAmount^, StringFormat='{}{0} remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}">
+          </TextBlock>
         </StackPanel>
 
-        <WrapPanel Grid.Column="1" HorizontalAlignment="Center">
-          <Button>Select all private</Button>
-          <Button>Select all</Button>
-          <Button>Clear selection</Button>
-          <Button>Automatic</Button>
-        </WrapPanel>
+        <TextBlock Grid.Column="1" VerticalAlignment="Center" TextAlignment="Right" IsVisible="{Binding !EnoughSelected^}"
+                   Text="Please, select more coins" Foreground="{DynamicResource SystemErrorTextColor}" />
 
       </Grid>
 
-      <Panel>
-        <TreeDataGrid
-          IsVisible="{Binding !#GroupByLabels.IsChecked}"
-          Source="{Binding CoinSelection.Source}"
-          CanUserSortColumns="True">
-        </TreeDataGrid>
-        <TreeDataGrid
-          IsVisible="{Binding #GroupByLabels.IsChecked}"
-          Source="{Binding LabelBasedSelection.Source}"
-          CanUserSortColumns="True">
-        </TreeDataGrid>
-      </Panel>
+      <Border>
+        <Panel>
+          <TreeDataGrid
+            IsVisible="{Binding !#GroupByLabels.IsChecked}"
+            Source="{Binding CoinSelection.Source}"
+            CanUserSortColumns="True">
+          </TreeDataGrid>
+          <TreeDataGrid
+            IsVisible="{Binding #GroupByLabels.IsChecked}"
+            Source="{Binding LabelBasedSelection.Source}"
+            CanUserSortColumns="True">
+          </TreeDataGrid>
+        </Panel></Border>
     </DockPanel>
   </controls:ContentArea>
 </UserControl>

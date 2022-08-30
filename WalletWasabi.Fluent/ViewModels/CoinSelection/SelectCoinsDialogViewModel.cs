@@ -80,7 +80,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SelectedAmount = selectedCoins
 			.Select(Sum);
 
-		RemainingAmount = SelectedAmount.Select(money => money - TargetAmount);
+		RemainingAmount = SelectedAmount.Select(money => Money.Max(TargetAmount - money, Money.Zero));
 
 		SelectedCount = selectedCoins
 			.Select(models => models.Count());

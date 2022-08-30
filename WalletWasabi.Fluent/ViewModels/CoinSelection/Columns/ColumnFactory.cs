@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
