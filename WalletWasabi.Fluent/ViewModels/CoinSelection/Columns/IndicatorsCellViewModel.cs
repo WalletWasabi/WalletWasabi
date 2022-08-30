@@ -8,11 +8,11 @@ public class IndicatorsCellViewModel : ViewModelBase
 {
 	public IndicatorsCellViewModel(WalletCoinViewModel coin)
 	{
-		IsBanned = coin.WhenAnyValue(x => x.IsBanned).ReplayLastOnly();
-		CoinJoinInProgress = coin.WhenAnyValue(x => x.CoinJoinInProgress).ReplayLastOnly();
-		IsConfirmed = coin.WhenAnyValue(x => x.Confirmed).ReplayLastOnly();
-		ConfirmedToolTip = coin.WhenAnyValue(x => x.ConfirmedToolTip).ReplayLastOnly();
-		BannedUntilUtcToolTip = coin.WhenAnyValue(x => x.BannedUntilUtcToolTip).ReplayLastOnly();
+		IsBanned = coin.WhenAnyValue(x => x.IsBanned).ReplayLastActive();
+		CoinJoinInProgress = coin.WhenAnyValue(x => x.CoinJoinInProgress).ReplayLastActive();
+		IsConfirmed = coin.WhenAnyValue(x => x.Confirmed).ReplayLastActive();
+		ConfirmedToolTip = coin.WhenAnyValue(x => x.ConfirmedToolTip).ReplayLastActive();
+		BannedUntilUtcToolTip = coin.WhenAnyValue(x => x.BannedUntilUtcToolTip).ReplayLastActive();
 	}
 
 	public IObservable<string?> BannedUntilUtcToolTip { get; }

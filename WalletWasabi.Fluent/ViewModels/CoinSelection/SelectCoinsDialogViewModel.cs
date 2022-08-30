@@ -68,9 +68,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		var coinChanges = sourceCache.Connect();
 
-		var viewModels = coinChanges
-			.Replay()
-			.RefCount();
+		var viewModels = coinChanges.ReplayLastActive();
 
 		viewModels.Bind(out _collection)
 			.Subscribe();

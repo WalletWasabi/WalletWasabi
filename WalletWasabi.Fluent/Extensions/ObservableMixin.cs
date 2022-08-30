@@ -17,13 +17,13 @@ public static class ObservableMixin
 		return DelayWhen(observable, b => !b, ts);
 	}
 
-	public static IObservable<T> ReplayLastOnly<T>(this IObservable<T> obs)
-	{
-		return obs.Replay(1).RefCount();
-	}
-
 	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents)
 	{
 		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
+	}
+
+	public static IObservable<T> ReplayLastActive<T>(this IObservable<T> observable)
+	{
+		return observable.Replay(1).RefCount();
 	}
 }
