@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
+using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using WalletWasabi.Backend.Controllers.WabiSabi;
@@ -16,6 +18,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
@@ -36,7 +39,7 @@ public class Startup
 	// This method gets called by the runtime. Use this method to add services to the container.
 	public void ConfigureServices(IServiceCollection services)
 	{
-		string dataDir = Configuration["datadir"];
+		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 
 		services.AddMemoryCache();
 
@@ -81,10 +84,18 @@ public class Startup
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton(serviceProvider =>
 		{
-			IRPCClient rpcClient = serviceProvider.GetRequiredService<IRPCClient>();
 			Config config = serviceProvider.GetRequiredService<Config>();
+			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
 
-			return new Global(dataDir, rpcClient, config);
+			RPCClient rpcClient = new(
+					authenticationString: config.BitcoinRpcConnectionString,
+					hostOrUri: host,
+					network: config.Network);
+
+			IMemoryCache memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
+
+			return new Global(dataDir, cachedRpc, config);
 		});
 		services.AddSingleton(serviceProvider =>
 		{

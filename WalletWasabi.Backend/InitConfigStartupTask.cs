@@ -12,16 +12,12 @@ namespace WalletWasabi.Backend;
 
 public class InitConfigStartupTask : IStartupTask
 {
-	public InitConfigStartupTask(Global global, Config config, IMemoryCache cache)
+	public InitConfigStartupTask(Global global)
 	{
 		Global = global;
-		Config = config;
-		Cache = cache;
 	}
 
 	private Global Global { get; }
-	private Config Config { get; }
-	private IMemoryCache Cache { get; }
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
@@ -36,13 +32,6 @@ public class InitConfigStartupTask : IStartupTask
 		roundConfig.LoadOrCreateDefaultFile();
 		Logger.LogInfo("RoundConfig is successfully initialized.");
 
-		string host = Config.GetBitcoinCoreRpcEndPoint().ToString(Config.Network.RPCPort);
-		var rpc = new RPCClient(
-				authenticationString: Config.BitcoinRpcConnectionString,
-				hostOrUri: host,
-				network: Config.Network);
-
-		var cachedRpc = new CachedRpcClient(rpc, Cache);
 		await Global.InitializeAsync(roundConfig, cancellationToken);
 	}
 
