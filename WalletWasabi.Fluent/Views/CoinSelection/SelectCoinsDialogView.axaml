@@ -23,10 +23,10 @@
       <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*" Margin="0 16 0 0">
 
         <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="1" HorizontalAlignment="Center">
-          <Button>Select all private</Button>
-          <Button>Select all</Button>
-          <Button>Clear selection</Button>
-          <Button>Automatic</Button>
+          <Button Command="{Binding SelectAllPrivateCoinsCommand}">Select all private</Button>
+          <Button Command="{Binding SelectAllCoinsCommand}">Select all</Button>
+          <Button Command="{Binding ClearCoinSelectionCommand}">Clear selection</Button>
+          <Button Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
         </StackPanel>
 
       </Grid>

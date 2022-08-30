@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -26,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly IObservable<Unit> _balanceChanged;
-	private readonly IEnumerable<SmartCoin>? _usedCoins;
+	private readonly IEnumerable<SmartCoin> _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
@@ -34,13 +35,17 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
-	private ReadOnlyObservableCollection<WalletCoinViewModel> _collection;
+	[AutoNotify] private ICommand _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ICommand _selectAllCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ICommand _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ICommand _selectAllPrivateCoinsCommand = ReactiveCommand.Create(() => { });
+
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
 		TransactionInfo transactionInfo,
 		IObservable<Unit> balanceChanged,
-		IEnumerable<SmartCoin>? usedCoins)
+		IEnumerable<SmartCoin> usedCoins)
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
@@ -60,18 +65,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var sourceCache = new SourceCache<WalletCoinViewModel, int>(x => x.GetHashCode());
-
 		var coinLists = GetCoins(_balanceChanged);
 
 		sourceCache.RefillFrom(coinLists)
 			.DisposeWith(disposables);
 
-		var coinChanges = sourceCache.Connect();
-
-		var viewModels = coinChanges.ReplayLastActive();
-
-		viewModels.Bind(out _collection)
-			.Subscribe();
+		var viewModels = sourceCache.Connect().ReplayLastActive();
 		
 		var selectedCoins = viewModels
 			.AutoRefresh(x => x.IsSelected)
@@ -95,6 +94,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
+
+		SelectPredefinedCoinsCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
+		SelectAllCoinsCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
+		ClearCoinSelectionCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
+		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
