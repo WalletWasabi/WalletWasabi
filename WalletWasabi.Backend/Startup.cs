@@ -10,9 +10,10 @@ using Microsoft.OpenApi.Models;
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
-using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
@@ -36,8 +37,6 @@ public class Startup
 	// This method gets called by the runtime. Use this method to add services to the container.
 	public void ConfigureServices(IServiceCollection services)
 	{
-		string dataDir = Configuration["datadir"];
-
 		services.AddMemoryCache();
 
 		services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
@@ -70,22 +69,10 @@ public class Startup
 		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
-		services.AddSingleton(serviceProvider =>
-		{
-			string configFilePath = Path.Combine(dataDir, "Config.json");
-			Config config = new(configFilePath);
-			config.LoadOrCreateDefaultFile();
-			return config;
-		});
-
 		services.AddSingleton<IdempotencyRequestCache>();
-		services.AddSingleton(serviceProvider =>
-		{
-			IRPCClient rpcClient = serviceProvider.GetRequiredService<IRPCClient>();
-			Config config = serviceProvider.GetRequiredService<Config>();
-
-			return new Global(dataDir, rpcClient, config);
-		});
+#pragma warning disable CA2000 // Dispose objects before losing scope, reason: https://github.com/dotnet/roslyn-analyzers/issues/3836
+		services.AddSingleton(new Global(Configuration["datadir"]));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		services.AddSingleton(serviceProvider =>
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
