@@ -25,83 +25,75 @@ public class Global : IDisposable
 {
 	private bool _disposedValue;
 
-	public Global(string dataDir, IRPCClient rpcClient, Config config)
+	public Global(string dataDir)
 	{
 		DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
-		RpcClient = rpcClient;
-		Config = config;
 		HostedServices = new();
-		HttpClient = new();
-
-		CoordinatorParameters = new(DataDir);
-		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), CoordinatorParameters.CoinJoinIdStoreFilePath);
-
-		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-		P2pNode = new(config.Network, config.GetBitcoinP2pEndPoint(), new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
-
-		// Initialize index building
-		string indexFilePath = Path.Combine(DataDir, "IndexBuilderService", $"Index{RpcClient.Network}.dat");
-		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
 	}
 
 	public string DataDir { get; }
 
-	public IRPCClient RpcClient { get; }
+	public IRPCClient? RpcClient { get; private set; }
 
-	public P2pNode P2pNode { get; }
+	public P2pNode? P2pNode { get; private set; }
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService IndexBuilderService { get; }
-
-	private HttpClient HttpClient { get; }
+	public IndexBuilderService? IndexBuilderService { get; private set; }
+	public HttpClient? HttpClient { get; set; }
 
 	public Coordinator? Coordinator { get; private set; }
 
-	public Config Config { get; }
+	public Config? Config { get; private set; }
 
 	public CoordinatorRoundConfig? RoundConfig { get; private set; }
-
-	private CoordinatorParameters CoordinatorParameters { get; }
-
-	public CoinJoinIdStore CoinJoinIdStore { get; }
+	public CoinJoinIdStore? CoinJoinIdStore { get; private set; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
 
-	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
+	public async Task InitializeAsync(Config config, CoordinatorRoundConfig roundConfig, IRPCClient rpc, CancellationToken cancel)
 	{
+		Config = Guard.NotNull(nameof(config), config);
 		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
+		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 		// Make sure RPC works.
 		await AssertRpcNodeFullyInitializedAsync(cancel);
 
 		// Make sure P2P works.
-		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+		await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
+		var p2pNode = Guard.NotNull(nameof(P2pNode), P2pNode);
+		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, p2pNode), "Full Node Mempool Mirror");
 
+		// Initialize index building
+		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
+		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		bool shouldBuildCoinVerifier = CoordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
+		CoordinatorParameters coordinatorParameters = new(DataDir);
+
+		CoinJoinIdStore = CoinJoinIdStore.Create(Path.Combine(DataDir, "CcjCoordinator", $"CoinJoins{RpcClient.Network}.txt"), coordinatorParameters.CoinJoinIdStoreFilePath);
+		bool shouldBuildCoinVerifier = coordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
 		CoinVerifier? coinVerifier = null;
 		if (shouldBuildCoinVerifier)
 		{
 			try
 			{
-				if (!Uri.TryCreate(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
+				if (!Uri.TryCreate(coordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
 				{
 					throw new ArgumentException("Blacklist API URL is invalid in WabiSabiConfig.json.");
 				}
-				if (string.IsNullOrEmpty(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken))
+				if (string.IsNullOrEmpty(coordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken))
 				{
 					throw new ArgumentException("Blacklist API token was not provided in WabiSabiConfig.json.");
 				}
 
+				HttpClient = new HttpClient();
 				HttpClient.BaseAddress = url;
 
-				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
-				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig);
+				var coinVerifierApiClient = new CoinVerifierApiClient(coordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, rpc.Network, HttpClient);
+				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(coordinatorParameters.WhitelistFilePath, cancel).ConfigureAwait(false);
+				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, coordinatorParameters.RuntimeCoordinatorConfig);
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
@@ -136,15 +128,16 @@ public class Global : IDisposable
 				"Config Watcher");
 		}
 
-		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(CoordinatorParameters.CoinJoinScriptStoreFilePath);
+		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(coordinatorParameters.CoinJoinScriptStoreFilePath);
 
-		WabiSabiCoordinator = new WabiSabiCoordinator(CoordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, CoordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled ? coinVerifier : null);
+		WabiSabiCoordinator = new WabiSabiCoordinator(coordinatorParameters, RpcClient, CoinJoinIdStore, coinJoinScriptStore, coordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled ? coinVerifier : null);
 		HostedServices.Register<WabiSabiCoordinator>(() => WabiSabiCoordinator, "WabiSabi Coordinator");
 
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
 
+		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
@@ -152,6 +145,18 @@ public class Global : IDisposable
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
 	{
 		CoinJoinIdStore!.TryAdd(transaction.GetHash());
+	}
+
+	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
+	{
+		Guard.NotNull(nameof(network), network);
+		Guard.NotNull(nameof(endPoint), endPoint);
+		var rpcClient = Guard.NotNull(nameof(RpcClient), RpcClient);
+
+		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
+		P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
+		await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
 	}
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
@@ -215,7 +220,10 @@ public class Global : IDisposable
 		{
 			if (disposing)
 			{
-				HttpClient.Dispose();
+				if (HttpClient is { } httpClient)
+				{
+					httpClient.Dispose();
+				}
 
 				if (Coordinator is { } coordinator)
 				{
