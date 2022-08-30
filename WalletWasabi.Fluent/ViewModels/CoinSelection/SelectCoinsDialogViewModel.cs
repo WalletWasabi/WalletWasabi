@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -27,12 +28,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
-	[AutoNotify] private CoinBasedSelectionViewModel? _coinSelection;
+	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
+	private ReadOnlyObservableCollection<WalletCoinViewModel> _collection;
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
@@ -57,19 +59,23 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged)
-			.ObserveOn(RxApp.MainThreadScheduler);
+		var sourceCache = new SourceCache<WalletCoinViewModel, int>(x => x.GetHashCode());
 
-		var coinChanges = coins
-			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
-			.AsObservableCache()
-			.Connect()
-			.TransformWithInlineUpdate(
-				x => new WalletCoinViewModel(x) { IsSelected = _usedCoins?.Any(coin => coin == x) ?? false })
-			.Replay(1)
+		var coinLists = GetCoins(_balanceChanged);
+
+		sourceCache.RefillFrom(coinLists)
+			.DisposeWith(disposables);
+
+		var coinChanges = sourceCache.Connect();
+
+		var viewModels = coinChanges
+			.Replay()
 			.RefCount();
 
-		var selectedCoins = coinChanges
+		viewModels.Bind(out _collection)
+			.Subscribe();
+		
+		var selectedCoins = viewModels
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(items => items.Where(t => t.IsSelected));
@@ -80,13 +86,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SelectedAmount = selectedCoins
 			.Select(Sum);
 
-		RemainingAmount = SelectedAmount.Select(money => Money.Max(TargetAmount - money, Money.Zero));
+		RemainingAmount = SelectedAmount
+			.Select(money => Money.Max(TargetAmount - money, Money.Zero));
 
 		SelectedCount = selectedCoins
 			.Select(models => models.Count());
 
-		CoinSelection = new CoinBasedSelectionViewModel(coinChanges).DisposeWith(disposables);
-		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges).DisposeWith(disposables);
+		CoinBasedSelection = new CoinBasedSelectionViewModel(viewModels).DisposeWith(disposables);
+		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(viewModels).DisposeWith(disposables);
+
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
 
@@ -98,21 +106,19 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount);
 	}
 
-	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
+	private IObservable<IEnumerable<WalletCoinViewModel>> GetCoins(IObservable<Unit> balanceChanged)
 	{
-		var initial = Observable.Return(GetCoins());
+		var initial = Observable.Return(GetCoinsFromWallet());
 		var coinJoinChanged = _walletViewModel.WhenAnyValue(model => model.IsCoinJoining);
 		var coinsChanged = balanceChanged.ToSignal().Merge(coinJoinChanged.ToSignal());
-
-		var coins = coinsChanged
-			.Select(_ => GetCoins());
-
+		var coins = coinsChanged.Select(_ => GetCoinsFromWallet());
 		var concat = initial.Concat(coins);
+
 		return concat;
 	}
 
-	private ICoinsView GetCoins()
+	private IEnumerable<WalletCoinViewModel> GetCoinsFromWallet()
 	{
-		return _walletViewModel.Wallet.Coins;
+		return _walletViewModel.Wallet.Coins.ToList().Select(x => new WalletCoinViewModel(x));
 	}
 }

@@ -113,7 +113,7 @@
         <Panel>
           <TreeDataGrid
             IsVisible="{Binding !#GroupByLabels.IsChecked}"
-            Source="{Binding CoinSelection.Source}"
+            Source="{Binding CoinBasedSelection.Source}"
             CanUserSortColumns="True">
           </TreeDataGrid>
           <TreeDataGrid

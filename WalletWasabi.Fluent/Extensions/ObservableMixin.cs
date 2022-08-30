@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Reactive.Linq;
+using DynamicData;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -18,5 +20,10 @@ public static class ObservableMixin
 	public static IObservable<T> ReplayLastOnly<T>(this IObservable<T> obs)
 	{
 		return obs.Replay(1).RefCount();
+	}
+
+	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents)
+	{
+		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
 	}
 }
