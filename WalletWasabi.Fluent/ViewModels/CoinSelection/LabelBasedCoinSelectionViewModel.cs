@@ -14,11 +14,13 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposable
 {
+	private readonly int _anonScoreTarget;
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private string _filter = "";
 
-	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges, int anonScoreTarget)
 	{
+		_anonScoreTarget = anonScoreTarget;
 		var filterPredicate = this
 			.WhenAnyValue(x => x.Filter)
 			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
@@ -80,7 +82,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 				ColumnFactory.ChildrenColumn(),
 				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
-				ColumnFactory.AnonymityScore(),
+				ColumnFactory.AnonymityScor2e(_anonScoreTarget),
 				ColumnFactory.LabelsColumnForGroups()
 			}
 		};

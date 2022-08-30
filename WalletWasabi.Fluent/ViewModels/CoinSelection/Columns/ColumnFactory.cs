@@ -42,6 +42,21 @@ public static class ColumnFactory
 				}));
 	}
 
+	public static TemplateColumn<TreeNode> AnonymityScor2e(int anonScoreTarget)
+	{
+		return new TemplateColumn<TreeNode>(
+			new AnonymityScoreHeaderViewModel(),
+			new ConstantTemplate<TreeNode>(
+				group =>
+				{
+					return group.Value switch
+					{
+						WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin, anonScoreTarget),
+						_ => "",
+					};
+				}));
+	}
+
 	public static TemplateColumn<TreeNode> LabelsColumnForCoins()
 	{
 		return new TemplateColumn<TreeNode>(

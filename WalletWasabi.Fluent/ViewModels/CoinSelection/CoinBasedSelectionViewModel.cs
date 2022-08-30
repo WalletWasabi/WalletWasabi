@@ -11,10 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 {
+	private readonly int _anonScoreTarget;
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges, int anonScoreTarget)
 	{
+		_anonScoreTarget = anonScoreTarget;
 		coinChanges
 			.Transform(model => new TreeNode(model))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -41,7 +43,7 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 				ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables)),
 				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
-				ColumnFactory.AnonymityScore(),
+				ColumnFactory.AnonymityScor2e(_anonScoreTarget),
 				ColumnFactory.LabelsColumnForCoins(),
 			}
 		};
