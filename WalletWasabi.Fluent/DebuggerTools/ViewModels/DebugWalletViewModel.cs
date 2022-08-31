@@ -30,10 +30,19 @@ public partial class DebugWalletViewModel : ViewModelBase
 		WalletName = _wallet.WalletName;
 		Coins = _coins?.Select(x => new DebugCoinViewModel(x)).ToList();
 
+		CreateCoinsSource();
+	}
+
+	private void CreateCoinsSource()
+	{
 		CoinsSource = new FlatTreeDataGridSource<DebugCoinViewModel>(Coins ?? Enumerable.Empty<DebugCoinViewModel>())
 		{
 			Columns =
 			{
+				new TextColumn<DebugCoinViewModel, DateTimeOffset>(
+					"FirstSeen",
+					x => x.FirstSeen,
+					new GridLength(0, GridUnitType.Auto)),
 				new TextColumn<DebugCoinViewModel, Money>(
 					"Amount",
 					x => x.Amount,
