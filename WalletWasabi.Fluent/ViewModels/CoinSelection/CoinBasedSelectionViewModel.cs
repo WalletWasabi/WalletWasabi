@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;

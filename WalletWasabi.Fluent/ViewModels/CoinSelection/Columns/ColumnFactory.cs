@@ -8,6 +8,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
@@ -86,7 +87,7 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				group =>
 				{
-					if (group.Value is CoinGroupViewModel vm)
+					if (group.Value is Model.CoinGroupViewModel vm)
 					{
 						return new LabelsViewModel(vm.Labels);
 					}
@@ -102,7 +103,7 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				n =>
 				{
-					if (n.Value is CoinGroupViewModel cg)
+					if (n.Value is Model.CoinGroupViewModel cg)
 					{
 						var isSelectedViewModel = new IsSelectedThreeStateViewModel(cg);
 						onCellCreated(isSelectedViewModel);

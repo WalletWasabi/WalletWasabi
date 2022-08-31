@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
 
 public class TreeNode : TreeNode<object>
 {

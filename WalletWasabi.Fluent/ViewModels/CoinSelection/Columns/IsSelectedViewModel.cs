@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 

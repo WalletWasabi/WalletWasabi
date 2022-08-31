@@ -9,7 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
 
 public partial class CoinGroupViewModel : IDisposable, IThreeState
 {
@@ -20,24 +20,21 @@ public partial class CoinGroupViewModel : IDisposable, IThreeState
 
 	private bool _canUpdate = true;
 
-	public CoinGroupViewModel(SmartLabel labels, IConnectableCache<WalletCoinViewModel, int> coins)
+	public CoinGroupViewModel(SmartLabel labels, IObservable<IChangeSet<WalletCoinViewModel, int>> coins)
 	{
 		Labels = labels;
 
-		coins.Connect()
-			.Bind(out _items)
+		coins.Bind(out _items)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
 		TotalAmount = coins
-			.Connect()
 			.ToCollection()
 			.Select(coinViewModels => new Money(coinViewModels.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)), MoneyUnit.BTC));
 
 		coins
-			.Connect()
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(GetState)
@@ -47,7 +44,7 @@ public partial class CoinGroupViewModel : IDisposable, IThreeState
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		this.WhenAnyValue(x => x.SelectionState)
+		this.WhenAnyValue<CoinGroupViewModel, SelectionState>(x => x.SelectionState)
 			.Where(_ => _canUpdate)
 			.Do(isSelected => Items.ToList().ForEach(vm => vm.IsSelected = isSelected == SelectionState.True))
 			.Subscribe()
