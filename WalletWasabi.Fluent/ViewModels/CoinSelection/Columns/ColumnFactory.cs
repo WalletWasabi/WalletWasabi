@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -26,11 +27,12 @@ public static class ColumnFactory
 						WalletCoinViewModel coin => new BehaviorSubject<string>(coin.Amount.ToFormattedString()),
 						_ => Observable.Return("")
 					};
-				}), GridLength.Auto,
+				}),
+			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel>(model => model.Amount),
-				CompareDescending= SortDescending<WalletCoinViewModel>(model => model.Amount),
+				CompareAscending = SortAscending<WalletCoinViewModel, Money>(model => model.Amount),
+				CompareDescending= SortDescending<WalletCoinViewModel, Money>(model => model.Amount),
 			});
 	}
 
@@ -46,7 +48,13 @@ public static class ColumnFactory
 						WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin),
 						_ => "",
 					};
-				}));
+				}),
+			GridLength.Auto,
+			new ColumnOptions<TreeNode>
+			{
+				CompareAscending = SortAscending<WalletCoinViewModel, int>(model => model.AnonymitySet),
+				CompareDescending= SortDescending<WalletCoinViewModel, int>(model => model.AnonymitySet),
+			});
 	}
 
 	public static TemplateColumn<TreeNode> LabelsColumnForCoins()
@@ -62,7 +70,13 @@ public static class ColumnFactory
 					}
 
 					return new LabelsViewModel(new SmartLabel());
-				}));
+				}),
+			GridLength.Auto,
+			new ColumnOptions<TreeNode>
+			{
+				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
+				CompareDescending= SortDescending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
+			});
 	}
 
 	public static TemplateColumn<TreeNode> LabelsColumnForGroups()
@@ -103,7 +117,13 @@ public static class ColumnFactory
 					}
 
 					throw new NotSupportedException();
-				}));
+				}),
+			GridLength.Auto,
+			new ColumnOptions<TreeNode>
+			{
+				CompareAscending = SortAscending<WalletCoinViewModel, bool>(model => model.IsSelected),
+				CompareDescending= SortDescending<WalletCoinViewModel, bool>(model => model.IsSelected),
+			});
 	}
 
 	public static TemplateColumn<TreeNode> IndicatorsColumn()
@@ -119,7 +139,13 @@ public static class ColumnFactory
 					}
 
 					return "";
-				}));
+				}),
+			GridLength.Auto,
+			new ColumnOptions<TreeNode>
+			{
+				CompareAscending = SortAscending<WalletCoinViewModel, int>(GetIndicatorPriority),
+				CompareDescending= SortDescending<WalletCoinViewModel, int>(GetIndicatorPriority),
+			});
 	}
 
 	public static HierarchicalExpanderColumn<TreeNode> ChildrenColumn()
@@ -130,14 +156,14 @@ public static class ColumnFactory
 			node => node.Children.Any());
 	}
 
-	private static Comparison<TreeNode?> SortAscending<T>(Func<T, object> selector)
+	private static Comparison<TreeNode?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		var comparison = new Comparison<TreeNode?>(
 			(node, treeNode) =>
 			{
-				if (node?.Value is T x && treeNode?.Value is T y)
+				if (node?.Value is TSource x && treeNode?.Value is TSource y)
 				{
-					return Comparer<object>.Default.Compare(selector(x), selector(y));
+					return Comparer<TProperty>.Default.Compare(selector(x), selector(y));
 				}
 
 				return 0;
@@ -146,19 +172,39 @@ public static class ColumnFactory
 		return comparison;
 	}
 
-	private static Comparison<TreeNode?> SortDescending<T>(Func<T, object> selector)
+	private static Comparison<TreeNode?> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		var comparison = new Comparison<TreeNode?>(
 			(node, treeNode) =>
 			{
-				if (node?.Value is T x && treeNode?.Value is T y)
+				if (node?.Value is TSource x && treeNode?.Value is TSource y)
 				{
-					return Comparer<object>.Default.Compare(selector(y), selector(x));
+					return Comparer<TProperty>.Default.Compare(selector(y), selector(x));
 				}
 
 				return 0;
 			});
 
 		return comparison;
+	}
+
+	private static int GetIndicatorPriority(WalletCoinViewModel x)
+	{
+		if (x.CoinJoinInProgress)
+		{
+			return 1;
+		}
+
+		if (x.IsBanned)
+		{
+			return 2;
+		}
+
+		if (!x.Confirmed)
+		{
+			return 3;
+		}
+
+		return 0;
 	}
 }
