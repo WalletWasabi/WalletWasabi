@@ -1,18 +1,20 @@
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public static class CoinExtensions
 {
-	public static PrivacyLevel GetPrivacyLevel(this SmartCoin coin, int anonScoreTarget)
+	public static PrivacyLevel GetPrivacyLevel(this WalletCoinViewModel coinViewModel)
 	{
-		if (coin.IsPrivate(anonScoreTarget))
+		var anonScoreTarget = coinViewModel.Wallet.AnonScoreTarget;
+
+		if (coinViewModel.Coin.IsPrivate(anonScoreTarget))
 		{
 			return PrivacyLevel.Private;
 		}
 
-		if (coin.IsSemiPrivate())
+		if (coinViewModel.Coin.IsSemiPrivate())
 		{
 			return PrivacyLevel.SemiPrivate;
 		}

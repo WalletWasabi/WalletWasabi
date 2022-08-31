@@ -31,27 +31,12 @@ public static class ColumnFactory
 	{
 		return new TemplateColumn<TreeNode>(
 			new AnonymityScoreHeaderViewModel(),
-			new ObservableTemplate<TreeNode, int>(
-				group =>
-				{
-					return group.Value switch
-					{
-						WalletCoinViewModel coin => new BehaviorSubject<int>(coin.AnonymitySet),
-						_ => Observable.Empty<int>(),
-					};
-				}));
-	}
-
-	public static TemplateColumn<TreeNode> AnonymityScor2e(int anonScoreTarget)
-	{
-		return new TemplateColumn<TreeNode>(
-			new AnonymityScoreHeaderViewModel(),
 			new ConstantTemplate<TreeNode>(
 				group =>
 				{
 					return group.Value switch
 					{
-						WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin, anonScoreTarget),
+						WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin),
 						_ => "",
 					};
 				}));

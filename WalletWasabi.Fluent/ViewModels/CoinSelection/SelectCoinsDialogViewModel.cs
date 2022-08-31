@@ -102,7 +102,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		ClearCoinSelectionCommand = ReactiveCommand.Create(
 			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
 		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.Coin.GetPrivacyLevel(_walletViewModel.Wallet.AnonScoreTarget) == PrivacyLevel.Private));
+			() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
@@ -125,6 +125,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private IEnumerable<WalletCoinViewModel> GetCoinsFromWallet()
 	{
-		return _walletViewModel.Wallet.Coins.ToList().Select(x => new WalletCoinViewModel(x));
+		return _walletViewModel.Wallet.Coins.ToList().Select(x => new WalletCoinViewModel(x, _walletViewModel.Wallet));
 	}
 }

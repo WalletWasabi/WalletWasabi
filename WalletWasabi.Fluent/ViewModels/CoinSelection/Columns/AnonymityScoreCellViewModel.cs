@@ -4,10 +4,10 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
 
 public class AnonymityScoreCellViewModel : ViewModelBase
 {
-	public AnonymityScoreCellViewModel(WalletCoinViewModel coin, int anonScoreTarget)
+	public AnonymityScoreCellViewModel(WalletCoinViewModel coin)
 	{
 		PrivacyScore = coin.AnonymitySet;
-		PrivacyLevel = coin.Coin.GetPrivacyLevel(anonScoreTarget);
+		PrivacyLevel = coin.GetPrivacyLevel();
 	}
 
 	public PrivacyLevel PrivacyLevel { get; }

@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
@@ -24,9 +25,10 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 	[AutoNotify] private string? _confirmedToolTip;
 	[AutoNotify] private string? _address;
 
-	public WalletCoinViewModel(SmartCoin coin)
+	public WalletCoinViewModel(SmartCoin coin, Wallet wallet)
 	{
 		Coin = coin;
+		Wallet = wallet;
 		Amount = Coin.Amount;
 		Address = Coin.TransactionId.ToString();
 
@@ -40,6 +42,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 	}
 
 	public SmartCoin Coin { get; }
+	public Wallet Wallet { get; }
 
 	public static Comparison<WalletCoinViewModel?> SortAscending<T>(Func<WalletCoinViewModel, T> selector)
 	{
