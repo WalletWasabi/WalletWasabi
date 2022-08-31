@@ -360,18 +360,15 @@ public class CoinJoinClient
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
-				Tor.Http.IHttpClient httpClientSigning = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
 
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
-				var arenaRequestHandlerSigning = new WabiSabiHttpApiClient(httpClientSigning);
 
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					CoordinatorIdentifier,
-					arenaRequestHandler,
-					arenaRequestHandlerSigning);
+					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
