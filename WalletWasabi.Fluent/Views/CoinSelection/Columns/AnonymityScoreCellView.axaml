@@ -3,17 +3,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:columns="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection.Columns"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:coinSelection="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection"
              x:DataType="columns:AnonymityScoreCellViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Columns.AnonymityScoreCellView">
 
-  <Border BorderThickness="1" Padding="5"
-          BorderBrush="{Binding PrivacyLevel, Converter={x:Static converters:PrivacyLevelConverters.ToBrush}}">
+  <TextBlock TextAlignment="Center" Text="{Binding PrivacyScore}"
+             Classes.IsPrivate="{Binding IsPrivate}"
+             Classes.IsSemiPrivate="{Binding IsSemiPrivate}"
+             Classes.IsNonPrivate="{Binding IsNonPrivate}">
 
-    <TextBlock TextAlignment="Center" Text="{Binding PrivacyScore}" />
-
-  </Border>
+    <TextBlock.Styles>
+      <Style Selector="TextBlock.IsPrivate">
+        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      </Style>
+      <Style Selector="TextBlock.IsSemiPrivate">
+        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+      </Style>
+      <Style Selector="TextBlock.IsNonPrivate">
+        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+      </Style>
+    </TextBlock.Styles>
+  </TextBlock>
 </UserControl>

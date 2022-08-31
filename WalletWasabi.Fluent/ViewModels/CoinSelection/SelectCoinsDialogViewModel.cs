@@ -35,11 +35,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
-	[AutoNotify] private ICommand _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ICommand _selectAllCoinsCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ICommand _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ICommand _selectAllPrivateCoinsCommand = ReactiveCommand.Create(() => { });
-
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllPrivateCoinsCommand = ReactiveCommand.Create(() => { });
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
@@ -103,6 +102,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
 		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
 			() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
+
+		SelectPredefinedCoinsCommand.Execute()
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}

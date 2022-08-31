@@ -9,6 +9,7 @@
              x:CompileBindings="True"
              x:DataType="coinSelection:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.SelectCoinsDialogView">
+
   <controls:ContentArea
     Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
@@ -22,7 +23,7 @@
 
       <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*" Margin="0 16 0 0">
 
-        <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="1" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
           <Button Command="{Binding SelectAllPrivateCoinsCommand}">Select all private</Button>
           <Button Command="{Binding SelectAllCoinsCommand}">Select all</Button>
           <Button Command="{Binding ClearCoinSelectionCommand}">Clear selection</Button>
