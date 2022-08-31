@@ -19,22 +19,22 @@ public class ArenaClient
 		WabiSabiClient vsizeCredentialClient,
 		string coordinatorIdentifier,
 		IWabiSabiApiRequestHandler requestHandler,
-		IWabiSabiApiRequestHandler? requestHandlerReadyAndSigning = null)
+		IWabiSabiApiRequestHandler? requestHandlerSigning = null)
 	{
-		requestHandlerReadyAndSigning ??= requestHandler;
+		requestHandlerSigning ??= requestHandler;
 
 		AmountCredentialClient = amountCredentialClient;
 		VsizeCredentialClient = vsizeCredentialClient;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		RequestHandler = requestHandler;
-		RequestHandlerReadyAndSigning = requestHandlerReadyAndSigning;
+		RequestHandlerSigning = requestHandlerSigning;
 	}
 
 	public WabiSabiClient AmountCredentialClient { get; }
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public string CoordinatorIdentifier { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
-	public IWabiSabiApiRequestHandler RequestHandlerReadyAndSigning { get; }
+	public IWabiSabiApiRequestHandler RequestHandlerSigning { get; }
 
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
@@ -205,7 +205,7 @@ public class ArenaClient
 			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 		}
 
-		await RequestHandlerReadyAndSigning.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		await RequestHandlerSigning.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -218,7 +218,7 @@ public class ArenaClient
 		Guid aliceId,
 		CancellationToken cancellationToken)
 	{
-		await RequestHandlerReadyAndSigning.ReadyToSignAsync(
+		await RequestHandlerSigning.ReadyToSignAsync(
 			new ReadyToSignRequestRequest(
 				roundId,
 				aliceId),
