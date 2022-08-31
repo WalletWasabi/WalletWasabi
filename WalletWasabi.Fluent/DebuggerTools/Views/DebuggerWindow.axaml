@@ -1,0 +1,22 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.DebuggerTools.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="WalletWasabi.Fluent.DebuggerTools.Views.DebuggerWindow"
+        WindowStartupLocation="CenterOwner" WindowState="Normal"
+        Width="800" Height="600"
+        Background="{DynamicResource AcrylicTrimBackground}"
+        Title="Debugger Tools"
+        x:DataType="viewModels:DebuggerViewModel" x:CompileBindings="True">
+  <Grid ColumnDefinitions="250,8,*">
+    <ListBox Grid.Column="0" Items="{Binding Wallets}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Text="{Binding WalletName}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</Window>
