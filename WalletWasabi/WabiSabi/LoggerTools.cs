@@ -71,4 +71,9 @@ public static class LoggerTools
 	{
 		Log(wallet, LogLevel.Error, logMessage, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 	}
+
+	public static void LogTrace(this IWallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+	{
+		Log(wallet, LogLevel.Trace, logMessage, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	}
 }
