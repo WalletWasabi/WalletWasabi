@@ -8,43 +8,49 @@ public static class PrivacyModeHelper
 	private static readonly TimeSpan HideDelay = TimeSpan.FromSeconds(10);
 
 	public static IObservable<bool> DelayedRevealAndHide(
-		IObservable<bool> pointerOver,
+		IObservable<bool> isPointerOver,
 		IObservable<bool> isPrivacyModeEnabled,
-		IObservable<bool>? isForced = null)
+		IObservable<bool>? isVisibilityForced = null)
 	{
-		isForced ??= Observable.Return(false);
-		var isPointerOver = pointerOver
-			.Select(
-				isTrue => isTrue
-					? PointerOverObs()
-					: PointerOutObs())
+		isVisibilityForced ??= Observable.Return(false);
+
+		var shouldBeVisible = isPointerOver
+			.Select(Visibility)
 			.Switch();
 
-		var displayContent = isPrivacyModeEnabled
+		var finalVisibility = isPrivacyModeEnabled
 			.CombineLatest(
-				isPointerOver,
-				isForced,
-				(privacyModeEnabled, pointerOver, forced) => !privacyModeEnabled || pointerOver || forced);
+				shouldBeVisible,
+				isVisibilityForced,
+				(privacyModeEnabled, visible, forced) => !privacyModeEnabled || visible || forced);
 
-		return displayContent;
+		return finalVisibility;
 	}
 
-	private static IObservable<bool> PointerOutObs()
+	private static IObservable<bool> Visibility(bool isPointerOver)
+	{
+		if (isPointerOver)
+		{
+			return ShowAfterDelayThenHide();
+		}
+
+		return Hide();
+	}
+
+	private static IObservable<bool> Hide()
 	{
 		return Observable.Return(false);
 	}
 
-	private static IObservable<bool> PointerOverObs()
+	private static IObservable<bool> ShowAfterDelayThenHide()
 	{
-		var hideObs =
-			Observable
-				.Return(false)
-				.Delay(HideDelay);
+		var hideObs = Observable
+			.Return(false)
+			.Delay(HideDelay);
 
-		var showObs =
-			Observable
-				.Return(true)
-				.Delay(RevealDelay);
+		var showObs = Observable
+			.Return(true)
+			.Delay(RevealDelay);
 
 		return showObs.Concat(hideObs);
 	}
