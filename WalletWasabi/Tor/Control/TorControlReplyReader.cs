@@ -22,7 +22,7 @@ public class TorControlReplyReader
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4. Replies".</seealso>
 	/// <seealso href="https://github.com/lontivero/Torino/blob/d891616777ed596ef54dbf1d86c9b4771e45e8f3/src/Reply.cs#L72"/>
 	/// <seealso href="https://github.com/torproject/stem/blob/master/stem/response/__init__.py"/>
-	public static async Task<TorControlReply> ReadReplyAsync(PipeReader reader, CancellationToken cancellationToken = default)
+	public static async Task<TorControlReply> ReadReplyAsync(PipeReader reader, CancellationToken cancellationToken)
 	{
 		string line;
 
@@ -68,8 +68,10 @@ public class TorControlReplyReader
 			return new TorControlReply((StatusCode)code, responseLines: new List<string>() { line });
 		}
 
-		List<string> responses = new();
-		responses.Add(line[1..]);
+		List<string> responses = new()
+		{
+			line[1..]
+		};
 
 		while (true)
 		{

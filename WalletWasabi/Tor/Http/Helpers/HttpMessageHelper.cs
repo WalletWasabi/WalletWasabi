@@ -18,7 +18,7 @@ namespace WalletWasabi.Tor.Http.Helpers;
 
 public static class HttpMessageHelper
 {
-	public static async Task<string> ReadStartLineAsync(Stream stream, CancellationToken ctsToken = default)
+	public static async Task<string> ReadStartLineAsync(Stream stream, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3
 		// A recipient MUST parse an HTTP message as a sequence of octets in an
@@ -34,7 +34,7 @@ public static class HttpMessageHelper
 		int read = 0;
 		while (read >= 0)
 		{
-			read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+			read = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
 
 			// End of stream has been reached.
 			if (read == -1)

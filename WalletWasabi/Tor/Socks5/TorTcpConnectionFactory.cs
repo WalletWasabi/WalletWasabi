@@ -49,13 +49,13 @@ public class TorTcpConnectionFactory
 	/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 	/// </summary>
 	/// <inheritdoc cref="ConnectAsync(string, int, bool, ICircuit, CancellationToken)"/>
-	public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, ICircuit circuit, CancellationToken token = default)
+	public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, ICircuit circuit, CancellationToken cancellationToken)
 	{
 		bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
 		string host = requestUri.DnsSafeHost;
 		int port = requestUri.Port;
 
-		return await ConnectAsync(host, port, useSsl, circuit, token).ConfigureAwait(false);
+		return await ConnectAsync(host, port, useSsl, circuit, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -68,7 +68,7 @@ public class TorTcpConnectionFactory
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
 	/// <exception cref="TorConnectionException">When <see cref="TcpClientSocks5Connector.ConnectAsync"/> fails.</exception>
-	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken = default)
+	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken)
 	{
 		TcpClient? tcpClient = null;
 		Stream? transportStream = null;
@@ -280,7 +280,7 @@ public class TorTcpConnectionFactory
 	/// <returns>Reply</returns>
 	/// <exception cref="ArgumentException">When <paramref name="request"/> is not supported.</exception>
 	/// <exception cref="TorConnectionException">When we receive no response from Tor or the response is invalid.</exception>
-	private async Task<byte[]> SendRequestAsync(TcpClient tcpClient, ByteArraySerializableBase request, CancellationToken cancellationToken = default)
+	private async Task<byte[]> SendRequestAsync(TcpClient tcpClient, ByteArraySerializableBase request, CancellationToken cancellationToken)
 	{
 		try
 		{
