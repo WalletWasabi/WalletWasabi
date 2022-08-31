@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
+using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

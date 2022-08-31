@@ -77,7 +77,7 @@
 Clone & Restore & Build
 
 ```sh
-git clone https://github.com/zkSNACKs/WalletWasabi.git
+git clone --depth=1 --single-branch --branch=master https://github.com/zkSNACKs/WalletWasabi.git
 cd WalletWasabi/WalletWasabi.Fluent.Desktop
 dotnet build
 ```

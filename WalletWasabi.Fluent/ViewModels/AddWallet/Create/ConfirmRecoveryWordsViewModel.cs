@@ -28,8 +28,11 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		string walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+# if RELEASE
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
-
+#else
+		_isSkipEnable = true;
+#endif
 		var nextCommandCanExecute =
 			_confirmationWordsSourceList
 			.Connect()
