@@ -20,9 +20,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
+	private readonly CompositeDisposable _disposables = new();
 	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
-	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
 	[AutoNotify] private double _height;
 	[AutoNotify] private double _width;
