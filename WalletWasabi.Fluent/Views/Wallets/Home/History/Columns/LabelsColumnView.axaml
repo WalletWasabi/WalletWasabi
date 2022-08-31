@@ -12,8 +12,6 @@
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            Classes="monoSpacedPrivacyReplacement">
-    <Border BorderBrush="Red" Background="Transparent">
-      <c:LabelsItemsPresenter Items="{Binding Label}" />
-    </Border>
+    <c:LabelsItemsPresenter Items="{Binding Label}" />
   </c:PrivacyContentControl>
 </UserControl>
