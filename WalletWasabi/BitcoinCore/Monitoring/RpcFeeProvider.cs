@@ -40,7 +40,7 @@ public class RpcFeeProvider : PeriodicRunner
 			}
 			InError = false;
 		}
-		catch(NoEstimationException ex)
+		catch (NoEstimationException ex)
 		{
 			Logging.Logger.LogInfo("Couldn't get fee estimation from the Bitcoin node, probably because it was not yet initialized.");
 			InError = true;
