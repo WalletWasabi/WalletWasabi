@@ -23,18 +23,18 @@ namespace WalletWasabi.Fluent.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-	private readonly AddWalletPageViewModel _addWalletPage;
-	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly SettingsPageViewModel _settingsPage;
-	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
+	private readonly PrivacyModeViewModel _privacyMode;
+	private readonly AddWalletPageViewModel _addWalletPage;
 	[AutoNotify] private DialogScreenViewModel _dialogScreen;
 	[AutoNotify] private DialogScreenViewModel _fullScreen;
-	[AutoNotify] private bool _isCoinJoinActive;
-	[AutoNotify] private bool _isOobeBackgroundVisible;
+	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 	[AutoNotify] private NavBarViewModel _navBar;
 	[AutoNotify] private StatusIconViewModel _statusIcon;
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
+	[AutoNotify] private bool _isOobeBackgroundVisible;
+	[AutoNotify] private bool _isCoinJoinActive;
 
 	public MainViewModel()
 	{
@@ -77,8 +77,7 @@ public partial class MainViewModel : ViewModelBase
 				x => x.CompactDialogScreen.CurrentPage,
 				x => x.FullScreen.CurrentPage,
 				x => x.MainScreen.CurrentPage,
-				(dialog, compactDialog, fullScreenDialog, mainScreen) =>
-					compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
+				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(page => page.SetActive())
@@ -86,27 +85,26 @@ public partial class MainViewModel : ViewModelBase
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
-				.WhereNotNull()
-				.OfType<WalletViewModel>();
+			.WhereNotNull()
+			.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = Services.UiConfig.Oobe;
 
-		RxApp.MainThreadScheduler.Schedule(
-			async () =>
+		RxApp.MainThreadScheduler.Schedule(async () =>
+		{
+			if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
 			{
-				if (!Services.WalletManager.HasWallet() || Services.UiConfig.Oobe)
+				IsOobeBackgroundVisible = true;
+
+				await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
+
+				if (Services.WalletManager.HasWallet())
 				{
-					IsOobeBackgroundVisible = true;
-
-					await _dialogScreen.NavigateDialogAsync(new WelcomePageViewModel(_addWalletPage));
-
-					if (Services.WalletManager.HasWallet())
-					{
-						Services.UiConfig.Oobe = false;
-						IsOobeBackgroundVisible = false;
-					}
+					Services.UiConfig.Oobe = false;
+					IsOobeBackgroundVisible = false;
 				}
-			});
+			}
+		});
 
 		SearchBar = CreateSearchBar();
 
@@ -121,7 +119,7 @@ public partial class MainViewModel : ViewModelBase
 
 	public TargettedNavigationStack MainScreen { get; }
 
-	public SearchBarViewModel SearchBar { get; set; }
+	public SearchBarViewModel SearchBar { get; }
 
 	public static MainViewModel Instance { get; } = new();
 
@@ -154,9 +152,46 @@ public partial class MainViewModel : ViewModelBase
 		}
 	}
 
+	private void RegisterViewModels()
+	{
+		PrivacyModeViewModel.Register(_privacyMode);
+		AddWalletPageViewModel.Register(_addWalletPage);
+		SettingsPageViewModel.Register(_settingsPage);
+
+		GeneralSettingsTabViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 0;
+			return _settingsPage;
+		});
+
+		BitcoinTabSettingsViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 1;
+			return _settingsPage;
+		});
+
+		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		{
+			_settingsPage.SelectedTab = 2;
+			return _settingsPage;
+		});
+
+		AboutViewModel.RegisterLazy(() => new AboutViewModel());
+		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
+		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
+		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
+		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
+		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
+		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
+		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
+		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
+		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
+		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
+	}
+
 	public void ApplyUiConfigWindowSate()
 	{
-		WindowState = (WindowState) Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}
 
 	private SearchBarViewModel CreateSearchBar()
@@ -177,45 +212,5 @@ public partial class MainViewModel : ViewModelBase
 			.Subscribe(filterChanged);
 
 		return searchBar;
-	}
-
-	private void RegisterViewModels()
-	{
-		PrivacyModeViewModel.Register(_privacyMode);
-		AddWalletPageViewModel.Register(_addWalletPage);
-		SettingsPageViewModel.Register(_settingsPage);
-
-		GeneralSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 0;
-				return _settingsPage;
-			});
-
-		BitcoinTabSettingsViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 1;
-				return _settingsPage;
-			});
-
-		AdvancedSettingsTabViewModel.RegisterLazy(
-			() =>
-			{
-				_settingsPage.SelectedTab = 2;
-				return _settingsPage;
-			});
-
-		AboutViewModel.RegisterLazy(() => new AboutViewModel());
-		BroadcasterViewModel.RegisterLazy(() => new BroadcasterViewModel());
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
-		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
-		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
-		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-		OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
-		OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
-		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
-		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
-		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
 	}
 }
