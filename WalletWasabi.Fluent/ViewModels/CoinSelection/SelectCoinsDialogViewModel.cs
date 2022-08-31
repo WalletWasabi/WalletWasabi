@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -31,6 +29,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
+	[AutoNotify] private IObservable<bool> _isSelectionBadlyChosen = Observable.Return(false);
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
@@ -76,17 +75,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.ToCollection()
 			.Select(items => items.Where(t => t.IsSelected));
 
-		EnoughSelected = selectedCoins
-			.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
+		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
-		SelectedAmount = selectedCoins
-			.Select(Sum);
+		IsSelectionBadlyChosen = selectedCoins.Select(IsSelectionBadForPrivacy);
 
-		RemainingAmount = SelectedAmount
-			.Select(money => Money.Max(TargetAmount - money, Money.Zero));
+		SelectedAmount = selectedCoins.Select(Sum);
 
-		SelectedCount = selectedCoins
-			.Select(models => models.Count());
+		RemainingAmount = SelectedAmount.Select(money => Money.Max(TargetAmount - money, Money.Zero));
+
+		SelectedCount = selectedCoins.Select(models => models.Count());
 
 		CoinBasedSelection = new CoinBasedSelectionViewModel(viewModels, _walletViewModel.Wallet.AnonScoreTarget).DisposeWith(disposables);
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(viewModels, _walletViewModel.Wallet.AnonScoreTarget).DisposeWith(disposables);
@@ -94,20 +91,22 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
 
-		SelectPredefinedCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
-		SelectAllCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
-		ClearCoinSelectionCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
-		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
+		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
+		SelectAllCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
+		ClearCoinSelectionCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
+		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
 
 		SelectPredefinedCoinsCommand.Execute()
 			.Subscribe()
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private static bool IsSelectionBadForPrivacy(IEnumerable<WalletCoinViewModel> coins)
+	{
+		var isSelectionBadForPrivacy = coins.GroupBy(x => new { x.AnonymitySet, x.SmartLabel }).Count() > 1;
+		return isSelectionBadForPrivacy;
 	}
 
 	private static Money Sum(IEnumerable<WalletCoinViewModel> coinViewModels)

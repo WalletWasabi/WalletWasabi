@@ -31,7 +31,7 @@
         </StackPanel>
 
       </Grid>
-      
+
     </controls:ContentArea.Caption>
 
     <controls:ContentArea.Styles>
@@ -105,8 +105,16 @@
           </TextBlock>
         </StackPanel>
 
-        <TextBlock Grid.Column="1" VerticalAlignment="Center" TextAlignment="Right" IsVisible="{Binding !EnoughSelected^}"
-                   Text="Please, select more coins" Foreground="{DynamicResource SystemErrorTextColor}" />
+        <StackPanel Grid.Column="1">
+          <TextBlock VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap"
+                     IsVisible="{Binding IsSelectionBadlyChosen^}"
+                     Foreground="{DynamicResource SystemErrorTextColor}"
+                     Text="The current selection will decrease your privacy" />
+          <TextBlock VerticalAlignment="Center" TextAlignment="Right"
+                     IsVisible="{Binding !EnoughSelected^}"
+                     TextWrapping="Wrap"
+                     Text="Please, select more coins" />
+        </StackPanel>
 
       </Grid>
 
@@ -122,7 +130,8 @@
             Source="{Binding LabelBasedSelection.Source}"
             CanUserSortColumns="True">
           </TreeDataGrid>
-        </Panel></Border>
+        </Panel>
+      </Border>
     </DockPanel>
   </controls:ContentArea>
 </UserControl>
