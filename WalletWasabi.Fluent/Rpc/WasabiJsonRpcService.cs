@@ -250,13 +250,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("startcoinjoin")]
-	public void StartCoinJoining(bool stopWhenAllMixed = true, bool overridePlebStop = true)
+	public void StartCoinJoining(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
 	{
 		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 		coinJoinManager.StartAsync(activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
 	}
 
@@ -303,6 +303,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		if (ActiveWallet is null || ActiveWallet.State != WalletState.Started)
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
+		}
+	}
+
+	private void AssertWalletIsLoggedIn(Wallet activeWallet, string password)
+	{
+		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
+		{
+			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
 		}
 	}
 }
