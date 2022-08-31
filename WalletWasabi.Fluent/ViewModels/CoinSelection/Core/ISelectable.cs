@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
 public interface ISelectable
 {

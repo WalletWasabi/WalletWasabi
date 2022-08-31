@@ -1,7 +1,7 @@
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
 public static class CoinExtensions
 {

@@ -8,6 +8,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;

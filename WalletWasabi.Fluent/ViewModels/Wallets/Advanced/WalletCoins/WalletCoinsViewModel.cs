@@ -16,7 +16,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
-using AnonymityScoreHeaderView = WalletWasabi.Fluent.Views.CoinSelection.Columns.AnonymityScoreHeaderView;
+using AnonymityScoreHeaderView = WalletWasabi.Fluent.Views.CoinSelection.Core.Headers.AnonymityScoreHeaderView;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 

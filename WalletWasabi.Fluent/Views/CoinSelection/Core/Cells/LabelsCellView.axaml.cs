@@ -1,11 +1,11 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.CoinSelection.Columns;
-
-public partial class IndicatorsCellView : UserControl
+namespace WalletWasabi.Fluent.Views.CoinSelection.Core.Cells;
+public partial class LabelsCellView : UserControl
 {
-	public IndicatorsCellView()
+	public LabelsCellView()
 	{
 		InitializeComponent();
 	}

@@ -2,10 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:columns="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection.Columns"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:cells="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.CoinSelection.Columns.IsSelectedThreeStateView"
-             x:DataType="columns:IsSelectedThreeStateViewModel"
+             x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.LabelsCellView"
+             x:DataType="cells:LabelsCellViewModel"
              x:CompileBindings="True">
-  <CheckBox IsChecked="{Binding IsSelected}" IsThreeState="True" />
+  <controls:LabelsItemsPresenter Items="{Binding SmartLabel}" />
 </UserControl>

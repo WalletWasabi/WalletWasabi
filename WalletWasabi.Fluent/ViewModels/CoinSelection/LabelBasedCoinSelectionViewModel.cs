@@ -7,9 +7,9 @@ using Avalonia.Controls;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
-using WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using CoinGroupViewModel = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.CoinGroupViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -63,7 +63,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 				return true;
 			}
 
-			if (tn.Value is Model.CoinGroupViewModel cg)
+			if (tn.Value is CoinGroupViewModel cg)
 			{
 				var containsLabel = cg.Labels.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
 				return containsLabel;

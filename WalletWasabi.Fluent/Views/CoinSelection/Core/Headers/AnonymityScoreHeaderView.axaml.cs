@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.CoinSelection.Columns;
+namespace WalletWasabi.Fluent.Views.CoinSelection.Core.Headers;
 
 public partial class AnonymityScoreHeaderView : UserControl
 {

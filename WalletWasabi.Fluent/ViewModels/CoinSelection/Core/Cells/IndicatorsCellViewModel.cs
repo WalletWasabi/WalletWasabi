@@ -2,7 +2,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Columns;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
 public class IndicatorsCellViewModel : ViewModelBase
 {

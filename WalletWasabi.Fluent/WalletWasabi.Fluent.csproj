@@ -39,11 +39,21 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Views\CoinSelection\Columns\AnonymityScoreHeaderView.axaml.cs">
+	  <Compile Update="Views\CoinSelection\Core\Cells\IsSelectedCellView.axaml.cs">
+	    <DependentUpon>IsSelectedCellView.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\CoinSelection\Core\Cells\LabelsCellView.axaml.cs">
+	    <DependentUpon>LabelsCellView.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\CoinSelection\Core\Headers\AnonymityScoreHeaderView.axaml.cs">
 	    <DependentUpon>AnonymityScoreHeaderView.axaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Views\CoinSelection\Columns\IsSelectedThreeStateView.axaml.cs">
-	    <DependentUpon>IsSelectedThreeStateView.axaml</DependentUpon>
+	  <Compile Update="Views\CoinSelection\Core\Cells\IsSelectedThreeStateCellView.axaml.cs">
+	    <DependentUpon>IsSelectedThreeStateCellView.axaml</DependentUpon>
 	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Views\CoinSelection\Columns\" />
 	</ItemGroup>
 </Project>

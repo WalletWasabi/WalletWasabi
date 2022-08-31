@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
 public enum PrivacyLevel
 {

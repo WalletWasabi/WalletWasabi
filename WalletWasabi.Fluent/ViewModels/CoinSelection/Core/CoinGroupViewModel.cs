@@ -9,14 +9,14 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
+namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
-public partial class CoinGroupViewModel : IDisposable, IThreeState
+public partial class CoinGroupViewModel : IDisposable, IThreeStateSelectable
 {
 	private readonly ReadOnlyObservableCollection<WalletCoinViewModel> _items;
 	private readonly CompositeDisposable _disposables = new();
 	public SmartLabel Labels { get; }
-	[AutoNotify] private SelectionState _selectionState;
+	[AutoNotify] private TreeStateSelection _treeStateSelection;
 
 	private bool _canUpdate = true;
 
@@ -39,32 +39,32 @@ public partial class CoinGroupViewModel : IDisposable, IThreeState
 			.ToCollection()
 			.Select(GetState)
 			.Do(_ => _canUpdate = false)
-			.Do(b => SelectionState = b)
+			.Do(b => TreeStateSelection = b)
 			.Do(_ => _canUpdate = true)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		this.WhenAnyValue<CoinGroupViewModel, SelectionState>(x => x.SelectionState)
+		this.WhenAnyValue<CoinGroupViewModel, TreeStateSelection>(x => x.TreeStateSelection)
 			.Where(_ => _canUpdate)
-			.Do(isSelected => Items.ToList().ForEach(vm => vm.IsSelected = isSelected == SelectionState.True))
+			.Do(isSelected => Items.ToList().ForEach(vm => vm.IsSelected = isSelected == TreeStateSelection.True))
 			.Subscribe()
 			.DisposeWith(_disposables);
 	}
 
-	private static SelectionState GetState(IReadOnlyCollection<WalletCoinViewModel> walletCoinViewModels)
+	private static TreeStateSelection GetState(IReadOnlyCollection<WalletCoinViewModel> walletCoinViewModels)
 	{
 		var all = walletCoinViewModels.All(model => model.IsSelected);
 		if (all)
 		{
-			return SelectionState.True;
+			return TreeStateSelection.True;
 		}
 
 		if (walletCoinViewModels.Any(x => x.IsSelected))
 		{
-			return SelectionState.Partial;
+			return TreeStateSelection.Partial;
 		}
 
-		return SelectionState.False;
+		return TreeStateSelection.False;
 	}
 
 	public IObservable<Money> TotalAmount { get; }
@@ -73,7 +73,7 @@ public partial class CoinGroupViewModel : IDisposable, IThreeState
 
 	public void Dispose()
 	{
-		SelectionState = SelectionState.False;
+		TreeStateSelection = TreeStateSelection.False;
 		_disposables.Dispose();
 	}
 }

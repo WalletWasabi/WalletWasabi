@@ -6,8 +6,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.CoinSelection;
-using WalletWasabi.Fluent.ViewModels.CoinSelection.Model;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;

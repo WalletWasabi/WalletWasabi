@@ -1,11 +1,10 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.CoinSelection.Columns;
-public partial class LabelsView : UserControl
+namespace WalletWasabi.Fluent.Views.CoinSelection.Core.Cells;
+public class IsSelectedThreeStateCellView : UserControl
 {
-	public LabelsView()
+	public IsSelectedThreeStateCellView()
 	{
 		InitializeComponent();
 	}
