@@ -1,7 +1,6 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -94,6 +93,7 @@ public class KeyManager
 		{
 			AutoCoinJoin = false;
 		}
+		HdPubKeyRegistry.AddRangeKeys(HdPubKeys);
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
@@ -172,18 +172,13 @@ public class KeyManager
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
+	private HdPubKeyRegistry HdPubKeyRegistry { get; } = new();
+	private object HdPubKeyRegistryLock { get; } = new();
+	
 	private object BlockchainStateLock { get; } = new();
 
-	private object HdPubKeysLock { get; } = new();
-
-	private List<byte[]> HdPubKeyScriptBytes { get; } = new();
-
-	private object HdPubKeyScriptBytesLock { get; } = new();
-
-	private Dictionary<Script, HdPubKey> ScriptHdPubKeyMap { get; } = new();
-
-	private object ScriptHdPubKeyMapLock { get; } = new();
 	private object ToFileLock { get; } = new();
+
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
@@ -247,19 +242,7 @@ public class KeyManager
 			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
-		lock (km.HdPubKeyScriptBytesLock)
-		{
-			km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
-		}
-
-		lock (km.ScriptHdPubKeyMapLock)
-		{
-			foreach (var key in km.GetKeys())
-			{
-				km.ScriptHdPubKeyMap.Add(key.P2wpkhScript, key);
-			}
-		}
-
+		
 		return km;
 	}
 
@@ -276,7 +259,7 @@ public class KeyManager
 
 	public void ToFile()
 	{
-		lock (HdPubKeysLock)
+		lock (HdPubKeyRegistryLock)
 		{
 			lock (BlockchainStateLock)
 			{
@@ -290,7 +273,7 @@ public class KeyManager
 
 	public void ToFile(string filePath)
 	{
-		lock (HdPubKeysLock)
+		lock (HdPubKeyRegistryLock)
 		{
 			lock (BlockchainStateLock)
 			{
@@ -315,9 +298,9 @@ public class KeyManager
 		// m / purpose' / coin_type' / account' / change / address_index
 		var change = isInternal ? 1 : 0;
 
-		lock (HdPubKeysLock)
+		lock (HdPubKeyRegistryLock)
 		{
-			HdPubKey[] relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal == isInternal).ToArray();
+			HdPubKey[] relevantHdPubKeys = GetKeys(x => x.IsInternal == isInternal).ToArray();
 
 			KeyPath path = new($"{change}/0");
 			if (relevantHdPubKeys.Any())
@@ -346,15 +329,7 @@ public class KeyManager
 
 			var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
 			HdPubKeys.Add(hdPubKey);
-			lock (HdPubKeyScriptBytesLock)
-			{
-				HdPubKeyScriptBytes.Add(hdPubKey.P2wpkhScript.ToCompressedBytes());
-			}
-
-			lock (ScriptHdPubKeyMapLock)
-			{
-				ScriptHdPubKeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
-			}
+			HdPubKeyRegistry.AddKey(hdPubKey, ScriptPubKeyType.Segwit);
 
 			return hdPubKey;
 		}
@@ -395,16 +370,14 @@ public class KeyManager
 	{
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
-		lock (HdPubKeysLock)
+		lock (HdPubKeyRegistryLock)
 		{
-			if (wherePredicate is null)
+			var allKeys = HdPubKeyRegistry.Select(x => x.HdPubKey);
+			return wherePredicate switch
 			{
-				return HdPubKeys.ToList();
-			}
-			else
-			{
-				return HdPubKeys.Where(wherePredicate).ToList();
-			}
+				null => allKeys.ToList(),
+				_ => allKeys.Where(wherePredicate).ToList()
+			};
 		}
 	}
 
@@ -472,9 +445,9 @@ public class KeyManager
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
-		lock (HdPubKeyScriptBytesLock)
+		lock (HdPubKeyRegistryLock)
 		{
-			return HdPubKeyScriptBytes.ToImmutableArray();
+			return HdPubKeyRegistry.Select(x => x.ScriptPubKeyBytes).ToList();
 		}
 	}
 
@@ -482,11 +455,11 @@ public class KeyManager
 	{
 		hdPubKey = default;
 
-		lock (ScriptHdPubKeyMapLock)
+		lock (HdPubKeyRegistryLock)
 		{
-			if (ScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
+			if (HdPubKeyRegistry.TryGetPubkey(scriptPubKey, out var key))
 			{
-				hdPubKey = key;
+				hdPubKey = key.HdPubKey;
 				return true;
 			}
 
@@ -504,9 +477,9 @@ public class KeyManager
 		ExtKey extKey = GetMasterExtKey(password);
 		var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
-		lock (HdPubKeysLock)
+		lock (HdPubKeyRegistryLock)
 		{
-			foreach (HdPubKey key in HdPubKeys.Where(x =>
+			foreach (HdPubKey key in GetKeys(x =>
 				scripts.Contains(x.P2wpkhScript)
 				|| scripts.Contains(x.P2shOverP2wpkhScript)
 				|| scripts.Contains(x.P2pkhScript)
@@ -634,7 +607,7 @@ public class KeyManager
 
 	private void ToFileNoBlockchainStateLock()
 	{
-		lock (HdPubKeysLock)
+		lock (HdPubKeyRegistryLock)
 		{
 			lock (ToFileLock)
 			{
