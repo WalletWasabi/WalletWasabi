@@ -39,7 +39,7 @@ public class PrivacyContentControl : ContentControl
 		IsContentRevealed = displayContent
 			.ReplayLastActive();
 
-		PrivacyText =this.WhenAnyValue(x => x.NumberOfPrivacyChars)
+		PrivacyText = this.WhenAnyValue(x => x.NumberOfPrivacyChars)
 			.Select(n => TextHelpers.GetPrivacyMask((int) n))
 			.ReplayLastActive();
 	}
