@@ -16,4 +16,3 @@ public partial class SelectCoinsDialogView : UserControl
 		AvaloniaXamlLoader.Load(this);
 	}
 }
-
