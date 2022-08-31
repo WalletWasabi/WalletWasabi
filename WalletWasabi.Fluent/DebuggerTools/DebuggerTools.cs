@@ -20,13 +20,7 @@ internal static class DebuggerTools
 		{
 			if (gesture.Matches(args))
 			{
-				var mainViewModel = root.DataContext as MainViewModel;
-				if (mainViewModel is null)
-				{
-					return;
-				}
-
-				var debuggerViewModel = new DebuggerViewModel(mainViewModel);
+				var debuggerViewModel = new DebuggerViewModel();
 
 				var window = new DebuggerWindow
 				{

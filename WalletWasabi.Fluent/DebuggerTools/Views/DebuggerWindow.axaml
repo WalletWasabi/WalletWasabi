@@ -11,12 +11,28 @@
         Title="Debugger Tools"
         x:DataType="viewModels:DebuggerViewModel" x:CompileBindings="True">
   <Grid ColumnDefinitions="250,8,*">
-    <ListBox Grid.Column="0" Items="{Binding Wallets}">
+
+    <ListBox Grid.Column="0"
+             Items="{Binding Wallets}"
+             SelectedItem="{Binding SelectedWallet}">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <TextBlock Text="{Binding WalletName}" />
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
+
+    <GridSplitter Grid.Column="1" />
+
+    <ContentControl Grid.Column="2"
+                    Content="{Binding SelectedWallet}">
+      <ContentControl.DataTemplates>
+        <DataTemplate DataType="viewModels:DebugWalletViewModel">
+          <TreeDataGrid Source="{Binding CoinsSource}" />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
   </Grid>
+
 </Window>
