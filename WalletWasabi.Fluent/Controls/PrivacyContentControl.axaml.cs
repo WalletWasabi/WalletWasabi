@@ -37,13 +37,11 @@ public class PrivacyContentControl : ContentControl
 			this.WhenAnyValue(x => x.ForceShow));
 
 		IsContentRevealed = displayContent
-			.Replay(1)
-			.RefCount();
+			.ReplayLastActive();
 
 		PrivacyText =this.WhenAnyValue(x => x.NumberOfPrivacyChars)
-			.Select(n => TextHelpers.GetPrivacyMask((int) NumberOfPrivacyChars))
-			.Replay(1)
-			.RefCount();
+			.Select(n => TextHelpers.GetPrivacyMask((int) n))
+			.ReplayLastActive();
 	}
 
 	private IObservable<string> PrivacyText { get; } = Observable.Empty<string>();
