@@ -11,8 +11,6 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using IsSelectedCellViewModel = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells.IsSelectedCellViewModel;
-using IsSelectedThreeStateCellViewModel = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells.IsSelectedThreeStateCellViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
@@ -36,7 +34,7 @@ public static class ColumnFactory
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<WalletCoinViewModel, Money>(model => model.Amount),
-				CompareDescending = SortDescending<WalletCoinViewModel, Money>(model => model.Amount),
+				CompareDescending = SortDescending<WalletCoinViewModel, Money>(model => model.Amount)
 			});
 	}
 
@@ -50,14 +48,14 @@ public static class ColumnFactory
 					return group.Value switch
 					{
 						WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin),
-						_ => "",
+						_ => ""
 					};
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<WalletCoinViewModel, int>(model => model.AnonymitySet),
-				CompareDescending = SortDescending<WalletCoinViewModel, int>(model => model.AnonymitySet),
+				CompareDescending = SortDescending<WalletCoinViewModel, int>(model => model.AnonymitySet)
 			});
 	}
 
@@ -79,7 +77,7 @@ public static class ColumnFactory
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
-				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
+				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel)
 			});
 	}
 
@@ -126,7 +124,7 @@ public static class ColumnFactory
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<WalletCoinViewModel, bool>(model => model.IsSelected),
-				CompareDescending = SortDescending<WalletCoinViewModel, bool>(model => model.IsSelected),
+				CompareDescending = SortDescending<WalletCoinViewModel, bool>(model => model.IsSelected)
 			});
 	}
 
@@ -148,7 +146,7 @@ public static class ColumnFactory
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<WalletCoinViewModel, int>(GetIndicatorPriority),
-				CompareDescending = SortDescending<WalletCoinViewModel, int>(GetIndicatorPriority),
+				CompareDescending = SortDescending<WalletCoinViewModel, int>(GetIndicatorPriority)
 			});
 	}
 

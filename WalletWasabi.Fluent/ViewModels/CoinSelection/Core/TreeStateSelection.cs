@@ -4,5 +4,5 @@ public enum TreeStateSelection
 {
 	False,
 	True,
-	Partial,
+	Partial
 }

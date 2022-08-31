@@ -9,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using CoinGroupViewModel = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.CoinGroupViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -19,7 +18,9 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private string _filter = "";
 
-	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges, int anonScoreTarget)
+	public LabelBasedCoinSelectionViewModel(
+		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges,
+		int anonScoreTarget)
 	{
 		_anonScoreTarget = anonScoreTarget;
 		var filterPredicate = this

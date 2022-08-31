@@ -6,8 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
 public partial class IsSelectedThreeStateCellViewModel : ViewModelBase, IDisposable
 {
-	[AutoNotify] private bool? _isSelected;
 	private readonly CompositeDisposable _disposable = new();
+	[AutoNotify] private bool? _isSelected;
 
 	public IsSelectedThreeStateCellViewModel(IThreeStateSelectable selectable)
 	{
@@ -16,7 +16,7 @@ public partial class IsSelectedThreeStateCellViewModel : ViewModelBase, IDisposa
 			.Subscribe()
 			.DisposeWith(_disposable);
 
-		this.WhenAnyValue<IsSelectedThreeStateCellViewModel, bool?>(model => model.IsSelected)
+		this.WhenAnyValue(model => model.IsSelected)
 			.Select(ConvertSelection.To)
 			.Do(b => selectable.TreeStateSelection = b)
 			.Subscribe()

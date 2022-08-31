@@ -1,8 +1,8 @@
-using NBitcoin;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -14,16 +14,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectable
 {
 	private readonly CompositeDisposable _disposables = new();
+	[AutoNotify] private string? _address;
 	[AutoNotify] private Money _amount = Money.Zero;
 	[AutoNotify] private int _anonymitySet;
-	[AutoNotify] private SmartLabel _smartLabel = "";
-	[AutoNotify] private bool _confirmed;
-	[AutoNotify] private bool _coinJoinInProgress;
-	[AutoNotify] private bool _isSelected;
-	[AutoNotify] private bool _isBanned;
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
+	[AutoNotify] private bool _coinJoinInProgress;
+	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private string? _confirmedToolTip;
-	[AutoNotify] private string? _address;
+	[AutoNotify] private bool _isBanned;
+	[AutoNotify] private bool _isSelected;
+	[AutoNotify] private SmartLabel _smartLabel = "";
 
 	public WalletCoinViewModel(SmartCoin coin, Wallet wallet)
 	{
@@ -34,7 +34,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int) x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Banned until: {x:g}").DisposeWith(_disposables);
@@ -42,7 +42,13 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 	}
 
 	public SmartCoin Coin { get; }
+
 	public Wallet Wallet { get; }
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
+	}
 
 	public static Comparison<WalletCoinViewModel?> SortAscending<T>(Func<WalletCoinViewModel, T> selector)
 	{
@@ -52,18 +58,18 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 			{
 				return 0;
 			}
-			else if (x is null)
+
+			if (x is null)
 			{
 				return -1;
 			}
-			else if (y is null)
+
+			if (y is null)
 			{
 				return 1;
 			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(x), selector(y));
-			}
+
+			return Comparer<T>.Default.Compare(selector(x), selector(y));
 		};
 	}
 
@@ -75,23 +81,18 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 			{
 				return 0;
 			}
-			else if (x is null)
+
+			if (x is null)
 			{
 				return 1;
 			}
-			else if (y is null)
+
+			if (y is null)
 			{
 				return -1;
 			}
-			else
-			{
-				return Comparer<T>.Default.Compare(selector(y), selector(x));
-			}
-		};
-	}
 
-	public void Dispose()
-	{
-		_disposables.Dispose();
+			return Comparer<T>.Default.Compare(selector(y), selector(x));
+		};
 	}
 }

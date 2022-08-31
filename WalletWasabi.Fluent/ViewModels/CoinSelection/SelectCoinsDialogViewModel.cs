@@ -28,17 +28,17 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly IEnumerable<SmartCoin> _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
 	[AutoNotify] private IObservable<bool> _isSelectionBadlyChosen = Observable.Return(false);
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllPrivateCoinsCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllCoinsCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllPrivateCoinsCommand = ReactiveCommand.Create(() => { });
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
@@ -70,7 +70,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.DisposeWith(disposables);
 
 		var viewModels = sourceCache.Connect().ReplayLastActive();
-		
+
 		var selectedCoins = viewModels
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
@@ -86,16 +86,25 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SelectedCount = selectedCoins.Select(models => models.Count());
 
-		CoinBasedSelection = new CoinBasedSelectionViewModel(viewModels, _walletViewModel.Wallet.AnonScoreTarget).DisposeWith(disposables);
-		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(viewModels, _walletViewModel.Wallet.AnonScoreTarget).DisposeWith(disposables);
+		CoinBasedSelection =
+			new CoinBasedSelectionViewModel(viewModels).DisposeWith(
+				disposables);
+		LabelBasedSelection =
+			new LabelBasedCoinSelectionViewModel(viewModels, _walletViewModel.Wallet.AnonScoreTarget).DisposeWith(
+				disposables);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
 
-		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
-		SelectAllCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
-		ClearCoinSelectionCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
-		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
+		SelectPredefinedCoinsCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
+		SelectAllCoinsCommand =
+			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
+		ClearCoinSelectionCommand =
+			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
+		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(
+				coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
 
 		SelectPredefinedCoinsCommand.Execute()
 			.Subscribe()
