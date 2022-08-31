@@ -37,7 +37,6 @@ public class PrivacyContentControl : ContentControl
 			this.WhenAnyValue(x => x.ForceShow));
 
 		IsContentRevealed = displayContent
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Replay(1)
 			.RefCount();
 
