@@ -2,12 +2,9 @@
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Templates;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.ViewModels;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
