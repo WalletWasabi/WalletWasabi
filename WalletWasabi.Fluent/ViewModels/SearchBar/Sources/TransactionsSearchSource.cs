@@ -23,7 +23,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 			.DisposeWith(_disposables);
 
 		query
-			.Select(s => s.Length > 5 ? PerformSearch(s) : Enumerable.Empty<ISearchItem>())
+			.Select(s => s.Length > 3 ? PerformSearch(s) : Enumerable.Empty<ISearchItem>())
 			.Do(results => sourceCache.Edit(e => e.Load(results)))
 			.Subscribe()
 			.DisposeWith(_disposables);
