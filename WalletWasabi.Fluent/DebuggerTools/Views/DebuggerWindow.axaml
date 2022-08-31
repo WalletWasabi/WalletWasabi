@@ -10,6 +10,45 @@
         Background="{DynamicResource AcrylicTrimBackground}"
         Title="Debugger Tools"
         x:DataType="viewModels:DebuggerViewModel" x:CompileBindings="True">
+
+  <Window.Resources>
+
+    <DataTemplate x:Key="DebugTransaction" DataType="viewModels:DebugTransactionViewModel">
+      <StackPanel>
+        <TextBlock Text="{Binding FirstSeen}" />
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DebugCoin" DataType="viewModels:DebugCoinViewModel">
+      <TabControl>
+        <TabItem Header="Coin">
+          <StackPanel>
+            <TextBlock Text="{Binding Amount}" />
+          </StackPanel>
+        </TabItem>
+        <TabItem Header="Transaction">
+          <ContentControl Content="{Binding Transaction}"
+                          ContentTemplate="{StaticResource DebugTransaction}"/>
+        </TabItem>
+        <TabItem Header="SpenderTransaction">
+          <ContentControl Content="{Binding SpenderTransaction}"
+                          ContentTemplate="{StaticResource DebugTransaction}"/>
+        </TabItem>
+      </TabControl>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DebugWallet" DataType="viewModels:DebugWalletViewModel">
+      <Grid RowDefinitions="50*,8,50*">
+        <TreeDataGrid Grid.Row="0"
+                      Source="{Binding CoinsSource}" />
+        <GridSplitter Grid.Row="1" />
+        <ContentControl Grid.Row="2" Content="{Binding SelectedCoin}"
+                        ContentTemplate="{StaticResource DebugCoin}" />
+      </Grid>
+    </DataTemplate>
+
+  </Window.Resources>
+
   <Grid ColumnDefinitions="250,8,*">
 
     <ListBox Grid.Column="0"
@@ -25,13 +64,8 @@
     <GridSplitter Grid.Column="1" />
 
     <ContentControl Grid.Column="2"
-                    Content="{Binding SelectedWallet}">
-      <ContentControl.DataTemplates>
-        <DataTemplate DataType="viewModels:DebugWalletViewModel">
-          <TreeDataGrid Source="{Binding CoinsSource}" />
-        </DataTemplate>
-      </ContentControl.DataTemplates>
-    </ContentControl>
+                    Content="{Binding SelectedWallet}"
+                    ContentTemplate="{StaticResource DebugWallet}" />
 
   </Grid>
 
