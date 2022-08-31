@@ -115,7 +115,8 @@ public class KeyManager
 	[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 	public ExtPubKey ExtPubKey { get; }
 
-	[JsonProperty(Order = 5)] public bool SkipSynchronization { get; private set; } = false;
+	[JsonProperty(Order = 5)] 
+	public bool SkipSynchronization { get; private set; } = false;
 
 	[JsonProperty(Order = 6)]
 	public int MinGapLimit { get; private set; }
@@ -123,14 +124,6 @@ public class KeyManager
 	[JsonProperty(Order = 7)]
 	[JsonConverter(typeof(KeyPathJsonConverter))]
 	public KeyPath AccountKeyPath { get; private set; }
-
-	public string? FilePath { get; private set; }
-
-	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
-	public bool IsWatchOnly => EncryptedSecret is null;
-
-	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
-	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
 	[JsonProperty(Order = 8)]
 	private BlockchainState BlockchainState { get; }
@@ -166,6 +159,14 @@ public class KeyManager
 	[JsonProperty(Order = 999)] 
 	private List<HdPubKey> HdPubKeys { get; } = new ();
 
+	public string? FilePath { get; private set; }
+
+	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
+	public bool IsWatchOnly => EncryptedSecret is null;
+
+	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
+	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
+	
 	private object BlockchainStateLock { get; } = new ();
 
 	private object HdPubKeysLock { get; } = new ();
@@ -677,16 +678,7 @@ public class KeyManager
 		}
 		return res;
 	}
-
-	public void SetNetwork(Network network)
-	{
-		lock (BlockchainStateLock)
-		{
-			BlockchainState.Network = network;
-			ToFileNoBlockchainStateLock();
-		}
-	}
-
+	
 	public Network GetNetwork()
 	{
 		lock (BlockchainStateLock)
