@@ -106,9 +106,22 @@
         <Carousel.PageTransition>
           <CrossFade Duration="0.25" />
         </Carousel.PageTransition>
+        <Carousel.Styles>
+          <Style>
+            <Style.Resources>
+              <Color x:Key="TileRegionColor">Transparent</Color>
+              <Color x:Key="TileBorderColor">Transparent</Color>
+            </Style.Resources>
+          </Style>
+        </Carousel.Styles>
         <Carousel.DataTemplates>
           <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
             <tilesView:PrivacyControlTileView Width="300" Height="150" IsEnabled="False">
+              <tilesView:PrivacyControlTileView.Styles>
+                <Style Selector="tilesView|PrivacyControlTileView Separator">
+                  <Setter Property="Opacity" Value="0"></Setter>
+                </Style>
+              </tilesView:PrivacyControlTileView.Styles>
               <i:Interaction.Behaviors>
                 <behaviors:FadeInBehavior InitialDelay="0:0:1" />
               </i:Interaction.Behaviors>
@@ -119,7 +132,7 @@
               <DockPanel>
                 <c:LabelsItemsPresenter Items="{Binding SmartLabel}" DockPanel.Dock="Top" />
                 <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
-                  <Separator />
+                  <Separator Opacity="0" />
                   <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
                     <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" IsVisible="{Binding !IsNonPrivate}">
                       <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
