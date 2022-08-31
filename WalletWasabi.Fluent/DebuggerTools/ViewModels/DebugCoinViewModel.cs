@@ -12,6 +12,8 @@ public partial class DebugCoinViewModel : ViewModelBase
 	{
 		_coin = coin;
 
+		FirstSeen = coin.Transaction.FirstSeen;
+
 		Amount = _coin.Amount;
 
 		Transaction = new DebugTransactionViewModel(coin.Transaction);
@@ -21,6 +23,8 @@ public partial class DebugCoinViewModel : ViewModelBase
 			SpenderTransaction = new DebugTransactionViewModel(coin.SpenderTransaction);
 		}
 	}
+
+	public DateTimeOffset FirstSeen { get; private set; }
 
 	public Money Amount { get; private set; }
 
