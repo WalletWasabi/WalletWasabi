@@ -31,7 +31,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private readonly BitcoinAddress _destination;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
-	private CancellationTokenSource _cancellationTokenSource;
+	private CancellationTokenSource? _cancellationTokenSource;
 	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
@@ -194,8 +194,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
 		if (feeDialogResult.Kind == DialogResultKind.Normal &&
-		    feeDialogResult.Result is { } feeRate &&
-		    feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
+			feeDialogResult.Result is { } feeRate &&
+			feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
 		{
 			_info.FeeRate = feeRate;
 			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
@@ -425,8 +425,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (!isInHistory)
 		{
-			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
+			_cancellationTokenSource?.Cancel();
+			_cancellationTokenSource?.Dispose();
+			_cancellationTokenSource = null;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
@@ -449,7 +450,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
-				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource?.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
 			catch (Exception ex)
