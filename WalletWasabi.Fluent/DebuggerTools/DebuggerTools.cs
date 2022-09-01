@@ -3,7 +3,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using WalletWasabi.Fluent.DebuggerTools.ViewModels;
 using WalletWasabi.Fluent.DebuggerTools.Views;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.DebuggerTools;
 
