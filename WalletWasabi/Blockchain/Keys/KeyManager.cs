@@ -303,15 +303,16 @@ public class KeyManager
 
 	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal)
 	{
-		// BIP44-ish derivation scheme
-		// m / purpose' / coin_type' / account' / change / address_index
 		var hdPubKeyRegistry = isInternal
 			? SegWitInternalKeys
 			: SegWitExternalKeys;
 
 		lock (HdPubKeyRegistryLock)
 		{
-			var hdPubKey = hdPubKeyRegistry.GenerateNewKey(label, keyState);
+			var extPubKey = hdPubKeyRegistry.GenerateNewKey();
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, hdPubKeyRegistry.KeyPath.Derive(extPubKey.Child), label, keyState);
+			HdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.Segwit);
+
 			HdPubKeys.Add(hdPubKey);
 			return hdPubKey;
 		}
