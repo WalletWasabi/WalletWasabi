@@ -63,6 +63,9 @@ public class KeyManager
 
 		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 
+		SegWitExternalKeys = new HdPubKeyManager(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), HdPubKeyCache, MinGapLimit);
+		SegWitInternalKeys = new HdPubKeyManager(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), HdPubKeyCache, MinGapLimit);
+		
 		SetFilePath(filePath);
 		ToFile();
 	}
@@ -82,6 +85,9 @@ public class KeyManager
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+		
+		SegWitExternalKeys = new HdPubKeyManager(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), HdPubKeyCache, MinGapLimit);
+		SegWitInternalKeys = new HdPubKeyManager(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), HdPubKeyCache, MinGapLimit);
 	}
 
 	[OnDeserialized]
@@ -179,6 +185,9 @@ public class KeyManager
 
 	private object ToFileLock { get; } = new();
 
+	private HdPubKeyManager SegWitExternalKeys { get; }
+	private HdPubKeyManager SegWitInternalKeys { get; }
+	
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
@@ -296,41 +305,14 @@ public class KeyManager
 	{
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
-		var change = isInternal ? 1 : 0;
+		var hdPubKeyRegistry = isInternal
+			? SegWitInternalKeys
+			: SegWitExternalKeys;
 
 		lock (HdPubKeyRegistryLock)
 		{
-			HdPubKey[] relevantHdPubKeys = GetKeys(x => x.IsInternal == isInternal).ToArray();
-
-			KeyPath path = new($"{change}/0");
-			if (relevantHdPubKeys.Any())
-			{
-				int largestIndex = relevantHdPubKeys.Max(x => x.Index);
-				var smallestMissingIndex = largestIndex;
-				var present = new bool[largestIndex + 1];
-				for (int i = 0; i < relevantHdPubKeys.Length; ++i)
-				{
-					present[relevantHdPubKeys[i].Index] = true;
-				}
-				for (int i = 1; i < present.Length; ++i)
-				{
-					if (!present[i])
-					{
-						smallestMissingIndex = i - 1;
-						break;
-					}
-				}
-
-				path = relevantHdPubKeys[smallestMissingIndex].NonHardenedKeyPath.Increment();
-			}
-
-			var fullPath = AccountKeyPath.Derive(path);
-			var pubKey = ExtPubKey.Derive(path).PubKey;
-
-			var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
+			var hdPubKey = hdPubKeyRegistry.GenerateNewKey(label, keyState);
 			HdPubKeys.Add(hdPubKey);
-			HdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.Segwit);
-
 			return hdPubKey;
 		}
 	}
