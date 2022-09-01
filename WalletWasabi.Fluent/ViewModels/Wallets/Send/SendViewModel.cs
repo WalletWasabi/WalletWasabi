@@ -119,27 +119,34 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			// var result = await NavigateDialogAsync(new CoinSelection.SelectCoinsDialogViewModel(_walletViewModel, balanceChanged));
-			var address = BitcoinAddress.Create(To, _wallet.Network);
-
-			_transactionInfo.Reset();
-			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
-			_transactionInfo.IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled;
-
-			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
-			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
-			if (result.Result is not { } label)
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () =>
 			{
-				return;
-			}
+				var address = BitcoinAddress.Create(To, _wallet.Network);
 
-			_transactionInfo.UserLabels = label;
+				_transactionInfo.Reset();
+				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
+				_transactionInfo.IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled;
 
-			Navigate().To(new TransactionPreviewViewModel(_walletViewModel, _transactionInfo, address, _isFixedAmount, balanceChanged));
+				var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+				if (result.Result is not { } label)
+				{
+					return;
+				}
 
-		}, nextCommandCanExecute);
+				_transactionInfo.UserLabels = label;
+
+				Navigate().To(
+					new TransactionPreviewViewModel(
+						_walletViewModel,
+						_transactionInfo,
+						address,
+						_isFixedAmount,
+						balanceChanged));
+
+			},
+			nextCommandCanExecute);
 
 		FundingModeCommand = ReactiveCommand.Create(() => IsAutomaticSelectionEnabled = !IsAutomaticSelectionEnabled);
 
