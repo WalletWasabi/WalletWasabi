@@ -120,6 +120,10 @@ public partial class DebugWalletViewModel : ViewModelBase
 					"FirstSeen",
 					x => x.FirstSeen,
 					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugTransactionViewModel, uint256>(
+					"TransactionId",
+					x => x.TransactionId,
+					new GridLength(0, GridUnitType.Auto)),
 			}
 		};
 
