@@ -54,4 +54,8 @@ public partial class DebugCoinViewModel : ViewModelBase
 	public DebugTransactionViewModel Transaction { get; private set; }
 
 	public DebugTransactionViewModel? SpenderTransaction { get; private set; }
+
+	public uint256 TransactionId => Transaction.TransactionId;
+
+	public uint256? SpenderTransactionId => SpenderTransaction?.TransactionId;
 }
