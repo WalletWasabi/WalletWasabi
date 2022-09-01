@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels;
 
@@ -12,7 +13,11 @@ public partial class DebugTransactionViewModel : ViewModelBase
 		_transaction = transaction;
 
 		FirstSeen = transaction.FirstSeen;
+
+		Coins = new List<DebugCoinViewModel>();
 	}
 
 	public DateTimeOffset FirstSeen { get; private set; }
+
+	public List<DebugCoinViewModel> Coins { get; private set; }
 }
