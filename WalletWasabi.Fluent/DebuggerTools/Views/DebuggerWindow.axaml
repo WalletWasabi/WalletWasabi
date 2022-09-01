@@ -39,8 +39,14 @@
 
     <DataTemplate x:Key="DebugWallet" DataType="viewModels:DebugWalletViewModel">
       <Grid RowDefinitions="50*,8,50*">
-        <TreeDataGrid Grid.Row="0"
-                      Source="{Binding CoinsSource}" />
+        <TabControl Grid.Row="0">
+          <TabItem Header="Coins">
+            <TreeDataGrid Source="{Binding CoinsSource}" />
+          </TabItem>
+          <TabItem Header="Transactions">
+            <TreeDataGrid Source="{Binding TransactionsSource}" />
+          </TabItem>
+        </TabControl>
         <GridSplitter Grid.Row="1" />
         <ContentControl Grid.Row="2" Content="{Binding SelectedCoin}"
                         ContentTemplate="{StaticResource DebugCoin}" />
