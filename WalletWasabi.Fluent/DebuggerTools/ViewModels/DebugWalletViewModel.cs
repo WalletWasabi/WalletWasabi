@@ -98,6 +98,14 @@ public partial class DebugWalletViewModel : ViewModelBase
 					"Height",
 					x => x.Height,
 					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, uint256>(
+					"Transaction",
+					x => x.TransactionId,
+					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, uint256?>(
+					"SpenderTransaction",
+					x => x.SpenderTransactionId,
+					new GridLength(0, GridUnitType.Auto)),
 			}
 		};
 
