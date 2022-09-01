@@ -73,7 +73,7 @@ public static class ColumnFactory
 
 					return new LabelsCellViewModel(new SmartLabel());
 				}),
-			GridLength.Auto,
+			GridLength.Star,
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
