@@ -100,12 +100,12 @@
             </TextBlock.Text>
           </TextBlock>
 
+          <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
+
           <TextBlock TextAlignment="Right" Classes="h9 monoSpaced" Opacity="0.6"
                      Text="{Binding RemainingAmount^, StringFormat='{}{0} remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}">
           </TextBlock>
         </StackPanel>
-
-        <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
 
       </StackPanel>
 
