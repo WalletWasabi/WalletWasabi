@@ -93,7 +93,7 @@ public class KeyManager
 		{
 			AutoCoinJoin = false;
 		}
-		HdPubKeyRegistry.AddRangeKeys(HdPubKeys);
+		HdPubKeyCache.AddRangeKeys(HdPubKeys);
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network) =>
@@ -172,7 +172,7 @@ public class KeyManager
 	[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
-	private HdPubKeyRegistry HdPubKeyRegistry { get; } = new();
+	private HdPubKeyCache HdPubKeyCache { get; } = new();
 	private object HdPubKeyRegistryLock { get; } = new();
 	
 	private object BlockchainStateLock { get; } = new();
@@ -329,7 +329,7 @@ public class KeyManager
 
 			var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
 			HdPubKeys.Add(hdPubKey);
-			HdPubKeyRegistry.AddKey(hdPubKey, ScriptPubKeyType.Segwit);
+			HdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.Segwit);
 
 			return hdPubKey;
 		}
@@ -372,7 +372,7 @@ public class KeyManager
 		// m / purpose' / coin_type' / account' / change / address_index
 		lock (HdPubKeyRegistryLock)
 		{
-			var allKeys = HdPubKeyRegistry.Select(x => x.HdPubKey);
+			var allKeys = HdPubKeyCache.Select(x => x.HdPubKey);
 			return wherePredicate switch
 			{
 				null => allKeys.ToList(),
@@ -447,7 +447,7 @@ public class KeyManager
 	{
 		lock (HdPubKeyRegistryLock)
 		{
-			return HdPubKeyRegistry.Select(x => x.ScriptPubKeyBytes).ToList();
+			return HdPubKeyCache.Select(x => x.ScriptPubKeyBytes).ToList();
 		}
 	}
 
@@ -457,7 +457,7 @@ public class KeyManager
 
 		lock (HdPubKeyRegistryLock)
 		{
-			if (HdPubKeyRegistry.TryGetPubkey(scriptPubKey, out var key))
+			if (HdPubKeyCache.TryGetPubKey(scriptPubKey, out var key))
 			{
 				hdPubKey = key.HdPubKey;
 				return true;
