@@ -53,7 +53,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			? transactionInfo.Amount
 			: transactionInfo.MinimumRequiredAmount;
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 	}
 
