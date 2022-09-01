@@ -88,8 +88,9 @@
         </TextBox>
       </DockPanel>
 
-      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="* *" Margin="0 16 0 0">
-        <StackPanel Grid.Column="0" DockPanel.Dock="Bottom" Margin="20 0">
+      <StackPanel DockPanel.Dock="Bottom">
+
+        <StackPanel DockPanel.Dock="Bottom" x:Name="Summary">
           <TextBlock Margin="0 0 0 8">
             <TextBlock.Text>
               <MultiBinding StringFormat="{}{0} selected in {1} coin/s">
@@ -98,25 +99,15 @@
               </MultiBinding>
             </TextBlock.Text>
           </TextBlock>
-          <ProgressBar Maximum="{Binding TargetAmount.Satoshi}"
-                       Value="{Binding SelectedAmount^.Satoshi}" />
+
           <TextBlock TextAlignment="Right" Classes="h9 monoSpaced" Opacity="0.6"
                      Text="{Binding RemainingAmount^, StringFormat='{}{0} remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}">
           </TextBlock>
         </StackPanel>
 
-        <StackPanel Grid.Column="1">
-          <TextBlock VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap"
-                     IsVisible="{Binding IsSelectionBadlyChosen^}"
-                     Foreground="{DynamicResource SystemErrorTextColor}"
-                     Text="The current selection will decrease your privacy" />
-          <TextBlock VerticalAlignment="Center" TextAlignment="Right"
-                     IsVisible="{Binding !EnoughSelected^}"
-                     TextWrapping="Wrap"
-                     Text="Please, select more coins" />
-        </StackPanel>
+        <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
 
-      </Grid>
+      </StackPanel>
 
       <Border>
         <Panel>
@@ -133,5 +124,22 @@
         </Panel>
       </Border>
     </DockPanel>
+
+    <controls:ContentArea.ButtonAreaContent>
+
+      <StackPanel x:Name="Errors" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                   IsVisible="{Binding IsSelectionBadlyChosen^}"
+                   Foreground="{DynamicResource SystemErrorTextColor}"
+                   Text="The current selection will decrease your privacy" />
+        <TextBlock VerticalAlignment="Center"
+                   TextAlignment="Center"
+                   IsVisible="{Binding !EnoughSelected^}"
+                   TextWrapping="Wrap"
+                   Text="Please, select more coins" />
+      </StackPanel>
+
+    </controls:ContentArea.ButtonAreaContent>
+
   </controls:ContentArea>
 </UserControl>

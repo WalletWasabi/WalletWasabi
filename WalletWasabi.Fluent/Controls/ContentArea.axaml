@@ -29,18 +29,19 @@
           <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
           <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
 
-            <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
+            <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
               <Button Name="PART_CancelButton"
                       Classes="invisible"
                       IsVisible="{TemplateBinding EnableCancel}"
                       Content="{TemplateBinding CancelContent}"
+                      DockPanel.Dock="Left"
                       HorizontalAlignment="Left" Command="{Binding CancelCommand}">
                 <i:Interaction.Behaviors>
                   <behaviors:FocusOnAttachedBehavior
                     IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                 </i:Interaction.Behaviors>
               </Button>
-              <StackPanel Orientation="Horizontal" Spacing="30" HorizontalAlignment="Right">
+              <StackPanel Orientation="Horizontal" Spacing="30" HorizontalAlignment="Right" DockPanel.Dock="Right">
                 <Button Name="PART_SkipButton"
                         IsVisible="{TemplateBinding EnableSkip}"
                         Content="{TemplateBinding SkipContent}"
@@ -58,7 +59,10 @@
                   </i:Interaction.Behaviors>
                 </Button>
               </StackPanel>
-            </Panel>
+
+              <ContentPresenter Content="{TemplateBinding ButtonAreaContent}" />
+
+            </DockPanel>
 
             <Panel DockPanel.Dock="Top">
               <Panel IsHitTestVisible="False" Background="{TemplateBinding HeaderBackground}" />
@@ -113,7 +117,7 @@
     <Setter Property="Margin" Value="31 11 31 21" />
   </Style>
 
-  <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
+  <Style Selector="c|ContentArea /template/ :is(Control)#PART_ButtonArea">
     <Setter Property="Margin" Value="31,10" />
   </Style>
 
