@@ -90,8 +90,8 @@
 
       <StackPanel DockPanel.Dock="Bottom">
 
-        <StackPanel DockPanel.Dock="Bottom" x:Name="Summary">
-          <TextBlock Margin="0 0 0 8">
+        <StackPanel DockPanel.Dock="Bottom" x:Name="Summary" Margin="0 8">
+          <TextBlock>
             <TextBlock.Text>
               <MultiBinding StringFormat="{}{0} selected in {1} coin/s">
                 <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedStringBtc}" />
@@ -100,7 +100,7 @@
             </TextBlock.Text>
           </TextBlock>
 
-          <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
+          <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
 
           <TextBlock TextAlignment="Right" Classes="h9 monoSpaced" Opacity="0.6"
                      Text="{Binding RemainingAmount^, StringFormat='{}{0} remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}">
