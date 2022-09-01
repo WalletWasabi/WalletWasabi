@@ -71,7 +71,7 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			try
 			{
-				Logger.LogDebug($"Attempt #{i} to start Tor.");
+				Logger.LogDebug($"Attempt #{i + 1} to start Tor.");
 				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)

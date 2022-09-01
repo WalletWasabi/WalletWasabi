@@ -41,7 +41,7 @@ public class Wallet : BackgroundService, IWallet
 		RuntimeParams.SetDataDir(dataDir);
 		HandleFiltersLock = new AsyncLock();
 
-		KeyManager.AssertCleanKeysIndexed();
+		KeyManager.AssertCleanKeysIndexedAndPersist();
 
 		if (!KeyManager.IsWatchOnly)
 		{

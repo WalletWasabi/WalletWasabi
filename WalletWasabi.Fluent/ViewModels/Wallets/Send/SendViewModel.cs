@@ -45,6 +45,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly WalletViewModel _walletViewModel;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
+	private bool _parsingTo;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -251,10 +252,20 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool TryParseUrl(string? text)
 	{
+		if (_parsingTo)
+		{
+			return false;
+		}
+
+		_parsingTo = true;
+
 		text = text?.Trim();
 
 		if (string.IsNullOrEmpty(text))
 		{
+			_parsingTo = false;
+			PayJoinEndPoint = null;
+			IsFixedAmount = false;
 			return false;
 		}
 
@@ -297,6 +308,8 @@ public partial class SendViewModel : RoutableViewModel
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
 		}
+
+		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
 		return result;
 	}

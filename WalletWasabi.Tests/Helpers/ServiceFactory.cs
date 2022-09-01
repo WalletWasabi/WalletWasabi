@@ -27,7 +27,7 @@ public static class ServiceFactory
 		var toGenerate = coinArray.Length - generated;
 		for (int i = 0; i < toGenerate; i++)
 		{
-			keyManager.GenerateNewKey("", KeyState.Clean, false, false);
+			keyManager.GenerateNewKey("", KeyState.Clean, false);
 		}
 
 		var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
