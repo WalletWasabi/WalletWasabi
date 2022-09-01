@@ -26,7 +26,8 @@ internal static class DebuggerTools
 					DataContext = debuggerViewModel
 				};
 
-				window.Show(root as Window);
+				// window.Show(root as Window);
+				window.Show();
 			}
 		}
 
