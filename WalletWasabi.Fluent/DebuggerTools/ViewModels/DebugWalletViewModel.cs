@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Models;
@@ -17,6 +16,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 	private readonly Wallet _wallet;
 	private readonly ICoinsView? _coins;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
+	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
 
 	public DebugWalletViewModel(Wallet wallet)
 	{
@@ -28,14 +28,45 @@ public partial class DebugWalletViewModel : ViewModelBase
 		}
 
 		WalletName = _wallet.WalletName;
+
 		Coins = _coins?.Select(x => new DebugCoinViewModel(x)).ToList();
 
+		// TODO: Transactions
+		Transactions = new List<DebugTransactionViewModel>();
+
+		if (_coins is { })
+		{
+			foreach (var coin in _coins)
+			{
+				Transactions.Add(new DebugTransactionViewModel(coin.Transaction));
+
+				if (coin.SpenderTransaction is { })
+				{
+					Transactions.Add(new DebugTransactionViewModel(coin.SpenderTransaction));
+				}
+			}
+		}
+
 		CreateCoinsSource();
+
+		CreateTransactionsSource();
 	}
+
+	public string WalletName { get; private set; }
+
+	public List<DebugCoinViewModel>? Coins { get; }
+
+	public List<DebugTransactionViewModel>? Transactions { get; }
+
+	public FlatTreeDataGridSource<DebugCoinViewModel> CoinsSource { get; private set; }
+
+	public FlatTreeDataGridSource<DebugTransactionViewModel> TransactionsSource { get; private set; }
 
 	private void CreateCoinsSource()
 	{
-		CoinsSource = new FlatTreeDataGridSource<DebugCoinViewModel>(Coins ?? Enumerable.Empty<DebugCoinViewModel>())
+		var coins = Coins ?? Enumerable.Empty<DebugCoinViewModel>();
+
+		CoinsSource = new FlatTreeDataGridSource<DebugCoinViewModel>(coins)
 		{
 			Columns =
 			{
@@ -77,9 +108,25 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.Subscribe(x => SelectedCoin = x);
 	}
 
-	public string WalletName { get; private set; }
+	private void CreateTransactionsSource()
+	{
+		var transactions = Transactions ?? Enumerable.Empty<DebugTransactionViewModel>();
 
-	public List<DebugCoinViewModel>? Coins { get; }
+		TransactionsSource = new FlatTreeDataGridSource<DebugTransactionViewModel>(transactions)
+		{
+			Columns =
+			{
+				new TextColumn<DebugTransactionViewModel, DateTimeOffset>(
+					"FirstSeen",
+					x => x.FirstSeen,
+					new GridLength(0, GridUnitType.Auto)),
+			}
+		};
 
-	public FlatTreeDataGridSource<DebugCoinViewModel> CoinsSource { get; private set; }
+		TransactionsSource.RowSelection!.SingleSelect = true;
+
+		TransactionsSource.RowSelection
+			.WhenAnyValue(x => x.SelectedItem)
+			.Subscribe(x => SelectedTransaction = x);
+	}
 }
