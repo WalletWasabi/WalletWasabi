@@ -23,7 +23,42 @@
       <TabControl>
         <TabItem Header="Coin">
           <StackPanel>
-            <TextBlock Text="{Binding Amount}" />
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="FirstSeen:" />
+              <TextBlock Text="{Binding FirstSeen}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Amount:" />
+              <TextBlock Text="{Binding Amount}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Confirmed:" />
+              <TextBlock Text="{Binding Confirmed}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="CoinJoinInProgress:" />
+              <TextBlock Text="{Binding CoinJoinInProgress}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="IsBanned:" />
+              <TextBlock Text="{Binding IsBanned}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="BannedUntilUtc:" />
+              <TextBlock Text="{Binding BannedUntilUtc}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Height:" />
+              <TextBlock Text="{Binding Height}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Transaction:" />
+              <TextBlock Text="{Binding TransactionId}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="SpenderTransaction:" />
+              <TextBlock Text="{Binding SpenderTransactionId}" />
+            </StackPanel>
           </StackPanel>
         </TabItem>
         <TabItem Header="Transaction">
@@ -38,19 +73,28 @@
     </DataTemplate>
 
     <DataTemplate x:Key="DebugWallet" DataType="viewModels:DebugWalletViewModel">
-      <Grid RowDefinitions="50*,8,50*">
-        <TabControl Grid.Row="0">
+        <TabControl>
           <TabItem Header="Coins">
-            <TreeDataGrid Source="{Binding CoinsSource}" />
+            <Grid RowDefinitions="60*,8,40*">
+              <TreeDataGrid Grid.Row="0"
+                            Source="{Binding CoinsSource}" />
+              <GridSplitter Grid.Row="1" />
+              <ContentControl Grid.Row="2"
+                              Content="{Binding SelectedCoin}"
+                              ContentTemplate="{StaticResource DebugCoin}" />
+            </Grid>
           </TabItem>
           <TabItem Header="Transactions">
-            <TreeDataGrid Source="{Binding TransactionsSource}" />
+            <Grid RowDefinitions="60*,8,40*">
+              <TreeDataGrid Grid.Row="0"
+                            Source="{Binding TransactionsSource}" />
+              <GridSplitter Grid.Row="1" />
+              <ContentControl Grid.Row="2"
+                              Content="{Binding SelectedTransaction}"
+                              ContentTemplate="{StaticResource DebugTransaction}" />
+            </Grid>
           </TabItem>
         </TabControl>
-        <GridSplitter Grid.Row="1" />
-        <ContentControl Grid.Row="2" Content="{Binding SelectedCoin}"
-                        ContentTemplate="{StaticResource DebugCoin}" />
-      </Grid>
     </DataTemplate>
 
   </Window.Resources>
