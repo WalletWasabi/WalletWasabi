@@ -88,7 +88,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 				{
 					var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
 
-					var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end);
+					var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end, Wallet);
 
 					list.Add(item);
 

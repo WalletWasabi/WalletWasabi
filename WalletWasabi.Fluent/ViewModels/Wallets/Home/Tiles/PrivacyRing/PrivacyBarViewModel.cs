@@ -82,7 +82,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 						margin--;
 					}
 
-					var item = new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
+					var item = new PrivacyBarItemViewModel(this, coin, (double)start, (double)width, Wallet);
 
 					list.Add(item);
 

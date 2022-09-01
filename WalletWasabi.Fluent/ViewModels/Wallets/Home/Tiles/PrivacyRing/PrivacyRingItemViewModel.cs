@@ -3,6 +3,7 @@ using Avalonia.Media;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
@@ -12,7 +13,12 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 	private const double UprightAngle = Math.PI / 2d;
 	private const double SegmentWidth = 10.0;
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, SmartCoin coin, double start, double end) : base(coin)
+	public PrivacyRingItemViewModel(
+		PrivacyRingViewModel parent,
+		SmartCoin coin,
+		double start,
+		double end,
+		Wallet wallet) : base(coin, wallet)
 	{
 		var outerRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 		var innerRadius = outerRadius - SegmentWidth;
