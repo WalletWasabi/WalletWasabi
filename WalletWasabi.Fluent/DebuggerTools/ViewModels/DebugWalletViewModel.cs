@@ -47,6 +47,26 @@ public partial class DebugWalletViewModel : ViewModelBase
 					"Amount",
 					x => x.Amount,
 					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, bool>(
+					"Confirmed",
+					x => x.Confirmed,
+					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, bool>(
+					"CoinJoinInProgress",
+					x => x.CoinJoinInProgress,
+					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, bool>(
+					"IsBanned",
+					x => x.IsBanned,
+					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, DateTimeOffset?>(
+					"BannedUntilUtc",
+					x => x.BannedUntilUtc,
+					new GridLength(0, GridUnitType.Auto)),
+				new TextColumn<DebugCoinViewModel, Height?>(
+					"Height",
+					x => x.Height,
+					new GridLength(0, GridUnitType.Auto)),
 			}
 		};
 
