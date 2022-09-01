@@ -32,8 +32,8 @@
             <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
               <Button Name="PART_CancelButton"
                       Classes="invisible"
-                      IsVisible="{TemplateBinding EnableCancel}"
                       Content="{TemplateBinding CancelContent}"
+                      Classes.Hidden="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=!EnableCancel}"
                       DockPanel.Dock="Left"
                       HorizontalAlignment="Left" Command="{Binding CancelCommand}">
                 <i:Interaction.Behaviors>
@@ -119,6 +119,10 @@
 
   <Style Selector="c|ContentArea /template/ :is(Control)#PART_ButtonArea">
     <Setter Property="Margin" Value="31,10" />
+  </Style>
+
+  <Style Selector="c|ContentArea /template/ Button#PART_CancelButton.Hidden">
+    <Setter Property="Opacity" Value="0" />
   </Style>
 
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
