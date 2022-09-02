@@ -7,6 +7,7 @@
         <Button Classes="plain" Content="Plain Button" />
         <Button Classes="function" Content="Function Button" />
         <Button Classes="invisible" Content="Invisible Button" />
+        <Button Classes="quickAction" Content="Quick" />
       </StackPanel>
     </Border>
   </Design.PreviewWith>
@@ -72,6 +73,22 @@
   </Style>
   <Style Selector="Button.invisible:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
+  </Style>
+
+  <Style Selector="Button.quickAction">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.quickAction:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.quickAction:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.quickAction:pointerover TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+  <Style Selector="Button.quickAction:pointerover AccessText">
+    <Setter Property="TextDecorations" Value="Underline" />
   </Style>
 
 </Styles>
