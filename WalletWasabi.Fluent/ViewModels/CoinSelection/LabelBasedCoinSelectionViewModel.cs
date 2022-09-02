@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -15,7 +14,6 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
 public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposable
 {
-	private readonly int _anonScoreTarget;
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private string _filter = "";
 
@@ -23,7 +21,6 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges,
 		int anonScoreTarget)
 	{
-		_anonScoreTarget = anonScoreTarget;
 		var filterPredicate = this
 			.WhenAnyValue(x => x.Filter)
 			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
@@ -48,8 +45,6 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	}
 
 	public HierarchicalTreeDataGridSource<TreeNode> Source { get; }
-
-	public ReadOnlyObservableCollection<TreeNode> Nodes { get; set; }
 
 	public void Dispose()
 	{
