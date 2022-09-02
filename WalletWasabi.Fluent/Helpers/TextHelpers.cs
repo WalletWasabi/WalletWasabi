@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TextHelpers
 {
-	public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
+	public static string AddSIfPlural(int n) => n == 1 ? "" : "s";
 
 	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 

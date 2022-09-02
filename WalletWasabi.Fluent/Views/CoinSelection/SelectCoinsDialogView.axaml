@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:coinSelection="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              x:CompileBindings="True"
              x:DataType="coinSelection:SelectCoinsDialogViewModel"
@@ -91,18 +92,19 @@
       <StackPanel DockPanel.Dock="Bottom">
 
         <StackPanel DockPanel.Dock="Bottom" x:Name="Summary" Margin="0 8">
-          <TextBlock>
+          <TextBlock Classes="monoSpaced">
             <TextBlock.Text>
-              <MultiBinding StringFormat="{}{0} selected in {1} coin/s">
+              <MultiBinding StringFormat="{}{0} selected in {1} coin{2}">
                 <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedStringBtc}" />
                 <Binding Path="SelectedCount^" />
+                <Binding Path="SelectedCount^" Converter="{x:Static converters:StringConverters.AddSIfPluralConverter}" />
               </MultiBinding>
             </TextBlock.Text>
           </TextBlock>
 
           <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
 
-          <TextBlock TextAlignment="Right" Classes="h9 monoSpaced" Opacity="0.6"
+          <TextBlock TextAlignment="Right" Classes="monoSpaced" Opacity="0.6"
                      Text="{Binding RemainingAmount^, StringFormat='{}{0} remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}">
           </TextBlock>
         </StackPanel>
