@@ -51,9 +51,9 @@ public class BlockchainAnalyzer
 			}
 			else
 			{
-				AnalyzeCoinjoinWalletInputs(tx, out startingOutputAnonset, out double nonMixedAnonScore);
+				AnalyzeCoinjoinWalletInputs(tx, out startingOutputAnonset, out double startingOutputAnonsetSanctioned, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned);
 
-				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, nonMixedAnonScore);
+				AnalyzeCoinjoinWalletOutputs(tx, startingOutputAnonset, startingOutputAnonsetSanctioned, nonMixedAnonScore, nonMixedAnonScoreSanctioned);
 			}
 
 			AdjustWalletInputs(tx, startingOutputAnonset);
@@ -62,16 +62,18 @@ public class BlockchainAnalyzer
 		AnalyzeClusters(tx);
 	}
 
-	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out double mixedAnonScore, out double nonMixedAnonScore)
+	private static void AnalyzeCoinjoinWalletInputs(SmartTransaction tx, out double mixedAnonScore, out double mixedAnonScoreSanctioned, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned)
 	{
 		CoinjoinAnalyzer cjAnal = new(tx);
 
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
-		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
+		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount));
+		mixedAnonScoreSanctioned = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
 
-		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x));
+		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet);
+		nonMixedAnonScoreSanctioned = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet - cjAnal.ComputeInputSanction(x));
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
@@ -110,7 +112,7 @@ public class BlockchainAnalyzer
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingNonMixedOutputAnonset)
+	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingMixedOutputAnonsetSanctioned, double startingNonMixedOutputAnonset, double startingNonMixedOutputAnonsetSanctioned)
 	{
 		var indistinguishableWalletOutputs = tx.WalletVirtualOutputs
 			.GroupBy(x => x.Amount)
@@ -154,16 +156,16 @@ public class BlockchainAnalyzer
 				// When WW2 denom output isn't too large, then it's not change.
 				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
 				{
-					startingOutputAnonset = startingMixedOutputAnonset;
+					startingOutputAnonset = startingMixedOutputAnonsetSanctioned;
 				}
 				else
 				{
-					startingOutputAnonset = startingNonMixedOutputAnonset;
+					startingOutputAnonset = startingNonMixedOutputAnonsetSanctioned;
 				}
 			}
 			else
 			{
-				startingOutputAnonset = startingMixedOutputAnonset;
+				startingOutputAnonset = startingMixedOutputAnonsetSanctioned;
 			}
 
 			// Account for the inherited anonymity set size from the inputs in the
