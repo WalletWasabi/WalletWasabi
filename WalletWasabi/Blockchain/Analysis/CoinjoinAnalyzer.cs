@@ -8,6 +8,8 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class CoinjoinAnalyzer
 {
+	public static int MaxRecursionDepth = 3;
+
 	public CoinjoinAnalyzer(SmartTransaction transaction)
 	{
 		AnalyzedTransaction = transaction;
@@ -24,8 +26,13 @@ public class CoinjoinAnalyzer
 
 	public double ComputeInputSanction(SmartCoin transactionInput)
 	{
-		double ComputeInputSanctionHelper(SmartCoin transactionOutput)
+		double ComputeInputSanctionHelper(SmartCoin transactionOutput, int recursionDepth = 1)
 		{
+			if (recursionDepth > MaxRecursionDepth)
+			{
+				return 0;
+			}
+
 			// If we already analyzed the sanction for this output, then return the cached result.
 			if (CachedInputSanctions.ContainsKey(transactionOutput))
 			{
@@ -40,7 +47,7 @@ public class CoinjoinAnalyzer
 
 			// Recursively branch out into all of the transaction inputs' histories and compute the sanction for each branch.
 			// Add the worst-case branch to the resulting sanction.
-			sanction += transaction.WalletInputs.Select(ComputeInputSanctionHelper).DefaultIfEmpty(0).Max();
+			sanction += transaction.WalletInputs.Select(x => ComputeInputSanctionHelper(x, recursionDepth + 1)).DefaultIfEmpty(0).Max();
 
 			// Cache the computed sanction in case we need it later.
 			CachedInputSanctions[transactionOutput] = sanction;
