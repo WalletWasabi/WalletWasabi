@@ -15,7 +15,7 @@ namespace WalletWasabi.Packager;
 /// <summary>
 /// Instructions:
 /// <list type="number">
-/// <item>Bump Client version (or else wrong .msi will be created) - <see cref="Helpers.Constants.ClientVersion"/>.</item>
+/// <item>Bump Client version (or else wrong .msi will be created) - <see cref="Constants.ClientVersion"/>.</item>
 /// <item>Publish with Packager.</item>
 /// <item>Build WIX project with Release and x64 configuration.</item>
 /// <item>Sign with Packager, set restore true so the password won't be kept.</item>
