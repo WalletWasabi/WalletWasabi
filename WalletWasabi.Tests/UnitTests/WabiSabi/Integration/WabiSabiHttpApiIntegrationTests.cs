@@ -120,6 +120,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			builder.AddMockRpcClient(
 				coins,
 				rpc =>
+
 					// Make the coordinator believe that the transaction is being
 					// broadcasted using the RPC interface. Once we receive this tx
 					// (the `SendRawTransationAsync` was invoked) we stop waiting
@@ -335,6 +336,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				};
 			})
 		.ConfigureServices(services =>
+
 			// Instruct the coordinator DI container to use this scoped
 			// services to build everything (WabiSabi controller, arena, etc)
 			services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
