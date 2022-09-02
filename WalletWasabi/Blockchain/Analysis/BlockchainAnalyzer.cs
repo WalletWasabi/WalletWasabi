@@ -150,27 +150,31 @@ public class BlockchainAnalyzer
 			double anonymityGain = Math.Min(equalForeignOutputCount / (double)ownEqualOutputCount, foreignInputCount);
 
 			// If no anonset gain achieved on the output, then it's best to assume it's change.
+			double startingOutputAnonset;
 			double startingOutputAnonsetSanctioned;
 			if (anonymityGain < 1)
 			{
 				// When WW2 denom output isn't too large, then it's not change.
 				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
 				{
+					startingOutputAnonset = startingMixedOutputAnonset;
 					startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
 				}
 				else
 				{
+					startingOutputAnonset = startingNonMixedOutputAnonset;
 					startingOutputAnonsetSanctioned = startingNonMixedOutputAnonsetSanctioned;
 				}
 			}
 			else
 			{
+				startingOutputAnonset = startingMixedOutputAnonset;
 				startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
 			}
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
-			double anonset = startingOutputAnonsetSanctioned + anonymityGain;
+			double anonset = new[] { startingOutputAnonsetSanctioned + anonymityGain, anonymityGain + 1, startingOutputAnonset }.Max();
 
 			foreach (var hdPubKey in virtualOutput.Coins.Select(x => x.HdPubKey).ToHashSet())
 			{
