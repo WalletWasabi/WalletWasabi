@@ -72,13 +72,23 @@ public partial class DebugWalletViewModel : ViewModelBase
 		{
 			Coins.AddRange(_coins.Select(x => new DebugCoinViewModel(x, _updateTrigger)));
 
+			var transactionsDict = MapTransactions();
+
 			foreach (var coin in _coins)
 			{
-				Transactions.Add(new DebugTransactionViewModel(coin.Transaction, _updateTrigger));
+				var transaction = new DebugTransactionViewModel(coin.Transaction, _updateTrigger);
+
+				transaction.Coins.AddRange(transactionsDict[transaction.TransactionId]);
+
+				Transactions.Add(transaction);
 
 				if (coin.SpenderTransaction is { })
 				{
-					Transactions.Add(new DebugTransactionViewModel(coin.SpenderTransaction, _updateTrigger));
+					var spenderTransaction = new DebugTransactionViewModel(coin.SpenderTransaction, _updateTrigger);
+
+					spenderTransaction.Coins.AddRange(transactionsDict[spenderTransaction.TransactionId]);
+
+					Transactions.Add(spenderTransaction);
 				}
 			}
 		}
