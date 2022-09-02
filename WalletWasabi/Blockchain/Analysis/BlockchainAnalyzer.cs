@@ -114,14 +114,6 @@ public class BlockchainAnalyzer
 
 	private void AnalyzeCoinjoinWalletOutputs(SmartTransaction tx, double startingMixedOutputAnonset, double startingMixedOutputAnonsetSanctioned, double startingNonMixedOutputAnonset, double startingNonMixedOutputAnonsetSanctioned)
 	{
-		var indistinguishableWalletOutputs = tx.WalletVirtualOutputs
-			.GroupBy(x => x.Amount)
-			.ToDictionary(x => x.Key, y => y.Count());
-
-		var indistinguishableForeignOutputs = tx.ForeignVirtualOutputs
-			.GroupBy(x => x.Amount)
-			.ToDictionary(x => x.Key, y => y.Count());
-
 		var virtualOutputValues = tx
 			.WalletVirtualOutputs
 			.Select(x => x.Amount.Satoshi)
@@ -139,15 +131,9 @@ public class BlockchainAnalyzer
 
 		foreach (var virtualOutput in tx.WalletVirtualOutputs)
 		{
-			if (!indistinguishableForeignOutputs.TryGetValue(virtualOutput.Amount, out int equalForeignOutputCount))
-			{
-				equalForeignOutputCount = 0;
-			}
-			var ownEqualOutputCount = indistinguishableWalletOutputs[virtualOutput.Amount];
-
 			// Anonset gain cannot be larger than others' input count.
 			// Picking randomly an output would make our anonset: total/ours.
-			double anonymityGain = Math.Min(equalForeignOutputCount / (double)ownEqualOutputCount, foreignInputCount);
+			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First()), foreignInputCount);
 
 			// If no anonset gain achieved on the output, then it's best to assume it's change.
 			double startingOutputAnonset;
