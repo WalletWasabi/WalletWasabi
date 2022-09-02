@@ -120,7 +120,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			builder.AddMockRpcClient(
 				coins,
 				rpc =>
-				{
 					// Make the coordinator believe that the transaction is being
 					// broadcasted using the RPC interface. Once we receive this tx
 					// (the `SendRawTransationAsync` was invoked) we stop waiting
@@ -129,8 +128,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					{
 						transactionCompleted.SetResult(tx);
 						return tx.GetHash();
-					};
-				})
+					})
 			.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use these two scoped
@@ -337,7 +335,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				};
 			})
 		.ConfigureServices(services =>
-		{
 			// Instruct the coordinator DI container to use this scoped
 			// services to build everything (WabiSabi controller, arena, etc)
 			services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
@@ -349,8 +346,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
 				MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-			});
-		})).CreateClient();
+			}))).CreateClient();
 
 		// Create the coinjoin client
 		using PersonCircuit personCircuit = new();

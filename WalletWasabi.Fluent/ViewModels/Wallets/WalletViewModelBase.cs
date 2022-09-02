@@ -30,10 +30,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
-			.Subscribe(_ =>
-			{
-				MainViewModel.Instance.InvalidateIsCoinJoinActive();
-			});
+			.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
 	}
 
 	public override string Title
