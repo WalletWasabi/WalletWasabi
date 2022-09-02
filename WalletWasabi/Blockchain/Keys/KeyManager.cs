@@ -309,8 +309,8 @@ public class KeyManager
 
 		lock (HdPubKeyRegistryLock)
 		{
-			var extPubKey = hdPubKeyRegistry.GenerateNewKey();
-			var hdPubKey = new HdPubKey(extPubKey.PubKey, hdPubKeyRegistry.KeyPath.Derive(extPubKey.Child), label, keyState);
+			var (keyPath, extPubKey) = hdPubKeyRegistry.GenerateNewKey();
+			var hdPubKey = new HdPubKey(extPubKey.PubKey, keyPath, label, keyState);
 			HdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.Segwit);
 
 			HdPubKeys.Add(hdPubKey);
@@ -521,28 +521,17 @@ public class KeyManager
 
 	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
 	{
-		var newKeys = new List<HdPubKey>();
-
-		if (isInternal.HasValue)
+		var newKeys = isInternal switch
 		{
-			while (CountConsecutiveUnusedKeys(isInternal.Value, ignoreTail: false) < MinGapLimit)
-			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal.Value));
-			}
-		}
-		else
-		{
-			while (CountConsecutiveUnusedKeys(true, ignoreTail: false) < MinGapLimit)
-			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, true));
-			}
-			while (CountConsecutiveUnusedKeys(false, ignoreTail: false) < MinGapLimit)
-			{
-				newKeys.Add(GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false));
-			}
-		}
+			true => SegWitInternalKeys.AssertCleanKeysIndexed(),
+			false => SegWitExternalKeys.AssertCleanKeysIndexed(),
+			null => SegWitInternalKeys.AssertCleanKeysIndexed().Concat(
+				    SegWitExternalKeys.AssertCleanKeysIndexed())
+		};
 
-		return newKeys;
+		var newHdPubKeys = newKeys.Select(x => new HdPubKey(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean));
+		HdPubKeyCache.AddRangeKeys(newHdPubKeys);
+		return newHdPubKeys;
 	}
 
 	/// <summary>

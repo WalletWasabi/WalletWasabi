@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -20,21 +19,24 @@ public class HdPubKeyManager
 	private HdPubKeyCache HdPubKeyCache { get; }
 	public int MinGapLimit { get; }
 
-	public ExtPubKey GenerateNewKey()
+	public (KeyPath KeyPath, ExtPubKey ExtPubKey) GenerateNewKey() =>
+		GenerateKeyByIndex(GetNextKeyIndex());
+
+	public IEnumerable<(KeyPath KeyPath, ExtPubKey ExtPubKey)> AssertCleanKeysIndexed()
 	{
-		var nextIndex = (uint)GetNextKeyIndex();
-		var path = new KeyPath(nextIndex);
-		var extPubKey = ExtPubKey.Derive(path);
-		return extPubKey;
+		var unusedKeys = GetKeys().Reverse().TakeWhile(x => x.KeyState == KeyState.Clean);
+		var unusedKeyCount = unusedKeys.Count();
+		var missingKeys = Math.Max(MinGapLimit - unusedKeyCount, 0);
+		var idx = GetNextKeyIndex();
+		return Enumerable.Range(idx, missingKeys)
+			.Select(GenerateKeyByIndex);
 	}
 
-	private int GetNextKeyIndex()
-	{
-		var keys = GetKeys();
-		return keys.Any()
-			? keys.Max(x => x.Index)
-			: 0;
-	}
+	private (KeyPath, ExtPubKey) GenerateKeyByIndex(int index) =>
+		(KeyPath.Derive((uint)index), ExtPubKey.Derive((uint)index));
+	
+	private int GetNextKeyIndex() =>
+		GetKeys().Select(x => x.Index).DefaultIfEmpty(0).Max();
 
 	private IEnumerable<HdPubKey> GetKeys() =>
 		HdPubKeyCache

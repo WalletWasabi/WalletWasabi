@@ -30,7 +30,10 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyCacheEntry>
 	}
 
 	public IEnumerator<HdPubKeyCacheEntry> GetEnumerator() =>
-		CacheEntries.Values.DistinctBy(x => x.HdPubKey).GetEnumerator();
+		CacheEntries.Values
+			.DistinctBy(x => x.HdPubKey)
+			.OrderBy(x => x.HdPubKey.Index)
+			.GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
