@@ -70,10 +70,10 @@ public class BlockchainAnalyzer
 		// because coinjoins are an exception from common input ownership heuristic.
 		// Calculate weighted average.
 		mixedAnonScore = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount));
-		mixedAnonScoreSanctioned = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
+		mixedAnonScoreSanctioned = tx.WalletVirtualInputs.Sum(x => (x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min)) * x.Amount.Satoshi) / tx.WalletVirtualInputs.Sum(x => x.Amount);
 
 		nonMixedAnonScore = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet);
-		nonMixedAnonScoreSanctioned = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x));
+		nonMixedAnonScoreSanctioned = tx.WalletVirtualInputs.Min(x => x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.Min));
 	}
 
 	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
