@@ -21,7 +21,7 @@ public partial class DebugCoinViewModel : ViewModelBase
 
 	private void Update()
 	{
-		FirstSeen = _coin.Transaction.FirstSeen;
+		FirstSeen = _coin.Transaction.FirstSeen.LocalDateTime;
 
 		Amount = _coin.Amount;
 
