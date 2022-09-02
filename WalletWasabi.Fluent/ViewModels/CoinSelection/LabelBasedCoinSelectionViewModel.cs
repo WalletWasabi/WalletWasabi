@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -71,11 +72,13 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 
 	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> groups)
 	{
+		var selectionColumn = ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables));
+
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
 		{
 			Columns =
 			{
-				ColumnFactory.ChildrenColumn(ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables))),
+				ColumnFactory.ChildrenColumn(selectionColumn),
 				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
 				ColumnFactory.AnonymityScore(),
@@ -84,6 +87,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 
 		source.RowSelection!.SingleSelect = true;
+		source.SortBy(source.Columns[3], ListSortDirection.Descending);
 
 		return source;
 	}

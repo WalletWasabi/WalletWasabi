@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
@@ -25,20 +27,22 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		Source = CreateGridSource(nodes).DisposeWith(_disposables);
 	}
 
-	public FlatTreeDataGridSource<TreeNode> Source { get; }
+	public HierarchicalTreeDataGridSource<TreeNode> Source { get; }
 
 	public void Dispose()
 	{
 		_disposables.Dispose();
 	}
 
-	private FlatTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins)
+	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins)
 	{
-		var source = new FlatTreeDataGridSource<TreeNode>(coins)
+		var selectionColumn = ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables));
+
+		var source = new HierarchicalTreeDataGridSource<TreeNode>(coins)
 		{
 			Columns =
 			{
-				ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables)),
+				ColumnFactory.ChildrenColumn(selectionColumn),
 				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
 				ColumnFactory.AnonymityScore(),
@@ -47,6 +51,7 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		};
 
 		source.RowSelection!.SingleSelect = true;
+		source.SortBy(source.Columns[3], ListSortDirection.Descending);
 
 		return source;
 	}
