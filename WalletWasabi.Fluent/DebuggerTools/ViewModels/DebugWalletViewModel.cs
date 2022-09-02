@@ -140,6 +140,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 		CoinsSource.RowSelection
 			.WhenAnyValue(x => x.SelectedItem)
 			.Subscribe(x => SelectedCoin = x);
+
+		(CoinsSource as ITreeDataGridSource).SortBy(CoinsSource.Columns[0], ListSortDirection.Descending);
 	}
 
 	private void CreateTransactionsSource()
@@ -164,5 +166,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 		TransactionsSource.RowSelection
 			.WhenAnyValue(x => x.SelectedItem)
 			.Subscribe(x => SelectedTransaction = x);
+
+		(TransactionsSource as ITreeDataGridSource).SortBy(CoinsSource.Columns[0], ListSortDirection.Descending);
 	}
 }
