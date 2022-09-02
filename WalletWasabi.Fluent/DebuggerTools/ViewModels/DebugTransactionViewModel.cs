@@ -21,7 +21,7 @@ public partial class DebugTransactionViewModel : ViewModelBase
 
 	private void Update()
 	{
-		FirstSeen = _transaction.FirstSeen;
+		FirstSeen = _transaction.FirstSeen.LocalDateTime;
 
 		TransactionId = _transaction.GetHash();
 
