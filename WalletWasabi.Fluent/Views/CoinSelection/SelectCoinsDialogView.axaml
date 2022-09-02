@@ -20,21 +20,6 @@
     IsBusy="{Binding IsBusy}"
     ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <controls:ContentArea.Caption>
-
-      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*" Margin="0 16 0 0">
-
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-          <Button Command="{Binding SelectAllPrivateCoinsCommand}">Select all private</Button>
-          <Button Command="{Binding SelectAllCoinsCommand}">Select all</Button>
-          <Button Command="{Binding ClearCoinSelectionCommand}">Clear selection</Button>
-          <Button Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
-        </StackPanel>
-
-      </Grid>
-
-    </controls:ContentArea.Caption>
-
     <controls:ContentArea.Styles>
       <Style Selector="TreeDataGridRow">
         <Setter Property="Focusable" Value="False" />
@@ -89,25 +74,49 @@
         </TextBox>
       </DockPanel>
 
-      <StackPanel DockPanel.Dock="Bottom">
+      <StackPanel DockPanel.Dock="Bottom" Spacing="2" Margin="0 12 0 0">
 
-        <StackPanel DockPanel.Dock="Bottom" x:Name="Summary" Margin="0 8">
+        <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
+
+        <Grid x:Name="Summary" ColumnDefinitions="* *">
           <TextBlock Classes="monoSpaced">
             <TextBlock.Text>
-              <MultiBinding StringFormat="{}{0} BTC selected in {1} coin{2}">
-                <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedString}" />
+              <MultiBinding StringFormat="{}{0} BTC | {1} coin{2} selected">
+                <Binding Path="RemainingAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedString}" />
                 <Binding Path="SelectedCount^" />
                 <Binding Path="SelectedCount^" Converter="{x:Static converters:StringConverters.AddSIfPluralConverter}" />
               </MultiBinding>
             </TextBlock.Text>
           </TextBlock>
 
-          <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
 
-          <TextBlock TextAlignment="Right" Classes="monoSpaced" Opacity="0.6"
-                     Text="{Binding RemainingAmount^, StringFormat='{}{0} BTC remaining', Converter={x:Static converters:MoneyConverters.ToFormattedString}}">
-          </TextBlock>
-        </StackPanel>
+            <StackPanel.Styles>
+              <Style Selector="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Opacity" Value="0.6" />
+                <Setter Property="TextBlock.FontSize" Value="{StaticResource FontSizeH8}" />
+              </Style>
+              <Style Selector="Separator">
+                <Setter Property="Background" Value="White" />
+                <Setter Property="Width" Value="1" />
+                <Setter Property="Height" Value="10" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+              </Style>
+            </StackPanel.Styles>
+
+            <Button Command="{Binding SelectAllPrivateCoinsCommand}">Select all private</Button>
+            <Separator />
+            <Button Command="{Binding SelectAllCoinsCommand}">Select all</Button>
+            <Separator />
+            <Button Command="{Binding ClearCoinSelectionCommand}">Clear selection</Button>
+            <Separator />
+            <Button Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
+          </StackPanel>
+        </Grid>
 
       </StackPanel>
 
