@@ -61,10 +61,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private new ReactiveCommand<Unit, IEnumerable<WalletCoinViewModel>> NextCommand { get; set; }
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var sourceCache = new SourceCache<WalletCoinViewModel, int>(x => x.GetHashCode());
-		var coinLists = GetCoins(_balanceChanged);
+		var coinLists = GetCoins(_balanceChanged)
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 		sourceCache.RefillFrom(coinLists)
 			.DisposeWith(disposables);
@@ -98,12 +100,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SelectPredefinedCoinsCommand = ReactiveCommand.Create(
 			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
+
 		SelectAllCoinsCommand =
 			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
-		ClearCoinSelectionCommand =
-			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
-		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(
+
+		ClearCoinSelectionCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
+
+		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(
 				coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
 
 		SelectPredefinedCoinsCommand.Execute()
