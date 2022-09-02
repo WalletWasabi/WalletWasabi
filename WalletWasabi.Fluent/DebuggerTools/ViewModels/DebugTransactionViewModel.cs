@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels;
@@ -8,14 +9,21 @@ namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 public partial class DebugTransactionViewModel : ViewModelBase
 {
 	private readonly SmartTransaction _transaction;
+	private readonly IObservable<Unit> _updateTrigger;
 
-	public DebugTransactionViewModel(SmartTransaction transaction)
+	public DebugTransactionViewModel(SmartTransaction transaction, IObservable<Unit> updateTrigger)
 	{
 		_transaction = transaction;
+		_updateTrigger = updateTrigger;
 
-		FirstSeen = transaction.FirstSeen;
+		Update();
+	}
 
-		TransactionId = transaction.GetHash();
+	private void Update()
+	{
+		FirstSeen = _transaction.FirstSeen;
+
+		TransactionId = _transaction.GetHash();
 
 		Coins = new List<DebugCoinViewModel>();
 	}

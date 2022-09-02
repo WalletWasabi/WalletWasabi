@@ -1,3 +1,4 @@
+using System.Reactive;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.ViewModels;
@@ -8,12 +9,19 @@ namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 public partial class DebugCoinViewModel : ViewModelBase
 {
 	private readonly SmartCoin _coin;
+	private readonly IObservable<Unit> _updateTrigger;
 
-	public DebugCoinViewModel(SmartCoin coin)
+	public DebugCoinViewModel(SmartCoin coin, IObservable<Unit> updateTrigger)
 	{
 		_coin = coin;
+		_updateTrigger = updateTrigger;
 
-		FirstSeen = coin.Transaction.FirstSeen;
+		Update();
+	}
+
+	private void Update()
+	{
+		FirstSeen = _coin.Transaction.FirstSeen;
 
 		Amount = _coin.Amount;
 
@@ -27,11 +35,11 @@ public partial class DebugCoinViewModel : ViewModelBase
 
 		Height = _coin.Height;
 
-		Transaction = new DebugTransactionViewModel(coin.Transaction);
+		Transaction = new DebugTransactionViewModel(_coin.Transaction, _updateTrigger);
 
-		if (coin.SpenderTransaction is { })
+		if (_coin.SpenderTransaction is { })
 		{
-			SpenderTransaction = new DebugTransactionViewModel(coin.SpenderTransaction);
+			SpenderTransaction = new DebugTransactionViewModel(_coin.SpenderTransaction, _updateTrigger);
 		}
 	}
 

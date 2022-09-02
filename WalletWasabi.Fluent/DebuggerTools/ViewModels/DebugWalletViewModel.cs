@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -14,7 +18,8 @@ namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 public partial class DebugWalletViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
-	private readonly ICoinsView? _coins;
+	private readonly IObservable<Unit> _updateTrigger;
+	private ICoinsView? _coins;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
 
@@ -22,41 +27,59 @@ public partial class DebugWalletViewModel : ViewModelBase
 	{
 		_wallet = wallet;
 
-		if (wallet.Coins is { })
-		{
-			_coins = ((CoinsRegistry) wallet.Coins).AsAllCoinsView();
-		}
-
 		WalletName = _wallet.WalletName;
 
-		Coins = _coins?.Select(x => new DebugCoinViewModel(x)).ToList();
+		Coins = new ObservableCollection<DebugCoinViewModel>();
 
-		// TODO: Transactions
-		Transactions = new List<DebugTransactionViewModel>();
+		Transactions = new ObservableCollection<DebugTransactionViewModel>();
 
-		if (_coins is { })
-		{
-			foreach (var coin in _coins)
-			{
-				Transactions.Add(new DebugTransactionViewModel(coin.Transaction));
+		_updateTrigger =
+			Observable.FromEventPattern(wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
+			.Merge(Observable.FromEventPattern(wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
+			.Throttle(TimeSpan.FromSeconds(0.1))
+			.ObserveOn(RxApp.MainThreadScheduler);
 
-				if (coin.SpenderTransaction is { })
-				{
-					Transactions.Add(new DebugTransactionViewModel(coin.SpenderTransaction));
-				}
-			}
-		}
+		_updateTrigger.Subscribe(_ => Update());
+
+		Update();
 
 		CreateCoinsSource();
 
 		CreateTransactionsSource();
 	}
 
+	private void Update()
+	{
+		if (_wallet.Coins is { })
+		{
+			_coins = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
+		}
+
+		Coins.Clear();
+
+		Transactions.Clear();
+
+		if (_coins is { })
+		{
+			Coins.AddRange(_coins.Select(x => new DebugCoinViewModel(x, _updateTrigger)));
+
+			foreach (var coin in _coins)
+			{
+				Transactions.Add(new DebugTransactionViewModel(coin.Transaction, _updateTrigger));
+
+				if (coin.SpenderTransaction is { })
+				{
+					Transactions.Add(new DebugTransactionViewModel(coin.SpenderTransaction, _updateTrigger));
+				}
+			}
+		}
+	}
+
 	public string WalletName { get; private set; }
 
-	public List<DebugCoinViewModel>? Coins { get; }
+	public ObservableCollection<DebugCoinViewModel> Coins { get; private set; }
 
-	public List<DebugTransactionViewModel>? Transactions { get; }
+	public ObservableCollection<DebugTransactionViewModel> Transactions { get; private set; }
 
 	public FlatTreeDataGridSource<DebugCoinViewModel> CoinsSource { get; private set; }
 
@@ -64,9 +87,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 	private void CreateCoinsSource()
 	{
-		var coins = Coins ?? Enumerable.Empty<DebugCoinViewModel>();
-
-		CoinsSource = new FlatTreeDataGridSource<DebugCoinViewModel>(coins)
+		CoinsSource = new FlatTreeDataGridSource<DebugCoinViewModel>(Coins)
 		{
 			Columns =
 			{
@@ -118,9 +139,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 	private void CreateTransactionsSource()
 	{
-		var transactions = Transactions ?? Enumerable.Empty<DebugTransactionViewModel>();
-
-		TransactionsSource = new FlatTreeDataGridSource<DebugTransactionViewModel>(transactions)
+		TransactionsSource = new FlatTreeDataGridSource<DebugTransactionViewModel>(Transactions)
 		{
 			Columns =
 			{
