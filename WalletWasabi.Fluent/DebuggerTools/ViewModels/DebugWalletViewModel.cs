@@ -70,25 +70,30 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 		if (_coins is { })
 		{
-			Coins.AddRange(_coins.Select(x => new DebugCoinViewModel(x, _updateTrigger)));
+			var coins = _coins.Select(x => new DebugCoinViewModel(x, _updateTrigger));
+			Coins.AddRange(coins);
 
 			var transactionsDict = MapTransactions();
 
-			foreach (var coin in _coins)
+			var existingTransactions = new HashSet<uint256>();
+
+			foreach (var coin in Coins)
 			{
-				var transaction = new DebugTransactionViewModel(coin.Transaction, _updateTrigger);
-
-				transaction.Coins.AddRange(transactionsDict[transaction.TransactionId]);
-
-				Transactions.Add(transaction);
-
-				if (coin.SpenderTransaction is { })
+				if (!existingTransactions.Contains(coin.TransactionId))
 				{
-					var spenderTransaction = new DebugTransactionViewModel(coin.SpenderTransaction, _updateTrigger);
+					coin.Transaction.Coins.AddRange(transactionsDict[coin.TransactionId]);
+					Transactions.Add(coin.Transaction);
+					existingTransactions.Add(coin.TransactionId);
+				}
 
-					spenderTransaction.Coins.AddRange(transactionsDict[spenderTransaction.TransactionId]);
-
-					Transactions.Add(spenderTransaction);
+				if (coin.SpenderTransactionId is { } && coin.SpenderTransaction is { })
+				{
+					if (!existingTransactions.Contains(coin.SpenderTransactionId))
+					{
+						coin.SpenderTransaction.Coins.AddRange(transactionsDict[coin.SpenderTransactionId]);
+						Transactions.Add(coin.SpenderTransaction);
+						existingTransactions.Add(coin.SpenderTransactionId);
+					}
 				}
 			}
 		}
