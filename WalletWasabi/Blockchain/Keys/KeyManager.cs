@@ -519,28 +519,23 @@ public class KeyManager
 
 	public bool AssertLockedInternalKeysIndexed(int howMany)
 	{
-		var changed = false;
+		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, SegWitInternalKeys.MinGapLimit);
+		var lockedKeyCount = SegWitInternalKeys.LockedKeys.Count();
+		var missingLockedKeys = Math.Max(howMany - lockedKeyCount, 0);
 
-		while (GetKeys(KeyState.Locked, true).Count() < howMany)
+		SegWitInternalKeys.AssertCleanKeysIndexed();
+		var availableCandidates = SegWitInternalKeys
+			.CleanKeys
+			.Where(x => x.Label.IsEmpty)
+			.Take(missingLockedKeys)
+			.ToList();
+
+		foreach (var hdPubKeys in availableCandidates)
 		{
-			var firstUnusedInternalKey = GetKeys(x => x.IsInternal == true && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
-
-			if (firstUnusedInternalKey is null)
-			{
-				// If not found, generate a new.
-				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true);
-			}
-			else
-			{
-				firstUnusedInternalKey.SetKeyState(KeyState.Locked);
-			}
-
-			changed = true;
+			hdPubKeys.SetKeyState(KeyState.Locked);
 		}
 
-		var newKeys = AssertCleanKeysIndexed(isInternal: true);
-
-		return changed || newKeys.Any();
+		return availableCandidates.Count > 0;
 	}
 
 	private void SetMinGapLimit(int? minGapLimit)

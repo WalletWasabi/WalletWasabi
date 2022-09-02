@@ -19,6 +19,9 @@ public class HdPubKeyManager
 	private HdPubKeyCache HdPubKeyCache { get; }
 	public int MinGapLimit { get; }
 
+	public IEnumerable<HdPubKey> CleanKeys => GetKeysByState(KeyState.Clean);
+	public IEnumerable<HdPubKey> LockedKeys => GetKeysByState(KeyState.Locked);
+		
 	public (KeyPath KeyPath, ExtPubKey ExtPubKey) GenerateNewKey() =>
 		GenerateKeyByIndex(GetNextKeyIndex());
 
@@ -38,6 +41,9 @@ public class HdPubKeyManager
 	private int GetNextKeyIndex() =>
 		GetKeys().Select(x => x.Index).DefaultIfEmpty(0).Max();
 
+	private IEnumerable<HdPubKey> GetKeysByState(KeyState keyState) =>
+		GetKeys().Where(x => x.KeyState == keyState);
+	
 	private IEnumerable<HdPubKey> GetKeys() =>
 		HdPubKeyCache
 			.Where(IsChildKeyOf(KeyPath))
