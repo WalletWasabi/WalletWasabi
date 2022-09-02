@@ -191,4 +191,37 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 		(TransactionsSource as ITreeDataGridSource).SortBy(TransactionsSource.Columns[0], ListSortDirection.Descending);
 	}
+
+	private Dictionary<uint256, List<DebugCoinViewModel>> MapTransactions()
+	{
+		var transactionsDict = new Dictionary<uint256, List<DebugCoinViewModel>>();
+
+		foreach (var coin in Coins)
+		{
+			if (transactionsDict.TryGetValue(coin.TransactionId, out _))
+			{
+				transactionsDict[coin.TransactionId].Add(coin);
+			}
+			else
+			{
+				transactionsDict[coin.TransactionId] = new List<DebugCoinViewModel> { coin };
+			}
+
+			if (coin.SpenderTransactionId is null)
+			{
+				continue;
+			}
+
+			if (transactionsDict.TryGetValue(coin.SpenderTransactionId, out _))
+			{
+				transactionsDict[coin.SpenderTransactionId].Add(coin);
+			}
+			else
+			{
+				transactionsDict[coin.SpenderTransactionId] = new List<DebugCoinViewModel> { coin };
+			}
+		}
+
+		return transactionsDict;
+	}
 }
