@@ -58,6 +58,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 			_coins = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
 		}
 
+		var selectedCoin = SelectedCoin;
+		var selectedTransaction = SelectedTransaction;
+
 		Coins.Clear();
 		SelectedCoin = null;
 
@@ -76,6 +79,24 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					Transactions.Add(new DebugTransactionViewModel(coin.SpenderTransaction, _updateTrigger));
 				}
+			}
+		}
+
+		if (selectedCoin is { })
+		{
+			var coin = Coins.FirstOrDefault(x => x.TransactionId == selectedCoin.TransactionId);
+			if (coin is { })
+			{
+				SelectedCoin = coin;
+			}
+		}
+
+		if (selectedTransaction is { })
+		{
+			var transaction = Transactions.FirstOrDefault(x => x.TransactionId == selectedTransaction.TransactionId);
+			if (transaction is { })
+			{
+				SelectedTransaction = transaction;
 			}
 		}
 	}
