@@ -13,6 +13,26 @@
 
   <Window.Resources>
 
+    <DataTemplate x:Key="DebugTransaction" DataType="viewModels:DebugTransactionViewModel">
+      <TabControl>
+        <TabItem Header="Transaction">
+          <StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="FirstSeen: " />
+              <TextBlock Text="{Binding FirstSeen}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Transaction: " />
+              <TextBlock Text="{Binding TransactionId}" />
+            </StackPanel>
+          </StackPanel>
+        </TabItem>
+        <TabItem Header="Coins">
+          <TreeDataGrid Source="{Binding CoinsSource}" />
+        </TabItem>
+      </TabControl>
+    </DataTemplate>
+
     <DataTemplate x:Key="DebugCoin" DataType="viewModels:DebugCoinViewModel">
       <TabControl>
         <TabItem Header="Coin">
@@ -62,21 +82,6 @@
         <TabItem Header="SpenderTransaction">
           <ContentControl Content="{Binding SpenderTransaction}"
                           ContentTemplate="{StaticResource DebugTransaction}"/>
-        </TabItem>
-      </TabControl>
-    </DataTemplate>
-
-    <DataTemplate x:Key="DebugTransaction" DataType="viewModels:DebugTransactionViewModel">
-      <TabControl>
-        <TabItem Header="Transaction">
-          <StackPanel>
-            <TextBlock Text="FirstSeen: " />
-            <TextBlock Text="{Binding FirstSeen}" />
-          </StackPanel>
-        </TabItem>
-        <TabItem Header="Coins">
-          <ListBox Items="{Binding Coins}"
-                   ItemTemplate="{StaticResource DebugCoin}" />
         </TabItem>
       </TabControl>
     </DataTemplate>
