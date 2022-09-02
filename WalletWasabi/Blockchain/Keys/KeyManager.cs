@@ -266,34 +266,6 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	public void ToFile()
-	{
-		lock (HdPubKeyRegistryLock)
-		{
-			lock (BlockchainStateLock)
-			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock();
-				}
-			}
-		}
-	}
-
-	public void ToFile(string filePath)
-	{
-		lock (HdPubKeyRegistryLock)
-		{
-			lock (BlockchainStateLock)
-			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock(filePath);
-				}
-			}
-		}
-	}
-
 	public HdPubKey GenerateNewPersistentKey(SmartLabel label, KeyState keyState, bool isInternal)
 	{
 		var newKey = GenerateNewKey(label, keyState, isInternal);
@@ -577,6 +549,35 @@ public class KeyManager
 		// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
 	}
 
+	public void ToFile()
+	{
+		lock (HdPubKeyRegistryLock)
+		{
+			lock (BlockchainStateLock)
+			{
+				lock (ToFileLock)
+				{
+					ToFileNoLock();
+				}
+			}
+		}
+	}
+
+	public void ToFile(string filePath)
+	{
+		lock (HdPubKeyRegistryLock)
+		{
+			lock (BlockchainStateLock)
+			{
+				lock (ToFileLock)
+				{
+					ToFileNoLock(filePath);
+				}
+			}
+		}
+	}
+
+	
 	private void ToFileNoBlockchainStateLock()
 	{
 		lock (HdPubKeyRegistryLock)
