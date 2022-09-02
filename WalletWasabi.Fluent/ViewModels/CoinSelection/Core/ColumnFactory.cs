@@ -151,10 +151,10 @@ public static class ColumnFactory
 			});
 	}
 
-	public static HierarchicalExpanderColumn<TreeNode> ChildrenColumn()
+	public static HierarchicalExpanderColumn<TreeNode> ChildrenColumn(TemplateColumn<TreeNode> textColumn)
 	{
 		return new HierarchicalExpanderColumn<TreeNode>(
-			new TextColumn<TreeNode, string>("", group => ""),
+			textColumn,
 			group => group.Children,
 			node => node.Children.Any());
 	}

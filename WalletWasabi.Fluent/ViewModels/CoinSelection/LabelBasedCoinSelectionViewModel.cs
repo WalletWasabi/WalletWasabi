@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -80,8 +81,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		{
 			Columns =
 			{
-				ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables)),
-				ColumnFactory.ChildrenColumn(),
+				ColumnFactory.ChildrenColumn(ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables))),
 				ColumnFactory.IndicatorsColumn(),
 				ColumnFactory.AmountColumn(),
 				ColumnFactory.AnonymityScore(),
