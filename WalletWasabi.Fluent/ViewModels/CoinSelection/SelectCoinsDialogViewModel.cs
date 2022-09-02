@@ -71,12 +71,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		sourceCache.RefillFrom(coinLists)
 			.DisposeWith(disposables);
 
-		var viewModels = sourceCache.Connect().ReplayLastActive();
+		var viewModels = sourceCache.Connect();
 
 		var selectedCoins = viewModels
-			.AutoRefresh(x => x.IsSelected)
-			.ToCollection()
-			.Select(items => items.Where(t => t.IsSelected));
+				.AutoRefresh(x => x.IsSelected)
+				.ToCollection()
+				.Select(items => items.Where(t => t.IsSelected))
+				.ReplayLastActive();
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
