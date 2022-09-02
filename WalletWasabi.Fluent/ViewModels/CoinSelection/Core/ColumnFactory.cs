@@ -95,7 +95,12 @@ public static class ColumnFactory
 
 					return new LabelsCellViewModel(new SmartLabel());
 				}),
-			GridLength.Star);
+			GridLength.Star,
+			new ColumnOptions<TreeNode>
+			{
+				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
+				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel)
+			});
 	}
 
 	public static TemplateColumn<TreeNode> SelectionColumn(Action<IDisposable> onCellCreated)
