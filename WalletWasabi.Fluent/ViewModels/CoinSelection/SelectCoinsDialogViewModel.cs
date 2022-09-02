@@ -90,11 +90,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SelectedCount = selectedCoins.Select(models => models.Count());
 
 		CoinBasedSelection =
-			new CoinBasedSelectionViewModel(viewModels).DisposeWith(
-				disposables);
+			new CoinBasedSelectionViewModel(viewModels)
+				.DisposeWith(disposables);
 		LabelBasedSelection =
-			new LabelBasedCoinSelectionViewModel(viewModels, _walletViewModel.Wallet.AnonScoreTarget).DisposeWith(
-				disposables);
+			new LabelBasedCoinSelectionViewModel(viewModels)
+				.DisposeWith(disposables);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));

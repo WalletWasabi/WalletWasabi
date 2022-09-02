@@ -18,8 +18,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	[AutoNotify] private string _filter = "";
 
 	public LabelBasedCoinSelectionViewModel(
-		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges,
-		int anonScoreTarget)
+		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
 	{
 		var filterPredicate = this
 			.WhenAnyValue(x => x.Filter)
