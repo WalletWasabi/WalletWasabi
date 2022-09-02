@@ -94,7 +94,8 @@ public static class ColumnFactory
 					}
 
 					return new LabelsCellViewModel(new SmartLabel());
-				}));
+				}),
+			GridLength.Star);
 	}
 
 	public static TemplateColumn<TreeNode> SelectionColumn(Action<IDisposable> onCellCreated)
