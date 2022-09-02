@@ -33,13 +33,16 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 		Transactions = new ObservableCollection<DebugTransactionViewModel>();
 
-		_updateTrigger =
-			Observable.FromEventPattern(wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
-			.Merge(Observable.FromEventPattern(wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
-			.Throttle(TimeSpan.FromSeconds(0.1))
-			.ObserveOn(RxApp.MainThreadScheduler);
+		if (_wallet.TransactionProcessor is { })
+		{
+			_updateTrigger =
+				Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
+					.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
+					.Throttle(TimeSpan.FromSeconds(0.1))
+					.ObserveOn(RxApp.MainThreadScheduler);
 
-		_updateTrigger.Subscribe(_ => Update());
+			_updateTrigger.Subscribe(_ => Update());
+		}
 
 		Update();
 
@@ -56,8 +59,10 @@ public partial class DebugWalletViewModel : ViewModelBase
 		}
 
 		Coins.Clear();
+		SelectedCoin = null;
 
 		Transactions.Clear();
+		SelectedTransaction = null;
 
 		if (_coins is { })
 		{
