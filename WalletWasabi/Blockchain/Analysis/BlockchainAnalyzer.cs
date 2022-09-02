@@ -147,30 +147,30 @@ public class BlockchainAnalyzer
 
 			// Anonset gain cannot be larger than others' input count.
 			// Picking randomly an output would make our anonset: total/ours.
-			double anonset = Math.Min(equalForeignOutputCount / (double)ownEqualOutputCount, foreignInputCount);
+			double anonymityGain = Math.Min(equalForeignOutputCount / (double)ownEqualOutputCount, foreignInputCount);
 
 			// If no anonset gain achieved on the output, then it's best to assume it's change.
-			double startingOutputAnonset;
-			if (anonset < 1)
+			double startingOutputAnonsetSanctioned;
+			if (anonymityGain < 1)
 			{
 				// When WW2 denom output isn't too large, then it's not change.
 				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi) && virtualOutput.Amount < secondLargestOutputAmount)
 				{
-					startingOutputAnonset = startingMixedOutputAnonsetSanctioned;
+					startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
 				}
 				else
 				{
-					startingOutputAnonset = startingNonMixedOutputAnonsetSanctioned;
+					startingOutputAnonsetSanctioned = startingNonMixedOutputAnonsetSanctioned;
 				}
 			}
 			else
 			{
-				startingOutputAnonset = startingMixedOutputAnonsetSanctioned;
+				startingOutputAnonsetSanctioned = startingMixedOutputAnonsetSanctioned;
 			}
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
-			anonset += startingOutputAnonset;
+			double anonset = startingOutputAnonsetSanctioned + anonymityGain;
 
 			foreach (var hdPubKey in virtualOutput.Coins.Select(x => x.HdPubKey).ToHashSet())
 			{
@@ -186,7 +186,7 @@ public class BlockchainAnalyzer
 				else if (tx.WalletVirtualInputs.Select(x => x.HdPubKey).Contains(hdPubKey))
 				{
 					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-					hdPubKey.SetAnonymitySet(startingOutputAnonset, txid);
+					hdPubKey.SetAnonymitySet(startingOutputAnonsetSanctioned, txid);
 				}
 				else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
 				{
