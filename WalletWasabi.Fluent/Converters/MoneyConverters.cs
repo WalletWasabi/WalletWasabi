@@ -8,7 +8,4 @@ public static class MoneyConverters
 {
 	public static readonly IValueConverter ToFormattedString =
 		new FuncValueConverter<Money?, string>(money => money is null ? "" : money.ToFormattedString());
-
-	public static readonly IValueConverter ToFormattedStringBtc =
-		new FuncValueConverter<Money?, string>(money => money is null ? "" : money.ToFormattedString() + " BTC");
 }

@@ -94,8 +94,8 @@
         <StackPanel DockPanel.Dock="Bottom" x:Name="Summary" Margin="0 8">
           <TextBlock Classes="monoSpaced">
             <TextBlock.Text>
-              <MultiBinding StringFormat="{}{0} selected in {1} coin{2}">
-                <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedStringBtc}" />
+              <MultiBinding StringFormat="{}{0} BTC selected in {1} coin{2}">
+                <Binding Path="SelectedAmount^" Converter="{x:Static converters:MoneyConverters.ToFormattedString}" />
                 <Binding Path="SelectedCount^" />
                 <Binding Path="SelectedCount^" Converter="{x:Static converters:StringConverters.AddSIfPluralConverter}" />
               </MultiBinding>
@@ -105,7 +105,7 @@
           <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
 
           <TextBlock TextAlignment="Right" Classes="monoSpaced" Opacity="0.6"
-                     Text="{Binding RemainingAmount^, StringFormat='{}{0} remaining', Converter={x:Static converters:MoneyConverters.ToFormattedStringBtc}}">
+                     Text="{Binding RemainingAmount^, StringFormat='{}{0} BTC remaining', Converter={x:Static converters:MoneyConverters.ToFormattedString}}">
           </TextBlock>
         </StackPanel>
 
