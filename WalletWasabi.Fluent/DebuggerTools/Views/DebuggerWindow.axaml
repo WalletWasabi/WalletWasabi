@@ -24,39 +24,39 @@
         <TabItem Header="Coin">
           <StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="FirstSeen:" />
+              <TextBlock Text="FirstSeen: " />
               <TextBlock Text="{Binding FirstSeen}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Amount:" />
+              <TextBlock Text="Amount: " />
               <TextBlock Text="{Binding Amount}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Confirmed:" />
+              <TextBlock Text="Confirmed: " />
               <TextBlock Text="{Binding Confirmed}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="CoinJoinInProgress:" />
+              <TextBlock Text="CoinJoinInProgress: " />
               <TextBlock Text="{Binding CoinJoinInProgress}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="IsBanned:" />
+              <TextBlock Text="IsBanned: " />
               <TextBlock Text="{Binding IsBanned}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="BannedUntilUtc:" />
+              <TextBlock Text="BannedUntilUtc: " />
               <TextBlock Text="{Binding BannedUntilUtc}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Height:" />
+              <TextBlock Text="Height: " />
               <TextBlock Text="{Binding Height}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Transaction:" />
+              <TextBlock Text="Transaction: " />
               <TextBlock Text="{Binding TransactionId}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="SpenderTransaction:" />
+              <TextBlock Text="SpenderTransaction: " />
               <TextBlock Text="{Binding SpenderTransactionId}" />
             </StackPanel>
           </StackPanel>
