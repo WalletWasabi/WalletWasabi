@@ -36,6 +36,10 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 		if (_wallet.TransactionProcessor is { })
 		{
+			// TODO:
+			// Listen to _wallet.TransactionProcessor.WalletRelevantTransactionProcessed
+			// and show in log list?
+
 			_updateTrigger =
 				Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
 					.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
