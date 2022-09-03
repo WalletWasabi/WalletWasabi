@@ -473,9 +473,7 @@ public class KeyManager
 				    SegWitExternalKeys.AssertCleanKeysIndexed())
 		};
 
-		var newHdPubKeys = newKeys.Select(x => new HdPubKey(x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean));
-		HdPubKeyCache.AddRangeKeys(newHdPubKeys);
-		return newHdPubKeys;
+		return HdPubKeyCache.AddRangeKeys(newKeys.Select(CreateHdPubKey));
 	}
 
 	/// <summary>
@@ -494,8 +492,9 @@ public class KeyManager
 		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, SegWitInternalKeys.MinGapLimit);
 		var lockedKeyCount = SegWitInternalKeys.LockedKeys.Count();
 		var missingLockedKeys = Math.Max(howMany - lockedKeyCount, 0);
+			
+		HdPubKeyCache.AddRangeKeys(SegWitInternalKeys.AssertCleanKeysIndexed().Select(CreateHdPubKey));
 
-		SegWitInternalKeys.AssertCleanKeysIndexed();
 		var availableCandidates = SegWitInternalKeys
 			.CleanKeys
 			.Where(x => x.Label.IsEmpty)

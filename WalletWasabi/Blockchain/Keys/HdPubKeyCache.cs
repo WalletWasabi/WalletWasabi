@@ -21,12 +21,14 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyCacheEntry>
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKeyCacheEntry? hdPubKeyEx) =>
 		CacheEntries.TryGetValue(destination, out hdPubKeyEx);
 
-	public void AddRangeKeys(IEnumerable<HdPubKey> keys)
+	public IEnumerable<HdPubKey> AddRangeKeys(IEnumerable<HdPubKey> keys)
 	{
 		foreach (var key in keys)
 		{
 			AddKey(key, ScriptPubKeyType.Segwit);
 		}
+
+		return keys;
 	}
 
 	public IEnumerator<HdPubKeyCacheEntry> GetEnumerator() =>
