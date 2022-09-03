@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -62,7 +63,7 @@ public class HdPubKeyManager
 		(KeyPath.Derive((uint)index), ExtPubKey.Derive((uint)index));
 	
 	private int GetNextKeyIndex() =>
-		GetKeys().Select(x => x.Index).DefaultIfEmpty(-1).Max() + 1;
+		GetKeys().Select(x => x.Index).MaxOrDefault(-1) + 1;
 
 	private IEnumerable<HdPubKey> GetKeysByState(KeyState keyState) =>
 		GetKeys().Where(x => x.KeyState == keyState);

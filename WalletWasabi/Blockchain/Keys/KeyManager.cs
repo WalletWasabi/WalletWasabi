@@ -367,7 +367,7 @@ public class KeyManager
 		var gapCount = gaps.Count();
 		return gapCount == 0 
 			? 0 
-			: 1 + gaps.Take(gapCount + (ignoreTail ? -1 : 0)).Max();
+			: 1 + gaps.Take(gapCount + (ignoreTail ? -1 : 0)).MaxOrDefault(0);
 	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
