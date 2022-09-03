@@ -358,16 +358,10 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
-	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
+	public int CountConsecutiveUnusedKeys(bool isInternal)
 	{
 		var keySource = isInternal ? SegWitInternalKeys : SegWitExternalKeys;
-		var gaps = keySource.GetGaps();
-
-		var gapCount = gaps.Count();
-		return gapCount == 0 
-			? 0 
-			: 1 + gaps.Take(gapCount + (ignoreTail ? -1 : 0)).MaxOrDefault(0);
+		return keySource.GetGaps().MaxOrDefault(0);
 	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
@@ -683,4 +677,7 @@ public class KeyManager
 	}
 
 	#endregion BlockchainState
+	
+	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
+		new (x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
 }

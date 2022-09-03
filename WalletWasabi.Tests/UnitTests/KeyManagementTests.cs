@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.IO;
 using System.Linq;
@@ -5,6 +6,7 @@ using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -165,32 +167,26 @@ public class KeyManagementTests
 	public void GapCountingTests()
 	{
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(false, ignoreTail: false));
+		var hdPubKeys = Enumerable.Range(0, 100)
+			.Select(i => km.GenerateNewKey(SmartLabel.Empty, i % 2 == 0 ? KeyState.Clean : KeyState.Locked, true))
+			.ToArray();
 
-		var k = km.GenerateNewKey("", KeyState.Clean, true);
-		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		hdPubKeys[0].SetKeyState(KeyState.Used);
+		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
 
-		km.GenerateNewKey("", KeyState.Locked, true);
-		Assert.Equal(2, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		hdPubKeys[10].SetKeyState(KeyState.Used);
+		Assert.Equal(10, km.CountConsecutiveUnusedKeys(true));
 
-		k.SetKeyState(KeyState.Used);
-		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		hdPubKeys[30].SetKeyState(KeyState.Used);
+		Assert.Equal(20, km.CountConsecutiveUnusedKeys(true));
 
-		for (int i = 0; i < 100; i++)
-		{
-			var k2 = km.GenerateNewKey("", KeyState.Clean, true);
-			if (i == 50)
-			{
-				k = k2;
-			}
-		}
-		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
-		k.SetKeyState(KeyState.Locked);
-		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
-		k.SetKeyState(KeyState.Used);
-		Assert.Equal(51, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		hdPubKeys[80].SetKeyState(KeyState.Used);
+		Assert.Equal(50, km.CountConsecutiveUnusedKeys(true));
+
+		hdPubKeys[30].SetKeyState(KeyState.Clean);
+		Assert.Equal(70, km.CountConsecutiveUnusedKeys(true));
 	}
+
 
 	private static void DeleteFileAndDirectoryIfExists(string filePath)
 	{
