@@ -37,6 +37,27 @@ public class HdPubKeyManager
 			.Select(GenerateKeyByIndex);
 	}
 
+	internal IEnumerable<int> GetGaps()
+	{
+		static IEnumerable<int> InternalGetGaps(int[] diffs)
+		{
+			var count = diffs.TakeWhile(x => x == 1).Count();
+			yield return count;
+			if (diffs.Length > 0)
+			{
+				foreach (var i in InternalGetGaps(diffs[1..]))
+				{
+					yield return i;
+				}
+			}
+		}
+
+		var indexes = UnusedKeys.Select(x => x.Index).ToArray();
+		return indexes.Length == 0
+			? Enumerable.Empty<int>()
+			: InternalGetGaps(Enumerable.Zip(indexes, indexes[1..]).Select(x => x.Second - x.First).ToArray());
+	}
+	
 	private (KeyPath, ExtPubKey) GenerateKeyByIndex(int index) =>
 		(KeyPath.Derive((uint)index), ExtPubKey.Derive((uint)index));
 	

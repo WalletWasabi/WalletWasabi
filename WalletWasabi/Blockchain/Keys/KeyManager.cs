@@ -362,33 +362,12 @@ public class KeyManager
 	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
 	{
 		var keySource = isInternal ? SegWitInternalKeys : SegWitExternalKeys;
-		var gaps = GetGaps(keySource.UnusedKeys);
+		var gaps = keySource.GetGaps();
 
 		var gapCount = gaps.Count();
 		return gapCount == 0 
 			? 0 
 			: 1 + gaps.Take(gapCount + (ignoreTail ? -1 : 0)).Max();
-	}
-
-	private IEnumerable<int> GetGaps(IEnumerable<HdPubKey> hdPubKeys)
-	{
-		static IEnumerable<int> InternalGetGaps(int[] diffs)
-		{
-			var count = diffs.TakeWhile(x => x == 1).Count();
-			yield return count;
-			if (diffs.Length > 0)
-			{
-				foreach (var i in InternalGetGaps(diffs[1..]))
-				{
-					yield return i;
-				}
-			}
-		}
-
-		var indexes = hdPubKeys.Select(x => x.Index).ToArray();
-		return indexes.Length == 0
-			? Enumerable.Empty<int>()
-			: InternalGetGaps(Enumerable.Zip(indexes, indexes[1..]).Select(x => x.Second - x.First).ToArray());
 	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
