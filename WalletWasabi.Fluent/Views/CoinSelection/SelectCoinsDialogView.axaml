@@ -107,7 +107,7 @@
 
         <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
 
-        <Grid x:Name="Summary" ColumnDefinitions="* *">
+        <Grid x:Name="Summary" ColumnDefinitions="* Auto">
 
           <Grid.Styles>
             <Style Selector="Button">
@@ -125,19 +125,7 @@
             </Style>
           </Grid.Styles>
 
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Classes="h8 monoSpaced" x:Name="Remaining" Text="{Binding RemainingAmount^, StringFormat='{}{0} BTC remaining', Converter={x:Static converters:MoneyConverters.ToFormattedString}}" IsVisible="{Binding RemainingAmount^.Satoshi}" />
-            <Separator IsVisible="{Binding #Remaining.IsVisible}" />
-            <TextBlock Classes="h8 monoSpaced">
-              <TextBlock.Text>
-                <MultiBinding StringFormat="{}{0} coin{1} selected">
-                  <Binding Path="SelectedCount^" />
-                  <Binding Path="SelectedCount^"
-                           Converter="{x:Static converters:StringConverters.AddSIfPluralConverter}" />
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
-          </StackPanel>
+          <TextBlock Classes="h8" Margin="0 0 8 0" TextWrapping="Wrap" Text="{Binding SummaryText^}" />
 
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
             <Button Classes="quickAction h8" Command="{Binding SelectAllPrivateCoinsCommand}">Select all private</Button>

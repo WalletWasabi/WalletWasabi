@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -8,6 +9,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -31,6 +33,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
+	[AutoNotify] private IObservable<string> _summaryText = Observable.Return("");
 	[AutoNotify] private IObservable<bool> _isSelectionBadlyChosen = Observable.Return(false);
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
@@ -61,7 +64,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private new ReactiveCommand<Unit, IEnumerable<WalletCoinViewModel>> NextCommand { get; set; }
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var sourceCache = new SourceCache<WalletCoinViewModel, int>(x => x.GetHashCode());
@@ -74,10 +77,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var viewModels = sourceCache.Connect();
 
 		var selectedCoins = viewModels
-				.AutoRefresh(x => x.IsSelected)
-				.ToCollection()
-				.Select(items => items.Where(t => t.IsSelected))
-				.ReplayLastActive();
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(items => items.Where(t => t.IsSelected))
+			.ReplayLastActive();
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
@@ -96,6 +99,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			new LabelBasedCoinSelectionViewModel(viewModels)
 				.DisposeWith(disposables);
 
+		SummaryText = RemainingAmount.CombineLatest(
+			SelectedCount,
+			(remaining, selectedCoins) =>
+			{
+				var remainingText = remaining == Money.Zero ? "" : $"{remaining.FormattedBtc()} BTC | ";
+				var coinCountText = $"{selectedCoins} coin{TextHelpers.AddSIfPlural(selectedCoins)} selected";
+				return remainingText + coinCountText;
+			});
+
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
 
@@ -105,9 +117,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SelectAllCoinsCommand =
 			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
 
-		ClearCoinSelectionCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
+		ClearCoinSelectionCommand =
+			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
 
-		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
+		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
+			() => sourceCache.Items.ToList().ForEach(
+				coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
 
 		SelectPredefinedCoinsCommand.Execute()
 			.Subscribe()
