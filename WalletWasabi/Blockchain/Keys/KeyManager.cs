@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
@@ -360,42 +361,34 @@ public class KeyManager
 	/// <param name="ignoreTail">If true it does only consider the gap between used keys and does not care about the nonused keys at the end.</param>
 	public int CountConsecutiveUnusedKeys(bool isInternal, bool ignoreTail)
 	{
-		var keyIndexes = GetKeys(x => x.IsInternal == isInternal && x.KeyState != KeyState.Used).Select(x => x.Index).ToArray();
+		var keySource = isInternal ? SegWitInternalKeys : SegWitExternalKeys;
+		var gaps = GetGaps(keySource.UnusedKeys);
 
-		if (ignoreTail)
+		var gapCount = gaps.Count();
+		return gapCount == 0 
+			? 0 
+			: 1 + gaps.Take(gapCount + (ignoreTail ? -1 : 0)).Max();
+	}
+
+	private IEnumerable<int> GetGaps(IEnumerable<HdPubKey> hdPubKeys)
+	{
+		static IEnumerable<int> InternalGetGaps(int[] diffs)
 		{
-			var lastUsedIndex = GetKeys(x => x.IsInternal == isInternal && x.KeyState == KeyState.Used).LastOrDefault()?.Index;
-			if (lastUsedIndex is null)
+			var count = diffs.TakeWhile(x => x == 1).Count();
+			yield return count;
+			if (diffs.Length > 0)
 			{
-				return 0;
-			}
-			else
-			{
-				keyIndexes = keyIndexes.Where(x => x < lastUsedIndex).ToArray();
-			}
-		}
-
-		var hs = keyIndexes.ToHashSet();
-		int largerConsecutiveSequence = 0;
-
-		for (int i = 0; i < keyIndexes.Length; ++i)
-		{
-			if (!hs.Contains(keyIndexes[i] - 1))
-			{
-				int j = keyIndexes[i];
-				while (hs.Contains(j))
+				foreach (var i in InternalGetGaps(diffs[1..]))
 				{
-					j++;
-				}
-
-				var sequenceLength = j - keyIndexes[i];
-				if (largerConsecutiveSequence < sequenceLength)
-				{
-					largerConsecutiveSequence = sequenceLength;
+					yield return i;
 				}
 			}
 		}
-		return largerConsecutiveSequence;
+
+		var indexes = hdPubKeys.Select(x => x.Index).ToArray();
+		return indexes.Length == 0
+			? Enumerable.Empty<int>()
+			: InternalGetGaps(Enumerable.Zip(indexes, indexes[1..]).Select(x => x.Second - x.First).ToArray());
 	}
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()

@@ -21,6 +21,8 @@ public class HdPubKeyManager
 
 	public IEnumerable<HdPubKey> CleanKeys => GetKeysByState(KeyState.Clean);
 	public IEnumerable<HdPubKey> LockedKeys => GetKeysByState(KeyState.Locked);
+	public IEnumerable<HdPubKey> UsedKeys => GetKeysByState(KeyState.Used);
+	public IEnumerable<HdPubKey> UnusedKeys => GetKeys().Except(UsedKeys);
 		
 	public (KeyPath KeyPath, ExtPubKey ExtPubKey) GenerateNewKey() =>
 		GenerateKeyByIndex(GetNextKeyIndex());
@@ -39,7 +41,7 @@ public class HdPubKeyManager
 		(KeyPath.Derive((uint)index), ExtPubKey.Derive((uint)index));
 	
 	private int GetNextKeyIndex() =>
-		GetKeys().Select(x => x.Index).DefaultIfEmpty(0).Max();
+		GetKeys().Select(x => x.Index).DefaultIfEmpty(-1).Max() + 1;
 
 	private IEnumerable<HdPubKey> GetKeysByState(KeyState keyState) =>
 		GetKeys().Where(x => x.KeyState == keyState);
