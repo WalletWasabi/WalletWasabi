@@ -186,7 +186,7 @@ public class KeyManager
 
 	private object ToFileLock { get; } = new();
 
-	private HdPubKeyManager SegWitExternalKeys { get; }
+	private HdPubKeyManager SegWitExternalKeys { get; set; }
 	private HdPubKeyManager SegWitInternalKeys { get; }
 	
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
@@ -300,16 +300,15 @@ public class KeyManager
 
 		minGapLimitIncreased = false;
 
-		AssertCleanKeysIndexed(isInternal: false);
+		HdPubKeyCache.AddRangeKeys(SegWitExternalKeys.AssertCleanKeysIndexed().Select(CreateHdPubKey));
 
 		// Find the next clean external key with empty label.
-		var newKey = GetKeys(x => x.IsInternal == false && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
-
-		// If not found, generate a new.
-		if (newKey is null)
+		if (SegWitExternalKeys.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
 		{
-			SetMinGapLimit(MinGapLimit + 1);
-			newKey = AssertCleanKeysIndexed(isInternal: false).First();
+			SegWitExternalKeys = SegWitExternalKeys with { MinGapLimit = SegWitExternalKeys.MinGapLimit + 1 };
+			var newHdPubKeys = HdPubKeyCache.AddRangeKeys(SegWitExternalKeys.AssertCleanKeysIndexed().Select(CreateHdPubKey)); 
+
+			newKey = newHdPubKeys.First();
 
 			// If the new is over the MinGapLimit, set minGapLimitIncreased to true.
 			minGapLimitIncreased = true;

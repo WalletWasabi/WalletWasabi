@@ -5,7 +5,7 @@ using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.Keys;
 
-public class HdPubKeyManager
+public record HdPubKeyManager
 {
 	public HdPubKeyManager(ExtPubKey extPubKey, KeyPath keyPath, HdPubKeyCache hdPubKeyCache, int minGapLimit)
 	{
@@ -18,7 +18,7 @@ public class HdPubKeyManager
 	public ExtPubKey ExtPubKey { get; }
 	public KeyPath KeyPath { get; }
 	private HdPubKeyCache HdPubKeyCache { get; }
-	public int MinGapLimit { get; }
+	public int MinGapLimit { get; init; }
 
 	public IEnumerable<HdPubKey> CleanKeys => GetKeysByState(KeyState.Clean);
 	public IEnumerable<HdPubKey> LockedKeys => GetKeysByState(KeyState.Locked);
