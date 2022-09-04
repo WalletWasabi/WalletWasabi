@@ -92,14 +92,12 @@
           </Button>
 
           <Button Classes="plain"
-                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding PauseVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
 
           <Button Classes="plain"
-                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding StopVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource stop_regular}" />

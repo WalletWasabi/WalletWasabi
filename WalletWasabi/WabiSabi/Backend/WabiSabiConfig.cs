@@ -110,6 +110,22 @@ public class WabiSabiConfig : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
 
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsCoinVerifierEnabled { get; set; } = false;
+
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "CoinVerifierApiUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoinVerifierApiUrl { get; set; } = "";
+
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "CoinVerifierApiAuthToken", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoinVerifierApiAuthToken { get; set; } = "";
+
+	[DefaultValueTimeSpan("31d 0h 0m 0s")]
+	[JsonProperty(PropertyName = "ReleaseFromWhitelistAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ReleaseFromWhitelistAfter { get; set; } = TimeSpan.FromDays(31);
+
 	[DefaultValue(1)]
 	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int RoundParallelization { get; set; } = 1;

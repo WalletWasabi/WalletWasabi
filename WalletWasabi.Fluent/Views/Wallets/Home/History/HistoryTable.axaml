@@ -274,7 +274,15 @@
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                  RowHeight="{StaticResource HistoryTableRowHeight}" />
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
+      <Panel Background="{DynamicResource RegionColor}" Opacity="0.75" />
+      <Grid RowDefinitions="26,1*,1.5*"
+            IsVisible="{Binding IsTransactionHistoryLoaded}"
+            Margin="{StaticResource HistoryTablePlaceholderPanelMargin}">
+        <c:InfoMessage VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Grid.Row="1"
+                       Content="Transaction history is empty" />
+      </Grid>
     </Panel>
   </Panel>
 </UserControl>
