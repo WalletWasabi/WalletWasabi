@@ -6,7 +6,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Backend.Models;
