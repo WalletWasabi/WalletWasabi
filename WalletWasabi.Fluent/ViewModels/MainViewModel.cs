@@ -194,6 +194,7 @@ public partial class MainViewModel : ViewModelBase
 		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 	}
 
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Same lifecycle as the application. Won't be disposed separately.")]
 	private SearchBarViewModel CreateSearchBar()
 	{
 		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
