@@ -1404,7 +1404,6 @@ public class TransactionProcessorTests
 	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore, int privacyLevelThreshold = 100)
 	{
 		var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
-		keyManager.AssertCleanKeysIndexed();
 
 		return new TransactionProcessor(
 			transactionStore,

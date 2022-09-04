@@ -233,7 +233,9 @@ public class KeyManager
 
 		KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
 		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: false, minGapLimit, new BlockchainState(network), filePath, keyPath);
+		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: false, minGapLimit, new BlockchainState(network), filePath, keyPath);
+		km.AssertCleanKeysIndexed();
+		return km;
 	}
 
 	public static KeyManager FromFile(string filePath)
@@ -327,6 +329,7 @@ public class KeyManager
 		// m / purpose' / coin_type' / account' / change / address_index
 		lock (HdPubKeyRegistryLock)
 		{
+			AssertCleanKeysIndexed();
 			var allKeys = HdPubKeyCache.Select(x => x.HdPubKey);
 			return wherePredicate switch
 			{
@@ -441,33 +444,25 @@ public class KeyManager
 		}
 	}
 
-	/// <summary>
-	/// Make sure there's always clean keys generated and indexed.
-	/// Call SetMinGapLimit() to set how many keys should be asserted.
-	/// </summary>
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexedAndPersist(bool? isInternal = null)
+	public void SetKeyState(KeyState newKeyState, HdPubKey hdPubKey)
 	{
-		var newKeys = AssertCleanKeysIndexed(isInternal);
-		if (newKeys.Any())
+		if (hdPubKey.KeyState == newKeyState)
 		{
-			ToFile();
+			return;
 		}
 
-		return newKeys;
-	}
-
-	public IEnumerable<HdPubKey> AssertCleanKeysIndexed(bool? isInternal = null)
-	{
-		var newKeys = isInternal switch
+		hdPubKey.SetKeyState(newKeyState);
+		if (newKeyState is KeyState.Locked or KeyState.Used)
 		{
-			true => SegWitInternalKeys.AssertCleanKeysIndexed(),
-			false => SegWitExternalKeys.AssertCleanKeysIndexed(),
-			null => SegWitInternalKeys.AssertCleanKeysIndexed().Concat(
-				    SegWitExternalKeys.AssertCleanKeysIndexed())
-		};
-
-		return HdPubKeyCache.AddRangeKeys(newKeys.Select(CreateHdPubKey));
+			var keySource = hdPubKey.IsInternal ? SegWitInternalKeys : SegWitExternalKeys;
+			HdPubKeyCache.AddRangeKeys(keySource.AssertCleanKeysIndexed().Select(CreateHdPubKey));
+		}
 	}
+	
+	private IEnumerable<HdPubKey> AssertCleanKeysIndexed() =>
+		HdPubKeyCache.AddRangeKeys(
+			SegWitInternalKeys.AssertCleanKeysIndexed().Concat(SegWitExternalKeys.AssertCleanKeysIndexed())
+				.Select(CreateHdPubKey));
 
 	/// <summary>
 	/// Make sure there's always locked internal keys generated and indexed.
@@ -496,7 +491,7 @@ public class KeyManager
 
 		foreach (var hdPubKeys in availableCandidates)
 		{
-			hdPubKeys.SetKeyState(KeyState.Locked);
+			SetKeyState(KeyState.Locked, hdPubKeys);
 		}
 
 		return availableCandidates.Count > 0;

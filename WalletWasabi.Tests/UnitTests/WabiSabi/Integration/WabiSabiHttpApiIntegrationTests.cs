@@ -107,7 +107,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager.AssertCleanKeysIndexed();
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
 			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
@@ -192,7 +191,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager.AssertCleanKeysIndexed();
+		//keyManager.AssertCleanKeysIndexed();
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
 			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
@@ -297,10 +296,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		var keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager1.AssertCleanKeysIndexed();
-
 		var keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager2.AssertCleanKeysIndexed();
 
 		var coins = keyManager1.GetKeys()
 			.Take(inputCount)

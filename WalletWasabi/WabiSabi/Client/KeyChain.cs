@@ -28,7 +28,7 @@ public class KeyChain : BaseKeyChain
 	{
 		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{
-			hdPubKey.SetKeyState(state);
+			KeyManager.SetKeyState(state, hdPubKey);
 		}
 	}
 

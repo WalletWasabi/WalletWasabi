@@ -81,7 +81,6 @@ public class KeyManagementTests
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 		Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
-		differentManager.AssertCleanKeysIndexed();
 		var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true);
 		Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 		Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
@@ -93,11 +92,11 @@ public class KeyManagementTests
 		string password = "password";
 		var manager = KeyManager.CreateNew(out _, password, Network.Main);
 
-		manager.AssertCleanKeysIndexed();
 		var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
-		lastKey.SetKeyState(KeyState.Used);
-		var newKeys = manager.AssertCleanKeysIndexed();
-		Assert.Equal(manager.MinGapLimit, newKeys.Count());
+		manager.SetKeyState(KeyState.Used, lastKey);
+
+		var newLastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
+		Assert.Equal(manager.MinGapLimit, newLastKey.Index - lastKey.Index);
 	}
 
 	[Fact]
@@ -171,19 +170,19 @@ public class KeyManagementTests
 			.Select(i => km.GenerateNewKey(SmartLabel.Empty, i % 2 == 0 ? KeyState.Clean : KeyState.Locked, true))
 			.ToArray();
 
-		hdPubKeys[0].SetKeyState(KeyState.Used);
+		km.SetKeyState(KeyState.Used, hdPubKeys[0]);
 		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
 
-		hdPubKeys[10].SetKeyState(KeyState.Used);
+		km.SetKeyState(KeyState.Used, hdPubKeys[10]);
 		Assert.Equal(10, km.CountConsecutiveUnusedKeys(true));
 
-		hdPubKeys[30].SetKeyState(KeyState.Used);
+		km.SetKeyState(KeyState.Used, hdPubKeys[30]);
 		Assert.Equal(20, km.CountConsecutiveUnusedKeys(true));
 
-		hdPubKeys[80].SetKeyState(KeyState.Used);
+		km.SetKeyState(KeyState.Used, hdPubKeys[80]);
 		Assert.Equal(50, km.CountConsecutiveUnusedKeys(true));
 
-		hdPubKeys[30].SetKeyState(KeyState.Clean);
+		km.SetKeyState(KeyState.Clean, hdPubKeys[30]);
 		Assert.Equal(70, km.CountConsecutiveUnusedKeys(true));
 	}
 

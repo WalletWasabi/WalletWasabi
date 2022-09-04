@@ -132,7 +132,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 			return;
 		}
 
-		model.SetKeyState(KeyState.Locked, Wallet.KeyManager);
+		Wallet.KeyManager.SetKeyState(KeyState.Locked, model);
 		InitializeAddresses();
 
 		if (Application.Current is { Clipboard: { } clipboard })

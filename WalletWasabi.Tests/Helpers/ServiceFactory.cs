@@ -18,8 +18,6 @@ public static class ServiceFactory
 		var password = "foo";
 		var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
 
-		keyManager.AssertCleanKeysIndexed();
-
 		var coinArray = coins.ToArray();
 
 		var generated = keyManager.GetKeys().Count();
