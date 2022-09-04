@@ -9,7 +9,9 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -34,20 +36,57 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 		Transactions = new ObservableCollection<DebugTransactionViewModel>();
 
-		if (_wallet.TransactionProcessor is { })
-		{
-			// TODO:
-			// Listen to _wallet.TransactionProcessor.WalletRelevantTransactionProcessed
-			// and show in log list?
+		_updateTrigger =
+			Observable
+				.FromEventPattern(_wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
+				.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
+				.Throttle(TimeSpan.FromSeconds(0.1))
+				.ObserveOn(RxApp.MainThreadScheduler);
 
-			_updateTrigger =
-				Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
-					.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
-					.Throttle(TimeSpan.FromSeconds(0.1))
-					.ObserveOn(RxApp.MainThreadScheduler);
+		_updateTrigger.Subscribe(_ => Update());
 
-			_updateTrigger.Subscribe(_ => Update());
-		}
+		Observable
+			.FromEventPattern<ProcessedResult>(_wallet, nameof(Wallet.WalletRelevantTransactionProcessed))
+			.Select(x => x.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				// TODO: Show in log list.
+			});
+
+		// TODO: Wallet.InitializingChanged ?
+
+		Observable
+			.FromEventPattern<FilterModel>(_wallet, nameof(Wallet.NewFilterProcessed))
+			.Select(x => x.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				// TODO: Show in log list.
+			});
+
+		Observable
+			.FromEventPattern<Block>(_wallet, nameof(Wallet.NewBlockProcessed))
+			.Select(x => x.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				// TODO: Show in log list.
+			});
+
+		Observable
+			.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
+			.Select(x => x.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(state =>
+			{
+				// TODO: Show in log list.
+
+				if (state == WalletState.Started)
+				{
+					Update();
+				}
+			});
 
 		Update();
 
@@ -75,7 +114,11 @@ public partial class DebugWalletViewModel : ViewModelBase
 		if (_coins is { })
 		{
 			var coins = _coins.Select(x => new DebugCoinViewModel(x, _updateTrigger));
-			Coins.AddRange(coins);
+
+			foreach (var coin in coins)
+			{
+				Coins.Add(coin);
+			}
 
 			var transactionsDict = MapTransactions();
 
@@ -85,8 +128,13 @@ public partial class DebugWalletViewModel : ViewModelBase
 			{
 				if (!existingTransactions.Contains(coin.TransactionId))
 				{
-					coin.Transaction.Coins.AddRange(transactionsDict[coin.TransactionId]);
+					foreach (var transactionCoin in transactionsDict[coin.TransactionId])
+					{
+						coin.Transaction.Coins.Add(transactionCoin);
+					}
+
 					Transactions.Add(coin.Transaction);
+
 					existingTransactions.Add(coin.TransactionId);
 				}
 
@@ -94,8 +142,13 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					if (!existingTransactions.Contains(coin.SpenderTransactionId))
 					{
-						coin.SpenderTransaction.Coins.AddRange(transactionsDict[coin.SpenderTransactionId]);
+						foreach (var spenderCoin in transactionsDict[coin.SpenderTransactionId])
+						{
+							coin.SpenderTransaction.Coins.Add(spenderCoin);
+						}
+
 						Transactions.Add(coin.SpenderTransaction);
+
 						existingTransactions.Add(coin.SpenderTransactionId);
 					}
 				}
