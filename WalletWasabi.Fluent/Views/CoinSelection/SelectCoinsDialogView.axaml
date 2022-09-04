@@ -107,7 +107,7 @@
 
         <ProgressBar Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" Margin="0 4 0 0" />
 
-        <Grid x:Name="Summary" ColumnDefinitions="* Auto">
+        <Grid x:Name="Summary" ColumnDefinitions="* Auto" Margin="0 4 0 0">
 
           <Grid.Styles>
             <Style Selector="Button">
