@@ -33,7 +33,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
-	[AutoNotify] private IObservable<string> _summaryText = Observable.Return("");
 	[AutoNotify] private IObservable<bool> _isSelectionBadlyChosen = Observable.Return(false);
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
@@ -42,6 +41,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private IObservable<string> _summaryText = Observable.Return("");
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
@@ -62,7 +62,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	public Money TargetAmount { get; }
 
-	private new ReactiveCommand<Unit, IEnumerable<WalletCoinViewModel>> NextCommand { get; set; }
+	private new ReactiveCommand<Unit, List<WalletCoinViewModel>> NextCommand { get; set; }
 
 	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -79,7 +79,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var selectedCoins = viewModels
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Select(items => items.Where(t => t.IsSelected))
+			.Select(items => items.Where(t => t.IsSelected).ToList())
 			.ReplayLastActive();
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
@@ -131,10 +131,24 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
-	private static bool IsSelectionBadForPrivacy(IEnumerable<WalletCoinViewModel> coins)
+	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins)
 	{
-		var isSelectionBadForPrivacy = coins.GroupBy(x => new { x.AnonymitySet, x.SmartLabel }).Count() > 1;
-		return isSelectionBadForPrivacy;
+		if (selectedCoins.Any(x => x.AnonymitySet == 1))
+		{
+			return true;
+		}
+
+		if (selectedCoins.GroupBy(x => x.GetPrivacyLevel()).Count() > 1)
+		{
+			return true;
+		}
+
+		if (selectedCoins.GroupBy(x => x.SmartLabel).Count() > 1)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	private static Money Sum(IEnumerable<WalletCoinViewModel> coinViewModels)
