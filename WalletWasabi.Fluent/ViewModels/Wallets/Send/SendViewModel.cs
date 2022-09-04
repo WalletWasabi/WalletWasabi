@@ -22,12 +22,10 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
-using WalletWasabi.Fluent.Views.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -144,11 +142,10 @@ public partial class SendViewModel : RoutableViewModel
 						address,
 						_isFixedAmount,
 						balanceChanged));
-
 			},
 			nextCommandCanExecute);
 
-		FundingModeCommand = ReactiveCommand.Create(() => IsAutomaticSelectionEnabled = !IsAutomaticSelectionEnabled);
+		ToggleCoinControlCommand = ReactiveCommand.Create(() => IsAutomaticSelectionEnabled = !IsAutomaticSelectionEnabled);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
@@ -163,7 +160,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	public ICommand QrCommand { get; }
 
-	public ICommand FundingModeCommand { get; }
+	public ICommand ToggleCoinControlCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 
