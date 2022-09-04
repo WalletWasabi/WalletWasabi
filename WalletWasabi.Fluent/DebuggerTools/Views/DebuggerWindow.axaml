@@ -125,7 +125,7 @@
                     <TextBlock Text="NewBlockProcessed" />
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
-                    <TextBlock Text="StateChanged" />
+                    <TextBlock Text="{Binding State, StringFormat={}StateChanged: {0}}" />
                   </DataTemplate>
                 </ListBox.DataTemplates>
               </ListBox>
