@@ -54,8 +54,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(processedResult =>
 			{
-				// TODO: Show in log list.
-				LogItems.Add(new DebugTransactionProcessedLogItemViewModel(processedResult));
+				var logItem = new DebugTransactionProcessedLogItemViewModel(processedResult);
+				LogItems.Add(logItem);
+				SelectedLogItem = logItem;
 			});
 
 		// TODO: Wallet.InitializingChanged ?
@@ -66,8 +67,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(filterModel =>
 			{
-				// TODO: Show in log list.
-				LogItems.Add(new DebugNewFilterProcessedLogItemViewModel(filterModel));
+				var logItem = new DebugNewFilterProcessedLogItemViewModel(filterModel);
+				LogItems.Add(logItem);
+				SelectedLogItem = logItem;
 			});
 
 		Observable
@@ -76,8 +78,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(block =>
 			{
-				// TODO: Show in log list.
-				LogItems.Add(new DebugNewBlockProcessedLogItemViewModel(block));
+				var logItem = new DebugNewBlockProcessedLogItemViewModel(block);
+				LogItems.Add(logItem);
+				SelectedLogItem = logItem;
 			});
 
 		Observable
@@ -86,8 +89,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(state =>
 			{
-				// TODO: Show in log list.
-				LogItems.Add(new DebugStateChangedLogItemViewModel(state));
+				var logItem = new DebugStateChangedLogItemViewModel(state);
+				LogItems.Add(logItem);
+				SelectedLogItem = logItem;
 
 				if (state == WalletState.Started)
 				{

@@ -112,6 +112,7 @@
           <TabItem Header="Log">
             <Grid RowDefinitions="60*,8,40*">
               <ListBox Grid.Row="0"
+                       AutoScrollToSelectedItem="True"
                        Items="{Binding LogItems}"
                        SelectedItem="{Binding SelectedLogItem}">
                 <ListBox.DataTemplates>
