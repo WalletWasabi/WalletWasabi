@@ -77,6 +77,8 @@
 
   <Style Selector="Button.quickAction">
     <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="BorderThickness" Value="0" />
   </Style>
   <Style Selector="Button.quickAction:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
