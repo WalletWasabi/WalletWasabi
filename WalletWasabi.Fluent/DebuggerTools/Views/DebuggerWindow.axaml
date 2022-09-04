@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.DebuggerTools.ViewModels"
+        xmlns:logging="clr-namespace:WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="WalletWasabi.Fluent.DebuggerTools.Views.DebuggerWindow"
         WindowStartupLocation="CenterOwner" WindowState="Normal"
@@ -106,6 +107,46 @@
               <ContentControl Grid.Row="2"
                               Content="{Binding SelectedTransaction}"
                               ContentTemplate="{StaticResource DebugTransaction}" />
+            </Grid>
+          </TabItem>
+          <TabItem Header="Log">
+            <Grid RowDefinitions="60*,8,40*">
+              <ListBox Grid.Row="0"
+                       Items="{Binding LogItems}"
+                       SelectedItem="{Binding SelectedLogItem}">
+                <ListBox.DataTemplates>
+                  <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
+                    <TextBlock Text="TransactionProcessed" />
+                  </DataTemplate>
+                  <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
+                    <TextBlock Text="NewFilterProcessed" />
+                  </DataTemplate>
+                  <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
+                    <TextBlock Text="NewBlockProcessed" />
+                  </DataTemplate>
+                  <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
+                    <TextBlock Text="StateChanged" />
+                  </DataTemplate>
+                </ListBox.DataTemplates>
+              </ListBox>
+              <GridSplitter Grid.Row="1" />
+              <ContentControl Grid.Row="2"
+                              Content="{Binding SelectedLogItem}">
+                <ContentControl.DataTemplates>
+                  <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
+                    <TextBlock Text="{Binding}" />
+                  </DataTemplate>
+                  <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
+                    <TextBlock Text="{Binding}" />
+                  </DataTemplate>
+                  <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
+                    <TextBlock Text="{Binding}" />
+                  </DataTemplate>
+                  <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
+                    <TextBlock Text="{Binding State}" />
+                  </DataTemplate>
+                </ContentControl.DataTemplates>
+              </ContentControl>
             </Grid>
           </TabItem>
         </TabControl>

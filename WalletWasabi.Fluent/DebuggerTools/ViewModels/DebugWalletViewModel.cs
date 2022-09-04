@@ -11,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -24,12 +25,15 @@ public partial class DebugWalletViewModel : ViewModelBase
 	private ICoinsView? _coins;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
+	[AutoNotify] private DebugLogItemViewModel? _selectedLogItem;
 
 	public DebugWalletViewModel(Wallet wallet)
 	{
 		_wallet = wallet;
 
 		WalletName = _wallet.WalletName;
+
+		LogItems = new ObservableCollection<DebugLogItemViewModel>();
 
 		Coins = new ObservableCollection<DebugCoinViewModel>();
 
@@ -48,9 +52,10 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.FromEventPattern<ProcessedResult>(_wallet, nameof(Wallet.WalletRelevantTransactionProcessed))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
+			.Subscribe(processedResult =>
 			{
 				// TODO: Show in log list.
+				LogItems.Add(new DebugTransactionProcessedLogItemViewModel(processedResult));
 			});
 
 		// TODO: Wallet.InitializingChanged ?
@@ -59,18 +64,20 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.FromEventPattern<FilterModel>(_wallet, nameof(Wallet.NewFilterProcessed))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
+			.Subscribe(filterModel =>
 			{
 				// TODO: Show in log list.
+				LogItems.Add(new DebugNewFilterProcessedLogItemViewModel(filterModel));
 			});
 
 		Observable
 			.FromEventPattern<Block>(_wallet, nameof(Wallet.NewBlockProcessed))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
+			.Subscribe(block =>
 			{
 				// TODO: Show in log list.
+				LogItems.Add(new DebugNewBlockProcessedLogItemViewModel(block));
 			});
 
 		Observable
@@ -80,6 +87,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.Subscribe(state =>
 			{
 				// TODO: Show in log list.
+				LogItems.Add(new DebugStateChangedLogItemViewModel(state));
 
 				if (state == WalletState.Started)
 				{
@@ -174,6 +182,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 	}
 
 	public string WalletName { get; private set; }
+
+	public ObservableCollection<DebugLogItemViewModel> LogItems { get; private set; }
 
 	public ObservableCollection<DebugCoinViewModel> Coins { get; private set; }
 
