@@ -9,5 +9,7 @@ public partial class DebugNewBlockProcessedLogItemViewModel : DebugLogItemViewMo
 	public DebugNewBlockProcessedLogItemViewModel(Block block)
 	{
 		_block = block;
+
+		// TODO: Add Block properties.
 	}
 }

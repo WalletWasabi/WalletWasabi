@@ -9,5 +9,7 @@ public partial class DebugTransactionProcessedLogItemViewModel : DebugLogItemVie
 	public DebugTransactionProcessedLogItemViewModel(ProcessedResult processedResult)
 	{
 		_processedResult = processedResult;
+
+		// TODO: Add ProcessedResult properties.
 	}
 }

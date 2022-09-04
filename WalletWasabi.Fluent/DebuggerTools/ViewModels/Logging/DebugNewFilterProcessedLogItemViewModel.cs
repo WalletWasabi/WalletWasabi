@@ -9,5 +9,7 @@ public partial class DebugNewFilterProcessedLogItemViewModel : DebugLogItemViewM
 	public DebugNewFilterProcessedLogItemViewModel(FilterModel filterModel)
 	{
 		_filterModel = filterModel;
+
+		// TODO: Add FilterModel properties.
 	}
 }
