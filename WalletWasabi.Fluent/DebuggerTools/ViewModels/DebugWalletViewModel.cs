@@ -26,6 +26,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
 	[AutoNotify] private DebugLogItemViewModel? _selectedLogItem;
+	[AutoNotify] private bool _autoScrollLogItems = true;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugLogItemViewModel> _logItems;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugCoinViewModel> _coins;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugTransactionViewModel> _transactions;

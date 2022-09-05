@@ -116,9 +116,9 @@
             </Grid>
           </TabItem>
           <TabItem Header="Log">
-            <Grid RowDefinitions="60*,8,40*">
+            <Grid RowDefinitions="60*,8,40*,Auto">
               <ListBox Grid.Row="0"
-                       AutoScrollToSelectedItem="True"
+                       AutoScrollToSelectedItem="{Binding AutoScrollLogItems}"
                        Items="{Binding LogItems}"
                        SelectedItem="{Binding SelectedLogItem}">
                 <ListBox.DataTemplates>
@@ -154,6 +154,9 @@
                   </DataTemplate>
                 </ContentControl.DataTemplates>
               </ContentControl>
+              <CheckBox Grid.Row="3"
+                        IsChecked="{Binding AutoScrollLogItems}"
+                        Content="Auto scroll log items"/>
             </Grid>
           </TabItem>
         </TabControl>
