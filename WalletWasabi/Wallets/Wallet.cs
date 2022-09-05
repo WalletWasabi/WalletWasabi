@@ -53,8 +53,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	public static event EventHandler<bool>? InitializingChanged;
-
 	public event EventHandler<FilterModel>? NewFilterProcessed;
 
 	public event EventHandler<Block>? NewBlockProcessed;
@@ -215,7 +213,6 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			State = WalletState.Starting;
-			InitializingChanged?.Invoke(this, true);
 
 			if (!Synchronizer.IsRunning)
 			{
@@ -241,10 +238,6 @@ public class Wallet : BackgroundService, IWallet
 		{
 			State = WalletState.Initialized;
 			throw;
-		}
-		finally
-		{
-			InitializingChanged?.Invoke(this, false);
 		}
 	}
 
