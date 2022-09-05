@@ -36,6 +36,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 					return new TreeNode(coinGroup, coinGroup.Items.Select(x => new TreeNode(x)));
 				})
 			.Filter(filterPredicate)
+			.Filter(node => node.Children.Any())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out var nodes)
 			.Subscribe()

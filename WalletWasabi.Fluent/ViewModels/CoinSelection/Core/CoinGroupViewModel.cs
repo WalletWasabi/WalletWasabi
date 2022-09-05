@@ -23,18 +23,22 @@ public partial class CoinGroupViewModel : IDisposable, IThreeStateSelectable
 	{
 		Labels = labels;
 
-		coins.Bind(out _items)
+		var filteredCoins = coins
+			.Filter(x => x.GetPrivacyLevel() == PrivacyLevel.Private);
+
+		filteredCoins
+			.Bind(out _items)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		TotalAmount = coins
+		TotalAmount = filteredCoins
 			.ToCollection()
 			.Select(
 				coinViewModels => new Money(coinViewModels.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)), MoneyUnit.BTC));
 
-		coins
+		filteredCoins
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(GetState)
