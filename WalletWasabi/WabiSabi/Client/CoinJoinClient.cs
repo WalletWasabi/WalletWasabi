@@ -26,9 +26,9 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
-	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(2);
-	private static readonly TimeSpan ExtraRoundTimeoutMargin = TimeSpan.FromMinutes(10);
+	private   Money MinimumOutputAmountSanity {get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
+	private   TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
+	private   TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
 	// timings only depends on the input-reg timeout.
