@@ -12,6 +12,12 @@
         Title="Debugger Tools"
         x:DataType="viewModels:DebuggerViewModel" x:CompileBindings="True">
 
+  <Window.Styles>
+    <Style Selector="TreeDataGridRow">
+      <Setter Property="Height" Value="37.5" />
+    </Style>
+  </Window.Styles>
+
   <Window.Resources>
 
     <DataTemplate x:Key="DebugTransaction" DataType="viewModels:DebugTransactionViewModel">
