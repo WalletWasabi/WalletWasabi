@@ -20,6 +20,7 @@ public record HdPubKeyManager
 	private HdPubKeyCache HdPubKeyCache { get; }
 	public int MinGapLimit { get; init; }
 
+	public IEnumerable<HdPubKey> Keys => GetKeys();
 	public IEnumerable<HdPubKey> CleanKeys => GetKeysByState(KeyState.Clean);
 	public IEnumerable<HdPubKey> LockedKeys => GetKeysByState(KeyState.Locked);
 	public IEnumerable<HdPubKey> UsedKeys => GetKeysByState(KeyState.Used);

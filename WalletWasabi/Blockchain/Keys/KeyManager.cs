@@ -415,9 +415,9 @@ public class KeyManager
 		return extKeysAndPubs;
 	}
 
-	public IEnumerable<SmartLabel> GetChangeLabels() => GetKeys(x => x.IsInternal).Select(x => x.Label);
+	public IEnumerable<SmartLabel> GetChangeLabels() => SegWitInternalKeys.Keys.Select(x => x.Label);
 
-	public IEnumerable<SmartLabel> GetReceiveLabels() => GetKeys(x => !x.IsInternal).Select(x => x.Label);
+	public IEnumerable<SmartLabel> GetReceiveLabels() => SegWitExternalKeys.Keys.Select(x => x.Label);
 
 	public ExtKey GetMasterExtKey(string password)
 	{
