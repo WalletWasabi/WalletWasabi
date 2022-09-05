@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -42,6 +43,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private IObservable<string> _summaryText = Observable.Return("");
+	private readonly SmartLabel _transactionLabels;
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
@@ -55,6 +57,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		TargetAmount = transactionInfo.MinimumRequiredAmount == Money.Zero
 			? transactionInfo.Amount
 			: transactionInfo.MinimumRequiredAmount;
+
+		_transactionLabels = transactionInfo.UserLabels;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -131,8 +135,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
-	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins)
+	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins, SmartLabel currentLabel)
 	{
+		if (selectedCoins.All(x => x.SmartLabel == currentLabel))
+		{
+			return false;
+		}
+
 		if (selectedCoins.Any(x => x.AnonymitySet == 1))
 		{
 			return true;
