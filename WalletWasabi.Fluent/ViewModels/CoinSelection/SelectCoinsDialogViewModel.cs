@@ -88,7 +88,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
-		IsSelectionBadlyChosen = selectedCoins.Select(IsSelectionBadForPrivacy);
+		IsSelectionBadlyChosen = selectedCoins.Select(x => IsSelectionBadForPrivacy(x, _transactionLabels));
 
 		SelectedAmount = selectedCoins.Select(Sum);
 
@@ -135,9 +135,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
-	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins, SmartLabel currentLabel)
+	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins, SmartLabel transactionLabel)
 	{
-		if (selectedCoins.All(x => x.SmartLabel == currentLabel))
+		if (selectedCoins.All(x => x.SmartLabel == transactionLabel))
 		{
 			return false;
 		}
