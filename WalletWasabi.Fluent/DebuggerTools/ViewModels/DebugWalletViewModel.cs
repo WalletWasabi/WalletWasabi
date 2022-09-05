@@ -116,6 +116,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 		});
 	}
 
+	public string WalletName { get; private set; }
+
 	private void Update()
 	{
 		if (_wallet.Coins is { })
@@ -194,8 +196,6 @@ public partial class DebugWalletViewModel : ViewModelBase
 			}
 		}
 	}
-
-	public string WalletName { get; private set; }
 
 	private Dictionary<uint256, List<DebugCoinViewModel>> MapTransactions()
 	{
