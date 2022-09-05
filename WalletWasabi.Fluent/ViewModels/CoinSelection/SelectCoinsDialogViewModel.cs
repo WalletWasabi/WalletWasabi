@@ -90,7 +90,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		RemainingAmount = SelectedAmount.Select(money => Money.Max(TargetAmount - money, Money.Zero));
 
-		SelectedCount = selectedCoins.Select(models => models.Count());
+		SelectedCount = selectedCoins.Select(models => models.Count);
 
 		CoinBasedSelection =
 			new CoinBasedSelectionViewModel(viewModels)
@@ -101,10 +101,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SummaryText = RemainingAmount.CombineLatest(
 			SelectedCount,
-			(remaining, selectedCoins) =>
+			(remaining, coinList) =>
 			{
 				var remainingText = remaining == Money.Zero ? "" : $"{remaining.FormattedBtc()} BTC | ";
-				var coinCountText = $"{selectedCoins} coin{TextHelpers.AddSIfPlural(selectedCoins)} selected";
+				var coinCountText = $"{coinList} coin{TextHelpers.AddSIfPlural(coinList)} selected";
 				return remainingText + coinCountText;
 			});
 
