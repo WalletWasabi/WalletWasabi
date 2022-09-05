@@ -28,7 +28,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 			.Select(FilterFunction);
 
 		coinChanges
-			.Group(x => x.SmartLabel)
+			.Group(x => new GroupKey(x.SmartLabel, x.GetPrivacyLevel()))
 			.TransformWithInlineUpdate(
 				group =>
 				{
@@ -87,7 +87,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 
 		source.RowSelection!.SingleSelect = true;
-		source.SortBy(source.Columns[3], ListSortDirection.Descending);
+		source.SortBy(source.Columns[4], ListSortDirection.Descending);
 
 		return source;
 	}

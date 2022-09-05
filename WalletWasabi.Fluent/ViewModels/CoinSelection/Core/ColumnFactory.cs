@@ -90,7 +90,15 @@ public static class ColumnFactory
 				{
 					if (group.Value is CoinGroupViewModel vm)
 					{
-						return new LabelsCellViewModel(vm.Labels);
+						if (vm.PrivacyLevel is null)
+						{
+							return new LabelsCellViewModel(vm.Labels);
+						}
+						else
+						{
+							var privacyName = GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value);
+							return $"({privacyName} coins)";
+						}
 					}
 
 					return new LabelsCellViewModel(new SmartLabel());
@@ -98,9 +106,21 @@ public static class ColumnFactory
 			GridLength.Star,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
-				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel)
+				CompareAscending = SortAscending<CoinGroupViewModel, SmartLabel>(model => model.Labels),
+				CompareDescending = SortDescending<CoinGroupViewModel, SmartLabel>(model => model.Labels)
 			});
+	}
+
+	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)
+	{
+		return privacyLevel switch
+		{
+			PrivacyLevel.None => "None",
+			PrivacyLevel.SemiPrivate => "Semi-private",
+			PrivacyLevel.Private => "Private",
+			PrivacyLevel.NonPrivate => "Non-private",
+			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
+		};
 	}
 
 	public static TemplateColumn<TreeNode> SelectionColumn(Action<IDisposable> onCellCreated)
@@ -174,7 +194,7 @@ public static class ColumnFactory
 					return Comparer<TProperty>.Default.Compare(selector(x), selector(y));
 				}
 
-				return 0;
+				return 1;
 			});
 
 		return comparison;
@@ -190,7 +210,7 @@ public static class ColumnFactory
 					return Comparer<TProperty>.Default.Compare(selector(y), selector(x));
 				}
 
-				return 0;
+				return -1;
 			});
 
 		return comparison;
