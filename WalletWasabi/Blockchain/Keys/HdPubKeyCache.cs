@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
@@ -39,4 +40,10 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyCacheEntry>
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
+
+	private HdPubKeyGlobalView Snapshot =>
+		new(this.Select(x => x.HdPubKey).ToImmutableList());
+	
+	public HdPubKeyPathView GetView(KeyPath keyPath) =>
+		Snapshot.GetChildKeyOf(keyPath);
 }
