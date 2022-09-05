@@ -8,7 +8,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
-public partial class DebuggerViewModel : ViewModelBase
+public partial class DebuggerToolsViewModel : ViewModelBase
 {
 	private bool _isInitialized;
 	[AutoNotify] private DebugWalletViewModel? _selectedWallet;

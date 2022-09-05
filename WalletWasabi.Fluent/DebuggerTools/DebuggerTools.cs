@@ -20,17 +20,17 @@ internal static class DebuggerTools
 		{
 			if (gesture.Matches(args))
 			{
-				var debuggerViewModel = new DebuggerViewModel();
+				var debuggerToolsViewModel = new DebuggerToolsViewModel();
 
 				var window = new DebuggerWindow
 				{
-					DataContext = debuggerViewModel
+					DataContext = debuggerToolsViewModel
 				};
 
 				// window.Show(root as Window);
 				window.Show();
 
-				await Task.Run(() => debuggerViewModel.Initialize());
+				await Task.Run(() => debuggerToolsViewModel.Initialize());
 			}
 		}
 
