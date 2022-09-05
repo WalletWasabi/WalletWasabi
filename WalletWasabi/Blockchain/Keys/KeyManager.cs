@@ -58,8 +58,8 @@ public class KeyManager
 		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
 		SkipSynchronization = skipSynchronization;
-		SetMinGapLimit(minGapLimit);
-
+		MinGapLimit = Math.Max(AbsoluteMinGapLimit, minGapLimit ?? 0);
+		
 		BlockchainState = blockchainState;
 
 		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
@@ -77,7 +77,7 @@ public class KeyManager
 
 		password ??= "";
 
-		SetMinGapLimit(AbsoluteMinGapLimit);
+		MinGapLimit = AbsoluteMinGapLimit;
 
 		EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 		ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
@@ -495,12 +495,6 @@ public class KeyManager
 		}
 
 		return availableCandidates.Count > 0;
-	}
-
-	private void SetMinGapLimit(int? minGapLimit)
-	{
-		MinGapLimit = minGapLimit is int val ? Math.Max(AbsoluteMinGapLimit, val) : AbsoluteMinGapLimit;
-		// AssertCleanKeysIndexed(); Do not do this. Wallet file is null yet.
 	}
 
 	public void ToFile()
