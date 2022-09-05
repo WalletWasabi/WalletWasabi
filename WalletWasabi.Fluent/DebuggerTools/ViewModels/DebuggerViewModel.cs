@@ -1,5 +1,4 @@
-﻿
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -11,18 +10,16 @@ namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
 public partial class DebuggerViewModel : ViewModelBase
 {
+	private bool _isInitialized;
 	[AutoNotify] private DebugWalletViewModel? _selectedWallet;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugWalletViewModel>? _wallets;
 
-	public DebuggerViewModel()
+	public void Initialize()
 	{
-		var wallets =
-			Services.WalletManager
-				.GetWallets()
-				.Select(x => new DebugWalletViewModel(x));
-
-		Wallets = new ObservableCollection<DebugWalletViewModel>(wallets);
-
-		SelectedWallet = Wallets.FirstOrDefault();
+		if (_isInitialized)
+		{
+			throw new InvalidOperationException();
+		}
 
 		Observable
 			.FromEventPattern<WalletState>(Services.WalletManager, nameof(WalletManager.WalletStateChanged))
@@ -40,7 +37,7 @@ public partial class DebuggerViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(wallet =>
 			{
-				Wallets.Add(new DebugWalletViewModel(wallet));
+				Wallets?.Add(new DebugWalletViewModel(wallet));
 			});
 
 		Observable
@@ -50,7 +47,16 @@ public partial class DebuggerViewModel : ViewModelBase
 			{
 				// TODO:
 			});
-	}
 
-	public ObservableCollection<DebugWalletViewModel> Wallets { get; }
+		var wallets =
+			Services.WalletManager
+				.GetWallets()
+				.Select(x => new DebugWalletViewModel(x));
+
+		Wallets = new ObservableCollection<DebugWalletViewModel>(wallets);
+
+		SelectedWallet = Wallets.FirstOrDefault();
+
+		_isInitialized = true;
+	}
 }

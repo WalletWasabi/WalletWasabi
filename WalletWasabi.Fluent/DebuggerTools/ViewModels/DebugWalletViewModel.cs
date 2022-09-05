@@ -4,14 +4,17 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -22,10 +25,15 @@ public partial class DebugWalletViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
 	private readonly IObservable<Unit> _updateTrigger;
-	private ICoinsView? _coins;
+	private ICoinsView? _coinsView;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
 	[AutoNotify] private DebugLogItemViewModel? _selectedLogItem;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugLogItemViewModel> _logItems;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugCoinViewModel> _coins;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugTransactionViewModel> _transactions;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugCoinViewModel> _coinsSource;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugTransactionViewModel> _transactionsSource;
 
 	public DebugWalletViewModel(Wallet wallet)
 	{
@@ -46,7 +54,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		_updateTrigger.Subscribe(_ => Update());
+		_updateTrigger.SubscribeAsync(async _ => await Task.Run(Update));
 
 		Observable
 			.FromEventPattern<ProcessedResult>(_wallet, nameof(Wallet.WalletRelevantTransactionProcessed))
@@ -58,8 +66,6 @@ public partial class DebugWalletViewModel : ViewModelBase
 				LogItems.Add(logItem);
 				SelectedLogItem = logItem;
 			});
-
-		// TODO: Wallet.InitializingChanged ?
 
 		Observable
 			.FromEventPattern<FilterModel>(_wallet, nameof(Wallet.NewFilterProcessed))
@@ -87,7 +93,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(state =>
+			.SubscribeAsync(async state =>
 			{
 				var logItem = new DebugStateChangedLogItemViewModel(state);
 				LogItems.Add(logItem);
@@ -95,22 +101,29 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 				if (state == WalletState.Started)
 				{
-					Update();
+					await Task.Run(Update);
 				}
 			});
 
 		Update();
 
-		CreateCoinsSource();
+		Dispatcher.UIThread.InvokeAsync(() =>
+		{
+			CoinsSource = DebugTreeDataGridHelper.CreateCoinsSource(
+				Coins,
+				x => SelectedCoin = x);
 
-		CreateTransactionsSource();
+			TransactionsSource = DebugTreeDataGridHelper.CreateTransactionsSource(
+				Transactions,
+				x => SelectedTransaction = x);
+		});
 	}
 
 	private void Update()
 	{
 		if (_wallet.Coins is { })
 		{
-			_coins = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
+			_coinsView = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
 		}
 
 		var selectedCoin = SelectedCoin;
@@ -122,9 +135,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 		Transactions.Clear();
 		SelectedTransaction = null;
 
-		if (_coins is { })
+		if (_coinsView is { })
 		{
-			var coins = _coins.Select(x => new DebugCoinViewModel(x, _updateTrigger));
+			var coins = _coinsView.Select(x => new DebugCoinViewModel(x, _updateTrigger));
 
 			foreach (var coin in coins)
 			{
@@ -186,96 +199,6 @@ public partial class DebugWalletViewModel : ViewModelBase
 	}
 
 	public string WalletName { get; private set; }
-
-	public ObservableCollection<DebugLogItemViewModel> LogItems { get; private set; }
-
-	public ObservableCollection<DebugCoinViewModel> Coins { get; private set; }
-
-	public ObservableCollection<DebugTransactionViewModel> Transactions { get; private set; }
-
-	public FlatTreeDataGridSource<DebugCoinViewModel> CoinsSource { get; private set; }
-
-	public FlatTreeDataGridSource<DebugTransactionViewModel> TransactionsSource { get; private set; }
-
-	private void CreateCoinsSource()
-	{
-		CoinsSource = new FlatTreeDataGridSource<DebugCoinViewModel>(Coins)
-		{
-			Columns =
-			{
-				new TextColumn<DebugCoinViewModel, DateTimeOffset>(
-					"FirstSeen",
-					x => x.FirstSeen,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, Money>(
-					"Amount",
-					x => x.Amount,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, bool>(
-					"Confirmed",
-					x => x.Confirmed,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, bool>(
-					"CoinJoinInProgress",
-					x => x.CoinJoinInProgress,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, bool>(
-					"IsBanned",
-					x => x.IsBanned,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, DateTimeOffset?>(
-					"BannedUntilUtc",
-					x => x.BannedUntilUtc,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, Height?>(
-					"Height",
-					x => x.Height,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, uint256>(
-					"Transaction",
-					x => x.TransactionId,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugCoinViewModel, uint256?>(
-					"SpenderTransaction",
-					x => x.SpenderTransactionId,
-					new GridLength(0, GridUnitType.Auto)),
-			}
-		};
-
-		CoinsSource.RowSelection!.SingleSelect = true;
-
-		CoinsSource.RowSelection
-			.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(x => SelectedCoin = x);
-
-		(CoinsSource as ITreeDataGridSource).SortBy(CoinsSource.Columns[0], ListSortDirection.Descending);
-	}
-
-	private void CreateTransactionsSource()
-	{
-		TransactionsSource = new FlatTreeDataGridSource<DebugTransactionViewModel>(Transactions)
-		{
-			Columns =
-			{
-				new TextColumn<DebugTransactionViewModel, DateTimeOffset>(
-					"FirstSeen",
-					x => x.FirstSeen,
-					new GridLength(0, GridUnitType.Auto)),
-				new TextColumn<DebugTransactionViewModel, uint256>(
-					"TransactionId",
-					x => x.TransactionId,
-					new GridLength(0, GridUnitType.Auto)),
-			}
-		};
-
-		TransactionsSource.RowSelection!.SingleSelect = true;
-
-		TransactionsSource.RowSelection
-			.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(x => SelectedTransaction = x);
-
-		(TransactionsSource as ITreeDataGridSource).SortBy(TransactionsSource.Columns[0], ListSortDirection.Descending);
-	}
 
 	private Dictionary<uint256, List<DebugCoinViewModel>> MapTransactions()
 	{

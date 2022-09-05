@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using WalletWasabi.Fluent.DebuggerTools.ViewModels;
@@ -15,7 +16,7 @@ internal static class DebuggerTools
 
 	public static void AttachDebuggerTools(this TopLevel root, KeyGesture gesture)
 	{
-		void Handler(object? sender, KeyEventArgs args)
+		async void Handler(object? sender, KeyEventArgs args)
 		{
 			if (gesture.Matches(args))
 			{
@@ -28,6 +29,8 @@ internal static class DebuggerTools
 
 				// window.Show(root as Window);
 				window.Show();
+
+				await Task.Run(() => debuggerViewModel.Initialize());
 			}
 		}
 
