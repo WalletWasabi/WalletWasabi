@@ -117,7 +117,7 @@
           <DataTemplate DataType="{x:Type ring:PrivacyRingItemViewModel}">
             <c:TileControl TileSize="Medium" Width="300" Height="150">
               <DockPanel>
-                <c:LabelsItemsPresenter Items="{Binding SmartLabel}" DockPanel.Dock="Top" />
+                <c:LabelsItemsPresenter Items="{Binding SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
                 <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
                   <Separator />
                   <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
