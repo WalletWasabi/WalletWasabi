@@ -26,7 +26,7 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	{
 		foreach (var key in keys)
 		{
-			AddKey(key, ScriptPubKeyType.Segwit);
+			AddKey(key, key.FullKeyPath.GetScriptTypeFromKeyPath());
 		}
 
 		return keys;

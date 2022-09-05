@@ -32,13 +32,6 @@ public class KeyManager
 	public const int MaxGapLimit = 10_000;
 	public static Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
-	// BIP84-ish derivation scheme
-	// m / purpose' / coin_type' / account' / change / address_index
-	// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-	private static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
-
-	private static readonly KeyPath TestNetAccountKeyPath = new("m/84h/1h/0h");
-
 	private static readonly JsonConverter[] JsonConverters =
 	{
 		new BitcoinEncryptedSecretNoECJsonConverter(),
@@ -50,22 +43,25 @@ public class KeyManager
 	};
 
 	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
+	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey taprootExtPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
 		MasterFingerprint = masterFingerprint;
-		ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+		SegwitExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+		TaprootExtPubKey = Guard.NotNull(nameof(taprootExtPubKey), taprootExtPubKey);
 
 		SkipSynchronization = skipSynchronization;
 		MinGapLimit = Math.Max(AbsoluteMinGapLimit, minGapLimit ?? 0);
 		
 		BlockchainState = blockchainState;
 
-		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
+		SegwitAccountKeyPath = segwitAccountKeyPath ?? GetAccountKeyPath(BlockchainState.Network, ScriptPubKeyType.Segwit);
+		SegWitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
+		SegWitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
 
-		SegWitExternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), MinGapLimit);
-		SegWitInternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), MinGapLimit);
+		TaprootAccountKeyPath = taprootAccountKeyPath ?? GetAccountKeyPath(BlockchainState.Network, ScriptPubKeyType.TaprootBIP86);
+		TaprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
 		
 		SetFilePath(filePath);
 		ToFile();
@@ -84,11 +80,16 @@ public class KeyManager
 		var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
-		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+
+		SegwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		SegwitExtPubKey = extKey.Derive(SegwitAccountKeyPath).Neuter();
+
+		TaprootAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
+		TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
 		
-		SegWitExternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), MinGapLimit);
-		SegWitInternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), MinGapLimit);
+		SegWitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
+		SegWitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
+		TaprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
 	}
 
 	[OnDeserialized]
@@ -103,9 +104,19 @@ public class KeyManager
 		HdPubKeyCache.AddRangeKeys(HdPubKeys);
 	}
 
-	public static KeyPath GetAccountKeyPath(Network network) =>
-		network == Network.TestNet ? TestNetAccountKeyPath : DefaultAccountKeyPath;
-
+	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
+		new KeyPath(
+			(network.Name, scriptPubKeyType) switch
+			{
+				("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
+				("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
+				("Main", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
+				("TestNet", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
+				("RegTest", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
+				("Main", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
+				_ => throw new ArgumentException($"Unknown account for network '{network}' and script type '{scriptPubKeyType}'.")
+			});
+	
 	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
 	{
 		if (!MasterFingerprint.HasValue)
@@ -113,7 +124,7 @@ public class KeyManager
 			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
 		}
 
-		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
+		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
 	}
 
 	[JsonProperty(PropertyName = "EncryptedSecret")]
@@ -126,8 +137,11 @@ public class KeyManager
 	public HDFingerprint? MasterFingerprint { get; private set; }
 
 	[JsonProperty(PropertyName = "ExtPubKey")]
-	public ExtPubKey ExtPubKey { get; }
+	public ExtPubKey SegwitExtPubKey { get; }
 
+	[JsonProperty(PropertyName = "TaprootExtPubKey")]
+	public ExtPubKey TaprootExtPubKey { get; }
+	
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
 
@@ -135,8 +149,11 @@ public class KeyManager
 	public int MinGapLimit { get; private set; }
 
 	[JsonProperty(PropertyName = "AccountKeyPath")]
-	public KeyPath AccountKeyPath { get; private set; }
+	public KeyPath SegwitAccountKeyPath { get; private set; }
 
+	[JsonProperty(PropertyName = "TaprootAccountKeyPath")]
+	public KeyPath TaprootAccountKeyPath { get; private set; }
+	
 	[JsonProperty(PropertyName = "BlockchainState")]
 	private BlockchainState BlockchainState { get; }
 
@@ -188,6 +205,7 @@ public class KeyManager
 
 	private HdPubKeyGenerator SegWitExternalKeyGenerator { get; set; }
 	private HdPubKeyGenerator SegWitInternalKeyGenerator { get; }
+	private HdPubKeyGenerator TaprootInternalKeyGenerator { get; }
 	
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
@@ -206,22 +224,26 @@ public class KeyManager
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		BlockchainState blockchainState = new(network);
-		KeyPath keyPath = GetAccountKeyPath(network);
-		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, keyPath);
+		KeyPath segwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
+
+		KeyPath taprootAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
+		ExtPubKey taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+		
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: true, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string? filePath = null)
+	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null)
 	{
-		return new KeyManager(null, null, null, extPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 	}
 
-	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
+	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, Network network, string? filePath = null)
 	{
-		return new KeyManager(null, null, masterFingerprint, extPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
+		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 	}
 
-	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath accountKeyPath, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 	{
 		Guard.NotNull(nameof(mnemonic), mnemonic);
 		password ??= "";
@@ -231,9 +253,12 @@ public class KeyManager
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 
-		KeyPath keyPath = accountKeyPath ?? DefaultAccountKeyPath;
-		ExtPubKey extPubKey = extKey.Derive(keyPath).Neuter();
-		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, skipSynchronization: false, minGapLimit, new BlockchainState(network), filePath, keyPath);
+		KeyPath segwitAccountKeyPath = swAccountKeyPath ?? GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
+		KeyPath taprootAccountKeyPath = trAccountKeyPath ?? GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
+		ExtPubKey taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+		
+		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, skipSynchronization: false, minGapLimit, new BlockchainState(network), filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 		km.AssertCleanKeysIndexed();
 		return km;
 	}

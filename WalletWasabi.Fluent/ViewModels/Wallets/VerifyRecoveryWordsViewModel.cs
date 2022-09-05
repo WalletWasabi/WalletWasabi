@@ -81,10 +81,12 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				var saltSoup = _wallet.Kitchen.SaltSoup();
 
 				var recovered = KeyManager.Recover(_currentMnemonics, saltSoup, _wallet.Network,
-					_wallet.KeyManager.AccountKeyPath,
-					null, _wallet.KeyManager.MinGapLimit);
+					_wallet.KeyManager.SegwitAccountKeyPath,
+					null,
+					null,
+					_wallet.KeyManager.MinGapLimit);
 
-				if (_wallet.KeyManager.ExtPubKey == recovered.ExtPubKey)
+				if (_wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
 				{
 					Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
 						NavigationMode.Clear);

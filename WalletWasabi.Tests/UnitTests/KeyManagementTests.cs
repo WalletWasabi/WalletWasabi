@@ -29,17 +29,17 @@ public class KeyManagementTests
 
 		Assert.NotNull(manager.ChainCode);
 		Assert.NotNull(manager.EncryptedSecret);
-		Assert.NotNull(manager.ExtPubKey);
+		Assert.NotNull(manager.SegwitExtPubKey);
 
 		Assert.NotNull(manager2.ChainCode);
 		Assert.NotNull(manager2.EncryptedSecret);
-		Assert.NotNull(manager2.ExtPubKey);
+		Assert.NotNull(manager2.SegwitExtPubKey);
 
 		Assert.NotNull(manager3.ChainCode);
 		Assert.NotNull(manager3.EncryptedSecret);
-		Assert.NotNull(manager3.ExtPubKey);
+		Assert.NotNull(manager3.SegwitExtPubKey);
 
-		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState(Network.Main));
+		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.SegwitExtPubKey, manager.TaprootExtPubKey, true, null, new BlockchainState(Network.Main));
 		var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
 		Logger.TurnOff();
 		Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));
@@ -47,22 +47,22 @@ public class KeyManagementTests
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
 
 		Assert.Equal(manager.ChainCode, sameManager2.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager2.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager2.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager2.SegwitExtPubKey);
 
 		var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password, Network.Main);
 		Assert.NotEqual(mnemonic, mnemonic4);
 		Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
-		Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+		Assert.NotEqual(manager.SegwitExtPubKey, differentManager.SegwitExtPubKey);
 
 		var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!, Network.Main);
 		Assert.Equal(manager2.ChainCode, manager5.ChainCode);
 		Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
-		Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
+		Assert.Equal(manager2.SegwitExtPubKey, manager5.SegwitExtPubKey);
 	}
 
 	[Fact]
@@ -70,16 +70,16 @@ public class KeyManagementTests
 	{
 		string password = "password";
 		var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network.Main);
-		var sameManager = KeyManager.Recover(mnemonic, password, Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
+		var sameManager = KeyManager.Recover(mnemonic, password, Network.Main, KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit));
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
 
-		var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, 55);
+		var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, null, 55);
 		Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
-		Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+		Assert.NotEqual(manager.SegwitExtPubKey, differentManager.SegwitExtPubKey);
 
 		var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true);
 		Assert.Equal(newKey.Index, differentManager.MinGapLimit);
@@ -133,7 +133,7 @@ public class KeyManagementTests
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}
@@ -158,7 +158,7 @@ public class KeyManagementTests
 			Assert.Equal(isInternal, generatedKey.IsInternal);
 			Assert.Equal(label, generatedKey.Label);
 			Assert.Equal(keyState, generatedKey.KeyState);
-			Assert.StartsWith(KeyManager.GetAccountKeyPath(network).ToString(), generatedKey.FullKeyPath.ToString());
+			Assert.StartsWith(KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).ToString(), generatedKey.FullKeyPath.ToString());
 		}
 	}
 

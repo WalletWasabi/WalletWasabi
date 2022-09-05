@@ -60,5 +60,12 @@ public static class ServiceFactory
 		=> KeyManager.CreateNew(out var _, password, Network.Main);
 
 	public static KeyManager CreateWatchOnlyKeyManager()
-		=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
+	{
+		Mnemonic mnemonic = new (Wordlist.English, WordCount.Twelve);
+		ExtKey extKey = mnemonic.DeriveExtKey();
+
+		return KeyManager.CreateNewWatchOnly(
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit)).Neuter(),
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86)).Neuter());
+	}
 }

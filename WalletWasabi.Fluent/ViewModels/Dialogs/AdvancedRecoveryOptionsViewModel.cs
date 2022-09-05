@@ -70,7 +70,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(Key
 		{
 			var accountKeyPath = keyPath.GetAccountKeyPath();
 			if (keyPath.Length != accountKeyPath.Length ||
-				accountKeyPath.Length != KeyManager.GetAccountKeyPath(Network.Main).Length)
+				accountKeyPath.Length != KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit).Length)
 			{
 				errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
 			}

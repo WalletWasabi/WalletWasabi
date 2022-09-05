@@ -299,8 +299,8 @@ public class TransactionFactory
 
 			psbt = payjoinClient.RequestPayjoin(
 				psbt,
-				KeyManager.ExtPubKey,
-				new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath),
+				KeyManager.SegwitExtPubKey,
+				new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.SegwitAccountKeyPath),
 				changeHdPubKey,
 				CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 			builder.SignPSBT(psbt);
