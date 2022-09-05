@@ -61,8 +61,13 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.Subscribe(processedResult =>
 			{
 				var logItem = new DebugTransactionProcessedLogItemViewModel(processedResult);
+
 				LogItems.Add(logItem);
-				SelectedLogItem = logItem;
+
+				if (AutoScrollLogItems)
+				{
+					SelectedLogItem = logItem;
+				}
 			});
 
 		Observable
@@ -73,7 +78,11 @@ public partial class DebugWalletViewModel : ViewModelBase
 			{
 				var logItem = new DebugNewFilterProcessedLogItemViewModel(filterModel);
 				LogItems.Add(logItem);
-				SelectedLogItem = logItem;
+
+				if (AutoScrollLogItems)
+				{
+					SelectedLogItem = logItem;
+				}
 			});
 
 		Observable
@@ -83,8 +92,13 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.Subscribe(block =>
 			{
 				var logItem = new DebugNewBlockProcessedLogItemViewModel(block);
+
 				LogItems.Add(logItem);
-				SelectedLogItem = logItem;
+
+				if (AutoScrollLogItems)
+				{
+					SelectedLogItem = logItem;
+				}
 			});
 
 		Observable
@@ -94,8 +108,13 @@ public partial class DebugWalletViewModel : ViewModelBase
 			.SubscribeAsync(async state =>
 			{
 				var logItem = new DebugStateChangedLogItemViewModel(state);
+
 				LogItems.Add(logItem);
-				SelectedLogItem = logItem;
+
+				if (AutoScrollLogItems)
+				{
+					SelectedLogItem = logItem;
+				}
 
 				if (state == WalletState.Started)
 				{
