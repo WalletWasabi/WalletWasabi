@@ -64,8 +64,8 @@ public class KeyManager
 
 		AccountKeyPath = accountKeyPath ?? GetAccountKeyPath(BlockchainState.Network);
 
-		SegWitExternalKeys = new HdPubKeyGenerator(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), MinGapLimit);
-		SegWitInternalKeys = new HdPubKeyGenerator(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), MinGapLimit);
+		SegWitExternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), MinGapLimit);
+		SegWitInternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), MinGapLimit);
 		
 		SetFilePath(filePath);
 		ToFile();
@@ -87,8 +87,8 @@ public class KeyManager
 		AccountKeyPath = GetAccountKeyPath(BlockchainState.Network);
 		ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 		
-		SegWitExternalKeys = new HdPubKeyGenerator(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), MinGapLimit);
-		SegWitInternalKeys = new HdPubKeyGenerator(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), MinGapLimit);
+		SegWitExternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(0), AccountKeyPath.Derive(0), MinGapLimit);
+		SegWitInternalKeyGenerator = new HdPubKeyGenerator(ExtPubKey.Derive(1), AccountKeyPath.Derive(1), MinGapLimit);
 	}
 
 	[OnDeserialized]
@@ -186,8 +186,8 @@ public class KeyManager
 
 	private object ToFileLock { get; } = new();
 
-	private HdPubKeyGenerator SegWitExternalKeys { get; set; }
-	private HdPubKeyGenerator SegWitInternalKeys { get; }
+	private HdPubKeyGenerator SegWitExternalKeyGenerator { get; set; }
+	private HdPubKeyGenerator SegWitInternalKeyGenerator { get; }
 	
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
@@ -279,8 +279,8 @@ public class KeyManager
 	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal)
 	{
 		var hdPubKeyRegistry = isInternal
-			? SegWitInternalKeys
-			: SegWitExternalKeys;
+			? SegWitInternalKeyGenerator
+			: SegWitExternalKeyGenerator;
 
 		lock (HdPubKeyRegistryLock)
 		{
@@ -303,15 +303,15 @@ public class KeyManager
 
 		minGapLimitIncreased = false;
 
-		var externalView = HdPubKeyCache.GetView(SegWitExternalKeys.KeyPath);
-		HdPubKeyCache.AddRangeKeys(SegWitExternalKeys.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey));
+		var externalView = HdPubKeyCache.GetView(SegWitExternalKeyGenerator.KeyPath);
+		HdPubKeyCache.AddRangeKeys(SegWitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey));
 
 		// Find the next clean external key with empty label.
-		externalView = HdPubKeyCache.GetView(SegWitExternalKeys.KeyPath);
+		externalView = HdPubKeyCache.GetView(SegWitExternalKeyGenerator.KeyPath);
 		if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
 		{
-			SegWitExternalKeys = SegWitExternalKeys with { MinGapLimit = SegWitExternalKeys.MinGapLimit + 1 };
-			var newHdPubKeys = HdPubKeyCache.AddRangeKeys(SegWitExternalKeys.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey)); 
+			SegWitExternalKeyGenerator = SegWitExternalKeyGenerator with { MinGapLimit = SegWitExternalKeyGenerator.MinGapLimit + 1 };
+			var newHdPubKeys = HdPubKeyCache.AddRangeKeys(SegWitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey)); 
 
 			newKey = newHdPubKeys.First();
 
@@ -333,11 +333,10 @@ public class KeyManager
 		lock (HdPubKeyRegistryLock)
 		{
 			AssertCleanKeysIndexed();
-			var allKeys = HdPubKeyCache.Select(x => x.HdPubKey);
 			return wherePredicate switch
 			{
-				null => allKeys.ToList(),
-				_ => allKeys.Where(wherePredicate).ToList()
+				null => HdPubKeyCache.ToList(),
+				_ => HdPubKeyCache.Where(wherePredicate).ToList()
 			};
 		}
 	}
@@ -365,7 +364,7 @@ public class KeyManager
 
 	public int CountConsecutiveUnusedKeys(bool isInternal)
 	{
-		var keySource = isInternal ? SegWitInternalKeys : SegWitExternalKeys;
+		var keySource = isInternal ? SegWitInternalKeyGenerator : SegWitExternalKeyGenerator;
 		var view = HdPubKeyCache.GetView(keySource.KeyPath);
 		var usedKeyIndexes = view.UsedKeys.Select(x => x.Index).OrderBy(x => x);
 		var auxPoints = usedKeyIndexes.Prepend(0).ToArray();
@@ -379,7 +378,7 @@ public class KeyManager
 	{
 		lock (HdPubKeyRegistryLock)
 		{
-			return HdPubKeyCache.Select(x => x.ScriptPubKeyBytes).ToList();
+			return HdPubKeyCache.GetScriptPubKeysBytes();
 		}
 	}
 
@@ -389,13 +388,7 @@ public class KeyManager
 
 		lock (HdPubKeyRegistryLock)
 		{
-			if (HdPubKeyCache.TryGetPubKey(scriptPubKey, out var key))
-			{
-				hdPubKey = key.HdPubKey;
-				return true;
-			}
-
-			return false;
+			return HdPubKeyCache.TryGetPubKey(scriptPubKey, out hdPubKey);
 		}
 	}
 
@@ -424,9 +417,9 @@ public class KeyManager
 		return extKeysAndPubs;
 	}
 
-	public IEnumerable<SmartLabel> GetChangeLabels() => HdPubKeyCache.GetView(SegWitInternalKeys.KeyPath).Select(x => x.Label);
+	public IEnumerable<SmartLabel> GetChangeLabels() => HdPubKeyCache.GetView(SegWitInternalKeyGenerator.KeyPath).Select(x => x.Label);
 
-	public IEnumerable<SmartLabel> GetReceiveLabels() => HdPubKeyCache.GetView(SegWitExternalKeys.KeyPath).Select(x => x.Label);
+	public IEnumerable<SmartLabel> GetReceiveLabels() => HdPubKeyCache.GetView(SegWitExternalKeyGenerator.KeyPath).Select(x => x.Label);
 
 	public ExtKey GetMasterExtKey(string password)
 	{
@@ -463,7 +456,7 @@ public class KeyManager
 		hdPubKey.SetKeyState(newKeyState);
 		if (newKeyState is KeyState.Locked or KeyState.Used)
 		{
-			var keySource = hdPubKey.IsInternal ? SegWitInternalKeys : SegWitExternalKeys;
+			var keySource = hdPubKey.IsInternal ? SegWitInternalKeyGenerator : SegWitExternalKeyGenerator;
 			var view = HdPubKeyCache.GetView(keySource.KeyPath);
 			HdPubKeyCache.AddRangeKeys(keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey));
 		}
@@ -471,11 +464,11 @@ public class KeyManager
 	
 	private IEnumerable<HdPubKey> AssertCleanKeysIndexed()
 	{
-		var internalView = HdPubKeyCache.GetView(SegWitInternalKeys.KeyPath);
-		var externalView = HdPubKeyCache.GetView(SegWitExternalKeys.KeyPath);
+		var internalView = HdPubKeyCache.GetView(SegWitInternalKeyGenerator.KeyPath);
+		var externalView = HdPubKeyCache.GetView(SegWitExternalKeyGenerator.KeyPath);
 		return HdPubKeyCache.AddRangeKeys(
-			SegWitInternalKeys.AssertCleanKeysIndexed(internalView).Concat(
-			SegWitExternalKeys.AssertCleanKeysIndexed(externalView))
+			SegWitInternalKeyGenerator.AssertCleanKeysIndexed(internalView).Concat(
+			SegWitExternalKeyGenerator.AssertCleanKeysIndexed(externalView))
 				.Select(CreateHdPubKey));
 	}
 
@@ -492,15 +485,15 @@ public class KeyManager
 
 	public bool AssertLockedInternalKeysIndexed(int howMany)
 	{
-		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, SegWitInternalKeys.MinGapLimit);
-		var internalView = HdPubKeyCache.GetView(SegWitInternalKeys.KeyPath);
+		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, SegWitInternalKeyGenerator.MinGapLimit);
+		var internalView = HdPubKeyCache.GetView(SegWitInternalKeyGenerator.KeyPath);
 		var lockedKeyCount = internalView.LockedKeys.Count();
 		var missingLockedKeys = Math.Max(howMany - lockedKeyCount, 0);
 			
-		HdPubKeyCache.AddRangeKeys(SegWitInternalKeys.AssertCleanKeysIndexed(internalView).Select(CreateHdPubKey));
+		HdPubKeyCache.AddRangeKeys(SegWitInternalKeyGenerator.AssertCleanKeysIndexed(internalView).Select(CreateHdPubKey));
 
 		var availableCandidates = HdPubKeyCache
-			.GetView(SegWitInternalKeys.KeyPath)
+			.GetView(SegWitInternalKeyGenerator.KeyPath)
 			.CleanKeys
 			.Where(x => x.Label.IsEmpty)
 			.Take(missingLockedKeys)

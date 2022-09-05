@@ -7,21 +7,21 @@ using NBitcoin;
 
 namespace WalletWasabi.Blockchain.Keys;
 
-public record HdPubKeyCacheEntry(HdPubKey HdPubKey, byte[] ScriptPubKeyBytes, ScriptPubKeyType ScriptPubKeyType);
-
-public class HdPubKeyCache : IEnumerable<HdPubKeyCacheEntry>
+public class HdPubKeyCache : IEnumerable<HdPubKey>
 {
-	private Dictionary<Script, HdPubKeyCacheEntry> CacheEntries { get; } = new ();
+	private Dictionary<Script, HdPubKey> HdPubKeysByScript { get; } = new();
+	private HashSet<HdPubKey> HdPubKeys { get; } = new();
+	private Dictionary<KeyPath, byte[]> ScriptBytesByKeyPath { get; } = new();
 
-	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
-	{
-		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
-		CacheEntries.AddOrReplace(scriptPubKey, new HdPubKeyCacheEntry(hdPubKey, scriptPubKey.ToCompressedBytes(), scriptPubKeyType));
-	}
+	public IEnumerable<byte[]> GetScriptPubKeysBytes() =>
+		ScriptBytesByKeyPath.Values;
+	
+	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
+		HdPubKeysByScript.TryGetValue(destination, out hdPubKey);
 
-	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKeyCacheEntry? hdPubKeyEx) =>
-		CacheEntries.TryGetValue(destination, out hdPubKeyEx);
-
+	public HdPubKeyPathView GetView(KeyPath keyPath) =>
+		Snapshot.GetChildKeyOf(keyPath);
+	
 	public IEnumerable<HdPubKey> AddRangeKeys(IEnumerable<HdPubKey> keys)
 	{
 		foreach (var key in keys)
@@ -32,18 +32,22 @@ public class HdPubKeyCache : IEnumerable<HdPubKeyCacheEntry>
 		return keys;
 	}
 
-	public IEnumerator<HdPubKeyCacheEntry> GetEnumerator() =>
-		CacheEntries.Values
-			.DistinctBy(x => x.HdPubKey)
-			.OrderBy(x => x.HdPubKey.Index)
-			.GetEnumerator();
+	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
+	{
+		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
+		HdPubKeysByScript.AddOrReplace(scriptPubKey, hdPubKey);
+		ScriptBytesByKeyPath.AddOrReplace(hdPubKey.FullKeyPath, scriptPubKey.ToCompressedBytes());
+		HdPubKeys.Add(hdPubKey);
+	}
+	
+	public IEnumerator<HdPubKey> GetEnumerator() =>
+		HdPubKeys
+		.OrderBy(x => x.Index)
+		.GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
 
 	private HdPubKeyGlobalView Snapshot =>
-		new(this.Select(x => x.HdPubKey).ToImmutableList());
-	
-	public HdPubKeyPathView GetView(KeyPath keyPath) =>
-		Snapshot.GetChildKeyOf(keyPath);
+		new(this.ToImmutableList());
 }
