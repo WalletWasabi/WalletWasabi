@@ -152,7 +152,7 @@ public class KeyManager
 	public ExtPubKey SegwitExtPubKey { get; }
 
 	[JsonProperty(PropertyName = "TaprootExtPubKey")]
-	public ExtPubKey TaprootExtPubKey { get; }
+	public ExtPubKey? TaprootExtPubKey { get; private set; }
 	
 	[JsonProperty(PropertyName = "SkipSynchronization")]
 	public bool SkipSynchronization { get; private set; } = false;
@@ -217,8 +217,8 @@ public class KeyManager
 
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
 	private HdPubKeyGenerator SegwitInternalKeyGenerator { get; }
-	private HdPubKeyGenerator TaprootExternalKeyGenerator { get; set; }
-	private HdPubKeyGenerator TaprootInternalKeyGenerator { get; }
+	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
+	private HdPubKeyGenerator? TaprootInternalKeyGenerator { get; }
 	
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
 
@@ -448,6 +448,13 @@ public class KeyManager
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
 				extKeysAndPubs.Add((ek, key));
+				
+				if (ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != key.P2wpkhScript 
+				    && ek.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) != key.P2Taproot)
+				{
+					throw new InvalidOperationException("Wtf");
+				}
+				
 			}
 		}
 		return extKeysAndPubs;
@@ -473,12 +480,22 @@ public class KeyManager
 
 			// Backwards compatibility:
 			MasterFingerprint ??= secret.PubKey.GetHDFingerPrint();
+			DeriveTaprootExtPubKey(extKey);
 
 			return extKey;
 		}
 		catch (SecurityException ex)
 		{
 			throw new SecurityException("Invalid password.", ex);
+		}
+	}
+
+	private void DeriveTaprootExtPubKey(ExtKey extKey)
+	{
+		if (TaprootExtPubKey is null)
+		{
+			TaprootAccountKeyPath = GetAccountKeyPath(GetNetwork(), ScriptPubKeyType.TaprootBIP86);
+			TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
 		}
 	}
 
