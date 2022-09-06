@@ -433,7 +433,8 @@ public class KeyManager
 				scripts.Contains(x.P2wpkhScript)
 				|| scripts.Contains(x.P2shOverP2wpkhScript)
 				|| scripts.Contains(x.P2pkhScript)
-				|| scripts.Contains(x.P2pkScript)))
+				|| scripts.Contains(x.P2pkScript)
+				|| scripts.Contains(x.P2Taproot)))
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
 				extKeysAndPubs.Add((ek, key));
