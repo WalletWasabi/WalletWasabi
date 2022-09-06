@@ -80,7 +80,7 @@ public class CoinVerifier
 	{
 		var before = DateTimeOffset.UtcNow;
 
-		var coinDictionary = coinsToCheck.ToDictionary(c => c.ScriptPubKey);
+		var coinDictionary = coinsToCheck.DistinctBy(c => c.ScriptPubKey).ToDictionary(c => c.ScriptPubKey);
 
 		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
