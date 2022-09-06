@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+             x:DataType="details:DebugInfoViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.DebugInfoView">
+
+  <UserControl.Styles>
+    <Style Selector="HeaderedContentControl.Inline">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition SharedSizeGroup="First" Width="Auto" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <ContentPresenter Content="{TemplateBinding Header}" Opacity="0.5" />
+              <ContentPresenter Margin="8 0" Grid.Column="1" Content="{TemplateBinding Content}" />
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style Selector="HeaderedContentControl">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <DockPanel>
+              <ContentPresenter Content="{TemplateBinding Header}" DockPanel.Dock="Top" Opacity="0.5" />
+              <ContentPresenter Margin="0 4" Content="{TemplateBinding Content}" />
+            </DockPanel>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Grid.IsSharedSizeScope="True" Spacing="5">
+    <HeaderedContentControl Classes="Inline" Header="Number of inputs" Content="{Binding InputCount}" />
+    <HeaderedContentControl Classes="Inline" Header="Number of outputs" Content="{Binding OutputCount}" />
+    <HeaderedContentControl Classes="Inline" Header="Sum of outputs" Content="{Binding SumOfOutputs, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+    <HeaderedContentControl Classes="Inline" Header="Largest output amount" Content="{Binding LargestOutputAmount, Converter={x:Static converters:MoneyConverters.ToBtc}}" />
+    <HeaderedContentControl Margin="0 8" Header="Own Inputs">
+      <HeaderedContentControl.Content>
+        <TreeDataGrid Source="{Binding OwnInputsSource}" />
+      </HeaderedContentControl.Content>
+    </HeaderedContentControl>
+    <HeaderedContentControl Margin="0 8" Header="Own Outputs">
+      <HeaderedContentControl.Content>
+        <TreeDataGrid Source="{Binding OwnOutputsSource}" />
+      </HeaderedContentControl.Content>
+    </HeaderedContentControl>
+  </StackPanel>
+</UserControl>

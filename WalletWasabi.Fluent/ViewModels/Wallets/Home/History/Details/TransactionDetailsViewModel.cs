@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,11 +21,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private string? _amount;
+	[AutoNotify] private string? _dateString;
+	[AutoNotify] private Money? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
+	[AutoNotify] private string? _amountText = "";
 
 	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{
@@ -33,10 +35,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(OnNext);
 		CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionIdAsync);
 
+		Fee = transactionSummary.Fee;
+		IsFeeVisible = transactionSummary.Fee != null && !transactionSummary.IsSelfSpend;
+
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
+
+	public bool IsFeeVisible { get; set; }
+
+	public Money? Fee { get; set; }
 
 	public ICommand CopyTransactionIdCommand { get; }
 
@@ -55,14 +64,30 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
-		Date = transactionSummary.DateTime.ToLocalTime();
+		DateString = transactionSummary.DateTime.ToLocalTime().ToUserFacingString();
 		TransactionId = transactionSummary.TransactionId.ToString();
 		Labels = transactionSummary.Label;
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.ToString(fplus: false, trimExcessZero: false);
+		Amount = transactionSummary.Amount.Abs();
+		AmountText = GetAmountText(transactionSummary);
 		BlockHash = transactionSummary.BlockHash?.ToString();
+	}
+
+	private string GetAmountText(TransactionSummary transactionSummary)
+	{
+		if (transactionSummary.Amount >= Money.Zero)
+		{
+			return "Incoming";
+		}
+
+		if (transactionSummary.IsSelfSpend)
+		{
+			return "Outgoing (transaction fee)";
+		}
+
+		return "Outgoing";
 	}
 
 	private void OnNext()
