@@ -40,8 +40,12 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			}
 		});
 
+		DebugInfoViewModel = new DebugInfoViewModel(coinJoin.CoinJoinTransaction);
+
 		Update();
 	}
+
+	public DebugInfoViewModel DebugInfoViewModel { get; }
 
 	public ICommand CopyCommand { get; }
 

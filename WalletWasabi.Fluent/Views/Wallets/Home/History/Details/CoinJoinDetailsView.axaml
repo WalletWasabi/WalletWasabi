@@ -55,6 +55,12 @@
                      TextValue="{Binding CoinJoinFeeRawString}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
       </c:PreviewItem>
+
+      <DockPanel Margin="0 10">
+        <TextBlock Margin="0 10" Text="Extended information" DockPanel.Dock="Top" />
+        <ContentControl Content="{Binding DebugInfoViewModel}" />
+      </DockPanel>
+
     </StackPanel>
   </c:ContentArea>
 </UserControl>

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
@@ -11,7 +12,16 @@
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
-    <StackPanel Spacing="15">
+
+    <c:ContentArea.Styles>
+
+      <Style Selector="StackPanel">
+        <Setter Property="Spacing" Value="15" />
+      </Style>
+
+    </c:ContentArea.Styles>
+
+    <StackPanel>
 
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
@@ -27,11 +37,25 @@
                      Label="{Binding AmountText}"
                      TextValue="{Binding Amount}">
         <c:PrivacyContentControl>
-          <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+          <TextBlock Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
       <Separator />
+
+      <!-- Fee -->
+      <StackPanel IsVisible="{Binding IsFeeVisible}">
+        
+        <c:PreviewItem Icon="{StaticResource btc_logo}"
+                       Label="Fee"
+                       TextValue="{Binding Fee}">
+          <c:PrivacyContentControl>
+            <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
+          </c:PrivacyContentControl>
+        </c:PreviewItem>
+
+        <Separator />
+      </StackPanel>
 
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"

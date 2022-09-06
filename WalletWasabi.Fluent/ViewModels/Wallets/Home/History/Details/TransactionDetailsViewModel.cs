@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
@@ -20,7 +21,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private string _dateString;
-	[AutoNotify] private string? _amount;
+	[AutoNotify] private Money? _amount;
 	[AutoNotify] private SmartLabel? _labels;
 	[AutoNotify] private string? _transactionId;
 	[AutoNotify] private string? _blockHash;
@@ -32,10 +33,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
+		Fee = transactionSummary.Fee;
+		IsFeeVisible = transactionSummary.Fee != null && !transactionSummary.IsSelfSpend;
+
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
+
+	public bool IsFeeVisible { get; set; }
+
+	public Money? Fee { get; set; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{
@@ -45,9 +53,24 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 		Confirmations = transactionSummary.GetConfirmations();
 		IsConfirmed = Confirmations > 0;
-		Amount = transactionSummary.Amount.Abs().ToString(fplus: false, trimExcessZero: false);
-		AmountText = transactionSummary.Amount < Money.Zero ? "Outgoing" : "Incoming";
+		Amount = transactionSummary.Amount.Abs();
+		AmountText = GetAmountText(transactionSummary);
 		BlockHash = transactionSummary.BlockHash?.ToString();
+	}
+
+	private string GetAmountText(TransactionSummary transactionSummary)
+	{
+		if (transactionSummary.Amount >= Money.Zero)
+		{
+			return "Incoming";
+		}
+
+		if (transactionSummary.IsSelfSpend)
+		{
+			return "Outgoing (transaction fee)";
+		}
+
+		return "Outgoing";
 	}
 
 	private void OnNext()
