@@ -1004,7 +1004,13 @@ public class CoinJoinClient
 		// Calculate outputs values
 		var constructionState = roundState.Assert<ConstructionState>();
 
-		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, Constants.P2wpkhOutputVirtualSize, Constants.P2wpkhInputVirtualSize, (int)availableVsize);
+		// Get the output's size and its of the input that will spend it in the future.
+		// Here we assume all the outputs share the same scriptpubkey type.  
+		var (inputVirtualSize, outputVirtualSize)= DestinationProvider.Peek().IsScriptType(ScriptType.Taproot)
+			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
+			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
+		
+		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, outputVirtualSize, inputVirtualSize, (int)availableVsize);
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
