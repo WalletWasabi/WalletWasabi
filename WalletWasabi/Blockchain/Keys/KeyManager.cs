@@ -57,8 +57,8 @@ public class KeyManager
 		BlockchainState = blockchainState;
 
 		SegwitAccountKeyPath = segwitAccountKeyPath ?? GetAccountKeyPath(BlockchainState.Network, ScriptPubKeyType.Segwit);
-		SegWitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
-		SegWitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
+		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
+		SegwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
 
 		TaprootAccountKeyPath = taprootAccountKeyPath ?? GetAccountKeyPath(BlockchainState.Network, ScriptPubKeyType.TaprootBIP86);
 		TaprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
@@ -104,6 +104,13 @@ public class KeyManager
 		HdPubKeyCache.AddRangeKeys(HdPubKeys);
 	}
 
+	[OnSerializing]
+	private void OnSerializingdMethod(StreamingContext context)
+	{
+		HdPubKeys.Clear();
+		HdPubKeys.AddRange(HdPubKeyCache);
+	}
+	
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		new KeyPath(
 			(network.Name, scriptPubKeyType) switch
