@@ -31,11 +31,16 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		_walletVm = walletVm;
 
 		NextCommand = ReactiveCommand.Create(OnNext);
+		var model = TransactionModel.Create(transactionSummary);
+
+		Fee = model.Fee();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		UpdateValues(transactionSummary);
 	}
+
+	public Money? Fee { get; set; }
 
 	private void UpdateValues(TransactionSummary transactionSummary)
 	{

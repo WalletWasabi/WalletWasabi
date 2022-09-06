@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
@@ -28,6 +29,17 @@
                      TextValue="{Binding Amount}">
         <c:PrivacyContentControl>
           <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
+        </c:PrivacyContentControl>
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Fee -->
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="Fee"
+                     TextValue="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}">
+        <c:PrivacyContentControl>
+          <TextBlock Text="{Binding Fee, Converter={x:Static converters:MoneyConverters.ToBtc}}" Classes="monoSpaced" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -14,4 +16,11 @@ public class TransactionSummary
 	public uint256? BlockHash { get; set; }
 	public int BlockIndex { get; set; }
 	public bool IsOwnCoinjoin { get; set; }
+	public IEnumerable<Output> Outputs { get; set; }
+	public IEnumerable<Input> Inputs { get; set; }
+	public int VirtualSize { get; set; }
+	public int Version { get; set; }
+	public long BlockTime { get; set; }
+	public int Size { get; set; }
+	public double Weight { get; set; }
 }
