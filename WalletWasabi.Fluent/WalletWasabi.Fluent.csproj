@@ -37,4 +37,10 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\Wallets\Home\History\Details\TransactionDetails2View.axaml.cs">
+	    <DependentUpon>TransactionDetails2View.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>
