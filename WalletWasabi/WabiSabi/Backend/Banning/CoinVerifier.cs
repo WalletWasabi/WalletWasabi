@@ -98,7 +98,7 @@ public class CoinVerifier
 			}
 			else
 			{
-				scriptsToCheck.Add(coin.ScriptPubKey);			
+				scriptsToCheck.Add(coin.ScriptPubKey);
 			}
 		}
 
