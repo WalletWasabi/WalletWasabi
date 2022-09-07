@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 
@@ -17,9 +19,18 @@ public static class ObservableMixin
 		return DelayWhen(observable, b => !b, ts);
 	}
 
-	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents)
+	public static IDisposable AddOrUpdate<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents)
 	{
-		return contents.Subscribe(list => sourceCache.Edit(updater => updater.AddOrUpdate(list)));
+		return contents.Subscribe(list => sourceCache.Edit(updater =>
+		{
+			if (!list.Any())
+			{
+				Debugger.Break();
+			}
+
+			var l = list.ToList();
+			updater.AddOrUpdate(l);
+		}));
 	}
 
 	public static IObservable<T> ReplayLastActive<T>(this IObservable<T> observable)

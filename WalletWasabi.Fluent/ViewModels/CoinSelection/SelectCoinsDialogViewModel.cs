@@ -75,10 +75,14 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var coinLists = GetCoins(_balanceChanged)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		sourceCache.RefillFrom(coinLists)
+		sourceCache.AddOrUpdate(coinLists)
 			.DisposeWith(disposables);
 
 		var viewModels = sourceCache.Connect();
+
+		viewModels.OnItemUpdated((current, previous) => current.IsSelected = previous.IsSelected)
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		var selectedCoins = viewModels
 			.AutoRefresh(x => x.IsSelected)
