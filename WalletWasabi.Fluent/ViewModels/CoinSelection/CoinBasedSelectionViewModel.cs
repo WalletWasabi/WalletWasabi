@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
@@ -16,7 +17,7 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, uint256>> coinChanges)
 	{
 		coinChanges
 			.TransformWithInlineUpdate(model => new TreeNode(model))

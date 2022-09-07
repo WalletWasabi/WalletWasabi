@@ -19,7 +19,7 @@ public static class ObservableMixin
 
 	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents)
 	{
-		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
+		return contents.Subscribe(list => sourceCache.Edit(updater => updater.AddOrUpdate(list)));
 	}
 
 	public static IObservable<T> ReplayLastActive<T>(this IObservable<T> observable)

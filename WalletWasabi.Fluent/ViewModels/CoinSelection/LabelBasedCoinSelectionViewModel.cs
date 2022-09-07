@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
@@ -19,7 +19,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	[AutoNotify] private string _filter = "";
 
 	public LabelBasedCoinSelectionViewModel(
-		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+		IObservable<IChangeSet<WalletCoinViewModel, uint256>> coinChanges)
 	{
 		var filterPredicate = this
 			.WhenAnyValue(x => x.Filter)
