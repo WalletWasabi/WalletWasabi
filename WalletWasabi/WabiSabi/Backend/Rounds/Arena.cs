@@ -164,7 +164,7 @@ public partial class Arena : PeriodicRunner
 					}
 					catch (Exception exc)
 					{
-						Logger.LogError($"{nameof(CoinVerifier)} was failed to verify all Alices({round.Alices.Count}).", exc);
+						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
 					}
 				}
 
