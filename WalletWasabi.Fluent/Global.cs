@@ -91,9 +91,7 @@ public class Global
 		if (Config.UseTor)
 		{
 			HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
-			{
-				return TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri();
-			});
+				TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri());
 		}
 		else
 		{

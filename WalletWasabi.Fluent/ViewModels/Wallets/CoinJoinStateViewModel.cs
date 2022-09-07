@@ -105,12 +105,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		});
 
 		IsPauseButtonEnabled = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
-			(isInCriticalPhase,pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
-			
+			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
+
 		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			await coinJoinManager.StopAsync(wallet, CancellationToken.None);
-		}, IsPauseButtonEnabled);
+			await coinJoinManager.StopAsync(wallet, CancellationToken.None), IsPauseButtonEnabled);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
@@ -226,10 +224,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = IsAutoCoinJoinEnabled ? _pauseMessage : _stoppedMessage;
 				ElapsedTime = "Press Play to start";
 			})
-			.OnExit(() =>
-			{
-				ElapsedTime = "";
-			});
+			.OnExit(() => ElapsedTime = "");
 
 		_stateMachine.Configure(State.Playing)
 			.Permit(Trigger.WalletStoppedCoinJoin, State.StoppedOrPaused)
@@ -258,10 +253,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				CurrentStatus = _plebStopMessage;
 				ElapsedTime = _plebStopMessageBelow.Message!;
 			})
-			.OnExit(() =>
-			{
-				ElapsedTime = "";
-			});
+			.OnExit(() => ElapsedTime = "");
 	}
 
 	private void UpdateCountDown()
@@ -333,7 +325,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					PauseSpreading = true;
 				}
 				else
-				{ 
+				{
 					CurrentStatus = roundEnded.LastRoundState.EndRoundState switch
 					{
 						EndRoundState.TransactionBroadcasted => _roundSucceedMessage,
