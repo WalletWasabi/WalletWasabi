@@ -1,9 +1,12 @@
 using Moq;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -118,6 +121,36 @@ public class CoinVerifierTests
 		}
 
 		Assert.Empty(naughtyCoins); // Empty, so we won't kick out anyone from the CJ round.
+	}
+
+	[Fact]
+	public async Task CanHandleAddressReuseAsync()
+	{
+		using var key = new Key();
+		var generatedCoins = new[] {
+			WabiSabiFactory.CreateCoin(key, Money.Coins(2m)),
+			WabiSabiFactory.CreateCoin(key, Money.Coins(1m))
+		};
+
+		Mock<HttpClient> mockHttpClient = new();
+		mockHttpClient.Setup(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(() =>
+			{
+				string content = GenerateCleanJsonReport();
+				HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
+				response.Content = new StringContent(content);
+				return response;
+			});
+
+		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
+		CoinJoinIdStore coinJoinIdStore = new();
+		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
+		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient);
+
+		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		{
+			Assert.False(item.ShouldBan);
+		}
 	}
 
 	[Fact]
