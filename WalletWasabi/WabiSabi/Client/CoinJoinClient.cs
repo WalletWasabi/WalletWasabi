@@ -529,7 +529,15 @@ public class CoinJoinClient
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				try
+				{
+					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				}
+				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
+				{
+					Logger.LogDebug("Signature was already sent - bypassing error.",ex);
+				}
+
 			})
 			.ToImmutableArray();
 
@@ -1036,8 +1044,11 @@ public class CoinJoinClient
 		return outputTxOuts;
 	}
 
-	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)>
-		ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
+	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
+		uint256 roundId,
+		ImmutableArray<AliceClient> registeredAliceClients,
+		IEnumerable<TxOut> outputTxOuts,
+		CancellationToken cancellationToken)
 	{
 		// Signing.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
