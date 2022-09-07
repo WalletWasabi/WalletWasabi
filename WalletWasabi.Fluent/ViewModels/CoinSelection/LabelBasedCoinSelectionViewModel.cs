@@ -29,10 +29,11 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 
 		coinChanges
 			.Group(x => new GroupKey(x.SmartLabel, x.GetPrivacyLevel()))
-			.TransformWithInlineUpdate(
+			.Transform(
 				group =>
 				{
-					var coinGroup = new CoinGroupViewModel(group.Key, group.Cache.Connect());
+					var coinGroup = new CoinGroupViewModel(group.Key, group.Cache.Connect())
+						.DisposeWith(_disposables);
 					return new TreeNode(coinGroup, coinGroup.Items.Select(x => new TreeNode(x)));
 				})
 			.Filter(filterPredicate)

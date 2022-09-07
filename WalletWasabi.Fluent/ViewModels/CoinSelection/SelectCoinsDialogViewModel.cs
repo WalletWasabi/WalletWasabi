@@ -103,9 +103,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		CoinBasedSelection =
 			new CoinBasedSelectionViewModel(viewModels)
 				.DisposeWith(disposables);
-		LabelBasedSelection =
-			new LabelBasedCoinSelectionViewModel(viewModels)
-				.DisposeWith(disposables);
+		//LabelBasedSelection =
+		//	new LabelBasedCoinSelectionViewModel(viewModels)
+		//		.DisposeWith(disposables);
 
 		SummaryText = RemainingAmount.CombineLatest(
 			SelectedCount,
