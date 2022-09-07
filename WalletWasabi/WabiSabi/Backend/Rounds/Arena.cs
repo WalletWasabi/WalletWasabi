@@ -18,7 +18,6 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner
@@ -165,7 +164,7 @@ public partial class Arena : PeriodicRunner
 					}
 					catch (Exception exc)
 					{
-						Logger.LogError(exc);
+						Logger.LogError($"{nameof(CoinVerifier)} was failed to verify all Alices({round.Alices.Count}).", exc);
 					}
 				}
 
