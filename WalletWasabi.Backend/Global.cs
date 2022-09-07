@@ -235,30 +235,18 @@ public class Global : IDisposable
 
 				var stoppingTask = Task.Run(async () =>
 				{
-					if (SegwitTaprootIndexBuilderService is { } stibs)
-					{
-						await stibs.StopAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
-					}
+					await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
 
-					if (TaprootIndexBuilderService is { } tibs)
-					{
-						await tibs.StopAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
-					}
+					await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
 
-					if (HostedServices is { } hostedServices)
-					{
-						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-						await hostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-						hostedServices.Dispose();
-					}
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+					HostedServices.Dispose();
 
-					if (P2pNode is { } p2pNode)
-					{
-						await p2pNode.DisposeAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
-					}
+					await P2pNode.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
 				});
 
 				stoppingTask.GetAwaiter().GetResult();
