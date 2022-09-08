@@ -42,7 +42,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
@@ -78,7 +78,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
@@ -118,7 +118,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
@@ -161,7 +161,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
@@ -204,7 +204,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, CancellationToken.None);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

@@ -544,19 +544,21 @@ public class KeyManager
 	/// <summary>
 	/// Make sure there's always locked internal keys generated and indexed.
 	/// </summary>
-	public void AssertLockedInternalKeysIndexedAndPersist(int howMany)
+	public void AssertLockedInternalKeysIndexedAndPersist(int howMany, bool preferTaproot)
 	{
-		if (AssertLockedInternalKeysIndexed(howMany))
+		if (AssertLockedInternalKeysIndexed(howMany, preferTaproot))
 		{
 			ToFile();
 		}
 	}
 
-	public bool AssertLockedInternalKeysIndexed(int howMany)
+	public bool AssertLockedInternalKeysIndexed(int howMany, bool preferTaproot)
 	{
-		var hdPubKeyGenerator = TaprootInternalKeyGenerator is { }
-			? TaprootInternalKeyGenerator
-			: SegwitInternalKeyGenerator;
+		var hdPubKeyGenerator = (TaprootInternalKeyGenerator, preferTaproot) switch
+		{
+			({ }, true) => TaprootInternalKeyGenerator,
+			_ => SegwitInternalKeyGenerator
+		};
 		
 		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, hdPubKeyGenerator.MinGapLimit);
 		var internalView = HdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
@@ -760,7 +762,8 @@ public static class KeyPathExtensions
 		{
 			84 => ScriptPubKeyType.Segwit,
 			86 => ScriptPubKeyType.TaprootBIP86,
-			_ => throw new NotSupportedException("Unknown script type.")
+			_ => ScriptPubKeyType.Segwit // User can specify a specify whatever (like m/999'/999'/999')
+			// throw new NotSupportedException("Unknown script type.")
 		};
 }
 public static class HdPubKeyExtensions

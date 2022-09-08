@@ -14,10 +14,10 @@ public class InternalDestinationProvider : IDestinationProvider
 
 	private KeyManager KeyManager { get; }
 
-	public IEnumerable<IDestination> GetNextDestinations(int count)
+	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot)
 	{
 		// Get all locked internal keys we have and assert we have enough.
-		KeyManager.AssertLockedInternalKeysIndexedAndPersist(count);
+		KeyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
 		return KeyManager
 			.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked)
 			.Select(x => x.GetAddress(KeyManager.GetNetwork()));
