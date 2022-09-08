@@ -236,7 +236,7 @@ public class P2pBlockProvider : IBlockProvider
 				if (ex is SocketException)
 				{
 					LastFailConnectLocalNode.Restart();
-					Logger.LogInfo($"Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources for next {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s");
+					Logger.LogInfo($"Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources for next {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s.");
 				}
 				else
 				{
