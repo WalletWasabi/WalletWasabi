@@ -20,21 +20,26 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	[AutoNotify] private string _percentText = "";
 	[AutoNotify] private string _balancePrivateBtc = "";
 	[AutoNotify] private bool _hasPrivateBalance;
+	[AutoNotify] private bool _showPrivacyBar;
 
-	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
+	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged, bool showPrivacyBar = true)
 	{
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
 		_balanceChanged = balanceChanged;
+		_showPrivacyBar = showPrivacyBar;
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
 
-		PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
+		if (_showPrivacyBar)
+		{
+			PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
+		}
 	}
 
 	public ICommand ShowDetailsCommand { get; }
 
-	public PrivacyBarViewModel PrivacyBar { get; }
+	public PrivacyBarViewModel? PrivacyBar { get; }
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{

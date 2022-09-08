@@ -141,7 +141,7 @@ public static class Tokenizer
 	/// <remarks>Tor spec mandates (in general) that unknown values cannot lead to crash of a Tor control parser.</remarks>
 	public static T ParseEnumValue<T>(string value, T defaultValue) where T : struct
 	{
-		if (!Enum.TryParse<T>(value, out T result))
+		if (!Enum.TryParse(value, out T result))
 		{
 			result = defaultValue;
 		}

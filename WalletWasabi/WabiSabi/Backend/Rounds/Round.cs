@@ -83,7 +83,7 @@ public class Round
 
 	public void SetPhase(Phase phase)
 	{
-		if (!Enum.IsDefined<Phase>(phase))
+		if (!Enum.IsDefined(phase))
 		{
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}

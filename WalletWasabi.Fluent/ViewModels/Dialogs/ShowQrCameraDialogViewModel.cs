@@ -34,10 +34,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		Observable.FromEventPattern<Bitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args =>
-			{
-				QrImage = args.EventArgs;
-			})
+			.Subscribe(args => QrImage = args.EventArgs)
 			.DisposeWith(disposables);
 
 		Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
