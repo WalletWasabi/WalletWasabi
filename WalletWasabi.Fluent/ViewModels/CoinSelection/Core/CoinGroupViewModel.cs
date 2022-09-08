@@ -19,7 +19,7 @@ public partial class CoinGroupViewModel : IDisposable, IThreeStateSelectable
 	private bool _canUpdate = true;
 	[AutoNotify] private TreeStateSelection _treeStateSelection;
 
-	public CoinGroupViewModel(GroupKey key, IObservable<IChangeSet<WalletCoinViewModel, uint256>> coins)
+	public CoinGroupViewModel(GroupKey key, IObservable<IChangeSet<WalletCoinViewModel, int>> coins)
 	{
 		Labels = key.Labels;
 

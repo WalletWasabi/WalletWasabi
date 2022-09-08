@@ -22,7 +22,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	private HierarchicalTreeDataGridSource<TreeNode> _source;
 
 	public LabelBasedCoinSelectionViewModel(
-		IObservable<IChangeSet<WalletCoinViewModel, uint256>> coinChanges)
+		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
 	{
 		coinChanges
 			.Group(x => new GroupKey(x.SmartLabel, x.GetPrivacyLevel()))
@@ -103,7 +103,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 
 		source.RowSelection!.SingleSelect = true;
-		source.SortBy(source.Columns[4], ListSortDirection.Descending);
+		source.SortBy(source.Columns[4], ListSortDirection.Ascending);
 
 		return source;
 	}

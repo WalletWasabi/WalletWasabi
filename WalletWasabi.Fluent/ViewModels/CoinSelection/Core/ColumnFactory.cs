@@ -94,11 +94,8 @@ public static class ColumnFactory
 						{
 							return new LabelsCellViewModel(vm.Labels);
 						}
-						else
-						{
-							var privacyName = GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value);
-							return $"({privacyName} coins)";
-						}
+
+						return GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value);
 					}
 
 					return new LabelsCellViewModel(new SmartLabel());
@@ -115,10 +112,10 @@ public static class ColumnFactory
 	{
 		return privacyLevel switch
 		{
-			PrivacyLevel.None => "None",
-			PrivacyLevel.SemiPrivate => "Semi-private",
-			PrivacyLevel.Private => "Private",
-			PrivacyLevel.NonPrivate => "Non-private",
+			PrivacyLevel.None => "(Invalid privacy level)",
+			PrivacyLevel.SemiPrivate => "(Semi-private coins)",
+			PrivacyLevel.Private => "(Private coins)",
+			PrivacyLevel.NonPrivate => "",
 			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
 		};
 	}
