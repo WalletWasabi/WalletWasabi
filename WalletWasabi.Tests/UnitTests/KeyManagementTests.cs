@@ -186,7 +186,6 @@ public class KeyManagementTests
 		Assert.Equal(70, km.CountConsecutiveUnusedKeys(true));
 	}
 
-
 	private static void DeleteFileAndDirectoryIfExists(string filePath)
 	{
 		var dir = Path.GetDirectoryName(filePath);

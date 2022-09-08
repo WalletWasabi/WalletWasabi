@@ -27,7 +27,7 @@ public class KeyChainTests
 		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData()));
 
 		transaction.Inputs.Add(coin.Outpoint);
-		var signedTx = keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData(new []{ coin }));
+		var signedTx = keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData(new[] { coin }));
 		Assert.True(signedTx.HasWitness);
 	}
 }

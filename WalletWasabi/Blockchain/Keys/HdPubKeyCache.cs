@@ -13,6 +13,9 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	private HashSet<HdPubKey> HdPubKeys { get; } = new();
 	private Dictionary<KeyPath, byte[]> ScriptBytesByKeyPath { get; } = new();
 
+	private HdPubKeyGlobalView Snapshot =>
+		new(this.ToImmutableList());
+
 	public IEnumerable<byte[]> GetScriptPubKeysBytes() =>
 		ScriptBytesByKeyPath.Values;
 	
@@ -47,7 +50,4 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 
 	IEnumerator IEnumerable.GetEnumerator() =>
 		GetEnumerator();
-
-	private HdPubKeyGlobalView Snapshot =>
-		new(this.ToImmutableList());
 }

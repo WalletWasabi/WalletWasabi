@@ -55,7 +55,6 @@ public abstract class BaseKeyChain : IKeyChain
 
 		var secret = GetBitcoinSecret(coin.ScriptPubKey);
 
-		//transaction.Sign(secret, allCoins);
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);
 		builder.AddCoins(coin);
