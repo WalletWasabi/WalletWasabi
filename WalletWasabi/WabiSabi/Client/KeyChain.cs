@@ -39,7 +39,15 @@ public class KeyChain : BaseKeyChain
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
 		}
-		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
+
+		var derivedScriptPubKeyType = scriptPubKey switch
+		{
+			_ when scriptPubKey.IsScriptType(ScriptType.P2WPKH) => ScriptPubKeyType.Segwit,
+			_ when scriptPubKey.IsScriptType(ScriptType.Taproot) => ScriptPubKeyType.TaprootBIP86,
+			_ => throw new NotSupportedException("Not supported script type.")
+		};
+		
+		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(derivedScriptPubKeyType) != scriptPubKey)
 		{
 			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 		}
