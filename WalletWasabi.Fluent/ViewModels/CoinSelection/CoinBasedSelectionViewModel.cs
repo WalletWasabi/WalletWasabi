@@ -19,7 +19,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private HierarchicalTreeDataGridSource<TreeNode> _source;
 
-	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges)
 	{
 		coinChanges
 			.Transform(model => new TreeNode(model))

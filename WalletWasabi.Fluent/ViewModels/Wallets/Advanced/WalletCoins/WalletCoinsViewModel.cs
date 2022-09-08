@@ -45,7 +45,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coins = CreateCoinsObservable(_balanceChanged);
 
 		var coinChanges = coins
-			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
+			.ToObservableChangeSet(c => c.OutPoint.GetHashCode())
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x, _walletViewModel.Wallet))

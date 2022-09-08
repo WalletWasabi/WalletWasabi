@@ -21,8 +21,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private HierarchicalTreeDataGridSource<TreeNode> _source;
 
-	public LabelBasedCoinSelectionViewModel(
-		IObservable<IChangeSet<WalletCoinViewModel, int>> coinChanges)
+	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges)
 	{
 		coinChanges
 			.Group(x => new GroupKey(x.SmartLabel, x.GetPrivacyLevel()))

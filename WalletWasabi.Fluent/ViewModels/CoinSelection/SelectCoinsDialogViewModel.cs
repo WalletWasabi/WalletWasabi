@@ -71,7 +71,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var sourceCache = new SourceCache<WalletCoinViewModel, int>(x => x.Coin.HdPubKey.GetHashCode());
+		var sourceCache = new SourceCache<WalletCoinViewModel, OutPoint>(x => x.Coin.OutPoint);
 		var coinLists = GetCoins(_balanceChanged)
 			.ObserveOn(RxApp.MainThreadScheduler);
 
