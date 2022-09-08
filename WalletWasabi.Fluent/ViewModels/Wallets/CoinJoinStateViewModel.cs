@@ -21,7 +21,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
 	private readonly DispatcherTimer _autoCoinJoinStartTimer;
-
 	private readonly MusicStatusMessageViewModel _countDownMessage = new() { Message = "Waiting to auto-start coinjoin" };
 	private readonly MusicStatusMessageViewModel _waitingMessage = new() { Message = "Waiting for coinjoin" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
@@ -50,6 +49,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private string _remainingTime;
 	[AutoNotify] private bool _isInCriticalPhase;
 	[AutoNotify] private bool _isCountDownDelayHappening;
+	[AutoNotify] private bool _areAllCoinsPrivate;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
@@ -73,7 +73,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)
 			.Select(x => x.EventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(StatusChanged);
+			.Do(ProcessStatusChange)
+			.Subscribe();
 
 		var initialState = walletVm.CoinJoinSettings.AutoCoinJoin
 			? State.WaitingForAutoStart
@@ -283,8 +284,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private double GetPercentage() => GetElapsedTime().TotalSeconds / GetTotalTime().TotalSeconds * 100;
 
-	private void StatusChanged(StatusChangedEventArgs e)
+	private void ProcessStatusChange(StatusChangedEventArgs e)
 	{
+		AreAllCoinsPrivate = false;
+
 		switch (e)
 		{
 			case WalletStartedCoinJoinEventArgs:
@@ -300,13 +303,23 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case StartErrorEventArgs start:
-				CurrentStatus = start.Error switch
+				switch (start.Error)
 				{
-					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for confirmed funds" },
-					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
-					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray!! Your wallet is private" },
-					_ => new() { Message = "Waiting for valid conditions" },
-				};
+					case CoinjoinError.NoCoinsToMix:
+						CurrentStatus = new() { Message = "Waiting for confirmed funds" };
+						break;
+					case CoinjoinError.UserInSendWorkflow:
+						CurrentStatus = new() { Message = "Waiting for closed send dialog" };
+						break;
+					case CoinjoinError.AllCoinsPrivate:
+						AreAllCoinsPrivate = true;
+						CurrentStatus = new() { Message = "Hurray!! Your wallet is private" };
+						break;
+					default:
+						CurrentStatus = new() { Message = "Waiting for valid conditions" };
+						break;
+				}
+
 				break;
 
 			case CoinJoinStatusEventArgs coinJoinStatusEventArgs:
