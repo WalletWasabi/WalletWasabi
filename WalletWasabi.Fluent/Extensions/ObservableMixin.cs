@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 
@@ -8,29 +6,11 @@ namespace WalletWasabi.Fluent.Extensions;
 
 public static class ObservableMixin
 {
-	public static IObservable<T> DelayWhen<T>(this IObservable<T> observable, Func<T, bool> filter, TimeSpan ts)
+	public static IDisposable AddOrUpdate<TObject, TKey>(
+		this ISourceCache<TObject, TKey> sourceCache,
+		IObservable<IEnumerable<TObject>> contents) where TKey : notnull
 	{
-		return observable
-			.Select(x => filter(x) ? Observable.Return(x).Delay(ts) : Observable.Return(x)).Concat();
-	}
-
-	public static IObservable<bool> DelayFalse(this IObservable<bool> observable, TimeSpan ts)
-	{
-		return DelayWhen(observable, b => !b, ts);
-	}
-
-	public static IDisposable AddOrUpdate<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents)
-	{
-		return contents.Subscribe(list => sourceCache.Edit(updater =>
-		{
-			if (!list.Any())
-			{
-				Debugger.Break();
-			}
-
-			var l = list.ToList();
-			updater.AddOrUpdate(l);
-		}));
+		return contents.Subscribe(list => sourceCache.Edit(updater => updater.AddOrUpdate(list)));
 	}
 
 	public static IObservable<T> ReplayLastActive<T>(this IObservable<T> observable)

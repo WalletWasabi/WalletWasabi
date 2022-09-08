@@ -31,6 +31,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		// Workaround for https://github.com/AvaloniaUI/Avalonia/issues/8913
 		nodes.WhenAnyPropertyChanged()
 			.WhereNotNull()
+			.Throttle(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
 			.Do(UpdateSource)
 			.Subscribe()
 			.DisposeWith(_disposables);

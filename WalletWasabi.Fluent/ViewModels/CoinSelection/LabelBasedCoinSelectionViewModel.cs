@@ -24,22 +24,15 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	public LabelBasedCoinSelectionViewModel(
 		IObservable<IChangeSet<WalletCoinViewModel, uint256>> coinChanges)
 	{
-		var filterPredicate = this
-			.WhenAnyValue(x => x.Filter)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
-			.DistinctUntilChanged()
-			.Select(FilterFunction);
-
 		coinChanges
 			.Group(x => new GroupKey(x.SmartLabel, x.GetPrivacyLevel()))
 			.Transform(
 				group =>
 				{
-					var coinGroup = new CoinGroupViewModel(group.Key, group.Cache.Connect())
-						.DisposeWith(_disposables);
+					var coinGroup = new CoinGroupViewModel(group.Key, group.Cache.Connect()).DisposeWith(_disposables);
 					return new TreeNode(coinGroup, coinGroup.Items.Select(x => new TreeNode(x)));
 				})
-			.Filter(filterPredicate)
+			.Filter(FilterChanged)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out var nodes)
 			.Subscribe()
@@ -48,12 +41,20 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		// Workaround for https://github.com/AvaloniaUI/Avalonia/issues/8913
 		nodes.WhenAnyPropertyChanged()
 			.WhereNotNull()
+			.Throttle(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
 			.Do(UpdateSource)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
 		Source = CreateGridSource(nodes).DisposeWith(_disposables);
 	}
+
+	private IObservable<Func<TreeNode, bool>> FilterChanged =>
+		this
+			.WhenAnyValue(x => x.Filter)
+			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
+			.DistinctUntilChanged()
+			.Select(FilterFunction);
 
 	private void UpdateSource(ReadOnlyObservableCollection<TreeNode> collection)
 	{

@@ -103,7 +103,7 @@ public static class ColumnFactory
 
 					return new LabelsCellViewModel(new SmartLabel());
 				}),
-			GridLength.Star,
+			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
 				CompareAscending = SortAscending<CoinGroupViewModel, SmartLabel>(model => model.Labels),
@@ -194,7 +194,7 @@ public static class ColumnFactory
 					return Comparer<TProperty>.Default.Compare(selector(x), selector(y));
 				}
 
-				return 1;
+				return 0;
 			});
 
 		return comparison;
@@ -210,7 +210,7 @@ public static class ColumnFactory
 					return Comparer<TProperty>.Default.Compare(selector(y), selector(x));
 				}
 
-				return -1;
+				return 0;
 			});
 
 		return comparison;
