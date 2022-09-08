@@ -1,5 +1,19 @@
 ## How to upgrade bundled Tor version in Wallet Wasabi
 
+### Automatically
+
+Just invoke the following commands in your PowerShell 7+:
+
+```powershell
+cd WalletWasabi/Microservices/Binaries
+
+# See what the latest released Tor Browser version is here: https://dist.torproject.org/torbrowser/.
+# Suppose it is "11.5.2". Then one can just call:
+.\UpgradeTorBinaries.ps1 -version "11.5.2"
+```
+
+### Manually
+
 1. Check if there is a new Tor Browser version.
     * The Tor Browser changelog can be found here: https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/tor-browser/Bundle-Data/Docs/ChangeLog.txt
     * The Tor changelog can be found here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
