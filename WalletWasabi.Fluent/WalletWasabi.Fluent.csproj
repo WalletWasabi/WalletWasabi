@@ -27,7 +27,8 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-preview1"/>
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="$(AvaloniaVersion)"/>
+		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="$(AvaloniaVersion)"/>
  	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Submodules\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />

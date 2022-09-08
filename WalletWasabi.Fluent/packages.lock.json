@@ -17,6 +17,15 @@
           "System.ValueTuple": "4.5.0"
         }
       },
+      "Avalonia.Controls.TreeDataGrid": {
+        "type": "Direct",
+        "requested": "[11.0.0-preview1, )",
+        "resolved": "11.0.0-preview1",
+        "contentHash": "nnijXywg8mXVtjORv117Zpe/GsRvL8t6lCDlbt6vxSAKRoAUulGWGdvGB4kLOlwwvYxEMXhUfFzh920PuvuLxQ==",
+        "dependencies": {
+          "Avalonia": "11.0.0-preview1"
+        }
+      },
       "Avalonia.Diagnostics": {
         "type": "Direct",
         "requested": "[11.0.0-preview1, )",
@@ -597,12 +606,6 @@
         "type": "Transitive",
         "resolved": "4.5.0",
         "contentHash": "okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ=="
-      },
-      "avalonia.controls.treedatagrid": {
-        "type": "Project",
-        "dependencies": {
-          "Avalonia": "0.10.999-cibuild0023056-beta"
-        }
       },
       "walletwasabi": {
         "type": "Project",

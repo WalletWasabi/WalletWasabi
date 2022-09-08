@@ -67,6 +67,14 @@
           "System.Reactive": "5.0.0"
         }
       },
+      "Avalonia.Controls.TreeDataGrid": {
+        "type": "Transitive",
+        "resolved": "11.0.0-preview1",
+        "contentHash": "nnijXywg8mXVtjORv117Zpe/GsRvL8t6lCDlbt6vxSAKRoAUulGWGdvGB4kLOlwwvYxEMXhUfFzh920PuvuLxQ==",
+        "dependencies": {
+          "Avalonia": "11.0.0-preview1"
+        }
+      },
       "Avalonia.Diagnostics": {
         "type": "Transitive",
         "resolved": "11.0.0-preview1",
@@ -671,12 +679,6 @@
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
-      "avalonia.controls.treedatagrid": {
-        "type": "Project",
-        "dependencies": {
-          "Avalonia": "0.10.999-cibuild0023056-beta"
-        }
-      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
@@ -690,7 +692,7 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "11.0.0-preview1",
-          "Avalonia.Controls.TreeDataGrid": "0.10.16",
+          "Avalonia.Controls.TreeDataGrid": "11.0.0-preview1",
           "Avalonia.Diagnostics": "11.0.0-preview1",
           "Avalonia.ReactiveUI": "11.0.0-preview1",
           "Avalonia.Skia": "11.0.0-preview1",
