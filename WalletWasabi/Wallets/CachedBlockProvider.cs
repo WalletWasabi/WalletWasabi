@@ -17,6 +17,7 @@ public class CachedBlockProvider : IBlockProvider
 
 	public IRepository<uint256, Block> BlockRepository { get; }
 	public IBlockProvider BlockSourceProvider { get; }
+	private Task LastSaveBlockTask { get; set; } = Task.CompletedTask;
 
 	/// <summary>
 	/// Gets a bitcoin block. In case the requested block is not available in the repository it is returned
@@ -32,7 +33,8 @@ public class CachedBlockProvider : IBlockProvider
 		if (block is null)
 		{
 			block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-			await BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+			await LastSaveBlockTask;
+			LastSaveBlockTask = BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
 		}
 		return block;
 	}
