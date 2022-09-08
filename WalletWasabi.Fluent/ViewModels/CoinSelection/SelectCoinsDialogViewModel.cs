@@ -108,13 +108,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 				.DisposeWith(disposables);
 
 		SummaryText = RemainingAmount.CombineLatest(
+			SelectedAmount,
 			SelectedCount,
-			(remaining, coinList) =>
-			{
-				var remainingText = remaining == Money.Zero ? "" : $"{remaining.FormattedBtc()} BTC | ";
-				var coinCountText = $"{coinList} coin{TextHelpers.AddSIfPlural(coinList)} selected";
-				return remainingText + coinCountText;
-			});
+			CreateFormatSummaryText);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
@@ -137,6 +133,14 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private static string CreateFormatSummaryText(Money remainingAmount, Money selectedAmount, int selectedCoinsCount)
+	{
+		var remainingPart = remainingAmount == Money.Zero ? Array.Empty<string>() : new[] { $"{remainingAmount.FormattedBtc()} BTC" };
+		var totalPart = new[] { $"{selectedCoinsCount} coin{TextHelpers.AddSIfPlural(selectedCoinsCount)} selected" };
+
+		return string.Join(" | ", remainingPart.Concat(totalPart));
 	}
 
 	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins, SmartLabel transactionLabel)
