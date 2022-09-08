@@ -17,6 +17,15 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
     <Panel>
       <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
+        <ItemsControl.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy All" Height="30" Command="{Binding CopyToClipboardCommand}">
+              <MenuItem.Icon>
+                <PathIcon Data="{StaticResource copy_regular}" />
+              </MenuItem.Icon>
+            </MenuItem>
+          </ContextMenu>
+        </ItemsControl.ContextMenu>
         <ItemsControl.Styles>
           <Style Selector="TextBlock">
             <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />

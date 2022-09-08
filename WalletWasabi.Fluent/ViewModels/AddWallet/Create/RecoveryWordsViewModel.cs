@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Avalonia;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -24,9 +27,13 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(() => OnNext(mnemonic, walletName));
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
+
+		CopyToClipboardCommand = ReactiveCommand.CreateFromTask(CopyToClipboardAsync);
 	}
 
 	public List<RecoveryWordViewModel> MnemonicWords { get; set; }
+
+	public ICommand CopyToClipboardCommand { get; }
 
 	private void OnNext(Mnemonic mnemonic, string walletName)
 	{
@@ -36,6 +43,17 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 	private void OnCancel()
 	{
 		Navigate().Clear();
+	}
+
+	private async Task CopyToClipboardAsync()
+	{
+		if (Application.Current is { Clipboard: { } clipboard })
+		{
+			var text =
+				string.Join(Environment.NewLine, MnemonicWords.Select(x => x.ToString()));
+
+			await clipboard.SetTextAsync(text);
+		}
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
