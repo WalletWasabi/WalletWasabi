@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Kernel;
@@ -6,6 +7,13 @@ namespace WalletWasabi.Fluent.Extensions;
 
 public static class DynamicDataMixin
 {
+	public static IDisposable AddOrUpdate<TObject, TKey>(
+		this ISourceCache<TObject, TKey> sourceCache,
+		IObservable<IEnumerable<TObject>> contents) where TKey : notnull
+	{
+		return contents.Subscribe(list => sourceCache.Edit(updater => updater.AddOrUpdate(list)));
+	}
+
 	/// <summary>
 	///     Transforms the items, and when an update is received, allows the preservation of the previous view model
 	/// </summary>

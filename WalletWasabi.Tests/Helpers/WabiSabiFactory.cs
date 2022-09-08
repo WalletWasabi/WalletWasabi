@@ -84,7 +84,7 @@ public static class WabiSabiFactory
 		using Key key = new();
 		var mockRpc = new Mock<IRPCClient>();
 		mockRpc.Setup(rpc => rpc.GetTxOutAsync(It.IsAny<uint256>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
+			.ReturnsAsync(new GetTxOutResponse
 			{
 				IsCoinBase = false,
 				ScriptPubKeyType = "witness_v0_keyhash",
@@ -94,7 +94,7 @@ public static class WabiSabiFactory
 		foreach (var coin in coins)
 		{
 			mockRpc.Setup(rpc => rpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, true, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
+				.ReturnsAsync(new GetTxOutResponse
 				{
 					IsCoinBase = false,
 					ScriptPubKeyType = "witness_v0_keyhash",

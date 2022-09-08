@@ -5,6 +5,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -19,6 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
+	private readonly CompositeDisposable _disposables = new();
 	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
 	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
@@ -32,8 +34,10 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
+		PrivacyTile = new PrivacyControlTileViewModel(walletViewModel, balanceChanged, false);
+		PrivacyTile.Activate(_disposables);
 
-		PreviewItems.Add(walletViewModel.Tiles.OfType<PrivacyControlTileViewModel>().First());
+		PreviewItems.Add(PrivacyTile);
 
 		_itemsSourceList
 			.Connect()
@@ -53,6 +57,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
 
+		_disposables.Add(_itemsSourceList);
+
 		this.WhenAnyValue(x => x.Width, x => x.Height)
 			.Subscribe(x =>
 			{
@@ -65,6 +71,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
+
+	public PrivacyControlTileViewModel PrivacyTile { get; }
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
 	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
@@ -92,6 +100,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 					list.Add(item);
 
+					_disposables.Add(item);
+
 					start = end;
 				}
 			}
@@ -103,11 +113,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	public void Dispose()
 	{
-		foreach (var item in Items)
-		{
-			item.Dispose();
-		}
-
-		_itemsSourceList.Dispose();
+		_disposables.Dispose();
 	}
 }
