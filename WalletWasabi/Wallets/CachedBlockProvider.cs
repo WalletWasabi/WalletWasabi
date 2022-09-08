@@ -34,7 +34,7 @@ public class CachedBlockProvider : IBlockProvider
 		{
 			block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
 			await LastSaveBlockTask.ConfigureAwait(false);
-			LastSaveBlockTask = BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+			LastSaveBlockTask = BlockRepository.SaveAsync(block, cancellationToken);
 		}
 		return block;
 	}
