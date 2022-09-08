@@ -57,7 +57,18 @@ public static class ServiceFactory
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah")
-		=> KeyManager.CreateNew(out var _, password, Network.Main);
+	{
+		var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+		ExtKey extKey = mnemonic.DeriveExtKey(password);
+		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+
+		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
+		BlockchainState blockchainState = new(Network.Main);
+		KeyPath segwitAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit);
+		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
+
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, null, skipSynchronization: true, 21, blockchainState, null, segwitAccountKeyPath, null);
+	}
 
 	public static KeyManager CreateWatchOnlyKeyManager()
 	{

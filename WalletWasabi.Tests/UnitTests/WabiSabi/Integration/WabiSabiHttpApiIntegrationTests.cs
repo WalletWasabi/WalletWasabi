@@ -335,6 +335,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			// services to build everything (WabiSabi controller, arena, etc)
 			services.AddScoped(s => new WabiSabiConfig
 			{
+				AllowP2trInputs = true,
+				AllowP2trOutputs = true,
 				MaxInputCountByRound = 2 * inputCount,
 				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(60),

@@ -770,4 +770,7 @@ public static class HdPubKeyExtensions
 {
 	public static BitcoinAddress GetAddress(this HdPubKey me, Network network) =>
 		me.PubKey.GetAddress(me.FullKeyPath.GetScriptTypeFromKeyPath(), network);
+
+	public static Script GetAssumedScriptPubKey(this HdPubKey me) =>
+		me.PubKey.GetScriptPubKey(me.FullKeyPath.GetScriptTypeFromKeyPath());
 }

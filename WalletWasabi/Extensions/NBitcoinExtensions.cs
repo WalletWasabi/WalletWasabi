@@ -91,7 +91,7 @@ public static class NBitcoinExtensions
 		}
 		foreach (TxOut output in me.Outputs)
 		{
-			if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
+			if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) || output.ScriptPubKey.IsScriptType(ScriptType.Taproot))
 			{
 				return true;
 			}

@@ -145,7 +145,7 @@ public class TransactionFactory
 		{
 			changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
 
-			builder.SetChange(changeHdPubKey.P2wpkhScript);
+			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
 
 		builder.OptInRBF = true;
