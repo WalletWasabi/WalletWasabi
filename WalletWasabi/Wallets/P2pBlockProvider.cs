@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
@@ -54,6 +55,7 @@ public class P2pBlockProvider : IBlockProvider
 	}
 
 	private int NodeTimeouts { get; set; }
+	private Stopwatch LastFailConnectLocalNode { get; } = new Stopwatch();
 
 	/// <summary>
 	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
@@ -74,12 +76,14 @@ public class P2pBlockProvider : IBlockProvider
 				cancellationToken.ThrowIfCancellationRequested();
 				try
 				{
-					// Try to get block information from local running Core node first.
-					block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
+					if(!LastFailConnectLocalNode.IsRunning || LastFailConnectLocalNode.Elapsed.TotalSeconds >= RuntimeParams.Instance.RetryConnectLocalNodeSeconds) { 
+						// Try to get block information from local running Core node first.
+						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
 
-					if (block is { })
-					{
-						break;
+						if (block is { })
+						{
+							break;
+						}
 					}
 
 					// If no connection, wait, then continue.
@@ -180,6 +184,10 @@ public class P2pBlockProvider : IBlockProvider
 
 					var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
 					var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+					if(LastFailConnectLocalNode.IsRunning)
+					{ 
+						LastFailConnectLocalNode.Stop();
+					}
 					try
 					{
 						Logger.LogInfo("TCP Connection succeeded, handshaking...");
@@ -227,7 +235,8 @@ public class P2pBlockProvider : IBlockProvider
 
 				if (ex is SocketException)
 				{
-					Logger.LogTrace("Did not find local listening and running full node instance. Trying to fetch needed block from other source.");
+					LastFailConnectLocalNode.Restart();
+					Logger.LogInfo($"Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources for next {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s");
 				}
 				else
 				{
