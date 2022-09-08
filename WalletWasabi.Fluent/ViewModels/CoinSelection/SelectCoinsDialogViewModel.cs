@@ -29,6 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
 	private readonly IObservable<Unit> _balanceChanged;
+	private readonly SmartLabel _transactionLabels;
 	private readonly IEnumerable<SmartCoin> _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
@@ -43,7 +44,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private IObservable<string> _summaryText = Observable.Return("");
-	private readonly SmartLabel _transactionLabels;
 
 	public SelectCoinsDialogViewModel(
 		WalletViewModel walletViewModel,
