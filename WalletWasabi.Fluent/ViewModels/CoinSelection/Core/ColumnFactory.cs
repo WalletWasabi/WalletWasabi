@@ -120,7 +120,7 @@ public static class ColumnFactory
 		};
 	}
 
-	public static TemplateColumn<TreeNode> SelectionColumn(Action<IDisposable> onCellCreated)
+	public static TemplateColumn<TreeNode> SelectionColumn()
 	{
 		return new TemplateColumn<TreeNode>(
 			"",
@@ -129,16 +129,12 @@ public static class ColumnFactory
 				{
 					if (n.Value is CoinGroupViewModel cg)
 					{
-						var isSelectedViewModel = new IsSelectedThreeStateCellViewModel(cg);
-						onCellCreated(isSelectedViewModel);
-						return isSelectedViewModel;
+						return new IsSelectedThreeStateCellViewModel(cg);
 					}
 
 					if (n.Value is WalletCoinViewModel coin)
 					{
-						var isSelectedViewModel = new IsSelectedCellViewModel(coin);
-						onCellCreated(isSelectedViewModel);
-						return isSelectedViewModel;
+						return new IsCoinSelectedCellViewModel(coin);
 					}
 
 					throw new NotSupportedException();

@@ -52,7 +52,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 
 	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables));
+		var selectionColumn = ColumnFactory.SelectionColumn();
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(coins)
 		{

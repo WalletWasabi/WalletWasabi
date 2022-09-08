@@ -37,4 +37,10 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\CoinSelection\Core\Cells\IsCoinSelectedCellView.axaml.cs">
+	    <DependentUpon>IsCoinSelectedCellView.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>

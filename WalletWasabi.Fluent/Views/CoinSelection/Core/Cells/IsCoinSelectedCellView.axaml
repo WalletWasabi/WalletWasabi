@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:cells="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.IsSelectedCellView"
-             x:DataType="cells:IsSelectedCellViewModel"
+             x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.IsCoinSelectedCellView"
+             x:DataType="cells:IsCoinSelectedCellViewModel"
              x:CompileBindings="True">
-  <CheckBox IsChecked="{Binding IsSelected}" />
+  <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding IsEnabled}"/>
 </UserControl>

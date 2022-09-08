@@ -87,7 +87,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 
 	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> groups)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(model => model.DisposeWith(_disposables));
+		var selectionColumn = ColumnFactory.SelectionColumn();
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
 		{
