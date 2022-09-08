@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
@@ -11,9 +13,11 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
-public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
+public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private HierarchicalTreeDataGridSource<TreeNode> _source;
 
 	public CoinBasedSelectionViewModel(IObservable<IChangeSet<WalletCoinViewModel, uint256>> coinChanges)
 	{
@@ -24,10 +28,21 @@ public class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
+		// Workaround for https://github.com/AvaloniaUI/Avalonia/issues/8913
+		nodes.WhenAnyPropertyChanged()
+			.WhereNotNull()
+			.Do(UpdateSource)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
 		Source = CreateGridSource(nodes).DisposeWith(_disposables);
 	}
 
-	public HierarchicalTreeDataGridSource<TreeNode> Source { get; }
+	private void UpdateSource(ReadOnlyObservableCollection<TreeNode> collection)
+	{
+		Source.Dispose();
+		Source = CreateGridSource(collection);
+	}
 
 	public void Dispose()
 	{
