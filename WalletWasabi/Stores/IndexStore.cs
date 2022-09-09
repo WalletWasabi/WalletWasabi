@@ -47,6 +47,9 @@ public class IndexStore : IAsyncDisposable
 	private Network Network { get; }
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
+	
+	private StreamReader? MatureIndexStreamReader { get; set; }
+	private List<FilterModel> IndexFilesLastFiltersFound { get; } = new();
 
 	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
 	private AsyncLock IndexLock { get; } = new();
@@ -299,6 +302,7 @@ public class IndexStore : IAsyncDisposable
 			}
 		}
 
+		// TODO: Add lock around this to wait till init
 		if (successAny)
 		{
 			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
@@ -431,8 +435,22 @@ public class IndexStore : IAsyncDisposable
 			Logger.LogError(ex);
 		}
 	}
+	public async Task<FilterModel?> ReTryOnLastFiltersFound(Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
+	{
+		FilterModel? result;
+		foreach(var filter in IndexFilesLastFiltersFound.Where(x => x.Header.Height >= fromHeight))
+		{
+			if(await todo(filter).ConfigureAwait(false))
+			{
+				result = filter;
+				break;
+			}
+		}
+		IndexFilesLastFiltersFound.Clear();
+		return result;
+	}
 
-	public async Task ForeachFiltersAsync(Func<FilterModel, Task> todo, Height fromHeight, CancellationToken cancel = default)
+	public async Task<FilterModel?> ForeachFiltersAsync(Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
 	{
 		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -443,11 +461,13 @@ public class IndexStore : IAsyncDisposable
 				if (MatureIndexFileManager.Exists())
 				{
 					uint height = StartingHeight;
-					using var sr = MatureIndexFileManager.OpenText();
-					if (!sr.EndOfStream)
+					MatureIndexStreamReader = MatureIndexStreamReader ?? MatureIndexFileManager.OpenText();
+					IndexFilesLastFiltersFound.Clear();
+					if (!MatureIndexStreamReader.EndOfStream)
 					{
-						var lineTask = sr.ReadLineAsync();
-						Task tTask = Task.CompletedTask;
+						var lineTask = MatureIndexStreamReader.ReadLineAsync();
+						Task<bool> tTask = new Task<bool>(() => { return true; });
+						FilterModel? filterGaveAsParam = null;
 						string? line = null;
 						while (lineTask is { })
 						{
@@ -458,7 +478,7 @@ public class IndexStore : IAsyncDisposable
 
 							line ??= await lineTask.ConfigureAwait(false);
 
-							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
+							lineTask = MatureIndexStreamReader.EndOfStream ? null : MatureIndexStreamReader.ReadLineAsync();
 
 							if (height < fromHeight.Value)
 							{
@@ -466,22 +486,32 @@ public class IndexStore : IAsyncDisposable
 								line = null;
 								continue;
 							}
-
+							
+							if (filterGaveAsParam != null) { 
+								if (await tTask.ConfigureAwait(false))
+								{
+									return filterGaveAsParam;
+								}
+							}
+							
 							var filter = FilterModel.FromLine(line);
-
-							await tTask.ConfigureAwait(false);
+							IndexFilesLastFiltersFound.Add(filter);
 							tTask = todo(filter);
-
+							filterGaveAsParam = filter;
 							height++;
 
 							line = null;
 						}
-						await tTask.ConfigureAwait(false);
+						if (filterGaveAsParam != null) { 
+							if (await tTask.ConfigureAwait(false))
+							{
+								return filterGaveAsParam;
+							}
+						}
 					}
-
-					while (!sr.EndOfStream)
+					while (!MatureIndexStreamReader.EndOfStream)
 					{
-						var line = await sr.ReadLineAsync().ConfigureAwait(false);
+						var line = await MatureIndexStreamReader.ReadLineAsync().ConfigureAwait(false);
 
 						if (firstImmatureHeight == height)
 						{
@@ -495,18 +525,31 @@ public class IndexStore : IAsyncDisposable
 						}
 
 						var filter = FilterModel.FromLine(line);
-
-						await todo(filter).ConfigureAwait(false);
+						IndexFilesLastFiltersFound.Add(filter);
+						if (await todo(filter).ConfigureAwait(false))
+						{
+							return filter;
+						}
 						height++;
+					}
+					if(MatureIndexStreamReader != null)
+					{
+						MatureIndexStreamReader.Dispose();
+						MatureIndexStreamReader = null;
 					}
 				}
 			}
-
-			foreach (FilterModel filter in ImmatureFilters.ToImmutableArray())
+			foreach (FilterModel filter in ImmatureFilters.ToImmutableArray().Where(x => x.Header.Height >= fromHeight))
 			{
-				await todo(filter).ConfigureAwait(false);
+				
+				IndexFilesLastFiltersFound.Add(filter);
+				if (await todo(filter).ConfigureAwait(false))
+				{
+					return filter;
+				}
 			}
 		}
+		return null;
 	}
 
 	public async ValueTask DisposeAsync()
