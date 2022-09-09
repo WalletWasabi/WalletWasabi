@@ -104,7 +104,7 @@ public class P2pBlockProvider : IBlockProvider
 							? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout*1.5,600)
 							: RuntimeParams.Instance.NetworkNodeTimeout;
 
-						using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout))) // 1/2 ADSL	512 kbit/s	00:00:32
+						using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 						{
 							using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 							block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
