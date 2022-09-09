@@ -13,30 +13,6 @@ public record CoinVerifyInfo(bool ShouldBan, Coin Coin);
 
 public class CoinVerifier
 {
-	/// <summary>
-	/// A list of indicator Id's that we use to filter out utxos from CoinJoin rounds based on API response.
-	/// </summary>
-	private readonly HashSet<int> _flagIds = new()
-	{
-		11,
-		22,
-		34,
-		57,
-		58,
-		59,
-		60,
-		61,
-		62,
-		63,
-		150,
-		165,
-		174,
-		177,
-		267,
-		272,
-		340
-	};
-
 	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
@@ -107,7 +83,7 @@ public class CoinVerifier
 		{
 			bool shouldBanUtxo = CheckForFlags(response.ApiResponseItem);
 
-			// Find all coins with the same script (address reuse). 
+			// Find all coins with the same script (address reuse).
 			foreach (var coin in coinsToCheck.Where(c => c.ScriptPubKey == response.ScriptPubKey))
 			{
 				if (!shouldBanUtxo)
@@ -130,11 +106,6 @@ public class CoinVerifier
 
 	private bool CheckForFlags(ApiResponseItem response)
 	{
-		bool shouldBan = false;
-
-		var coinflaglist = response.Cscore_section.Cscore_info;
-		shouldBan = coinflaglist.Any(cscoreInfo => _flagIds.Contains(cscoreInfo.Id));
-
-		return shouldBan;
+		return response.Cscore_section.Cscore_info.Any();
 	}
 }
