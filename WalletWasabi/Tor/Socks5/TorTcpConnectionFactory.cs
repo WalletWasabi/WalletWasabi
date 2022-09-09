@@ -240,7 +240,11 @@ public class TorTcpConnectionFactory
 				// SOCKS server MUST terminate the TCP connection shortly after sending
 				// the reply. This must be no more than 10 seconds after detecting the
 				// condition that caused a failure.
-				Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
+
+				string msg = $"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.";
+				LogLevel level = connectionResponse.Rep == RepField.TtlExpired ? LogLevel.Trace : LogLevel.Warning;
+				Logger.Log(level, msg);
+
 				throw new TorConnectCommandFailedException(connectionResponse.Rep);
 			}
 
