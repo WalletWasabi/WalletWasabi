@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -201,25 +200,6 @@ public class WasabiClient
 	}
 
 	#endregion blockchain
-
-	#region offchain
-
-	public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
-	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, $"/api/v{ApiVersion}/btc/offchain/exchange-rates").ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(CancellationToken.None).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync<IEnumerable<ExchangeRate>>().ConfigureAwait(false);
-
-		return ret;
-	}
-
-	#endregion offchain
 
 	#region software
 
