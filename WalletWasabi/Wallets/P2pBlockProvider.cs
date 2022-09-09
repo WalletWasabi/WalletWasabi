@@ -193,7 +193,12 @@ public class P2pBlockProvider : IBlockProvider
 		{
 			return false;
 		}
-		else if ((LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)))
+		// Already connected to local node
+		else if (!(LocalBitcoinCoreNode is null) && (LocalBitcoinCoreNode.IsConnected || Network == Network.RegTest))
+		{
+			return true;
+		}
+		else
 		{ 
 			try
 			{
@@ -215,7 +220,6 @@ public class P2pBlockProvider : IBlockProvider
 				}
 
 				var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-		
 				var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters).ConfigureAwait(false);
 				Logger.LogInfo("TCP Connection succeeded, handshaking...");
 				try
@@ -255,11 +259,6 @@ public class P2pBlockProvider : IBlockProvider
 				Logger.LogWarning(ex);
 			} 
 			return false;
-		}
-		else
-		{
-			// Already connected
-			return true;
 		}
 	}
 
