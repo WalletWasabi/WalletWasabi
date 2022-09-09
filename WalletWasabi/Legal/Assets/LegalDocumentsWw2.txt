@@ -65,8 +65,8 @@ I. TERMS AND CONDITIONS
 
     The client application (“Client Application”) is software, with the sole purpose of allowing You access to the Bitcoin network and our Services (as defined below), without the need or requirement to create or maintain a user account. The application itself is an ordinary Bitcoin desktop wallet with ordinary features. Wasabi Wallet does not store, send or receive bitcoins. This is because bitcoins exist only by virtue of the ownership record maintained in the Bitcoin network. Any transfer of title in bitcoins occurs within the decentralized Bitcoin network, and not in the Wasabi Wallet.
     The CoinJoin Coordinator Service is an online service that implements trustless CoinJoin to prevent third parties from spying on the Blockchain. Throughout the process, the Service does not initiate or process any standalone transactions whatsoever towards third parties (i.e. non-users of the Service) and therefore does not store or transmit value belonging to others. For further information on how it works please visit our GitHub page: https://github.com/zkSNACKs. You acknowledge that the CoinJoin Service runs in the background by default, while using the Client Application. To avoid fees, you may turn automatic CoinJoin Services off in the settings of the Client Application.
-	The UTXO is an unspent transaction output, the technical term for the amount of digital currency that remains after a cryptocurrency transaction. 
-	The One Hop transaction is when there is one non coinjoined transaction spending only coinjoined outputs.
+    The UTXO is an unspent transaction output, the technical term for the amount of digital currency that remains after a cryptocurrency transaction.
+    The One Hop transaction is when there is one non CoinJoin transaction spending only CoinJoin outputs.
 
 2.2 FEES
     Subject to the other provisions of these Terms, including, but not limited to Section 3 on Prohibited Activities, You may freely download and use the Client Application without any charge or fee imposed on You by the Service Provider.
@@ -107,11 +107,11 @@ I. TERMS AND CONDITIONS
     If You find any reason to violate the law during Your transaction (for example, in a transaction with a third party), please let us know at one of the contacts listed at the end of this document.
     The Service Provider shall assist the investigation in any case, if so instructed by an authorized body, a final court judgment or a final regulatory decision.
 
-Coin Filtering 
+    COIN FILTERING
 
-zkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its coinjoin coordination services. zkSNACKs Ltd. may suspend your UTXOs’ access to the coinjoin services, with immediate effect for any reason - including but not limited to illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the coinjoin services.
+    zkSNACKs Ltd. may execute illicit activity checking and control via a contracted third party solely in its CoinJoin coordination services. zkSNACKs Ltd. may suspend your UTXOs’ access to the CoinJoin services, with immediate effect for any reason - including but not limited to illicit or prohibited activities, applicable sanctions programs, or any crime or money-laundering activity - at its sole discretion and is under no obligation to disclose the details of its decision to take such action with you. In this case you are not permitted to use the relevant/high-risk bitcoin UTXO to reach the CoinJoin services.
     You acknowledge that zkSNACKs Ltd.'s decision to take certain actions, including suspending for any reason at our sole discretion, may be based on confidential criteria that are essential to zkSNACKs Ltd.'s risk management and security protocols. You agree that zkSNACKs Ltd. is under no obligation to disclose the details of its risk management and security procedures to you.
-    Your access with the relevant bitcoin UTXOs to the coinjoin services will be permanently suspended.
+    Your access with the relevant bitcoin UTXOs to the CoinJoin services will be permanently suspended.
 
 
 4 INDEMNIFICATION
@@ -120,7 +120,7 @@ zkSNACKs Ltd. may execute illicit activity checking and control via a contracted
     You agree to indemnify, defend and hold us, harmless against any and all claims, costs, losses, damages, liabilities, judgments and expenses (including reasonable fees of attorneys and other professionals) arising from or in any way related to Your use of our Services, Your violation of these Terms, or Your violation of any rights of any other person or entity.
     In the event of such an occurrence, it is Your responsibility to notify the Service Provider immediately after the occurrence of the incident so that we can take the necessary measures to prevent and remedy the damage.
 
-YOU EXPRESSLY ACKNOWLEDGE THAT THE SERVICE PROVIDER DOES NOT GUARANTEE THE ANONYMITY SET LEVEL IN ANY CIRCUMSTANCES. 
+    YOU EXPRESSLY ACKNOWLEDGE THAT THE SERVICE PROVIDER DOES NOT GUARANTEE THE ANONYMITY SET LEVEL IN ANY CIRCUMSTANCES.
 
 
 5 OWNERSHIP OF INTELLECTUAL PROPERTY RIGHTS
@@ -172,7 +172,7 @@ YOU EXPRESSLY ACKNOWLEDGE THAT THE SERVICE PROVIDER DOES NOT GUARANTEE THE ANONY
      - that arbitration will be conducted confidentially by a single arbitrator appointed by law of Republic of Seychelles;
      - the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and
      - that the arbitration in Republic of Seychelles will have exclusive jurisdiction over any appeals of an arbitration award.
-   Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
+    Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
     Whether the dispute is heard in arbitration, You and the Service Provider will not commence against the other any class action, class arbitration or representative action or proceeding.
 
 9.3 GOVERNING LAW AND JURISDICTION
@@ -247,7 +247,7 @@ Contact details regarding this declaration
 III. LEGAL STATEMENT OF WASABI WALLET
 =========================================
 
-    zkSNACKs Ltd., the creator of Wasabi Wallet and owner of the brand only supports behaviour that is legally acceptable by Republic of Seychelles  and international legal standards, and strictly rejects all kinds of illegal activities.
+    zkSNACKs Ltd., the creator of Wasabi Wallet and owner of the brand only supports behaviour that is legally acceptable by Republic of Seychelles and international legal standards, and strictly rejects all kinds of illegal activities.
 
 INFORMATION PROVIDED
 ====================

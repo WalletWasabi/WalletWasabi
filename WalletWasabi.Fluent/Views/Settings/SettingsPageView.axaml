@@ -54,6 +54,13 @@
             <v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" />
           </ScrollViewer>
         </TabItem>
+
+        <TabItem Header="Advanced">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" />
+          </ScrollViewer>
+        </TabItem>
+
       </TabControl>
     </DockPanel>
   </c:ContentArea>

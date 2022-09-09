@@ -23,6 +23,8 @@ using WalletWasabi.Wallets;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
+using System.Net.Sockets;
+using System.Collections.ObjectModel;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -103,7 +105,7 @@ public class Program
 
 					Logger.LogError(ex);
 
-					RxApp.MainThreadScheduler.Schedule(() => throw ex);
+					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
 				});
 
 			Logger.LogSoftwareStarted("Wasabi GUI");
@@ -139,6 +141,10 @@ public class Program
 		{
 			// Trigger the CrashReport process if required.
 			CrashReporter.Invoke(exceptionToReport);
+		}
+		else if (Services.UpdateManager.DoUpdateOnClose)
+		{
+			Services.UpdateManager.StartInstallingNewVersion();
 		}
 
 		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
@@ -215,7 +221,22 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogDebug(e.Exception);
+		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
+
+		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException socketException && socketException.SocketErrorCode == SocketError.OperationAborted)
+		{
+			// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
+			Logger.LogTrace(e.Exception);
+		}
+		else if (innerExceptions.Count == 1 && innerExceptions[0] is OperationCanceledException ex && ex.Message == "The peer has been disconnected")
+		{
+			// Source of this exception is NBitcoin library.
+			Logger.LogTrace(e.Exception);
+		}
+		else
+		{
+			Logger.LogDebug(e.Exception);
+		}
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)

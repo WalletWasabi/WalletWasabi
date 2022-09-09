@@ -38,14 +38,14 @@ public class StepOutputRegistrationTests
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destKey1 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
 
 		using var destKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -86,7 +86,7 @@ public class StepOutputRegistrationTests
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destKey = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey.PubKey.WitHash.ScriptPubKey,
+			destKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -124,13 +124,13 @@ public class StepOutputRegistrationTests
 		using var destKey1 = new Key();
 		using var destKey2 = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey1.PubKey.WitHash.ScriptPubKey,
+			destKey1.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
 
 		await bobClient.RegisterOutputAsync(
-			destKey2.PubKey.WitHash.ScriptPubKey,
+			destKey2.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials2.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials2.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);
@@ -173,7 +173,7 @@ public class StepOutputRegistrationTests
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destKey = new Key();
 		await bobClient.RegisterOutputAsync(
-			destKey.PubKey.WitHash.ScriptPubKey,
+			destKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
 			CancellationToken.None);

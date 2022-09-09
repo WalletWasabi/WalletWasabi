@@ -17,6 +17,7 @@ This document lists all the officially supported software and devices by Wasabi 
 - ColdCard MK3
 - ColdCard MK4
 - Ledger Nano S
+- Ledger Nano S Plus
 - Ledger Nano X
 - Trezor Model T
 

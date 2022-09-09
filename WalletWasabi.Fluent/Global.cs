@@ -18,18 +18,18 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
-using WalletWasabi.Rpc;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent;
 
@@ -54,6 +54,7 @@ public class Global
 	private TorProcessManager? TorManager { get; set; }
 	public CoreNode? BitcoinCoreNode { get; private set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
+	public UpdateManager UpdateManager { get; set; }
 	public HostedServices HostedServices { get; }
 
 	public UiConfig UiConfig { get; }
@@ -69,50 +70,46 @@ public class Global
 
 	public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
 	{
-		using (BenchmarkLogger.Measure())
+		DataDir = dataDir;
+		Config = config;
+		UiConfig = uiConfig;
+		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+
+		HostedServices = new HostedServices();
+		WalletManager = walletManager;
+
+		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
+		AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+		SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
+		IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+		var mempoolService = new MempoolService();
+		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
+
+		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
+
+		if (Config.UseTor)
 		{
-			DataDir = dataDir;
-			Config = config;
-			UiConfig = uiConfig;
-			TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
-
-			HostedServices = new HostedServices();
-			WalletManager = walletManager;
-
-			var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
-			AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-			SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
-			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
-			var mempoolService = new MempoolService();
-			var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
-
-			BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
-
-			if (Config.UseTor)
-			{
-				HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
-				{
-					return TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri();
-				});
-			}
-			else
-			{
-				HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-			}
-
-			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
-			LegalChecker = new(DataDir);
-			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
-			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
-
-			RoundStateUpdaterCircuit = new PersonCircuit();
-
-			Cache = new MemoryCache(new MemoryCacheOptions
-			{
-				SizeLimit = 1_000,
-				ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-			});
+			HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
+				TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri());
 		}
+		else
+		{
+			HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+		}
+
+		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
+		LegalChecker = new(DataDir);
+		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
+		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
+
+		RoundStateUpdaterCircuit = new PersonCircuit();
+
+		Cache = new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
@@ -143,8 +140,11 @@ public class Global
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				HostedServices.Register<UpdateChecker>(() => new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				var updateChecker = HostedServices.Get<UpdateChecker>();
 
-				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
+				UpdateManager.Initialize(updateChecker, cancel);
+				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+
 				cancel.ThrowIfCancellationRequested();
 
 				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
@@ -296,8 +296,8 @@ public class Global
 	private void RegisterCoinJoinComponents()
 	{
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = HttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
-		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(5), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Config.ServiceConfiguration, Config.CoordinatorIdentifier), "CoinJoin Manager");
+		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), HttpClientFactory, Synchronizer, Config.CoordinatorIdentifier), "CoinJoin Manager");
 	}
 
 	public async Task DisposeAsync()
@@ -328,6 +328,12 @@ public class Global
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
+				}
+
+				if (UpdateManager is { } updateManager)
+				{
+					UpdateManager.Dispose();
+					Logger.LogInfo($"{nameof(UpdateManager)} is stopped.", nameof(Global));
 				}
 
 				if (RpcServer is { } rpcServer)
@@ -368,7 +374,7 @@ public class Global
 
 				if (HttpClientFactory is { } httpClientFactory)
 				{
-					httpClientFactory.Dispose();
+					await httpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(HttpClientFactory)} is disposed.");
 				}
 

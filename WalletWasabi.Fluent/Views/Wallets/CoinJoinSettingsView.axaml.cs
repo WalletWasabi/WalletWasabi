@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Send;
+namespace WalletWasabi.Fluent.Views.Wallets;
 
-public class AdvancedSendOptionsView : UserControl
+public class CoinJoinSettingsView : UserControl
 {
-	public AdvancedSendOptionsView()
+	public CoinJoinSettingsView()
 	{
 		InitializeComponent();
 	}

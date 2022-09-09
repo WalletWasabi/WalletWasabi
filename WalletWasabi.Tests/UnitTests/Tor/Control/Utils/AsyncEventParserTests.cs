@@ -45,4 +45,16 @@ public class AsyncEventParserTests
 		CircEvent @event = Assert.IsType<CircEvent>(asyncEvent);
 		Assert.NotNull(@event);
 	}
+
+	[Fact]
+	public async Task ParseStreamEventAsync()
+	{
+		string data = "650 STREAM 35 SUCCEEDED 34 103.47.192.15:8333 SOCKS_USERNAME=\"7NO8P91J0W7TLBS3JTP9F\" SOCKS_PASSWORD=\"7NO8P91J0W7TLBS3JTP9F\" CLIENT_PROTOCOL=SOCKS5 NYM_EPOCH=0 SESSION_GROUP=-4 ISO_FIELDS=SOCKS_USERNAME,SOCKS_PASSWORD,CLIENTADDR,SESSION_GROUP,NYM_EPOCH\r\n";
+
+		TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
+		IAsyncEvent asyncEvent = AsyncEventParser.Parse(rawReply);
+
+		StreamEvent @event = Assert.IsType<StreamEvent>(asyncEvent);
+		Assert.NotNull(@event);
+	}
 }

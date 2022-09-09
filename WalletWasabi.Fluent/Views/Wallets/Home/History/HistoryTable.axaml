@@ -159,13 +159,13 @@
                                               Items="{TemplateBinding Columns}"
                                               Rows="{TemplateBinding Rows}"
                                               Classes.coinJoinTransaction="{Binding !IsSingleCoinJoinTransaction}"
-                                              x:CompileBindings="False"/>
+                                              x:CompileBindings="False" />
                   <Rectangle Name="PART_Separator"
                              Margin="-2,0,0,0"
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Bottom"
                              IsHitTestVisible="False"
-                             Height="1"/>
+                             Height="1" />
                 </Panel>
               </DockPanel>
             </ControlTemplate>
@@ -215,13 +215,13 @@
           <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TreeDataGridRow /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}"/>
+          <Setter Property="Background" Value="{DynamicResource SystemListLowColor}" />
         </Style>
         <Style Selector="TreeDataGridRow:selected /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TreeDataGridRow:pointerover /template/ TreeDataGridCellsPresenter#PART_CellsPresenter.coinJoinTransaction">
-          <Setter Property="Background" Value="Transparent"/>
+          <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="TextBlock.hidden">
           <Setter Property="IsVisible" Value="False" />
@@ -256,9 +256,9 @@
                                   Focusable="False"
                                   IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
                                   IsVisible="{TemplateBinding ShowExpander}"
-                                  Cursor="Hand"/>
+                                  Cursor="Hand" />
                   </Border>
-                  <Decorator Name="PART_Content"/>
+                  <Decorator Name="PART_Content" />
                 </DockPanel>
               </Border>
             </ControlTemplate>
@@ -269,8 +269,16 @@
     </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}"/>
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.4" />
+                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
+      <Panel Background="{DynamicResource RegionColor}" Opacity="0.75" />
+      <Grid RowDefinitions="26,1*,1.5*"
+            IsVisible="{Binding IsTransactionHistoryLoaded}"
+            Margin="{StaticResource HistoryTablePlaceholderPanelMargin}">
+        <c:InfoMessage VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Grid.Row="1"
+                       Content="Transaction history is empty" />
+      </Grid>
     </Panel>
   </Panel>
 </UserControl>

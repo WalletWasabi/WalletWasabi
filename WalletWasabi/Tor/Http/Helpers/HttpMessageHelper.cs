@@ -18,7 +18,7 @@ namespace WalletWasabi.Tor.Http.Helpers;
 
 public static class HttpMessageHelper
 {
-	public static async Task<string> ReadStartLineAsync(Stream stream, CancellationToken ctsToken = default)
+	public static async Task<string> ReadStartLineAsync(Stream stream, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3
 		// A recipient MUST parse an HTTP message as a sequence of octets in an
@@ -34,7 +34,7 @@ public static class HttpMessageHelper
 		int read = 0;
 		while (read >= 0)
 		{
-			read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+			read = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
 
 			// End of stream has been reached.
 			if (read == -1)
@@ -430,34 +430,24 @@ public static class HttpMessageHelper
 		}
 	}
 
-	private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long length, CancellationToken ctsToken)
+	/// <seealso href="https://tools.ietf.org/html/rfc7230#section-3.3.3">See point 5.</seealso>
+	/// <seealso href="https://tools.ietf.org/html/rfc7230#section-3.4"/>
+	private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long contentLength, CancellationToken ctsToken)
 	{
-		try
+		if (contentLength < int.MinValue || contentLength > int.MaxValue)
 		{
-			Convert.ToInt32(length);
-		}
-		catch (OverflowException ex)
-		{
-			throw new NotSupportedException($"Content-Length too long: {length}.", ex);
+			throw new NotSupportedException($"Content-Length is out of range: {contentLength}.");
 		}
 
-		var allData = new byte[(int)length];
-		int num = await stream.ReadBlockAsync(allData, (int)length, ctsToken).ConfigureAwait(false);
-		if (num < (int)length)
+		int length = (int)contentLength;
+		byte[] allData = new byte[length];
+
+		int num = await stream.ReadBlockAsync(allData, length, ctsToken).ConfigureAwait(false);
+		if (num < length)
 		{
-			// https://tools.ietf.org/html/rfc7230#section-3.3.3
-			// If the sender closes the connection or
-			// the recipient times out before the indicated number of octets are
-			// received, the recipient MUST consider the message to be
-			// incomplete and close the connection.
-			// https://tools.ietf.org/html/rfc7230#section-3.4
-			// A client that receives an incomplete response message, which can
-			// occur when a connection is closed prematurely or when decoding a
-			// supposedly chunked transfer coding fails, MUST record the message as
-			// incomplete.Cache requirements for incomplete responses are defined
-			// in Section 3 of[RFC7234].
-			throw new NotSupportedException($"Incomplete message. Expected length: {length}. Actual: {num}.");
+			throw new TorConnectionReadException($"Incomplete message. A Tor circuit probably died. Expected length: {length}. Actual: {num}.");
 		}
+
 		return allData;
 	}
 

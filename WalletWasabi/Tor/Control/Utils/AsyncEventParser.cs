@@ -23,6 +23,7 @@ public static class AsyncEventParser
 		{
 			StatusEvent.EventNameStatusClient or StatusEvent.EventNameStatusServer or StatusEvent.EventNameStatusGeneral => StatusEvent.FromReply(reply),
 			CircEvent.EventName => CircEvent.FromReply(reply),
+			StreamEvent.EventName => StreamEvent.FromReply(reply),
 			NetworkLivenessEvent.EventName => NetworkLivenessEvent.FromReply(reply),
 			OrConnEvent.EventName => OrConnEvent.FromReply(reply),
 			_ => throw new NotSupportedException("This should never happen."),

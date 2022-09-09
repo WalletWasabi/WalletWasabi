@@ -11,6 +11,7 @@ using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using WalletWasabi.Tor.Control.Messages.Events;
 using WalletWasabi.Tor.Control.Messages.Events.OrEvents;
 using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using WalletWasabi.Tor.Control.Utils;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -34,6 +35,7 @@ public class TorMonitor : PeriodicRunner
 		StatusEvent.EventNameStatusClient,
 		StatusEvent.EventNameStatusServer,
 		CircEvent.EventName,
+		StreamEvent.EventName,
 		OrConnEvent.EventName,
 		NetworkLivenessEvent.EventName,
 	};
@@ -151,15 +153,20 @@ public class TorMonitor : PeriodicRunner
 				else if (asyncEvent is CircEvent circEvent)
 				{
 					CircuitInfo info = circEvent.CircuitInfo;
-					if (!circuitEstablished && info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT)
+
+					if (!circuitEstablished && (info.CircStatus is CircStatus.BUILT or CircStatus.EXTENDED or CircStatus.GUARD_WAIT))
 					{
 						Logger.LogInfo("Tor circuit was established.");
 						circuitEstablished = true;
 					}
-					if (info.CircStatus == CircStatus.CLOSED && info.UserName is not null)
+				}
+				else if (asyncEvent is StreamEvent streamEvent)
+				{
+					StreamInfo info = streamEvent.StreamInfo;
+
+					if (info.UserName is not null)
 					{
-						Logger.LogTrace($"Tor circuit #{info.CircuitID} ('{info.UserName}') was closed.");
-						TorHttpPool.ReportCircuitClosed(info.UserName);
+						TorHttpPool.ReportCircuitStatus(streamUsername: info.UserName, streamStatus: info.StreamStatus, circuitID: info.CircuitID);
 					}
 				}
 			}
@@ -168,7 +175,7 @@ public class TorMonitor : PeriodicRunner
 		{
 			if (forceTorRestartCts.IsCancellationRequested)
 			{
-				// Attempt to shut down Tor. 
+				// Attempt to shut down Tor.
 				if (torControlClient is not null)
 				{
 					bool success = await ShutDownTorAsync(torControlClient).ConfigureAwait(false);
@@ -251,7 +258,7 @@ public class TorMonitor : PeriodicRunner
 				if (latestTorException is TorConnectCommandFailedException e)
 				{
 					// Tor must be running for us to consider switching to the fallback address.
-					bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
+					bool isRunning = await HttpClient.IsTorRunningAsync(token).ConfigureAwait(false);
 
 					if (!isRunning)
 					{

@@ -18,7 +18,6 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner
@@ -32,7 +31,8 @@ public partial class Arena : PeriodicRunner
 		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
 		CoinJoinTransactionArchiver? archiver = null,
-		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
+		CoinJoinScriptStore? coinJoinScriptStore = null,
+		CoinVerifier? coinVerifier = null) : base(period)
 	{
 		Network = network;
 		Config = config;
@@ -42,6 +42,7 @@ public partial class Arena : PeriodicRunner
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
+		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
 	}
 
@@ -56,6 +57,7 @@ public partial class Arena : PeriodicRunner
 	private Prison Prison { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
+	public CoinVerifier? CoinVerifier { get; private set; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
@@ -105,10 +107,10 @@ public partial class Arena : PeriodicRunner
 				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
 			.ToArray();
 
-		// Let's make sure WW2.0.1 clients prefer rounds that WW2.0.0 clients don't.
+		// Let's make sure that newer clients prefer rounds that WW2.0.0 clients don't.
 		// In WW2.0.0 on client side we accidentally order rounds by calling .ToImmutableDictionary(x => x.Id, x => x)
 		// therefore whichever round ToImmutableDictionary would make to be the first round, we send it to the back of our list.
-		// With this we can achieve that WW2.0.0 and WW2.0.1 clients prefer different rounds in parallel round configuration.
+		// With this we can make sure that WW2.0.0 and newer clients prefer different rounds in parallel round configuration.
 		if (standardRegistrableRounds.Any())
 		{
 			var firstRegistrableRoundAccordingToWW200 = standardRegistrableRounds
@@ -116,7 +118,7 @@ public partial class Arena : PeriodicRunner
 				.First()
 				.Value;
 
-			// Remove from wherever WW2.0.0's most preferred round is, then add it back to the end of our list.
+			// Remove from whatever WW2.0.0's most preferred round is, then add it back to the end of our list.
 			rounds.Remove(firstRegistrableRoundAccordingToWW200);
 			rounds.Add(firstRegistrableRoundAccordingToWW200);
 		}
@@ -138,6 +140,31 @@ public partial class Arena : PeriodicRunner
 					if (offendingAlices.Any())
 					{
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+					}
+				}
+
+				if (round is not BlameRound && CoinVerifier is not null)
+				{
+					try
+					{
+						int banCounter = 0;
+						var aliceDictionary = round.Alices.Where(x => !x.IsPayingZeroCoordinationFee).ToDictionary(a => a.Coin, a => a);
+						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
+						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
+						{
+							if (coinVerifyInfo.ShouldBan)
+							{
+								banCounter++;
+								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
+								Prison.Ban(aliceToPunish, round.Id, isLongBan: true);
+								round.Alices.Remove(aliceToPunish);
+							}
+						}
+						Logger.LogInfo($"{banCounter} utxos were banned from round {round.Id}.");
+					}
+					catch (Exception exc)
+					{
+						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
 					}
 				}
 

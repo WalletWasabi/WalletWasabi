@@ -42,6 +42,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	/// <summary>To stop the loop that keeps starting Tor process.</summary>
 	private CancellationTokenSource LoopCts { get; }
+
 	private TorSettings Settings { get; }
 	private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
@@ -53,14 +54,14 @@ public class TorProcessManager : IAsyncDisposable
 
 	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
 	public Task<(CancellationToken, TorControlClient)> StartAsync(CancellationToken cancellationToken = default)
-	{		
+	{
 		return StartAsync(attempts: 1, cancellationToken);
 	}
 
 	/// <summary>Starts loop which makes sure that Tor process is started.</summary>
 	/// <param name="cancellationToken">Application lifetime cancellation token.</param>
 	/// <returns>Cancellation token which is canceled once Tor process terminates (either forcefully or gracefully).</returns>
-	/// <remarks>This method must be called exactly once.</remarks>		
+	/// <remarks>This method must be called exactly once.</remarks>
 	/// <exception cref="OperationCanceledException">When all attempts are tried.</exception>
 	public async Task<(CancellationToken, TorControlClient)> StartAsync(int attempts, CancellationToken cancellationToken = default)
 	{
@@ -70,7 +71,7 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			try
 			{
-				Logger.LogDebug($"Attempt #{i} to start Tor.");
+				Logger.LogDebug($"Attempt #{i + 1} to start Tor.");
 				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
@@ -112,11 +113,11 @@ public class TorProcessManager : IAsyncDisposable
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
+				bool isAlreadyRunning = await TcpConnectionFactory.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
-					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint.Address}:{Settings.SocksEndpoint.Port}.");
+					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
 					// Tor process can crash even between these two commands too.
@@ -185,7 +186,7 @@ public class TorProcessManager : IAsyncDisposable
 						}
 						catch
 						{
-						}						
+						}
 					}
 				}
 			}
@@ -234,7 +235,7 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			i++;
 
-			bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
+			bool isRunning = await TcpConnectionFactory.IsTorRunningAsync(token).ConfigureAwait(false);
 
 			if (isRunning)
 			{
@@ -360,7 +361,7 @@ public class TorProcessManager : IAsyncDisposable
 			// > SHUTDOWN" and wait for the Tor process to close.)
 			if (Settings.TerminateOnExit)
 			{
-				await torControlClient.SignalShutdownAsync().ConfigureAwait(false);
+				await torControlClient.SignalShutdownAsync(CancellationToken.None).ConfigureAwait(false);
 			}
 
 			// Leads to Tor termination because we sent TAKEOWNERSHIP command.
