@@ -336,7 +336,6 @@ public class P2pBlockProvider : IBlockProvider
 		{
 			return;
 		}
-		
 		RuntimeParams.Instance.NetworkNodeTimeout = timeout;
 		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 
