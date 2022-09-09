@@ -150,7 +150,7 @@ public class ArenaClientTests
 		var outpoint = BitcoinFactory.CreateOutPoint();
 		var mockRpc = new Mock<IRPCClient>();
 		mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
+			.ReturnsAsync(new GetTxOutResponse
 			{
 				IsCoinBase = false,
 				Confirmations = 200,
