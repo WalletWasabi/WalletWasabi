@@ -29,11 +29,6 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 		}
 
-		if (!prevout.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-		{
-			throw new NotImplementedException(); // See #5440
-		}
-
 		if (prevout.Value < Parameters.AllowedInputAmounts.Min)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);

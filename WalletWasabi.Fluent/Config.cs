@@ -118,6 +118,9 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
+	[JsonProperty(PropertyName = "EnableGpu")]
+	public bool EnableGpu { get; internal set; } = true;
+
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";

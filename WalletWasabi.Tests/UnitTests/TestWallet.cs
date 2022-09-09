@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -118,7 +119,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return OwnershipProof.GenerateCoinJoinInputProof(
 				extKey.PrivateKey,
 				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				committedData);
+				committedData,
+				ScriptPubKeyType.Segwit);
 	}
 
 	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
@@ -131,6 +133,11 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
 		return transaction;
+	}
+
+	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	{
+		// Test wallet doesn't care
 	}
 
 	public IEnumerable<IDestination> GetNextDestinations(int count) =>

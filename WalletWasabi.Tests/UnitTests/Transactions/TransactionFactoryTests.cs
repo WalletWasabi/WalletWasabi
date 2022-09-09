@@ -183,7 +183,7 @@ public class TransactionFactoryTests
 
 		keyManager.AssertCleanKeysIndexed();
 
-		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true, false);
+		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
 		var scoins = new[]
 		{
 				BitcoinFactory.CreateSmartCoin(NewKey("Pablo"), 0.9m),

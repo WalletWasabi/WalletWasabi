@@ -46,10 +46,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 			AppLifetimeHelper.Shutdown();
 		});
 
-		AskMeLaterCommand = ReactiveCommand.Create(() =>
-		{
-			UpdateAvailable = false;
-		});
+		AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
 
 		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
 

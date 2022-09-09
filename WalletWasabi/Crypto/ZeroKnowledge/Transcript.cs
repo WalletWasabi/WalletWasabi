@@ -72,7 +72,7 @@ public sealed class Transcript
 			_strobe.AddAssociatedMetaData(ChallengeTag, false);
 			scalar = new Scalar(_strobe.Prf(KeySizeInBytes, false), out overflow);
 		}
-		while(overflow != 0);
+		while (overflow != 0);
 		return scalar;
 	}
 

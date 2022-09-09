@@ -48,9 +48,9 @@ public class TorHttpClient : IHttpClient
 	private TorHttpPool TorHttpPool { get; }
 
 	/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
-	/// <exception cref="OperationCanceledException">When <paramref name="token"/> is canceled by the user.</exception>
+	/// <exception cref="OperationCanceledException">When <paramref name="cancellationToken"/> is canceled by the user.</exception>
 	/// <inheritdoc cref="SendAsync(HttpRequestMessage, CancellationToken)"/>
-	public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
+	public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancellationToken = default)
 	{
 		if (BaseUriGetter is null)
 		{
@@ -65,30 +65,41 @@ public class TorHttpClient : IHttpClient
 			request.Content = content;
 		}
 
-		return await SendAsync(request, token).ConfigureAwait(false);
+		return await SendAsync(request, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
-	/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
+	/// <exception cref="OperationCanceledException">If <paramref name="cancellationToken"/> is set.</exception>
 	/// <remarks>
 	/// No exception is thrown when the status code of the <see cref="HttpResponseMessage">response</see>
 	/// is, for example, <see cref="HttpStatusCode.NotFound"/>.
 	/// </remarks>
-	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 	{
 		if (Mode is Mode.NewCircuitPerRequest)
 		{
-			using PersonCircuit circuit = new();
-			return await TorHttpPool.SendAsync(request, circuit, token).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
-			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, token).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	public Task<bool> IsTorRunningAsync()
+	/// <inheritdoc cref="TorHttpPool.PrebuildCircuitsUpfront(Uri, int, TimeSpan)"/>
+	/// <exception cref="InvalidOperationException">When no <see cref="BaseUriGetter"/> is set.</exception>
+	public void PrebuildCircuitsUpfront(int count, TimeSpan deadline)
 	{
-		return TorHttpPool.IsTorRunningAsync();
+		if (BaseUriGetter is null)
+		{
+			throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
+		}
+
+		TorHttpPool.PrebuildCircuitsUpfront(BaseUriGetter(), count, deadline);
+	}
+
+	public Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
+	{
+		return TorHttpPool.IsTorRunningAsync(cancellationToken);
 	}
 }

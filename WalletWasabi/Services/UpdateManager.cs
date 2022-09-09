@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
@@ -50,6 +51,11 @@ public class UpdateManager : IDisposable
 					updateStatus.ClientVersion = newVersion;
 					break;
 				}
+				catch (OperationCanceledException ex)
+				{
+					Logger.LogTrace($"Geting new update was canceled.", ex);
+					break;
+				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Geting new update failed with error.", ex);
@@ -82,12 +88,12 @@ public class UpdateManager : IDisposable
 			using HttpClient httpClient = new();
 
 			// Get file stream and copy it to downloads folder to access.
-			using var stream = await httpClient.GetStreamAsync(url).ConfigureAwait(false);
+			using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 			Logger.LogInfo("Installer downloaded, copying...");
 			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
 			using (var file = File.OpenWrite(tmpFilePath))
 			{
-				await stream.CopyToAsync(file).ConfigureAwait(false);
+				await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
 
 				// Closing the file to rename.
 				file.Close();
@@ -103,9 +109,9 @@ public class UpdateManager : IDisposable
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var response = await HttpClient.SendAsync(message).ConfigureAwait(false);
+		var response = await HttpClient.SendAsync(message, CancellationToken).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false));
 
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
@@ -215,6 +221,7 @@ public class UpdateManager : IDisposable
 	public bool DoUpdateOnClose { get; set; }
 
 	private UpdateChecker? UpdateChecker { get; set; }
+	private CancellationToken CancellationToken { get; set; }
 
 	public void StartInstallingNewVersion()
 	{
@@ -260,9 +267,10 @@ public class UpdateManager : IDisposable
 		}
 	}
 
-	public void Initialize(UpdateChecker updateChecker)
+	public void Initialize(UpdateChecker updateChecker, CancellationToken cancelationToken)
 	{
 		UpdateChecker = updateChecker;
+		CancellationToken = cancelationToken;
 		updateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 	}
 

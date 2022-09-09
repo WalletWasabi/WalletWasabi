@@ -35,6 +35,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
+	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	private bool _isTransactionHistoryLoaded;
 
 	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 	{
@@ -199,10 +201,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			SelectedItem.IsFlashing = true;
 
 			var index = _transactions.IndexOf(SelectedItem);
-			Dispatcher.UIThread.Post(() =>
-			{
-				Source.RowSelection!.SelectedIndex = new IndexPath(index);
-			});
+			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
 		}
 	}
 
@@ -229,6 +228,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x.Clear();
 				x.AddRange(newHistoryList);
 			});
+
+			IsTransactionHistoryLoaded = true;
 		}
 		catch (Exception ex)
 		{
@@ -265,8 +266,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			}
 
 			if (coinJoinGroup is { } cjg &&
-			    (i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
-			     i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
+				(i + 1 < txRecordList.Count && !txRecordList[i + 1].IsOwnCoinjoin || // The next item is not CJ so add the group.
+				 i == txRecordList.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{

@@ -45,13 +45,13 @@ public class PlatformExtension : MarkupExtension
 
 		var provideValueTarget = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
 
-		if (provideValueTarget is { TargetProperty: IPropertyInfo propertyInfo})
+		if (provideValueTarget is { TargetProperty: IPropertyInfo propertyInfo })
 		{
 			if (TypeUtilities.TryConvert(
-				    propertyInfo.PropertyType,
-				    result,
-				    CultureInfo.InvariantCulture,
-				    out var converted))
+					propertyInfo.PropertyType,
+					result,
+					CultureInfo.InvariantCulture,
+					out var converted))
 			{
 				return converted;
 			}
