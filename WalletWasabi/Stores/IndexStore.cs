@@ -437,7 +437,7 @@ public class IndexStore : IAsyncDisposable
 	}
 	public async Task<FilterModel?> ReTryOnLastFiltersFound(Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
 	{
-		FilterModel? result;
+		FilterModel? result = null;
 		foreach(var filter in IndexFilesLastFiltersFound.Where(x => x.Header.Height >= fromHeight))
 		{
 			if(await todo(filter).ConfigureAwait(false))
