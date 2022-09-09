@@ -2,7 +2,7 @@
 
 ### Automatically
 
-Just invoke the following commands in your PowerShell 7+:
+Invoke the following commands in your PowerShell 7+:
 
 ```powershell
 cd WalletWasabi/Microservices/Binaries
