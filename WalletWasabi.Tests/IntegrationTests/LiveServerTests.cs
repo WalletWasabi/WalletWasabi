@@ -83,22 +83,6 @@ public class LiveServerTests : IAsyncLifetime
 
 	#endregion Blockchain
 
-	#region Offchain
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task GetExchangeRateAsync(Network network)
-	{
-		TorHttpClient torHttpClient = MakeTorHttpClient(network);
-		WasabiClient client = new(torHttpClient);
-
-		var exchangeRates = await client.GetExchangeRatesAsync();
-
-		Assert.True(exchangeRates.NotNullAndNotEmpty());
-	}
-
-	#endregion Offchain
-
 	#region Software
 
 	[Theory]
