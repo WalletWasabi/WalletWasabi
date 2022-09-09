@@ -15,7 +15,6 @@ public class RuntimeParams
 	private RuntimeParams()
 	{
 	}
-	
 	[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 	public int NetworkNodeTimeout { get; set; } = 16;
 

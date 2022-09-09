@@ -55,7 +55,8 @@ public class P2pBlockProvider : IBlockProvider
 	}
 
 	private int NodeTimeouts { get; set; }
-	private Stopwatch LastFailConnectLocalNode { get; } = new Stopwatch();
+	private Stopwatch LastFailConnectLocalNode { get; } = new();
+	private SemaphoreSlim SemaphoreConnectLocalNode { get; } = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
 	/// <summary>
 	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
@@ -76,14 +77,12 @@ public class P2pBlockProvider : IBlockProvider
 				cancellationToken.ThrowIfCancellationRequested();
 				try
 				{
-					if(!LastFailConnectLocalNode.IsRunning || LastFailConnectLocalNode.Elapsed.TotalSeconds >= RuntimeParams.Instance.RetryConnectLocalNodeSeconds) { 
-						// Try to get block information from local running Core node first.
-						block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
+					// Try to get block information from local running Core node first.
+					block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
 
-						if (block is { })
-						{
-							break;
-						}
+					if (block is { })
+					{
+						break;
 					}
 
 					// If no connection, wait, then continue.
@@ -161,87 +160,118 @@ public class P2pBlockProvider : IBlockProvider
 	{
 		if (CoreNode?.RpcClient is null)
 		{
-			try
+			if (await SemaphoreConnectLocalNode.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false))
 			{
-				if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
+				var SemaphoreReleased = false;
+				try
+				{
+					if (LocalBitcoinCoreNode is null || (!LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest)) // If RegTest then we're already connected do not try again.
+					{
+						if (!LastFailConnectLocalNode.IsRunning || LastFailConnectLocalNode.Elapsed.TotalSeconds >= RuntimeParams.Instance.RetryConnectLocalNodeSeconds)
+						{
+							DisconnectDisposeNullLocalBitcoinCoreNode();
+							using var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+							handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+							var nodeConnectionParameters = new NodeConnectionParameters()
+							{
+								ConnectCancellation = handshakeTimeout.Token,
+								IsRelay = false,
+								UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
+							};
+
+							// If an onion was added must try to use Tor.
+							// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
+							if (HttpClientFactory.IsTorEnabled)
+							{
+								nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+							}
+
+							var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+							var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters).ConfigureAwait(false);
+							if(LastFailConnectLocalNode.IsRunning)
+							{
+								LastFailConnectLocalNode.Stop();
+							}
+							try
+							{
+								Logger.LogInfo("TCP Connection succeeded, handshaking...");
+								localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+								var peerServices = localNode.PeerVersion.Services;
+
+								Logger.LogInfo("Handshake completed successfully.");
+
+								if (!localNode.IsConnected)
+								{
+									throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+										"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+								}
+								LocalBitcoinCoreNode = localNode;
+							}
+							catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+							{
+								Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+									"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
+								throw;
+							}
+						}
+						else
+						{
+							Logger.LogTrace("Last try to connect to local node resulted in failure." +
+								$" Won't retry before {(RuntimeParams.Instance.RetryConnectLocalNodeSeconds - LastFailConnectLocalNode.Elapsed.TotalSeconds)}s.");
+							return null;
+						}
+					}
+					// Releasing here allows DownloadBlockAsync parallelization.
+					SemaphoreReleased = true;
+					SemaphoreConnectLocalNode.Release();
+
+					// Get Block from local node
+					Block blockFromLocalNode;
+					// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
+					{
+						blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
+					}
+
+					// Validate retrieved block
+					if (!blockFromLocalNode.Check())
+					{
+						throw new InvalidOperationException("Disconnected node, because invalid block received!");
+					}
+
+					// Retrieved block from local node and block is valid
+					Logger.LogInfo($"Block acquired from local P2P connection: {hash}.");
+					return blockFromLocalNode;
+				}
+				catch (Exception ex)
 				{
 					DisconnectDisposeNullLocalBitcoinCoreNode();
-					using var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-					handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-					var nodeConnectionParameters = new NodeConnectionParameters()
+
+					if (ex is SocketException)
 					{
-						ConnectCancellation = handshakeTimeout.Token,
-						IsRelay = false,
-						UserAgent = $"/Wasabi:{Constants.ClientVersion}/"
-					};
-
-					// If an onion was added must try to use Tor.
-					// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-					if (HttpClientFactory.IsTorEnabled)
-					{
-						nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
-					}
-
-					var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-					var localNode = await Node.ConnectAsync(Network, localEndPoint, nodeConnectionParameters).ConfigureAwait(false);
-					if(LastFailConnectLocalNode.IsRunning)
-					{ 
-						LastFailConnectLocalNode.Stop();
-					}
-					try
-					{
-						Logger.LogInfo("TCP Connection succeeded, handshaking...");
-						localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-						var peerServices = localNode.PeerVersion.Services;
-
-						Logger.LogInfo("Handshake completed successfully.");
-
-						if (!localNode.IsConnected)
+						if (!LastFailConnectLocalNode.IsRunning)
 						{
-							throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-								"Probably this is because the node does not support retrieving full blocks or segwit serialization.");
+							Logger.LogInfo("Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources." +
+								$" Will retry in {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s.");
 						}
-						LocalBitcoinCoreNode = localNode;
+						LastFailConnectLocalNode.Restart();
 					}
-					catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+					else
 					{
-						Logger.LogWarning($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-							"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
-						throw;
+						Logger.LogWarning(ex);
 					}
 				}
-
-				// Get Block from local node
-				Block blockFromLocalNode;
-				// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
+				finally
 				{
-					blockFromLocalNode = await LocalBitcoinCoreNode.DownloadBlockAsync(hash, cts.Token).ConfigureAwait(false);
+					if (!SemaphoreReleased)
+					{
+						SemaphoreConnectLocalNode.Release();
+					}
 				}
-
-				// Validate retrieved block
-				if (!blockFromLocalNode.Check())
-				{
-					throw new InvalidOperationException("Disconnected node, because invalid block received!");
-				}
-
-				// Retrieved block from local node and block is valid
-				Logger.LogInfo($"Block acquired from local P2P connection: {hash}.");
-				return blockFromLocalNode;
 			}
-			catch (Exception ex)
+			else
 			{
-				DisconnectDisposeNullLocalBitcoinCoreNode();
-
-				if (ex is SocketException)
-				{
-					LastFailConnectLocalNode.Restart();
-					Logger.LogInfo($"Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources for next {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s.");
-				}
-				else
-				{
-					Logger.LogWarning(ex);
-				}
+				Logger.LogWarning("Couldn't check local node status. Will download from other source.");
 			}
 		}
 		else
