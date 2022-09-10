@@ -20,7 +20,7 @@ public partial class SelectionHeaderViewModelBase<TKey> : ViewModelBase where TK
 			.Select(x => getContent(x.Count(y => y.IsSelected)))
 			.ReplayLastActive();
 
-		this.WhenAnyValue(x => x.IsSelected)
+		this.WhenAnyValue(x => x.IsSelected).Skip(1)
 			.WithLatestFrom(collectionChanged)
 			.Do(tuple => tuple.Second.ToList().ForEach(x => x.IsSelected = tuple.First))
 			.Subscribe();
