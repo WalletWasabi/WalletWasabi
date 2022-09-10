@@ -2,7 +2,6 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -51,7 +50,7 @@ public class IndexStore : IAsyncDisposable
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
 
-	public Channel<ForeachFiltersResults> ForeachFiltersResultsChannel { get; } = Channel.CreateBounded<ForeachFiltersResults>(1);
+	public Channel<ForeachFiltersResults> ForeachFiltersResultsChannel { get; set; }
 
 	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
 	private AsyncLock IndexLock { get; } = new();
@@ -456,7 +455,12 @@ public class IndexStore : IAsyncDisposable
 		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			var lastFiltersRead = new ForeachFiltersResults();
+			ForeachFiltersResults? filtersReadSinceLastSuccess = null;
+			if (addResultsToChannel)
+			{
+				ForeachFiltersResultsChannel ??= Channel.CreateBounded<ForeachFiltersResults>(1);
+				filtersReadSinceLastSuccess = new ForeachFiltersResults();
+			}
 
 			var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 			if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
@@ -488,29 +492,16 @@ public class IndexStore : IAsyncDisposable
 								continue;
 							}
 
-							if (await tTask.ConfigureAwait(false) is true && addResultsToChannel)
-							{
-								lastFiltersRead.HasMatched = true;
-								await ForeachFiltersResultsChannel.Writer.WriteAsync(lastFiltersRead, cancel).ConfigureAwait(false);
-								lastFiltersRead = new ForeachFiltersResults();
-							}
+							await ExecuteTaskAndProduceResultsAsync(tTask, filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 
 							var filter = FilterModel.FromLine(line);
-							if (addResultsToChannel)
-							{
-								lastFiltersRead.BufferFiltersRead.Add(filter);
-							}
+							AddLastFilterToBuffer(filtersReadSinceLastSuccess, filter);
 							tTask = todo(filter);
 							height++;
 
 							line = null;
 						}
-						if (await tTask.ConfigureAwait(false) is true && addResultsToChannel)
-						{
-							lastFiltersRead.HasMatched = true;
-							await ForeachFiltersResultsChannel.Writer.WriteAsync(lastFiltersRead, cancel).ConfigureAwait(false);
-							lastFiltersRead = new ForeachFiltersResults();
-						}
+						await ExecuteTaskAndProduceResultsAsync(tTask, filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 					}
 					while (!sr.EndOfStream)
 					{
@@ -528,38 +519,45 @@ public class IndexStore : IAsyncDisposable
 						}
 
 						var filter = FilterModel.FromLine(line);
-						if (addResultsToChannel)
-						{
-							lastFiltersRead.BufferFiltersRead.Add(filter);
-						}
+						AddLastFilterToBuffer(filtersReadSinceLastSuccess, filter);
 
-						if (await todo(filter).ConfigureAwait(false) is true && addResultsToChannel)
-						{
-							lastFiltersRead.HasMatched = true;
-							await ForeachFiltersResultsChannel.Writer.WriteAsync(lastFiltersRead, cancel).ConfigureAwait(false);
-							lastFiltersRead = new ForeachFiltersResults();
-						}
+						await ExecuteTaskAndProduceResultsAsync(todo(filter), filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 						height++;
 					}
 				}
 			}
 			foreach (FilterModel filter in ImmatureFilters.ToImmutableArray().Where(x => x.Header.Height >= fromHeight))
 			{
-				if (addResultsToChannel)
-				{
-					lastFiltersRead.BufferFiltersRead.Add(filter);
-				}
-				if (await todo(filter).ConfigureAwait(false) is true && addResultsToChannel)
-				{
-					lastFiltersRead.HasMatched = true;
-					lastFiltersRead.BufferFiltersRead.Add(filter);
-					lastFiltersRead = new ForeachFiltersResults();
-				}
+				AddLastFilterToBuffer(filtersReadSinceLastSuccess, filter);
+				await ExecuteTaskAndProduceResultsAsync(todo(filter), filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 			}
+			if (!(filtersReadSinceLastSuccess is null))
+			{
+				filtersReadSinceLastSuccess.HasMatched = false;
+				await ForeachFiltersResultsChannel.Writer.WriteAsync(filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
+				ForeachFiltersResultsChannel.Writer.Complete();
+			}
+		}
+	}
 
-			lastFiltersRead.HasMatched = false;
-			await ForeachFiltersResultsChannel.Writer.WriteAsync(lastFiltersRead, cancel).ConfigureAwait(false);
-			ForeachFiltersResultsChannel.Writer.Complete();
+	private void AddLastFilterToBuffer(ForeachFiltersResults? filtersReadSinceLastSuccess, FilterModel filter)
+	{
+		if (!(filtersReadSinceLastSuccess is null))
+		{
+			filtersReadSinceLastSuccess.BufferFiltersRead.Add(filter);
+		}
+	}
+
+	private async Task ExecuteTaskAndProduceResultsAsync(Task<bool> tTask, ForeachFiltersResults? filtersReadSinceLastSuccess, CancellationToken cancel, int maxFiltersInBuffer = 50000)
+	{
+		var result = await tTask.ConfigureAwait(false);
+		if (!(filtersReadSinceLastSuccess is null) && (result || filtersReadSinceLastSuccess.BufferFiltersRead.Count > maxFiltersInBuffer))
+		{
+			filtersReadSinceLastSuccess.HasMatched = result;
+			await ForeachFiltersResultsChannel.Writer.WriteAsync(filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
+			await ForeachFiltersResultsChannel.Writer.WaitToWriteAsync(cancel).ConfigureAwait(false);
+			filtersReadSinceLastSuccess.BufferFiltersRead.Clear();
+			filtersReadSinceLastSuccess.HasMatched = false;
 		}
 	}
 

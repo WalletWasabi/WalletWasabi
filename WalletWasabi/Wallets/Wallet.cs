@@ -4,6 +4,7 @@ using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
@@ -414,13 +415,19 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		// Go through the filters and queue to download the matches.
+		BitcoinStore.IndexStore.ForeachFiltersResultsChannel = Channel.CreateBounded<ForeachFiltersResults>(1);
 		Task.Run(() => BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1), true, cancel).ConfigureAwait(false));
 
 		while (await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.WaitToReadAsync(cancel).ConfigureAwait(false))
 		{
-			var foreachFiltersResult = await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
+			BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.TryPeek(out var foreachFiltersResult);
+			if (foreachFiltersResult is null)
+			{
+				continue;
+			}
 			Logger.LogDebug($"Filters compared: {foreachFiltersResult.BufferFiltersRead.Min(x => x.Header.Height)} -> {foreachFiltersResult.BufferFiltersRead.Max(x => x.Header.Height)} / Matched? {foreachFiltersResult.HasMatched}");
+			foreachFiltersResult = await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
 		}
 		Logger.LogDebug("ForeachFiltersResultsChannel is complete");
 	}
