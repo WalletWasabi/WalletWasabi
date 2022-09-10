@@ -426,10 +426,8 @@ public class Wallet : BackgroundService, IWallet
 			{
 				continue;
 			}
-			Logger.LogDebug($"Filters compared: {foreachFiltersResult.BufferFiltersRead.Min(x => x.Header.Height)} -> {foreachFiltersResult.BufferFiltersRead.Max(x => x.Header.Height)} / Matched? {foreachFiltersResult.HasMatched}");
 			foreachFiltersResult = await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
 		}
-		Logger.LogDebug("ForeachFiltersResultsChannel is complete");
 	}
 
 	private async Task LoadDummyMempoolAsync()
