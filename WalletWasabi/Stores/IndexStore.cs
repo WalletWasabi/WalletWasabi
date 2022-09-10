@@ -2,6 +2,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -47,9 +48,8 @@ public class IndexStore : IAsyncDisposable
 	private Network Network { get; }
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
-	
-	private StreamReader? MatureIndexStreamReader { get; set; }
-	private List<FilterModel> IndexFilesLastFiltersFound { get; } = new();
+
+	public BlockingCollection<FiltersMatch> FiltersMatched { get; } = new();
 
 	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
 	private AsyncLock IndexLock { get; } = new();
@@ -435,37 +435,38 @@ public class IndexStore : IAsyncDisposable
 			Logger.LogError(ex);
 		}
 	}
-	public async Task<FilterModel?> ReTryOnLastFiltersFound(Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
+
+	public async Task<FilterModel?> ReTryOnLastFiltersFoundAsync(FiltersMatch lastIteratedFilters, Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
 	{
 		FilterModel? result = null;
-		foreach(var filter in IndexFilesLastFiltersFound.Where(x => x.Header.Height >= fromHeight))
+		foreach (var filter in lastIteratedFilters.BufferFilters.Where(x => x.Header.Height >= fromHeight))
 		{
-			if(await todo(filter).ConfigureAwait(false))
+			if (await todo(filter).ConfigureAwait(false))
 			{
 				result = filter;
 				break;
 			}
 		}
-		IndexFilesLastFiltersFound.Clear();
 		return result;
 	}
 
-	public async Task<FilterModel?> ForeachFiltersAsync(Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
+	public async Task ForeachFiltersAsync(Func<FilterModel, Task<bool>> todo, Height fromHeight, CancellationToken cancel = default)
 	{
 		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
+			var lastFiltersRead = new FiltersMatch();
+
 			var firstImmatureHeight = ImmatureFilters.FirstOrDefault()?.Header?.Height;
 			if (!firstImmatureHeight.HasValue || firstImmatureHeight.Value > fromHeight)
 			{
 				if (MatureIndexFileManager.Exists())
 				{
 					uint height = StartingHeight;
-					MatureIndexStreamReader = MatureIndexStreamReader ?? MatureIndexFileManager.OpenText();
-					IndexFilesLastFiltersFound.Clear();
-					if (!MatureIndexStreamReader.EndOfStream)
+					using var sr = MatureIndexFileManager.OpenText();
+					if (!sr.EndOfStream)
 					{
-						var lineTask = MatureIndexStreamReader.ReadLineAsync();
+						var lineTask = sr.ReadLineAsync();
 						Task<bool> tTask = new Task<bool>(() => { return true; });
 						FilterModel? filterGaveAsParam = null;
 						string? line = null;
@@ -478,7 +479,7 @@ public class IndexStore : IAsyncDisposable
 
 							line ??= await lineTask.ConfigureAwait(false);
 
-							lineTask = MatureIndexStreamReader.EndOfStream ? null : MatureIndexStreamReader.ReadLineAsync();
+							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
 							if (height < fromHeight.Value)
 							{
@@ -486,32 +487,37 @@ public class IndexStore : IAsyncDisposable
 								line = null;
 								continue;
 							}
-							
-							if (filterGaveAsParam != null) { 
+
+							if (filterGaveAsParam != null)
+							{
 								if (await tTask.ConfigureAwait(false))
 								{
-									return filterGaveAsParam;
+									lastFiltersRead.HasMatched = true;
+									FiltersMatched.Add(lastFiltersRead, cancel);
+									continue;
 								}
 							}
-							
+
 							var filter = FilterModel.FromLine(line);
-							IndexFilesLastFiltersFound.Add(filter);
+							lastFiltersRead.BufferFilters.Add(filter);
 							tTask = todo(filter);
 							filterGaveAsParam = filter;
 							height++;
 
 							line = null;
 						}
-						if (filterGaveAsParam != null) { 
+						if (filterGaveAsParam != null)
+						{
 							if (await tTask.ConfigureAwait(false))
 							{
-								return filterGaveAsParam;
+								lastFiltersRead.HasMatched = true;
+								FiltersMatched.Add(lastFiltersRead, cancel);
 							}
 						}
 					}
-					while (!MatureIndexStreamReader.EndOfStream)
+					while (!sr.EndOfStream)
 					{
-						var line = await MatureIndexStreamReader.ReadLineAsync().ConfigureAwait(false);
+						var line = await sr.ReadLineAsync().ConfigureAwait(false);
 
 						if (firstImmatureHeight == height)
 						{
@@ -525,31 +531,29 @@ public class IndexStore : IAsyncDisposable
 						}
 
 						var filter = FilterModel.FromLine(line);
-						IndexFilesLastFiltersFound.Add(filter);
+						lastFiltersRead.BufferFilters.Add(filter);
 						if (await todo(filter).ConfigureAwait(false))
 						{
-							return filter;
+							lastFiltersRead.HasMatched = true;
+							FiltersMatched.Add(lastFiltersRead, cancel);
 						}
 						height++;
-					}
-					if(MatureIndexStreamReader != null)
-					{
-						MatureIndexStreamReader.Dispose();
-						MatureIndexStreamReader = null;
 					}
 				}
 			}
 			foreach (FilterModel filter in ImmatureFilters.ToImmutableArray().Where(x => x.Header.Height >= fromHeight))
 			{
-				
-				IndexFilesLastFiltersFound.Add(filter);
+				lastFiltersRead.BufferFilters.Add(filter);
 				if (await todo(filter).ConfigureAwait(false))
 				{
-					return filter;
+					lastFiltersRead.HasMatched = true;
+					lastFiltersRead.BufferFilters.Add(filter);
 				}
 			}
+
+			lastFiltersRead.HasMatched = false;
+			FiltersMatched.Add(lastFiltersRead, cancel);
 		}
-		return null;
 	}
 
 	public async ValueTask DisposeAsync()
