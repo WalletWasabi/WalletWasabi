@@ -50,7 +50,7 @@ public class IndexStore : IAsyncDisposable
 	private DigestableSafeIoManager MatureIndexFileManager { get; }
 	private DigestableSafeIoManager ImmatureIndexFileManager { get; }
 
-	public Channel<ForeachFiltersResults> ForeachFiltersResultsChannel { get; set; }
+	public Channel<ForeachFiltersResults>? ForeachFiltersResultsChannel { get; set; }
 
 	/// <summary>Lock for modifying <see cref="ImmatureFilters"/>. This should be lock #1.</summary>
 	private AsyncLock IndexLock { get; } = new();
@@ -492,17 +492,19 @@ public class IndexStore : IAsyncDisposable
 								continue;
 							}
 
-							await ExecuteTaskAndProduceResultsAsync(tTask, filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
-
 							var filter = FilterModel.FromLine(line);
+
+							await ExecuteTaskAndProduceResultsAsync(tTask, filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 							AddLastFilterToBuffer(filtersReadSinceLastSuccess, filter);
 							tTask = todo(filter);
+
 							height++;
 
 							line = null;
 						}
 						await ExecuteTaskAndProduceResultsAsync(tTask, filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 					}
+
 					while (!sr.EndOfStream)
 					{
 						var line = await sr.ReadLineAsync().ConfigureAwait(false);
