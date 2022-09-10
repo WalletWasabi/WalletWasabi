@@ -414,8 +414,15 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		// Go through the filters and queue to download the matches.
-		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
-			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
+		Task.Run(() => BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
+			new Height(bestKeyManagerHeight.Value + 1), true, cancel).ConfigureAwait(false));
+
+		while (await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.WaitToReadAsync(cancel).ConfigureAwait(false))
+		{
+			var foreachFiltersResult = await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
+			Logger.LogDebug($"Filters compared: {foreachFiltersResult.BufferFiltersRead.Min(x => x.Header.Height)} -> {foreachFiltersResult.BufferFiltersRead.Max(x => x.Header.Height)} / Matched? {foreachFiltersResult.HasMatched}");
+		}
+		Logger.LogDebug("ForeachFiltersResultsChannel is complete");
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -466,7 +473,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
+	private async Task<bool> ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 	{
 		var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 		if (matchFound)
@@ -488,6 +495,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		LastProcessedFilter = filterModel;
+		return matchFound;
 	}
 
 	public void SetWaitingForInitState()
