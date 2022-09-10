@@ -121,10 +121,10 @@ public static class ColumnFactory
 		};
 	}
 
-	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items)
+	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items, IEnumerable<CommandViewModel> commands)
 	{
 		return new TemplateColumn<TreeNode>(
-			new SelectionHeaderViewModel(items, i => i > 99? "99+" : i.ToString()),
+			new SelectionHeaderViewModel(items, i => i > 99? "99+" : i.ToString(), commands),
 			new ConstantTemplate<TreeNode>(
 				n =>
 				{

@@ -7,8 +7,25 @@
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Headers.SelectionHeaderView"
              x:DataType="headers:SelectionHeaderViewModel"
              x:CompileBindings="True">
-  <StackPanel Orientation="Horizontal">
-    <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+  <StackPanel Orientation="Horizontal" Margin="15 0 0 0">
+    <DockPanel>
+      <Button DockPanel.Dock="Right" Content=">" x:CompileBindings="False">
+
+        <Button.Styles>
+          <Style Selector="MenuItem">
+            <Setter Property="Header" Value="{Binding Header}"/>
+            <Setter Property="Items" Value="{Binding Items}"/>
+            <Setter Property="Command" Value="{Binding Command}"/>
+            <Setter Property="CommandParameter" Value="{Binding CommandParameter}"/>
+          </Style>
+        </Button.Styles>
+
+        <Button.Flyout>
+          <MenuFlyout Placement="Bottom" Items="{Binding Items}" />
+        </Button.Flyout>
+      </Button>
+      <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+    </DockPanel>
     <Panel IsHitTestVisible="False">
       <Ellipse Width="20" Height="20" Fill="Green" />
       <TextBlock Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DynamicData;
 using NBitcoin;
 
@@ -7,7 +8,8 @@ internal class SelectionHeaderViewModel : SelectionHeaderViewModelBase<OutPoint>
 {
 	public SelectionHeaderViewModel(
 		IObservable<IChangeSet<ISelectable, OutPoint>> changeStream,
-		Func<int, string> getContent) : base(changeStream, getContent)
+		Func<int, string> getContent,
+		IEnumerable<CommandViewModel> commands) : base(changeStream, getContent, commands)
 	{
 	}
 }

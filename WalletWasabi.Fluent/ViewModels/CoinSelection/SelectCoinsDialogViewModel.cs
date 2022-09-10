@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
+using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
@@ -100,12 +101,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SelectedCount = selectedCoins.Select(models => models.Count);
 
-		CoinBasedSelection =
-			new CoinBasedSelectionViewModel(viewModels)
-				.DisposeWith(disposables);
-		LabelBasedSelection =
-			new LabelBasedCoinSelectionViewModel(viewModels)
-				.DisposeWith(disposables);
+	
 
 		SummaryText = RemainingAmount.CombineLatest(
 			SelectedAmount,
@@ -131,6 +127,19 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SelectPredefinedCoinsCommand.Execute()
 			.Subscribe()
 			.DisposeWith(disposables);
+
+		var commands = new []
+		{
+			new CommandViewModel("All", SelectAllCoinsCommand),
+			new CommandViewModel("None", ClearCoinSelectionCommand)
+		};
+
+		CoinBasedSelection =
+			new CoinBasedSelectionViewModel(viewModels, commands)
+				.DisposeWith(disposables);
+		LabelBasedSelection =
+			new LabelBasedCoinSelectionViewModel(viewModels, commands)
+				.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
