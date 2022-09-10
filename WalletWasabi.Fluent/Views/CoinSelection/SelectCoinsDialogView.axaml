@@ -130,7 +130,7 @@
           </Style>
         </StackPanel.Styles>
 
-        <Button Classes="quickAction h8" ToolTip.Tip="Clear currently selecte coins" Command="{Binding ClearCoinSelectionCommand}">Clear</Button>
+        <Button Classes="quickAction h8" ToolTip.Tip="Clear currently selected coins" Command="{Binding ClearCoinSelectionCommand}">Clear</Button>
         <Separator />
         <Button Classes="quickAction h8" ToolTip.Tip="Select coins automatically" Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
       </StackPanel>
