@@ -10,7 +10,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using ISelectable = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.ISelectable;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -33,17 +32,17 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		nodes.WhenAnyPropertyChanged()
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
-			.Do(x => UpdateSource(nodes, coinChanges))
+			.Do(UpdateSource)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		Source = CreateGridSource(nodes, coinChanges).DisposeWith(_disposables);
+		Source = CreateGridSource(nodes).DisposeWith(_disposables);
 	}
 
-	private void UpdateSource(ReadOnlyObservableCollection<TreeNode> collection, IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges)
+	private void UpdateSource(ReadOnlyObservableCollection<TreeNode> collection)
 	{
 		Source.Dispose();
-		Source = CreateGridSource(collection, coinChanges);
+		Source = CreateGridSource(collection);
 	}
 
 	public void Dispose()
@@ -51,11 +50,9 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		_disposables.Dispose();
 	}
 
-	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(
-		IEnumerable<TreeNode> coins,
-		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> selectables)
+	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(selectables.Cast(x => (ISelectable)x));
+		var selectionColumn = ColumnFactory.SelectionColumn();
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(coins)
 		{
