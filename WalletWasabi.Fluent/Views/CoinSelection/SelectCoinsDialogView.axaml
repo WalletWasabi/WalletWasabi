@@ -131,33 +131,29 @@
 
           <TextBlock Classes="h8" Margin="0 0 8 0" TextWrapping="Wrap" Text="{Binding SummaryText^}" />
 
-          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Classes="quickAction h8" Command="{Binding SelectAllPrivateCoinsCommand}">Select all private</Button>
-            <Separator />
-            <Button Classes="quickAction h8" Command="{Binding SelectAllCoinsCommand}">Select all</Button>
-            <Separator />
-            <Button Classes="quickAction h8" Command="{Binding ClearCoinSelectionCommand}">Clear selection</Button>
-            <Separator />
-            <Button Classes="quickAction h8" Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
-          </StackPanel>
         </Grid>
 
       </StackPanel>
 
-      <Border>
-        <Panel>
-          <TreeDataGrid
-            IsVisible="{Binding !#GroupByLabels.IsChecked}"
-            Source="{Binding CoinBasedSelection.Source}"
-            CanUserSortColumns="True">
-          </TreeDataGrid>
-          <TreeDataGrid
-            IsVisible="{Binding #GroupByLabels.IsChecked}"
-            Source="{Binding LabelBasedSelection.Source}"
-            CanUserSortColumns="True">
-          </TreeDataGrid>
-        </Panel>
-      </Border>
+
+      <StackPanel HorizontalAlignment="Right" Margin="0 10" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
+        <Button Classes="quickAction h8" ToolTip.Tip="Clear currently selecte coins" Command="{Binding ClearCoinSelectionCommand}">Clear</Button>
+        <Separator />
+        <Button Classes="quickAction h8" ToolTip.Tip="Select coins automatically" Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
+      </StackPanel>
+
+      <Panel>
+        <TreeDataGrid
+          IsVisible="{Binding !#GroupByLabels.IsChecked}"
+          Source="{Binding CoinBasedSelection.Source}"
+          CanUserSortColumns="True">
+        </TreeDataGrid>
+        <TreeDataGrid
+          IsVisible="{Binding #GroupByLabels.IsChecked}"
+          Source="{Binding LabelBasedSelection.Source}"
+          CanUserSortColumns="True">
+        </TreeDataGrid>
+      </Panel>
     </DockPanel>
 
     <controls:ContentArea.ButtonAreaContent>
