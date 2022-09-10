@@ -41,7 +41,6 @@
   </UserControl.Styles>
 
   <controls:ContentArea
-    Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
     EnableNext="True"
     NextContent="Continue"
@@ -86,6 +85,15 @@
 
     </controls:ContentArea.Styles>
 
+    <controls:ContentArea.Title>
+      <Panel>
+        <TextBlock Text="{Binding Title}" />
+        <Viewbox VerticalAlignment="Center" ToolTip.Tip="The current coin selection will decrease your privacy" HorizontalAlignment="Right" Height="20" IsVisible="{Binding IsSelectionBadlyChosen^}">
+          <PathIcon Data="{StaticResource warning_filled}" Foreground="{DynamicResource WarningMessageForeground}" />
+        </Viewbox>
+      </Panel>
+    </controls:ContentArea.Title>
+
     <DockPanel>
       <DockPanel DockPanel.Dock="Top" Margin="8" LastChildFill="False">
         <DockPanel.Styles>
@@ -103,40 +111,25 @@
         </TextBox>
       </DockPanel>
 
-      <StackPanel DockPanel.Dock="Bottom" Spacing="2" Margin="0 12 0 0">
-
-        <Panel>
-          <ProgressBar Height="25" Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
-          <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
-          <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
-        </Panel>
-
-        <Grid x:Name="Summary" ColumnDefinitions="* Auto" Margin="0 4 0 0">
-
-          <Grid.Styles>
-            <Style Selector="Button">
-              <Setter Property="Background" Value="Transparent" />
-              <Setter Property="Padding" Value="0" />
-              <Setter Property="Margin" Value="0" />
-              <Setter Property="BorderThickness" Value="0" />
-              <Setter Property="Opacity" Value="0.6" />
-              <Setter Property="TextBlock.FontSize" Value="{StaticResource FontSizeH8}" />
-            </Style>
-            <Style Selector="Separator">
-              <Setter Property="Width" Value="2" />
-              <Setter Property="Height" Value="10" />
-              <Setter Property="VerticalAlignment" Value="Stretch" />
-            </Style>
-          </Grid.Styles>
-
-          <TextBlock Classes="h8" Margin="0 0 8 0" TextWrapping="Wrap" Text="{Binding SummaryText^}" />
-
-        </Grid>
-
-      </StackPanel>
-
+      <Panel DockPanel.Dock="Bottom" Margin="0 12 0 0">
+        <ProgressBar Height="25" Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
+        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
+        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
+      </Panel>
 
       <StackPanel HorizontalAlignment="Right" Margin="0 10" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
+
+        <StackPanel.Styles>
+          <Style Selector="Button">
+            <Setter Property="Opacity" Value="0.6" />
+          </Style>
+          <Style Selector="Separator">
+            <Setter Property="Width" Value="2" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+          </Style>
+        </StackPanel.Styles>
+
         <Button Classes="quickAction h8" ToolTip.Tip="Clear currently selecte coins" Command="{Binding ClearCoinSelectionCommand}">Clear</Button>
         <Separator />
         <Button Classes="quickAction h8" ToolTip.Tip="Select coins automatically" Command="{Binding SelectPredefinedCoinsCommand}">Automatic</Button>
@@ -157,19 +150,11 @@
     </DockPanel>
 
     <controls:ContentArea.ButtonAreaContent>
-
-      <StackPanel x:Name="Errors" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
-                   IsVisible="{Binding IsSelectionBadlyChosen^}"
-                   Foreground="{DynamicResource SystemErrorTextColor}"
-                   Text="The current selection will decrease your privacy" />
-        <TextBlock VerticalAlignment="Center"
-                   TextAlignment="Center"
-                   IsVisible="{Binding !EnoughSelected^}"
-                   TextWrapping="Wrap"
-                   Text="Please, select more coins" />
-      </StackPanel>
-
+      <TextBlock VerticalAlignment="Center"
+                 TextAlignment="Center"
+                 IsVisible="{Binding !EnoughSelected^}"
+                 TextWrapping="Wrap"
+                 Text="Select more coins" />
     </controls:ContentArea.ButtonAreaContent>
 
   </controls:ContentArea>
