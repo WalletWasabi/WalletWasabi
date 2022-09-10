@@ -42,5 +42,8 @@
 	  <Compile Update="Views\CoinSelection\Core\Cells\IsCoinSelectedCellView.axaml.cs">
 	    <DependentUpon>IsCoinSelectedCellView.axaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\CoinSelection\Core\Headers\SelectionHeaderView.axaml.cs">
+	    <DependentUpon>SelectionHeaderView.axaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 </Project>

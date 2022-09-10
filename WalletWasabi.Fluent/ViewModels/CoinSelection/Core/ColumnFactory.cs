@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
@@ -120,10 +121,10 @@ public static class ColumnFactory
 		};
 	}
 
-	public static TemplateColumn<TreeNode> SelectionColumn()
+	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items)
 	{
 		return new TemplateColumn<TreeNode>(
-			"",
+			new SelectionHeaderViewModel(items, i => i > 99? "99+" : i.ToString()),
 			new ConstantTemplate<TreeNode>(
 				n =>
 				{
