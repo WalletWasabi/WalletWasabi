@@ -16,19 +16,6 @@ public class TreeNode : TreeNode<object>
 	public new IEnumerable<TreeNode> Children => base.Children.Cast<TreeNode>();
 }
 
-public static class TreeNodeMixin
-{
-	public static TOutput? Apply<TInput, TOutput>(this TreeNode node, Func<TInput, TOutput> filter)
-	{
-		if (node.Value is TInput value)
-		{
-			return filter(value);
-		}
-
-		return default;
-	}
-}
-
 public class TreeNode<T> : ViewModelBase
 {
 	public TreeNode(T value, IEnumerable<TreeNode<T>> children)

@@ -56,7 +56,7 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel>(model => model.AnonymitySet),
+				CompareAscending = SortAscending<WalletCoinViewModel, int>(model => model.AnonymitySet),
 				CompareDescending = SortDescending<WalletCoinViewModel, int>(model => model.AnonymitySet)
 			});
 	}
@@ -209,22 +209,6 @@ public static class ColumnFactory
 				if (node?.Value is TSource x && treeNode?.Value is TSource y)
 				{
 					return Comparer<TProperty>.Default.Compare(selector(x), selector(y));
-				}
-
-				return 0;
-			});
-
-		return comparison;
-	}
-
-	private static Comparison<TreeNode?> SortAscending<TSource>(Func<TSource, int> selector)
-	{
-		var comparison = new Comparison<TreeNode?>(
-			(node, treeNode) =>
-			{
-				if (node?.Value is TSource x && treeNode?.Value is TSource value)
-				{
-					return selector(value);
 				}
 
 				return 0;
