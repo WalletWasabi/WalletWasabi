@@ -287,7 +287,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void ProcessStatusChange(StatusChangedEventArgs e)
 	{
-		AreAllCoinsPrivate = false;
+		AreAllCoinsPrivate = WalletVm.Wallet.IsWalletPrivate();
 
 		switch (e)
 		{
@@ -304,22 +304,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case StartErrorEventArgs start:
-				switch (start.Error)
+				CurrentStatus = start.Error switch
 				{
-					case CoinjoinError.NoCoinsToMix:
-						CurrentStatus = new() { Message = "Waiting for confirmed funds" };
-						break;
-					case CoinjoinError.UserInSendWorkflow:
-						CurrentStatus = new() { Message = "Waiting for closed send dialog" };
-						break;
-					case CoinjoinError.AllCoinsPrivate:
-						AreAllCoinsPrivate = true;
-						CurrentStatus = new() { Message = "Hurray!! Your wallet is private" };
-						break;
-					default:
-						CurrentStatus = new() { Message = "Waiting for valid conditions" };
-						break;
-				}
+					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for confirmed funds" },
+					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
+					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray!! Your wallet is private" },
+					_ => new() { Message = "Waiting for valid conditions" }
+				};
 
 				break;
 
