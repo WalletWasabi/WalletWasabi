@@ -7,7 +7,7 @@ Invoke the following commands in your PowerShell 7+:
 ```powershell
 cd WalletWasabi/Microservices/Binaries
 
-# See what the latest released Tor Browser version is here: https://dist.torproject.org/torbrowser/.
+# See what the latest released Tor Browser version is here: https://www.torproject.org/download/
 # Suppose it is "11.5.2". Then one can just call:
 .\UpgradeTorBinaries.ps1 -version "11.5.2"
 ```
