@@ -56,7 +56,7 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, int>(model => model.AnonymitySet),
+				CompareAscending = SortAscending<WalletCoinViewModel>(model => model.AnonymitySet),
 				CompareDescending = SortDescending<WalletCoinViewModel, int>(model => model.AnonymitySet)
 			});
 	}
@@ -105,26 +105,18 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<CoinGroupViewModel, SmartLabel>(model => model.Labels),
-				CompareDescending = SortDescending<CoinGroupViewModel, SmartLabel>(model => model.Labels)
+				CompareAscending = (a, _) => a!.Apply<CoinGroupViewModel, int>(input => GetPriorityByLabels(input)),
+				CompareDescending = (a, _) => a!.Apply<CoinGroupViewModel, int>(input => -GetPriorityByLabels(input))
 			});
 	}
 
-	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)
+	public static TemplateColumn<TreeNode> SelectionColumn(
+		IObservable<IChangeSet<ISelectable, OutPoint>> items,
+		IEnumerable<CommandViewModel> commands,
+		CompositeDisposable disposables)
 	{
-		return privacyLevel switch
-		{
-			PrivacyLevel.None => "(Invalid privacy level)",
-			PrivacyLevel.SemiPrivate => "(Semi-private coins)",
-			PrivacyLevel.Private => "(Private coins)",
-			PrivacyLevel.NonPrivate => "",
-			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
-		};
-	}
-
-	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items, IEnumerable<CommandViewModel> commands, CompositeDisposable disposables)
-	{
-		var selectionHeaderViewModel = new SelectionHeaderViewModel(items, i => i > 99? "99+" : i.ToString(), commands);
+		var selectionHeaderViewModel =
+			new SelectionHeaderViewModel(items, i => i > 99 ? "99+" : i.ToString(), commands);
 		selectionHeaderViewModel.DisposeWith(disposables);
 
 		return new TemplateColumn<TreeNode>(
@@ -182,6 +174,33 @@ public static class ColumnFactory
 			node => node.Children.Any());
 	}
 
+	private static int GetPriorityByLabels(CoinGroupViewModel model)
+	{
+		if (model.PrivacyLevel == PrivacyLevel.Private)
+		{
+			return 2;
+		}
+
+		if (model.PrivacyLevel == PrivacyLevel.SemiPrivate)
+		{
+			return 1;
+		}
+
+		return -model.Labels.Count();
+	}
+
+	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)
+	{
+		return privacyLevel switch
+		{
+			PrivacyLevel.None => "(Invalid privacy level)",
+			PrivacyLevel.SemiPrivate => "(Semi-private coins)",
+			PrivacyLevel.Private => "(Private coins)",
+			PrivacyLevel.NonPrivate => "",
+			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
+		};
+	}
+
 	private static Comparison<TreeNode?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		var comparison = new Comparison<TreeNode?>(
@@ -190,6 +209,22 @@ public static class ColumnFactory
 				if (node?.Value is TSource x && treeNode?.Value is TSource y)
 				{
 					return Comparer<TProperty>.Default.Compare(selector(x), selector(y));
+				}
+
+				return 0;
+			});
+
+		return comparison;
+	}
+
+	private static Comparison<TreeNode?> SortAscending<TSource>(Func<TSource, int> selector)
+	{
+		var comparison = new Comparison<TreeNode?>(
+			(node, treeNode) =>
+			{
+				if (node?.Value is TSource x && treeNode?.Value is TSource value)
+				{
+					return selector(value);
 				}
 
 				return 0;

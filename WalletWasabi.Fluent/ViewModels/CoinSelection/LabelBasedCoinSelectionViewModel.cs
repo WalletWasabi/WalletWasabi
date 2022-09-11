@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -10,7 +9,6 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
-using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using ISelectable = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.ISelectable;
 
@@ -21,7 +19,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private string _filter = "";
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private HierarchicalTreeDataGridSource<TreeNode> _source;
+	private HierarchicalTreeDataGridSource<TreeNode> _source = new(new List<TreeNode>());
 
 	public LabelBasedCoinSelectionViewModel(
 		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges,
@@ -60,7 +58,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 			.Select(FilterFunction);
 
 	private void UpdateSource(
-		ReadOnlyObservableCollection<TreeNode> collection,
+		IEnumerable<TreeNode> collection,
 		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> changes,
 		IEnumerable<CommandViewModel> commands)
 	{
@@ -112,7 +110,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 
 		source.RowSelection!.SingleSelect = true;
-		source.SortBy(source.Columns[4], ListSortDirection.Ascending);
+		source.SortBy(source.Columns[4], ListSortDirection.Descending);
 
 		return source;
 	}
