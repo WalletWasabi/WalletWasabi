@@ -121,10 +121,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			() => sourceCache.Items.ToList().ForEach(
 				coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
 
-		SelectPredefinedCoinsCommand.Execute()
-			.Subscribe()
-			.DisposeWith(disposables);
-
 		var commands = new[]
 		{
 			new CommandViewModel("All", SelectAllCoinsCommand),
@@ -139,6 +135,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		LabelBasedSelection =
 			new LabelBasedCoinSelectionViewModel(viewModels, commands)
 				.DisposeWith(disposables);
+
+		SelectPredefinedCoinsCommand.Execute()
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
