@@ -194,8 +194,8 @@ public static class ColumnFactory
 		return privacyLevel switch
 		{
 			PrivacyLevel.None => "(Invalid privacy level)",
-			PrivacyLevel.SemiPrivate => "(Semi-private coins)",
-			PrivacyLevel.Private => "(Private coins)",
+			PrivacyLevel.SemiPrivate => "Semi-private coins",
+			PrivacyLevel.Private => "Private coins",
 			PrivacyLevel.NonPrivate => "",
 			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
 		};
