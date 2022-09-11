@@ -361,7 +361,7 @@ public class TorProcessManager : IAsyncDisposable
 			// > SHUTDOWN" and wait for the Tor process to close.)
 			if (Settings.TerminateOnExit)
 			{
-				await torControlClient.SignalShutdownAsync().ConfigureAwait(false);
+				await torControlClient.SignalShutdownAsync(CancellationToken.None).ConfigureAwait(false);
 			}
 
 			// Leads to Tor termination because we sent TAKEOWNERSHIP command.
