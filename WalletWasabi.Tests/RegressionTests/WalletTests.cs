@@ -96,6 +96,7 @@ public class WalletTests
 			{
 				filterList.Add(x);
 				await Task.CompletedTask;
+				return false;
 			},
 			new Height(0));
 			FilterModel[] filters = filterList.ToArray();
@@ -176,6 +177,7 @@ public class WalletTests
 			{
 				filterList.Add(x);
 				await Task.CompletedTask;
+				return false;
 			},
 			new Height(0));
 			var filterTip = filterList.Last();
@@ -189,6 +191,7 @@ public class WalletTests
 			{
 				filterList.Add(x);
 				await Task.CompletedTask;
+				return false;
 			},
 			new Height(0));
 			FilterModel[] filters = filterList.ToArray();
