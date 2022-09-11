@@ -92,7 +92,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Gets protocol info (for version 1).
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.21. PROTOCOLINFO</seealso>
-	public async Task<ProtocolInfoReply> GetProtocolInfoAsync(CancellationToken cancellationToken = default)
+	public async Task<ProtocolInfoReply> GetProtocolInfoAsync(CancellationToken cancellationToken)
 	{
 		// Grammar: "PROTOCOLINFO" *(SP PIVERSION) CRLF
 		// Note: PIVERSION is there in case we drastically change the syntax one day. For now it should always be "1".
@@ -105,7 +105,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Gets process ID belonging to the main Tor process.
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO</seealso>
-	public async Task<int> GetTorProcessIdAsync(CancellationToken cancellationToken = default)
+	public async Task<int> GetTorProcessIdAsync(CancellationToken cancellationToken)
 	{
 		TorControlReply reply = await SendCommandAsync("GETINFO process/pid\r\n", cancellationToken).ConfigureAwait(false);
 
@@ -130,7 +130,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Gets Tor's circuits that are currently available.
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO, and 4.1.1. Circuit status changed.</seealso>
-	public async Task<GetInfoCircuitStatusReply> GetCircuitStatusAsync(CancellationToken cancellationToken = default)
+	public async Task<GetInfoCircuitStatusReply> GetCircuitStatusAsync(CancellationToken cancellationToken)
 	{
 		TorControlReply reply = await SendCommandAsync("GETINFO circuit-status\r\n", cancellationToken).ConfigureAwait(false);
 
@@ -141,7 +141,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Instructs Tor to shut down when this control connection is closed.
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
-	public Task<TorControlReply> TakeOwnershipAsync(CancellationToken cancellationToken = default)
+	public Task<TorControlReply> TakeOwnershipAsync(CancellationToken cancellationToken)
 		=> SendCommandAsync("TAKEOWNERSHIP\r\n", cancellationToken);
 
 	/// <summary>
@@ -149,7 +149,7 @@ public class TorControlClient : IAsyncDisposable
 	/// </summary>
 	/// <remarks>If server is a client (OP), exit immediately. If it's a relay (OR), close listeners and exit after <c>ShutdownWaitLength</c> seconds.</remarks>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.7. SIGNAL.</seealso>
-	public async Task<TorControlReply> SignalShutdownAsync(CancellationToken cancellationToken = default)
+	public async Task<TorControlReply> SignalShutdownAsync(CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
@@ -171,20 +171,20 @@ public class TorControlClient : IAsyncDisposable
 	/// </summary>
 	/// <remarks>If TAKEOWNERSHIP command is sent, Tor will still exit when the control connection ends.</remarks>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.2. RESETCONF and 3.23. TAKEOWNERSHIP.</seealso>
-	public Task<TorControlReply> ResetOwningControllerProcessConfAsync(CancellationToken cancellationToken = default)
+	public Task<TorControlReply> ResetOwningControllerProcessConfAsync(CancellationToken cancellationToken)
 		=> SendCommandAsync("RESETCONF __OwningControllerProcess\r\n", cancellationToken);
 
 	/// <summary>Sends a command to Tor.</summary>
 	/// <remarks>This is meant as a low-level API method, if needed for some reason.</remarks>
 	/// <param name="command">A Tor control command which must end with <c>\r\n</c>.</param>
-	public async Task<TorControlReply> SendCommandAsync(string command, CancellationToken cancellationToken = default)
+	public async Task<TorControlReply> SendCommandAsync(string command, CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 		return await SendCommandNoLockAsync(command, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <remarks>Lock <see cref="MessageLock"/> must be acquired by the caller.</remarks>
-	private async Task<TorControlReply> SendCommandNoLockAsync(string command, CancellationToken cancellationToken = default)
+	private async Task<TorControlReply> SendCommandNoLockAsync(string command, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ReaderCts.Token, cancellationToken);
 
@@ -208,7 +208,7 @@ public class TorControlClient : IAsyncDisposable
 	/// }
 	/// </code> 
 	/// </example>
-	public async IAsyncEnumerable<TorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+	public async IAsyncEnumerable<TorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		Channel<TorControlReply> channel = Channel.CreateUnbounded<TorControlReply>(Options);
 		List<Channel<TorControlReply>> newList;
@@ -259,7 +259,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <param name="cancellationToken">
 	/// Useful when the whole Tor process stops. Otherwise, the internal state of this object may get corrupted.
 	/// </param>
-	public async Task SubscribeEventsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default)
+	public async Task SubscribeEventsAsync(IEnumerable<string> names, CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
@@ -302,7 +302,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <param name="cancellationToken">
 	/// Useful when the whole application stops. Otherwise, the internal state of this object may get corrupted.
 	/// </param>
-	public async Task UnsubscribeEventsAsync(string[] names, CancellationToken cancellationToken = default)
+	public async Task UnsubscribeEventsAsync(string[] names, CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
