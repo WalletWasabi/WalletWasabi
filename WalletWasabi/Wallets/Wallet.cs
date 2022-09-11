@@ -372,7 +372,10 @@ public class Wallet : BackgroundService, IWallet
 			{
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
-					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
+					if (await ProcessFilterModelUnit(filterModel, CancellationToken.None).ConfigureAwait(false))
+					{
+						await ProcessBlockAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
+					}
 				}
 			}
 
@@ -414,20 +417,84 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
-		// Go through the filters and queue to download the matches.
+		await HandleForeachFiltersTaskAsync(bestKeyManagerHeight, cancel).ConfigureAwait(false);
+	}
+
+	private async Task HandleForeachFiltersTaskAsync(Height bestKeyManagerHeight, CancellationToken cancel)
+	{
+		// Go through the filters and produce matches in the channel.
 		BitcoinStore.IndexStore.ForeachFiltersResultsChannel = Channel.CreateBounded<ForeachFiltersResults>(1);
-		Task.Run(() => BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
+		var taskForeachFilters = Task.Run(() => BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelUnit(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1), true, cancel).ConfigureAwait(false));
 
+		uint heightLastBlockDownloaded = 0;
+		IEnumerable<byte[]> keysCompletelyMatched = Enumerable.Empty<byte[]>();
+		IEnumerable<byte[]> keysNotYetMatched = Enumerable.Empty<byte[]>();
 		while (await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.WaitToReadAsync(cancel).ConfigureAwait(false))
 		{
+			// Get results without releasing ForeachFilters
 			BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.TryPeek(out var foreachFiltersResult);
 			if (foreachFiltersResult is null)
 			{
 				continue;
 			}
-			foreachFiltersResult = await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
+			FilterModel? blockToDl = foreachFiltersResult.HasMatched ? foreachFiltersResult.BufferFiltersRead.Last() : null;
+
+			// Last block downloaded contained new keys, filters needs to be matched with those.
+			if (keysNotYetMatched.Any())
+			{
+				// In case during last iteration new keys matched with lower height block, remaining filters still have to be matched against these keys to check if there is not another block to download.
+				var fromHeight = heightLastBlockDownloaded > foreachFiltersResult.BufferFiltersRead.First().Header.Height ? heightLastBlockDownloaded : foreachFiltersResult.BufferFiltersRead.First().Header.Height;
+
+				FilterModel? filterMatchedWithNewKeys = await BitcoinStore.IndexStore.ReTryOnLastFiltersFoundAsync(foreachFiltersResult, async (filterModel) => await ProcessFilterModelUnit(filterModel, cancel, keysNotYetMatched).ConfigureAwait(false),
+					new Height(fromHeight + 1), cancel).ConfigureAwait(false);
+
+				if (filterMatchedWithNewKeys is not null && (blockToDl is null || filterMatchedWithNewKeys.Header.Height < blockToDl.Header.Height))
+				{
+					blockToDl = filterMatchedWithNewKeys;
+				}
+			}
+
+			if (blockToDl is null || blockToDl.Header.Height == foreachFiltersResult.BufferFiltersRead.Last().Header.Height)
+			{
+				// All keys were matched against all filters. ForeachFilters can be released.
+				keysCompletelyMatched = KeyManager.GetPubKeyScriptBytes();
+				await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.ReadAsync(cancel).ConfigureAwait(false);
+			}
+			if (blockToDl is not null)
+			{
+				await ProcessBlockAsync(blockToDl, cancel).ConfigureAwait(false);
+				heightLastBlockDownloaded = blockToDl.Header.Height;
+				keysNotYetMatched = KeyManager.GetPubKeyScriptBytes().Except(keysCompletelyMatched);
+			}
 		}
+		await taskForeachFilters.ConfigureAwait(false);
+	}
+
+	// Fake Async
+	private async Task<bool> ProcessFilterModelUnit(FilterModel filterModel, CancellationToken cancel, IEnumerable<byte[]>? keys = null)
+	{
+		keys ??= KeyManager.GetPubKeyScriptBytes();
+		LastProcessedFilter = LastProcessedFilter is null || filterModel.Header.Height > LastProcessedFilter.Header.Height ? filterModel : LastProcessedFilter;
+		return filterModel.Filter.MatchAny(keys, filterModel.FilterKey);
+	}
+
+	private async Task ProcessBlockAsync(FilterModel filterModel, CancellationToken cancel)
+	{
+		Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
+		var height = new Height(filterModel.Header.Height);
+
+		var txsToProcess = new List<SmartTransaction>();
+		for (int i = 0; i < currentBlock.Transactions.Count; i++)
+		{
+			Transaction tx = currentBlock.Transactions[i];
+			txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+		}
+
+		TransactionProcessor.Process(txsToProcess);
+		KeyManager.SetBestHeight(height);
+
+		NewBlockProcessed?.Invoke(this, currentBlock);
 	}
 
 	private async Task LoadDummyMempoolAsync()
@@ -476,31 +543,6 @@ public class Wallet : BackgroundService, IWallet
 		{
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 		}
-	}
-
-	private async Task<bool> ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
-	{
-		var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
-		if (matchFound)
-		{
-			Block currentBlock = await BlockProvider.GetBlockAsync(filterModel.Header.BlockHash, cancel).ConfigureAwait(false); // Wait until not downloaded.
-			var height = new Height(filterModel.Header.Height);
-
-			var txsToProcess = new List<SmartTransaction>();
-			for (int i = 0; i < currentBlock.Transactions.Count; i++)
-			{
-				Transaction tx = currentBlock.Transactions[i];
-				txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, label: BitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
-			}
-
-			TransactionProcessor.Process(txsToProcess);
-			KeyManager.SetBestHeight(height);
-
-			NewBlockProcessed?.Invoke(this, currentBlock);
-		}
-
-		LastProcessedFilter = filterModel;
-		return matchFound;
 	}
 
 	public void SetWaitingForInitState()
