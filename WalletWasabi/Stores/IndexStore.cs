@@ -533,18 +533,21 @@ public class IndexStore : IAsyncDisposable
 				AddLastFilterToBuffer(filtersReadSinceLastSuccess, filter);
 				await ExecuteTaskAndProduceResultsAsync(todo(filter), filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
 			}
-			if (!(filtersReadSinceLastSuccess is null))
+			if (filtersReadSinceLastSuccess is not null)
 			{
 				filtersReadSinceLastSuccess.HasMatched = false;
-				await ForeachFiltersResultsChannel.Writer.WriteAsync(filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
-				ForeachFiltersResultsChannel.Writer.Complete();
+				if (ForeachFiltersResultsChannel is not null)
+				{
+					await ForeachFiltersResultsChannel.Writer.WriteAsync(filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
+					ForeachFiltersResultsChannel.Writer.Complete();
+				}
 			}
 		}
 	}
 
 	private void AddLastFilterToBuffer(ForeachFiltersResults? filtersReadSinceLastSuccess, FilterModel filter)
 	{
-		if (!(filtersReadSinceLastSuccess is null))
+		if (filtersReadSinceLastSuccess is not null)
 		{
 			filtersReadSinceLastSuccess.BufferFiltersRead.Add(filter);
 		}
@@ -553,11 +556,14 @@ public class IndexStore : IAsyncDisposable
 	private async Task ExecuteTaskAndProduceResultsAsync(Task<bool> tTask, ForeachFiltersResults? filtersReadSinceLastSuccess, CancellationToken cancel, int maxFiltersInBuffer = 50000)
 	{
 		var result = await tTask.ConfigureAwait(false);
-		if (!(filtersReadSinceLastSuccess is null) && (result || filtersReadSinceLastSuccess.BufferFiltersRead.Count > maxFiltersInBuffer))
+		if (filtersReadSinceLastSuccess is not null && (result || filtersReadSinceLastSuccess.BufferFiltersRead.Count > maxFiltersInBuffer))
 		{
 			filtersReadSinceLastSuccess.HasMatched = result;
-			await ForeachFiltersResultsChannel.Writer.WriteAsync(filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
-			await ForeachFiltersResultsChannel.Writer.WaitToWriteAsync(cancel).ConfigureAwait(false);
+			if (ForeachFiltersResultsChannel is not null)
+			{
+				await ForeachFiltersResultsChannel.Writer.WriteAsync(filtersReadSinceLastSuccess, cancel).ConfigureAwait(false);
+				await ForeachFiltersResultsChannel.Writer.WaitToWriteAsync(cancel).ConfigureAwait(false);
+			}
 			filtersReadSinceLastSuccess.BufferFiltersRead.Clear();
 			filtersReadSinceLastSuccess.HasMatched = false;
 		}
