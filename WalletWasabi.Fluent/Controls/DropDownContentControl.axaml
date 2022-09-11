@@ -1,0 +1,66 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        xmlns:objectModel="clr-namespace:System.Collections.ObjectModel;assembly=System.Runtime">
+  <Design.PreviewWith>
+    <Border Width="200" Height="400">
+      <controls:DropDownContentControl
+        VerticalAlignment="Top" HorizontalAlignment="Center"
+        BorderThickness="1"
+        BorderBrush="Blue"
+        VerticalContentAlignment="Center"
+        HorizontalContentAlignment="Center">
+        <controls:DropDownContentControl.MenuItems>
+          <objectModel:Collection x:TypeArguments="system:String">
+            <system:String>Hi</system:String>
+            <system:String>How</system:String>
+            <system:String>Are</system:String>
+            <system:String>You?</system:String>
+          </objectModel:Collection>
+        </controls:DropDownContentControl.MenuItems>
+        <TextBlock HorizontalAlignment="Center">Hello</TextBlock>
+      </controls:DropDownContentControl>
+    </Border>
+  </Design.PreviewWith>
+
+  <Styles.Resources>
+    <StreamGeometry x:Key="DownArrow">M 0 0 L 4 4 L 8 0 Z</StreamGeometry>
+  </Styles.Resources>
+
+  <Style Selector="controls|DropDownContentControl">
+    <!-- Set Defaults -->
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="DropDownButtonBrush" Value="{DynamicResource ButtonBackground}" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="3" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border BorderThickness="{TemplateBinding BorderThickness}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}">
+          <DockPanel LastChildFill="False" VerticalAlignment="Center"
+                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+            <Button Padding="2 8" DockPanel.Dock="Left" Background="{TemplateBinding DropDownButtonBrush}" Margin="0 0 0 0">
+              <Button.Content>
+                <PathIcon VerticalAlignment="Bottom" Width="10" Data="{StaticResource DownArrow}" />
+              </Button.Content>
+              <Button.Flyout>
+                <MenuFlyout Placement="BottomEdgeAlignedLeft"
+                            Items="{Binding MenuItems, RelativeSource={RelativeSource TemplatedParent}}" />
+              </Button.Flyout>
+            </Button>
+
+            <ContentPresenter Padding="{TemplateBinding Padding}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              Content="{TemplateBinding Content}" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+</Styles>

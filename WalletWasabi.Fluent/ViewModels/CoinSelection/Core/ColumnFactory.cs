@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Avalonia.Controls;
@@ -121,10 +122,13 @@ public static class ColumnFactory
 		};
 	}
 
-	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items, IEnumerable<CommandViewModel> commands)
+	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items, IEnumerable<CommandViewModel> commands, CompositeDisposable disposables)
 	{
+		var selectionHeaderViewModel = new SelectionHeaderViewModel(items, i => i > 99? "99+" : i.ToString(), commands);
+		selectionHeaderViewModel.DisposeWith(disposables);
+
 		return new TemplateColumn<TreeNode>(
-			new SelectionHeaderViewModel(items, i => i > 99? "99+" : i.ToString(), commands),
+			selectionHeaderViewModel,
 			new ConstantTemplate<TreeNode>(
 				n =>
 				{

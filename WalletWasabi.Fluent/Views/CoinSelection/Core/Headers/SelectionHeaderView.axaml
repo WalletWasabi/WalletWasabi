@@ -3,32 +3,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:headers="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="300"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Headers.SelectionHeaderView"
              x:DataType="headers:SelectionHeaderViewModel"
+             ClipToBounds="False"
              x:CompileBindings="True">
-  <StackPanel Orientation="Horizontal" Margin="15 0 0 0">
-    <DockPanel>
-      <Button DockPanel.Dock="Right" Content=">" x:CompileBindings="False">
+  <StackPanel Orientation="Horizontal" Margin="-5 0 0 0">
 
-        <Button.Styles>
-          <Style Selector="MenuItem">
-            <Setter Property="Header" Value="{Binding Header}"/>
-            <Setter Property="Items" Value="{Binding Items}"/>
-            <Setter Property="Command" Value="{Binding Command}"/>
-            <Setter Property="CommandParameter" Value="{Binding CommandParameter}"/>
-          </Style>
-        </Button.Styles>
+    <controls:DropDownContentControl MenuItems="{Binding Commands}" DropDownButtonBrush="Transparent">
+      <controls:DropDownContentControl.Styles>
+        <Style Selector="MenuItem" x:CompileBindings="False">
+          <Setter Property="Header" Value="{Binding Header}"/>
+          <Setter Property="Command" Value="{Binding Command}"/>
+        </Style>
+      </controls:DropDownContentControl.Styles>
+      <CheckBox Padding="0" HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+    </controls:DropDownContentControl>
 
-        <Button.Flyout>
-          <MenuFlyout Placement="Bottom" Items="{Binding Items}" />
-        </Button.Flyout>
-      </Button>
-      <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
-    </DockPanel>
     <Panel IsHitTestVisible="False">
       <Ellipse Width="20" Height="20" Fill="Green" />
       <TextBlock Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
     </Panel>
+
   </StackPanel>
 </UserControl>

@@ -97,7 +97,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges,
 		IEnumerable<CommandViewModel> commands)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(coinChanges.Cast(model => (ISelectable)model), commands);
+		var selectionColumn = ColumnFactory.SelectionColumn(coinChanges.Cast(model => (ISelectable)model), commands, _disposables);
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
 		{

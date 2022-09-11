@@ -34,7 +34,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		nodes.WhenAnyPropertyChanged()
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
-			.Do(x => UpdateSource(nodes, coinChanges, commands))
+			.Do(nodes => UpdateSource(nodes, coinChanges, commands))
 			.Subscribe()
 			.DisposeWith(_disposables);
 
@@ -57,7 +57,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> selectables,
 		IEnumerable<CommandViewModel> commands)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(selectables.Cast(x => (ISelectable)x), commands);
+		var selectionColumn = ColumnFactory.SelectionColumn(selectables.Cast(x => (ISelectable)x), commands, _disposables);
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(coins)
 		{

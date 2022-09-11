@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
-using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
@@ -69,7 +68,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private new ReactiveCommand<Unit, List<WalletCoinViewModel>> NextCommand { get; set; }
 
-	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Objects use DisposeWith")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var sourceCache = new SourceCache<WalletCoinViewModel, OutPoint>(x => x.Coin.OutPoint);
@@ -101,8 +100,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SelectedCount = selectedCoins.Select(models => models.Count);
 
-	
-
 		SummaryText = RemainingAmount.CombineLatest(
 			SelectedAmount,
 			SelectedCount,
@@ -128,10 +125,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		var commands = new []
+		var commands = new[]
 		{
 			new CommandViewModel("All", SelectAllCoinsCommand),
-			new CommandViewModel("None", ClearCoinSelectionCommand)
+			new CommandViewModel("None", ClearCoinSelectionCommand),
+			new CommandViewModel("Private coins", SelectAllPrivateCoinsCommand),
+			new CommandViewModel("Smart", SelectPredefinedCoinsCommand)
 		};
 
 		CoinBasedSelection =
@@ -146,7 +145,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static string CreateFormatSummaryText(Money remainingAmount, Money selectedAmount, int selectedCoinsCount)
 	{
-		var remainingPart = remainingAmount == Money.Zero ? Array.Empty<string>() : new[] { $"{remainingAmount.FormattedBtc()} BTC" };
+		var remainingPart = remainingAmount == Money.Zero
+			? Array.Empty<string>()
+			: new[] { $"{remainingAmount.FormattedBtc()} BTC" };
 		var totalPart = new[] { $"{selectedCoinsCount} coin{TextHelpers.AddSIfPlural(selectedCoinsCount)} selected" };
 
 		return string.Join(" | ", remainingPart.Concat(totalPart));
