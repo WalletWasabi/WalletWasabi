@@ -167,6 +167,7 @@
                         <TextBlock Text="{Binding BlockId}" />
                       </StackPanel>
                     </StackPanel>
+                    <!-- TODO: -->
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
                     <StackPanel>
