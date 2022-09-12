@@ -129,7 +129,7 @@
                     <TextBlock Text="NewFilterProcessed" />
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
-                    <TextBlock Text="NewBlockProcessed" />
+                    <TextBlock Text="{Binding CoinbaseHeight, StringFormat={}NewBlockProcessed: {0}}" />
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
                     <TextBlock Text="{Binding State, StringFormat={}StateChanged: {0}}" />
