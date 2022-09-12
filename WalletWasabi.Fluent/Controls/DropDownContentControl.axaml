@@ -43,7 +43,7 @@
                 BorderBrush="{TemplateBinding BorderBrush}">
           <DockPanel LastChildFill="False" VerticalAlignment="Center"
                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
-            <Button Padding="2 8" DockPanel.Dock="Left" Background="{TemplateBinding DropDownButtonBrush}" Margin="0 0 0 0">
+            <Button Padding="2 8 2 0" DockPanel.Dock="Left" Background="{TemplateBinding DropDownButtonBrush}" Margin="0 0 0 0">
               <Button.Content>
                 <PathIcon VerticalAlignment="Bottom" Width="10" Data="{StaticResource DownArrow}" />
               </Button.Content>
