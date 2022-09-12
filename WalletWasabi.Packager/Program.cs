@@ -183,7 +183,7 @@ public static class Program
 		if (Directory.Exists(desktopBinReleaseDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).ConfigureAwait(false);
-			Console.WriteLine($"#Deleted {desktopBinReleaseDirectory}");
+			Console.WriteLine($"# Deleted {desktopBinReleaseDirectory}");
 		}
 
 		if (Directory.Exists(libraryBinReleaseDirectory))
@@ -208,7 +208,7 @@ public static class Program
 			string currentBinDistDirectory = publishedFolder;
 
 			Console.WriteLine();
-			Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
+			Console.WriteLine($"# Packaging for platform '{target}' to folder:\t{currentBinDistDirectory}");
 
 			Console.WriteLine();
 			if (!Directory.Exists(currentBinDistDirectory))
@@ -376,7 +376,7 @@ public static class Program
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
 					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}",
 				};
-			
+
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					// Use WSL on Windows.
@@ -476,7 +476,7 @@ public static class Program
 					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 				};
-				
+
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					// Use WSL on Windows.
