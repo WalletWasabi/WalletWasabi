@@ -1,8 +1,11 @@
 using Avalonia;
 using Avalonia.Media;
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
@@ -24,11 +27,11 @@ public class PrivacyBarItemViewModel : ViewModelBase, IDisposable
 		};
 	}
 
-	public PrivacyBarItemViewModel(bool isPrivate, bool isSemiPrivate, bool isNonPrivate, double start, double width)
+	public PrivacyBarItemViewModel(Pocket pocket, Wallet wallet, double start, double width)
 	{
-		IsPrivate = isPrivate;
-		IsSemiPrivate = isSemiPrivate;
-		IsNonPrivate = isNonPrivate;
+		IsPrivate = pocket.Coins.First().IsPrivate(wallet.KeyManager.AnonScoreTarget);
+		IsSemiPrivate = !IsPrivate && pocket.Coins.First().IsSemiPrivate();
+		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 
 		Data = new RectangleGeometry
 		{
