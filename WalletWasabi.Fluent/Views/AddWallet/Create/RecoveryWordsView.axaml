@@ -49,7 +49,7 @@
                          HorizontalAlignment="Center"
                          VerticalAlignment="Bottom">
         <StackPanel>
-          <TextBlock Text="Please make sure to safely store these Recovery Words." />
+          <TextBlock Text="Make sure to safely store these Recovery Words." />
           <TextBlock Text="You will not be able to see them again." />
         </StackPanel>
       </c:InfoMessage>
