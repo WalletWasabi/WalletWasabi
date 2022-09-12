@@ -147,7 +147,20 @@
                     <TextBlock Text="{Binding}" />
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
-                    <TextBlock Text="{Binding}" />
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="BlockTime: " />
+                        <TextBlock Text="{Binding BlockTime}" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="CoinbaseHeight: " />
+                        <TextBlock Text="{Binding CoinbaseHeight}" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="BlockId: " />
+                        <TextBlock Text="{Binding BlockId}" />
+                      </StackPanel>
+                    </StackPanel>
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
                     <TextBlock Text="{Binding State}" />
