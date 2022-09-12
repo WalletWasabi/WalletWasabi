@@ -368,15 +368,27 @@ public static class Program
 				var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
+				string chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
 
-				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
-				string arguments = Tools.CreateWslCommand(
-					BinDistDirectory,
+				string[] commands = new string[]
+				{
 					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}");
-
-				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}",
+				};
+			
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					// Use WSL on Windows.
+					string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
+					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+				}
+				else
+				{
+					// Use Bash on other platforms.
+					string arguments = string.Join(" && ", commands);
+					StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
+				}
 
 				Console.WriteLine("# Create Linux .deb");
 
@@ -456,14 +468,27 @@ public static class Program
 
 				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
-				arguments = Tools.CreateWslCommand(BinDistDirectory,
+				commands = new string[]
+				{
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)");
-
-				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
+				};
+				
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					// Use WSL on Windows.
+					string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
+					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+				}
+				else
+				{
+					// Use Bash on other platforms.
+					string arguments = string.Join(" && ", commands);
+					StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
+				}
 
 				await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
