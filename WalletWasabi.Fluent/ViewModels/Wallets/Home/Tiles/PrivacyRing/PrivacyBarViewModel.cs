@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Media;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
