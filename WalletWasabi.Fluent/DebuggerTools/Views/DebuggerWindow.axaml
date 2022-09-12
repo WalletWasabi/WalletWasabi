@@ -297,7 +297,7 @@
 
   <!-- Layout -->
 
-  <Grid ColumnDefinitions="250,8,*">
+  <Grid ColumnDefinitions="150,8,*">
     <!-- Wallet List -->
     <ListBox Grid.Column="0"
              Items="{Binding Wallets}"
