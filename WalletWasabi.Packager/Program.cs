@@ -377,18 +377,7 @@ public static class Program
 					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}",
 				};
 
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					// Use WSL on Windows.
-					string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
-					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
-				}
-				else
-				{
-					// Use Bash on other platforms.
-					string arguments = string.Join(" && ", commands);
-					StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
-				}
+				ExecuteBashCommand(commands);
 
 				Console.WriteLine("# Create Linux .deb");
 
@@ -477,18 +466,7 @@ public static class Program
 					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 				};
 
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					// Use WSL on Windows.
-					string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
-					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
-				}
-				else
-				{
-					// Use Bash on other platforms.
-					string arguments = string.Join(" && ", commands);
-					StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
-				}
+				ExecuteBashCommand(commands);
 
 				await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
@@ -542,6 +520,26 @@ public static class Program
 		}
 
 		return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
+	}
+
+	/// <summary>
+	/// Executes a set of commands in either WSL2 (on Windows) or Bash (on other platforms).
+	/// </summary>
+	/// <param name="commands">Commands to execute.</param>
+	private static void ExecuteBashCommand(string[] commands)
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			// Use WSL on Windows.
+			string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
+			StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+		}
+		else
+		{
+			// Use Bash on other platforms.
+			string arguments = string.Join(" && ", commands);
+			StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
+		}
 	}
 
 	private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
