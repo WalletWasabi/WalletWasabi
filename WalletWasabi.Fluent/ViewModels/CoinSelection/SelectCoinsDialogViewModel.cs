@@ -68,7 +68,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private new ReactiveCommand<Unit, List<WalletCoinViewModel>> NextCommand { get; set; }
 
-	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Objects use DisposeWith")]
+	[SuppressMessage(
+		"Reliability",
+		"CA2000:Dispose objects before losing scope",
+		Justification = "Objects use DisposeWith")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var sourceCache = new SourceCache<WalletCoinViewModel, OutPoint>(x => x.Coin.OutPoint);

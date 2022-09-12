@@ -18,6 +18,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 {
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private string _filter = "";
+
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private HierarchicalTreeDataGridSource<TreeNode> _source = new(new List<TreeNode>());
 
@@ -26,7 +27,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		IEnumerable<CommandViewModel> commands)
 	{
 		coinChanges
-			.Group(x => new GroupKey(x.SmartLabel, x.GetPrivacyLevel()))
+			.Group(x => PrivacyLevelKey.Get(x.SmartLabel, x.GetPrivacyLevel()))
 			.Transform(
 				group =>
 				{
@@ -57,15 +58,6 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 			.DistinctUntilChanged()
 			.Select(FilterFunction);
 
-	private void UpdateSource(
-		IEnumerable<TreeNode> collection,
-		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> changes,
-		IEnumerable<CommandViewModel> commands)
-	{
-		Source.Dispose();
-		Source = CreateGridSource(collection, changes, commands);
-	}
-
 	public void Dispose()
 	{
 		_disposables.Dispose();
@@ -90,12 +82,24 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 	}
 
+	private void UpdateSource(
+		IEnumerable<TreeNode> collection,
+		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> changes,
+		IEnumerable<CommandViewModel> commands)
+	{
+		Source.Dispose();
+		Source = CreateGridSource(collection, changes, commands);
+	}
+
 	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(
 		IEnumerable<TreeNode> groups,
 		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges,
 		IEnumerable<CommandViewModel> commands)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(coinChanges.Cast(model => (ISelectable)model), commands, _disposables);
+		var selectionColumn = ColumnFactory.SelectionColumn(
+			coinChanges.Cast(model => (ISelectable) model),
+			commands,
+			_disposables);
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
 		{

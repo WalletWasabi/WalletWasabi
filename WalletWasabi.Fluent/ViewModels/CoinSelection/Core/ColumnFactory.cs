@@ -78,8 +78,8 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel),
-				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(model => model.SmartLabel)
+				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(c => c.SmartLabel),
+				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(c => c.SmartLabel)
 			});
 	}
 
@@ -105,8 +105,8 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = (a, _) => a!.Apply<CoinGroupViewModel, int>(input => GetPriorityByLabels(input)),
-				CompareDescending = (a, _) => a!.Apply<CoinGroupViewModel, int>(input => -GetPriorityByLabels(input))
+				CompareAscending = SortAscending<CoinGroupViewModel, PrivacyLevelKey>(c => c.Key),
+				CompareDescending = SortDescending<CoinGroupViewModel, PrivacyLevelKey>(c => c.Key)
 			});
 	}
 

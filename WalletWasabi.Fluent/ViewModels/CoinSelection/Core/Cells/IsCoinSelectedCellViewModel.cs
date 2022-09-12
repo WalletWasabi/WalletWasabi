@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 public partial class IsCoinSelectedCellViewModel : ViewModelBase, ISelectable
 {
 	private readonly CompositeDisposable _disposable = new();
-	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isEnabled;
+	[AutoNotify] private bool _isSelected;
 
 	public IsCoinSelectedCellViewModel(WalletCoinViewModel coin)
 	{

@@ -10,8 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 
 public partial class SelectionHeaderViewModelBase<TKey> : ViewModelBase, IDisposable where TKey : notnull
 {
-	[AutoNotify] private bool _isSelected;
 	private readonly CompositeDisposable _disposables = new();
+	[AutoNotify] private bool _isSelected;
 
 	public SelectionHeaderViewModelBase(
 		IObservable<IChangeSet<ISelectable, TKey>> changeStream,

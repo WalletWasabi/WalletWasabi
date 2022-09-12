@@ -19,8 +19,9 @@ public partial class CoinGroupViewModel : IDisposable, IThreeStateSelectable
 	private bool _canUpdate = true;
 	[AutoNotify] private TreeStateSelection _treeStateSelection;
 
-	public CoinGroupViewModel(GroupKey key, IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coins)
+	public CoinGroupViewModel(PrivacyLevelKey key, IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coins)
 	{
+		Key = key;
 		Labels = key.Labels;
 
 		if (Labels.IsEmpty)
@@ -62,6 +63,8 @@ public partial class CoinGroupViewModel : IDisposable, IThreeStateSelectable
 
 	public IEnumerable<WalletCoinViewModel> Items => _items;
 	public PrivacyLevel? PrivacyLevel { get; }
+
+	public PrivacyLevelKey Key { get; }
 
 	public void Dispose()
 	{

@@ -45,6 +45,8 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 
 	public Wallet Wallet { get; }
 
+	public PrivacyLevelKey PrivacyLevelKey => PrivacyLevelKey.Get(SmartLabel, this.GetPrivacyLevel());
+
 	public void Dispose()
 	{
 		_disposables.Dispose();
