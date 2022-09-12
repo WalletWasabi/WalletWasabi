@@ -164,43 +164,139 @@
         </TabItem>
         <!-- ReceivedDusts -->
         <TabItem Header="ReceivedDusts">
-          <!-- TODO: -->
+          <ListBox Items="{Binding ReceivedDusts}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- ReceivedCoins -->
         <TabItem Header="ReceivedCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding ReceivedCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- NewlyReceivedCoins -->
         <TabItem Header="NewlyReceivedCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding NewlyReceivedCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- NewlyConfirmedReceivedCoins -->
         <TabItem Header="NewlyConfirmedReceivedCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding NewlyConfirmedReceivedCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- SpentCoins -->
         <TabItem Header="SpentCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding SpentCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- NewlySpentCoins -->
         <TabItem Header="NewlySpentCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding NewlySpentCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- NewlyConfirmedSpentCoins -->
         <TabItem Header="NewlyConfirmedSpentCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding NewlyConfirmedSpentCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- SuccessfullyDoubleSpentCoins -->
         <TabItem Header="SuccessfullyDoubleSpentCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding SuccessfullyDoubleSpentCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- ReplacedCoins -->
         <TabItem Header="ReplacedCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding ReplacedCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
         <!-- RestoredCoins -->
         <TabItem Header="RestoredCoins">
-          <!-- TODO: -->
+          <ListBox Items="{Binding RestoredCoins}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding FirstSeen}" />
+                  <TextBlock Text="{Binding Amount}" />
+                  <TextBlock Text="{Binding TransactionId}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </TabItem>
       </TabControl>
     </DataTemplate>
