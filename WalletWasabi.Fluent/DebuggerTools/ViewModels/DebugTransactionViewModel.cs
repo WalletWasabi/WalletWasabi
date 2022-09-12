@@ -1,14 +1,10 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Reactive;
 using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Threading;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
