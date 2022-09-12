@@ -163,7 +163,12 @@
                     </StackPanel>
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
-                    <TextBlock Text="{Binding State}" />
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="State: " />
+                        <TextBlock Text="{Binding State}" />
+                      </StackPanel>
+                    </StackPanel>
                   </DataTemplate>
                 </ContentControl.DataTemplates>
               </ContentControl>
