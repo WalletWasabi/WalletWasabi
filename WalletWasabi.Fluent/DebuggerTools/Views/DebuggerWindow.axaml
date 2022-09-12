@@ -208,7 +208,29 @@
     <!-- Log: Filter -->
 
     <DataTemplate x:Key="DebugNewFilterProcessedLogItem" DataType="logging:DebugNewFilterProcessedLogItemViewModel">
-      <TextBlock Text="{Binding}" />
+      <StackPanel>
+        <!-- Height -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Height: " />
+          <TextBlock Text="{Binding Height}" />
+        </StackPanel>
+        <!-- BlockHash -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="BlockHash: " />
+          <TextBlock Text="{Binding BlockHash}" />
+        </StackPanel>
+        <!-- PrevHash -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="PrevHash: " />
+          <TextBlock Text="{Binding PrevHash}" />
+        </StackPanel>
+        <!-- BlockTime -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="BlockTime: " />
+          <TextBlock Text="{Binding BlockTime}" />
+        </StackPanel>
+        <!-- TODO: Add FilterModel properties. -->
+      </StackPanel>
     </DataTemplate>
 
     <!-- Log: Block -->
