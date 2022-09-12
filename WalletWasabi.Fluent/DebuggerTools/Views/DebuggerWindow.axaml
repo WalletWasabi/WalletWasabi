@@ -13,8 +13,35 @@
         x:DataType="viewModels:DebuggerToolsViewModel" x:CompileBindings="True">
 
   <Window.Styles>
+    <Style Selector="TreeDataGrid">
+      <Setter Property="(TextBlock.FontSize)" Value="12" />
+    </Style>
+    <Style Selector="TreeDataGridColumnHeader">
+      <Setter Property="MinHeight" Value="24" />
+      <Setter Property="Padding" Value="4" />
+      <Setter Property="(TextBlock.FontSize)" Value="12" />
+    </Style>
     <Style Selector="TreeDataGridRow">
-      <Setter Property="Height" Value="37.5" />
+      <Setter Property="Height" Value="24" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="4" />
+    </Style>
+    <Style Selector="ListBoxItem /template/ ContentPresenter">
+      <Setter Property="(TextBlock.FontSize)" Value="12" />
+    </Style>
+    <Style Selector="TabItem">
+      <Setter Property="MinHeight" Value="24" />
+      <Setter Property="Margin" Value="2" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="(TextBlock.FontSize)" Value="12" />
+    </Style>
+    <Style Selector="TabItem /template/ Border#PART_LayoutRoot">
+      <Setter Property="Margin" Value="0 0 0 0" />
+    </Style>
+    <Style Selector="TabControl">
+      <Setter Property="Padding" Value="0" />
     </Style>
   </Window.Styles>
 
