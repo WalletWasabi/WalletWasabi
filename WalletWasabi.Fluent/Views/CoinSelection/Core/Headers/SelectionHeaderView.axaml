@@ -21,9 +21,9 @@
       <CheckBox Padding="0" HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
     </controls:DropDownContentControl>
 
-    <Panel IsHitTestVisible="False">
-      <Ellipse Width="20" Height="20" Fill="Green" />
-      <TextBlock Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
+    <Panel IsHitTestVisible="False" Margin="6 0 0 0">
+      <Ellipse Width="20" Height="20" Fill="{DynamicResource ActionButtonBackgroundColor}" />
+      <TextBlock Foreground="{DynamicResource ActionButtonForegroundColor}" Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
     </Panel>
 
   </StackPanel>
