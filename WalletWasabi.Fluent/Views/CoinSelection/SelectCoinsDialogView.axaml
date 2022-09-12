@@ -133,13 +133,5 @@
 
     </DockPanel>
 
-    <controls:ContentArea.ButtonAreaContent>
-      <TextBlock VerticalAlignment="Center"
-                 TextAlignment="Center"
-                 IsVisible="{Binding !EnoughSelected^}"
-                 TextWrapping="Wrap"
-                 Text="Select more coins" />
-    </controls:ContentArea.ButtonAreaContent>
-
   </controls:ContentArea>
 </UserControl>
