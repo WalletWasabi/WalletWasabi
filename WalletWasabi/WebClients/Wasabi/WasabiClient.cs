@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -44,7 +43,7 @@ public class WasabiClient
 			relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
 		}
 
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, relativeUri, cancel: cancel).ConfigureAwait(false);
+		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, relativeUri, cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -69,7 +68,7 @@ public class WasabiClient
 		using HttpResponseMessage response = await HttpClient.SendAsync(
 			HttpMethod.Get,
 			$"/api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
-			cancel: cancel).ConfigureAwait(false);
+			cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode == HttpStatusCode.NoContent)
 		{
@@ -105,7 +104,7 @@ public class WasabiClient
 			using HttpResponseMessage response = await HttpClient.SendAsync(
 				HttpMethod.Get,
 				$"/api/v{ApiVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}",
-				cancel: cancel).ConfigureAwait(false);
+				cancellationToken: cancel).ConfigureAwait(false);
 
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
@@ -145,7 +144,7 @@ public class WasabiClient
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
-			await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+			await response.ThrowRequestExceptionFromContentAsync(CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 
@@ -164,7 +163,7 @@ public class WasabiClient
 		using HttpResponseMessage response = await HttpClient.SendAsync(
 			HttpMethod.Get,
 			$"/api/v{ApiVersion}/btc/blockchain/mempool-hashes",
-			cancel: cancel).ConfigureAwait(false);
+			cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -187,7 +186,7 @@ public class WasabiClient
 		using HttpResponseMessage response = await HttpClient.SendAsync(
 			HttpMethod.Get,
 			$"/api/v{ApiVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
-			cancel: cancel).ConfigureAwait(false);
+			cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -202,30 +201,11 @@ public class WasabiClient
 
 	#endregion blockchain
 
-	#region offchain
-
-	public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
-	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, $"/api/v{ApiVersion}/btc/offchain/exchange-rates").ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync<IEnumerable<ExchangeRate>>().ConfigureAwait(false);
-
-		return ret;
-	}
-
-	#endregion offchain
-
 	#region software
 
 	public async Task<(Version ClientVersion, ushort BackendMajorVersion, Version LegalDocumentsVersion)> GetVersionsAsync(CancellationToken cancel)
 	{
-		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, "/api/software/versions", cancel: cancel).ConfigureAwait(false);
+		using HttpResponseMessage response = await HttpClient.SendAsync(HttpMethod.Get, "/api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{
@@ -263,7 +243,7 @@ public class WasabiClient
 		using HttpResponseMessage response = await HttpClient.SendAsync(
 			HttpMethod.Get,
 			$"/api/v{ApiVersion}/wasabi/legaldocuments?id=ww2",
-			cancel: cancel).ConfigureAwait(false);
+			cancellationToken: cancel).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
 		{

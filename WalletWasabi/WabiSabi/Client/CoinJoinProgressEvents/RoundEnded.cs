@@ -10,4 +10,5 @@ public class RoundEnded : CoinJoinProgressEventArgs
 	}
 
 	public RoundState LastRoundState { get; }
+	public bool IsStopped { get; set; }
 }

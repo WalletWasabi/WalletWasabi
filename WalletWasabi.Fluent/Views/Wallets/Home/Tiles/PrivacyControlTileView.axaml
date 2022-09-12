@@ -28,7 +28,8 @@
         </StackPanel>
       </StackPanel>
 
-      <Panel x:Name="Panel" DockPanel.Dock="Bottom" Margin="0 0 0 8">
+      <Panel x:Name="Panel" DockPanel.Dock="Bottom" Margin="0 0 0 8"
+             IsVisible="{Binding ShowPrivacyBar}">
         <i:Interaction.Behaviors>
           <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
                                             Width="{Binding PrivacyBar.Width, Mode=TwoWay}"
