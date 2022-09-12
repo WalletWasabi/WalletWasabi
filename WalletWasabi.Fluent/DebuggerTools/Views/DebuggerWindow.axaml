@@ -141,7 +141,13 @@
                               Content="{Binding SelectedLogItem}">
                 <ContentControl.DataTemplates>
                   <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
-                    <TextBlock Text="{Binding}" />
+                    <TabControl>
+                      <TabItem Header="Transaction">
+                        <ContentControl Content="{Binding Transaction}"
+                                        ContentTemplate="{StaticResource DebugTransaction}"/>
+                      </TabItem>
+                      <!-- TODO: -->
+                    </TabControl>
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
                     <TextBlock Text="{Binding}" />
