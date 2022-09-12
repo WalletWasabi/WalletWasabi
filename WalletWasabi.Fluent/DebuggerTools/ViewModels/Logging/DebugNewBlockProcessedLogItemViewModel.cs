@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
@@ -5,6 +7,7 @@ namespace WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
 public partial class DebugNewBlockProcessedLogItemViewModel : DebugLogItemViewModel
 {
 	private readonly Block _block;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private List<uint256> _transactions;
 
 	public DebugNewBlockProcessedLogItemViewModel(Block block)
 	{
@@ -16,7 +19,9 @@ public partial class DebugNewBlockProcessedLogItemViewModel : DebugLogItemViewMo
 
 		BlockId = block.GetHash();
 
-		// TODO: Add Block properties e.g. Transactions.
+		Transactions = _block.Transactions.Select(x => x.GetHash()).ToList();
+
+		// TODO: Add Block properties.
 	}
 
 	public Block Block => _block;
