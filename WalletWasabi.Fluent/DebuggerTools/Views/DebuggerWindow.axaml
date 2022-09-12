@@ -123,7 +123,7 @@
                        SelectedItem="{Binding SelectedLogItem}">
                 <ListBox.DataTemplates>
                   <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
-                    <TextBlock Text="TransactionProcessed" />
+                    <TextBlock Text="{Binding Transaction.TransactionId, StringFormat={}TransactionProcessed: {0}}" />
                   </DataTemplate>
                   <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
                     <TextBlock Text="NewFilterProcessed" />
