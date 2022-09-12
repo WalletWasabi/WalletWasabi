@@ -20,8 +20,11 @@
 
   <Window.Resources>
 
+    <!-- Transaction -->
+
     <DataTemplate x:Key="DebugTransaction" DataType="viewModels:DebugTransactionViewModel">
       <TabControl>
+        <!-- Transaction -->
         <TabItem Header="Transaction">
           <StackPanel>
             <StackPanel Orientation="Horizontal">
@@ -34,58 +37,73 @@
             </StackPanel>
           </StackPanel>
         </TabItem>
+        <!-- Coins -->
         <TabItem Header="Coins">
           <TreeDataGrid Source="{Binding CoinsSource}" />
         </TabItem>
       </TabControl>
     </DataTemplate>
 
+    <!-- Coin -->
+
     <DataTemplate x:Key="DebugCoin" DataType="viewModels:DebugCoinViewModel">
       <TabControl>
+        <!-- Coin -->
         <TabItem Header="Coin">
           <StackPanel>
+            <!-- FirstSeen -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="FirstSeen: " />
               <TextBlock Text="{Binding FirstSeen}" />
             </StackPanel>
+            <!-- Amount -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Amount: " />
               <TextBlock Text="{Binding Amount}" />
             </StackPanel>
+            <!-- Confirmed -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Confirmed: " />
               <TextBlock Text="{Binding Confirmed}" />
             </StackPanel>
+            <!-- CoinJoinInProgress -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="CoinJoinInProgress: " />
               <TextBlock Text="{Binding CoinJoinInProgress}" />
             </StackPanel>
+            <!-- IsBanned -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="IsBanned: " />
               <TextBlock Text="{Binding IsBanned}" />
             </StackPanel>
+            <!-- BannedUntilUtc -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="BannedUntilUtc: " />
               <TextBlock Text="{Binding BannedUntilUtc}" />
             </StackPanel>
+            <!-- Height -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Height: " />
               <TextBlock Text="{Binding Height}" />
             </StackPanel>
+            <!-- Transaction -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="Transaction: " />
               <TextBlock Text="{Binding TransactionId}" />
             </StackPanel>
+            <!-- SpenderTransaction -->
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="SpenderTransaction: " />
               <TextBlock Text="{Binding SpenderTransactionId}" />
             </StackPanel>
           </StackPanel>
         </TabItem>
+        <!-- Transaction -->
         <TabItem Header="Transaction">
           <ContentControl Content="{Binding Transaction}"
                           ContentTemplate="{StaticResource DebugTransaction}"/>
         </TabItem>
+        <!-- SpenderTransaction -->
         <TabItem Header="SpenderTransaction">
           <ContentControl Content="{Binding SpenderTransaction}"
                           ContentTemplate="{StaticResource DebugTransaction}"/>
@@ -93,104 +111,194 @@
       </TabControl>
     </DataTemplate>
 
+    <!-- Log: Transaction -->
+
+    <DataTemplate x:Key="DebugTransactionProcessedLogItem" DataType="logging:DebugTransactionProcessedLogItemViewModel">
+      <TabControl>
+        <!-- Transaction -->
+        <TabItem Header="Transaction">
+          <StackPanel>
+            <!-- IsNews -->
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="IsNews: " />
+              <TextBlock Text="{Binding IsNews}" />
+            </StackPanel>
+            <!-- IsOwnCoinJoin -->
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="IsOwnCoinJoin: " />
+              <TextBlock Text="{Binding IsOwnCoinJoin}" />
+            </StackPanel>
+            <!-- Transaction -->
+            <ContentControl Content="{Binding Transaction}"
+                            ContentTemplate="{StaticResource DebugTransaction}"/>
+          </StackPanel>
+        </TabItem>
+        <!-- ReceivedDusts -->
+        <TabItem Header="ReceivedDusts">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- ReceivedCoins -->
+        <TabItem Header="ReceivedCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- NewlyReceivedCoins -->
+        <TabItem Header="NewlyReceivedCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- NewlyConfirmedReceivedCoins -->
+        <TabItem Header="NewlyConfirmedReceivedCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- SpentCoins -->
+        <TabItem Header="SpentCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- NewlySpentCoins -->
+        <TabItem Header="NewlySpentCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- NewlyConfirmedSpentCoins -->
+        <TabItem Header="NewlyConfirmedSpentCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- SuccessfullyDoubleSpentCoins -->
+        <TabItem Header="SuccessfullyDoubleSpentCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- ReplacedCoins -->
+        <TabItem Header="ReplacedCoins">
+          <!-- TODO: -->
+        </TabItem>
+        <!-- RestoredCoins -->
+        <TabItem Header="RestoredCoins">
+          <!-- TODO: -->
+        </TabItem>
+      </TabControl>
+    </DataTemplate>
+
+    <!-- Log: Filter -->
+
+    <DataTemplate x:Key="DebugNewFilterProcessedLogItem" DataType="logging:DebugNewFilterProcessedLogItemViewModel">
+      <TextBlock Text="{Binding}" />
+    </DataTemplate>
+
+    <!-- Log: Block -->
+
+    <DataTemplate x:Key="DebugNewBlockProcessedLogItem" DataType="logging:DebugNewBlockProcessedLogItemViewModel">
+      <TabControl>
+        <!-- Block -->
+        <TabItem Header="Block">
+          <StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="BlockTime: " />
+              <TextBlock Text="{Binding BlockTime}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="CoinbaseHeight: " />
+              <TextBlock Text="{Binding CoinbaseHeight}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="BlockId: " />
+              <TextBlock Text="{Binding BlockId}" />
+            </StackPanel>
+          </StackPanel>
+        </TabItem>
+        <!-- Transactions -->
+        <TabItem Header="Transactions">
+          <ListBox Items="{Binding Transactions}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </TabItem>
+      </TabControl>
+    </DataTemplate>
+
+    <!-- Log: State -->
+
+    <DataTemplate x:Key="DebugStateChangedLogItem" DataType="logging:DebugStateChangedLogItemViewModel">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="State: " />
+          <TextBlock Text="{Binding State}" />
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- Wallet -->
+
     <DataTemplate x:Key="DebugWallet" DataType="viewModels:DebugWalletViewModel">
-        <TabControl>
-          <TabItem Header="Coins">
-            <Grid RowDefinitions="60*,8,40*">
-              <TreeDataGrid Grid.Row="0"
-                            Source="{Binding CoinsSource}" />
-              <GridSplitter Grid.Row="1" />
-              <ContentControl Grid.Row="2"
-                              Content="{Binding SelectedCoin}"
-                              ContentTemplate="{StaticResource DebugCoin}" />
-            </Grid>
-          </TabItem>
-          <TabItem Header="Transactions">
-            <Grid RowDefinitions="60*,8,40*">
-              <TreeDataGrid Grid.Row="0"
-                            Source="{Binding TransactionsSource}" />
-              <GridSplitter Grid.Row="1" />
-              <ContentControl Grid.Row="2"
-                              Content="{Binding SelectedTransaction}"
-                              ContentTemplate="{StaticResource DebugTransaction}" />
-            </Grid>
-          </TabItem>
-          <TabItem Header="Log">
-            <Grid RowDefinitions="60*,8,40*,Auto">
-              <ListBox Grid.Row="0"
-                       AutoScrollToSelectedItem="{Binding AutoScrollLogItems}"
-                       Items="{Binding LogItems}"
-                       SelectedItem="{Binding SelectedLogItem}">
-                <ListBox.DataTemplates>
-                  <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
-                    <TextBlock Text="{Binding Transaction.TransactionId, StringFormat={}TransactionProcessed: {0}}" />
-                  </DataTemplate>
-                  <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
-                    <TextBlock Text="NewFilterProcessed" />
-                  </DataTemplate>
-                  <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
-                    <TextBlock Text="{Binding CoinbaseHeight, StringFormat={}NewBlockProcessed: {0}}" />
-                  </DataTemplate>
-                  <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
-                    <TextBlock Text="{Binding State, StringFormat={}StateChanged: {0}}" />
-                  </DataTemplate>
-                </ListBox.DataTemplates>
-              </ListBox>
-              <GridSplitter Grid.Row="1" />
-              <ContentControl Grid.Row="2"
-                              Content="{Binding SelectedLogItem}">
-                <ContentControl.DataTemplates>
-                  <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
-                    <TabControl>
-                      <TabItem Header="Transaction">
-                        <ContentControl Content="{Binding Transaction}"
-                                        ContentTemplate="{StaticResource DebugTransaction}"/>
-                      </TabItem>
-                      <!-- TODO: -->
-                    </TabControl>
-                  </DataTemplate>
-                  <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
-                    <TextBlock Text="{Binding}" />
-                  </DataTemplate>
-                  <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
-                    <StackPanel>
-                      <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="BlockTime: " />
-                        <TextBlock Text="{Binding BlockTime}" />
-                      </StackPanel>
-                      <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="CoinbaseHeight: " />
-                        <TextBlock Text="{Binding CoinbaseHeight}" />
-                      </StackPanel>
-                      <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="BlockId: " />
-                        <TextBlock Text="{Binding BlockId}" />
-                      </StackPanel>
-                    </StackPanel>
-                    <!-- TODO: -->
-                  </DataTemplate>
-                  <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
-                    <StackPanel>
-                      <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="State: " />
-                        <TextBlock Text="{Binding State}" />
-                      </StackPanel>
-                    </StackPanel>
-                  </DataTemplate>
-                </ContentControl.DataTemplates>
-              </ContentControl>
-              <CheckBox Grid.Row="3"
-                        IsChecked="{Binding AutoScrollLogItems}"
-                        Content="Auto scroll log items"/>
-            </Grid>
-          </TabItem>
-        </TabControl>
+      <TabControl>
+        <!-- Coins -->
+        <TabItem Header="Coins">
+          <Grid RowDefinitions="60*,8,40*">
+            <TreeDataGrid Grid.Row="0"
+                          Source="{Binding CoinsSource}" />
+            <GridSplitter Grid.Row="1" />
+            <ContentControl Grid.Row="2"
+                            Content="{Binding SelectedCoin}"
+                            ContentTemplate="{StaticResource DebugCoin}" />
+          </Grid>
+        </TabItem>
+        <!-- Transactions -->
+        <TabItem Header="Transactions">
+          <Grid RowDefinitions="60*,8,40*">
+            <TreeDataGrid Grid.Row="0"
+                          Source="{Binding TransactionsSource}" />
+            <GridSplitter Grid.Row="1" />
+            <ContentControl Grid.Row="2"
+                            Content="{Binding SelectedTransaction}"
+                            ContentTemplate="{StaticResource DebugTransaction}" />
+          </Grid>
+        </TabItem>
+        <!-- Log -->
+        <TabItem Header="Log">
+          <Grid RowDefinitions="60*,8,40*,Auto">
+            <ListBox Grid.Row="0"
+                     AutoScrollToSelectedItem="{Binding AutoScrollLogItems}"
+                     Items="{Binding LogItems}"
+                     SelectedItem="{Binding SelectedLogItem}">
+              <ListBox.DataTemplates>
+                <DataTemplate DataType="logging:DebugTransactionProcessedLogItemViewModel">
+                  <TextBlock Text="{Binding Transaction.TransactionId, StringFormat={}TransactionProcessed: {0}}" />
+                </DataTemplate>
+                <DataTemplate DataType="logging:DebugNewFilterProcessedLogItemViewModel">
+                  <TextBlock Text="NewFilterProcessed" />
+                </DataTemplate>
+                <DataTemplate DataType="logging:DebugNewBlockProcessedLogItemViewModel">
+                  <TextBlock Text="{Binding CoinbaseHeight, StringFormat={}NewBlockProcessed: {0}}" />
+                </DataTemplate>
+                <DataTemplate DataType="logging:DebugStateChangedLogItemViewModel">
+                  <TextBlock Text="{Binding State, StringFormat={}StateChanged: {0}}" />
+                </DataTemplate>
+              </ListBox.DataTemplates>
+            </ListBox>
+            <GridSplitter Grid.Row="1" />
+            <ContentControl Grid.Row="2"
+                            Content="{Binding SelectedLogItem}">
+              <ContentControl.DataTemplates>
+                <StaticResource ResourceKey="DebugTransactionProcessedLogItem"/>
+                <StaticResource ResourceKey="DebugNewFilterProcessedLogItem"/>
+                <StaticResource ResourceKey="DebugNewBlockProcessedLogItem"/>
+                <StaticResource ResourceKey="DebugStateChangedLogItem"/>
+              </ContentControl.DataTemplates>
+            </ContentControl>
+            <CheckBox Grid.Row="3"
+                      IsChecked="{Binding AutoScrollLogItems}"
+                      Content="Auto scroll log items"/>
+          </Grid>
+        </TabItem>
+      </TabControl>
     </DataTemplate>
 
   </Window.Resources>
 
-  <Grid ColumnDefinitions="250,8,*">
+  <!-- Layout -->
 
+  <Grid ColumnDefinitions="250,8,*">
+    <!-- Wallet List -->
     <ListBox Grid.Column="0"
              Items="{Binding Wallets}"
              SelectedItem="{Binding SelectedWallet}">
@@ -200,13 +308,12 @@
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
-
+    <!-- Splitter -->
     <GridSplitter Grid.Column="1" />
-
+    <!-- Wallet Details -->
     <ContentControl Grid.Column="2"
                     Content="{Binding SelectedWallet}"
                     ContentTemplate="{StaticResource DebugWallet}" />
-
   </Grid>
 
 </Window>
