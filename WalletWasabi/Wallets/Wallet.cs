@@ -372,7 +372,7 @@ public class Wallet : BackgroundService, IWallet
 			{
 				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
-					if (await ProcessFilterModelUnit(filterModel, CancellationToken.None).ConfigureAwait(false))
+					if (await ProcessFilterModelUnitAsync(filterModel, CancellationToken.None).ConfigureAwait(false))
 					{
 						await ProcessBlockAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
 					}
@@ -424,12 +424,11 @@ public class Wallet : BackgroundService, IWallet
 	{
 		// Go through the filters and produce matches in the channel.
 		BitcoinStore.IndexStore.ForeachFiltersResultsChannel = Channel.CreateBounded<ForeachFiltersResults>(1);
-		var taskForeachFilters = Task.Run(() => BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelUnit(filterModel, cancel).ConfigureAwait(false),
+		var taskForeachFilters = Task.Run(() => BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelUnitAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1), true, cancel).ConfigureAwait(false));
 
-		uint heightLastBlockDownloaded = 0;
-		IEnumerable<byte[]> keysCompletelyMatched = Enumerable.Empty<byte[]>();
-		IEnumerable<byte[]> keysNotYetMatched = Enumerable.Empty<byte[]>();
+		var keysCompletelyMatched = Enumerable.Empty<byte[]>();
+		var keysNotYetMatched = Enumerable.Empty<byte[]>();
 		while (await BitcoinStore.IndexStore.ForeachFiltersResultsChannel.Reader.WaitToReadAsync(cancel).ConfigureAwait(false))
 		{
 			// Get results without releasing ForeachFilters
@@ -438,15 +437,16 @@ public class Wallet : BackgroundService, IWallet
 			{
 				continue;
 			}
+			bestKeyManagerHeight = KeyManager.GetBestHeight();
 			FilterModel? blockToDl = foreachFiltersResult.HasMatched ? foreachFiltersResult.BufferFiltersRead.Last() : null;
 
 			// Last block downloaded contained new keys, filters needs to be matched with those.
 			if (keysNotYetMatched.Any())
 			{
 				// In case during last iteration new keys matched with lower height block, remaining filters still have to be matched against these keys to check if there is not another block to download.
-				var fromHeight = heightLastBlockDownloaded > foreachFiltersResult.BufferFiltersRead.First().Header.Height ? heightLastBlockDownloaded : foreachFiltersResult.BufferFiltersRead.First().Header.Height;
+				var fromHeight = (uint)Math.Max(bestKeyManagerHeight.Value, foreachFiltersResult.BufferFiltersRead.First().Header.Height);
 
-				FilterModel? filterMatchedWithNewKeys = await BitcoinStore.IndexStore.ReTryOnLastFiltersFoundAsync(foreachFiltersResult, async (filterModel) => await ProcessFilterModelUnit(filterModel, cancel, keysNotYetMatched).ConfigureAwait(false),
+				FilterModel? filterMatchedWithNewKeys = await BitcoinStore.IndexStore.ReTryOnLastFiltersFoundAsync(foreachFiltersResult, async (filterModel) => await ProcessFilterModelUnitAsync(filterModel, cancel, keysNotYetMatched).ConfigureAwait(false),
 					new Height(fromHeight + 1), cancel).ConfigureAwait(false);
 
 				if (filterMatchedWithNewKeys is not null && (blockToDl is null || filterMatchedWithNewKeys.Header.Height < blockToDl.Header.Height))
@@ -464,7 +464,6 @@ public class Wallet : BackgroundService, IWallet
 			if (blockToDl is not null)
 			{
 				await ProcessBlockAsync(blockToDl, cancel).ConfigureAwait(false);
-				heightLastBlockDownloaded = blockToDl.Header.Height;
 				keysNotYetMatched = KeyManager.GetPubKeyScriptBytes().Except(keysCompletelyMatched);
 			}
 		}
@@ -472,10 +471,10 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	// Fake Async
-	private async Task<bool> ProcessFilterModelUnit(FilterModel filterModel, CancellationToken cancel, IEnumerable<byte[]>? keys = null)
+	private async Task<bool> ProcessFilterModelUnitAsync(FilterModel filterModel, CancellationToken cancel, IEnumerable<byte[]>? keys = null)
 	{
 		keys ??= KeyManager.GetPubKeyScriptBytes();
-		LastProcessedFilter = LastProcessedFilter is null || filterModel.Header.Height > LastProcessedFilter.Header.Height ? filterModel : LastProcessedFilter;
+		LastProcessedFilter = (LastProcessedFilter is null || filterModel.Header.Height > LastProcessedFilter.Header.Height) ? filterModel : LastProcessedFilter;
 		return filterModel.Filter.MatchAny(keys, filterModel.FilterKey);
 	}
 
