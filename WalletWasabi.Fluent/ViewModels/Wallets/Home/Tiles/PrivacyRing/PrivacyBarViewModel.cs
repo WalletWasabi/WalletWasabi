@@ -16,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public partial class PrivacyBarViewModel : ViewModelBase
 {
-	private const int MaximumCoinCount = 100;
 	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
 
@@ -69,7 +68,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
 
-		if (coinCount < MaximumCoinCount)
+		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
 		{
 			result = CreateCoinSegments(pockets, coinCount);
 		}
