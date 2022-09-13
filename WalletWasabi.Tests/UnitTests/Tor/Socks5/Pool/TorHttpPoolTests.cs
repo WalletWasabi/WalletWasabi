@@ -29,18 +29,18 @@ public class TorHttpPoolTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
-		ICircuit defaultIdentity = DefaultCircuit.Instance;
+		INamedCircuit defaultCircuit = DefaultCircuit.Instance;
 		using PersonCircuit aliceIdentity = new();
 		using PersonCircuit bobIdentity = new();
 
 		using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceIdentity, true);
 		using TorTcpConnection bobConnection = new(null!, new MemoryStream(), bobIdentity, true);
-		using TorTcpConnection defaultConnection = new(null!, new MemoryStream(), defaultIdentity, true);
+		using TorTcpConnection defaultConnection = new(null!, new MemoryStream(), defaultCircuit, true);
 
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
 		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
-		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
+		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
 
 		TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
 
@@ -81,7 +81,7 @@ public class TorHttpPoolTests
 		using HttpResponseMessage bobResponse = await pool.SendAsync(request, bobIdentity, timeoutCts.Token);
 		Assert.Equal("Bob circuit!", await bobResponse.Content.ReadAsStringAsync(timeoutCts.Token));
 
-		using HttpResponseMessage defaultResponse = await pool.SendAsync(request, defaultIdentity, timeoutCts.Token);
+		using HttpResponseMessage defaultResponse = await pool.SendAsync(request, defaultCircuit, timeoutCts.Token);
 		Assert.Equal("Default circuit!", await defaultResponse.Content.ReadAsStringAsync(timeoutCts.Token));
 
 		mockTcpConnectionFactory.VerifyAll();
@@ -96,7 +96,7 @@ public class TorHttpPoolTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
-		ICircuit circuit = DefaultCircuit.Instance;
+		INamedCircuit circuit = DefaultCircuit.Instance;
 
 		// Set up FAKE transport stream, so Tor is not in play.
 		await using TransportStream transportStream = new(nameof(RequestAndReplyAsync));
@@ -105,7 +105,7 @@ public class TorHttpPoolTests
 		using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, circuit, allowRecycling: true);
 
 		Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-		mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+		mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<INamedCircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
 
 		using StreamReader serverReader = new(transportStream.Server);
 		using StreamWriter serverWriter = new(transportStream.Server);
@@ -171,18 +171,18 @@ public class TorHttpPoolTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
-		ICircuit circuit = DefaultCircuit.Instance;
+		INamedCircuit circuit = DefaultCircuit.Instance;
 		using TorTcpConnection connection = new(tcpClient: null!, transportStream: null!, circuit, allowRecycling: true);
 
 		Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-		mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+		mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<INamedCircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
 
 		await using TorHttpPool pool = new(mockFactory.Object);
 		pool.PrebuildCircuitsUpfront(new Uri("http://walletwasabi.io"), count: 3, deadline: TimeSpan.FromSeconds(3));
 
 		await Task.Delay(5_000, timeoutCts.Token);
 
-		mockFactory.Verify(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
+		mockFactory.Verify(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<INamedCircuit>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
 	}
 
 	/// <summary>

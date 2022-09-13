@@ -19,7 +19,7 @@ public class TorTcpConnection : IDisposable
 	/// <param name="transportStream">Transport stream to actually send the data to Tor SOCKS5 endpoint (the difference is SSL).</param>
 	/// <param name="circuit">Tor circuit under which we operate with this TCP connection.</param>
 	/// <param name="allowRecycling">Whether it is allowed to re-use this Tor TCP connection.</param>
-	public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
+	public TorTcpConnection(TcpClient tcpClient, Stream transportStream, INamedCircuit circuit, bool allowRecycling)
 	{
 		string prefix = circuit switch
 		{
@@ -75,7 +75,7 @@ public class TorTcpConnection : IDisposable
 	private Stream TransportStream { get; }
 
 	/// <summary>Tor circuit under which this TCP connection operates.</summary>
-	public ICircuit Circuit { get; }
+	public INamedCircuit Circuit { get; }
 
 	/// <summary>
 	/// Stream to transport HTTP(s) request.

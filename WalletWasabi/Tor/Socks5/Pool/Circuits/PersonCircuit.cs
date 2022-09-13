@@ -1,3 +1,4 @@
+using System.Threading;
 using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -7,9 +8,11 @@ namespace WalletWasabi.Tor.Socks5.Pool.Circuits;
 /// HTTP requests can be identified as belonging to a single entity (i.e. user).
 /// </summary>
 /// <remarks>Useful for Alices and Bobs.</remarks>
-public class PersonCircuit : ICircuit, IDisposable
+public class PersonCircuit : INamedCircuit, IDisposable
 {
 	private volatile bool _isActive;
+
+	private long _isolationId = 0;
 
 	public PersonCircuit(string? purpose = null)
 	{
@@ -25,7 +28,16 @@ public class PersonCircuit : ICircuit, IDisposable
 	public bool IsActive => _isActive;
 
 	/// <inheritdoc/>
+	public long IsolationId => Interlocked.Read(ref _isolationId);
+
+	/// <inheritdoc/>
 	public string? Purpose { get; }
+
+	/// <inheritdoc/>
+	public void IncrementIsolationId()
+	{
+		Interlocked.Increment(ref _isolationId);
+	}
 
 	/// <inheritdoc/>
 	public override string ToString()

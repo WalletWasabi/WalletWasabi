@@ -47,8 +47,8 @@ public class TorTcpConnectionFactory
 	/// <summary>
 	/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 	/// </summary>
-	/// <inheritdoc cref="ConnectAsync(string, int, bool, ICircuit, CancellationToken)"/>
-	public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, ICircuit circuit, CancellationToken cancellationToken)
+	/// <inheritdoc cref="ConnectAsync(string, int, bool, INamedCircuit, CancellationToken)"/>
+	public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
 		string host = requestUri.DnsSafeHost;
@@ -67,20 +67,13 @@ public class TorTcpConnectionFactory
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
 	/// <exception cref="TorConnectionException">When <see cref="TcpClientSocks5Connector.ConnectAsync"/> fails.</exception>
-	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken)
+	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		TcpClient? tcpClient = null;
 		Stream? transportStream = null;
-		OneOffCircuit? oneOffCircuitToDispose = null;
 
 		try
 		{
-			if (circuit is AnyOneOffCircuit)
-			{
-				oneOffCircuitToDispose = new OneOffCircuit();
-				circuit = oneOffCircuitToDispose;
-			}
-
 			tcpClient = await TcpClientSocks5Connector.ConnectAsync(TorSocks5EndPoint, cancellationToken).ConfigureAwait(false);
 
 			transportStream = tcpClient.GetStream();
@@ -97,7 +90,6 @@ public class TorTcpConnectionFactory
 
 			transportStream = null;
 			tcpClient = null;
-			oneOffCircuitToDispose = null;
 
 			return result;
 		}
@@ -105,7 +97,6 @@ public class TorTcpConnectionFactory
 		{
 			transportStream?.Dispose();
 			tcpClient?.Dispose();
-			oneOffCircuitToDispose?.Dispose();
 		}
 	}
 
@@ -138,7 +129,7 @@ public class TorTcpConnectionFactory
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
 	/// <exception cref="NotSupportedException">When authentication fails due to unsupported authentication method.</exception>
 	/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
-	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken)
+	private async Task HandshakeAsync(TcpClient tcpClient, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		VersionMethodRequest versionMethodRequest = circuit switch
 		{
@@ -169,7 +160,7 @@ public class TorTcpConnectionFactory
 			// sub-negotiation begins. This begins with the client producing a
 			// Username / Password request:
 			UNameField uName = new(uName: circuit.Name);
-			PasswdField passwd = new(password: circuit.Name);
+			PasswdField passwd = new(password: $"{circuit.IsolationId}");
 			UsernamePasswordRequest usernamePasswordRequest = new(uName, passwd);
 
 			receiveBuffer = await SendRequestAsync(tcpClient, usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
