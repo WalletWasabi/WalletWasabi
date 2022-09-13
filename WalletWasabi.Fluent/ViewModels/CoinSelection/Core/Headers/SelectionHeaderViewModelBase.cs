@@ -1,24 +1,27 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
-using ReactiveUI;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 
-public partial class SelectionHeaderViewModelBase<TKey> : ViewModelBase, IDisposable where TKey : notnull
+public partial class SelectionHeaderViewModelBase : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
+	private readonly ReadOnlyObservableCollection<ISelectable> _selectables;
 	[AutoNotify] private bool _isSelected;
 
 	public SelectionHeaderViewModelBase(
-		IObservable<IChangeSet<ISelectable, TKey>> changeStream,
+		IObservable<IChangeSet<ISelectable>> changeStream,
 		Func<int, string> getContent,
 		IEnumerable<CommandViewModel> commands)
 	{
-		changeStream.Bind(out var items)
+		changeStream
+			.Bind(out _selectables)
 			.Subscribe()
 			.DisposeWith(_disposables);
 
@@ -28,18 +31,14 @@ public partial class SelectionHeaderViewModelBase<TKey> : ViewModelBase, IDispos
 			.Select(x => getContent(x.Count(y => y.IsSelected)))
 			.ReplayLastActive();
 
-		this.WhenAnyValue(x => x.IsSelected)
-			.Skip(1)
-			.Do(isSelected => items.ToList().ForEach(x => x.IsSelected = isSelected))
-			.Subscribe()
-			.DisposeWith(_disposables);
-
 		Commands = commands;
 	}
 
 	public IEnumerable<CommandViewModel> Commands { get; }
 
 	public IObservable<string> Text { get; }
+
+	public ReadOnlyObservableCollection<ISelectable> Selectables => _selectables;
 
 	public void Dispose()
 	{

@@ -18,7 +18,7 @@
           <Setter Property="Command" Value="{Binding Command}"/>
         </Style>
       </controls:DropDownContentControl.Styles>
-      <CheckBox Padding="0" HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+      <controls:MultiSelector Padding="0" HorizontalAlignment="Center" Items="{Binding Selectables}" />
     </controls:DropDownContentControl>
 
     <Panel IsHitTestVisible="False" Margin="6 0 0 0">

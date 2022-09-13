@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -13,6 +14,7 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using ISelectable = WalletWasabi.Fluent.Controls.ISelectable;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
@@ -110,13 +112,16 @@ public static class ColumnFactory
 			});
 	}
 
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Using DisposeWith")]
 	public static TemplateColumn<TreeNode> SelectionColumn(
 		IObservable<IChangeSet<ISelectable, OutPoint>> items,
 		IEnumerable<CommandViewModel> commands,
 		CompositeDisposable disposables)
 	{
-		var selectionHeaderViewModel =
-			new SelectionHeaderViewModel(items, i => i > 99 ? "99+" : i.ToString(), commands);
+		var selectionHeaderViewModel = new SelectionHeaderViewModel(
+			items.RemoveKey(),
+			i => i > 99 ? "99+" : i.ToString(),
+			commands);
 		selectionHeaderViewModel.DisposeWith(disposables);
 
 		return new TemplateColumn<TreeNode>(
@@ -126,12 +131,12 @@ public static class ColumnFactory
 				{
 					if (n.Value is CoinGroupViewModel cg)
 					{
-						return new IsSelectedThreeStateCellViewModel(cg);
+						return new SelectableCollectionCellViewModel(cg.Items);
 					}
 
 					if (n.Value is WalletCoinViewModel coin)
 					{
-						return new IsCoinSelectedCellViewModel(coin);
+						return new CoinSelectionCellViewModel(coin);
 					}
 
 					throw new NotSupportedException();
@@ -172,21 +177,6 @@ public static class ColumnFactory
 			textColumn,
 			group => group.Children,
 			node => node.Children.Any());
-	}
-
-	private static int GetPriorityByLabels(CoinGroupViewModel model)
-	{
-		if (model.PrivacyLevel == PrivacyLevel.Private)
-		{
-			return 2;
-		}
-
-		if (model.PrivacyLevel == PrivacyLevel.SemiPrivate)
-		{
-			return 1;
-		}
-
-		return -model.Labels.Count();
 	}
 
 	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)

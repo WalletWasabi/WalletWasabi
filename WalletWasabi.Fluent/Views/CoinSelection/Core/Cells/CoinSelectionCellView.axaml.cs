@@ -2,9 +2,9 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.CoinSelection.Core.Cells;
-public class IsCoinSelectedCellView : UserControl
+public class CoinSelectionCellView : UserControl
 {
-	public IsCoinSelectedCellView()
+	public CoinSelectionCellView()
 	{
 		InitializeComponent();
 	}

@@ -62,6 +62,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
+		NextCommand = ReactiveCommand.Create(() => new List<WalletCoinViewModel>());
 	}
 
 	public Money TargetAmount { get; }

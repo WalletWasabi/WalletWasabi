@@ -1,17 +1,16 @@
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
-public partial class IsCoinSelectedCellViewModel : ViewModelBase, ISelectable
+public partial class CoinSelectionCellViewModel : ViewModelBase, ISelectable
 {
-	private readonly CompositeDisposable _disposable = new();
 	[AutoNotify] private bool _isEnabled;
 	[AutoNotify] private bool _isSelected;
 
-	public IsCoinSelectedCellViewModel(WalletCoinViewModel coin)
+	public CoinSelectionCellViewModel(WalletCoinViewModel coin)
 	{
 		Coin = coin;
 
@@ -29,9 +28,4 @@ public partial class IsCoinSelectedCellViewModel : ViewModelBase, ISelectable
 	}
 
 	public WalletCoinViewModel Coin { get; }
-
-	public void Dispose()
-	{
-		_disposable.Dispose();
-	}
 }

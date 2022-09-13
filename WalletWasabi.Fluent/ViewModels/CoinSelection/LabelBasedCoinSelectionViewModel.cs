@@ -10,7 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using ISelectable = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.ISelectable;
+using ISelectable = WalletWasabi.Fluent.Controls.ISelectable;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -10,7 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using ISelectable = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.ISelectable;
+using ISelectable = WalletWasabi.Fluent.Controls.ISelectable;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -19,7 +20,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private HierarchicalTreeDataGridSource<TreeNode> _source;
+	private HierarchicalTreeDataGridSource<TreeNode> _source = new(Enumerable.Empty<TreeNode>());
 
 	public CoinBasedSelectionViewModel(
 		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges,
