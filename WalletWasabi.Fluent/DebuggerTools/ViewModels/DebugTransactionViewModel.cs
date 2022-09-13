@@ -14,7 +14,7 @@ public partial class DebugTransactionViewModel : ViewModelBase
 	private readonly IObservable<Unit> _updateTrigger;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugCoinViewModel> _coins;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugCoinViewModel> _coinsSource;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugCoinViewModel>? _coinsSource;
 
 	public DebugTransactionViewModel(SmartTransaction transaction, IObservable<Unit> updateTrigger)
 	{
