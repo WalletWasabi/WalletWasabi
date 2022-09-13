@@ -22,8 +22,8 @@
     </controls:DropDownContentControl>
 
     <Panel IsHitTestVisible="False" Margin="6 0 0 0">
-      <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemBaseMediumHighColor}"/>
-      <TextBlock Foreground="{DynamicResource ActionButtonForegroundColor}" Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
+      <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}"/>
+      <TextBlock Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
     </Panel>
 
   </StackPanel>
