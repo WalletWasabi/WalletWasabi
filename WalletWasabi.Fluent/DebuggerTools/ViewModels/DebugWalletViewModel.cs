@@ -25,7 +25,6 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 	private readonly CompositeDisposable _disposable;
 	private readonly Wallet _wallet;
 	private readonly IObservable<Unit> _updateTrigger;
-	private ICoinsView? _coinsView;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
 	[AutoNotify] private DebugLogItemViewModel? _selectedLogItem;
@@ -152,70 +151,25 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 
 	private void Update()
 	{
-		if (_wallet.Coins is { })
+		if (_wallet.Coins is null)
 		{
-			_coinsView = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
+			return;
+		}
+
+		var coinsView = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
+		if (coinsView is null)
+		{
+			return;
 		}
 
 		var selectedCoinId = SelectedCoin?.TransactionId;
 		var selectedTransactionId = SelectedTransaction?.TransactionId;
 
-		foreach (var coin in Coins)
-		{
-			coin.Dispose();
-		}
+		DisposeLists();
+		ResetLists();
 
-		foreach (var transaction in Transactions)
-		{
-			transaction.Dispose();
-		}
-
-		Coins.Clear();
-		SelectedCoin = null;
-
-		Transactions.Clear();
-		SelectedTransaction = null;
-
-		var newCoins = new List<DebugCoinViewModel>();
-		var newTransactions = new List<DebugTransactionViewModel>();
-
-		if (_coinsView is { })
-		{
-			var coins = _coinsView.Select(x => new DebugCoinViewModel(x, _updateTrigger));
-
-			foreach (var coin in coins)
-			{
-				newCoins.Add(coin);
-			}
-
-			var transactionsDict = MapTransactions(newCoins);
-
-			var existingTransactions = new HashSet<uint256>();
-
-			foreach (var coin in newCoins)
-			{
-				if (!existingTransactions.Contains(coin.TransactionId))
-				{
-					coin.Transaction.Coins.AddRange(transactionsDict[coin.TransactionId]);
-
-					newTransactions.Add(coin.Transaction);
-
-					existingTransactions.Add(coin.TransactionId);
-				}
-
-				if (coin.SpenderTransactionId is { } && coin.SpenderTransaction is { })
-				{
-					if (!existingTransactions.Contains(coin.SpenderTransactionId))
-					{
-						coin.SpenderTransaction.Coins.AddRange(transactionsDict[coin.SpenderTransactionId]);
-
-						newTransactions.Add(coin.SpenderTransaction);
-
-						existingTransactions.Add(coin.SpenderTransactionId);
-					}
-				}
-			}
-		}
+		var newCoins = coinsView.Select(x => new DebugCoinViewModel(x, _updateTrigger)).ToList();
+		var newTransactions = GetTransactions(newCoins);
 
 		Coins.AddRange(newCoins);
 		Transactions.AddRange(newTransactions);
@@ -237,6 +191,61 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 				SelectedTransaction = transaction;
 			}
 		}
+	}
+
+	private List<DebugTransactionViewModel> GetTransactions(List<DebugCoinViewModel> coins)
+	{
+		var transactions = new List<DebugTransactionViewModel>();
+		var transactionsDict = MapTransactions(coins);
+		var existingTransactions = new HashSet<uint256>();
+
+		foreach (var coin in coins)
+		{
+			if (!existingTransactions.Contains(coin.TransactionId))
+			{
+				coin.Transaction.Coins.AddRange(transactionsDict[coin.TransactionId]);
+
+				transactions.Add(coin.Transaction);
+
+				existingTransactions.Add(coin.TransactionId);
+			}
+
+			if (coin.SpenderTransactionId is { } && coin.SpenderTransaction is { })
+			{
+				if (!existingTransactions.Contains(coin.SpenderTransactionId))
+				{
+					coin.SpenderTransaction.Coins.AddRange(transactionsDict[coin.SpenderTransactionId]);
+
+					transactions.Add(coin.SpenderTransaction);
+
+					existingTransactions.Add(coin.SpenderTransactionId);
+				}
+			}
+		}
+
+		return transactions;
+	}
+
+	private void DisposeLists()
+	{
+		foreach (var coin in Coins)
+		{
+			coin.Dispose();
+		}
+
+		foreach (var transaction in Transactions)
+		{
+			transaction.Dispose();
+		}
+	}
+
+	private void ResetLists()
+	{
+		Coins.Clear();
+		SelectedCoin = null;
+
+		Transactions.Clear();
+		SelectedTransaction = null;
 	}
 
 	private Dictionary<uint256, List<DebugCoinViewModel>> MapTransactions(List<DebugCoinViewModel> coins)
