@@ -42,6 +42,8 @@ public partial class DebugTransactionProcessedLogItemViewModel : DebugLogItemVie
 		RestoredCoins = _processedResult.RestoredCoins.Select(x => new DebugCoinViewModel(x, Observable.Empty<Unit>())).ToList();
 	}
 
+	public ProcessedResult ProcessedResult => _processedResult;
+
 	public DebugTransactionViewModel Transaction { get; private set; }
 
 	public bool IsNews { get; private set; }
