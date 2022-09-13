@@ -30,8 +30,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugLogItemViewModel> _logItems;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugCoinViewModel> _coins;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugTransactionViewModel> _transactions;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugCoinViewModel> _coinsSource;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugTransactionViewModel> _transactionsSource;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugCoinViewModel>? _coinsSource;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private FlatTreeDataGridSource<DebugTransactionViewModel>? _transactionsSource;
 
 	public DebugWalletViewModel(Wallet wallet)
 	{
