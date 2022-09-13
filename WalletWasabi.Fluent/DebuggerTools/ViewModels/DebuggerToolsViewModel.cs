@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -8,11 +9,17 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
-public partial class DebuggerToolsViewModel : ViewModelBase
+public partial class DebuggerToolsViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposable;
 	private bool _isInitialized;
 	[AutoNotify] private DebugWalletViewModel? _selectedWallet;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private ObservableCollection<DebugWalletViewModel>? _wallets;
+
+	public DebuggerToolsViewModel()
+	{
+		_disposable = new CompositeDisposable();
+	}
 
 	public void Initialize()
 	{
@@ -29,7 +36,8 @@ public partial class DebuggerToolsViewModel : ViewModelBase
 			.Subscribe(wallet =>
 			{
 				// TODO:
-			});
+			})
+			.DisposeWith(_disposable);
 
 		Observable
 			.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
@@ -38,7 +46,8 @@ public partial class DebuggerToolsViewModel : ViewModelBase
 			.Subscribe(wallet =>
 			{
 				Wallets?.Add(new DebugWalletViewModel(wallet));
-			});
+			})
+			.DisposeWith(_disposable);
 
 		Observable
 			.FromEventPattern<ProcessedResult>(Services.WalletManager, nameof(WalletManager.WalletRelevantTransactionProcessed))
@@ -46,7 +55,8 @@ public partial class DebuggerToolsViewModel : ViewModelBase
 			.Subscribe(async arg =>
 			{
 				// TODO:
-			});
+			})
+			.DisposeWith(_disposable);
 
 		var wallets =
 			Services.WalletManager
@@ -58,5 +68,18 @@ public partial class DebuggerToolsViewModel : ViewModelBase
 		SelectedWallet = Wallets.FirstOrDefault();
 
 		_isInitialized = true;
+	}
+
+	public void Dispose()
+	{
+		_disposable.Dispose();
+
+		if (_wallets is { })
+		{
+			foreach (var wallet in _wallets)
+			{
+				wallet.Dispose();
+			}
+		}
 	}
 }

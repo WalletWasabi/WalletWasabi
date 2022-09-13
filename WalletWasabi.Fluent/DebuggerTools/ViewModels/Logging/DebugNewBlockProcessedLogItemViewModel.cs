@@ -4,10 +4,10 @@ using NBitcoin;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
 
-public partial class DebugNewBlockProcessedLogItemViewModel : DebugLogItemViewModel
+public partial class DebugNewBlockProcessedLogItemViewModel : DebugLogItemViewModel, IDisposable
 {
 	private readonly Block _block;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private List<uint256> _transactions;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private List<uint256>? _transactions;
 
 	public DebugNewBlockProcessedLogItemViewModel(Block block)
 	{
@@ -31,4 +31,8 @@ public partial class DebugNewBlockProcessedLogItemViewModel : DebugLogItemViewMo
 	public int? CoinbaseHeight { get; private set; }
 
 	public uint256 BlockId { get; private set; }
+
+	public void Dispose()
+	{
+	}
 }

@@ -27,8 +27,13 @@ internal static class DebuggerTools
 					DataContext = debuggerToolsViewModel
 				};
 
-				// window.Show(root as Window);
+				// TODO: window.Show(root as Window);
 				window.Show();
+
+				window.Closed += (_, _) =>
+				{
+					debuggerToolsViewModel.Dispose();
+				};
 
 				await Task.Run(() => debuggerToolsViewModel.Initialize());
 			}

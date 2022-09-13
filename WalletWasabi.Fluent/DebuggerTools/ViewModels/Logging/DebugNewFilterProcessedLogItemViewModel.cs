@@ -3,7 +3,7 @@ using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
 
-public partial class DebugNewFilterProcessedLogItemViewModel : DebugLogItemViewModel
+public partial class DebugNewFilterProcessedLogItemViewModel : DebugLogItemViewModel, IDisposable
 {
 	private readonly FilterModel _filterModel;
 
@@ -31,4 +31,8 @@ public partial class DebugNewFilterProcessedLogItemViewModel : DebugLogItemViewM
 	public uint256 PrevHash { get; private set; }
 
 	public DateTimeOffset BlockTime { get; private set; }
+
+	public void Dispose()
+	{
+	}
 }

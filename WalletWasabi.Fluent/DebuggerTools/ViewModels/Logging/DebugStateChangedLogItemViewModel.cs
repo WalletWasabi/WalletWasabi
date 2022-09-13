@@ -2,7 +2,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
 
-public partial class DebugStateChangedLogItemViewModel : DebugLogItemViewModel
+public partial class DebugStateChangedLogItemViewModel : DebugLogItemViewModel, IDisposable
 {
 	private readonly WalletState _state;
 
@@ -12,4 +12,8 @@ public partial class DebugStateChangedLogItemViewModel : DebugLogItemViewModel
 	}
 
 	public WalletState State => _state;
+
+	public void Dispose()
+	{
+	}
 }

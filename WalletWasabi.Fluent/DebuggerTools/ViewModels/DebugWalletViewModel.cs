@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Backend.Models;
@@ -18,8 +20,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
-public partial class DebugWalletViewModel : ViewModelBase
+public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 {
+	private readonly CompositeDisposable _disposable;
 	private readonly Wallet _wallet;
 	private readonly IObservable<Unit> _updateTrigger;
 	private ICoinsView? _coinsView;
@@ -35,6 +38,7 @@ public partial class DebugWalletViewModel : ViewModelBase
 
 	public DebugWalletViewModel(Wallet wallet)
 	{
+		_disposable = new CompositeDisposable();
 		_wallet = wallet;
 
 		WalletName = _wallet.WalletName;
@@ -52,7 +56,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		_updateTrigger.SubscribeAsync(async _ => await Task.Run(Update));
+		_updateTrigger
+			.SubscribeAsync(async _ => await Task.Run(Update))
+			.DisposeWith(_disposable);
 
 		Observable
 			.FromEventPattern<ProcessedResult>(_wallet, nameof(Wallet.WalletRelevantTransactionProcessed))
@@ -68,7 +74,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					SelectedLogItem = logItem;
 				}
-			});
+			})
+			.DisposeWith(_disposable);
 
 		Observable
 			.FromEventPattern<FilterModel>(_wallet, nameof(Wallet.NewFilterProcessed))
@@ -83,7 +90,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					SelectedLogItem = logItem;
 				}
-			});
+			})
+			.DisposeWith(_disposable);
 
 		Observable
 			.FromEventPattern<Block>(_wallet, nameof(Wallet.NewBlockProcessed))
@@ -99,7 +107,8 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					SelectedLogItem = logItem;
 				}
-			});
+			})
+			.DisposeWith(_disposable);
 
 		Observable
 			.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
@@ -120,16 +129,19 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					await Task.Run(Update);
 				}
-			});
+			})
+			.DisposeWith(_disposable);
 
 		Update();
 
 		Dispatcher.UIThread.InvokeAsync(() =>
 		{
+			CoinsSource?.Dispose();
 			CoinsSource = DebugTreeDataGridHelper.CreateCoinsSource(
 				Coins,
 				x => SelectedCoin = x);
 
+			TransactionsSource?.Dispose();
 			TransactionsSource = DebugTreeDataGridHelper.CreateTransactionsSource(
 				Transactions,
 				x => SelectedTransaction = x);
@@ -145,8 +157,18 @@ public partial class DebugWalletViewModel : ViewModelBase
 			_coinsView = ((CoinsRegistry)_wallet.Coins).AsAllCoinsView();
 		}
 
-		var selectedCoin = SelectedCoin;
-		var selectedTransaction = SelectedTransaction;
+		var selectedCoinId = SelectedCoin?.TransactionId;
+		var selectedTransactionId = SelectedTransaction?.TransactionId;
+
+		foreach (var coin in Coins)
+		{
+			coin.Dispose();
+		}
+
+		foreach (var transaction in Transactions)
+		{
+			transaction.Dispose();
+		}
 
 		Coins.Clear();
 		SelectedCoin = null;
@@ -154,29 +176,29 @@ public partial class DebugWalletViewModel : ViewModelBase
 		Transactions.Clear();
 		SelectedTransaction = null;
 
+		var newCoins = new List<DebugCoinViewModel>();
+		var newTransactions = new List<DebugTransactionViewModel>();
+
 		if (_coinsView is { })
 		{
 			var coins = _coinsView.Select(x => new DebugCoinViewModel(x, _updateTrigger));
 
 			foreach (var coin in coins)
 			{
-				Coins.Add(coin);
+				newCoins.Add(coin);
 			}
 
-			var transactionsDict = MapTransactions();
+			var transactionsDict = MapTransactions(newCoins);
 
 			var existingTransactions = new HashSet<uint256>();
 
-			foreach (var coin in Coins)
+			foreach (var coin in newCoins)
 			{
 				if (!existingTransactions.Contains(coin.TransactionId))
 				{
-					foreach (var transactionCoin in transactionsDict[coin.TransactionId])
-					{
-						coin.Transaction.Coins.Add(transactionCoin);
-					}
+					coin.Transaction.Coins.AddRange(transactionsDict[coin.TransactionId]);
 
-					Transactions.Add(coin.Transaction);
+					newTransactions.Add(coin.Transaction);
 
 					existingTransactions.Add(coin.TransactionId);
 				}
@@ -185,12 +207,9 @@ public partial class DebugWalletViewModel : ViewModelBase
 				{
 					if (!existingTransactions.Contains(coin.SpenderTransactionId))
 					{
-						foreach (var spenderCoin in transactionsDict[coin.SpenderTransactionId])
-						{
-							coin.SpenderTransaction.Coins.Add(spenderCoin);
-						}
+						coin.SpenderTransaction.Coins.AddRange(transactionsDict[coin.SpenderTransactionId]);
 
-						Transactions.Add(coin.SpenderTransaction);
+						newTransactions.Add(coin.SpenderTransaction);
 
 						existingTransactions.Add(coin.SpenderTransactionId);
 					}
@@ -198,18 +217,21 @@ public partial class DebugWalletViewModel : ViewModelBase
 			}
 		}
 
-		if (selectedCoin is { })
+		Coins.AddRange(newCoins);
+		Transactions.AddRange(newTransactions);
+
+		if (selectedCoinId is { })
 		{
-			var coin = Coins.FirstOrDefault(x => x.TransactionId == selectedCoin.TransactionId);
+			var coin = Coins.FirstOrDefault(x => x.TransactionId == selectedCoinId);
 			if (coin is { })
 			{
 				SelectedCoin = coin;
 			}
 		}
 
-		if (selectedTransaction is { })
+		if (selectedTransactionId is { })
 		{
-			var transaction = Transactions.FirstOrDefault(x => x.TransactionId == selectedTransaction.TransactionId);
+			var transaction = Transactions.FirstOrDefault(x => x.TransactionId == selectedTransactionId);
 			if (transaction is { })
 			{
 				SelectedTransaction = transaction;
@@ -217,11 +239,11 @@ public partial class DebugWalletViewModel : ViewModelBase
 		}
 	}
 
-	private Dictionary<uint256, List<DebugCoinViewModel>> MapTransactions()
+	private Dictionary<uint256, List<DebugCoinViewModel>> MapTransactions(List<DebugCoinViewModel> coins)
 	{
 		var transactionsDict = new Dictionary<uint256, List<DebugCoinViewModel>>();
 
-		foreach (var coin in Coins)
+		foreach (var coin in coins)
 		{
 			if (transactionsDict.TryGetValue(coin.TransactionId, out _))
 			{
@@ -248,5 +270,23 @@ public partial class DebugWalletViewModel : ViewModelBase
 		}
 
 		return transactionsDict;
+	}
+
+	public void Dispose()
+	{
+		_disposable.Dispose();
+
+		_coinsSource?.Dispose();
+		_transactionsSource?.Dispose();
+
+		foreach (var coin in _coins)
+		{
+			coin.Dispose();
+		}
+
+		foreach (var transaction in _transactions)
+		{
+			transaction.Dispose();
+		}
 	}
 }

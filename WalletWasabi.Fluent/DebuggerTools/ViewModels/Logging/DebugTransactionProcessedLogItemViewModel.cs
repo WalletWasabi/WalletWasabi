@@ -7,7 +7,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels.Logging;
 
-public partial class DebugTransactionProcessedLogItemViewModel : DebugLogItemViewModel
+public partial class DebugTransactionProcessedLogItemViewModel : DebugLogItemViewModel, IDisposable
 {
 	private readonly ProcessedResult _processedResult;
 
@@ -69,4 +69,9 @@ public partial class DebugTransactionProcessedLogItemViewModel : DebugLogItemVie
 	public List<DebugCoinViewModel> ReplacedCoins { get; private set; }
 
 	public List<DebugCoinViewModel> RestoredCoins { get; private set; }
+
+	public void Dispose()
+	{
+		Transaction.Dispose();
+	}
 }

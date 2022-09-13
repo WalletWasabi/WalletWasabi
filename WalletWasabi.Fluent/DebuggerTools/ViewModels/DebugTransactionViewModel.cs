@@ -8,7 +8,7 @@ using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
-public partial class DebugTransactionViewModel : ViewModelBase
+public partial class DebugTransactionViewModel : ViewModelBase, IDisposable
 {
 	private readonly SmartTransaction _transaction;
 	private readonly IObservable<Unit> _updateTrigger;
@@ -25,11 +25,18 @@ public partial class DebugTransactionViewModel : ViewModelBase
 
 		Dispatcher.UIThread.InvokeAsync(() =>
 		{
+			CoinsSource?.Dispose();
 			CoinsSource = DebugTreeDataGridHelper.CreateCoinsSource(
 				Coins,
 				x => SelectedCoin = x);
 		});
 	}
+
+	public SmartTransaction Transaction => _transaction;
+
+	public DateTimeOffset FirstSeen { get; private set; }
+
+	public uint256 TransactionId { get; private set; }
 
 	private void Update()
 	{
@@ -40,9 +47,8 @@ public partial class DebugTransactionViewModel : ViewModelBase
 		Coins = new ObservableCollection<DebugCoinViewModel>();
 	}
 
-	public SmartTransaction Transaction => _transaction;
-
-	public DateTimeOffset FirstSeen { get; private set; }
-
-	public uint256 TransactionId { get; private set; }
+	public void Dispose()
+	{
+		_coinsSource?.Dispose();
+	}
 }

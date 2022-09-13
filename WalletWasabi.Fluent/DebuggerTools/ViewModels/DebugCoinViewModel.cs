@@ -6,7 +6,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.DebuggerTools.ViewModels;
 
-public partial class DebugCoinViewModel : ViewModelBase
+public partial class DebugCoinViewModel : ViewModelBase, IDisposable
 {
 	private readonly SmartCoin _coin;
 	private readonly IObservable<Unit> _updateTrigger;
@@ -18,6 +18,30 @@ public partial class DebugCoinViewModel : ViewModelBase
 
 		Update();
 	}
+
+	public DateTimeOffset FirstSeen { get; private set; }
+
+	public Money Amount { get; private set; }
+
+	// TODO: HdPubKey
+
+	public bool Confirmed { get; private set; }
+
+	public bool CoinJoinInProgress { get; private set; }
+
+	public bool IsBanned { get; private set; }
+
+	public DateTimeOffset? BannedUntilUtc { get; private set; }
+
+	public Height Height { get; private set; }
+
+	public DebugTransactionViewModel Transaction { get; private set; }
+
+	public DebugTransactionViewModel? SpenderTransaction { get; private set; }
+
+	public uint256 TransactionId => Transaction.TransactionId;
+
+	public uint256? SpenderTransactionId => SpenderTransaction?.TransactionId;
 
 	private void Update()
 	{
@@ -50,27 +74,9 @@ public partial class DebugCoinViewModel : ViewModelBase
 		}
 	}
 
-	public DateTimeOffset FirstSeen { get; private set; }
-
-	public Money Amount { get; private set; }
-
-	// TODO: HdPubKey
-
-	public bool Confirmed { get; private set; }
-
-	public bool CoinJoinInProgress { get; private set; }
-
-	public bool IsBanned { get; private set; }
-
-	public DateTimeOffset? BannedUntilUtc { get; private set; }
-
-	public Height Height { get; private set; }
-
-	public DebugTransactionViewModel Transaction { get; private set; }
-
-	public DebugTransactionViewModel? SpenderTransaction { get; private set; }
-
-	public uint256 TransactionId => Transaction.TransactionId;
-
-	public uint256? SpenderTransactionId => SpenderTransaction?.TransactionId;
+	public void Dispose()
+	{
+		Transaction.Dispose();
+		SpenderTransaction?.Dispose();
+	}
 }
