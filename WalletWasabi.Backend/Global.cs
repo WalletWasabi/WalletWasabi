@@ -83,7 +83,7 @@ public class Global : IDisposable
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		bool coinVerifierEnabled = CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags?.Any() ?? false;
+		bool coinVerifierEnabled = CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags?.Any() is true;
 		CoinVerifier? coinVerifier = null;
 		if (coinVerifierEnabled)
 		{

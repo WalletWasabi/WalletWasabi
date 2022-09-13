@@ -109,7 +109,7 @@ public class CoinVerifier
 		bool shouldBan = false;
 
 		var coinflaglist = response.Cscore_section.Cscore_info;
-		shouldBan = coinflaglist.Any(cscoreInfo => WabiSabiConfig.RiskFlags?.Contains(cscoreInfo.Id) ?? false);
+		shouldBan = coinflaglist.Any(cscoreInfo => WabiSabiConfig.RiskFlags?.Contains(cscoreInfo.Id) is true);
 
 		return shouldBan;
 	}
