@@ -1,5 +1,5 @@
-using Avalonia;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -40,7 +40,7 @@ public class PrivacyContentControl : ContentControl
 			.ReplayLastActive();
 
 		PrivacyText = this.WhenAnyValue(x => x.NumberOfPrivacyChars)
-			.Select(n => TextHelpers.GetPrivacyMask((int)n))
+			.Select(n => TextHelpers.GetPrivacyMask((int) n))
 			.ReplayLastActive();
 	}
 

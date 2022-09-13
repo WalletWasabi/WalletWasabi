@@ -7,7 +7,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class TransactionSummaryExtension
+public static class TransactionSummaryExtensions
 {
 	public static bool IsConfirmed(this TransactionSummary model)
 	{

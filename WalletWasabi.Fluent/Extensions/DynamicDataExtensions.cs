@@ -5,7 +5,7 @@ using DynamicData.Kernel;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class DynamicDataMixin
+public static class DynamicDataExtensions
 {
 	/// <summary>
 	///     Transforms the items, and when an update is received, allows the preservation of the previous view model
