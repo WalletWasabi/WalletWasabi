@@ -21,7 +21,8 @@ param(
   [Parameter(Mandatory=$false)][Switch]$skipDownloading,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingBrowserArchives,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingTorBinaries,
-  [Parameter(Mandatory=$false)][Switch]$skipReplacingTorBinaries)
+  [Parameter(Mandatory=$false)][Switch]$skipReplacingTorBinaries,
+  [Parameter(Mandatory=$false)][Switch]$skipReplacingGeoIpFiles)
 
 Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
@@ -128,6 +129,14 @@ try {
       Remove-Item -Recurse -Force "$PSScriptRoot/$platform/Tor/*" -Exclude "LICENSE" -ErrorAction SilentlyContinue
       Copy-item -Recurse -Force -Path "Tor/$platform/*" -Destination "$PSScriptRoot/$platform/Tor/"
     }
+  }
+
+  if ($skipReplacingGeoIpFiles) {
+    Write-Output "# Skip replacing geoip files."
+  } else {
+    $destination = Join-Path -Resolve "$PSScriptRoot" ".." ".." "Tor" "Geoip"
+    Write-Output "# Replace geoip files in folder '$destination'."
+    Copy-item -Force -Path "TorBrowser/linux/tor-browser_en-US/Browser/TorBrowser/Data/Tor/geoip*" -Destination "$destination/"
   }
 
   Write-Output "# Done."

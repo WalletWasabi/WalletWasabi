@@ -1,11 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Logging;
-using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 

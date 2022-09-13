@@ -10,7 +10,6 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent;
