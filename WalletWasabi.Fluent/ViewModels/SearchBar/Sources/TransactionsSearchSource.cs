@@ -33,7 +33,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		sourceCache
 			.RefillFrom(results)
 			.DisposeWith(_disposables);
-		
+
 		Changes = sourceCache.Connect();
 	}
 
@@ -66,9 +66,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		};
 	}
 
-	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Flatten(
-		IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)>
-			walletTransactions)
+	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Flatten(IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)> walletTransactions)
 	{
 		return walletTransactions.SelectMany(t => t.Transactions.Select(item => (t.Wallet, HistoryItem: item)));
 	}
@@ -86,16 +84,14 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		};
 	}
 
-	private static IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)>
-		GetTransactionsByWallet()
+	private static IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)> GetTransactionsByWallet()
 	{
 		return UiServices.WalletManager.Wallets
 			.Where(x => x.IsLoggedIn && x.WalletState == WalletState.Started)
 			.OfType<WalletViewModel>()
 			.Select(
 				x => (Wallet: x,
-					x.History.Transactions.Concat(
-						x.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().SelectMany(y => y.Children))));
+					x.History.Transactions.Concat(x.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().SelectMany(y => y.Children))));
 	}
 
 	private static IEnumerable<ISearchItem> Search(string query)
