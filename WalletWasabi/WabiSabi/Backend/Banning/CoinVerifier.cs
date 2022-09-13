@@ -80,8 +80,6 @@ public class CoinVerifier
 	{
 		var before = DateTimeOffset.UtcNow;
 
-		var coinDictionary = coinsToCheck.ToDictionary(c => c.ScriptPubKey);
-
 		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
@@ -108,14 +106,17 @@ public class CoinVerifier
 		await foreach (var response in CoinVerifierApiClient.VerifyScriptsAsync(scriptsToCheck, linkedCts.Token))
 		{
 			bool shouldBanUtxo = CheckForFlags(response.ApiResponseItem);
-			var coin = coinDictionary[response.ScriptPubKey];
 
-			if (!shouldBanUtxo)
+			// Find all coins with the same script (address reuse). 
+			foreach (var coin in coinsToCheck.Where(c => c.ScriptPubKey == response.ScriptPubKey))
 			{
-				Whitelist.Add(coin.Outpoint);
-			}
+				if (!shouldBanUtxo)
+				{
+					Whitelist.Add(coin.Outpoint);
+				}
 
-			yield return new CoinVerifyInfo(shouldBanUtxo, coin);
+				yield return new CoinVerifyInfo(shouldBanUtxo, coin);
+			}
 		}
 
 		if (Whitelist.ChangeId != lastChangeId)

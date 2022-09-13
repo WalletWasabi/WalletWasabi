@@ -657,7 +657,7 @@ public class CoordinatorRound
 		}
 		catch (Exception exc)
 		{
-			Logger.LogError(exc);
+			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).",exc);
 		}
 
 		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint)));
