@@ -54,7 +54,6 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		_itemsSourceList.Edit(list => CreateSegments(list, pockets));
 	}
 
-	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "items are disposed of together with _itemsSourceList.")]
 	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list, IEnumerable<Pocket> pockets)
 	{
 		list.Clear();
