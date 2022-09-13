@@ -1,5 +1,4 @@
 using Avalonia;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -176,7 +175,7 @@ public static class DirectShow
 
 	public static IPin FindPin(IBaseFilter filter, string name)
 	{
-		var result = EnumPins(filter, (info) => { return info.achName == name; });
+		var result = EnumPins(filter, (info) => info.achName == name);
 
 		if (result == null)
 		{

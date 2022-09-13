@@ -1,12 +1,7 @@
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Media;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls;
 

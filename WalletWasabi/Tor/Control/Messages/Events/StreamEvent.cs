@@ -1,5 +1,4 @@
 using WalletWasabi.Tor.Control.Exceptions;
-using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using WalletWasabi.Tor.Control.Utils;
 

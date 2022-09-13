@@ -64,7 +64,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public WalletType Trezor => WalletType.Trezor;
 
-	public WalletType Generic => WalletType.Unknown;
+	public WalletType Generic => WalletType.Hardware;
 
 	private void OnNext()
 	{

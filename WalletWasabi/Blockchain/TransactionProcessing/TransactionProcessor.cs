@@ -237,7 +237,7 @@ public class TransactionProcessor
 					result.NewlyReceivedCoins.Add(newCoin);
 
 					// Make sure there's always 21 clean keys generated and indexed.
-					KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
+					KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: foundKey.IsInternal);
 				}
 				else // If we had this coin already.
 				{

@@ -11,6 +11,7 @@ using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using WalletWasabi.Tor.Control.Messages.Events;
 using WalletWasabi.Tor.Control.Messages.Events.OrEvents;
 using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using WalletWasabi.Tor.Control.Utils;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -158,10 +159,14 @@ public class TorMonitor : PeriodicRunner
 						Logger.LogInfo("Tor circuit was established.");
 						circuitEstablished = true;
 					}
+				}
+				else if (asyncEvent is StreamEvent streamEvent)
+				{
+					StreamInfo info = streamEvent.StreamInfo;
 
-					if ((info.CircStatus is CircStatus.BUILT or CircStatus.CLOSED) && info.UserName is not null)
+					if (info.UserName is not null)
 					{
-						TorHttpPool.ReportCircuitStatus(info.CircStatus, info.CircuitID, info.UserName);
+						TorHttpPool.ReportCircuitStatus(streamUsername: info.UserName, streamStatus: info.StreamStatus, circuitID: info.CircuitID);
 					}
 				}
 			}
