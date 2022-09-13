@@ -16,10 +16,7 @@ public class SearchBarDesignViewModel : ReactiveObject
 
 	public SearchBarDesignViewModel()
 	{
-		static Task PreventExecution()
-		{
-			return Task.Run(() => { });
-		}
+		static Task PreventExecution() => Task.Run(() => { });
 
 		var actionable = new IActionableItem[]
 		{
