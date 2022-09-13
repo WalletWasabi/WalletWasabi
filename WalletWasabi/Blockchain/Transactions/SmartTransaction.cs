@@ -227,29 +227,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		return false;
 	}
 
-	public bool TryRemoveWalletInput(SmartCoin input)
-	{
-		if (WalletInputsInternal.Remove(input))
-		{
-			ForeignInputsCache = null;
-			WalletVirtualInputsCache = null;
-			return true;
-		}
-		return false;
-	}
-
-	public bool TryRemoveWalletOutput(SmartCoin output)
-	{
-		if (WalletOutputsInternal.Remove(output))
-		{
-			ForeignOutputsCache = null;
-			WalletVirtualOutputsCache = null;
-			ForeignVirtualOutputsCache = null;
-			return true;
-		}
-		return false;
-	}
-
 	/// <summary>Update the transaction with the data acquired from another transaction. (For example merge their labels.)</summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
