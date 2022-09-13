@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
@@ -37,7 +38,8 @@ public class P2pBasedTests
 			await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			MempoolService mempoolService = new();
-			FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
+			using var blocks = new BlockRepository(TimeSpan.FromMinutes(1), Path.Combine(dir, "blocks"), network);
+			await blocks.StartAsync(CancellationToken.None);
 
 			// Construct BitcoinStore.
 			BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
@@ -75,6 +77,7 @@ public class P2pBasedTests
 			{
 				Assert.Contains(tx.GetHash(), txHashesList);
 			}
+			await blocks.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		}
 		finally
 		{

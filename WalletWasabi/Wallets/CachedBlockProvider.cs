@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Blocks;
 
 namespace WalletWasabi.Wallets;
 
@@ -9,13 +10,13 @@ namespace WalletWasabi.Wallets;
 /// </summary>
 public class CachedBlockProvider : IBlockProvider
 {
-	public CachedBlockProvider(IBlockProvider blockSourceProvider, IRepository<uint256, Block> blockRepository)
+	public CachedBlockProvider(IBlockProvider blockSourceProvider, BlockRepository blockRepository)
 	{
 		BlockRepository = blockRepository;
 		BlockSourceProvider = blockSourceProvider;
 	}
 
-	public IRepository<uint256, Block> BlockRepository { get; }
+	public BlockRepository BlockRepository { get; }
 	public IBlockProvider BlockSourceProvider { get; }
 
 	/// <summary>
@@ -32,7 +33,7 @@ public class CachedBlockProvider : IBlockProvider
 		if (block is null)
 		{
 			block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-			await BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+			BlockRepository.Add(block);
 		}
 		return block;
 	}
@@ -43,8 +44,5 @@ public class CachedBlockProvider : IBlockProvider
 	/// <param name="hash">The block's hash that identifies the requested block.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>The requested bitcoin block.</returns>
-	public Task InvalidateAsync(uint256 hash, CancellationToken cancellationToken)
-	{
-		return BlockRepository.RemoveAsync(hash, cancellationToken);
-	}
+	public Task InvalidateAsync(uint256 hash, CancellationToken cancellationToken) => BlockRepository.RemoveAsync(hash, cancellationToken);
 }

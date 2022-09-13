@@ -22,7 +22,7 @@ public class BitcoinStore
 		IndexStore indexStore,
 		AllTransactionStore transactionStore,
 		MempoolService mempoolService,
-		IRepository<uint256, Block> blockRepository)
+		BlockRepository blockRepository)
 	{
 		IndexStore = indexStore;
 		TransactionStore = transactionStore;
@@ -34,7 +34,7 @@ public class BitcoinStore
 	public AllTransactionStore TransactionStore { get; }
 	public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
 	public MempoolService MempoolService { get; }
-	public IRepository<uint256, Block> BlockRepository { get; }
+	public BlockRepository BlockRepository { get; }
 
 	/// <summary>
 	/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.

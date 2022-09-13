@@ -56,7 +56,8 @@ public class P2pTests
 		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
-		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
+		using var blocks = new BlockRepository(TimeSpan.FromMinutes(1), Path.Combine(dataDir, "blocks"), network);
+		await blocks.StartAsync(CancellationToken.None);
 		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 		await bitcoinStore.InitializeAsync();
 
@@ -150,6 +151,7 @@ public class P2pTests
 		finally
 		{
 			// So next test will download the block.
+			await blocks.StopAsync(CancellationToken.None).ConfigureAwait(false);
 			foreach (var hash in blocksToDownload)
 			{
 				await blockProvider.BlockRepository.RemoveAsync(hash, CancellationToken.None);
