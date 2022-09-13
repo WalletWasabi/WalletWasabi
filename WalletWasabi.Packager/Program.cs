@@ -377,7 +377,7 @@ public static class Program
 					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}",
 				};
 
-				ExecuteBashCommand(commands);
+				ExecuteBashCommands(commands);
 
 				Console.WriteLine("# Create Linux .deb");
 
@@ -466,7 +466,7 @@ public static class Program
 					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 				};
 
-				ExecuteBashCommand(commands);
+				ExecuteBashCommands(commands);
 
 				await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
@@ -526,7 +526,7 @@ public static class Program
 	/// Executes a set of commands in either WSL2 (on Windows) or Bash (on other platforms).
 	/// </summary>
 	/// <param name="commands">Commands to execute.</param>
-	private static void ExecuteBashCommand(string[] commands)
+	private static void ExecuteBashCommands(string[] commands)
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
