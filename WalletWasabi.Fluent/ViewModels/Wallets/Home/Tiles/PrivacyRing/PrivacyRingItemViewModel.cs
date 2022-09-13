@@ -1,20 +1,49 @@
 using Avalonia;
 using Avalonia.Media;
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreviewItem
+public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 {
 	private const double TotalAngle = 2d * Math.PI;
 	private const double UprightAngle = Math.PI / 2d;
 	private const double SegmentWidth = 10.0;
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, SmartCoin coin, double start, double end) : base(coin)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, SmartCoin coin, double start, double end)
 	{
-		var outerRadius = Math.Min(parent.Height / 2, parent.Width / 2);
+		Coin = new WalletCoinViewModel(coin);
+		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
+
+		Data = CreateGeometry(start, end, OuterRadius);
+
+		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
+		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
+		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
+		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
+		Unconfirmed = !coin.Confirmed;
+		Confirmations = coin.GetConfirmations();
+	}
+
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, Pocket pocket, double start, double end)
+	{
+		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
+
+		Data = CreateGeometry(start, end, OuterRadius);
+
+		IsPrivate = pocket.Coins.First().IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
+		IsSemiPrivate = !IsPrivate && pocket.Coins.First().IsSemiPrivate();
+		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
+		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
+		Unconfirmed = false;
+	}
+
+	private PathGeometry CreateGeometry(double start, double end, double outerRadius)
+	{
 		var innerRadius = outerRadius - SegmentWidth;
 
 		var arc1Size = new Size(outerRadius, outerRadius);
@@ -45,15 +74,7 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 		var origin2 = GetAnglePoint(innerRadius, endAngle - innerOffset);
 		var arc2 = GetAnglePoint(innerRadius, startAngle + innerOffset);
 
-		OuterRadius = outerRadius;
-		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-		AmountText = $"{Amount.ToFormattedString()} BTC";
-		Unconfirmed = !coin.Confirmed;
-		Confirmations = coin.GetConfirmations();
-
-		Data = new PathGeometry()
+		return new PathGeometry()
 		{
 			Figures =
 			{
@@ -71,9 +92,11 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 		};
 	}
 
-	public PathGeometry Data { get; }
+	public WalletCoinViewModel? Coin { get; }
 
-	public double OuterRadius { get; }
+	public PathGeometry Data { get; private set; }
+
+	public double OuterRadius { get; private set; }
 
 	public bool IsPrivate { get; }
 	public bool IsSemiPrivate { get; }
@@ -87,5 +110,10 @@ public class PrivacyRingItemViewModel : WalletCoinViewModel, IPrivacyRingPreview
 		var x = r * Math.Cos(angle);
 		var y = r * Math.Sin(angle);
 		return new Point(x, y);
+	}
+
+	public void Dispose()
+	{
+		Coin?.Dispose();
 	}
 }
