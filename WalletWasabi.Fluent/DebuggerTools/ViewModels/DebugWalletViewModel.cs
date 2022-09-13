@@ -24,7 +24,7 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposable;
 	private readonly Wallet _wallet;
-	private readonly IObservable<Unit> _updateTrigger;
+	private IObservable<Unit> _updateTrigger;
 	[AutoNotify] private DebugCoinViewModel? _selectedCoin;
 	[AutoNotify] private DebugTransactionViewModel? _selectedTransaction;
 	[AutoNotify] private DebugLogItemViewModel? _selectedLogItem;
@@ -48,6 +48,26 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 
 		Transactions = new ObservableCollection<DebugTransactionViewModel>();
 
+		InitializeEventHandlers();
+
+		Update();
+
+		Dispatcher.UIThread.InvokeAsync(() =>
+		{
+			CoinsSource?.Dispose();
+			CoinsSource = DebugTreeDataGridHelper.CreateCoinsSource(
+				Coins,
+				x => SelectedCoin = x);
+
+			TransactionsSource?.Dispose();
+			TransactionsSource = DebugTreeDataGridHelper.CreateTransactionsSource(
+				Transactions,
+				x => SelectedTransaction = x);
+		});
+	}
+
+	private void InitializeEventHandlers()
+	{
 		_updateTrigger =
 			Observable
 				.FromEventPattern(_wallet, nameof(Wallet.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
@@ -66,7 +86,6 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 			.Subscribe(processedResult =>
 			{
 				var logItem = new DebugTransactionProcessedLogItemViewModel(processedResult);
-
 				LogItems.Add(logItem);
 
 				if (AutoScrollLogItems)
@@ -99,7 +118,6 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 			.Subscribe(block =>
 			{
 				var logItem = new DebugNewBlockProcessedLogItemViewModel(block);
-
 				LogItems.Add(logItem);
 
 				if (AutoScrollLogItems)
@@ -116,7 +134,6 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 			.SubscribeAsync(async state =>
 			{
 				var logItem = new DebugStateChangedLogItemViewModel(state);
-
 				LogItems.Add(logItem);
 
 				if (AutoScrollLogItems)
@@ -130,21 +147,6 @@ public partial class DebugWalletViewModel : ViewModelBase, IDisposable
 				}
 			})
 			.DisposeWith(_disposable);
-
-		Update();
-
-		Dispatcher.UIThread.InvokeAsync(() =>
-		{
-			CoinsSource?.Dispose();
-			CoinsSource = DebugTreeDataGridHelper.CreateCoinsSource(
-				Coins,
-				x => SelectedCoin = x);
-
-			TransactionsSource?.Dispose();
-			TransactionsSource = DebugTreeDataGridHelper.CreateTransactionsSource(
-				Transactions,
-				x => SelectedTransaction = x);
-		});
 	}
 
 	public string WalletName { get; private set; }
