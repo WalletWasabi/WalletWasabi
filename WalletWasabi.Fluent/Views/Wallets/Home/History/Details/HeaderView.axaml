@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:DataType="fluent:ITransactionDetailsViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.HeaderView">
+
+  <Design.DataContext>
+    <fluent:TransactionDetailsViewModelDesign />
+  </Design.DataContext>
+
+  <HeaderedContentControl Header="Transaction">
+    <Grid>
+      <UniformGrid Columns="2" Rows="1">
+        <StackPanel>
+          <controls:PreviewItem Label="Timestamp" Content="{Binding Timestamp}" />
+          <controls:PreviewItem Label="Included in block" Content="{Binding IncludedInBlock}" />
+        </StackPanel>
+        <StackPanel>
+          <controls:PreviewItem Label="Fee" Content="{Binding Fee}" />
+          <controls:PreviewItem Label="Fee rate" Content="{Binding FeeRate}" />
+        </StackPanel>
+      </UniformGrid>
+      <StackPanel>
+
+      </StackPanel>
+    </Grid>
+  </HeaderedContentControl>
+
+</UserControl>
