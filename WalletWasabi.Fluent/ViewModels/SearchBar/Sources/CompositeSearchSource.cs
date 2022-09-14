@@ -6,11 +6,11 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public class CompositeSearchItemsSource : ISearchItemSource
+public class CompositeSearchSource : ISearchSource
 {
-	private readonly ISearchItemSource[] _sources;
+	private readonly ISearchSource[] _sources;
 
-	public CompositeSearchItemsSource(params ISearchItemSource[] sources)
+	public CompositeSearchSource(params ISearchSource[] sources)
 	{
 		_sources = sources;
 	}

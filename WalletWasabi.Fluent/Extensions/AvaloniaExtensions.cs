@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class AvaloniaMixin
+public static class AvaloniaExtensions
 {
 	public static IObservable<EventPattern<TEventArgs>> OnEvent<TEventArgs>(
 		this IInteractive target,
