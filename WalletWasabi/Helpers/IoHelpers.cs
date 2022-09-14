@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -86,16 +87,21 @@ public static class IoHelpers
 	{
 		if (Directory.Exists(dirPath))
 		{
-			using var process = Process.Start(new ProcessStartInfo
+			// RuntimeInformation.OSDescription on WSL2 reports a string like:
+			// 'Linux 5.10.102.1-microsoft-standard-WSL2 #1 SMP Wed Mar 2 00:30:59 UTC 2022'
+			if (!RuntimeInformation.OSDescription.ToString(CultureInfo.InvariantCulture).Contains("WSL2"))
 			{
-				FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-					? "explorer.exe"
-					: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-						? "open"
-						: "xdg-open"),
-				Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
-				CreateNoWindow = true
-			});
+				using var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+						? "explorer.exe"
+						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+							? "open"
+							: "xdg-open"),
+					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
+					CreateNoWindow = true
+				});
+			}
 		}
 	}
 
