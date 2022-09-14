@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using Nito.AsyncEx;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
@@ -54,6 +55,9 @@ public class P2pBlockProvider : IBlockProvider
 	}
 
 	private int NodeTimeouts { get; set; }
+	private AsyncLock NodeTimeoutsAsyncLock { get; } = new();
+
+	private AsyncLock NodeConnectAsyncLock { get; } = new();
 
 	/// <summary>
 	/// Gets a bitcoin block from bitcoin nodes using the p2p bitcoin protocol.
@@ -83,13 +87,17 @@ public class P2pBlockProvider : IBlockProvider
 					}
 
 					// If no connection, wait, then continue.
-					while (Nodes.ConnectedNodes.Count == 0)
+					Node? node = null;
+					using (await NodeConnectAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
-						await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-					}
+						while (Nodes.ConnectedNodes.Count == 0)
+						{
+							await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+						}
 
-					// Select a random node we are connected to.
-					Node? node = Nodes.ConnectedNodes.RandomElement();
+						// Select a random node we are connected to.
+						node = Nodes.ConnectedNodes.RandomElement();
+					}
 					if (node is null || !node.IsConnected)
 					{
 						await Task.Delay(100, cancellationToken).ConfigureAwait(false);
@@ -101,7 +109,7 @@ public class P2pBlockProvider : IBlockProvider
 					{
 						// More permissive timeout if few nodes are connected to avoid exhaustion
 						var timeout = Nodes.ConnectedNodes.Count < 3
-							? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout*1.5,600)
+							? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
 							: RuntimeParams.Instance.NetworkNodeTimeout;
 
 						using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
@@ -113,27 +121,28 @@ public class P2pBlockProvider : IBlockProvider
 						// Validate block
 						if (!block.Check())
 						{
-							DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
+							await DisconnectNodeAsync(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", cancellationToken, force: true).ConfigureAwait(false);
 							continue;
 						}
 
-						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+						await DisconnectNodeAsync(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.", cancellationToken).ConfigureAwait(false);
 
-						await NodeTimeoutsAsync(false).ConfigureAwait(false);
+						await NodeTimeoutsAsync(false, cancellationToken).ConfigureAwait(false);
 					}
 					catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 					{
-						await NodeTimeoutsAsync(true).ConfigureAwait(false);
+						await NodeTimeoutsAsync(true, cancellationToken).ConfigureAwait(false);
 
-						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+						await DisconnectNodeAsync(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.", cancellationToken).ConfigureAwait(false); // it could be a slow connection and not a misbehaving node
 						continue;
 					}
 					catch (Exception ex)
 					{
 						Logger.LogDebug(ex);
-						DisconnectNode(node,
+						await DisconnectNodeAsync(node,
 							$"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.",
-							force: true);
+							cancellationToken,
+							force: true).ConfigureAwait(false);
 						continue;
 					}
 
@@ -283,46 +292,52 @@ public class P2pBlockProvider : IBlockProvider
 		}
 	}
 
-	private void DisconnectNode(Node node, string logIfDisconnect, bool force = false)
+	private async Task DisconnectNodeAsync(Node node, string logIfDisconnect, CancellationToken cancellationToken, bool force = false)
 	{
-		if (Nodes.ConnectedNodes.Count > 3 || force)
+		using (await NodeConnectAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			Logger.LogInfo(logIfDisconnect);
-			node.DisconnectAsync(logIfDisconnect);
+			if (Nodes.ConnectedNodes.Count > 3 || force)
+			{
+				Logger.LogInfo(logIfDisconnect);
+				node.DisconnectAsync(logIfDisconnect);
+			}
 		}
 	}
 
 	/// <summary>
 	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 	/// </summary>
-	private async Task NodeTimeoutsAsync(bool increaseDecrease)
+	private async Task NodeTimeoutsAsync(bool increaseDecrease, CancellationToken cancellationToken)
 	{
-		if (increaseDecrease)
-		{
-			NodeTimeouts++;
-		}
-		else
-		{
-			NodeTimeouts--;
-		}
-
 		var timeout = RuntimeParams.Instance.NetworkNodeTimeout;
 
-		// If it times out 2 times in a row then increase the timeout.
-		if (NodeTimeouts >= 2)
+		using (await NodeTimeoutsAsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			NodeTimeouts = 0;
-			timeout = (int)Math.Round(timeout * 1.5);
-		}
-		else if (NodeTimeouts <= -3) // If it does not time out 3 times in a row, lower the timeout.
-		{
-			NodeTimeouts = 0;
-			timeout = (int)Math.Round(timeout * 0.7);
+			if (increaseDecrease)
+			{
+				NodeTimeouts++;
+			}
+			else
+			{
+				NodeTimeouts--;
+			}
+
+			// If it times out 2 times in a row then increase the timeout.
+			if (NodeTimeouts >= 2)
+			{
+				NodeTimeouts = 0;
+				timeout = (int)Math.Round(timeout * 1.5);
+			}
+			else if (NodeTimeouts <= -3) // If it does not time out 3 times in a row, lower the timeout.
+			{
+				NodeTimeouts = 0;
+				timeout = (int)Math.Round(timeout * 0.7);
+			}
 		}
 
 		// Sanity check
 		var minTimeout = Network == Network.Main ? 3 : 2;
-		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout*1.5) : minTimeout;
+		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout * 1.5) : minTimeout;
 		if (timeout < minTimeout)
 		{
 			timeout = minTimeout;
