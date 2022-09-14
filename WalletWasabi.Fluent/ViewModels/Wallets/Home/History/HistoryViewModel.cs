@@ -28,6 +28,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
 	private readonly WalletViewModel _walletViewModel;
 	private readonly IObservable<Unit> _updateTrigger;
+	private readonly IObservable<Unit> _anonScoreChanged;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
@@ -38,10 +39,11 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryLoaded;
 
-	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
+	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger, IObservable<Unit> anonScoreChanged)
 	{
 		_walletViewModel = walletViewModel;
 		_updateTrigger = updateTrigger;
+		_anonScoreChanged = anonScoreChanged;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
@@ -250,7 +252,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _updateTrigger);
+				yield return new TransactionHistoryItemViewModel(i, item, _walletViewModel, balance, _anonScoreChanged);
 			}
 
 			if (item.IsOwnCoinjoin)

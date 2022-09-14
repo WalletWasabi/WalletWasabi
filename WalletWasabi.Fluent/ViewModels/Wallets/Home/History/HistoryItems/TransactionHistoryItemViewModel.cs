@@ -18,7 +18,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		TransactionSummary transactionSummary,
 		WalletViewModel walletViewModel,
 		Money balance,
-		IObservable<Unit> updateTrigger)
+		IObservable<Unit> anonScoreChanged)
 		: base(orderIndex, transactionSummary)
 	{
 		Label = transactionSummary.Label;
@@ -40,8 +40,10 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		}
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
-			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new Details.TransactionDetails2ViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+		{
+			var realWallet = new RealWallete(walletViewModel.Wallet, anonScoreChanged);
+			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetails2ViewModel(realWallet.GetSummary(transactionSummary.TransactionId)));
+		});
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)

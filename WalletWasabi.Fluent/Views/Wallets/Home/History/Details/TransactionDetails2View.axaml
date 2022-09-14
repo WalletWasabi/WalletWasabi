@@ -4,27 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="details:TransactionDetails2ViewModel"
              x:CompileBindings="True"
+             x:DataType="fluent:ITransactionDetailsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.TransactionDetails2View">
 
-  <UserControl.DataTemplates>
-    <DataTemplate DataType="details:MoneyProperty">
-      <c:PreviewItem Label="{Binding Title}">
-        <c:PrivacyContentControl Content="{Binding Value.Satoshi}" />
-      </c:PreviewItem>
-    </DataTemplate>
+  <!--<TextBlock Text="{Binding Amount^.Satoshi}" />-->
 
-    <DataTemplate DataType="details:StringProperty">
-      <c:PreviewItem Label="{Binding Title}">
-        <c:PrivacyContentControl Content="{Binding Value}" />
-      </c:PreviewItem>
-    </DataTemplate>
-
-  </UserControl.DataTemplates>
-
-  <ScrollViewer>
+  <!--<ScrollViewer>
     <ItemsControl Items="{Binding Details^}" />
-  </ScrollViewer>
+  </ScrollViewer>-->
 </UserControl>
