@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using Avalonia.Layout;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -185,24 +186,29 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
-		var txnItem = Transactions.FirstOrDefault(item =>
+		var node = TransactionItemNode.Create(Transactions)
+			.SelectMany(node => node.Children.Concat(new [] { node }))
+			.FirstOrDefault(x => x.Item.Id == txid);
+
+		if (node == null)
 		{
-			if (item is CoinJoinsHistoryItemViewModel cjGroup)
-			{
-				return cjGroup.CoinJoinTransactions.Any(x => x.TransactionId == txid);
-			}
-
-			return item.Id == txid;
-		});
-
-		if (txnItem is { })
-		{
-			SelectedItem = txnItem;
-			SelectedItem.IsFlashing = true;
-
-			var index = _transactions.IndexOf(SelectedItem);
-			Dispatcher.UIThread.Post(() => Source.RowSelection!.SelectedIndex = new IndexPath(index));
+			return;
 		}
+		
+		if (node.Parent != null)
+		{
+			node.Parent.Item.IsExpanded = true;
+		}
+
+		node.Item.IsFlashing = true;
+
+		var indexPath = node.Parent != null ? new IndexPath(node.Parent.Index, node.Index) : new IndexPath(node.Index);
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			Source.RowSelection!.SelectedIndex = indexPath;
+		});
+		SelectedItem = node.Item;
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)

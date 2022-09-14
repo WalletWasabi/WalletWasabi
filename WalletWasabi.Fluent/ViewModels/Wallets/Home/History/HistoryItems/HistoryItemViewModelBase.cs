@@ -70,7 +70,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	protected virtual ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
-		throw new NotSupportedException();
+		return new ObservableCollection<HistoryItemViewModelBase>();
 	}
 
 	public virtual bool HasChildren() => false;
