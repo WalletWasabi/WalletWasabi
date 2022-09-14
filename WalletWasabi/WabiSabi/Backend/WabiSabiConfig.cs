@@ -110,6 +110,10 @@ public class WabiSabiConfig : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
 
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsCoinVerifierEnabled { get; set; } = false;
+
 	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public List<int>? RiskFlags { get; set; } = new();
 
