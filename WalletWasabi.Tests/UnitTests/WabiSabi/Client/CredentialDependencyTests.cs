@@ -337,7 +337,7 @@ public class CredentialDependencyTests
 		// Ensure that vsize credentials do not exceed the range proof width
 		foreach (var edge in graph.EdgeSets[CredentialType.Vsize].Successors.Values.SelectMany(x => x))
 		{
-			Assert.InRange<long>(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
+			Assert.InRange(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
 		}
 
 		// TODO add InlineData param for max depth?

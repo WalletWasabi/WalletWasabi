@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -22,7 +21,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 		IsWatchOnly = _wallet.KeyManager.IsWatchOnly;
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
-		                     KeyManager.DefaultPlebStopThreshold.ToString();
+							 KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -46,7 +45,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public bool IsWatchOnly { get; }
 
-	public sealed override string Title { get; protected set; }
+	public override sealed string Title { get; protected set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
 }

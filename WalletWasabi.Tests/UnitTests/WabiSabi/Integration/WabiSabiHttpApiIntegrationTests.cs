@@ -7,8 +7,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -77,7 +75,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			builder.ConfigureServices(services =>
 			{
 				var inmate = new Inmate(bannedOutPoint, Punishment.LongBanned, DateTimeOffset.UtcNow, uint256.One);
-				services.AddScoped<Prison>(_ => new Prison(new[] { inmate }));
+				services.AddScoped(_ => new Prison(new[] { inmate }));
 			})).CreateClient();
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
@@ -339,7 +337,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			// Instruct the coordinator DI container to use this scoped
 			// services to build everything (WabiSabi controller, arena, etc)
-			services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+			services.AddScoped(s => new WabiSabiConfig
 			{
 				MaxInputCountByRound = 2 * inputCount,
 				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -448,7 +446,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
+					services.AddScoped(s => new WabiSabiConfig(Path.GetTempFileName())
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
 						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness))),
