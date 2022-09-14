@@ -153,6 +153,7 @@
                        ReSelectSelectedItem="False"
                        Name="ItemsListBox"
                        Classes="vertical narrowItemPadding"
+                       VirtualizationMode="None"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
