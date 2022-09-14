@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -12,7 +13,7 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 		if (AssociatedObject is { SelectionInteraction: { } selection, RowSelection: { } rowSelection })
 		{
 			Observable.FromEventPattern(selection, nameof(selection.SelectionChanged))
-				.Select(x => rowSelection.SelectedIndex.FirstOrDefault())
+				.Select(_ => rowSelection.SelectedIndex)
 				.WhereNotNull()
 				.Do(ScrollToItemIndex)
 				.Subscribe()
@@ -20,11 +21,16 @@ public class ScrollToSelectedItemBehavior : AttachedToVisualTreeBehavior<Avaloni
 		}
 	}
 
-	private void ScrollToItemIndex(int index)
+	private void ScrollToItemIndex(IndexPath index)
 	{
-		if (AssociatedObject is { RowsPresenter: { } rowsPresenter })
+		if (AssociatedObject is { RowsPresenter: { Items: { } } rowsPresenter } )
 		{
-			rowsPresenter.BringIntoView(index);
+			var toSelect = index.Sum();
+			if (rowsPresenter.Items != null)
+			{
+				var finalIndex = Math.Min(toSelect + 2, rowsPresenter.Items.Count);
+				rowsPresenter.BringIntoView(finalIndex);
+			}
 		}
 	}
 }

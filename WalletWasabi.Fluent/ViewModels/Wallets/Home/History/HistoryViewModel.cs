@@ -204,10 +204,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		var indexPath = node.Parent != null ? new IndexPath(node.Parent.Index, node.Index) : new IndexPath(node.Index);
 
-		Dispatcher.UIThread.Post(() =>
-		{
-			Source.RowSelection!.SelectedIndex = indexPath;
-		});
+		Source.RowSelection!.SelectedIndex = indexPath;
 		SelectedItem = node.Item;
 	}
 
