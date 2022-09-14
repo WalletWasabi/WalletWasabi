@@ -16,6 +16,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -83,7 +84,7 @@ public class Global : IDisposable
 
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
 
-		bool coinVerifierEnabled = CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags?.Any() is true;
+		bool coinVerifierEnabled = CoordinatorParameters.RuntimeCoordinatorConfig.IsCoinVerifierEnabled || roundConfig.IsCoinVerifierEnabledForWW1;
 		CoinVerifier? coinVerifier = null;
 		if (coinVerifierEnabled)
 		{
@@ -91,11 +92,15 @@ public class Global : IDisposable
 			{
 				if (!Uri.TryCreate(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiUrl, UriKind.RelativeOrAbsolute, out Uri? url))
 				{
-					throw new ArgumentException("Blacklist API URL is invalid in WabiSabiConfig.json.");
+					throw new ArgumentException($"Blacklist API URL is invalid in {nameof(WabiSabiConfig)}.");
 				}
 				if (string.IsNullOrEmpty(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken))
 				{
-					throw new ArgumentException("Blacklist API token was not provided in WabiSabiConfig.json.");
+					throw new ArgumentException($"Blacklist API token was not provided in {nameof(WabiSabiConfig)}.");
+				}
+				if (CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags is null || !CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags.Any())
+				{
+					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
 				}
 
 				HttpClient.BaseAddress = url;
@@ -107,7 +112,7 @@ public class Global : IDisposable
 			}
 			catch (Exception exc)
 			{
-				Logger.LogCritical($"There was an error when creating CoinVerifier. Details: '{exc}'");
+				Logger.LogCritical($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'");
 			}
 		}
 
