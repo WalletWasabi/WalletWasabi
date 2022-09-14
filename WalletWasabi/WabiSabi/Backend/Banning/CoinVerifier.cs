@@ -108,8 +108,20 @@ public class CoinVerifier
 	{
 		bool shouldBan = false;
 
-		var coinflaglist = response.Cscore_section.Cscore_info;
-		shouldBan = coinflaglist.Any(cscoreInfo => WabiSabiConfig.RiskFlags?.Contains(cscoreInfo.Id) is true);
+		if (WabiSabiConfig.RiskFlags is null)
+		{
+			return shouldBan;
+		}
+
+		var flagIds = response.Cscore_section.Cscore_info.Select(cscores => cscores.Id);
+
+		if (flagIds.Except(WabiSabiConfig.RiskFlags).Any())
+		{
+			var unknownIds = flagIds.Except(WabiSabiConfig.RiskFlags).ToList();
+			unknownIds.ForEach(id => Logger.LogWarning($"Flag {id} is unknown for the backend!"));
+		}
+
+		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		return shouldBan;
 	}
