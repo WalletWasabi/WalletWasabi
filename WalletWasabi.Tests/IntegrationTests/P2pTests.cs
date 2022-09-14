@@ -56,8 +56,9 @@ public class P2pTests
 		await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 		var mempoolService = new MempoolService();
-		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
+		using var blockRepo = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
+		await blockRepo.StartAsync(CancellationToken.None);
+		BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blockRepo);
 		await bitcoinStore.InitializeAsync();
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
@@ -112,7 +113,7 @@ public class P2pTests
 			new ServiceConfiguration(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 			feeProvider,
 			blockProvider);
-		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
+		Assert.True(Directory.Exists(blockRepo.BlocksFolderPath));
 
 		try
 		{
@@ -139,9 +140,10 @@ public class P2pTests
 
 			var i = 0;
 			var hashArray = blocksToDownload.ToArray();
+			await blockRepo.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
 			foreach (var block in await Task.WhenAll(downloadTasks))
 			{
-				Assert.True(File.Exists(Path.Combine(blocks.BlocksFolderPath, hashArray[i].ToString())));
+				Assert.True(File.Exists(Path.Combine(blockRepo.BlocksFolderPath, hashArray[i].ToString())));
 				i++;
 			}
 
@@ -159,9 +161,11 @@ public class P2pTests
 				await wallet.StopAsync(CancellationToken.None);
 			}
 
-			if (Directory.Exists(blocks.BlocksFolderPath))
+			await blockRepo.StopAsync(CancellationToken.None);
+
+			if (Directory.Exists(blockRepo.BlocksFolderPath))
 			{
-				Directory.Delete(blocks.BlocksFolderPath, recursive: true);
+				Directory.Delete(blockRepo.BlocksFolderPath, recursive: true);
 			}
 
 			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);

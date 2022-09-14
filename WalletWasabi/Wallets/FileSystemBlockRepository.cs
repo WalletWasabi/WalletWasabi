@@ -6,19 +6,20 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;
 
-/// <summary>
-/// FileSystemBlockRepository is a blocks repository that keeps the blocks in the file system.
-/// </summary>
-public class FileSystemBlockRepository : IRepository<uint256, Block>
+/// <summary>FileSystemBlockRepository is a blocks repository that keeps the blocks in the file system.</summary>
+/// <remarks>If you don't call Start on it, then blocks will be kept in memory.</remarks>
+public class FileSystemBlockRepository : PeriodicRunner, IRepository<uint256, Block>
 {
 	private const double MegaByte = 1024 * 1024;
 
 	public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
+		: base(TimeSpan.FromMilliseconds(500))
 	{
 		using (BenchmarkLogger.Measure())
 		{
@@ -33,6 +34,8 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 	public string BlocksFolderPath { get; }
 	private Network Network { get; }
 	private AsyncLock BlockFolderLock { get; } = new AsyncLock();
+	public List<Block> BlockQueue { get; } = new();
+	public object BlockQueueLock { get; } = new();
 
 	/// <summary>
 	/// Copies files one by one from <c>BlocksNETWORK_NAME</c> folder to <c>BitcoinStore/NETWORK_NAME/Blocks</c> if not already migrated.
@@ -207,7 +210,16 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 	/// <returns>The requested bitcoin block.</returns>
 	public async Task<Block?> TryGetAsync(uint256 hash, CancellationToken cancellationToken)
 	{
-		// Try get the block.
+		lock (BlockQueueLock)
+		{
+			// Try get the block first if we still haven't serialized it, so we still have it in memory.
+			var b = BlockQueue.FirstOrDefault(x => hash == x.GetHash());
+			if (b is not null)
+			{
+				return b;
+			}
+		}
+
 		Block? block = null;
 		using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
@@ -313,5 +325,28 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 		}
 
 		IoHelpers.EnsureDirectoryExists(BlocksFolderPath);
+	}
+
+	protected override async Task ActionAsync(CancellationToken cancel)
+	{
+		Block[] blocks;
+		lock (BlockQueueLock)
+		{
+			blocks = BlockQueue.ToArray();
+			BlockQueue.Clear();
+		}
+
+		foreach (var block in blocks)
+		{
+			await SaveAsync(block, cancel).ConfigureAwait(false);
+		}
+	}
+
+	public void Add(Block block)
+	{
+		lock (BlockQueueLock)
+		{
+			BlockQueue.Add(block);
+		}
 	}
 }

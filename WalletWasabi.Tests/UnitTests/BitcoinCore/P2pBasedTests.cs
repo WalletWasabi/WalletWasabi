@@ -37,7 +37,7 @@ public class P2pBasedTests
 			await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			MempoolService mempoolService = new();
-			FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
+			using FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
 
 			// Construct BitcoinStore.
 			BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);

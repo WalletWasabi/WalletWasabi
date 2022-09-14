@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,9 +11,9 @@ public interface IRepository<TID, TElement>
 {
 	Task<TElement?> TryGetAsync(TID id, CancellationToken cancel);
 
-	Task SaveAsync(TElement element, CancellationToken cancel);
-
 	Task RemoveAsync(TID id, CancellationToken cancel);
 
 	Task<int> CountAsync(CancellationToken cancel);
+
+	void Add(Block block);
 }
