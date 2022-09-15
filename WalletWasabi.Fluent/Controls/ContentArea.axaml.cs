@@ -46,22 +46,8 @@ public class ContentArea : ContentControl
 	public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
 		AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
-	public static readonly DirectProperty<ContentArea, object?> ButtonAreaContentProperty =
-		AvaloniaProperty.RegisterDirect<ContentArea, object?>(
-			"ButtonAreaContent",
-			o => o.ButtonAreaContent,
-			(o, v) => o.ButtonAreaContent = v);
-
-	private object? _buttonAreaContent;
-	private IContentPresenter? _captionPresenter;
-
 	private IContentPresenter? _titlePresenter;
-
-	public object? ButtonAreaContent
-	{
-		get => _buttonAreaContent;
-		set => SetAndRaise(ButtonAreaContentProperty, ref _buttonAreaContent, value);
-	}
+	private IContentPresenter? _captionPresenter;
 
 	public object Title
 	{
