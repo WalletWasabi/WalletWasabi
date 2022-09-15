@@ -145,6 +145,8 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 								.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
 								.ConfigureAwait(false);
 
+							BitcoinStore.SmartHeaderChain.SetServerTipHeight((uint)response.BestHeight);
+
 							// NOT GenSocksServErr
 							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;

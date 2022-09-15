@@ -108,6 +108,11 @@ public class TransactionProcessor
 		}
 		if (ret.IsNews)
 		{
+			var firstRelevantHeight = KeyManager.GetFirstRelevantHeight();
+			if (firstRelevantHeight == 0 || firstRelevantHeight > tx.Height)
+			{
+				KeyManager.SetFirstRelevantHeight(tx.Height);
+			}
 			WalletRelevantTransactionProcessed?.Invoke(this, ret);
 		}
 		return ret;

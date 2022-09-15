@@ -26,7 +26,6 @@ public class FilterProcessor
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				var hashChain = BitcoinStore.SmartHeaderChain;
-				hashChain.SetServerTipHeight(serverBestHeight);
 
 				if (filtersResponseState == FiltersResponseState.NewFilters)
 				{

@@ -136,6 +136,10 @@ public class KeyManager
 	[JsonProperty(PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
+	[JsonProperty(PropertyName = "FirstRelevantHeight")]
+	[JsonConverter(typeof(HeightJsonConverter))]
+	public Height FirstRelevantHeight { get; set; } = new Height(0);
+
 	[JsonProperty(PropertyName = "AutoCoinJoin")]
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
@@ -684,6 +688,11 @@ public class KeyManager
 		return res;
 	}
 
+	public Height GetFirstRelevantHeight()
+	{
+		return FirstRelevantHeight;
+	}
+
 	public Network GetNetwork()
 	{
 		lock (BlockchainStateLock)
@@ -699,6 +708,12 @@ public class KeyManager
 			BlockchainState.Height = height;
 			ToFileNoBlockchainStateLock();
 		}
+	}
+
+	public void SetFirstRelevantHeight(Height height)
+	{
+		FirstRelevantHeight = height;
+		ToFile();
 	}
 
 	public void SetMaxBestHeight(Height height)
