@@ -14,7 +14,7 @@
       <!-- Confirmed -->
       <PathIcon IsVisible="{Binding IsConfirmed^}"
                 Data="{StaticResource checkmark_filled}"
-                Foreground="{DynamicResource SystemAccentColor}"
+                Foreground="{DynamicResource TextControlForeground}"
                 Height="11"
                 ToolTip.Tip="{Binding ConfirmedToolTip^}" />
       <!-- Pending -->
