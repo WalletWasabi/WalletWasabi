@@ -724,7 +724,7 @@ public class CoinJoinClient
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
-		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
@@ -773,7 +773,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
 
 		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => bestRepGroups.Any(y => y.Contains(x)));
-		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
 		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
@@ -800,7 +800,7 @@ public class CoinJoinClient
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
 			return ImmutableList<SmartCoin>.Empty;
 		}
-		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Let's remove some coins coming from the same tx in the final candidate:
 		// The smaller our balance is the more privacy we gain and the more the user cares about the costs, so more interconnectedness allowance makes sense.
@@ -861,7 +861,7 @@ public class CoinJoinClient
 		{
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
 			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
-			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
 		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
