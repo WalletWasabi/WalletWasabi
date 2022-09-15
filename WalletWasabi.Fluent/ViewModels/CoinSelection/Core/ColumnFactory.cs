@@ -176,7 +176,7 @@ public static class ColumnFactory
 		return new HierarchicalExpanderColumn<TreeNode>(
 			textColumn,
 			group => group.Children,
-			node => node.Children.Any());
+			node => node.Children.Count() > 1);
 	}
 
 	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)
