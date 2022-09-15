@@ -11,6 +11,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -254,7 +255,12 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+			// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
+			roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+			var endOfRoundDeadline = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.OutputRegistrationTimeout + roundState.CoinjoinState.Parameters.TransactionSigningTimeout + RoundStatusUpdater.Period;
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundState, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+
+			TorHttpClient.PrebuildCircuitsUpfront(registeredAliceClients.Length, endOfRoundDeadline - DateTimeOffset.UtcNow);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
@@ -310,6 +316,8 @@ public class CoinJoinClient
 			}
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+
+			TorHttpClient.DropAllPrebuildCircuits();
 		}
 	}
 
@@ -536,9 +544,8 @@ public class CoinJoinClient
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
-					Logger.LogDebug("Signature was already sent - bypassing error.",ex);
+					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
-
 			})
 			.ToImmutableArray();
 
@@ -978,10 +985,9 @@ public class CoinJoinClient
 		return targetInputCount;
 	}
 
-	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(RoundState roundState, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
 	{
-		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
-		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+		var roundId = roundState.Id;
 		var roundParameters = roundState.CoinjoinState.Parameters;
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
 		var now = DateTimeOffset.UtcNow;
