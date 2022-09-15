@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.CoinSelection.Core.Cells;
+
 public class SelectableCollectionCellView : UserControl
 {
 	public SelectableCollectionCellView()
