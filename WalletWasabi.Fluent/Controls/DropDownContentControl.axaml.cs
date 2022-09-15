@@ -4,22 +4,18 @@ using Avalonia.Controls;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls;
+
 public class DropDownContentControl : ContentControl
 {
-	private IEnumerable _menuItems;
+	public static readonly StyledProperty<IEnumerable> MenuItemsProperty = AvaloniaProperty.Register<DropDownContentControl, IEnumerable>("MenuItems");
 
-	public static readonly DirectProperty<DropDownContentControl, IEnumerable> MenuItemsProperty = AvaloniaProperty.RegisterDirect<DropDownContentControl, IEnumerable>(
-		"MenuItems",
-		o => o.MenuItems,
-		(o, v) => o.MenuItems = v);
+	public static readonly StyledProperty<IBrush> DropDownButtonBrushProperty = AvaloniaProperty.Register<DropDownContentControl, IBrush>(nameof(DropDownButtonBrush));
 
 	public IEnumerable MenuItems
 	{
-		get => _menuItems;
-		set => SetAndRaise(MenuItemsProperty, ref _menuItems, value);
+		get => GetValue(MenuItemsProperty);
+		set => SetValue(MenuItemsProperty, value);
 	}
-
-	public static readonly StyledProperty<IBrush> DropDownButtonBrushProperty = AvaloniaProperty.Register<DropDownContentControl, IBrush>("DropDownButtonBrush");
 
 	public IBrush DropDownButtonBrush
 	{
