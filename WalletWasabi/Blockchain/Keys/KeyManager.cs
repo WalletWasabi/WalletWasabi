@@ -454,7 +454,6 @@ public class KeyManager
 				{
 					throw new InvalidOperationException("Wtf");
 				}
-				
 			}
 		}
 		return extKeysAndPubs;
@@ -510,12 +509,19 @@ public class KeyManager
 		if (newKeyState is KeyState.Locked or KeyState.Used)
 		{
 			var keySource = GetHdPubKeyGenerator(hdPubKey.IsInternal, hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath());
-			var view = HdPubKeyCache.GetView(keySource.KeyPath);
-			HdPubKeyCache.AddRangeKeys(keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey));
+
+			// This can happen after downgrading to pre-taproot wasabi version the switching back to a supporting
+			// version so taproot keys are detected. However, the user has not login yet so taprootextpubkey is
+			// not derived yet (because pre-taproot wasabi do not serialize fields that it doesn't know)
+			if (keySource is { })
+			{
+				var view = HdPubKeyCache.GetView(keySource.KeyPath);
+				HdPubKeyCache.AddRangeKeys(keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey));
+			}
 		}
 	}
 
-	private HdPubKeyGenerator GetHdPubKeyGenerator(bool isInternal, ScriptPubKeyType scriptPubKeyType) =>
+	private HdPubKeyGenerator? GetHdPubKeyGenerator(bool isInternal, ScriptPubKeyType scriptPubKeyType) =>
 		(isInternal, scriptPubKeyType) switch
 		{
 			(true, ScriptPubKeyType.Segwit) => SegwitInternalKeyGenerator,
