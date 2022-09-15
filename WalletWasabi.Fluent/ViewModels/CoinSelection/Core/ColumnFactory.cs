@@ -47,13 +47,11 @@ public static class ColumnFactory
 		return new TemplateColumn<TreeNode>(
 			new AnonymityScoreHeaderViewModel(),
 			new ConstantTemplate<TreeNode>(
-				group =>
+				group => group.Value switch
 				{
-					return group.Value switch
-					{
-						WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin),
-						_ => ""
-					};
+					WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin),
+					CoinGroupViewModel { Items.Count: 1 } cg => new AnonymityScoreCellViewModel((WalletCoinViewModel)cg.Items.First()),
+					_ => ""
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
@@ -90,19 +88,11 @@ public static class ColumnFactory
 		return new TemplateColumn<TreeNode>(
 			"Labels (Cluster)",
 			new ConstantTemplate<TreeNode>(
-				group =>
+				group => group.Value switch
 				{
-					if (group.Value is CoinGroupViewModel vm)
-					{
-						if (vm.PrivacyLevel is null)
-						{
-							return new LabelsCellViewModel(vm.Labels);
-						}
-
-						return GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value);
-					}
-
-					return new LabelsCellViewModel(new SmartLabel());
+					CoinGroupViewModel { PrivacyLevel: null } vm => new LabelsCellViewModel(vm.Labels),
+					CoinGroupViewModel vm => GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value),
+					_ => new LabelsCellViewModel(new SmartLabel())
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
@@ -127,20 +117,12 @@ public static class ColumnFactory
 		return new TemplateColumn<TreeNode>(
 			selectionHeaderViewModel,
 			new ConstantTemplate<TreeNode>(
-				n =>
-				{
-					if (n.Value is CoinGroupViewModel cg)
+				n => n.Value switch
 					{
-						return new SelectableCollectionCellViewModel(cg.Items);
-					}
-
-					if (n.Value is WalletCoinViewModel coin)
-					{
-						return new CoinSelectionCellViewModel(coin);
-					}
-
-					throw new NotSupportedException();
-				}),
+						CoinGroupViewModel cg => new SelectableCollectionCellViewModel(cg.Items),
+						WalletCoinViewModel coin => new CoinSelectionCellViewModel(coin),
+						_ => throw new NotSupportedException()
+					}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
@@ -154,14 +136,11 @@ public static class ColumnFactory
 		return new TemplateColumn<TreeNode>(
 			"",
 			new ConstantTemplate<TreeNode>(
-				n =>
+				n => n.Value switch
 				{
-					if (n.Value is WalletCoinViewModel coin)
-					{
-						return new IndicatorsCellViewModel(coin);
-					}
-
-					return "";
+					WalletCoinViewModel coin => new IndicatorsCellViewModel(coin),
+					CoinGroupViewModel { Items.Count: 1 } cg => new IndicatorsCellViewModel((WalletCoinViewModel)cg.Items.First()),
+					_ => ""
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
