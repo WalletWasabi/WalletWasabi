@@ -10,36 +10,6 @@
              x:DataType="coinSelection:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.SelectCoinsDialogView">
 
-  <UserControl.Styles>
-    <Style Selector="Button.quickAction">
-      <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-      <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="Button.quickAction /template/ ContentPresenter">
-      <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="Button.quickAction:pointerover /template/ AccessText">
-      <Setter Property="TextDecorations" Value="Underline" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Opacity" Value="1" />
-    </Style>
-
-    <Style Selector="Button.quickAction:pressed /template/ AccessText">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Opacity" Value="0.5" />
-    </Style>
-
-    <Style Selector="Button.quickAction:disabled AccessText">
-      <Setter Property="TextDecorations" Value="{x:Null}" />
-      <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-    </Style>
-  </UserControl.Styles>
-
   <controls:ContentArea
     EnableBack="{Binding EnableBack}"
     EnableNext="True"
