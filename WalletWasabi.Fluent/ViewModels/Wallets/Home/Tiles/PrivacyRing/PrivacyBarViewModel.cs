@@ -64,7 +64,12 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 			var usableWidth = Width - (pockets.SelectMany(x => x.Coins).Count() * 2);
 
-			foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
+			var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+			foreach (var pocket in usablePockets)
 			{
 				var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
 
