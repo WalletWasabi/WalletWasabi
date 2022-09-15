@@ -1016,12 +1016,16 @@ public class CoinJoinClient
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
+		TorHttpClient.PrebuildCircuitsUpfront(outputValues.Count, outputRegistrationPhaseEndTime - DateTimeOffset.UtcNow); // Every output will need one.
+
 		// Get as many destinations as outputs we need.
 		var destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
 		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
+		TorHttpClient.PrebuildCircuitsUpfront(scheduler.Graph.Reissuances.Count, outputRegistrationPhaseEndTime - DateTimeOffset.UtcNow); // I am not sure about this but something similar.
+
 
 		var combinedToken = linkedCts.Token;
 		try

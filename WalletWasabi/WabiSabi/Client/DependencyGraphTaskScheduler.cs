@@ -24,7 +24,7 @@ public class DependencyGraphTaskScheduler
 		DependencyTasks = allInEdges.ToDictionary(edge => edge, _ => new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously));
 	}
 
-	private DependencyGraph Graph { get; }
+	public DependencyGraph Graph { get; }
 	private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
 
 	private async Task CompleteConnectionConfirmationAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
