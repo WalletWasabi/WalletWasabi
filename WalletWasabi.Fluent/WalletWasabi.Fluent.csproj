@@ -37,16 +37,4 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Views\CoinSelection\Core\Cells\CoinSelectionCellView.axaml.cs">
-	    <DependentUpon>CoinSelectionCellView.axaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\CoinSelection\Core\Cells\SelectableCollectionCellView.axaml.cs">
-	    <DependentUpon>SelectableCollectionCellView.axaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\CoinSelection\Core\Headers\SelectionHeaderView.axaml.cs">
-	    <DependentUpon>SelectionHeaderView.axaml</DependentUpon>
-	  </Compile>
-	</ItemGroup>
 </Project>
