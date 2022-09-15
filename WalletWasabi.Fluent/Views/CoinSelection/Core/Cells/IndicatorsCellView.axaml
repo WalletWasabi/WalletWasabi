@@ -15,13 +15,14 @@
       <PathIcon IsVisible="{Binding IsConfirmed^}"
                 Data="{StaticResource checkmark_filled}"
                 Foreground="{DynamicResource TextControlForeground}"
+                Opacity="0.6"
                 Height="11"
                 ToolTip.Tip="{Binding ConfirmedToolTip^}" />
       <!-- Pending -->
       <PathIcon IsVisible="{Binding !IsConfirmed^}"
                 Data="{StaticResource clock_regular}"
                 Height="14"
-                Opacity="0.6"
+                Opacity="0.3"
                 ToolTip.Tip="Pending" />
     </Panel>
 
