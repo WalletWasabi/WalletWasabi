@@ -14,15 +14,15 @@
     <controls:DropDownContentControl MenuItems="{Binding Commands}" DropDownButtonBrush="Transparent">
       <controls:DropDownContentControl.Styles>
         <Style Selector="MenuItem" x:CompileBindings="False">
-          <Setter Property="Header" Value="{Binding Header}"/>
-          <Setter Property="Command" Value="{Binding Command}"/>
+          <Setter Property="Header" Value="{Binding Header}" />
+          <Setter Property="Command" Value="{Binding Command}" />
         </Style>
       </controls:DropDownContentControl.Styles>
       <controls:MultiSelector Padding="0" HorizontalAlignment="Center" Items="{Binding Selectables}" />
     </controls:DropDownContentControl>
 
     <Panel IsHitTestVisible="False" Margin="6 0 0 0">
-      <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}"/>
+      <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}" />
       <TextBlock Text="{Binding Text^}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
     </Panel>
 
