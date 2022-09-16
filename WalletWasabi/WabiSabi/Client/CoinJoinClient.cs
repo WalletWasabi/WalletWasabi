@@ -26,6 +26,7 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
+	private const int DefaultRedCoinThreshold = 1;
 	private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
 	private TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
@@ -34,6 +35,7 @@ public class CoinJoinClient
 	// timings only depends on the input-reg timeout.
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
+
 
 	/// <param name="anonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
@@ -57,7 +59,7 @@ public class CoinJoinClient
 		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		ConsolidationMode = consolidationMode;
-		RedCoinIsolation = redCoinIsolation;
+		RedCoinThreshold = redCoinIsolation ? DefaultRedCoinThreshold : 0;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -79,7 +81,7 @@ public class CoinJoinClient
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool ConsolidationMode { get; private set; }
-	public bool RedCoinIsolation { get; }
+	private int RedCoinThreshold { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 	private static Money? LiquidityClue { get; set; }
 	private static object LiquidityClueLock { get; } = new object();
@@ -160,7 +162,7 @@ public class CoinJoinClient
 				}
 			}
 
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinThreshold, liquidityClue, SecureRandom);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -536,7 +538,7 @@ public class CoinJoinClient
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
-					Logger.LogDebug("Signature was already sent - bypassing error.",ex);
+					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
 
 			})
@@ -626,18 +628,25 @@ public class CoinJoinClient
 
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
-	/// <param name="redCoinIsolation">If true, coins under anonscore 2 will not be selected together.</param>
+	/// <param name="redCoinThreshold">Maximum anonymity of coins that won't be selected together.</param>
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
 		IEnumerable<TCoin> coins,
 		IUtxoSelectionParameters parameters,
 		bool consolidationMode,
 		int anonScoreTarget,
-		bool redCoinIsolation,
+		int redCoinThreshold,
 		Money liquidityClue,
 		WasabiRandom rnd)
 		where TCoin : class, ISmartCoin
 	{
+		if (redCoinThreshold < 0)
+		{
+			throw new ArgumentException("Cannot be negative", nameof(redCoinThreshold));
+		}
+
+		bool redCoinIsolation = redCoinThreshold > 0;
+
 		// Sanity check.
 		if (liquidityClue <= Money.Zero)
 		{
@@ -654,10 +663,10 @@ public class CoinJoinClient
 			.Where(x => x.AnonymitySet >= anonScoreTarget)
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= 2)
+			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet > redCoinThreshold)
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.AnonymitySet < 2)
+			.Where(x => x.AnonymitySet <= redCoinThreshold)
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
