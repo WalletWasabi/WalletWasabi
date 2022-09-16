@@ -32,7 +32,7 @@ public class CachedBlockProvider : IBlockProvider
 		if (block is null)
 		{
 			block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
-			await BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
+			_ = BlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
 		}
 		return block;
 	}
