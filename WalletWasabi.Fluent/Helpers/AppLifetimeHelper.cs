@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -20,7 +21,19 @@ public static class AppLifetimeHelper
 	public static void Restart()
 	{
 		StartAppWithArgs();
-		Shutdown();
+		ForceShutdown();
+	}
+
+	/// <summary>
+	/// Restarts the application with shutdown prevention.
+	/// </summary>
+	/// <remarks>
+	/// This method is only functional on the published builds
+	/// and not on debugging runs.
+	/// </remarks>
+	public static void RestartWithShutdownPrevention()
+	{
+		SafeShutdown(restart: true);
 	}
 
 	/// <summary>
@@ -45,9 +58,20 @@ public static class AppLifetimeHelper
 	}
 
 	/// <summary>
-	/// Attempts to shutdown the current instance of the app safely.
+	/// Attempts to shutdown the current instance of the app safely with shutdown prevention.
 	/// </summary>
-	public static void Shutdown()
+	public static void SafeShutdown(bool restart = false)
+	{
+		if (Application.Current?.DataContext is ApplicationViewModel app)
+		{
+			app.Shutdown(restart);
+		}
+	}
+
+	/// <summary>
+	/// Attempts to shutdown the current instance of the app safely without shutdown prevention.
+	/// </summary>
+	public static void ForceShutdown()
 	{
 		(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
 	}

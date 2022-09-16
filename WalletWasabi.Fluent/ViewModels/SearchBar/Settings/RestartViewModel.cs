@@ -9,7 +9,7 @@ public class RestartViewModel : ViewModelBase
 	public RestartViewModel(string message)
 	{
 		Message = message;
-		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
+		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.RestartWithShutdownPrevention);
 	}
 
 	public string Message { get; }

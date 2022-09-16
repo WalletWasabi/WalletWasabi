@@ -15,7 +15,7 @@ public class CrashReportWindowViewModel : ViewModelBase
 	{
 		SerializedException = serializedException;
 		CancelCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
-		NextCommand = ReactiveCommand.Create(AppLifetimeHelper.Shutdown);
+		NextCommand = ReactiveCommand.Create(AppLifetimeHelper.ForceShutdown);
 
 		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
 
