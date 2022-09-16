@@ -227,6 +227,19 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> InitialiseTransactionAsync()
 	{
+		if (_info.FeeRate == FeeRate.Zero)
+		{
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
+			{
+				_info.FeeRate = newFeeRate;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
@@ -237,19 +250,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_info.Coins = coins;
 			}
 			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
-			}
-		}
-
-		if (_info.FeeRate == FeeRate.Zero)
-		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
-			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
-			{
-				_info.FeeRate = newFeeRate;
-			}
-			else
 			{
 				return false;
 			}
