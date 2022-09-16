@@ -263,10 +263,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		_hiddenIncludedPockets.Clear();
 
-		Money sumOfWhiteList =
+		var whiteListPockets =
 			NonPrivatePockets
-				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)))
-				.Sum(x => x.Amount);
+				.Where(pocket => pocket.Labels.All(pocketLabel => LabelsWhiteList.Any(labelViewModel => pocketLabel == labelViewModel.Value)));
 
 		if (IsPrivatePocketNeeded())
 		{
@@ -278,7 +277,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			_hiddenIncludedPockets.Add(_semiPrivatePocket);
 		}
 
-		var totalSelected = sumOfWhiteList + _hiddenIncludedPockets.Sum(x => x.Amount);
+		var totalSelected = whiteListPockets.EffectiveSumValue(_feeRate) + _hiddenIncludedPockets.EffectiveSumValue(_feeRate);
 
 		EnoughSelected = totalSelected >= _targetAmount;
 
@@ -287,12 +286,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	}
 
 	private bool IsPrivatePocketNeeded() =>
-		(NonPrivatePockets.Sum(x => x.Amount) < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount >= _targetAmount) ||
-		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount >= _targetAmount);
+		(NonPrivatePockets.EffectiveSumValue(_feeRate) < _targetAmount && _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) < _targetAmount && NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount) ||
+		(LabelsWhiteList.IsEmpty() && _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount);
 
 	private bool IsPrivateAndSemiPrivatePocketNeeded() =>
-		(NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount < _targetAmount && NonPrivatePockets.Sum(x => x.Amount) + _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount) ||
-		(LabelsWhiteList.IsEmpty() && _privatePocket.Amount < _targetAmount && _privatePocket.Amount + _semiPrivatePocket.Amount >= _targetAmount);
+		(NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) < _targetAmount && NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) >= _targetAmount) ||
+		(LabelsWhiteList.IsEmpty() && _privatePocket.EffectiveSumValue(_feeRate) < _targetAmount && _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) >= _targetAmount);
 
 	public void SetUsedLabel(IEnumerable<SmartCoin>? usedCoins, int privateThreshold)
 	{
