@@ -35,6 +35,7 @@ public class CoinJoinClient
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
+
 	/// <param name="anonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -58,7 +59,7 @@ public class CoinJoinClient
 		CoordinatorIdentifier = coordinatorIdentifier;
 		LiquidityClueProvider = liquidityClueProvider;
 		ConsolidationMode = consolidationMode;
-		RedCoinIsolation = redCoinIsolation;
+		SemiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -78,6 +79,7 @@ public class CoinJoinClient
 
 	private bool ConsolidationMode { get; set; }
 	private bool RedCoinIsolation { get; }
+	private int SemiPrivateThreshold { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -141,7 +143,7 @@ public class CoinJoinClient
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
-			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -579,18 +581,23 @@ public class CoinJoinClient
 
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
-	/// <param name="redCoinIsolation">If true, coins under anonscore 2 will not be selected together.</param>
+	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
 		IEnumerable<TCoin> coins,
 		UtxoSelectionParameters parameters,
 		bool consolidationMode,
 		int anonScoreTarget,
-		bool redCoinIsolation,
+		int semiPrivateThreshold,
 		Money liquidityClue,
 		WasabiRandom rnd)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
+		if (semiPrivateThreshold < 0)
+		{
+			throw new ArgumentException("Cannot be negative", nameof(semiPrivateThreshold));
+		}
+
 		// Sanity check.
 		if (liquidityClue <= Money.Zero)
 		{
@@ -606,7 +613,6 @@ public class CoinJoinClient
 		var privateCoins = filteredCoins
 			.Where(x => x.AnonymitySet >= anonScoreTarget)
 			.ToArray();
-		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		var semiPrivateCoins = filteredCoins
 			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= semiPrivateThreshold)
 			.ToArray();

@@ -23,7 +23,7 @@ public class CoinJoinCoinSelectionTests
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: 10,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -46,7 +46,7 @@ public class CoinJoinCoinSelectionTests
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -71,7 +71,7 @@ public class CoinJoinCoinSelectionTests
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(5));
 
@@ -95,7 +95,7 @@ public class CoinJoinCoinSelectionTests
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
@@ -120,7 +120,7 @@ public class CoinJoinCoinSelectionTests
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
@@ -144,7 +144,7 @@ public class CoinJoinCoinSelectionTests
 			UtxoSelectionParameters.FromRoundParameters(CreateMultipartyTransactionParameters()),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
-			redCoinIsolation: false,
+			semiPrivateThreshold: 0,
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			ConfigureRng(1));
 
