@@ -295,7 +295,7 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(1.1M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(2.0M, out var pocket2, "Dan");
 		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
@@ -406,7 +406,7 @@ public class PocketSelectionTests
 		var privatePocket = new Pocket((CoinPocketHelper.PrivateFundsText, new CoinsView(new[] { privateCoin })));
 		pockets.Add(privatePocket);
 
-		pockets.AddPocket(0.2M, out var pocket2, "Dan");
+		pockets.AddPocket(0.3M, out var pocket2, "Dan");
 		pockets.AddPocket(0.1M, out var pocket3, "Lucas");
 
 		selection.Reset(pockets.ToArray());
@@ -833,7 +833,7 @@ public class PocketSelectionTests
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(1.1M, out var pocket2, "Dan");
 		pockets.AddPocket(1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.4M, out var pocket4, "David");
+		pockets.AddPocket(0.5M, out var pocket4, "David");
 		pockets.AddPocket(0.4M, out var pocket5, "David", "Max");
 		pockets.AddPocket(0.6M, out var pocket6, "David", "Lucas", "Dan");
 		pockets.AddPocket(0.1M, out var pocket7, CoinPocketHelper.SemiPrivateFundsText);
@@ -876,8 +876,8 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Dan");
-		pockets.AddPocket(1.0M, out var pocket2, "Lucas");
+		pockets.AddPocket(1.2M, out var pocket1, "Dan");
+		pockets.AddPocket(1.2M, out var pocket2, "Lucas");
 
 		selection.Reset(pockets.ToArray());
 
