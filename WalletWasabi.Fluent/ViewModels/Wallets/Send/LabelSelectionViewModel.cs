@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 
@@ -14,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class LabelSelectionViewModel : ViewModelBase
 {
 	private readonly Money _targetAmount;
+	private readonly FeeRate _feeRate;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
 
 	[AutoNotify] private bool _enoughSelected;
@@ -22,9 +24,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(Money targetAmount)
+	public LabelSelectionViewModel(Money targetAmount, FeeRate feeRate)
 	{
 		_targetAmount = targetAmount;
+		_feeRate = feeRate;
 	}
 
 	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
@@ -53,7 +56,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
 		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
 
-		if (onlyKnownByRecipientPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (onlyKnownByRecipientPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return onlyKnownByRecipientPockets;
 		}
@@ -63,57 +66,57 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return new[] { _privatePocket };
 		}
 
-		if (privateAndSemiPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
+		if (privateAndSemiPrivatePockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, recipient, out var pockets))
+		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, _feeRate, recipient, out var pockets))
 		{
 			return pockets;
 		}
 
-		if (knownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (knownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return knownPockets;
 		}
 
-		if (unknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (unknownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return unknownPockets;
 		}
 
-		if (NonPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
+		if (NonPrivatePockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return NonPrivatePockets;
 		}
 
-		if (privateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (privateAndKnownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return privateAndKnownPockets;
 		}
 
-		if (semiPrivateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (semiPrivateAndKnownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return semiPrivateAndKnownPockets;
 		}
 
-		if (privateAndSemiPrivateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (privateAndSemiPrivateAndKnownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return privateAndSemiPrivateAndKnownPockets;
 		}
 
-		if (privateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (privateAndUnknownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return privateAndUnknownPockets;
 		}
 
-		if (semiPrivateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (semiPrivateAndUnknownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return semiPrivateAndUnknownPockets;
 		}
 
-		if (privateAndSemiPrivateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
+		if (privateAndSemiPrivateAndUnknownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
 		{
 			return privateAndSemiPrivateAndUnknownPockets;
 		}
@@ -121,11 +124,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
-	private bool TryGetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
+	private bool TryGetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
 		pockets = null;
 
-		if (knownByRecipientPockets.Sum(x => x.Amount) < _targetAmount)
+		if (knownByRecipientPockets.EffectiveSumValue(feeRate) < _targetAmount)
 		{
 			return false;
 		}
@@ -152,7 +155,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		{
 			bestPockets.Add(p);
 
-			if (bestPockets.Sum(x => x.Amount) >= targetAmount)
+			if (bestPockets.EffectiveSumValue(feeRate) >= targetAmount)
 			{
 				break;
 			}
@@ -160,7 +163,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 		foreach (var p in bestPockets.OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
 		{
-			if (bestPockets.Sum(x => x.Amount) - p.Amount >= targetAmount)
+			if (bestPockets.EffectiveSumValue(feeRate) - p.EffectiveSumValue(feeRate) >= targetAmount)
 			{
 				bestPockets.Remove(p);
 			}
