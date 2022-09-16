@@ -2,6 +2,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Fluent.Models;
 
@@ -20,4 +21,6 @@ public class Pocket
 	public ICoinsView Coins { get; }
 
 	public static Pocket Empty => new((SmartLabel.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
+
+	public Money EffectiveSumValue(FeeRate feeRate) => Coins.ToArray().Sum(coin => coin.EffectiveValue(feeRate));
 }
