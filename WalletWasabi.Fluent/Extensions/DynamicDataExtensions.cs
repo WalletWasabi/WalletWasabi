@@ -5,7 +5,7 @@ using DynamicData.Kernel;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class DynamicDataMixin
+public static class DynamicDataExtensions
 {
 	public static IDisposable AddOrUpdate<TObject, TKey>(
 		this ISourceCache<TObject, TKey> sourceCache,
@@ -78,5 +78,10 @@ public static class DynamicDataMixin
 
 				return cache;
 			}).Select(cache => cache!.CaptureChanges());
+	}
+
+	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents) where TKey : notnull
+	{
+		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
 	}
 }

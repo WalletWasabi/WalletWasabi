@@ -3,7 +3,6 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;

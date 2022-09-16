@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using WalletWasabi.Blockchain.TransactionOutputs;
 

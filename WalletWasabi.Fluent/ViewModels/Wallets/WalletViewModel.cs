@@ -35,6 +35,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify] private int _layoutIndex;
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
+	[AutoNotify] private bool _isPointerOver;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
@@ -127,11 +128,13 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero)
-				.Select(tuple =>
+			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
+				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
+				.Select(
+					tuple =>
 				{
-					var (isSelected, isWalletBalanceZero) = tuple;
-					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly;
+					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
+					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly && !areAllCoinsPrivate || pointerOver;
 				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this, balanceChanged, History.UnfilteredTransactions)));

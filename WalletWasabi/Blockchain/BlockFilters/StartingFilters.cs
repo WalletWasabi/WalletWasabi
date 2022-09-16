@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Exceptions;
 
@@ -9,7 +10,7 @@ public static class StartingFilters
 {
 	public static FilterModel GetStartingFilter(Network network)
 	{
-		var startingHeader = SmartHeader.GetStartingHeader(network);
+		var startingHeader = SmartHeader.GetStartingHeader(network, IndexType.SegwitTaproot);
 		if (network == Network.Main)
 		{
 			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:02832810ec08a0:{startingHeader.PrevHash}:{startingHeader.EpochBlockTime}");
