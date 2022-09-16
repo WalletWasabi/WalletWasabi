@@ -242,6 +242,10 @@ public class TorHttpPool : IAsyncDisposable
 					TorConnectionException innerException = new("Connection was refused.", e);
 					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 				}
+				catch (OperationCanceledException)
+				{
+					throw;
+				}
 				catch (Exception e)
 				{
 					Logger.LogTrace($"['{connection}'] Exception occurred.", e);
