@@ -21,7 +21,7 @@ public class CredentialDependencyTests
 		await SimulateAsyncRequestsAsync(g);
 	}
 
-	// Demonstrate how to use the dependency grap. Also checks it can be
+	// Demonstrate how to use the dependency graph. Also checks it can be
 	// executed with no deadlocks.
 	private async Task SimulateAsyncRequestsAsync(DependencyGraph g)
 	{

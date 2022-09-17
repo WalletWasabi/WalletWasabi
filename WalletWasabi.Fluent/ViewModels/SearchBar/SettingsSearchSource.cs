@@ -1,25 +1,32 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
+using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Settings;
 
-namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public class SettingsSource : ISearchItemSource
+public class SettingsSearchSource : ISearchSource
 {
 	private readonly SettingsPageViewModel _settingsPage;
 
-	public SettingsSource(SettingsPageViewModel settingsPage)
+	public SettingsSearchSource(SettingsPageViewModel settingsPage, IObservable<string> query)
 	{
 		_settingsPage = settingsPage;
+
+		var filter = query.Select(SearchSource.DefaultFilter);
+
+		Changes = GetSettingsItems()
+			.ToObservable()
+			.ToObservableChangeSet(x => x.Key)
+			.Filter(filter);
 	}
 
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes => GetSettingsItems()
-		.ToObservable()
-		.ToObservableChangeSet(x => x.Key);
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
 
 	private IEnumerable<ISearchItem> GetSettingsItems()
 	{

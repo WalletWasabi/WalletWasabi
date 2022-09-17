@@ -2,7 +2,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class TimeSpanMixin
+public static class TimeSpanExtensions
 {
 	public static TimeSpan Reduce(this TimeSpan input)
 	{

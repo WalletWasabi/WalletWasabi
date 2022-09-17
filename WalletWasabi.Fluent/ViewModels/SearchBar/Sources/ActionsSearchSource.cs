@@ -10,12 +10,20 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public class ActionsSource : ISearchItemSource
+public class ActionsSearchSource : ISearchSource
 {
-	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes => GetItemsFromMetadata()
-		.ToObservable()
-		.ToObservableChangeSet(x => x.Key);
+	public ActionsSearchSource(IObservable<string> query)
+	{
+		var filter = query.Select(SearchSource.DefaultFilter);
+		
+		Changes = GetItemsFromMetadata()
+			.ToObservable()
+			.ToObservableChangeSet(x => x.Key)
+			.Filter(filter);
+	}
 
+	public IObservable<IChangeSet<ISearchItem, ComposedKey>> Changes { get; }
+	
 	private static IEnumerable<ISearchItem> GetItemsFromMetadata()
 	{
 		return NavigationManager.MetaData
