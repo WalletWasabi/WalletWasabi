@@ -120,7 +120,12 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
+		var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+		foreach (var pocket in usablePockets)
 		{
 			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
 
@@ -142,7 +147,12 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
+		var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+		foreach (var pocket in usablePockets)
 		{
 			var end = start + (Math.Abs(pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
 

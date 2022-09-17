@@ -29,8 +29,8 @@ public class PrivacyBarItemViewModel : ViewModelBase, IDisposable
 
 	public PrivacyBarItemViewModel(Pocket pocket, Wallet wallet, double start, double width)
 	{
-		IsPrivate = pocket.Coins.First().IsPrivate(wallet.KeyManager.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && pocket.Coins.First().IsSemiPrivate();
+		IsPrivate = pocket.Coins.All(x => x.IsPrivate(wallet.KeyManager.AnonScoreTarget));
+		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 
 		Data = new RectangleGeometry
