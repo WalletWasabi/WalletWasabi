@@ -42,6 +42,19 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		Unconfirmed = false;
 	}
 
+	public WalletCoinViewModel? Coin { get; }
+
+	public PathGeometry Data { get; private set; }
+
+	public double OuterRadius { get; private set; }
+
+	public bool IsPrivate { get; }
+	public bool IsSemiPrivate { get; }
+	public bool IsNonPrivate { get; }
+	public string AmountText { get; }
+	public bool Unconfirmed { get; }
+	public int Confirmations { get; }
+
 	private PathGeometry CreateGeometry(double start, double end, double outerRadius)
 	{
 		var innerRadius = outerRadius - SegmentWidth;
@@ -91,19 +104,6 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 			}
 		};
 	}
-
-	public WalletCoinViewModel? Coin { get; }
-
-	public PathGeometry Data { get; private set; }
-
-	public double OuterRadius { get; private set; }
-
-	public bool IsPrivate { get; }
-	public bool IsSemiPrivate { get; }
-	public bool IsNonPrivate { get; }
-	public string AmountText { get; }
-	public bool Unconfirmed { get; }
-	public int Confirmations { get; }
 
 	private Point GetAnglePoint(double r, double angle)
 	{
