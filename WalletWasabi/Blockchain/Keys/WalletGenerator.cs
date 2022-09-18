@@ -38,7 +38,7 @@ public class WalletGenerator
 			: KeyManager.CreateNew(mnemonic, password, Network);
 		km.AutoCoinJoin = true;
 		km.SetBestHeight(new Height(TipHeight));
-		km.SetFirstRelevantHeight(new Height(ServerTipHeight));
+		km.SetFirstRelevantHeight(new Height(ServerTipHeight - 100));
 		km.SetFilePath(walletFilePath);
 		return (km, mnemonic);
 	}

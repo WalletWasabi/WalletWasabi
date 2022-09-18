@@ -109,9 +109,9 @@ public class TransactionProcessor
 		if (ret.IsNews)
 		{
 			var firstRelevantHeight = KeyManager.GetFirstRelevantHeight();
-			if (firstRelevantHeight == 0 || firstRelevantHeight > tx.Height)
+			if (firstRelevantHeight == 0 || firstRelevantHeight > tx.Height - 100)
 			{
-				KeyManager.SetFirstRelevantHeight(tx.Height);
+				KeyManager.SetFirstRelevantHeight(tx.Height - 100);
 			}
 			WalletRelevantTransactionProcessed?.Invoke(this, ret);
 		}
