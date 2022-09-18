@@ -25,6 +25,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		Balance = balance;
 		IsCoinJoin = true;
 		CoinJoinTransaction = transactionSummary;
+		WalletViewModel = walletViewModel;
 		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
 
 		var confirmations = transactionSummary.GetConfirmations();
@@ -49,5 +50,6 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 	public bool IsSingleCoinJoinTransaction { get; }
 
-	public TransactionSummary CoinJoinTransaction { get; private set; }
+	public TransactionSummary CoinJoinTransaction { get; }
+	public WalletViewModel WalletViewModel { get; }
 }

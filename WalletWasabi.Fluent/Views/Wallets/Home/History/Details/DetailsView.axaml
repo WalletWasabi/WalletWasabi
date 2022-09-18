@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:DataType="details:ITransactionViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.DetailsView">
+
+  <Design.DataContext>
+    <fluent:TransactionDetailsViewModelDesign />
+  </Design.DataContext>
+
+  <UserControl.Styles>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/History/Details/SharedStyles.axaml" />
+  </UserControl.Styles>
+
+  <HeaderedContentControl Classes="Section" Header="Details">
+    <UniformGrid Columns="2" Rows="3">
+      <HeaderedContentControl Header="Size">
+        <controls:CopyableItem TextualValue="{Binding Size}">
+          <controls:UnitControl Value="{Binding Size, StringFormat='{}{0:g}'}" Unit="B" />
+        </controls:CopyableItem>
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Version" Content="{Binding Version, StringFormat='{}{0:g}'}" />
+      <HeaderedContentControl Header="Virtual size">
+        <controls:UnitControl Value="{Binding VirtualSize, StringFormat='{}{0:g}'}" Unit="vB" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Block time" Content="{Binding BlockTime, StringFormat='{}{0:g}'}" />
+      <HeaderedContentControl Header="Weight">
+        <controls:UnitControl Value="{Binding Weight, StringFormat='{}{0:g}'}" Unit="WU"></controls:UnitControl>
+      </HeaderedContentControl>
+    </UniformGrid>
+  </HeaderedContentControl>
+
+</UserControl>

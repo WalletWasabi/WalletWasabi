@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
@@ -19,7 +18,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
@@ -53,7 +51,6 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		Settings = new WalletSettingsViewModel(this);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
-		var wallete = new RealWallete(wallet, this.WhenAnyValue(x => x.CoinJoinSettings.AnonScoreTarget).ToSignal());
 
 		var balanceChanged =
 			Observable.FromEventPattern(
@@ -68,9 +65,9 @@ public partial class WalletViewModel : WalletViewModelBase
 					.Throttle(TimeSpan.FromSeconds(0.1)))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		History = new HistoryViewModel(this, wallete.SomethingChanged, this.WhenAnyValue(x => x.CoinJoinSettings.AnonScoreTarget).ToSignal());
+		History = new HistoryViewModel(this, balanceChanged);
 
-		wallete.SomethingChanged
+		balanceChanged
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
@@ -110,8 +107,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		LayoutIndex = _normalLayoutIndex;
 
 		_tiles = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletTiles(this, wallete.SomethingChanged)
-			: TileHelper.GetNormalWalletTiles(this, wallete.SomethingChanged);
+			? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
+			: TileHelper.GetNormalWalletTiles(this, balanceChanged);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
 			.Subscribe(x =>

@@ -1,0 +1,28 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <controls:CopyableContentControl Width="100" TextualValue="Textual value">
+      <controls:CopyableContentControl.Content>
+        <TextBlock TextTrimming="CharacterEllipsis">afdsfff</TextBlock>
+      </controls:CopyableContentControl.Content>
+    </controls:CopyableContentControl>
+  </Design.PreviewWith>
+
+  <Style Selector="controls|CopyableContentControl">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}" x:Name="Bounds"
+                Padding="{TemplateBinding Padding}"
+                Margin="{TemplateBinding Margin}">
+          <DockPanel>
+            <controls:ClipboardCopyButton Target="{Binding #Bounds}"
+                                          DockPanel.Dock="Right"
+                                          Text="{TemplateBinding TextualValue}" />
+            <ContentPresenter VerticalContentAlignment="Center" Content="{TemplateBinding Content}" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

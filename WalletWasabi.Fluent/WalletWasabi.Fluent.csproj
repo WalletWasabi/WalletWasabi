@@ -39,6 +39,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\Wallets\Home\History\Details\DetailsView.axaml.cs">
+	    <DependentUpon>DetailsView.axaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\Wallets\Home\History\Details\TransactionDetails2View.axaml.cs">
 	    <DependentUpon>TransactionDetails2View.axaml</DependentUpon>
 	  </Compile>

@@ -31,7 +31,6 @@ public class TransactionHistoryBuilder
 		foreach (SmartCoin coin in allCoins)
 		{
 			var containingTransaction = coin.Transaction;
-
 			var dateTime = containingTransaction.FirstSeen;
 			var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
 			if (found is { }) // if found then update
@@ -51,7 +50,12 @@ public class TransactionHistoryBuilder
 					TransactionId = coin.TransactionId,
 					BlockIndex = containingTransaction.BlockIndex,
 					BlockHash = containingTransaction.BlockHash,
-					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin()
+					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
+					Inputs = GetInputs(wallet.Network, wallet.TransactionProcessor.TransactionStore, containingTransaction),
+					Outputs = containingTransaction.WalletOutputs.Select(x => new Output(x.Amount, x.ScriptPubKey.GetDestinationAddress(wallet.Network), x.SpenderTransaction is not null)),
+					VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
+					Version = (int) containingTransaction.Transaction.Version,
+					BlockTime = containingTransaction.FirstSeen.ToUnixTimeSeconds(),
 				});
 			}
 
@@ -77,12 +81,52 @@ public class TransactionHistoryBuilder
 						TransactionId = spenderTxId,
 						BlockIndex = spenderTransaction.BlockIndex,
 						BlockHash = spenderTransaction.BlockHash,
-						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin()
+						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
+						Inputs = GetInputs(wallet.Network, wallet.TransactionProcessor.TransactionStore, containingTransaction),
+						Outputs = containingTransaction.WalletOutputs.Select(x => new Output(x.Amount, x.ScriptPubKey.GetDestinationAddress(wallet.Network), x.SpenderTransaction is not null)),
+						VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
+						Version = (int) containingTransaction.Transaction.Version,
+						BlockTime = containingTransaction.FirstSeen.ToUnixTimeSeconds(),
 					});
 				}
 			}
 		}
+
 		txRecordList = txRecordList.OrderByBlockchain().ToList();
 		return txRecordList;
+	}
+
+	private static IEnumerable<Input> GetInputs(Network network, AllTransactionStore store, SmartTransaction transaction)
+	{
+		var known = transaction.WalletInputs.Select(x => (Input)new InputAmount(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
+		var unknown = transaction.ForeignInputs.Select(x => (Input)new UnknownInput(x.Transaction.GetHash()));
+		
+		return known.Concat(unknown);
+	}
+}
+
+public abstract class Input
+{
+}
+
+public class UnknownInput : Input
+{
+	public UnknownInput(uint256 transactionId)
+	{
+		TransactionId = transactionId;
+	}
+
+	public uint256 TransactionId { get;  }
+}
+
+public class InputAmount : Input
+{
+	public Money Amount { get; }
+	public BitcoinAddress Address { get; }
+
+	public InputAmount(Money amount, BitcoinAddress address)
+	{
+		Amount = amount;
+		Address = address;
 	}
 }

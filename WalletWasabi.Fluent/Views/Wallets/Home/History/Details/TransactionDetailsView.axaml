@@ -85,5 +85,10 @@
         </c:PrivacyContentControl>
       </c:PreviewItem>
     </StackPanel>
+
+    <c:ContentArea.Caption>
+      <Button Command="{Binding ShowDetails}" HorizontalAlignment="Right">More details</Button>
+    </c:ContentArea.Caption>
+
   </c:ContentArea>
 </UserControl>

@@ -1,0 +1,34 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <StackPanel Orientation="Horizontal">
+      <controls:CopyableItem Background="Blue" Width="400" Header="Header"
+                             TextualValue="Salute">
+        <controls:CopyableItem.Content>
+          <TextBlock>Hoasdafd</TextBlock>
+        </controls:CopyableItem.Content>
+      </controls:CopyableItem>
+      <controls:CopyableItem Background="Blue" Width="400" Header="Header" Content="Content"
+                             TextualValue="Salute" />
+    </StackPanel>
+  </Design.PreviewWith>
+
+  <Style Selector="controls|CopyableItem">
+    <Setter Property="Margin" Value="2" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}" x:Name="Bounds"
+                Padding="{TemplateBinding Padding}"
+                Margin="{TemplateBinding Margin}">
+          <Grid ColumnDefinitions="5*,3*,Auto">
+            <ContentPresenter VerticalContentAlignment="Center" Content="{TemplateBinding Header}" />
+            <controls:CopyableContentControl Grid.Column="1" Content="{TemplateBinding Content}"
+                                             TextualValue="{TemplateBinding TextualValue}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

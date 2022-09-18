@@ -40,7 +40,11 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		});
 
 		Update();
+
+		ShowDetails = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new TransactionDetails2ViewModel(new ReactiveTransaction(coinJoin.WalletViewModel.Wallet, coinJoin.Id))));
 	}
+
+	public ReactiveCommand<Unit, Unit> ShowDetails { get; set; }
 
 	public ICommand CopyCommand { get; }
 

@@ -39,6 +39,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 
 	public List<TransactionSummary> CoinJoinTransactions { get; private set; }
 
+	public WalletViewModel WalletViewModel => _walletViewModel;
+
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
 		var result = new ObservableCollection<HistoryItemViewModelBase>();
@@ -52,7 +54,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 			var transaction = new CoinJoinHistoryItemViewModel(
 				i,
 				item,
-				_walletViewModel,
+				WalletViewModel,
 				balance,
 				_updateTrigger,
 				false);

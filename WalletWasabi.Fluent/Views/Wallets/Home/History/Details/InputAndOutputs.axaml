@@ -3,8 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="fluent:ITransactionDetailsViewModel"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="450"
+             x:DataType="details:ITransactionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.InputAndOutputs">
 
   <Design.DataContext>
@@ -12,37 +15,85 @@
   </Design.DataContext>
 
   <UserControl.DataTemplates>
-    <DataTemplate x:DataType="fluent:ITransaction">
-      <Grid ColumnDefinitions="*,*">
-        <TextBlock Text="{Binding Address}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="10" />
-        <TextBlock Grid.Column="1" Text="{Binding Amount}" Margin="10" />
+    <DataTemplate DataType="fluent:UnknownInputViewModel">
+      <Grid ColumnDefinitions="Auto,*" Margin="5">
+        <PathIcon x:Name="Output"
+                  Foreground="Red"
+                  Width="20" Data="{StaticResource right_arrow_bubble}" />
+        <controls:CopyableContentControl Margin="4 0" Grid.Column="1" TextualValue="{Binding TransactionId}">
+          <TextBlock
+            FontFamily="{StaticResource MonospacedFont}"
+            Foreground="{DynamicResource AccentButtonBackground}"
+            TextAlignment="Left" Text="{Binding TransactionId}" TextWrapping="NoWrap"
+            TextTrimming="CharacterEllipsis" />
+        </controls:CopyableContentControl>
+      </Grid>
+
+    </DataTemplate>
+    <DataTemplate DataType="fluent:KnownInputViewModel">
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="5">
+        <PathIcon x:Name="Output"
+                  Foreground="Red"
+                  Width="20" Data="{StaticResource right_arrow_bubble}" />
+        <controls:CopyableContentControl Margin="4 0" Grid.Column="1" TextualValue="{Binding Address}">
+          <TextBlock
+            FontFamily="{StaticResource MonospacedFont}"
+            Foreground="{DynamicResource AccentButtonBackground}"
+            TextAlignment="Left" Text="{Binding Address}" TextWrapping="NoWrap"
+            TextTrimming="CharacterEllipsis" />
+        </controls:CopyableContentControl>
+        <controls:CopyableContentControl Grid.Column="2" TextualValue="{Binding Amount}">
+          <controls:UnitControl VerticalAlignment="Center"
+                                Value="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                Unit="BTC" />
+        </controls:CopyableContentControl>
+      </Grid>
+
+    </DataTemplate>
+
+    <DataTemplate DataType="fluent:OutputViewModel">
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="5">
+        <PathIcon x:Name="Output" Classes.Spent="{Binding IsSpent}"
+                  Classes.Unspent="{Binding !IsSpent}" Width="20" Data="{StaticResource right_arrow_bubble}" />
+        <controls:CopyableContentControl Margin="4 0" Grid.Column="1" TextualValue="{Binding Address}">
+          <TextBlock
+            FontFamily="{StaticResource MonospacedFont}"
+            Foreground="{DynamicResource AccentButtonBackground}"
+            TextAlignment="Left" Text="{Binding Address}" TextWrapping="NoWrap"
+            TextTrimming="CharacterEllipsis" />
+        </controls:CopyableContentControl>
+        <controls:CopyableContentControl Grid.Column="2" TextualValue="{Binding Amount}">
+          <controls:UnitControl VerticalAlignment="Center"
+                                Value="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                                Unit="BTC" />
+        </controls:CopyableContentControl>
       </Grid>
     </DataTemplate>
+
   </UserControl.DataTemplates>
 
   <UserControl.Styles>
-    <Style Selector="HeaderedContentControl">
-      <Setter Property="Template">
-        <ControlTemplate>
-          <StackPanel>
-            <ContentPresenter Classes="h2" Content="{TemplateBinding Header}" />
-            <ContentPresenter Background="Blue" Padding="16" Content="{TemplateBinding Content}" />
-          </StackPanel>
-        </ControlTemplate>
-      </Setter>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/History/Details/SharedStyles.axaml" />
+
+    <Style Selector="PathIcon#Output.Spent">
+      <Setter Property="Foreground" Value="Red" />
     </Style>
+    <Style Selector="PathIcon#Output.Unspent">
+      <Setter Property="Foreground" Value="Green" />
+    </Style>
+
   </UserControl.Styles>
 
-  <StackPanel>
-    <HeaderedContentControl Header="Inputs and outputs">
-      <StackPanel>
-        <UniformGrid>
-          <ItemsControl Items="{Binding Inputs}" />
-          <ItemsControl Items="{Binding Outputs}" />
-        </UniformGrid>
-        <Button HorizontalAlignment="Right" Content="{Binding OutputAmount}" Margin="10" />
-      </StackPanel>
-    </HeaderedContentControl>
-  </StackPanel>
+  <HeaderedContentControl Classes="Section" Header="Inputs and outputs">
+    <StackPanel>
+      <UniformGrid Rows="1" Columns="2">
+        <ItemsControl Items="{Binding Inputs}" Margin="10 10" />
+        <ItemsControl Items="{Binding Outputs}" Margin="10 10" />
+      </UniformGrid>
+      <TextBox IsReadOnly="True" UseFloatingWatermark="True" HorizontalAlignment="Right"
+               Text="{Binding OutputAmount, StringFormat='{}{0} BTC', Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+               Margin="10" />
+    </StackPanel>
+  </HeaderedContentControl>
 
 </UserControl>

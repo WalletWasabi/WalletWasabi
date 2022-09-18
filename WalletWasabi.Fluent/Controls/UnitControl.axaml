@@ -1,0 +1,19 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <controls:UnitControl Value="0.0000 0001" Unit="BTC" />
+  </Design.PreviewWith>
+
+  <Style Selector="controls|UnitControl">
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Classes="h6" Text="{TemplateBinding Value}" />
+          <TextBlock Classes="h8" Opacity="0.6" VerticalAlignment="Bottom" Text="{Binding Unit, RelativeSource={RelativeSource TemplatedParent}, StringFormat=' {0}'}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

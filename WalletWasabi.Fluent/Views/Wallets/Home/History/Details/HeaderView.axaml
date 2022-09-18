@@ -2,33 +2,61 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:CompileBindings="True"
-             x:DataType="fluent:ITransactionDetailsViewModel"
+             x:DataType="details:ITransactionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.HeaderView">
 
   <Design.DataContext>
     <fluent:TransactionDetailsViewModelDesign />
   </Design.DataContext>
 
-  <HeaderedContentControl Header="Transaction">
-    <Grid>
-      <UniformGrid Columns="2" Rows="1">
-        <StackPanel>
-          <controls:PreviewItem Label="Timestamp" Content="{Binding Timestamp}" />
-          <controls:PreviewItem Label="Included in block" Content="{Binding IncludedInBlock}" />
-        </StackPanel>
-        <StackPanel>
-          <controls:PreviewItem Label="Fee" Content="{Binding Fee}" />
-          <controls:PreviewItem Label="Fee rate" Content="{Binding FeeRate}" />
-        </StackPanel>
-      </UniformGrid>
-      <StackPanel>
+  <UserControl.Styles>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/History/Details/SharedStyles.axaml" />
+  </UserControl.Styles>
 
-      </StackPanel>
-    </Grid>
+  <HeaderedContentControl Classes="Section">
+    <HeaderedContentControl.Header>
+      <Grid ColumnDefinitions="Auto, *">
+        <TextBlock Text="Transaction" />
+        <c:CopyableContentControl HorizontalAlignment="Left" Grid.Column="1" TextualValue="{Binding Id}">
+          <TextBlock Foreground="{DynamicResource AccentButtonBackground}"
+                     Margin="20 0 0 0"
+                     VerticalAlignment="Center" Classes="h6"
+                     TextTrimming="CharacterEllipsis" Text="{Binding Id}" />
+        </c:CopyableContentControl>
+      </Grid>
+    </HeaderedContentControl.Header>
+
+
+    <UniformGrid Columns="2">
+      <HeaderedContentControl Header="Timestamp">
+        <c:CopyableContentControl  TextualValue="{Binding Timestamp}"
+                                  Content="{Binding Timestamp, StringFormat='{}{0:g}'}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Fee">
+        <c:CopyableContentControl  TextualValue="{Binding Fee}">
+          <c:UnitControl Value="{Binding Fee.Satoshi}" Unit="sat" />
+        </c:CopyableContentControl>
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Included in block">
+        <c:CopyableContentControl TextualValue="{Binding IncludedInBlock}"
+                                  Content="{Binding IncludedInBlock}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Fee rate">
+        <c:CopyableContentControl TextualValue="{Binding FeeRate}">
+          <c:UnitControl Value="{Binding FeeRate.SatoshiPerByte}" Unit="sat/vByte" />
+        </c:CopyableContentControl>
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Labels">
+        <c:CopyableContentControl TextualValue="{Binding Labels}" >
+          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+        </c:CopyableContentControl>
+      </HeaderedContentControl>
+    </UniformGrid>
   </HeaderedContentControl>
 
 </UserControl>
