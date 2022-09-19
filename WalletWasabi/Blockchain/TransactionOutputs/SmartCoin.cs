@@ -77,13 +77,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public SmartTransaction? SpenderTransaction
 	{
 		get => _spenderTransaction;
-		set
-		{
-			if (value?.TryAddWalletInput(this) is true)
-			{
-				RaiseAndSetIfChanged(ref _spenderTransaction, value);
-			}
-		}
+		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
 	public bool RegisterToHdPubKey()

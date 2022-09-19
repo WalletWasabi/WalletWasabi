@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class ObservableExtension
+public static class ObservableExtensions
 {
 	public static IDisposable SubscribeAsync<T>(this IObservable<T> source, Func<T, Task> onNextAsync) =>
 		source

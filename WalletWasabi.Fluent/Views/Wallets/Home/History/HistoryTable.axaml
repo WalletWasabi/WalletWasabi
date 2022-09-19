@@ -97,6 +97,9 @@
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0">
+      <i:Interaction.Behaviors>
+        <behaviors:ScrollToSelectedItemBehavior />
+      </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:CustomElementFactory />
       </TreeDataGrid.ElementFactory>

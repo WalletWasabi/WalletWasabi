@@ -38,11 +38,17 @@ public class Global : IDisposable
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 		P2pNode = new(config.Network, config.GetBitcoinP2pEndPoint(), new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
+		BlockNotifier blockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode);
+		HostedServices.Register<BlockNotifier>(() => blockNotifier, "Block Notifier");
 
 		// Initialize index building
-		string indexFilePath = Path.Combine(DataDir, "IndexBuilderService", $"Index{RpcClient.Network}.dat");
-		IndexBuilderService = new(RpcClient, HostedServices.Get<BlockNotifier>(), indexFilePath);
+		// Initialize index building
+		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
+		var segwitTaprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
+		var taprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"TaprootIndex{RpcClient.Network}.dat");
+
+		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, blockNotifier, segwitTaprootIndexFilePath);
+		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, blockNotifier, taprootIndexFilePath);
 	}
 
 	public string DataDir { get; }
@@ -53,7 +59,8 @@ public class Global : IDisposable
 
 	public HostedServices HostedServices { get; }
 
-	public IndexBuilderService IndexBuilderService { get; }
+	public IndexBuilderService SegwitTaprootIndexBuilderService { get; }
+	public IndexBuilderService TaprootIndexBuilderService { get; }
 
 	private HttpClient HttpClient { get; }
 
@@ -145,8 +152,10 @@ public class Global : IDisposable
 
 		await HostedServices.StartAllAsync(cancel);
 
-		IndexBuilderService.Synchronize();
-		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+		SegwitTaprootIndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is successfully initialized and started synchronization.");
+		TaprootIndexBuilderService.Synchronize();
+		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is successfully initialized and started synchronization.");
 	}
 
 	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction transaction)
@@ -226,24 +235,18 @@ public class Global : IDisposable
 
 				var stoppingTask = Task.Run(async () =>
 				{
-					if (IndexBuilderService is { } indexBuilderService)
-					{
-						await indexBuilderService.StopAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
-					}
+					await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
 
-					if (HostedServices is { } hostedServices)
-					{
-						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-						await hostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-						hostedServices.Dispose();
-					}
+					await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
 
-					if (P2pNode is { } p2pNode)
-					{
-						await p2pNode.DisposeAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
-					}
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+					await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+					HostedServices.Dispose();
+
+					await P2pNode.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
 				});
 
 				stoppingTask.GetAwaiter().GetResult();
