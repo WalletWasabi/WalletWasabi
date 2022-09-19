@@ -17,16 +17,24 @@ public class ArenaClient
 	public ArenaClient(
 		WabiSabiClient amountCredentialClient,
 		WabiSabiClient vsizeCredentialClient,
-		IWabiSabiApiRequestHandler requestHandler)
+		string coordinatorIdentifier,
+		IWabiSabiApiRequestHandler requestHandler,
+		IWabiSabiApiRequestHandler? requestHandlerReadyAndSigning = null)
 	{
+		requestHandlerReadyAndSigning ??= requestHandler;
+
 		AmountCredentialClient = amountCredentialClient;
 		VsizeCredentialClient = vsizeCredentialClient;
+		CoordinatorIdentifier = coordinatorIdentifier;
 		RequestHandler = requestHandler;
+		RequestHandlerReadyAndSigning = requestHandlerReadyAndSigning;
 	}
 
 	public WabiSabiClient AmountCredentialClient { get; }
 	public WabiSabiClient VsizeCredentialClient { get; }
+	public string CoordinatorIdentifier { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
+	public IWabiSabiApiRequestHandler RequestHandlerReadyAndSigning { get; }
 
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
@@ -101,7 +109,7 @@ public class ArenaClient
 		{
 			throw new InvalidOperationException($"Reissuance amounts sum must equal the sum of the presented ones.");
 		}
-		
+
 		var presentedVsize = vsizeCredentialsToPresent.Sum(x => x.Value);
 		if (vsizesToRequest.Sum() > presentedVsize)
 		{
@@ -197,7 +205,7 @@ public class ArenaClient
 			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 		}
 
-		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		await RequestHandlerReadyAndSigning.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
@@ -210,7 +218,7 @@ public class ArenaClient
 		Guid aliceId,
 		CancellationToken cancellationToken)
 	{
-		await RequestHandler.ReadyToSignAsync(
+		await RequestHandlerReadyAndSigning.ReadyToSignAsync(
 			new ReadyToSignRequestRequest(
 				roundId,
 				aliceId),

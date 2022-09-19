@@ -22,7 +22,6 @@ using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
@@ -43,6 +42,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
+	private bool _parsingTo;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -103,9 +103,6 @@ public partial class SendViewModel : RoutableViewModel
 			}
 		});
 
-		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(async () =>
-			await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen));
-
 		var nextCommandCanExecute =
 			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
 				.Select(tup =>
@@ -148,8 +145,6 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand AutoPasteCommand { get; }
 
 	public ICommand QrCommand { get; }
-
-	public ICommand AdvancedOptionsCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 
@@ -245,10 +240,20 @@ public partial class SendViewModel : RoutableViewModel
 
 	private bool TryParseUrl(string? text)
 	{
+		if (_parsingTo)
+		{
+			return false;
+		}
+
+		_parsingTo = true;
+
 		text = text?.Trim();
 
 		if (string.IsNullOrEmpty(text))
 		{
+			_parsingTo = false;
+			PayJoinEndPoint = null;
+			IsFixedAmount = false;
 			return false;
 		}
 
@@ -291,6 +296,8 @@ public partial class SendViewModel : RoutableViewModel
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
 		}
+
+		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
 		return result;
 	}

@@ -8,12 +8,15 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
+	private const int SignificantFiguresForFiatAmount = 3;
 	[AutoNotify] private string _amount;
 	[AutoNotify] private string _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
@@ -28,15 +31,16 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var totalAmount = transactionResult.CalculateDestinationAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 
-		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
+		_amountFiat = total.RoundToSignificantFigures(SignificantFiguresForFiatAmount).GenerateFiatText(fiatExchangeRate, "USD");
 
 		var fiatTotal = total * fiatExchangeRate;
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
+		var roundedFiatDifference = fiatDifference.RoundToSignificantFigures(SignificantFiguresForFiatAmount);
 
 		_differenceFiat = (fiatDifference > 0
-				? $"{fiatDifference.GenerateFiatText("USD")} More"
-				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
+				? $"{roundedFiatDifference.GenerateFiatText("USD")} More"
+				: $"{Math.Abs(roundedFiatDifference).GenerateFiatText("USD")} Less")
 			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
@@ -53,38 +57,50 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
+		IAsyncEnumerable<IEnumerable<SmartCoin>> selectionsTask = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 			coinsToUse,
 			transactionInfo.FeeRate,
 			new TxOut(transactionInfo.Amount, destination),
 			maxInputCount,
-			cancellationToken).ConfigureAwait(false);
+			cancellationToken);
 
 		HashSet<Money> foundSolutionsByAmount = new();
 
-		await foreach (var selection in selections)
+		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			if (selection.Any())
 			{
-				BuildTransactionResult transaction = TransactionHelpers.BuildChangelessTransaction(
-					wallet,
-					destination,
-					transactionInfo.UserLabels,
-					transactionInfo.FeeRate,
-					selection,
-					tryToSign: false);
+				BuildTransactionResult? transaction = null;
 
-				var destinationAmount = transaction.CalculateDestinationAmount();
-
-				// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
-				if (!foundSolutionsByAmount.Contains(destinationAmount))
+				try
 				{
-					foundSolutionsByAmount.Add(destinationAmount);
+					transaction = TransactionHelpers.BuildChangelessTransaction(
+						wallet,
+						destination,
+						transactionInfo.UserLabels,
+						transactionInfo.FeeRate,
+						selection,
+						tryToSign: false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Failed to build changeless transaction. Exception: {ex}");
+				}
 
-					yield return new ChangeAvoidanceSuggestionViewModel(
-						transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-						transaction,
-						usdExchangeRate);
+				if (transaction is not null)
+				{
+					Money destinationAmount = transaction.CalculateDestinationAmount();
+
+					// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
+					if (!foundSolutionsByAmount.Contains(destinationAmount))
+					{
+						foundSolutionsByAmount.Add(destinationAmount);
+
+						yield return new ChangeAvoidanceSuggestionViewModel(
+							transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
+							transaction,
+							usdExchangeRate);
+					}
 				}
 			}
 		}

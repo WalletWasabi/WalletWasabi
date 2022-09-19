@@ -35,6 +35,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify] private int _layoutIndex;
 	[AutoNotify] private double _widthSource;
 	[AutoNotify] private double _heightSource;
+	[AutoNotify] private bool _isPointerOver;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
@@ -49,6 +50,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 		Settings = new WalletSettingsViewModel(this);
+		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
 
 		var balanceChanged =
 			Observable.FromEventPattern(
@@ -56,12 +58,12 @@ public partial class WalletViewModel : WalletViewModelBase
 					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-					.Select(_ => Unit.Default))
+						.Select(_ => Unit.Default))
 				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.Merge(Settings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
-				.Throttle(TimeSpan.FromSeconds(0.1))
-				.ObserveOn(RxApp.MainThreadScheduler));
+				.Merge(CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
+					.Throttle(TimeSpan.FromSeconds(0.1)))
+				.ObserveOn(RxApp.MainThreadScheduler);
 
 		History = new HistoryViewModel(this, balanceChanged);
 
@@ -126,11 +128,13 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero)
-				.Select(tuple =>
+			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
+				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
+				.Select(
+					tuple =>
 				{
-					var (isSelected, isWalletBalanceZero) = tuple;
-					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly;
+					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
+					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly && !areAllCoinsPrivate || pointerOver;
 				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
@@ -159,8 +163,14 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, balanceChanged)));
 
+		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
+
+	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
+
+	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 
 	public IObservable<bool> IsMusicBoxVisible { get; }
 
@@ -182,7 +192,9 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public ICommand WalletCoinsCommand { get; }
 
-	private CompositeDisposable Disposables { get; set; }
+	public ICommand CoinJoinSettingsCommand { get; }
+
+	private CompositeDisposable Disposables { get; }
 
 	public HistoryViewModel History { get; }
 

@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ public record RoundStateAwaiter
 
 	public Task<RoundState> Task => TaskCompletionSource.Task;
 
-	public bool IsCompleted(ImmutableDictionary<uint256, RoundState> allRoundStates)
+	public bool IsCompleted(IDictionary<uint256, RoundState> allRoundStates)
 	{
 		if (Task.IsCompleted)
 		{

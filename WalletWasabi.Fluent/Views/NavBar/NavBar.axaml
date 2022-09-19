@@ -83,6 +83,10 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
+    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
+      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
+    </Style>
+
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
       <Setter Property="Opacity" Value="1" />
@@ -112,7 +116,6 @@
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
-
   </UserControl.Styles>
 
   <DockPanel Margin="0 -5 0 5">
@@ -149,7 +152,8 @@
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        ReSelectSelectedItem="False"
                        Name="ItemsListBox"
-                       Classes="vertical draggable narrowItemPadding"
+                       Classes="vertical narrowItemPadding"
+                       VirtualizationMode="None"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">

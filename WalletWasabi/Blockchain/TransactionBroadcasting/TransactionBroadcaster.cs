@@ -12,7 +12,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -41,14 +40,14 @@ public class TransactionBroadcaster
 		RpcClient = rpc;
 	}
 
-		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
+	private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
+	{
+		Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
+		if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
 		{
-			Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-			if (!BitcoinStore.MempoolService.TryAddToBroadcastStore(transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
-			{
-				Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
-			}
-			var invPayload = new InvPayload(transaction.Transaction);
+			Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
+		}
+		var invPayload = new InvPayload(transaction.Transaction);
 
 		// Give 7 seconds to send the inv payload.
 		await node.SendMessageAsync(invPayload).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
@@ -186,15 +185,15 @@ public class TransactionBroadcaster
 					Logger.LogInfo($"RPC could not broadcast transaction. Reason: {ex2.Message}.");
 					Logger.LogDebug(ex2);
 
-						await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
-					}
-				}
-				else
-				{
 					await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
 				}
 			}
+			else
+			{
+				await BroadcastTransactionToBackendAsync(transaction).ConfigureAwait(false);
+			}
 		}
+	}
 
 	private async Task BroadcastTransactionWithRpcAsync(SmartTransaction transaction)
 	{

@@ -31,7 +31,7 @@ public class TorTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		TorHttpPool.Dispose();
+		await TorHttpPool.DisposeAsync();
 		await TorManager.DisposeAsync();
 	}
 
@@ -194,10 +194,10 @@ public class TorTests : IAsyncLifetime
 	public async Task TorRunningAsync()
 	{
 		TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 37150));
-		Assert.True(await client1.IsTorRunningAsync());
+		Assert.True(await client1.IsTorRunningAsync(CancellationToken.None));
 
 		TorTcpConnectionFactory client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
-		Assert.False(await client2.IsTorRunningAsync());
+		Assert.False(await client2.IsTorRunningAsync(CancellationToken.None));
 	}
 
 	private async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)

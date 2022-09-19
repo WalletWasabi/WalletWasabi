@@ -21,7 +21,7 @@ public class RpcClientBase : IRPCClient
 
 	public Network Network => Rpc.Network;
 
-	private RPCClient Rpc { get; }
+	protected internal RPCClient Rpc { get; }
 
 	public RPCCredentialString CredentialString => Rpc.CredentialString;
 
@@ -146,7 +146,7 @@ public class RpcClientBase : IRPCClient
 		return new RpcClientBase(Rpc.PrepareBatch());
 	}
 
-	public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	public virtual async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
 		var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3).ConfigureAwait(false);
 		return RpcParser.ParseVerboseBlockResponse(resp.ResultString);

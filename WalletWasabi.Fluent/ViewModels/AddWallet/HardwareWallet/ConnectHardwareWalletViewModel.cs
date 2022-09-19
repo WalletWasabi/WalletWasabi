@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -38,9 +37,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext);
 
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
-			await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
-
 		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
 
 		this.WhenAnyValue(x => x.Message)
@@ -60,8 +56,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public WalletViewModelBase? ExistingWallet { get; set; }
 
-	public ICommand OpenBrowserCommand { get; }
-
 	public ICommand NavigateToExistingWalletLoginCommand { get; }
 
 	public WalletType Ledger => WalletType.Ledger;
@@ -70,7 +64,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public WalletType Trezor => WalletType.Trezor;
 
-	public WalletType Generic => WalletType.Unknown;
+	public WalletType Generic => WalletType.Hardware;
 
 	private void OnNext()
 	{
@@ -136,7 +130,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		try
 		{
 			await Task.Delay(7000, cancellationToken);
-			Message = "Check your device and enter your passphrase.";
+			Message = "Check your device and enter your passphrase, then click Rescan.";
 		}
 		catch (OperationCanceledException)
 		{

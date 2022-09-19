@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -41,7 +40,7 @@ public class LiveServerTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		TorHttpPool.Dispose();
+		await TorHttpPool.DisposeAsync();
 		await TorManager.DisposeAsync();
 	}
 
@@ -60,17 +59,6 @@ public class LiveServerTests : IAsyncLifetime
 
 		Assert.NotNull(filtersResponse);
 		Assert.Equal(2, filtersResponse!.Filters.Count());
-	}
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task GetAllRoundStatesAsync(Network network)
-	{
-		TorHttpClient torHttpClient = MakeTorHttpClient(network);
-		SatoshiClient client = new(torHttpClient);
-		var states = await client.GetAllRoundStatesAsync();
-		Assert.True(states.NotNullAndNotEmpty());
-		Assert.True(states.Any());
 	}
 
 	[Theory]
@@ -94,22 +82,6 @@ public class LiveServerTests : IAsyncLifetime
 	}
 
 	#endregion Blockchain
-
-	#region Offchain
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task GetExchangeRateAsync(Network network)
-	{
-		TorHttpClient torHttpClient = MakeTorHttpClient(network);
-		WasabiClient client = new(torHttpClient);
-
-		var exchangeRates = await client.GetExchangeRatesAsync();
-
-		Assert.True(exchangeRates.NotNullAndNotEmpty());
-	}
-
-	#endregion Offchain
 
 	#region Software
 

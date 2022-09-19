@@ -1,7 +1,5 @@
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Linq;
-using System.Text.RegularExpressions;
 using DynamicData;
 using DynamicData.Aggregation;
 using ReactiveUI;
@@ -18,49 +16,22 @@ public partial class SearchBarViewModel : ReactiveObject
 
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{
-		var filterPredicate = this
-			.WhenAnyValue(x => x.SearchText)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
-			.DistinctUntilChanged()
-			.Select(SearchItemFilterFunc);
-
-		var filteredItems = itemsObservable
-			.RefCount()
-			.Filter(filterPredicate);
-
-		filteredItems
-			.Transform(item => item is ActionableItem i ? new AutocloseActionableItem(i, () => IsSearchListVisible = false) : item)
+		itemsObservable
 			.Group(s => s.Category)
-			.Transform(group => new SearchItemGroup(group.Key, group.Cache))
+			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
 			.Bind(out _groups)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
-		Any = filteredItems
+		HasResults = itemsObservable
 			.Count()
 			.Select(i => i > 0)
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Replay(1)
+			.RefCount();
 	}
 
-	public IObservable<bool> Any { get; }
+	public IObservable<bool> HasResults { get; }
 
 	public ReadOnlyObservableCollection<SearchItemGroup> Groups => _groups;
-
-	private static Func<ISearchItem, bool> SearchItemFilterFunc(string? text)
-	{
-		return searchItem =>
-		{
-			if (string.IsNullOrWhiteSpace(text))
-			{
-				return searchItem.IsDefault;
-			}
-
-			var containsName = searchItem.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase);
-			var containsCategory = searchItem.Category.Contains(text, StringComparison.InvariantCultureIgnoreCase);
-			var containsAnyTag =
-				searchItem.Keywords.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
-			return containsName || containsCategory || containsAnyTag;
-		};
-	}
 }

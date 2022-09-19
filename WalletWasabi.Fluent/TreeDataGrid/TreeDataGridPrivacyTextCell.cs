@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,26 +6,28 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
-	private static readonly List<TreeDataGridPrivacyTextCell> Realized = new();
-	private static IDisposable? Subscription;
-	private static bool IsContentVisible = true;
-	private string? _value;
 	private FormattedText? _formattedText;
+	private bool _isContentVisible = true;
+	private string _mask = "";
 	private int _numberOfPrivacyChars;
+	private IDisposable _subscription = Disposable.Empty;
+	private string? _value;
 
-	public string? Text => IsContentVisible ? _value : new string('#', _value is not null ? _numberOfPrivacyChars : 0);
+	private string? Text => _isContentVisible ? _value : TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var privacyTextCell = (PrivacyTextCell)model;
+		var privacyTextCell = (PrivacyTextCell) model;
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
+		_mask = TextHelpers.GetPrivacyMask(_numberOfPrivacyChars);
 
 		if (text != _value)
 		{
@@ -38,37 +40,40 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	public override void Render(DrawingContext context)
 	{
-		if (_formattedText is not null)
+		if (_formattedText is null)
 		{
-			var r = Bounds.CenterRect(_formattedText.Bounds);
-			context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
+			var placeHolder = new FormattedText(
+				_mask,
+				new Typeface(FontFamily, FontStyle, FontWeight),
+				FontSize,
+				TextAlignment.Left,
+				TextWrapping.NoWrap,
+				Size.Infinity);
+
+			var rc = Bounds.CenterRect(placeHolder.Bounds);
+			context.DrawText(Brushes.Transparent, new Point(0, rc.Position.Y), placeHolder);
+			return;
 		}
+
+		var r = Bounds.CenterRect(_formattedText.Bounds);
+		context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
 	}
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		base.OnAttachedToVisualTree(e);
+		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
+			this.WhenAnyValue(x => x.IsPointerOver),
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
 
-		if (Realized.Count == 0)
-		{
-			Subscription = Services.UiConfig
-				.WhenAnyValue(x => x.PrivacyMode)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => SetContentVisible(!x));
-		}
-
-		Realized.Add(this);
+		_subscription = displayContent
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(SetContentVisible)
+			.Subscribe();
 	}
 
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
-		Realized.Remove(this);
-
-		if (Realized.Count == 0)
-		{
-			Subscription?.Dispose();
-			Subscription = null;
-		}
+		_subscription.Dispose();
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
@@ -92,14 +97,10 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 		return _formattedText.Bounds.Size;
 	}
 
-	private static void SetContentVisible(bool value)
+	private void SetContentVisible(bool value)
 	{
-		IsContentVisible = value;
-
-		foreach (var c in Realized)
-		{
-			c._formattedText = null;
-			c.InvalidateMeasure();
-		}
+		_isContentVisible = value;
+		_formattedText = null;
+		InvalidateMeasure();
 	}
 }

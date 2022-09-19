@@ -1,12 +1,13 @@
+using System.Diagnostics;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
-using Splat;
 using System.IO;
-using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ReactiveUI;
+using System.Linq;
 using Avalonia.OpenGL;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
@@ -20,6 +21,8 @@ using WalletWasabi.Wallets;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
+using System.Net.Sockets;
+using System.Collections.ObjectModel;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -38,7 +41,7 @@ public class Program
 		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 		SetupLogger(dataDir, args);
 
-		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none") }.");
+		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
 
 		// Crash reporting must be before the "single instance checking".
 		try
@@ -91,9 +94,22 @@ public class Program
 			Global = CreateGlobal(dataDir, uiConfig, config);
 			Services.Initialize(Global, singleInstanceChecker);
 
+			RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+				{
+					if (Debugger.IsAttached)
+					{
+						Debugger.Break();
+					}
+
+					Logger.LogError(ex);
+
+					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
+				});
+
 			Logger.LogSoftwareStarted("Wasabi GUI");
 			AppBuilder
-				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI()
+				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground))
+				.UseReactiveUI()
 				.SetupAppBuilder()
 				.AfterSetup(_ =>
 					{
@@ -123,6 +139,10 @@ public class Program
 		{
 			// Trigger the CrashReport process if required.
 			CrashReporter.Invoke(exceptionToReport);
+		}
+		else if (Services.UpdateManager.DoUpdateOnClose)
+		{
+			Services.UpdateManager.StartInstallingNewVersion();
 		}
 
 		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
@@ -199,7 +219,22 @@ public class Program
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogDebug(e.Exception);
+		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
+
+		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException socketException && socketException.SocketErrorCode == SocketError.OperationAborted)
+		{
+			// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
+			Logger.LogTrace(e.Exception);
+		}
+		else if (innerExceptions.Count == 1 && innerExceptions[0] is OperationCanceledException ex && ex.Message == "The peer has been disconnected")
+		{
+			// Source of this exception is NBitcoin library.
+			Logger.LogTrace(e.Exception);
+		}
+		else
+		{
+			Logger.LogDebug(e.Exception);
+		}
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)

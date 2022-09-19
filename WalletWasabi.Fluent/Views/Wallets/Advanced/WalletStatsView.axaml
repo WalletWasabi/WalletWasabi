@@ -32,8 +32,23 @@
                      TextValue="{Binding Balance}">
         <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding Balance, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" />
       </c:PreviewItem>
-
       <Separator />
+      <c:PreviewItem Label="Total number of transactions"
+                     TextValue="{Binding TotalTransactionCount}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding TotalTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+      </c:PreviewItem>
+      <Separator />
+      <c:PreviewItem Label="Number of non-coinjoin transactions"
+                     TextValue="{Binding NonCoinjointransactionCount}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding NonCoinjointransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+      </c:PreviewItem>
+      <Separator />
+      <c:PreviewItem Label="Number of coinjoin transactions"
+                     TextValue="{Binding CoinjoinTransactionCount}">
+        <c:PrivacyContentControl NumberOfPrivacyChars="11" Content="{Binding CoinjoinTransactionCount, Mode=OneWay}" Classes="monoSpaced" />
+      </c:PreviewItem>
+      <Separator />
+
       <c:PreviewItem Label="Number of addresses"
                      TextValue="{Binding GeneratedKeyCount}">
         <c:PrivacyContentControl Classes="monoSpaced"

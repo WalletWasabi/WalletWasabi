@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
@@ -17,14 +18,13 @@ public class TransactionProcessor
 	public TransactionProcessor(
 		AllTransactionStore transactionStore,
 		KeyManager keyManager,
-		Money dustThreshold,
-		int privacyLevelThreshold)
+		Money dustThreshold)
 	{
 		TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
 		KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
-		Coins = new CoinsRegistry();
-		BlockchainAnalyzer = new BlockchainAnalyzer(privacyLevelThreshold);
+		Coins = new();
+		BlockchainAnalyzer = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -237,7 +237,7 @@ public class TransactionProcessor
 					result.NewlyReceivedCoins.Add(newCoin);
 
 					// Make sure there's always 21 clean keys generated and indexed.
-					KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
+					KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: foundKey.IsInternal);
 				}
 				else // If we had this coin already.
 				{

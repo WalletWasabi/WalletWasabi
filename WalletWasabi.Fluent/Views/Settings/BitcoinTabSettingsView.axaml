@@ -2,7 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:BitcoinTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.BitcoinTabSettingsView"
@@ -17,7 +19,7 @@
     </StackPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text= "(EXPERIMENTAL) Run Bitcoin Knots on startup" />
+      <TextBlock VerticalAlignment="Center" Text="(EXPERIMENTAL) Run Bitcoin Knots on startup" />
       <ToggleSwitch IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" />
     </DockPanel>
 
@@ -27,25 +29,27 @@
     </StackPanel>
 
     <DockPanel>
-      <TextBlock VerticalAlignment="Center" Text= "Local Bitcoin Core/Knots version" />
+      <TextBlock VerticalAlignment="Center" Text="Local Bitcoin Core/Knots version" />
       <Label Content="{Binding BitcoinCoreVersion}" />
     </DockPanel>
 
     <DockPanel IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text= "Stop Bitcoin Knots on shutdown" />
+      <TextBlock Text="Stop Bitcoin Knots on shutdown" />
       <ToggleSwitch IsChecked="{Binding StopLocalBitcoinCoreOnShutdown}" />
     </DockPanel>
 
     <DockPanel IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
-      <TextBox Text="{Binding BitcoinP2PEndPoint}" />
+       <c:PrivacyContentControl PrivacyReplacementMode="Text" VerticalAlignment="Bottom" NumberOfPrivacyChars="15">
+        <TextBox Text="{Binding BitcoinP2PEndPoint}" />
+       </c:PrivacyContentControl>
     </DockPanel>
 
     <StackPanel Spacing="10"
                 ToolTip.Tip="Coins under the dust threshold won't appear.">
-      <TextBlock Text= "Dust Threshold (BTC)" />
-      <TextBox Text="{Binding DustThreshold}" />
+      <TextBlock Text="Dust Threshold" />
+      <controls:CurrencyEntryBox Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </StackPanel>
   </StackPanel>
 </UserControl>

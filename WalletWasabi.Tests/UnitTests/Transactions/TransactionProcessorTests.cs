@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
@@ -97,7 +98,7 @@ public class TransactionProcessorTests
 		// An unconfirmed segwit transaction for us
 		var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
 
-		var tx1 = CreateCreditingTransaction(hdPubKey.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+		var tx1 = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
 		var blockHeight = new Height(77551);
 		var tx2 = new SmartTransaction(tx1.Transaction, blockHeight);
 		var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), BitcoinFactory.CreateScript());
@@ -175,7 +176,7 @@ public class TransactionProcessorTests
 		// An unconfirmed segwit transaction for us
 		var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
 
-		var tx = CreateCreditingTransaction(hdPubKey.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+		var tx = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
 		transactionProcessor.Process(tx);
 
 		Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -210,15 +211,15 @@ public class TransactionProcessorTests
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
 		// An unconfirmed segwit transaction for us
-		var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+		var tx0 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
 
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
+		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 
 		// Spend the same coin again
-		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey);
+		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 
 		Assert.False(relevant.IsNews);
@@ -249,8 +250,8 @@ public class TransactionProcessorTests
 			{
 				var coin = Assert.Single(doubleSpents);
 
-					// Double spend to ourselves but to a different address. So checking the address.
-					Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, coin.ScriptPubKey);
+				// Double spend to ourselves but to a different address. So checking the address.
+				Assert.Equal(keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), coin.ScriptPubKey);
 
 				doubleSpendReceived++;
 			}
@@ -265,9 +266,9 @@ public class TransactionProcessorTests
 			{
 				switch (coinReceivedCalled)
 				{
-					case 0: Assert.Equal(keys[0].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					case 1: Assert.Equal(keys[1].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
-					case 2: Assert.Equal(keys[2].PubKey.WitHash.ScriptPubKey, c.ScriptPubKey); break;
+					case 0: Assert.Equal(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), c.ScriptPubKey); break;
+					case 1: Assert.Equal(keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), c.ScriptPubKey); break;
+					case 2: Assert.Equal(keys[2].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), c.ScriptPubKey); break;
 					default:
 						throw new InvalidOperationException();
 				};
@@ -277,17 +278,17 @@ public class TransactionProcessorTests
 		};
 
 		// An unconfirmed segwit transaction for us
-		var tx0 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
+		var tx0 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m), height: 54321);
 
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.WitHash.ScriptPubKey);
+		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 
 		Assert.Equal(0, doubleSpendReceived);
 
 		// Spend the coin
-		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey, height: 54321);
+		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), height: 54321);
 		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 		Assert.Equal(1, doubleSpendReceived);
 
@@ -323,12 +324,12 @@ public class TransactionProcessorTests
 		{
 			if (e.ReplacedCoins.Any() || e.RestoredCoins.Any())
 			{
-					// Move the original coin from spent to unspent - so add.
-					var originalCoin = Assert.Single(e.RestoredCoins);
+				// Move the original coin from spent to unspent - so add.
+				var originalCoin = Assert.Single(e.RestoredCoins);
 				Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
 
-					// Remove the created coin by the transaction.
-					Assert.Equal(3, e.ReplacedCoins.Count);
+				// Remove the created coin by the transaction.
+				Assert.Equal(3, e.ReplacedCoins.Count);
 				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
 				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
 				Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");
@@ -511,7 +512,7 @@ public class TransactionProcessorTests
 		};
 
 		// A confirmed segwit transaction for us
-		var tx1 = CreateCreditingTransaction(keys[0].PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+		var tx1 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
 		var results = transactionProcessor.Process(tx1, tx1).ToArray();
 		var res1 = results[0];
 		var res2a = results[1];
@@ -1408,7 +1409,6 @@ public class TransactionProcessorTests
 		return new TransactionProcessor(
 			transactionStore,
 			keyManager,
-			Money.Coins(0.0001m),
-			privacyLevelThreshold);
+			Money.Coins(0.0001m));
 	}
 }

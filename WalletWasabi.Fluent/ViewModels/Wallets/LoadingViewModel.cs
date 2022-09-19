@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -121,7 +122,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 		{
 			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
 			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
 			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
@@ -153,7 +154,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		if (remainingTimeSpan > TimeSpan.FromHours(1))
 		{
- 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+			remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
 		}
 
 		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);

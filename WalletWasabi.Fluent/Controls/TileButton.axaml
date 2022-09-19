@@ -16,9 +16,9 @@
                        Foreground="{TemplateBinding Foreground}" />
             <Panel>
               <PathIcon x:Name="PART_Icon"
-                      Data="{TemplateBinding Icon}"
-                      Width="{TemplateBinding IconSize}"
-                      Height="{TemplateBinding IconSize}" />
+                        Data="{TemplateBinding Icon}"
+                        Width="{TemplateBinding IconSize}"
+                        Height="{TemplateBinding IconSize}" />
 
               <ContentPresenter x:Name="PART_ContentPresenter"
                                 Content="{TemplateBinding Content}"
