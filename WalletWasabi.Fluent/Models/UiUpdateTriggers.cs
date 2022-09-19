@@ -27,4 +27,25 @@ public class UiUpdateTriggers
 	public IObservable<Unit> UsdExchangeRateChanged => _wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).ToSignal();
 
 	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal().Throttle(TimeSpan.FromMilliseconds(3100));
+
+	public IObservable<Unit> TransactionHistoryUpdateTrigger =>
+		WalletRelevantTransactionProcessed
+			.Merge(PrivacyModeChanged)
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+	public IObservable<Unit> BalanceUpdateTrigger =>
+		WalletRelevantTransactionProcessed
+			.Merge(PrivacyModeChanged)
+			.Merge(UsdExchangeRateChanged)
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+	public IObservable<Unit> PrivacyProgressUpdateTrigger =>
+		WalletRelevantTransactionProcessed
+			.Merge(PrivacyModeChanged)
+			.Merge(AnonScoreTargetChanged)
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler);
+
 }

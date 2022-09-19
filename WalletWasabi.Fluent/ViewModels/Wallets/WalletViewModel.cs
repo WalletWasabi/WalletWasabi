@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
@@ -51,22 +52,24 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		Settings = new WalletSettingsViewModel(this);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
+		UiUpdateTriggers = new UiUpdateTriggers(this);
 
-		var balanceChanged =
-			Observable.FromEventPattern(
-					Wallet.TransactionProcessor,
-					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-				.Select(_ => Unit.Default)
-				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed)).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default))
-				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
-				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.Merge(CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
-					.Throttle(TimeSpan.FromSeconds(0.1)))
-				.ObserveOn(RxApp.MainThreadScheduler);
+		// var balanceChanged =
+		// 	Observable.FromEventPattern(
+		// 			Wallet.TransactionProcessor,
+		// 			nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+		// 		.Select(_ => Unit.Default)
+		// 		.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed)).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default))
+		// 		.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
+		// 		.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
+		// 		.Merge(CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
+		// 			.Throttle(TimeSpan.FromSeconds(0.1)))
+		// 		.ObserveOn(RxApp.MainThreadScheduler);
 
-		History = new HistoryViewModel(this, balanceChanged);
+		History = new HistoryViewModel(this);
 
-		balanceChanged
+		UiUpdateTriggers
+			.WalletRelevantTransactionProcessed
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
@@ -106,8 +109,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		LayoutIndex = _normalLayoutIndex;
 
 		_tiles = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletTiles(this, balanceChanged)
-			: TileHelper.GetNormalWalletTiles(this, balanceChanged);
+			? TileHelper.GetWatchOnlyWalletTiles(this)
+			: TileHelper.GetNormalWalletTiles(this);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
 			.Subscribe(x =>
@@ -166,6 +169,8 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, balanceChanged);
 	}
+
+	public UiUpdateTriggers UiUpdateTriggers { get; }
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
 

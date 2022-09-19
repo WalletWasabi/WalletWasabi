@@ -38,10 +38,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryLoaded;
 
-	public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
+	public HistoryViewModel(WalletViewModel walletViewModel)
 	{
 		_walletViewModel = walletViewModel;
-		_updateTrigger = updateTrigger;
+		_updateTrigger = _walletViewModel.UiUpdateTriggers.TransactionHistoryUpdateTrigger;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();

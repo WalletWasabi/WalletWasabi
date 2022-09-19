@@ -9,11 +9,11 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TileHelper
 {
-	public static List<TileViewModel> GetNormalWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public static List<TileViewModel> GetNormalWalletTiles(WalletViewModel walletViewModel)
 	{
 		return new List<TileViewModel>
 			{
-				new WalletBalanceTileViewModel(walletViewModel.Wallet, balanceChanged, walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceTileViewModel(walletViewModel.Wallet, walletViewModel.UiUpdateTriggers.BalanceUpdateTrigger, walletViewModel.History.UnfilteredTransactions)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -24,7 +24,7 @@ public static class TileHelper
 					TilePresetIndex = walletViewModel.LayoutIndex
 				},
 
-				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
+				new PrivacyControlTileViewModel(walletViewModel, walletViewModel.UiUpdateTriggers.PrivacyProgressUpdateTrigger)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -48,11 +48,11 @@ public static class TileHelper
 			};
 	}
 
-	public static List<TileViewModel> GetWatchOnlyWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public static List<TileViewModel> GetWatchOnlyWalletTiles(WalletViewModel walletViewModel)
 	{
 		return new List<TileViewModel>
 			{
-				new WalletBalanceTileViewModel(walletViewModel.Wallet, balanceChanged, walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceTileViewModel(walletViewModel.Wallet, walletViewModel.UiUpdateTriggers.BalanceUpdateTrigger, walletViewModel.History.UnfilteredTransactions)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
