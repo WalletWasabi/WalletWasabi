@@ -12,19 +12,36 @@ internal class IndentToColorConverter : IMultiValueConverter
 {
 	public static IndentToColorConverter Instance { get; } = new();
 
+	public List<IBrush>? Brushes { get; set; }
+
 	public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
 	{
 		var obj = values.Skip(0).First();
-		var rows = values.Skip(1).First() as IRows;
 
-		if (obj is null || rows is null)
+		if (obj is null || values.Skip(1).First() is not IRows rows)
 		{
 			return BindingOperations.DoNothing;
 		}
 
 		var rowIndex = FindIndex(rows, el => el.Model == obj);
 		var modelIndex = rows.RowIndexToModelIndex(rowIndex);
-		return GetBrush(modelIndex.Count -1) ?? BindingOperations.DoNothing;
+		return GetBrush(modelIndex.Count - 1) ?? BindingOperations.DoNothing;
+	}
+
+	public static int FindIndex<T>(IEnumerable<T> source, Func<T, bool> predicate)
+	{
+		var i = 0;
+		foreach (var item in source)
+		{
+			if (predicate(item))
+			{
+				return i;
+			}
+
+			i++;
+		}
+
+		return -1;
 	}
 
 	private IBrush? GetBrush(int modelIndex)
@@ -36,21 +53,4 @@ internal class IndentToColorConverter : IMultiValueConverter
 
 		return Brushes[modelIndex];
 	}
-
-	public static int FindIndex<T>(IEnumerable<T> source, Func<T, bool> predicate)
-	{
-		int i = 0;
-		foreach (var item in source)
-		{
-			if (predicate(item))
-			{
-				return i;
-			}
-
-			i++;
-		}
-		return -1;
-	}
-
-	public List<IBrush>? Brushes { get; set; }
 }
