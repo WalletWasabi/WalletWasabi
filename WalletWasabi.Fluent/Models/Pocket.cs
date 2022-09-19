@@ -22,5 +22,5 @@ public class Pocket
 
 	public static Pocket Empty => new((SmartLabel.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
 
-	public Money EffectiveSumValue(FeeRate feeRate) => Coins.ToArray().Sum(coin => coin.EffectiveValue(feeRate));
+	public Money EffectiveSumValue(FeeRate feeRate) => Coins.Sum(coin => coin.EffectiveValue(feeRate));
 }
