@@ -867,9 +867,9 @@ public partial class LineChart : Control
 		if (change.Property == XAxisValuesProperty || change.Property == YAxisValuesProperty ||
 		    change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
 		{
-			UpdateSubscription(
-				(INotifyCollectionChanged) change.OldValue,
-				(INotifyCollectionChanged) change.NewValue);
+			var oldINCC = change.OldValue as INotifyCollectionChanged;
+			var newINCC = change.NewValue as INotifyCollectionChanged;
+			UpdateSubscription(oldINCC, newINCC);
 		}
 	}
 
