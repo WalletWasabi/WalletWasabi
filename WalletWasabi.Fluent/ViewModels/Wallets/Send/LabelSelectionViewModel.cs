@@ -288,8 +288,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private bool IsPrivatePocketNeeded()
 	{
 		var isNonPrivateNotEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) < _targetAmount;
-		var isPrivateAndSemiPrivateNotEnough = _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) < _targetAmount;
-		var isNonPrivateAndPrivateEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isPrivateAndSemiPrivateNotEnough = (_privatePocket + _semiPrivatePocket).EffectiveSumValue(_feeRate) < _targetAmount;
+		var isNonPrivateAndPrivateEnough = (NonPrivatePockets + _privatePocket).EffectiveSumValue(_feeRate) >= _targetAmount;
 
 		var isPrivateNeededBesideNonPrivate = isNonPrivateNotEnough && isPrivateAndSemiPrivateNotEnough && isNonPrivateAndPrivateEnough;
 		var isOnlyPrivateNeeded = LabelsWhiteList.IsEmpty() && _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
@@ -299,12 +299,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private bool IsPrivateAndSemiPrivatePocketNeeded()
 	{
-		var isNonPrivateAndPrivateNotEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) < _targetAmount;
-		var isNonPrivateAndPrivateAndSemiPrivateEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isNonPrivateAndPrivateNotEnough = (NonPrivatePockets + _privatePocket).EffectiveSumValue(_feeRate) < _targetAmount;
+		var isNonPrivateAndPrivateAndSemiPrivateEnough = (NonPrivatePockets + _privatePocket + _semiPrivatePocket).EffectiveSumValue(_feeRate) >= _targetAmount;
 		var isPrivateAndSemiPrivateNeededBesideNonPrivate = isNonPrivateAndPrivateNotEnough && isNonPrivateAndPrivateAndSemiPrivateEnough;
 
 		var isPrivateNotEnough = _privatePocket.EffectiveSumValue(_feeRate) < _targetAmount;
-		var isPrivateAndSemiPrivateEnough = _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isPrivateAndSemiPrivateEnough = (_privatePocket + _semiPrivatePocket).EffectiveSumValue(_feeRate) >= _targetAmount;
 		var isOnlyPrivateAndSemiPrivateNeeded = LabelsWhiteList.IsEmpty() &&  isPrivateNotEnough && isPrivateAndSemiPrivateEnough;
 
 		return isPrivateAndSemiPrivateNeededBesideNonPrivate || isOnlyPrivateAndSemiPrivateNeeded;
