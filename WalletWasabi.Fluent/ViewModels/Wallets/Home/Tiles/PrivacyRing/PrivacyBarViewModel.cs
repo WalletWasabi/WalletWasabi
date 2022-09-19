@@ -43,7 +43,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
 	
-	IsEmpty = this.WhenAnyValue(x => x.Items.Count).Select(count => count == 0);
+		IsEmpty = this.WhenAnyValue(x => x.Items.Count).Select(count => count == 0);
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
