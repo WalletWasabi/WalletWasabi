@@ -14,8 +14,8 @@ public partial class CoinSelectionCellViewModel : ViewModelBase, ISelectable
 	{
 		Coin = coin;
 
-		this.WhenAnyValue(x => x.Coin.IsSelected, x => x.Coin.CoinJoinInProgress, (sel, cj) => sel && !cj)
-			.Do(isSelected => IsSelected = isSelected)
+		this.WhenAnyValue(x => x.Coin.IsSelected)
+			.Do(b => IsSelected = b)
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.Coin.CoinJoinInProgress)

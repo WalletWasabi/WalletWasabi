@@ -45,11 +45,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPredefinedCoinsCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private IObservable<string> _summaryText = Observable.Return("");
 
-	public SelectCoinsDialogViewModel(
-		WalletViewModel walletViewModel,
-		TransactionInfo transactionInfo,
-		IObservable<Unit> balanceChanged,
-		IEnumerable<SmartCoin> usedCoins)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, TransactionInfo transactionInfo, IObservable<Unit> balanceChanged, IEnumerable<SmartCoin> usedCoins)
 	{
 		_walletViewModel = walletViewModel;
 		_balanceChanged = balanceChanged;
@@ -92,7 +88,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
 			.Select(items => items.Where(t => t.IsSelected).ToList())
-			.ReplayLastActive();
+			.Replay()
+			.RefCount();
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 

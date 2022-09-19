@@ -23,8 +23,8 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private string? _confirmedToolTip;
 	[AutoNotify] private bool _isBanned;
-	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private SmartLabel _smartLabel = "";
+	private bool _isSelected;
 
 	public WalletCoinViewModel(SmartCoin coin, Wallet wallet)
 	{
@@ -36,7 +36,13 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int) x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
+		Observable.Timer(TimeSpan.FromSeconds(Random.Shared.Next(30)), RxApp.MainThreadScheduler).Subscribe(l => CoinJoinInProgress = true);
+		//Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
+		this.WhenAnyValue(x => x.CoinJoinInProgress)
+			.Where(x => x)
+			.Do(_ => IsSelected = false)
+			.Subscribe();
+
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").DisposeWith(_disposables);
@@ -45,6 +51,20 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable, ISelectab
 	public SmartCoin Coin { get; }
 
 	public Wallet Wallet { get; }
+
+	public bool IsSelected
+	{
+		get => _isSelected;
+		set
+		{
+			if (CoinJoinInProgress)
+			{
+				value = false;
+			}
+
+			this.RaiseAndSetIfChanged(ref _isSelected, value);
+		}
+	}
 
 	public PrivacyLevelKey PrivacyLevelKey => PrivacyLevelKey.Get(SmartLabel, this.GetPrivacyLevel());
 
