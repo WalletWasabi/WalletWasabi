@@ -12,31 +12,6 @@ namespace WalletWasabi.Fluent.Helpers;
 public static class AppLifetimeHelper
 {
 	/// <summary>
-	/// Attempts to restart the app without passing any program arguments.
-	/// </summary>
-	/// <remarks>
-	/// This method is only functional on the published builds
-	/// and not on debugging runs.
-	/// </remarks>
-	public static void Restart()
-	{
-		StartAppWithArgs();
-		ForceShutdown();
-	}
-
-	/// <summary>
-	/// Restarts the application with shutdown prevention.
-	/// </summary>
-	/// <remarks>
-	/// This method is only functional on the published builds
-	/// and not on debugging runs.
-	/// </remarks>
-	public static void RestartWithShutdownPrevention()
-	{
-		SafeShutdown(restart: true);
-	}
-
-	/// <summary>
 	/// Attempts to start a new instance of the app with optional program arguments
 	/// </summary>
 	/// <remarks>
@@ -58,21 +33,31 @@ public static class AppLifetimeHelper
 	}
 
 	/// <summary>
-	/// Attempts to shutdown the current instance of the app safely with shutdown prevention.
+	/// Shuts down the application safely, optionally shutdown prevention and restart can be requested.
 	/// </summary>
-	public static void SafeShutdown(bool restart = false)
+	/// <remarks>
+	/// This method is only functional on the published builds
+	/// and not on debugging runs.
+	/// </remarks>
+	/// <param name="withShutdownPrevention">Enabled the shutdown prevention, so a dialog will pop until the shutdown can be done safely.</param>
+	/// <param name="restart">If true, the application will restart after shutdown.</param>
+	public static void Shutdown(bool withShutdownPrevention = true, bool restart = false)
 	{
-		if (Application.Current?.DataContext is ApplicationViewModel app)
+		switch ((withShutdownPrevention, restart))
 		{
-			app.Shutdown(restart);
-		}
-	}
+			case (true, true):
+			case (true, false):
+				(Application.Current?.DataContext as ApplicationViewModel)?.Shutdown(restart);
+				break;
 
-	/// <summary>
-	/// Attempts to shutdown the current instance of the app safely without shutdown prevention.
-	/// </summary>
-	public static void ForceShutdown()
-	{
-		(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+			case (false, true):
+				StartAppWithArgs();
+				(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+				break;
+
+			case (false, false):
+				(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+				break;
+		}
 	}
 }
