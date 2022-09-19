@@ -249,8 +249,7 @@
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Template">
             <ControlTemplate>
-              <Border Background="{TemplateBinding Background}"
-                      Padding="0">
+              <Border Background="{TemplateBinding Background}">
                 <DockPanel>
                   <Border DockPanel.Dock="Left"
                           Margin="4 0"

@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:coinSelection="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinSelection"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              x:CompileBindings="True"
              x:DataType="coinSelection:SelectCoinsDialogViewModel"
@@ -24,12 +25,66 @@
         <Setter Property="Height" Value="37.5" />
       </Style>
 
+      <Style Selector="TreeDataGridRow" x:CompileBindings="False">
+        <Style.Resources>
+          <converters:IndentToColorConverter x:Key="IndentToBrushConverter">
+            <converters:IndentToColorConverter.Brushes>
+             <generic:List x:TypeArguments="IBrush">
+               <SolidColorBrush>Transparent</SolidColorBrush>
+               <SolidColorBrush Color="{DynamicResource SystemListLowColor}" />
+             </generic:List>
+            </converters:IndentToColorConverter.Brushes>
+          </converters:IndentToColorConverter>
+        </Style.Resources>
+        <Setter Property="Template">
+          <ControlTemplate TargetType="TreeDataGridRow">
+            <Border x:Name="RowBorder"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Padding="0">
+              <Border.Background>
+                <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
+                  <Binding Path="." />
+                  <Binding Path="Rows" RelativeSource="{RelativeSource Mode=TemplatedParent}" />
+                </MultiBinding>
+              </Border.Background>
+              <TreeDataGridCellsPresenter x:Name="PART_CellsPresenter"
+                                          ElementFactory="{TemplateBinding ElementFactory}"
+                                          Items="{TemplateBinding Columns}"
+                                          Rows="{TemplateBinding Rows}"/>
+            </Border>
+          </ControlTemplate>
+        </Setter>
+      </Style>
+
+      <Style Selector="TreeDataGridExpanderCell">
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Border Background="{TemplateBinding Background}">
+              <DockPanel>
+                <Border DockPanel.Dock="Left"
+                        Margin="4 0"
+                        Width="12" Height="12">
+                  <ToggleButton Classes="ExpandCollapseChevron"
+                                Focusable="False"
+                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+                                IsVisible="{TemplateBinding ShowExpander}"
+                                Cursor="Hand" />
+                </Border>
+                <Decorator Name="PART_Content" />
+              </DockPanel>
+            </Border>
+          </ControlTemplate>
+        </Setter>
+      </Style>
+
       <Style Selector="TreeDataGridRow ContentPresenter">
         <Setter Property="VerticalAlignment" Value="Center" />
       </Style>
 
       <Style Selector="TreeDataGridTemplateCell > ContentPresenter">
-        <Setter Property="Margin" Value="5 0 10 0"></Setter>
+        <Setter Property="Margin" Value="5 0 10 0" />
       </Style>
 
       <Style Selector="ContentPresenter > TextBlock">
