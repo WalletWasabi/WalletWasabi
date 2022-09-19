@@ -1,0 +1,82 @@
+# .github/workflows/issues2md.yml
+# https://github.com/mattduck/gh2md/issues/11
+
+name: Github2Markdown
+on:
+  #push: # comment it to reduce update.
+  schedule:
+    # every day
+    #- cron: "0 0 * * *"
+    # every hour
+    - cron: "0 * * * *"
+jobs:
+  build:
+    name: Backup github issues to markdown files
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set output path
+      run: echo "GH2MD_OUTPUT_PATH=archive/github/issues/" >> $GITHUB_ENV
+    - name: Check output path
+      run: |
+        if ! [[ "$GH2MD_OUTPUT_PATH" =~ ^[a-zA-Z0-9_/.+~-]+$ ]]; then
+          echo "error: output path does not match the pattern ^[a-zA-Z0-9_/.+~-]+$"
+          exit 1
+        fi
+    - name: checkout
+      uses: actions/checkout@master
+      with:
+        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+    - name: Run gh2md
+      run: |
+        pip3 install --user --upgrade setuptools
+        pip3 install --user gh2md
+        export PATH="$HOME/.local/bin:$PATH"
+        gh2md --version || true
+        export GITHUB_ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}
+        # fix: RuntimeError: Output directory already exists and has files in it
+        git rm -rf $GH2MD_OUTPUT_PATH
+        # workaround for https://github.com/mattduck/gh2md/pull/31
+        mkdir -p $GH2MD_OUTPUT_PATH || true
+        gh2md $GITHUB_REPOSITORY $GH2MD_OUTPUT_PATH --idempotent --multiple-files --file-extension .ghmd
+        #sudo apt-get install pandoc # pandoc 2.5 == too old
+    # install nix to install pandoc 2.17
+    - name: install nix
+      uses: cachix/install-nix-action@master
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - name: "pandoc: convert github-markdown to strict-markdown"
+      uses: workflow/nix-shell-action@main
+      with:
+        packages: pandoc
+        script: |
+          set -x
+          pandoc --version || true
+          find $GH2MD_OUTPUT_PATH -name '*.ghmd' -type f | while read path
+          do
+            base="${path%.*}"
+            pandoc --verbose -f gfm+hard_line_breaks -t markdown_strict "$base.ghmd" -o "$base.md"
+          done
+    - name: "cleanup: move .ghmd files to separate folder"
+      run: |
+        mkdir -p $GH2MD_OUTPUT_PATH/ghmd/
+        mv -v $GH2MD_OUTPUT_PATH*.ghmd $GH2MD_OUTPUT_PATH/ghmd/
+    - name: Commit files
+      run: |
+        git add $GH2MD_OUTPUT_PATH
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        if ! git commit -m "up $GH2MD_OUTPUT_PATH" -a
+        then
+          echo nothing to commit
+          exit 0
+        fi
+    - name: Get branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: get_branch
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ steps.get_branch.outputs.branch }}
