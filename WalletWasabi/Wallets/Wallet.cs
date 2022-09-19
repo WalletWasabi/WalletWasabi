@@ -369,7 +369,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 			{
-				if (KeyManager.GetBestHeight() < filterModel.Header.Height && KeyManager.GetFirstRelevantHeight() <= filterModel.Header.Height)
+				if (KeyManager.GetBestHeight() < filterModel.Header.Height)
 				{
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None).ConfigureAwait(false);
 				}
@@ -415,7 +415,7 @@ public class Wallet : BackgroundService, IWallet
 
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
-			new Height(Math.Max(bestKeyManagerHeight.Value + 1, KeyManager.GetFirstRelevantHeight())), cancel).ConfigureAwait(false);
+			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
 	}
 
 	private async Task LoadDummyMempoolAsync()

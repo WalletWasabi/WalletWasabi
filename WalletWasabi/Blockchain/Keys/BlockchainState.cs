@@ -32,4 +32,8 @@ public class BlockchainState
 	[JsonProperty]
 	[JsonConverter(typeof(HeightJsonConverter))]
 	public Height Height { get; set; }
+
+	[JsonProperty]
+	[JsonConverter(typeof(HeightJsonConverter))]
+	public Height FirstRelevantHeight { get; set; }
 }

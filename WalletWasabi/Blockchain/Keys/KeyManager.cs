@@ -136,10 +136,6 @@ public class KeyManager
 	[JsonProperty(PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(PropertyName = "FirstRelevantHeight")]
-	[JsonConverter(typeof(HeightJsonConverter))]
-	public Height FirstRelevantHeight { get; set; } = new Height(0);
-
 	[JsonProperty(PropertyName = "AutoCoinJoin")]
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
@@ -663,9 +659,12 @@ public class KeyManager
 		// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
 		int maturity = 101;
 		Height prevHeight = BlockchainState.Height;
+		Height prevFirstRelevantHeight = BlockchainState.FirstRelevantHeight;
 		int matureHeight = Math.Max(0, prevHeight.Value - maturity);
+		int matureFirstRelevantHeight = Math.Max(0, prevFirstRelevantHeight.Value - maturity);
 
 		BlockchainState.Height = new Height(matureHeight);
+		BlockchainState.FirstRelevantHeight = new Height(matureFirstRelevantHeight);
 
 		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
 
@@ -674,6 +673,7 @@ public class KeyManager
 
 		// Re-add removed items for further operations.
 		BlockchainState.Height = prevHeight;
+		BlockchainState.FirstRelevantHeight = prevFirstRelevantHeight;
 	}
 
 	#region BlockchainState
@@ -690,7 +690,18 @@ public class KeyManager
 
 	public Height GetFirstRelevantHeight()
 	{
-		return FirstRelevantHeight;
+		lock (BlockchainStateLock)
+		{
+			return BlockchainState.FirstRelevantHeight;
+		}
+	}
+
+	public bool IsLowerThanFirstRelevantHeight(Height toCompare)
+	{
+		lock (BlockchainStateLock)
+		{
+			return BlockchainState.FirstRelevantHeight == 0 || BlockchainState.FirstRelevantHeight > toCompare;
+		}
 	}
 
 	public Network GetNetwork()
@@ -705,15 +716,25 @@ public class KeyManager
 	{
 		lock (BlockchainStateLock)
 		{
-			BlockchainState.Height = height;
-			ToFileNoBlockchainStateLock();
+			if (height > BlockchainState.Height)
+			{
+				BlockchainState.Height = height;
+				ToFileNoBlockchainStateLock();
+			}
 		}
 	}
 
 	public void SetFirstRelevantHeight(Height height)
 	{
-		FirstRelevantHeight = height;
-		ToFile();
+		lock (BlockchainStateLock)
+		{
+			BlockchainState.FirstRelevantHeight = height;
+			if (BlockchainState.FirstRelevantHeight > BlockchainState.Height)
+			{
+				BlockchainState.Height = BlockchainState.FirstRelevantHeight - 1;
+			}
+			ToFileNoBlockchainStateLock();
+		}
 	}
 
 	public void SetMaxBestHeight(Height height)
@@ -721,7 +742,7 @@ public class KeyManager
 		lock (BlockchainStateLock)
 		{
 			var prevHeight = BlockchainState.Height;
-			var newHeight = Math.Min(prevHeight, height);
+			var newHeight = Math.Max(Math.Min(prevHeight, height), BlockchainState.FirstRelevantHeight - 1);
 			if (prevHeight != newHeight)
 			{
 				BlockchainState.Height = newHeight;

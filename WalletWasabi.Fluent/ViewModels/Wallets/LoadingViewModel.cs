@@ -101,7 +101,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization && Services.BitcoinStore.SmartHeaderChain.TipHeight >= _wallet.KeyManager.GetFirstRelevantHeight())
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
