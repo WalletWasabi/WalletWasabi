@@ -31,7 +31,6 @@
 		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="$(AvaloniaVersion)"/>
  	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\Submodules\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
  		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
