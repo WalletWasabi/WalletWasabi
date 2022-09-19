@@ -3,7 +3,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
