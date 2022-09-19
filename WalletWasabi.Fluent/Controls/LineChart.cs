@@ -65,12 +65,15 @@ public partial class LineChart : Control
 	private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment,
 		double fontSize, Size constraint)
 	{
-		return new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize,
-			null)
+		var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, null);
+
+		if (constraint != Size.Empty)
 		{
-			MaxTextHeight = constraint.Height,
-			MaxTextWidth = constraint.Width
-		};
+			ft.MaxTextHeight = constraint.Height;
+			ft.MaxTextWidth = constraint.Width;
+		}
+
+		return ft;
 	}
 
 	private void UpdateXAxisCursorPosition(double x)
