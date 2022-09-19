@@ -1,4 +1,7 @@
 using NBitcoin;
+using System.Linq;
+using WalletWasabi.BitcoinCore.Rpc.Models;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 
@@ -35,17 +38,29 @@ public class SmartHeader
 
 	#region SpecialHeaders
 
-	private static SmartHeader StartingHeaderMain { get; } = new SmartHeader(
+	private static SmartHeader StartingHeaderSegwitMain { get; } = new SmartHeader(
 		new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893"),
 		new uint256("000000000000000000cbeff0b533f8e1189cf09dfbebf57a8ebe349362811b80"),
 		481824,
 		1503539857);
 
-	private static SmartHeader StartingHeaderTestNet { get; } = new SmartHeader(
+	private static SmartHeader StartingHeaderSegwitTestNet { get; } = new SmartHeader(
 		new uint256("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a"),
 		new uint256("0000000000211a4d54bceb763ea690a4171a734c48d36f7d8e30b51d6df6ea85"),
 		828575,
 		1463079943);
+
+	private static SmartHeader StartingHeaderTaprootMain { get; } = new SmartHeader(
+		new uint256("0000000000000000000687bca986194dc2c1f949318629b44bb54ec0a94d8244"),
+		new uint256("000000000000000000013712fc242ee6dd28476d0e9c931c75f83e6974c6bccc"),
+		709632,
+		1636866927);
+
+	private static SmartHeader StartingHeaderTaprootTestNet { get; } = new SmartHeader(
+		new uint256("00000000000000216dc4eb2bd27764891ec0c961b0da7562fe63678e164d62a0"),
+		new uint256("0000000000000001e17cc7358ee658affcb0a23146176581a7606a15f73993e3"),
+		2007000,
+		1625103124);
 
 	private static SmartHeader StartingHeaderRegTest { get; } = new SmartHeader(
 		Network.RegTest.GenesisHash,
@@ -54,17 +69,41 @@ public class SmartHeader
 		Network.RegTest.GetGenesis().Header.BlockTime);
 
 	/// <summary>
-	/// Where the first possible bech32 transaction ever can be found.
+	/// Where the first possible transaction can ever be found with the specified script types.
 	/// </summary>
-	public static SmartHeader GetStartingHeader(Network network)
+	public static SmartHeader GetStartingHeader(Network network, IndexType indexType)
 	{
+		var scriptTypes = IndexTypeConverter.ToRpcPubKeyTypes(indexType);
+
 		if (network == Network.Main)
 		{
-			return StartingHeaderMain;
+			if (scriptTypes.Length == 1 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot))
+			{
+				return StartingHeaderTaprootMain;
+			}
+			else if (scriptTypes.Length == 2 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot) && scriptTypes.Contains(RpcPubkeyType.TxWitnessV0Keyhash))
+			{
+				return StartingHeaderSegwitMain;
+			}
+			else
+			{
+				throw new NotImplementedException("Script types not supported.");
+			}
 		}
 		else if (network == Network.TestNet)
 		{
-			return StartingHeaderTestNet;
+			if (scriptTypes.Length == 1 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot))
+			{
+				return StartingHeaderTaprootTestNet;
+			}
+			else if (scriptTypes.Length == 2 && scriptTypes.Contains(RpcPubkeyType.TxWitnessV1Taproot) && scriptTypes.Contains(RpcPubkeyType.TxWitnessV0Keyhash))
+			{
+				return StartingHeaderSegwitTestNet;
+			}
+			else
+			{
+				throw new NotImplementedException("Script types not supported.");
+			}
 		}
 		else if (network == Network.RegTest)
 		{

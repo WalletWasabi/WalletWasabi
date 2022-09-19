@@ -1,10 +1,8 @@
 using ReactiveUI;
 using System.Linq;
-using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 

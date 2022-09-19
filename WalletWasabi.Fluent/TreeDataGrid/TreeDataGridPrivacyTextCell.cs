@@ -6,7 +6,6 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;

@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
 
-namespace WalletWasabi.Fluent.Extensions;
+namespace WalletWasabi.Fluent.Helpers;
 
 public static class PrivacyModeHelper
 {

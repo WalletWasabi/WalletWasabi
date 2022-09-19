@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Kernel;
 
 namespace WalletWasabi.Fluent.Extensions;
 
-public static class DynamicDataMixin
+public static class DynamicDataExtensions
 {
 	/// <summary>
 	///     Transforms the items, and when an update is received, allows the preservation of the previous view model
@@ -70,5 +71,10 @@ public static class DynamicDataMixin
 
 				return cache;
 			}).Select(cache => cache!.CaptureChanges());
+	}
+
+	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents) where TKey : notnull
+	{
+		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
 	}
 }
