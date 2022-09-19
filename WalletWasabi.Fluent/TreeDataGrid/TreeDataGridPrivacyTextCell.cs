@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -13,6 +14,7 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 {
 	private FormattedText? _formattedText;
+	private Rect _bounds = Rect.Empty;
 	private bool _isContentVisible = true;
 	private string _mask = "";
 	private int _numberOfPrivacyChars;
@@ -42,22 +44,17 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 	{
 		if (_formattedText is null)
 		{
-			var placeHolder = new FormattedText(
-				_mask,
-				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				Size.Infinity);
-
-			var rc = Bounds.CenterRect(placeHolder.Bounds);
-			context.DrawText(Brushes.Transparent, new Point(0, rc.Position.Y), placeHolder);
+			var placeHolder = CreatePlaceHolder(_mask);
+			var bounds = new Rect(0, 0, placeHolder.Width, placeHolder.Height);
+			var rc = Bounds.CenterRect(bounds);
+			context.DrawText(placeHolder, new Point(0, rc.Position.Y));
 			return;
 		}
 
-		var r = Bounds.CenterRect(_formattedText.Bounds);
-		context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
+		var r = Bounds.CenterRect(_bounds);
+		context.DrawText(_formattedText, new Point(0, r.Position.Y));
 	}
+
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
@@ -83,18 +80,44 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			return default;
 		}
 
-		if (availableSize != _formattedText?.Constraint)
+		if (_formattedText is null || availableSize != _bounds.Size)
 		{
-			_formattedText = new FormattedText(
-				Text,
-				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				availableSize);
+			InvalidateFormattedText(Text);
 		}
 
-		return _formattedText.Bounds.Size;
+		return _bounds.Size;
+	}
+
+	private FormattedText CreatePlaceHolder(string mask)
+	{
+		var placeHolder = new FormattedText(
+			mask,
+			CultureInfo.CurrentCulture,
+			FlowDirection.LeftToRight,
+			new Typeface(FontFamily, FontStyle, FontWeight),
+			FontSize,
+			Brushes.Transparent);
+
+		placeHolder.TextAlignment = TextAlignment.Left;
+		placeHolder.Trimming = TextTrimming.None;
+
+		return placeHolder;
+	}
+
+	private void InvalidateFormattedText(string text)
+	{
+		_formattedText = new FormattedText(
+			text,
+			CultureInfo.CurrentCulture,
+			FlowDirection.LeftToRight,
+			new Typeface(FontFamily, FontStyle, FontWeight),
+			FontSize,
+			Foreground);
+
+		_formattedText.TextAlignment = TextAlignment.Left;
+		_formattedText.Trimming = TextTrimming.None;
+
+		_bounds = new Rect(0, 0, _formattedText.Width, _formattedText.Height);
 	}
 
 	private void SetContentVisible(bool value)
