@@ -336,6 +336,11 @@ public class TorHttpPool : IAsyncDisposable
 			connection = await TcpConnectionFactory.ConnectAsync(requestUri, circuit, cancellationToken).ConfigureAwait(false);
 			Logger.LogTrace($"[NEW {connection}]['{requestUri}'] Created new Tor SOCKS5 connection.");
 		}
+		catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
+		{
+			Logger.LogTrace($"['{requestUri}'] TTL expired occurred. Probably some relay/networking problem. No need to worry too much.");
+			throw;
+		}
 		catch (TorException e)
 		{
 			Logger.LogTrace($"['{requestUri}'][ERROR] Failed to create a new pool connection.", e);
