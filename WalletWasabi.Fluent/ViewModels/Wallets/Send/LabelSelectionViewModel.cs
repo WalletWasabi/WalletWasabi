@@ -285,9 +285,17 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
 
-	private bool IsPrivatePocketNeeded() =>
-		(NonPrivatePockets.EffectiveSumValue(_feeRate) < _targetAmount && _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) < _targetAmount && NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount) ||
-		(LabelsWhiteList.IsEmpty() && _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount);
+	private bool IsPrivatePocketNeeded()
+	{
+		var isNonPrivateNotEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) < _targetAmount;
+		var isPrivateAndSemiPrivateNotEnough = _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) < _targetAmount;
+		var isNonPrivateAndPrivateEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
+
+		var isPrivateNeededBesideNonPrivate = isNonPrivateNotEnough && isPrivateAndSemiPrivateNotEnough && isNonPrivateAndPrivateEnough;
+		var isOnlyPrivateNeeded = LabelsWhiteList.IsEmpty() && _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
+
+		return isPrivateNeededBesideNonPrivate || isOnlyPrivateNeeded;
+	}
 
 	private bool IsPrivateAndSemiPrivatePocketNeeded() =>
 		(NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) < _targetAmount && NonPrivatePockets.EffectiveSumValue(_feeRate) + _privatePocket.EffectiveSumValue(_feeRate) + _semiPrivatePocket.EffectiveSumValue(_feeRate) >= _targetAmount) ||
