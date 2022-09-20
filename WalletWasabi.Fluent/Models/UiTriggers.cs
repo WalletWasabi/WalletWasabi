@@ -20,7 +20,7 @@ public class UiTriggers
 	}
 
 	public IObservable<Unit> WalletRelevantTransactionProcessed =>
-		Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal();
+		Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal().StartWith(Unit.Default);
 
 	public IObservable<Unit> UsdExchangeRateChanged => _wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).ToSignal();
 
