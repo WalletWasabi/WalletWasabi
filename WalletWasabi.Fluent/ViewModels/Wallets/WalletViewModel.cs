@@ -52,23 +52,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		Settings = new WalletSettingsViewModel(this);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
-		UiUpdateTriggers = new UiUpdateTriggers(this);
-
-		// var balanceChanged =
-		// 	Observable.FromEventPattern(
-		// 			Wallet.TransactionProcessor,
-		// 			nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-		// 		.Select(_ => Unit.Default)
-		// 		.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed)).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default))
-		// 		.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
-		// 		.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-		// 		.Merge(CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
-		// 			.Throttle(TimeSpan.FromSeconds(0.1)))
-		// 		.ObserveOn(RxApp.MainThreadScheduler);
-
+		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(this);
 
-		UiUpdateTriggers
+		UiTriggers
 			.WalletRelevantTransactionProcessed
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
@@ -139,7 +126,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly && !areAllCoinsPrivate || pointerOver;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, UiUpdateTriggers.BalanceUpdateTrigger, History.UnfilteredTransactions)));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, UiTriggers.BalanceUpdateTrigger, History.UnfilteredTransactions)));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
@@ -163,14 +150,14 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, UiUpdateTriggers.WalletRelevantTransactionProcessed)));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, UiTriggers.WalletRelevantTransactionProcessed)));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, UiUpdateTriggers.WalletRelevantTransactionProcessed);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, UiTriggers.WalletRelevantTransactionProcessed);
 	}
 
-	public UiUpdateTriggers UiUpdateTriggers { get; }
+	public UiTriggers UiTriggers { get; }
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
 

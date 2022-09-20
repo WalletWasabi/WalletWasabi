@@ -41,7 +41,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	public HistoryViewModel(WalletViewModel walletViewModel)
 	{
 		_walletViewModel = walletViewModel;
-		_updateTrigger = _walletViewModel.UiUpdateTriggers.WalletRelevantTransactionProcessed;
+		_updateTrigger = _walletViewModel.UiTriggers.WalletRelevantTransactionProcessed;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();

@@ -8,12 +8,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models;
 
-public class UiUpdateTriggers
+public class UiTriggers
 {
 	private readonly WalletViewModel _walletViewModel;
 	private readonly Wallet _wallet;
 
-	public UiUpdateTriggers(WalletViewModel walletViewModel)
+	public UiTriggers(WalletViewModel walletViewModel)
 	{
 		_walletViewModel = walletViewModel;
 		_wallet = _walletViewModel.Wallet;
