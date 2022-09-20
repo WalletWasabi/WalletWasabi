@@ -55,8 +55,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(this);
 
-		UiTriggers
-			.WalletRelevantTransactionProcessed
+		UiTriggers.WalletRelevantTransactionProcessed
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
@@ -126,7 +125,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly && !areAllCoinsPrivate || pointerOver;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, UiTriggers.BalanceUpdateTrigger, History.UnfilteredTransactions)));
+		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
@@ -150,11 +149,11 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this, UiTriggers.WalletRelevantTransactionProcessed)));
+		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
-		CoinJoinStateViewModel = new CoinJoinStateViewModel(this, UiTriggers.WalletRelevantTransactionProcessed);
+		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
 	}
 
 	public UiTriggers UiTriggers { get; }

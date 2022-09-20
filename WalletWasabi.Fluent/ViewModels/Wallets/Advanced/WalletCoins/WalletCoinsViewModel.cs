@@ -22,17 +22,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 [NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
-	private readonly IObservable<Unit> _balanceChanged;
-	private readonly WalletViewModel _walletViewModel;
+	private readonly WalletViewModel _walletVm;
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 
 	[AutoNotify]
 	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
-	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public WalletCoinsViewModel(WalletViewModel walletVm)
 	{
-		_walletViewModel = walletViewModel;
-		_balanceChanged = balanceChanged;
+		_walletVm = walletVm;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
@@ -41,7 +39,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged);
+		var coins = CreateCoinsObservable(_walletVm.UiTriggers.WalletRelevantTransactionProcessed);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
@@ -93,7 +91,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
 	{
 		var initial = Observable.Return(GetCoins());
-		var coinJoinChanged = _walletViewModel.WhenAnyValue(model => model.IsCoinJoining);
+		var coinJoinChanged = _walletVm.WhenAnyValue(model => model.IsCoinJoining);
 		var coinsChanged = balanceChanged.ToSignal().Merge(coinJoinChanged.ToSignal());
 
 		var coins = coinsChanged
@@ -105,7 +103,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	private async Task OnSendCoins()
 	{
-		var wallet = _walletViewModel.Wallet;
+		var wallet = _walletVm.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
 		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
@@ -216,6 +214,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	private ICoinsView GetCoins()
 	{
-		return _walletViewModel.Wallet.Coins;
+		return _walletVm.Wallet.Coins;
 	}
 }

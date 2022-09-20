@@ -57,7 +57,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
-	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
+	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
@@ -90,7 +90,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
+		walletVm.UiTriggers.WalletRelevantTransactionProcessed.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
