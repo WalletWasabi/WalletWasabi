@@ -43,7 +43,7 @@ public class KeyManager
 	};
 
 	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
+	public KeyManager(BitcoinEncryptedSecretNoEC? encryptedSecret, byte[]? chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, bool skipSynchronization, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
@@ -140,10 +140,10 @@ public class KeyManager
 	}
 
 	[JsonProperty(PropertyName = "EncryptedSecret")]
-	public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
+	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
 	[JsonProperty(PropertyName = "ChainCode")]
-	public byte[] ChainCode { get; }
+	public byte[]? ChainCode { get; }
 
 	[JsonProperty(PropertyName = "MasterFingerprint")]
 	public HDFingerprint? MasterFingerprint { get; private set; }
