@@ -47,8 +47,7 @@ public class CoinJoinClient
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
-		Money? liquidityClue = null)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -61,10 +60,6 @@ public class CoinJoinClient
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
-		lock (LiquidityClueLock)
-		{
-			LiquidityClue ??= liquidityClue;
-		}
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -81,16 +76,6 @@ public class CoinJoinClient
 	public bool ConsolidationMode { get; private set; }
 	public bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	private static Money? LiquidityClue { get; set; }
-	private static object LiquidityClueLock { get; } = new object();
-
-	public static Money? GetLiquidityClue()
-	{
-		lock (LiquidityClueLock)
-		{
-			return LiquidityClue;
-		}
-	}
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
