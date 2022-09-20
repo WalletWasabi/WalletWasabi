@@ -361,7 +361,7 @@ public class KeyManager
 		}
 		newKey.SetLabel(label);
 
-		SetDoNotSkipSynchronization();
+		SkipSynchronization = false;
 		return newKey;
 	}
 
@@ -378,18 +378,6 @@ public class KeyManager
 				_ => HdPubKeyCache.Where(wherePredicate).ToList()
 			};
 		}
-	}
-
-	public void SetDoNotSkipSynchronization()
-	{
-		// Don't set it unnecessarily
-		if (SkipSynchronization == false)
-		{
-			return;
-		}
-
-		SkipSynchronization = false;
-		ToFile();
 	}
 
 	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null) =>
@@ -424,8 +412,6 @@ public class KeyManager
 
 	public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 	{
-		hdPubKey = default;
-
 		lock (CriticalStateLock)
 		{
 			return HdPubKeyCache.TryGetPubKey(scriptPubKey, out hdPubKey);
