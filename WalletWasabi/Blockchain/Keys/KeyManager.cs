@@ -139,6 +139,7 @@ public class KeyManager
 		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
 	}
 
+	#region Properties
 	[JsonProperty(PropertyName = "EncryptedSecret")]
 	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
@@ -211,8 +212,8 @@ public class KeyManager
 	private HdPubKeyCache HdPubKeyCache { get; } = new();
 	private object HdPubKeyRegistryLock { get; } = new();
 	
-	private object BlockchainStateLock { get; } = new();
-
+	#endregion
+	
 	private object ToFileLock { get; } = new();
 
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
