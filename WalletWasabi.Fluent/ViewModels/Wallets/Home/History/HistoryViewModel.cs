@@ -41,7 +41,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	public HistoryViewModel(WalletViewModel walletViewModel)
 	{
 		_walletViewModel = walletViewModel;
-		_updateTrigger = _walletViewModel.UiUpdateTriggers.TransactionHistoryUpdateTrigger;
+		_updateTrigger = _walletViewModel.UiUpdateTriggers.WalletRelevantTransactionProcessed;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
@@ -210,7 +210,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		_updateTrigger
-			.SubscribeAsync(async _ => await UpdateAsync())
+			.DoAndRunOnceAsync(async _ => await UpdateAsync(), Unit.Default)
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

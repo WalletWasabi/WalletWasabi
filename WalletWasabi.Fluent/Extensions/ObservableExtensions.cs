@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Extensions;
@@ -16,6 +17,18 @@ public static class ObservableExtensions
 		source
 			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
 			.Concat();
+
+	public static IObservable<Unit> DoAndRunOnceAsync<T>(this IObservable<T> source, Func<T, Task> onNextAsync, T value)
+	{
+		var subject = new Subject<T>();
+		subject
+			.DoAsync(async x => await onNextAsync(x))
+			.Take(1)
+			.Subscribe();
+		subject.OnNext(value);
+
+		return source.Select(x => Observable.FromAsync(() => onNextAsync(x))).Concat();
+	}
 
 	public static IObservable<Unit> ToSignal<T>(this IObservable<T> source) => source.Select(_ => Unit.Default);
 
