@@ -210,7 +210,7 @@ public class KeyManager
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
 	private HdPubKeyCache HdPubKeyCache { get; } = new();
-	private object HdPubKeyRegistryLock { get; } = new();
+	private object CriticalStateLock { get; } = new();
 	
 	#endregion
 	
@@ -319,7 +319,7 @@ public class KeyManager
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
 
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
 			var view = HdPubKeyCache.GetView(hdPubKeyRegistry.KeyPath); 
 			var (keyPath, extPubKey) = hdPubKeyRegistry.GenerateNewKey(view);
@@ -336,8 +336,17 @@ public class KeyManager
 			throw new InvalidOperationException("Label is required.");
 		}
 
-		minGapLimitIncreased = false;
-
+		lock (CriticalStateLock)
+		{
+			minGapLimitIncreased = false;
+			var newKey = GetNextReceiveKey(label);
+			ToFileNoLock();
+			return newKey;
+		}
+	}
+	
+	private HdPubKey GetNextReceiveKey(SmartLabel label)
+	{
 		var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
 		HdPubKeyCache.AddRangeKeys(SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey));
 
@@ -349,15 +358,10 @@ public class KeyManager
 			var newHdPubKeys = HdPubKeyCache.AddRangeKeys(SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey)); 
 
 			newKey = newHdPubKeys.First();
-
-			// If the new is over the MinGapLimit, set minGapLimitIncreased to true.
-			minGapLimitIncreased = true;
 		}
-
-		newKey.SetLabel(label, kmToFile: this);
+		newKey.SetLabel(label);
 
 		SetDoNotSkipSynchronization();
-
 		return newKey;
 	}
 
@@ -365,7 +369,7 @@ public class KeyManager
 	{
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
 			AssertCleanKeysIndexed();
 			return wherePredicate switch
@@ -411,7 +415,7 @@ public class KeyManager
 
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
 			AssertCleanKeysIndexed();
 			return HdPubKeyCache.GetScriptPubKeysBytes();
@@ -422,7 +426,7 @@ public class KeyManager
 	{
 		hdPubKey = default;
 
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
 			return HdPubKeyCache.TryGetPubKey(scriptPubKey, out hdPubKey);
 		}
@@ -438,7 +442,7 @@ public class KeyManager
 		ExtKey extKey = GetMasterExtKey(password);
 		var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
 			foreach (HdPubKey key in GetKeys(x =>
 				scripts.Contains(x.P2wpkhScript)
@@ -591,40 +595,22 @@ public class KeyManager
 
 	public void ToFile()
 	{
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
-			lock (BlockchainStateLock)
+			lock (ToFileLock)
 			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock();
-				}
+				ToFileNoLock();
 			}
 		}
 	}
 
 	public void ToFile(string filePath)
 	{
-		lock (HdPubKeyRegistryLock)
-		{
-			lock (BlockchainStateLock)
-			{
-				lock (ToFileLock)
-				{
-					ToFileNoLock(filePath);
-				}
-			}
-		}
-	}
-
-	
-	private void ToFileNoBlockchainStateLock()
-	{
-		lock (HdPubKeyRegistryLock)
+		lock (CriticalStateLock)
 		{
 			lock (ToFileLock)
 			{
-				ToFileNoLock();
+				ToFileNoLock(filePath);
 			}
 		}
 	}
@@ -653,41 +639,35 @@ public class KeyManager
 
 	public Height GetBestHeight()
 	{
-		Height res;
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
-			res = BlockchainState.Height;
+			return BlockchainState.Height;
 		}
-		return res;
 	}
 
 	public Network GetNetwork()
 	{
-		lock (BlockchainStateLock)
-		{
-			return BlockchainState.Network;
-		}
+		return BlockchainState.Network;
 	}
 
 	public void SetBestHeight(Height height)
 	{
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
-			ToFileNoBlockchainStateLock();
+			ToFileNoLock();
 		}
 	}
 
 	public void SetMaxBestHeight(Height height)
 	{
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
 			var prevHeight = BlockchainState.Height;
 			var newHeight = Math.Min(prevHeight, height);
 			if (prevHeight != newHeight)
 			{
-				BlockchainState.Height = newHeight;
-				ToFileNoBlockchainStateLock();
+				SetBestHeight(newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
@@ -729,14 +709,13 @@ public class KeyManager
 
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 	{
-		lock (BlockchainStateLock)
+		lock (CriticalStateLock)
 		{
 			var lastNetwork = BlockchainState.Network;
 			if (lastNetwork is null || lastNetwork != expectedNetwork)
 			{
 				BlockchainState.Network = expectedNetwork;
-				BlockchainState.Height = 0;
-				ToFileNoBlockchainStateLock();
+				SetBestHeight(0);
 
 				if (lastNetwork is { })
 				{
