@@ -640,21 +640,12 @@ public class KeyManager
 
 	private void ToFileNoLock(string filePath)
 	{
-		IoHelpers.EnsureContainingDirectoryExists(filePath);
-		// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-		int maturity = 101;
-		Height prevHeight = BlockchainState.Height;
-		int matureHeight = Math.Max(0, prevHeight.Value - maturity);
-
-		BlockchainState.Height = new Height(matureHeight);
-
 		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
+		
+		IoHelpers.EnsureContainingDirectoryExists(filePath);
 
 		SafeIoManager safeIoManager = new(filePath);
 		safeIoManager.WriteAllText(jsonString, Encoding.UTF8);
-
-		// Re-add removed items for further operations.
-		BlockchainState.Height = prevHeight;
 	}
 
 	#region BlockchainState
