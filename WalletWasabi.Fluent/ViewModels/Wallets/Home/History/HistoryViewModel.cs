@@ -210,7 +210,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		_updateTrigger
-			.DoAndRunOnceAsync(async _ => await UpdateAsync(), Unit.Default)
+			.StartWith(Unit.Default)
+			.DoAsync(async _ => await UpdateAsync())
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
