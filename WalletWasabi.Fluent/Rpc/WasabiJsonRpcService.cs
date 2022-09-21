@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.Services.Terminate;
@@ -312,5 +313,34 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
 		}
+	}
+
+	[JsonRpcMethod("coinjoineveryday")]
+	public async void CoinJoiningEveryDay(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
+	{
+		AssertWalletIsLoaded();
+		while (true)
+		{
+			coinJoinForTwoHoursAsync(password, stopWhenAllMixed, overridePlebStop);
+
+			var hoursBetweenCoinJoins = generateRandomNumber(18, 30);
+
+			await Task.Delay(TimeSpan.FromHours(hoursBetweenCoinJoins));
+		}
+	}
+
+	private async void coinJoinForTwoHoursAsync(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
+	{
+		StartCoinJoining(password, stopWhenAllMixed, overridePlebStop);
+
+		await Task.Delay(TimeSpan.FromHours(2));
+
+		StopCoinJoining();
+	}
+
+	private int generateRandomNumber(int minValue, int maxValue)
+	{
+		Random random = new Random();
+		return random.Next(minValue, maxValue);
 	}
 }
