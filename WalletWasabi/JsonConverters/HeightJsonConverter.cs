@@ -19,14 +19,3 @@ public class HeightJsonConverter : JsonConverter<Height>
 		writer.WriteValue(value.Value.ToString());
 	}
 }
-
-public class WalletHeightJsonConverter : HeightJsonConverter
-{
-	/// <inheritdoc />
-	public override void WriteJson(JsonWriter writer, Height value, JsonSerializer serializer)
-	{
-		var safeHeight = Math.Max(0, value.Value - 101 /* maturity */);
-
-		writer.WriteValue(safeHeight.ToString());
-	}
-}
