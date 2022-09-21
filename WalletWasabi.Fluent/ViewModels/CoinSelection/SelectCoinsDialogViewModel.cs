@@ -78,22 +78,25 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		sourceCache.AddOrUpdate(coinLists)
 			.DisposeWith(disposables);
 
-		var viewModels = sourceCache.Connect();
+		var coinChanges = sourceCache
+			.Connect()
+			.ReplayLastActive();
 
-		viewModels.OnItemUpdated((current, previous) => current.IsSelected = previous.IsSelected)
+		coinChanges.OnItemUpdated((current, previous) => current.IsSelected = previous.IsSelected)
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		var selectedCoins = viewModels
+		var allCoins = coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Select(items => items.Where(t => t.IsSelected).ToList())
-			.Replay()
-			.RefCount();
+			.Throttle(TimeSpan.FromMilliseconds(60), RxApp.MainThreadScheduler);
+
+		var selectedCoins = allCoins
+			.Select(items => items.Where(t => t.IsSelected).ToList());
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
-		IsSelectionBadlyChosen = selectedCoins.Select(x => IsSelectionBadForPrivacy(x, _transactionLabels));
+		IsSelectionBadlyChosen = allCoins.Select(x => IsSelectionBadForPrivacy(x, _transactionLabels)).ReplayLastActive();
 
 		SelectedAmount = selectedCoins.Select(Sum);
 
@@ -131,10 +134,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		};
 
 		CoinBasedSelection =
-			new CoinBasedSelectionViewModel(viewModels, commands)
+			new CoinBasedSelectionViewModel(coinChanges, commands)
 				.DisposeWith(disposables);
 		LabelBasedSelection =
-			new LabelBasedCoinSelectionViewModel(viewModels, commands)
+			new LabelBasedCoinSelectionViewModel(coinChanges, commands)
 				.DisposeWith(disposables);
 
 		SelectPredefinedCoinsCommand.Execute()
@@ -154,8 +157,18 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return string.Join(" | ", remainingPart.Concat(totalPart));
 	}
 
-	private static bool IsSelectionBadForPrivacy(IList<WalletCoinViewModel> selectedCoins, SmartLabel transactionLabel)
+	private bool IsSelectionBadForPrivacy(IReadOnlyCollection<WalletCoinViewModel> coins, SmartLabel transactionLabel)
 	{
+		var selectedCoins = coins.Where(x => x.IsSelected).ToList();
+		var privateCoins = coins.Where(x => x.GetPrivacyLevel() == PrivacyLevel.Private).ToList();
+		var privateCoinsAreEnough = privateCoins.Sum(x => x.Amount) >= TargetAmount;
+		var isNonPrivateSelected = selectedCoins.Any(x => x.GetPrivacyLevel() != PrivacyLevel.Private);
+
+		if (privateCoinsAreEnough && isNonPrivateSelected)
+		{
+			return true;
+		}
+
 		if (selectedCoins.All(x => x.SmartLabel == transactionLabel))
 		{
 			return false;
