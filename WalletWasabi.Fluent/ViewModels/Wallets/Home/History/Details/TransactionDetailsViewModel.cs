@@ -74,7 +74,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		_walletVm.UiTriggers.WalletRelevantTransactionProcessed
+		_walletVm.UiTriggers.TransactionsUpdateTrigger
 			.DoAsync(async _ => await UpdateCurrentTransactionAsync())
 			.Subscribe()
 			.DisposeWith(disposables);

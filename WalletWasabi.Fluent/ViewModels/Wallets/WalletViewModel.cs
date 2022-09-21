@@ -55,7 +55,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(this);
 
-		UiTriggers.WalletRelevantTransactionProcessed
+		UiTriggers.TransactionsUpdateTrigger
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 

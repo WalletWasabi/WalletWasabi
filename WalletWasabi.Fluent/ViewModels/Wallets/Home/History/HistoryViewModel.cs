@@ -206,7 +206,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		_walletVm.UiTriggers.WalletRelevantTransactionProcessed
+		_walletVm.UiTriggers.TransactionsUpdateTrigger
 			.DoAsync(async _ => await UpdateAsync())
 			.Subscribe()
 			.DisposeWith(disposables);

@@ -22,7 +22,7 @@ public class UiTriggers
 	/// <summary>
 	/// Triggers on subscription and when a transaction to the wallet is processed.
 	/// </summary>
-	public IObservable<Unit> WalletRelevantTransactionProcessed =>
+	public IObservable<Unit> TransactionsUpdateTrigger =>
 		Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal().StartWith(Unit.Default);
 
 	/// <summary>
@@ -38,10 +38,10 @@ public class UiTriggers
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the USD exchange rate changed.
 	/// </summary>
-	public IObservable<Unit> BalanceUpdateTrigger => WalletRelevantTransactionProcessed.Merge(UsdExchangeRateChanged);
+	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged);
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> PrivacyProgressUpdateTrigger => WalletRelevantTransactionProcessed.Merge(AnonScoreTargetChanged);
+	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged);
 }

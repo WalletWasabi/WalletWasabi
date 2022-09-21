@@ -90,7 +90,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		walletVm.UiTriggers.WalletRelevantTransactionProcessed.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
+		walletVm.UiTriggers.TransactionsUpdateTrigger.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{

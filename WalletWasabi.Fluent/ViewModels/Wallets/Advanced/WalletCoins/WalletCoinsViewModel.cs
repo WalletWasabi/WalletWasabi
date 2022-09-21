@@ -39,7 +39,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_walletVm.UiTriggers.WalletRelevantTransactionProcessed);
+		var coins = CreateCoinsObservable(_walletVm.UiTriggers.TransactionsUpdateTrigger);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
