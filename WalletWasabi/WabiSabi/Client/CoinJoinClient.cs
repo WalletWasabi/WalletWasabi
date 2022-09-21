@@ -1010,7 +1010,7 @@ public class CoinJoinClient
 
 		// Get the output's size and its of the input that will spend it in the future.
 		// Here we assume all the outputs share the same scriptpubkey type.  
-		var preferTaprootOutputs = roundParameters.AllowedOutputTypes.Contains(ScriptType.Taproot) && Random.Shared.NextDouble() < .5;
+		var preferTaprootOutputs = false;
 		var (inputVirtualSize, outputVirtualSize)= DestinationProvider.Peek(preferTaprootOutputs).IsScriptType(ScriptType.Taproot)
 			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
 			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
