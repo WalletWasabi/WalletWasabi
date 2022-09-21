@@ -1,6 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors">
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|Dialog">
@@ -8,6 +10,13 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="i:Interaction.Behaviors">
+      <i:BehaviorCollectionTemplate>
+        <i:BehaviorCollection>
+          <behaviors:ExecuteDefaultButtonCommandOnEnterBehavior />
+        </i:BehaviorCollection>
+      </i:BehaviorCollectionTemplate>
+    </Setter>
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
