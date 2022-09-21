@@ -96,7 +96,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
-		IsSelectionBadlyChosen = allCoins.Select(x => IsSelectionBadForPrivacy(x, _transactionLabels)).ReplayLastActive();
+		IsSelectionBadlyChosen = allCoins.Select(coins => IsSelectionBadForPrivacy(coins, _transactionLabels)).ReplayLastActive();
 
 		SelectedAmount = selectedCoins.Select(Sum);
 
@@ -160,8 +160,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private bool IsSelectionBadForPrivacy(IReadOnlyCollection<WalletCoinViewModel> coins, SmartLabel transactionLabel)
 	{
 		var selectedCoins = coins.Where(x => x.IsSelected).ToList();
-		var privateCoins = coins.Where(x => x.GetPrivacyLevel() == PrivacyLevel.Private).ToList();
-		var privateCoinsAreEnough = privateCoins.Sum(x => x.Amount) >= TargetAmount;
+		var privateAndSemiPrivate = coins.Where(x => x.GetPrivacyLevel() == PrivacyLevel.Private || x.GetPrivacyLevel() == PrivacyLevel.SemiPrivate).ToList();
+		var privateCoinsAreEnough = privateAndSemiPrivate.Sum(x => x.Amount) >= TargetAmount;
 		var isNonPrivateSelected = selectedCoins.Any(x => x.GetPrivacyLevel() != PrivacyLevel.Private);
 
 		if (privateCoinsAreEnough && isNonPrivateSelected)
