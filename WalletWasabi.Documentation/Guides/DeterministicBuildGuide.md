@@ -10,7 +10,9 @@ This guide describes how to reproduce Wasabi's builds. If you get stuck with the
 
 ## 1. Assert correct environment
 
-In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) package, Windows 10+, and the version of [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet-core) that was used by the Wasabi team to produce the release. Which version of .NET Core SDK to use? There is the `BUILDINFO.json` file inside [installation folder](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html#install-wasabi-step-by-step) and the `NetSdkVersion` field will tell you the right SDK version. If you have multiple .NET SDK installed on your system, make sure to specify the exact same version in `global.json` before building Wasabi Wallet. `global.json` is in the root of the repository folder.
+In order to reproduce Wasabi's builds, you need [git](https://git-scm.com/) package, Windows 10+, and the version of [.NET SDK](https://dotnet.microsoft.com/download) that was used by the Wasabi team to produce the release.
+
+Which version of .NET SDK to use? There is the `BUILDINFO.json` file inside the installation folder: `C:\Program Files\WasabiWallet\`, and the `NetSdkVersion` field will tell you the right SDK version. If you have multiple .NET SDK versions installed on your system, make sure to specify the exact same version in `global.json` before building Wasabi Wallet. `global.json` is in the root of the repository folder.
 
 Example of `global.json` that is set to strictly use a specific version:
 
