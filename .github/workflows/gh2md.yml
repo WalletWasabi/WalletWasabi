@@ -31,7 +31,7 @@ jobs:
         pip3 install --user gh2md
         export PATH="$HOME/.local/bin:$PATH"
         gh2md --version || true
-        export GITHUB_ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}
+        export GITHUB_ACCESS_TOKEN=${{ secrets.WALLET_WASABI_SECRET }}
         # fix: RuntimeError: Output directory already exists and has files in it
         git rm -rf $GH2MD_OUTPUT_PATH
         # workaround for https://github.com/mattduck/gh2md/pull/31
@@ -76,5 +76,5 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.WALLET_WASABI_SECRET }}
         branch: ${{ steps.get_branch.outputs.branch }}
