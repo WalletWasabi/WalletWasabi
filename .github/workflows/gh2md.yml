@@ -6,7 +6,7 @@ on:
   #push: # comment it to reduce update.
   schedule:
     # every day
-    - cron: "0 0 * * *"
+    - cron: "* * * * *"
 jobs:
   build:
     name: Backup github issues to markdown files
