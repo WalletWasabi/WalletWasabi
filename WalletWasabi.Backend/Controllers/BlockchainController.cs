@@ -317,8 +317,7 @@ public class BlockchainController : ControllerBase
 		return Ok(response);
 	}
 
-	[ApiExplorerSettings(IgnoreApi = true)]
-	public bool TryGetIndexer(string? indexType, [NotNullWhen(true)] out IndexBuilderService? indexer)
+	internal bool TryGetIndexer(string? indexType, [NotNullWhen(true)] out IndexBuilderService? indexer)
 	{
 		indexer = null;
 		if (indexType is null || indexType.Equals("segwittaproot", StringComparison.OrdinalIgnoreCase))
