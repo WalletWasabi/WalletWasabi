@@ -5,11 +5,9 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using ISelectable = WalletWasabi.Fluent.Controls.ISelectable;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
@@ -22,12 +20,10 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private HierarchicalTreeDataGridSource<TreeNode> _source = new(new List<TreeNode>());
 
-	public LabelBasedCoinSelectionViewModel(
-		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges,
-		IEnumerable<CommandViewModel> commands)
+	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
 	{
 		coinChanges
-			.Group(x => PrivacyLevelKey.Get(x.SmartLabel, x.GetPrivacyLevel()))
+			.Group(x => PrivacyIndex.Get(x.SmartLabel, x.PrivacyLevel))
 			.Transform(
 				group =>
 				{
@@ -40,15 +36,8 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		// Workaround for https://github.com/AvaloniaUI/Avalonia/issues/8913
-		nodes.WhenAnyPropertyChanged()
-			.WhereNotNull()
-			.Throttle(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
-			.Do(x => UpdateSource(x, coinChanges, commands))
-			.Subscribe()
+		Source = CreateGridSource(nodes, coinChanges, commands)
 			.DisposeWith(_disposables);
-
-		Source = CreateGridSource(nodes, coinChanges, commands).DisposeWith(_disposables);
 	}
 
 	private IObservable<Func<TreeNode, bool>> FilterChanged =>
@@ -82,24 +71,9 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 	}
 
-	private void UpdateSource(
-		IEnumerable<TreeNode> collection,
-		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> changes,
-		IEnumerable<CommandViewModel> commands)
+	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> groups, IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
 	{
-		Source.Dispose();
-		Source = CreateGridSource(collection, changes, commands);
-	}
-
-	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(
-		IEnumerable<TreeNode> groups,
-		IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coinChanges,
-		IEnumerable<CommandViewModel> commands)
-	{
-		var selectionColumn = ColumnFactory.SelectionColumn(
-			coinChanges.Cast(model => (ISelectable) model),
-			commands,
-			_disposables);
+		var selectionColumn = ColumnFactory.SelectionColumn(coinChanges.Cast(model => (ISelectable) model), commands, _disposables);
 
 		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
 		{

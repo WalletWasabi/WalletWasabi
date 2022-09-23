@@ -1,7 +1,6 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Controls;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
@@ -10,7 +9,7 @@ public partial class CoinSelectionCellViewModel : ViewModelBase, ISelectable
 	[AutoNotify] private bool _isEnabled;
 	[AutoNotify] private bool _isSelected;
 
-	public CoinSelectionCellViewModel(WalletCoinViewModel coin)
+	public CoinSelectionCellViewModel(SelectableCoin coin)
 	{
 		Coin = coin;
 
@@ -18,7 +17,7 @@ public partial class CoinSelectionCellViewModel : ViewModelBase, ISelectable
 			.Do(b => IsSelected = b)
 			.Subscribe();
 
-		this.WhenAnyValue(x => x.Coin.CoinJoinInProgress)
+		this.WhenAnyValue(x => x.Coin.IsCoinjoining)
 			.Do(isCoinJoining => IsEnabled = !isCoinJoining)
 			.Subscribe();
 
@@ -27,5 +26,5 @@ public partial class CoinSelectionCellViewModel : ViewModelBase, ISelectable
 			.Subscribe();
 	}
 
-	public WalletCoinViewModel Coin { get; }
+	public SelectableCoin Coin { get; }
 }

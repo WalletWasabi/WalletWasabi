@@ -3,9 +3,9 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
-public class PrivacyLevelKey : IComparable<PrivacyLevelKey>
+public class PrivacyIndex : IComparable<PrivacyIndex>
 {
-	private PrivacyLevelKey(SmartLabel labels, PrivacyLevel privacyLevel)
+	private PrivacyIndex(SmartLabel labels, PrivacyLevel privacyLevel)
 	{
 		Labels = labels;
 		PrivacyLevel = privacyLevel;
@@ -14,14 +14,14 @@ public class PrivacyLevelKey : IComparable<PrivacyLevelKey>
 	public SmartLabel Labels { get; }
 	public PrivacyLevel PrivacyLevel { get; }
 
-	public int CompareTo(PrivacyLevelKey? key)
+	public int CompareTo(PrivacyIndex? key)
 	{
 		return GetScore(this).CompareTo(GetScore(key));
 	}
 
-	public static PrivacyLevelKey Get(SmartLabel labels, PrivacyLevel privacyLevel)
+	public static PrivacyIndex Get(SmartLabel labels, PrivacyLevel privacyLevel)
 	{
-		return new PrivacyLevelKey(labels, privacyLevel);
+		return new PrivacyIndex(labels, privacyLevel);
 	}
 
 	public override bool Equals(object? obj)
@@ -41,7 +41,7 @@ public class PrivacyLevelKey : IComparable<PrivacyLevelKey>
 			return false;
 		}
 
-		return Equals((PrivacyLevelKey) obj);
+		return Equals((PrivacyIndex) obj);
 	}
 
 	public override int GetHashCode()
@@ -49,7 +49,7 @@ public class PrivacyLevelKey : IComparable<PrivacyLevelKey>
 		return HashCode.Combine(Labels, (int) PrivacyLevel);
 	}
 
-	protected bool Equals(PrivacyLevelKey other)
+	protected bool Equals(PrivacyIndex other)
 	{
 		if (Labels.IsEmpty && other.Labels.IsEmpty)
 		{
@@ -59,7 +59,7 @@ public class PrivacyLevelKey : IComparable<PrivacyLevelKey>
 		return Labels.Equals(other.Labels);
 	}
 
-	private static int GetScore(PrivacyLevelKey? key)
+	private static int GetScore(PrivacyIndex? key)
 	{
 		if (key is null || key.PrivacyLevel == PrivacyLevel.None)
 		{

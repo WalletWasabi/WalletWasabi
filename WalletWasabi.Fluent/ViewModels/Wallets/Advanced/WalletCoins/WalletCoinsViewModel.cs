@@ -48,7 +48,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.ToObservableChangeSet(c => c.OutPoint.GetHashCode())
 			.AsObservableCache()
 			.Connect()
-			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x, _walletViewModel.Wallet))
+			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
 			.Replay(1)
 			.RefCount();
 

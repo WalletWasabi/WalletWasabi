@@ -15,7 +15,7 @@ public class PrivacyBarItemViewModel : ViewModelBase, IDisposable
 
 	public PrivacyBarItemViewModel(PrivacyBarViewModel parent, SmartCoin coin, double start, double width)
 	{
-		Coin = new WalletCoinViewModel(coin, parent.Wallet);
+		Coin = new WalletCoinViewModel(coin);
 
 		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
 		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();

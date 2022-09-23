@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
+using NBitcoin;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
 
@@ -16,7 +17,7 @@ public partial class SelectionHeaderViewModelBase : ViewModelBase, IDisposable
 	[AutoNotify] private bool _isSelected;
 
 	public SelectionHeaderViewModelBase(
-		IObservable<IChangeSet<ISelectable>> changeStream,
+		IObservable<IChangeSet<ISelectable, OutPoint>> changeStream,
 		Func<int, string> getContent,
 		IEnumerable<CommandViewModel> commands)
 	{

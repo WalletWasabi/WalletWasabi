@@ -16,7 +16,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, SmartCoin coin, double start, double end)
 	{
-		Coin = new WalletCoinViewModel(coin, parent.Wallet);
+		Coin = new WalletCoinViewModel(coin);
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
 		Data = CreateGeometry(start, end, OuterRadius);

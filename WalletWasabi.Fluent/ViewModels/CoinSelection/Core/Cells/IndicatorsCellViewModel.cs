@@ -1,27 +1,27 @@
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
 public class IndicatorsCellViewModel : ViewModelBase
 {
-	public IndicatorsCellViewModel(WalletCoinViewModel coin)
+	public IndicatorsCellViewModel(ICoin coin)
 	{
-		IsBanned = coin.WhenAnyValue(x => x.IsBanned).ReplayLastActive();
-		CoinJoinInProgress = coin.WhenAnyValue(x => x.CoinJoinInProgress).ReplayLastActive();
-		IsConfirmed = coin.WhenAnyValue(x => x.Confirmed).ReplayLastActive();
-		ConfirmedToolTip = coin.WhenAnyValue(x => x.ConfirmedToolTip).ReplayLastActive();
-		BannedUntilUtcToolTip = coin.WhenAnyValue(x => x.BannedUntilUtcToolTip).ReplayLastActive();
+		IsCoinjoining = coin.WhenAnyValue(x => x.IsCoinjoining);
+		IsConfirmed = coin.WhenAnyValue(x => x.IsConfirmed);
+		IsBanned = coin.WhenAnyValue(x => x.BannedUntil, offset => offset.HasValue);
+		ConfirmationStatus = coin.WhenAnyValue(x => x.IsConfirmed).Select(isConfirmed => isConfirmed ? "Confirmed" : "Pending confirmation").ReplayLastActive();
+		BannedUntilUtcToolTip = coin.WhenAnyValue(x => x.BannedUntil).Select(x => x.HasValue ? $"Can't participate in coinjoin until: {x:g}" : "").ReplayLastActive();
 	}
 
-	public IObservable<string?> BannedUntilUtcToolTip { get; }
+	public IObservable<bool> IsBanned { get; set; }
 
-	public IObservable<bool> CoinJoinInProgress { get; }
+	public IObservable<string> BannedUntilUtcToolTip { get; }
+
+	public IObservable<bool> IsCoinjoining { get; }
 
 	public IObservable<bool> IsConfirmed { get; }
 
-	public IObservable<string?> ConfirmedToolTip { get; }
-
-	public IObservable<bool> IsBanned { get; }
+	public IObservable<string?> ConfirmationStatus { get; }
 }

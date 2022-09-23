@@ -14,7 +14,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
@@ -58,12 +57,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => new List<WalletCoinViewModel>());
+		NextCommand = ReactiveCommand.Create(() => new List<SelectableCoin>());
 	}
 
 	public Money TargetAmount { get; }
 
-	private new ReactiveCommand<Unit, List<WalletCoinViewModel>> NextCommand { get; set; }
+	private new ReactiveCommand<Unit, List<SelectableCoin>> NextCommand { get; set; }
 
 	[SuppressMessage(
 		"Reliability",
@@ -71,25 +70,27 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		Justification = "Objects use DisposeWith")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var sourceCache = new SourceCache<WalletCoinViewModel, OutPoint>(x => x.Coin.OutPoint);
-		var coinLists = GetCoins(_balanceChanged)
-			.ObserveOn(RxApp.MainThreadScheduler);
+		var coinChanges = _balanceChanged
+			.StartWith()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.SelectMany(_ => GetCoins())
+			.ToObservableChangeSet(x => x.OutPoint)
+			.TransformWithInlineUpdate(
+				smartCoin => new SelectableCoin(new SmartCoinAdapter(smartCoin, _walletViewModel.Wallet.AnonScoreTarget)),
+				(selectableCoin, smartCoin) => selectableCoin.Coin = new SmartCoinAdapter(smartCoin, _walletViewModel.Wallet.AnonScoreTarget))
+			.Replay();
 
-		sourceCache.AddOrUpdate(coinLists)
-			.DisposeWith(disposables);
+		coinChanges.Connect().DisposeWith(disposables);
 
-		var coinChanges = sourceCache
-			.Connect()
-			.ReplayLastActive();
-
-		coinChanges.OnItemUpdated((current, previous) => current.IsSelected = previous.IsSelected)
+		coinChanges
+			.Bind(out var coinCollection)
 			.Subscribe()
 			.DisposeWith(disposables);
 
 		var allCoins = coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Throttle(TimeSpan.FromMilliseconds(60), RxApp.MainThreadScheduler);
+			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler);
 
 		var selectedCoins = allCoins
 			.Select(items => items.Where(t => t.IsSelected).ToList());
@@ -110,20 +111,17 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			CreateFormatSummaryText);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
-		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, models.Select(x => x.Coin)));
+		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, GetCoins().Where(x => models.Any(coin => coin.OutPoint == x.OutPoint))));
 
-		SelectPredefinedCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin == coin)));
+		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin.OutPoint == coin.OutPoint)));
 
 		SelectAllCoinsCommand =
-			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = true));
+			ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = true));
 
 		ClearCoinSelectionCommand =
-			ReactiveCommand.Create(() => sourceCache.Items.ToList().ForEach(x => x.IsSelected = false));
+			ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = false));
 
-		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(
-			() => sourceCache.Items.ToList().ForEach(
-				coinViewModel => coinViewModel.IsSelected = coinViewModel.GetPrivacyLevel() == PrivacyLevel.Private));
+		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.PrivacyLevel == PrivacyLevel.Private));
 
 		var commands = new[]
 		{
@@ -133,12 +131,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			new CommandViewModel("Smart", SelectPredefinedCoinsCommand)
 		};
 
-		CoinBasedSelection =
-			new CoinBasedSelectionViewModel(coinChanges, commands)
-				.DisposeWith(disposables);
-		LabelBasedSelection =
-			new LabelBasedCoinSelectionViewModel(coinChanges, commands)
-				.DisposeWith(disposables);
+		CoinBasedSelection = new CoinBasedSelectionViewModel(coinChanges, commands)
+			.DisposeWith(disposables);
+
+		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges, commands)
+			.DisposeWith(disposables);
 
 		SelectPredefinedCoinsCommand.Execute()
 			.Subscribe()
@@ -157,12 +154,17 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return string.Join(" | ", remainingPart.Concat(totalPart));
 	}
 
-	private bool IsSelectionBadForPrivacy(IReadOnlyCollection<WalletCoinViewModel> coins, SmartLabel transactionLabel)
+	private static Money Sum(IEnumerable<SelectableCoin> coinViewModels)
+	{
+		return coinViewModels.Sum(coinViewModel => coinViewModel.Amount);
+	}
+
+	private bool IsSelectionBadForPrivacy(IReadOnlyCollection<SelectableCoin> coins, SmartLabel transactionLabel)
 	{
 		var selectedCoins = coins.Where(x => x.IsSelected).ToList();
-		var privateAndSemiPrivate = coins.Where(x => x.GetPrivacyLevel() == PrivacyLevel.Private || x.GetPrivacyLevel() == PrivacyLevel.SemiPrivate).ToList();
+		var privateAndSemiPrivate = coins.Where(x => x.PrivacyLevel == PrivacyLevel.Private || x.PrivacyLevel == PrivacyLevel.SemiPrivate).ToList();
 		var privateCoinsAreEnough = privateAndSemiPrivate.Sum(x => x.Amount) >= TargetAmount;
-		var isNonPrivateSelected = selectedCoins.Any(x => x.GetPrivacyLevel() != PrivacyLevel.Private);
+		var isNonPrivateSelected = selectedCoins.Any(x => x.PrivacyLevel != PrivacyLevel.Private);
 
 		if (privateCoinsAreEnough && isNonPrivateSelected)
 		{
@@ -179,7 +181,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			return true;
 		}
 
-		if (selectedCoins.GroupBy(x => x.GetPrivacyLevel()).Count() > 1)
+		if (selectedCoins.GroupBy(x => x.PrivacyLevel).Count() > 1)
 		{
 			return true;
 		}
@@ -192,24 +194,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return false;
 	}
 
-	private static Money Sum(IEnumerable<WalletCoinViewModel> coinViewModels)
+	private IEnumerable<SmartCoin> GetCoins()
 	{
-		return coinViewModels.Sum(coinViewModel => coinViewModel.Coin.Amount);
-	}
-
-	private IObservable<IEnumerable<WalletCoinViewModel>> GetCoins(IObservable<Unit> balanceChanged)
-	{
-		var initial = Observable.Return(GetCoinsFromWallet());
-		var coinJoinChanged = _walletViewModel.WhenAnyValue(model => model.IsCoinJoining);
-		var coinsChanged = balanceChanged.ToSignal().Merge(coinJoinChanged.ToSignal());
-		var coins = coinsChanged.Select(_ => GetCoinsFromWallet());
-		var concat = initial.Concat(coins);
-
-		return concat;
-	}
-
-	private IEnumerable<WalletCoinViewModel> GetCoinsFromWallet()
-	{
-		return _walletViewModel.Wallet.Coins.ToList().Select(x => new WalletCoinViewModel(x, _walletViewModel.Wallet));
+		return _walletViewModel.Wallet.Coins;
 	}
 }

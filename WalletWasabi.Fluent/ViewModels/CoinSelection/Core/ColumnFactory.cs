@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Headers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using ISelectable = WalletWasabi.Fluent.Controls.ISelectable;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
@@ -30,15 +29,15 @@ public static class ColumnFactory
 					return group.Value switch
 					{
 						CoinGroupViewModel cg => cg.TotalAmount.Select(x => x.ToFormattedString()),
-						WalletCoinViewModel coin => new BehaviorSubject<string>(coin.Amount.ToFormattedString()),
+						SelectableCoin coin => new BehaviorSubject<string>(coin.Coin.Amount.ToFormattedString()),
 						_ => Observable.Return("")
 					};
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, Money>(model => model.Amount),
-				CompareDescending = SortDescending<WalletCoinViewModel, Money>(model => model.Amount)
+				CompareAscending = SortAscending<SelectableCoin, Money>(model => model.Coin.Amount),
+				CompareDescending = SortDescending<SelectableCoin, Money>(model => model.Coin.Amount)
 			});
 	}
 
@@ -49,15 +48,15 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				group => group.Value switch
 				{
-					WalletCoinViewModel coin => new AnonymityScoreCellViewModel(coin),
-					CoinGroupViewModel { Items.Count: 1 } cg => new AnonymityScoreCellViewModel((WalletCoinViewModel)cg.Items.First()),
+					SelectableCoin coin => new AnonymityScoreCellViewModel(coin),
+					CoinGroupViewModel { Items.Count: 1 } cg => new AnonymityScoreCellViewModel((SelectableCoin) cg.Items.First()),
 					_ => ""
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, int>(model => model.AnonymitySet),
-				CompareDescending = SortDescending<WalletCoinViewModel, int>(model => model.AnonymitySet)
+				CompareAscending = SortAscending<SelectableCoin, int>(model => model.Coin.AnonymitySet),
+				CompareDescending = SortDescending<SelectableCoin, int>(model => model.Coin.AnonymitySet)
 			});
 	}
 
@@ -68,18 +67,18 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				group =>
 				{
-					if (group.Value is WalletCoinViewModel vm)
+					if (group.Value is SelectableCoin vm)
 					{
-						return new LabelsCellViewModel(vm.SmartLabel);
+						return new LabelsCellViewModel(vm.Coin.SmartLabel);
 					}
 
 					return new LabelsCellViewModel(new SmartLabel());
 				}),
-			GridLength.Auto,
+			GridLength.Star,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, SmartLabel>(c => c.SmartLabel),
-				CompareDescending = SortDescending<WalletCoinViewModel, SmartLabel>(c => c.SmartLabel)
+				CompareAscending = SortAscending<SelectableCoin, SmartLabel>(c => c.SmartLabel),
+				CompareDescending = SortDescending<SelectableCoin, SmartLabel>(c => c.SmartLabel)
 			});
 	}
 
@@ -94,40 +93,34 @@ public static class ColumnFactory
 					CoinGroupViewModel vm => GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value),
 					_ => new LabelsCellViewModel(new SmartLabel())
 				}),
-			GridLength.Auto,
+			GridLength.Star,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<CoinGroupViewModel, PrivacyLevelKey>(c => c.Key),
-				CompareDescending = SortDescending<CoinGroupViewModel, PrivacyLevelKey>(c => c.Key)
+				CompareAscending = SortAscending<CoinGroupViewModel, PrivacyIndex>(c => c.PrivacyIndex),
+				CompareDescending = SortDescending<CoinGroupViewModel, PrivacyIndex>(c => c.PrivacyIndex)
 			});
 	}
 
 	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Using DisposeWith")]
-	public static TemplateColumn<TreeNode> SelectionColumn(
-		IObservable<IChangeSet<ISelectable, OutPoint>> items,
-		IEnumerable<CommandViewModel> commands,
-		CompositeDisposable disposables)
+	public static TemplateColumn<TreeNode> SelectionColumn(IObservable<IChangeSet<ISelectable, OutPoint>> items, IEnumerable<CommandViewModel> commands, CompositeDisposable disposables)
 	{
-		var selectionHeaderViewModel = new SelectionHeaderViewModel(
-			items.RemoveKey(),
-			i => i > 99 ? "99+" : i.ToString(),
-			commands);
+		var selectionHeaderViewModel = new SelectionHeaderViewModel(items, i => i > 99 ? "99+" : i.ToString(), commands);
 		selectionHeaderViewModel.DisposeWith(disposables);
 
 		return new TemplateColumn<TreeNode>(
 			selectionHeaderViewModel,
 			new ConstantTemplate<TreeNode>(
 				n => n.Value switch
-					{
-						CoinGroupViewModel cg => new SelectableCollectionCellViewModel(cg.Items),
-						WalletCoinViewModel coin => new CoinSelectionCellViewModel(coin),
-						_ => throw new NotSupportedException()
-					}),
+				{
+					CoinGroupViewModel cg => new SelectableCollectionCellViewModel(cg.Items),
+					SelectableCoin coin => new CoinSelectionCellViewModel(coin),
+					_ => throw new NotSupportedException()
+				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, bool>(model => model.IsSelected),
-				CompareDescending = SortDescending<WalletCoinViewModel, bool>(model => model.IsSelected)
+				CompareAscending = SortAscending<SelectableCoin, bool>(model => model.IsSelected),
+				CompareDescending = SortDescending<SelectableCoin, bool>(model => model.IsSelected)
 			});
 	}
 
@@ -138,15 +131,15 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				n => n.Value switch
 				{
-					WalletCoinViewModel coin => new IndicatorsCellViewModel(coin),
-					CoinGroupViewModel { Items.Count: 1 } cg => new IndicatorsCellViewModel((WalletCoinViewModel)cg.Items.First()),
+					SelectableCoin coin => new IndicatorsCellViewModel(coin),
+					CoinGroupViewModel { Items.Count: 1 } cg => new IndicatorsCellViewModel((SelectableCoin) cg.Items.First()),
 					_ => ""
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<WalletCoinViewModel, int>(GetIndicatorPriority),
-				CompareDescending = SortDescending<WalletCoinViewModel, int>(GetIndicatorPriority)
+				CompareAscending = SortAscending<SelectableCoin, int>(GetIndicatorPriority),
+				CompareDescending = SortDescending<SelectableCoin, int>(GetIndicatorPriority)
 			});
 	}
 
@@ -202,19 +195,19 @@ public static class ColumnFactory
 		return comparison;
 	}
 
-	private static int GetIndicatorPriority(WalletCoinViewModel x)
+	private static int GetIndicatorPriority(SelectableCoin x)
 	{
-		if (x.CoinJoinInProgress)
+		if (x.IsCoinjoining)
 		{
 			return 1;
 		}
 
-		if (x.IsBanned)
+		if (x.BannedUntil.HasValue)
 		{
 			return 2;
 		}
 
-		if (!x.Confirmed)
+		if (!x.IsConfirmed)
 		{
 			return 3;
 		}

@@ -7,7 +7,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
@@ -16,14 +15,14 @@ public class CoinGroupViewModel : IDisposable
 	private readonly CompositeDisposable _disposables = new();
 	private readonly ReadOnlyObservableCollection<ISelectable> _items;
 
-	public CoinGroupViewModel(PrivacyLevelKey key, IObservable<IChangeSet<WalletCoinViewModel, OutPoint>> coins)
+	public CoinGroupViewModel(PrivacyIndex privacyIndex, IObservable<IChangeSet<SelectableCoin, OutPoint>> coins)
 	{
-		Key = key;
-		Labels = key.Labels;
+		PrivacyIndex = privacyIndex;
+		Labels = privacyIndex.Labels;
 
 		if (Labels.IsEmpty)
 		{
-			PrivacyLevel = key.PrivacyLevel;
+			PrivacyLevel = privacyIndex.PrivacyLevel;
 		}
 
 		coins
@@ -36,8 +35,7 @@ public class CoinGroupViewModel : IDisposable
 
 		TotalAmount = coins
 			.ToCollection()
-			.Select(
-				coinViewModels => new Money(coinViewModels.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)), MoneyUnit.BTC));
+			.Select(coinViewModels => new Money(coinViewModels.Sum(x => x.Coin.Amount.ToDecimal(MoneyUnit.BTC)), MoneyUnit.BTC));
 	}
 
 	public SmartLabel Labels { get; }
@@ -48,7 +46,7 @@ public class CoinGroupViewModel : IDisposable
 
 	public PrivacyLevel? PrivacyLevel { get; }
 
-	public PrivacyLevelKey Key { get; }
+	public PrivacyIndex PrivacyIndex { get; }
 
 	public void Dispose()
 	{
