@@ -105,10 +105,6 @@ public class Global : IDisposable
 				{
 					throw new ArgumentException($"Blacklist API token was not provided in {nameof(WabiSabiConfig)}.");
 				}
-				if (CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags is null || !CoordinatorParameters.RuntimeCoordinatorConfig.RiskFlags.Any())
-				{
-					throw new ArgumentException($"Risk indicators were not provided in {nameof(WabiSabiConfig)}.");
-				}
 
 				HttpClient.BaseAddress = url;
 
