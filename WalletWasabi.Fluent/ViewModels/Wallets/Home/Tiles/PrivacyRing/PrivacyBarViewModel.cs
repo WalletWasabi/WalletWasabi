@@ -3,7 +3,6 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -43,10 +42,14 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
+	
+		IsEmpty = this.WhenAnyValue(x => x.Items.Count).Select(count => count == 0);
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
+	public IObservable<bool> IsEmpty { get; }
+	
 	public Wallet Wallet { get; }
 
 	private void RefreshCoinsList(IEnumerable<Pocket> pockets)

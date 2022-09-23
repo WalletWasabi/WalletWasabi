@@ -66,6 +66,7 @@ public class SerializationTests
 		Assert.Equal(Generators.Gx1, deserializedGroupElements[1]);
 
 		var deserializedGroupElementVector = JsonConvert.DeserializeObject<GroupElementVector>("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", converters);
+		Assert.NotNull(deserializedGroupElementVector);
 		Assert.Equal(deserializedGroupElements, deserializedGroupElementVector);
 	}
 
@@ -139,6 +140,7 @@ public class SerializationTests
 		Assert.Equal(three, deserializedScalars[1]);
 
 		var deserializedScalarVector = JsonConvert.DeserializeObject<ScalarVector>("[\"000000000000000000000000000000014551231950B75FC4402DA1732FC9BEC2\",\"0000000000000000000000000000000000000000000000000000000000000003\"]", converters);
+		Assert.NotNull(deserializedScalarVector);
 		Assert.Equal(deserializedScalars, deserializedScalarVector);
 	}
 
