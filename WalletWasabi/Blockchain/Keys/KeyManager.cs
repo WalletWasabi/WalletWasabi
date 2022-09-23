@@ -348,15 +348,13 @@ public class KeyManager
 	
 	private HdPubKey GetNextReceiveKey(SmartLabel label)
 	{
-		var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-		HdPubKeyCache.AddRangeKeys(SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey));
-
 		// Find the next clean external key with empty label.
-		externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
+		var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
 		if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
 		{
 			SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
-			var newHdPubKeys = HdPubKeyCache.AddRangeKeys(SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey)); 
+			var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
+			HdPubKeyCache.AddRangeKeys(newHdPubKeys); 
 
 			newKey = newHdPubKeys.First();
 		}
