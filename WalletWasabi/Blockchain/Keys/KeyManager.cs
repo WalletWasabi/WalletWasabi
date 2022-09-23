@@ -114,6 +114,7 @@ public class KeyManager
 	{
 		HdPubKeys.Clear();
 		HdPubKeys.AddRange(HdPubKeyCache);
+		MinGapLimit = Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0);
 	}
 	
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
