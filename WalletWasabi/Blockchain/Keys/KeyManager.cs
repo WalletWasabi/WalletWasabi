@@ -309,16 +309,10 @@ public class KeyManager
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 	}
 
-	public HdPubKey GenerateNewPersistentKey(SmartLabel label, KeyState keyState, bool isInternal)
+	internal HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		var newKey = GenerateNewKey(label, keyState, isInternal);
-		ToFile();
-		return newKey;
-	}
-
-	public HdPubKey GenerateNewKey(SmartLabel label, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
-	{
-		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
+		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
+		                       ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
 
 		lock (CriticalStateLock)
 		{

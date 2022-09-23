@@ -115,8 +115,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		var hdkey = activeWallet.KeyManager
-			.GenerateNewPersistentKey(new SmartLabel(label), KeyState.Clean, isInternal: false);
+		var hdkey = activeWallet.KeyManager.GetNextReceiveKey(new SmartLabel(label), out _);
+
 		return new
 		{
 			address = hdkey.GetP2wpkhAddress(Global.Network).ToString(),

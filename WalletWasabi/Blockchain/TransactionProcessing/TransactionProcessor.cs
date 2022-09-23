@@ -118,7 +118,7 @@ public class TransactionProcessor
 		var result = new ProcessedResult(tx);
 
 		// We do not care about non-witness transactions for other than mempool cleanup.
-		if (!tx.Transaction.PossiblyP2WPKHInvolved())
+		if (!tx.Transaction.SegWitInvolved())
 		{
 			return result;
 		}
