@@ -27,7 +27,7 @@ public class Pocket
 	public static Pocket operator +(Pocket x, Pocket y)
 	{
 		var mergedLabels = SmartLabel.Merge(x.Labels, y.Labels);
-		var mergedCoins = new CoinsView(x.Coins.Concat(y.Coins));
+		var mergedCoins = new CoinsView(x.Coins.Concat(y.Coins).ToHashSet());
 
 		return new Pocket((mergedLabels, mergedCoins));
 	}
