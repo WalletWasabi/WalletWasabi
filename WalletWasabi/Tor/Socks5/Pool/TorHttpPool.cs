@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -20,39 +21,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
-
 namespace WalletWasabi.Tor.Socks5.Pool;
-
-public enum TcpConnectionState
-{
-	/// <summary><see cref="TorTcpConnection"/> is in use currently.</summary>
-	InUse,
-
-	/// <summary><see cref="TorTcpConnection"/> can be used for a new HTTP request.</summary>
-	FreeToUse,
-
-	/// <summary><see cref="TorTcpConnection"/> is to be disposed.</summary>
-	ToDispose
-}
-
-public record TorPrebuildCircuitRequest
-{
-	public TorPrebuildCircuitRequest(Uri baseUri, TimeSpan randomDelay)
-	{
-		BaseUri = baseUri;
-		RandomDelay = randomDelay;
-	}
-
-	public Uri BaseUri { get; }
-	public TimeSpan RandomDelay { get; }
-}
-
-/// <summary>Latest Tor stream state update.</summary>
-/// <remarks>
-/// Informs that a Tor stream (corresponds to our <see cref="TorTcpConnection"/>) is currently using
-/// the <paramref name="CircuitId">Tor circuit</paramref> and has a certain <paramref name="Status"/>.
-/// </remarks>
-public record TorStreamInfo(string CircuitId, StreamStatusFlag Status);
 
 /// <summary>
 /// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are
@@ -63,6 +32,8 @@ public class TorHttpPool : IAsyncDisposable
 	/// <summary>Maximum number of <see cref="TorTcpConnection"/>s per URI host.</summary>
 	/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
 	public const int MaxConnectionsPerHost = 1000;
+
+	private static readonly StringWithQualityHeaderValue GzipEncoding = new("gzip");
 
 	private static readonly UnboundedChannelOptions Options = new()
 	{
@@ -151,6 +122,8 @@ public class TorHttpPool : IAsyncDisposable
 
 		try
 		{
+			Uri requestUriOverride = request.RequestUri!;
+
 			do
 			{
 				i++;
@@ -177,11 +150,11 @@ public class TorHttpPool : IAsyncDisposable
 
 				try
 				{
-					connection = await ObtainFreeConnectionAsync(request, namedCircuit, cancellationToken).ConfigureAwait(false);
+					connection = await ObtainFreeConnectionAsync(requestUriOverride, namedCircuit, cancellationToken).ConfigureAwait(false);
 					connectionToDispose = connection;
 
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
-					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
+					HttpResponseMessage response = await SendCoreAsync(connection, request, requestUriOverride, cancellationToken).ConfigureAwait(false);
 
 					// Client works OK, no need to dispose.
 					connectionToDispose = null;
@@ -193,6 +166,26 @@ public class TorHttpPool : IAsyncDisposable
 					attemptSuccessful = true;
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
+
+					if (response.StatusCode == HttpStatusCode.Found)
+					{
+						if (!response.Headers.TryGetValues("location", out IEnumerable<string>? locations))
+						{
+							throw new HttpRequestException("'location' HTTP header is missing.");
+						}
+
+						Uri newRequestUri = new(locations.Last());
+
+						string debugMessage = (locations.Count() > 1)
+							? $"Multiple 'location' headers found for '{requestUriOverride}'."
+							: $"Redirecting '{requestUriOverride}' to '{newRequestUri}'.";
+
+						Logger.LogDebug(debugMessage);
+						requestUriOverride = newRequestUri;
+
+						// Do not return response now, but try again with the new request URI.
+						continue;
+					}
 
 					return response;
 				}
@@ -298,12 +291,12 @@ public class TorHttpPool : IAsyncDisposable
 		throw new NotImplementedException("This should never happen.");
 	}
 
-	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
+	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken token)
 	{
-		Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
+		Logger.LogTrace($"> request='{requestUri}', circuit={circuit}");
 
 		DateTime start = DateTime.UtcNow;
-		string host = GetRequestHost(request.RequestUri!);
+		string host = GetRequestHost(requestUri);
 
 		do
 		{
@@ -316,7 +309,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				if (connection is not null)
 				{
-					Logger.LogTrace($"[OLD {connection}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
+					Logger.LogTrace($"[OLD {connection}]['{requestUri}'] Re-use existing Tor SOCKS5 connection.");
 					return connection;
 				}
 			}
@@ -345,7 +338,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				if (canBeAdded)
 				{
-					connection = await CreateNewConnectionAsync(request.RequestUri!, namedCircuit, token).ConfigureAwait(false);
+					connection = await CreateNewConnectionAsync(requestUri, namedCircuit, token).ConfigureAwait(false);
 
 					// Do not dispose.
 					oneOffCircuitToDispose = null;
@@ -353,7 +346,7 @@ public class TorHttpPool : IAsyncDisposable
 					if (connection is not null)
 					{
 						DateTime end = DateTime.UtcNow;
-						Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
+						Logger.LogTrace($"[NEW {connection}]['{requestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
 						return connection;
 					}
 				}
@@ -438,18 +431,24 @@ public class TorHttpPool : IAsyncDisposable
 		return connection;
 	}
 
+	/// <param name="requestUriOverride">URI that should be used instead of <paramref name="request"/>'s request URI. Useful for HTTP redirect support.</param>
 	/// <exception cref="TorConnectionWriteException">When a failure during sending our HTTP(s) request to Tor SOCKS5 occurs.</exception>
 	/// <exception cref="TorConnectionReadException">When a failure during receiving HTTP response from Tor SOCKS5 occurs.</exception>
-	internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token)
+	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
+	internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, Uri requestUriOverride, CancellationToken token)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-2.6
 		// Intermediaries that process HTTP messages (i.e., all intermediaries
 		// other than those acting as tunnels) MUST send their own HTTP - version
 		// in forwarded messages.
 		request.Version = HttpProtocol.HTTP11.Version;
-		request.Headers.AcceptEncoding.Add(new("gzip"));
 
-		string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
+		if (!request.Headers.AcceptEncoding.Contains(GzipEncoding))
+		{
+			request.Headers.AcceptEncoding.Add(GzipEncoding);
+		}
+
+		string requestString = await request.ToHttpStringAsync(requestUriOverride, token).ConfigureAwait(false);
 		byte[] bytes = Encoding.UTF8.GetBytes(requestString);
 
 		Stream transportStream = connection.GetTransportStream();
