@@ -28,7 +28,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		string walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
-# if RELEASE
+#if RELEASE
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 #else
 		_isSkipEnable = true;
@@ -68,7 +68,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
+			new CreatePasswordDialogViewModel("Add Password", "To unlock or recover your wallet you also need a password. This password cannot be changed later.", enableEmpty: true),
 			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)

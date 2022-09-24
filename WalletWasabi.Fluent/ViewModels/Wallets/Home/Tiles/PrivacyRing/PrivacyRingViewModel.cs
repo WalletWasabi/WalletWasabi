@@ -81,38 +81,94 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
 	{
-		_itemsSourceList.Edit(list =>
+		_itemsSourceList.Edit(list => CreateSegments(pockets, list));
+	}
+
+	private void CreateSegments(IEnumerable<Pocket> pockets, IExtendedList<PrivacyRingItemViewModel> list)
+	{
+		list.Clear();
+
+		if (Width == 0d)
 		{
-			list.Clear();
+			return;
+		}
 
-			var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-			var start = 0.0m;
+		var coinCount = pockets.SelectMany(x => x.Coins).Count();
 
-			foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
+		var result = Enumerable.Empty<PrivacyRingItemViewModel>();
+
+		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
+		{
+			result = CreateCoinSegments(pockets);
+		}
+		else
+		{
+			result = CreatePocketSegments(pockets);
+		}
+
+		foreach (var item in result)
+		{
+			list.Add(item);
+		}
+
+		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
+		PreviewItems.AddRange(list);
+	}
+
+	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets)
+	{
+		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var start = 0.0m;
+
+		var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+		foreach (var pocket in usablePockets)
+		{
+			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
+
+			foreach (var coin in pocketCoins)
 			{
-				var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
+				var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
 
-				foreach (var coin in pocketCoins)
-				{
-					var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+				var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end);
 
-					var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end);
+				yield return item;
 
-					list.Add(item);
-
-					_disposables.Add(item);
-
-					start = end;
-				}
+				start = end;
 			}
+		}
+	}
 
-			PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
-			PreviewItems.AddRange(list);
-		});
+	private IEnumerable<PrivacyRingItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
+	{
+		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var start = 0.0m;
+
+		var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+		foreach (var pocket in usablePockets)
+		{
+			var end = start + (Math.Abs(pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+
+			var item = new PrivacyRingItemViewModel(this, pocket, (double)start, (double)end);
+
+			yield return item;
+
+			_disposables.Add(item);
+
+			start = end;
+		}
 	}
 
 	public void Dispose()
 	{
+		_itemsSourceList?.Dispose();
 		_disposables.Dispose();
 	}
 }

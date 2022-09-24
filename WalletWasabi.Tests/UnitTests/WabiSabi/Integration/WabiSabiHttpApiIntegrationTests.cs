@@ -561,7 +561,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					throw new Exception("This is not so possible.");
 				}
 			}
-			catch (OperationCanceledException e)
+			catch (OperationCanceledException)
 			{
 				throw new TimeoutException("Coinjoin was not propagated.");
 			}
