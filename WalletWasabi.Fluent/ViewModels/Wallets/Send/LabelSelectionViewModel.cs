@@ -42,12 +42,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var knownPockets = NonPrivatePockets.Where(x => x.Labels != CoinPocketHelper.UnlabelledFundsText).ToArray();
 		var unknownPockets = NonPrivatePockets.Except(knownPockets).ToArray();
 
-		var privateAndUnknownPockets = unknownPockets.Union(new[] { _privatePocket }).ToArray();
-		var semiPrivateAndUnknownPockets = unknownPockets.Union(new[] { _semiPrivatePocket }).ToArray();
 		var privateAndSemiPrivateAndUnknownPockets = privateAndSemiPrivatePockets.Union(unknownPockets).ToArray();
 
-		var privateAndKnownPockets = knownPockets.Union(new[] { _privatePocket }).ToArray();
-		var semiPrivateAndKnownPockets = knownPockets.Union(new[] { _semiPrivatePocket }).ToArray();
 		var privateAndSemiPrivateAndKnownPockets = privateAndSemiPrivatePockets.Union(knownPockets).ToArray();
 
 		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
@@ -73,44 +69,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return pockets;
 		}
 
-		if (knownPockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return knownPockets;
-		}
-
-		if (unknownPockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return unknownPockets;
-		}
-
-		if (NonPrivatePockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return NonPrivatePockets;
-		}
-
-		if (privateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return privateAndKnownPockets;
-		}
-
-		if (semiPrivateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return semiPrivateAndKnownPockets;
-		}
-
 		if (privateAndSemiPrivateAndKnownPockets.Sum(x => x.Amount) >= _targetAmount)
 		{
 			return privateAndSemiPrivateAndKnownPockets;
-		}
-
-		if (privateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return privateAndUnknownPockets;
-		}
-
-		if (semiPrivateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
-		{
-			return semiPrivateAndUnknownPockets;
 		}
 
 		if (privateAndSemiPrivateAndUnknownPockets.Sum(x => x.Amount) >= _targetAmount)
