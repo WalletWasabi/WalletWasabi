@@ -13,7 +13,7 @@
       <PathIcon Data="{StaticResource arrow_down_regular}"
                 Foreground="{StaticResource SystemAccentColor}" />
 
-      <TextBlock TextWrapping="Wrap" Text="Send a smaller amount" TextAlignment="Center" />
+      <TextBlock TextWrapping="Wrap" Text="Consider breaking down your transaction into smaller amounts" TextAlignment="Center" />
     </StackPanel>
   </Panel>
 </UserControl>

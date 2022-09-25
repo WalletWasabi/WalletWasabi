@@ -12,7 +12,7 @@ public partial class ConsolidationBadgeViewModel : PrivacyBadgeViewModel
 	public ConsolidationBadgeViewModel()
 	{
 		BadgeName = "Consolidation";
-		Description = "Earn this badge by avoiding to send high numbers of coins together";
+		Description = "Earn this badge by avoiding to send a high number of coins together";
 	}
 
 	public void BuildPrivacySuggestions(Wallet wallet, TransactionInfo info)
