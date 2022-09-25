@@ -416,6 +416,9 @@ public class Wallet : BackgroundService, IWallet
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
+		
+		// Save NodeTimeout 
+		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 	}
 
 	private async Task LoadDummyMempoolAsync()

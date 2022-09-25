@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace WalletWasabi.Helpers;
 
 public static class MathUtils
@@ -26,5 +29,17 @@ public static class MathUtils
 		decimal ret = shifted / magnitude;
 
 		return ret;
+	}
+
+	public static (double,double) AverageStandardDeviation(IEnumerable<double> sequence)
+	{
+		var enumerable = sequence as double[] ?? sequence.ToArray();
+		if (enumerable.Length > 0)
+		{
+			double average = enumerable.Average();
+			double sum = enumerable.Sum(d => Math.Pow(d - average, 2));
+			return (average, Math.Sqrt((sum) / enumerable.Length));
+		}
+		return (0, 0);
 	}
 }

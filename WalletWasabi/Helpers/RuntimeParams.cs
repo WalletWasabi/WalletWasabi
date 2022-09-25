@@ -17,7 +17,7 @@ public class RuntimeParams
 	}
 
 	[JsonProperty(PropertyName = "NetworkNodeTimeout")]
-	public int NetworkNodeTimeout { get; set; } = 16;
+	public int NetworkNodeTimeout { get; set; } = 16000; // ms
 
 	#region Business logic
 
