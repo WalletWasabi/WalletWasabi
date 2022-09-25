@@ -173,6 +173,8 @@ public class TorHttpPool : IAsyncDisposable
 					throw new NotImplementedException("This should never happen.");
 				}
 
+				bool attemptSuccessful = false;
+
 				try
 				{
 					connection = await ObtainFreeConnectionAsync(request, namedCircuit, cancellationToken).ConfigureAwait(false);
@@ -188,6 +190,7 @@ public class TorHttpPool : IAsyncDisposable
 					TcpConnectionState state = connection.Unreserve();
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] Unreserve. State is: '{state}'.");
 
+					attemptSuccessful = true;
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
 
@@ -267,6 +270,12 @@ public class TorHttpPool : IAsyncDisposable
 					{
 						Logger.LogTrace($"['{connectionToDispose}'] marked as to be disposed.");
 						connectionToDispose.MarkAsToDispose();
+					}
+
+					// If our request failed but other requests seem to work, try a different circuit.
+					if (!attemptSuccessful && TorDoesntWorkSince is null)
+					{
+						namedCircuit.IncrementIsolationId();
 					}
 
 					oneOffCircuitToDispose?.Dispose();
