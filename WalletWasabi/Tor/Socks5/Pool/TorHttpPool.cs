@@ -354,7 +354,7 @@ public class TorHttpPool : IAsyncDisposable
 				namedCircuit.IncrementIsolationId();
 			}
 			finally
-			{				
+			{
 				oneOffCircuitToDispose?.Dispose();
 			}
 
