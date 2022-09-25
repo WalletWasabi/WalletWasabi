@@ -6,8 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class ConsolidationBadgeViewModel : PrivacyBadgeViewModel
 {
-	private const int YellowConsolidationThreshold = 20;
-	private const int RedConsolidationThreshold = 50;
+	private const int YellowConsolidationThreshold = 10;
+	private const int RedConsolidationThreshold = 15;
 
 	public ConsolidationBadgeViewModel()
 	{
