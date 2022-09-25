@@ -3,18 +3,19 @@ using Nito.AsyncEx;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
+public partial class ChangeAvoidanceBadgeViewModel : PrivacyBadgeViewModel
 {
 	/// <remarks>Guards use of <see cref="_suggestionCancellationTokenSource"/>.</remarks>
 	private readonly object _lock = new();
@@ -22,27 +23,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
-	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
-	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
-	[AutoNotify] private bool _isOpen;
-
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
-	public PrivacySuggestionsFlyoutViewModel()
+	public ChangeAvoidanceBadgeViewModel()
 	{
-		Suggestions = new ObservableCollection<SuggestionViewModel>();
-
-		this.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (!x)
-				{
-					PreviewSuggestion = null;
-				}
-			});
+		BadgeName = "Change Avoidance";
+		Description = "Earn this badge by making changeless transactions.";
 	}
-
-	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
@@ -94,6 +81,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 				}
 
 				Suggestions.Remove(loadingRing);
+
+				Status =
+					!Suggestions.Any()
+					? PrivacyBadgeStatus.Achieved
+					: PrivacyBadgeStatus.Major;
 			}
 			catch (OperationCanceledException)
 			{

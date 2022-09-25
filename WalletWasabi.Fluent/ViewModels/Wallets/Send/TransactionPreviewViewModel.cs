@@ -48,7 +48,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource();
 
-		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
+		ChangeAvoidanceBadge = new ChangeAvoidanceBadgeViewModel();
+		ConsolidationBadge = new ConsolidationBadgeViewModel();
+		AnonScoreBadge = new AnonymityBadgeViewModel();
+
 		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
 		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
 
@@ -60,7 +63,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
-		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
+		ChangeAvoidanceBadge.WhenAnyValue(x => x.PreviewSuggestion)
 			.Subscribe(x =>
 			{
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
@@ -73,12 +76,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				}
 			});
 
-		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
+		ChangeAvoidanceBadge.WhenAnyValue(x => x.SelectedSuggestion)
 			.Subscribe(x =>
 			{
-				PrivacySuggestions.IsOpen = false;
-				PrivacySuggestions.SelectedSuggestion = null;
-
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
@@ -86,7 +86,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				}
 			});
 
-		PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
+		ChangeAvoidanceBadge.WhenAnyValue(x => x.IsOpen)
 			.Subscribe(x =>
 			{
 				if (!x)
@@ -99,7 +99,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, _cancellationTokenSource.Token))
+			.DoAsync(UpdatePrivacyBadgesAsync)
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -137,13 +137,24 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 	}
 
+	private async Task UpdatePrivacyBadgesAsync(BuildTransactionResult transaction)
+	{
+		await ChangeAvoidanceBadge.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, _cancellationTokenSource.Token);
+		ConsolidationBadge.BuildPrivacySuggestions(_wallet, _info);
+		AnonScoreBadge.BuildPrivacySuggestions(_wallet, _info);
+	}
+
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
 
 	public TransactionSummaryViewModel PreviewTransactionSummary { get; }
 
 	public List<TransactionSummaryViewModel> TransactionSummaries { get; }
 
-	public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
+	public ChangeAvoidanceBadgeViewModel ChangeAvoidanceBadge { get; }
+
+	public ConsolidationBadgeViewModel ConsolidationBadge { get; }
+
+	public AnonymityBadgeViewModel AnonScoreBadge { get; }
 
 	public bool PreferPsbtWorkflow => _wallet.KeyManager.PreferPsbtWorkflow;
 

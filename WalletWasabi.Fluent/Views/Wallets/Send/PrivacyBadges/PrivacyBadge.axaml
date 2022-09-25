@@ -1,0 +1,164 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:send="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyBadge">
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style
+      Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_MainContentBorder">
+      <Setter Property="Padding" Value="30,25,30,25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="MaxWidth" Value="250" />
+      <Setter Property="MaxHeight" Value="300" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
+      <Setter Property="Padding" Value="15 25 15 25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="5" />
+
+      <Setter Property="BorderBrush" Value="#14FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
+    </Style>
+
+    <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
+      <Setter Property="Padding" Value="15 25 15 25" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Margin" Value="5" />
+
+      <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
+      <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="MaxWidth" Value="1000" />
+    </Style>
+
+    <Style Selector="ListBox.wrap">
+      <Setter Property="ItemsPanel">
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+      </Setter>
+    </Style>
+
+    <Style Selector="PathIcon.notAchieved.minor">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+    </Style>
+    <Style Selector="PathIcon.notAchieved.major">
+      <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
+    </Style>
+    <Style Selector="PathIcon.notAchieved.severe">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMinimalBrush}" />
+    </Style>
+    <Style Selector="PathIcon.achieved">
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Cursor="Hand" IsVisible="{Binding IsVisible}">
+    <Interaction.Behaviors>
+      <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding IsOpen}" />
+    </Interaction.Behaviors>
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway"
+              IsOpen="{Binding IsOpen, Mode=OneWayToSource}">
+        <DockPanel>
+          <StackPanel HorizontalAlignment="Center" DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal" Spacing="2">
+              <PathIcon Data="{StaticResource ribbon_regular}" Foreground="{DynamicResource SystemAccentColor}" Height="16" Width="16" VerticalAlignment="Center" />
+              <TextBlock Text="Privacy Badge:" Classes="h5" />
+              <TextBlock Text="{Binding BadgeName}" Classes="h5" />
+            </StackPanel>
+            <Separator DockPanel.Dock="Top" Margin="0 2 0 2" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Spacing="5" HorizontalAlignment="Center" Margin="0 2 0 0">
+            <TextBlock Text="STATUS:" Opacity=".5" Classes="h7" />
+
+            <TextBlock Classes="h7" IsVisible="{Binding IsAchieved}" Text="ACHIEVED" Foreground="{StaticResource PrivacyLevelStrongBrush}" />
+            <TextBlock Classes="h7" IsVisible="{Binding IsMinor}" Text="NOT ACHIEVED" Foreground="{StaticResource PrivacyLevelMediumBrush}" />
+            <TextBlock Classes="h7" IsVisible="{Binding IsMajor}" Text="NOT ACHIEVED" Foreground="{StaticResource WarningMessageForeground}" />
+            <TextBlock Classes="h7" IsVisible="{Binding IsSevere}" Text="CRITICAL" Foreground="{StaticResource PrivacyLevelMinimalBrush}" />
+            <Viewbox Height="13" Margin="2 0 2 0" VerticalAlignment="Center"
+                     IsVisible="{Binding Reason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <c:InfoMessage ToolTip.Tip="{Binding Reason}" Opacity="0.5" />
+            </Viewbox>
+          </StackPanel>
+
+          <DockPanel IsVisible="{Binding !IsAchieved}" Margin="0 10 0 0">
+            <TextBlock Text="Suggestions to improve your privacy" HorizontalAlignment="Center" DockPanel.Dock="Top" />
+
+            <TextBlock Text="{Binding Description}" Opacity=".5" HorizontalAlignment="Center" DockPanel.Dock="Top" Margin="0 5 0 5" />
+
+            <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
+                     HorizontalAlignment="Center" Classes="wrap"
+                     Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+              <i:Interaction.Behaviors>
+                <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
+              </i:Interaction.Behaviors>
+              <ListBox.DataTemplates>
+
+                <DataTemplate DataType="vm:ChangeAvoidanceSuggestionViewModel">
+                  <c:SuggestionItem Height="200">
+                    <send:ChangeAvoidanceSuggestionControl />
+                  </c:SuggestionItem>
+                </DataTemplate>
+
+                <DataTemplate DataType="vm:CoinjoinSuggestionViewModel">
+                  <c:SuggestionItem Height="200">
+                    <send:CoinjoinSuggestionControl />
+                  </c:SuggestionItem>
+                </DataTemplate>
+
+                <DataTemplate DataType="vm:SendSmallerAmountSuggestionViewModel">
+                  <c:SuggestionItem Height="200">
+                    <send:SendSmallerAmountSuggestionControl />
+                  </c:SuggestionItem>
+                </DataTemplate>
+              </ListBox.DataTemplates>
+            </ListBox>
+          </DockPanel>
+        </DockPanel>
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
+
+    <Panel>
+      <Viewbox Height="20">
+        <PathIcon Data="{StaticResource shield_regular}"
+                  Classes.achieved="{Binding IsAchieved}"
+                  Classes.notAchieved="{Binding !IsAchieved}"
+                  Classes.severe="{Binding IsSevere}"
+                  Classes.major="{Binding IsMajor}"
+                  Classes.minor="{Binding IsMinor}" />
+      </Viewbox>
+    </Panel>
+  </Border>
+</UserControl>
