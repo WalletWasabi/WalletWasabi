@@ -9,10 +9,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ShuttingDownViewModel : RoutableViewModel
 {
 	private readonly ApplicationViewModel _applicationViewModel;
+	private readonly bool _restart;
 
-	public ShuttingDownViewModel(ApplicationViewModel applicationViewModel)
+	public ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
 	{
 		_applicationViewModel = applicationViewModel;
+		_restart = restart;
 		NextCommand = CancelCommand;
 	}
 
@@ -25,7 +27,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 					  if (_applicationViewModel.CanShutdown())
 					  {
 						  Navigate().Clear();
-						  _applicationViewModel.ShutDown();
+						  _applicationViewModel.Shutdown(_restart);
 					  }
 				  })
 				  .DisposeWith(disposables);
