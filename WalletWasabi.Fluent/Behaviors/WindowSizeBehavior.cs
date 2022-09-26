@@ -15,7 +15,10 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 			.Take(1)
 			.Subscribe(_ =>
 			{
-				SetWindowSize(AssociatedObject);
+				if (AssociatedObject.WindowState != WindowState.Maximized)
+				{
+					SetWindowSize(AssociatedObject);
+				}
 
 				AssociatedObject
 					.WhenAnyValue(x => x.Bounds)
