@@ -13,7 +13,7 @@ public class BlockDownloadStats
 	private double AverageLastSample { get; set; }
 	private double StandardDeviationLastSample { get; set; }
 	private List<BlockDl> History { get; } = new();
-	private object Lock { get; }= new();
+	private object Lock { get; } = new();
 	
 	public void AddBlockDl(IPAddress from, double msElapsed, bool success)
 	{
