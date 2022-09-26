@@ -16,7 +16,6 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
-using AnonymityScoreHeaderView = WalletWasabi.Fluent.Views.CoinSelection.Core.Headers.AnonymityScoreHeaderView;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
@@ -45,7 +44,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coins = CreateCoinsObservable(_balanceChanged);
 
 		var coinChanges = coins
-			.ToObservableChangeSet(c => c.OutPoint.GetHashCode())
+			.ToObservableChangeSet(c => c.OutPoint)
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
@@ -184,7 +183,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 				// AnonymityScore
 				new TemplateColumn<WalletCoinViewModel>(
-					new AnonymityScoreHeaderView(),
+					new AnonymitySetHeaderView(),
 					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
 					options: new ColumnOptions<WalletCoinViewModel>
 					{
