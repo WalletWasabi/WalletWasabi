@@ -19,7 +19,7 @@
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
         Title="Wasabi Wallet"
-        WindowState="{Binding WindowState, Mode=TwoWay}"
+        WindowState="Normal"
         Focusable="{Binding SearchBar.IsSearchListVisible}"
         Icon="/Assets/WasabiLogo.ico">
   <Window.Styles>

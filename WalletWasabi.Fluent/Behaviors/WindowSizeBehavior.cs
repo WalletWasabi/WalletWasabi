@@ -15,7 +15,12 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 			.Take(1)
 			.Subscribe(_ =>
 			{
-				SetWindowSize(AssociatedObject);
+				AssociatedObject.WindowState = Enum.Parse<WindowState>(Services.UiConfig.WindowState);
+
+				if (AssociatedObject.WindowState != WindowState.Maximized)
+				{
+					SetWindowSize(AssociatedObject);
+				}
 
 				AssociatedObject
 					.WhenAnyValue(x => x.Bounds)
@@ -25,6 +30,15 @@ public class WindowSizeBehavior : DisposingBehavior<Window>
 					{
 						Services.UiConfig.WindowWidth = b.Width;
 						Services.UiConfig.WindowHeight = b.Height;
+					})
+					.DisposeWith(disposables);
+
+				AssociatedObject
+					.WhenAnyValue(x => x.WindowState)
+					.Skip(1)
+					.Subscribe(s =>
+					{
+						Services.UiConfig.WindowState = s.ToString();
 					})
 					.DisposeWith(disposables);
 			})
