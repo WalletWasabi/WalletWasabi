@@ -380,18 +380,15 @@ public class KeyManager
 			({ } k, { } i) => GetKeys(x => x.IsInternal == i && x.KeyState == k)
 		};
 
-	public int CountConsecutiveUnusedKeys(bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	public HdPubKeyPathView GetView(bool isInternal, ScriptPubKeyType scriptPubKeyType)
 	{
 		var keySource = GetHdPubKeyGenerator(isInternal, scriptPubKeyType);
-		var view = HdPubKeyCache.GetView(keySource.KeyPath);
-		var usedKeyIndexes = view.UsedKeys.Select(x => x.Index).OrderBy(x => x);
-		var auxPoints = usedKeyIndexes.Prepend(0).ToArray();
-		return auxPoints
-			.Zip(auxPoints[1..], (x, y) => y - x)
-			.Take(auxPoints.Length - 1)
-			.MaxOrDefault(0);
+		lock (CriticalStateLock)
+		{
+			return HdPubKeyCache.GetView(keySource.KeyPath);
+		}
 	}
-
+	
 	public IEnumerable<byte[]> GetPubKeyScriptBytes()
 	{
 		lock (CriticalStateLock)
@@ -440,10 +437,6 @@ public class KeyManager
 		}
 		return extKeysAndPubs;
 	}
-
-	public IEnumerable<SmartLabel> GetChangeLabels() => HdPubKeyCache.GetView(SegwitInternalKeyGenerator.KeyPath).Select(x => x.Label);
-
-	public IEnumerable<SmartLabel> GetReceiveLabels() => HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath).Select(x => x.Label);
 
 	public ExtKey GetMasterExtKey(string password)
 	{
@@ -523,7 +516,7 @@ public class KeyManager
 				TaprootExternalKeyGenerator
 			}
 			.Where(x => x is not null)
-			.SelectMany(gen => gen.AssertCleanKeysIndexed(HdPubKeyCache.GetView(gen.KeyPath)))
+			.SelectMany(gen => gen!.AssertCleanKeysIndexed(HdPubKeyCache.GetView(gen.KeyPath)))
 			.Select(CreateHdPubKey);
 		
 		return HdPubKeyCache.AddRangeKeys(keys);
@@ -685,7 +678,7 @@ public class KeyManager
 	}
 
 	#endregion BlockchainState
-	
+
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
 		new (x.ExtPubKey.PubKey, x.KeyPath, SmartLabel.Empty, KeyState.Clean);
 }

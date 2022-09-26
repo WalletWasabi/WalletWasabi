@@ -80,7 +80,7 @@ public record SigningState : MultipartyTransactionState
 
 		return this with { Witnesses = Witnesses.Add(index, witness) };
 	}
-	
+
 	public Transaction CreateUnsignedTransaction()
 	{
 		var tx = Parameters.CreateTransaction();
