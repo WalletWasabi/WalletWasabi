@@ -127,7 +127,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsSelected,x => x.IsPointerOver)
+			this.WhenAnyValue(x => x.IsSelected, x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
 				.Select(
 					tuple =>
