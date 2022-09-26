@@ -452,7 +452,7 @@ public class PocketSelectionTests
 		var selection = new LabelSelectionViewModel(Money.Parse("0.7"), new FeeRate(2m));
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.7M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
 		pockets.AddPocket(0.6M, out var pocket2, "Dan");
 		pockets.AddPocket(0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
 		pockets.AddPocket(0.7M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
@@ -484,34 +484,6 @@ public class PocketSelectionTests
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
 		Assert.Contains(pocket4, output);
-	}
-
-	[Fact]
-	public void AutoSelectOnlyKnownPockets()
-	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
-
-		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.1M, out var pocket4, "David", "Lucas");
-		pockets.AddPocket(0.15M, out var pocket5, "David");
-		pockets.AddPocket(0.2M, out var pocket6, "Lucas");
-		pockets.AddPocket(0.3M, out var pocket7, "David", "Lucas", "Dan");
-		pockets.AddPocket(0.1M, out var pocket8, CoinPocketHelper.SemiPrivateFundsText);
-
-		selection.Reset(pockets.ToArray());
-
-		var output = selection.AutoSelectPockets(new SmartLabel("David", "Lucas"));
-		Assert.DoesNotContain(pocket1, output);
-		Assert.Contains(pocket2, output);
-		Assert.DoesNotContain(pocket3, output);
-		Assert.Contains(pocket4, output);
-		Assert.Contains(pocket5, output);
-		Assert.Contains(pocket6, output);
-		Assert.Contains(pocket7, output);
-		Assert.DoesNotContain(pocket8, output);
 	}
 
 	[Fact]
