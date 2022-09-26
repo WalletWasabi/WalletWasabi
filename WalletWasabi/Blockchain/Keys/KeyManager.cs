@@ -215,8 +215,6 @@ public class KeyManager
 	
 	#endregion
 	
-	private object ToFileLock { get; } = new();
-
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
 	private HdPubKeyGenerator SegwitInternalKeyGenerator { get; }
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
@@ -335,7 +333,7 @@ public class KeyManager
 		{
 			minGapLimitIncreased = false;
 			var newKey = GetNextReceiveKey(label);
-			ToFileNoLock();
+			ToFile();
 			return newKey;
 		}
 	}
@@ -574,40 +572,21 @@ public class KeyManager
 
 	public void ToFile()
 	{
-		lock (CriticalStateLock)
+		if (FilePath is { } filePath)
 		{
-			lock (ToFileLock)
-			{
-				ToFileNoLock();
-			}
+			ToFile(filePath);
 		}
 	}
 
 	public void ToFile(string filePath)
 	{
+		string jsonString = string.Empty;
+
 		lock (CriticalStateLock)
 		{
-			lock (ToFileLock)
-			{
-				ToFileNoLock(filePath);
-			}
-		}
-	}
-
-	private void ToFileNoLock()
-	{
-		if (FilePath is null)
-		{
-			return;
+			jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
 		}
 
-		ToFileNoLock(FilePath);
-	}
-
-	private void ToFileNoLock(string filePath)
-	{
-		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
-		
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
 
 		SafeIoManager safeIoManager = new(filePath);
@@ -634,7 +613,7 @@ public class KeyManager
 		lock (CriticalStateLock)
 		{
 			BlockchainState.Height = height;
-			ToFileNoLock();
+			ToFile();
 		}
 	}
 
