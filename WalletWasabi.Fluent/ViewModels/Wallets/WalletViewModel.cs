@@ -127,9 +127,14 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		IsMusicBoxVisible =
-			this.WhenAnyValue(x => x.IsPointerOver)
+			this.WhenAnyValue(x => x.IsSelected,x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-				.Select(pointerOver => pointerOver);
+				.Select(
+					tuple =>
+				{
+					var (isSelected, pointerOver) = tuple;
+					return isSelected && pointerOver;
+				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(wallet, balanceChanged, History.UnfilteredTransactions)));
 
