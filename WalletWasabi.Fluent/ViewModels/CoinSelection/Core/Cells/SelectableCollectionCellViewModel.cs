@@ -10,5 +10,5 @@ public class SelectableCollectionCellViewModel : ViewModelBase
 		Selectables = selectables;
 	}
 
-	public ReadOnlyObservableCollection<ISelectable> Selectables { get; set; }
+	public ReadOnlyObservableCollection<ISelectable> Selectables { get; }
 }
