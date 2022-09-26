@@ -23,12 +23,14 @@ public class CoinJoinTrackerFactory
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		CancellationToken = cancellationToken;
+		LiquidityClueHelper = new LiquidityClueHelper();
 	}
 
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 	private string CoordinatorIdentifier { get; }
+	private LiquidityClueHelper LiquidityClueHelper { get; }
 
 	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
@@ -45,6 +47,7 @@ public class CoinJoinTrackerFactory
 			wallet.DestinationProvider,
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
+			LiquidityClueHelper,
 			wallet.AnonScoreTarget,
 			consolidationMode: wallet.ConsolidationMode,
 			redCoinIsolation: wallet.RedCoinIsolation,

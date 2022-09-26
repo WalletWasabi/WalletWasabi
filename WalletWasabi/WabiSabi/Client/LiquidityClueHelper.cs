@@ -11,10 +11,16 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class LiquidityClueHelper
 {
-	private static Money? LiquidityClue { get; set; } = null;
-	private static object LiquidityClueLock { get; } = new object();
+	public LiquidityClueHelper()
+	{
+		LiquidityClue = null;
+		LiquidityClueLock = new object();
+	}
 
-	public static void InitLiquidityClue(IEnumerable<Money> foreignOutputsValues)
+	private Money? LiquidityClue { get; set; }
+	private object LiquidityClueLock { get; }
+
+	public void InitLiquidityClue(IEnumerable<Money> foreignOutputsValues)
 	{
 		var newLiquidityClue = LiquidityClueHelper.TryCalculateLiquidityClue(foreignOutputsValues);
 
@@ -27,7 +33,7 @@ public class LiquidityClueHelper
 		}
 	}
 
-	public static void InitLiquidityClue(Transaction lastCoinjoin, IEnumerable<TxOut> walletTxOuts)
+	public void InitLiquidityClue(Transaction lastCoinjoin, IEnumerable<TxOut> walletTxOuts)
 	{
 		InitLiquidityClue(GetForeignOutputsValues(lastCoinjoin, walletTxOuts));
 	}
@@ -42,7 +48,7 @@ public class LiquidityClueHelper
 		}
 	}
 
-	public static Money GetLiquidityClue(Money maxSuggestedAmount)
+	public Money GetLiquidityClue(Money maxSuggestedAmount)
 	{
 		Money liquidityClue = maxSuggestedAmount;
 		lock (LiquidityClueLock)
@@ -55,7 +61,7 @@ public class LiquidityClueHelper
 		return liquidityClue;
 	}
 
-	public static Money GetLiquidityClue(RoundParameters roundParameters)
+	public Money GetLiquidityClue(RoundParameters roundParameters)
 	{
 		return GetLiquidityClue(roundParameters.MaxSuggestedAmount);
 	}
@@ -80,7 +86,7 @@ public class LiquidityClueHelper
 		UpdateLiquidityClue(roundParameters.MaxSuggestedAmount, GetForeignOutputsValues(unsignedCoinJoin, walletTxOuts));
 	}
 
-	private static IEnumerable<Money> GetForeignOutputsValues(Transaction transaction, IEnumerable<TxOut> walletTxOuts)
+	private IEnumerable<Money> GetForeignOutputsValues(Transaction transaction, IEnumerable<TxOut> walletTxOuts)
 	{
 		return transaction.Outputs
 			.Where(x => !walletTxOuts?.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value) is true) // We only care about outputs those aren't ours.

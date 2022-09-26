@@ -43,6 +43,7 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
+		LiquidityClueHelper liquidityClueHelper,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
@@ -55,6 +56,7 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		LiquidityClueHelper = liquidityClueHelper;
 		ConsolidationMode = consolidationMode;
 		RedCoinIsolation = redCoinIsolation;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
@@ -70,6 +72,7 @@ public class CoinJoinClient
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
+	public LiquidityClueHelper LiquidityClueHelper { get; }
 	public int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
