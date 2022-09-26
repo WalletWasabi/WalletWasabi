@@ -361,6 +361,7 @@ public class TorHttpPool : IAsyncDisposable
 			catch (TorException)
 			{
 				namedCircuit.IncrementIsolationId();
+				throw;
 			}
 			finally
 			{
