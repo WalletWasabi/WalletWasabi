@@ -31,7 +31,7 @@ public static class MathUtils
 		return ret;
 	}
 
-	public static (double,double) AverageStandardDeviation(IEnumerable<double> sequence)
+	public static (double, double) AverageStandardDeviation(IEnumerable<double> sequence)
 	{
 		var enumerable = sequence as double[] ?? sequence.ToArray();
 		if (enumerable.Length > 0)

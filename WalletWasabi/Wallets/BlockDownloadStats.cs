@@ -5,30 +5,14 @@ using NBitcoin.Protocol;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Models;
+namespace WalletWasabi.Wallets;
 
 public class BlockDownloadStats
 {
-	public class BlockDl
-	{
-		public IPAddress From { get; }
-		public double MsElapsed { get; }
-		public bool Success { get; }
-
-		public BlockDl(IPAddress from, double msElapsed, bool success)
-		{
-			From = from;
-			MsElapsed = msElapsed;
-			Success = success;
-		}
-	}
-
-	private List<BlockDl> History { get; } = new();
-	
 	public int SampleSize { get; set; } = 20;
 	private double AverageLastSample { get; set; }
 	private double StandardDeviationLastSample { get; set; }
-	
+	private List<BlockDl> History { get; } = new();
 	private object Lock = new();
 	
 	public void AddBlockDl(IPAddress from, double msElapsed, bool success)
@@ -79,8 +63,9 @@ public class BlockDownloadStats
 			}
 
 			var nbLastFails = sample.Reverse().TakeWhile(x => !x.Success).Count();
-
-			return (int)Math.Round((double)baseTimeout + nbLastFails * failsPenaltyMs);
+			var result = (int)Math.Round((double)baseTimeout + nbLastFails * failsPenaltyMs);
+			Logger.LogTrace($"NodeTimeout: {result}");
+			return result;
 		}
 	}
 
@@ -117,5 +102,19 @@ public class BlockDownloadStats
 			Logger.LogTrace($"{resultLog} node with score: {keepNodeScore}");
 			return result;
 		}
+	}
+	
+	public class BlockDl
+	{
+		public BlockDl(IPAddress from, double msElapsed, bool success)
+		{
+			From = from;
+			MsElapsed = msElapsed;
+			Success = success;
+		}
+		
+		public IPAddress From { get; }
+		public double MsElapsed { get; }
+		public bool Success { get; }
 	}
 }
