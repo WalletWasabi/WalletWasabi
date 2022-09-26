@@ -3,10 +3,12 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.JsonConverters.Collections;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.WabiSabi.Models;
 
@@ -110,25 +112,6 @@ public class WabiSabiConfig : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool IsCoinVerifierEnabled { get; set; } = false;
-
-	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public List<int>? RiskFlags { get; set; } = new();
-
-	[DefaultValue("")]
-	[JsonProperty(PropertyName = "CoinVerifierApiUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoinVerifierApiUrl { get; set; } = "";
-
-	[DefaultValue("")]
-	[JsonProperty(PropertyName = "CoinVerifierApiAuthToken", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoinVerifierApiAuthToken { get; set; } = "";
-
-	[DefaultValueTimeSpan("31d 0h 0m 0s")]
-	[JsonProperty(PropertyName = "ReleaseFromWhitelistAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan ReleaseFromWhitelistAfter { get; set; } = TimeSpan.FromDays(31);
-
 	[DefaultValue(1)]
 	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int RoundParallelization { get; set; } = 1;
@@ -160,6 +143,26 @@ public class WabiSabiConfig : ConfigBase
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2trOutputs { get; set; } = false;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsCoinVerifierEnabled { get; set; } = false;
+
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "CoinVerifierApiUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoinVerifierApiUrl { get; set; } = "";
+
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "CoinVerifierApiAuthToken", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoinVerifierApiAuthToken { get; set; } = "";
+
+	[DefaultValueTimeSpan("31d 0h 0m 0s")]
+	[JsonProperty(PropertyName = "ReleaseFromWhitelistAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ReleaseFromWhitelistAfter { get; set; } = TimeSpan.FromDays(31);
+
+	[DefaultValueEmptyIntegerList()]
+	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public IEnumerable<int> RiskFlags { get; private set; } = Enumerable.Empty<int>();
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
 
