@@ -1,4 +1,5 @@
 using ReactiveUI;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Logging;
