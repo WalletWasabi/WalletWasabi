@@ -66,7 +66,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, _feeRate, recipient, out var pockets))
+		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets,_targetAmount, _feeRate, recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -84,11 +84,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
-	private bool TryGetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
+	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
 		pockets = null;
 
-		if (knownByRecipientPockets.EffectiveSumValue(feeRate) < _targetAmount)
+		if (Pocket.Merge(knownByRecipientPockets, privateAndSemiPrivatePockets).EffectiveSumValue(feeRate) < _targetAmount)
 		{
 			return false;
 		}
@@ -111,6 +111,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 				.ToArray();
 
 		var bestPockets = new List<Pocket>();
+		bestPockets.AddRange(privateAndSemiPrivatePockets);
+
 		foreach (var p in privacyRankedPockets)
 		{
 			bestPockets.Add(p);
@@ -121,7 +123,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			}
 		}
 
-		foreach (var p in bestPockets.OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
+		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
 		{
 			if (bestPockets.EffectiveSumValue(feeRate) - p.EffectiveSumValue(feeRate) >= targetAmount)
 			{
