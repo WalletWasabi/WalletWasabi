@@ -19,7 +19,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		_mainWindowService = mainWindowService;
 
-		QuitCommand = ReactiveCommand.Create(ShutDown);
+		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
 
 		ShowHideCommand = ReactiveCommand.Create(() =>
 		{
@@ -51,12 +51,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public ICommand QuitCommand { get; }
 
-	public void ShutDown() => _mainWindowService.Shutdown();
+	public void Shutdown(bool restart) => _mainWindowService.Shutdown(restart);
 
-	public void OnShutdownPrevented()
+	public void OnShutdownPrevented(bool restartRequest)
 	{
 		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
-		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this));
+		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 
 	public bool CanShutdown()

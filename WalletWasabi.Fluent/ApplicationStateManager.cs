@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
@@ -38,6 +39,7 @@ public class ApplicationStateManager : IMainWindowService
 	private CompositeDisposable? _compositeDisposable;
 	private bool _hideRequest;
 	private bool _isShuttingDown;
+	private bool _restartRequest;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
@@ -52,8 +54,20 @@ public class ApplicationStateManager : IMainWindowService
 
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)
-			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
-			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented());
+			.OnTrigger(Trigger.ShutdownRequested, () =>
+			{
+				if (_restartRequest)
+				{
+					AppLifetimeHelper.StartAppWithArgs();
+				}
+
+				lifetime.Shutdown();
+			})
+			.OnTrigger(Trigger.ShutdownPrevented, () =>
+			{
+				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
+				_restartRequest = false; // reset the value.
+			});
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)
@@ -160,8 +174,9 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Fire(Trigger.Hide);
 	}
 
-	void IMainWindowService.Shutdown()
+	void IMainWindowService.Shutdown(bool restart)
 	{
+		_restartRequest = restart;
 		_stateMachine.Fire(ApplicationViewModel.CanShutdown() ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }

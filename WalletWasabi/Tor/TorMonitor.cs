@@ -166,7 +166,7 @@ public class TorMonitor : PeriodicRunner
 
 					if (info.UserName is not null)
 					{
-						TorHttpPool.ReportCircuitStatus(streamUsername: info.UserName, streamStatus: info.StreamStatus, circuitID: info.CircuitID);
+						TorHttpPool.ReportStreamStatus(streamUsername: info.UserName, streamStatus: info.StreamStatus, circuitID: info.CircuitID);
 					}
 				}
 			}
