@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
@@ -83,6 +84,55 @@ public class TorHttpPoolTests
 
 		using HttpResponseMessage defaultResponse = await pool.SendAsync(request, defaultCircuit, timeoutCts.Token);
 		Assert.Equal("Default circuit!", await defaultResponse.Content.ReadAsStringAsync(timeoutCts.Token));
+
+		mockTcpConnectionFactory.VerifyAll();
+	}
+
+	/// <summary>
+	/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, ICircuit, CancellationToken)"/> bumps <see cref="INamedCircuit.IsolationId"/>
+	/// on a failure.
+	/// </summary>
+	[Fact]
+	public async Task TestIsolationIdBumpingAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+
+		INamedCircuit defaultCircuit = DefaultCircuit.Instance;
+		using PersonCircuit aliceCircuit = new();
+
+		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
+
+		_ = mockTcpConnectionFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(() => throw new TorConnectCommandFailedException(RepField.GeneralSocksServerFailure))
+			.ReturnsAsync(() => throw new TorConnectionException("Could not connect to Tor SOCKSPort."))
+			.ReturnsAsync(() => throw new OperationCanceledException("Deadline reached."));
+
+		_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceCircuit, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(() => throw new TorConnectCommandFailedException(RepField.GeneralSocksServerFailure));
+
+		await using TorHttpPool pool = new(mockTcpConnectionFactory.Object);
+
+		// HTTP request to send.
+		using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
+
+		// Verify IsolationId bumping for the Default circuit.
+		{
+			Assert.Equal(0, defaultCircuit.IsolationId);
+
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await pool.SendAsync(request, defaultCircuit, timeoutCts.Token).ConfigureAwait(false));
+
+			// Note that the pool by default does three attempts to send an HTTP request.
+			Assert.Equal(5, defaultCircuit.IsolationId);
+		}
+
+		// Verify IsolationId bumping for the Alice circuit.
+		{
+			Assert.Equal(0, aliceCircuit.IsolationId);
+
+			await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit, timeoutCts.Token).ConfigureAwait(false));
+
+			Assert.Equal(6, aliceCircuit.IsolationId);
+		}
 
 		mockTcpConnectionFactory.VerifyAll();
 	}
