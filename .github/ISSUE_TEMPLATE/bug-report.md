@@ -32,4 +32,4 @@ You can find the log file by opening it from the main menu: `File/Open/Logs` Fil
 ### Wasabi Version
 
 Which wasabi release are you using? Where did you download it from?  
-You can figure out which version you are using from the main menu: `Help/About`.
+You can figure out which version you are using by choosing `About Wasabi` from dropdown menu in the search bar.
