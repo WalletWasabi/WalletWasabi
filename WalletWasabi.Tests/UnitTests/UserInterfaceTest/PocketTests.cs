@@ -58,5 +58,11 @@ public class PocketTests
 		Assert.Equal(emptyPocket.Labels, mergedPocket.Labels);
 		Assert.Equal(emptyPocket.Amount, mergedPocket.Amount);
 		Assert.Equal(emptyPocket.Coins, mergedPocket.Coins);
+
+		// Ensure uniqueness
+		mergedPocket = Pocket.Merge(pocket1, pocket1, pocket1, pocket1);
+		Assert.Equal(pocket1.Amount, mergedPocket.Amount);
+		Assert.Equal(pocket1.Coins, mergedPocket.Coins);
+		Assert.Equal(pocket1.Labels, mergedPocket.Labels);
 	}
 }
