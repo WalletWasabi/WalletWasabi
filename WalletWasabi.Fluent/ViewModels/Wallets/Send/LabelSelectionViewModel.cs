@@ -66,7 +66,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets,_targetAmount, _feeRate, recipient, out var pockets))
+		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -125,11 +125,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			}
 		}
 
-		// It can happen there unnecessary selected pockets, so remove the ones that are not needed.
+		// It can happen that there are unnecessary selected pockets, so remove the ones that are not needed.
 		// Use Except to make sure the private and semi private pockets never get removed.
 		// Example for an over selection:
 		// Privacy ordered pockets: [A - 3 BTC] [B - 1 BTC] [C - 2 BTC] (A is the best for privacy, C is the worst)
-		// Target amount is 4.5 BTC so to algorithm will select all because it happened in privacy order.
+		// Target amount is 4.5 BTC so the algorithm will select all because it happened in privacy order.
 		// But B is unnecessary because A and C can cover the case, so remove it.
 		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
 		{
