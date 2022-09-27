@@ -165,6 +165,8 @@ public class ApplicationStateManager : IMainWindowService
 			SetWindowSize(result);
 		}
 
+		ObserveWindowSize(result, _compositeDisposable);
+
 		result.Show();
 
 		ApplicationViewModel.IsMainWindowShown = true;
@@ -189,6 +191,28 @@ public class ApplicationStateManager : IMainWindowService
 			window.Width = configWidth.Value;
 			window.Height = configHeight.Value;
 		}
+	}
+
+	private void ObserveWindowSize(Window window, CompositeDisposable disposables)
+	{
+		window?
+			.WhenAnyValue(x => x.Bounds)
+			.Where(b => !b.IsEmpty)
+			.Take(1)
+			.Subscribe(_ =>
+			{
+				window
+					.WhenAnyValue(x => x.Bounds)
+					.Skip(1)
+					.Where(b => !b.IsEmpty && window.WindowState == WindowState.Normal)
+					.Subscribe(b =>
+					{
+						Services.UiConfig.WindowWidth = b.Width;
+						Services.UiConfig.WindowHeight = b.Height;
+					})
+					.DisposeWith(disposables);
+			})
+			.DisposeWith(disposables);
 	}
 
 	void IMainWindowService.Show()
