@@ -3,15 +3,17 @@ using System.Linq;
 using System.Net;
 using NBitcoin.Protocol;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;
 
 public class BlockDownloadStats
 {
-	public int SampleSize { get; set; } = 20;
 	private double AverageLastSample { get; set; }
 	private double StandardDeviationLastSample { get; set; }
+	private int ConsecutiveFails { get; set; }
+	private IEnumerable<BlockDl> Sample { get; set; } = Enumerable.Empty<BlockDl>();
 	private List<BlockDl> History { get; } = new();
 	private object Lock { get; } = new();
 	
@@ -20,91 +22,96 @@ public class BlockDownloadStats
 		lock (Lock)
 		{
 			History.Add((new BlockDl(from, msElapsed, success)));
-			var lastSampleSuccessTime = GetSample().Where(x => x.Success).Select(x => x.MsElapsed);
-			(AverageLastSample, StandardDeviationLastSample) = Helpers.MathUtils.AverageStandardDeviation(lastSampleSuccessTime);
+			Sample = History.Skip(Math.Max(0, History.Count - Const.SampleSize));
+			(AverageLastSample, StandardDeviationLastSample) = 
+				GetAverageStandardDerivation(Sample.Where(x => x.Success));
+			ConsecutiveFails = success ? 0 : ConsecutiveFails + 1;
 		}
 	}
 
-	private (double, double) GetAvgSdForSuccessHistory()
+	private static (double, double) GetAverageStandardDerivation(IEnumerable<BlockDl> collection)
 	{
-		return Helpers.MathUtils.AverageStandardDeviation(History.Where(x => x.Success).Select(x => x.MsElapsed));
+		return MathUtils.AverageStandardDeviation(collection.Select(x => x.MsElapsed));
 	}
-
-	private IEnumerable<BlockDl> GetSample()
-	{
-		return History.Skip(Math.Max(0, History.Count - SampleSize));
-	}
-
-	public int NodeTimeoutStrategy(int currentTimeout, int failsPenaltyMs = 2000)
+	public int NodeTimeoutStrategy(int lastTimeout)
 	{
 		lock (Lock)
 		{
-			var sample = GetSample();
-
 			int baseTimeout;
-			if (AverageLastSample > 0 && sample.Count(x => x.Success) > 4)
+			if (AverageLastSample > 0 && Sample.Count(x => x.Success) > Const.SampleMinSuccesses)
 			{
 				// Mean time spent recently to download a block including the spread
-				baseTimeout = (int)Math.Round(AverageLastSample + Math.Max(2000, StandardDeviationLastSample * 2));
+				baseTimeout = (int)Math.Round(AverageLastSample + Math.Max(Const.MinimumSpread, StandardDeviationLastSample * Const.StandardDerivationWeight));
 			}
 			else
 			{
 				// Same but for History if we don't have enough info in sample.
-				var historyAvgSd = GetAvgSdForSuccessHistory();
+				var historyAvgSd = GetAverageStandardDerivation(History.Where(x => x.Success));
 				if (historyAvgSd.Item1 > 0)
 				{
-					baseTimeout = (int)Math.Round(historyAvgSd.Item1 + Math.Max(2000, historyAvgSd.Item2 * 2));
+					baseTimeout = (int)Math.Round(historyAvgSd.Item1 + Math.Max(Const.MinimumSpread, historyAvgSd.Item2 * Const.StandardDerivationWeight));
 				}
 				else
 				{
-					// No info at all, use reset value.
-					baseTimeout = Math.Max(5000, Math.Min(128000, currentTimeout));
+					// No info at all, use default value.
+					baseTimeout = Math.Max(Const.TimeoutDefaultValue, Math.Min(Const.TimeoutMaxValue, lastTimeout));
 				}
 			}
 
-			var nbLastFails = sample.Reverse().TakeWhile(x => !x.Success).Count();
-			var result = (int)Math.Round((double)baseTimeout + nbLastFails * failsPenaltyMs);
-			Logger.LogTrace($"NodeTimeout: {result}");
+			var consecutiveFailsPenalty = 0.0;
+			if (ConsecutiveFails > 0)
+			{
+				consecutiveFailsPenalty = (ConsecutiveFails - 1) * Const.BlockDlFailedPenalty *
+				                          Math.Pow(Const.BlockDlFailedMultiplier, ConsecutiveFails - 1);
+			}
+			var result = (int)Math.Round(baseTimeout + consecutiveFailsPenalty);
+			result = result > Const.TimeoutMaxValue ? Const.TimeoutMaxValue : result;
+			var timeoutDeltaLog = lastTimeout >= result ? $"(-{lastTimeout - result})" : $"(+{result - lastTimeout})";
+			Logger.LogDebug($"Timeout: {result}ms {timeoutDeltaLog} / Sample Avg: {Math.Round(AverageLastSample)}ms");
 			return result;
 		}
 	}
 
-	public bool NodeDisconnectStrategy(Node node, int connectedNodes, int nbNodesGoal = 4)
+	public bool NodeDisconnectStrategy(Node node, int connectedNodes)
 	{
 		lock (Lock)
 		{
 			// Last sample and History for blocks downloaded by this node
-			var nodeLastDls = GetSample().Where(x => x.From.Equals(node.RemoteSocketAddress));
-			var nodeLastDlsCount = nodeLastDls.Count();
+			var nodeDlsSample = Sample.Where(x => x.From.Equals(node.RemoteSocketAddress));
+			var nodeDlsSampleCount = nodeDlsSample.Count();
 			var nodeDlsHistory = History.Where(x => x.From.Equals(node.RemoteSocketAddress));
 			var nodeDlsHistoryCount = nodeDlsHistory.Count();
-
+			
+			// KeepNodeScore components, the higher the score the higher probability to keep the node
+			var connectedNodesScore = connectedNodes >= Const.ConnectedNodesGoal
+				? (1 - Math.Min(1, (connectedNodes - Const.ConnectedNodesGoal) * Const.TooMuchNodesScoreMultiplier)) * 100 // Low score when too much nodes
+				: (((double)Const.ConnectedNodesGoal - (connectedNodes - 1)) / Const.ConnectedNodesGoal) * 100; // High score when low number of nodes
+			
 			// Low score if high frequency of dl from this node
-			var coeffSameNode = 0.05;
-			var scoreSameNode = (1 - (double)nodeLastDlsCount / GetSample().Count()) * 100;
+			var nodeFrequencyScore = (1 - Math.Min(1, Math.Pow(nodeDlsSampleCount, 2) / Sample.Count())) * 100;
 
-			var coeffNbNodes = 0.15;
-			var scoreNbNodes = connectedNodes >= nbNodesGoal
-				? (1 - Math.Min(1, (connectedNodes - nbNodesGoal) * 0.2)) * 100 // Low score when too much nodes
-				: (((double)nbNodesGoal - (connectedNodes - 1)) / nbNodesGoal) *
-				  100; // High score when low number of nodes
-
-			// Low score if node tends to fail
-			var coeffFails = 0.8;
-			var scoreFails =
-				(1 - Math.Min(1, ((double)nodeDlsHistory.Count(x => !x.Success) * 2 / nodeDlsHistoryCount))) * 100;
-
-			var keepNodeScore =
-				Math.Round(coeffSameNode * scoreSameNode + coeffFails * scoreFails + coeffNbNodes * scoreNbNodes);
+			// Low score if node tends to timeout
+			var nodeHistoryTimeoutsScore = Math.Max(0.15, 1 - Math.Min(1, nodeDlsHistory.Count(x => !x.Success) * Const.NodeHistoryTimeoutsMultiplier / nodeDlsHistoryCount)) * 100;
+			if (ConsecutiveFails > 1)
+			{
+				// Lot of consecutive fails probably means temporary bandwidth/tor issue, avoid disconnecting.
+				nodeHistoryTimeoutsScore = Math.Min(80, nodeHistoryTimeoutsScore * ConsecutiveFails);
+			}
+			
+			var keepNodeScore = Math.Round(Const.NodeFrequencyWeight * nodeFrequencyScore 
+			                               + Const.ConnectedNodesWeight * connectedNodesScore 
+			                               + Const.NodeHistoryTimeoutsWeight * nodeHistoryTimeoutsScore);
 
 			var result = keepNodeScore <= InsecureRandom.Instance.GetInt(0, 101);
-			var resultLog = result ? "disconnect" : "keep";
-			Logger.LogTrace($"{resultLog} node with score: {keepNodeScore}");
+			var blockDlResultLog = Sample.Last().Success ? "Block dl SUCCESS" : "Block dl FAILED";
+			Logger.LogDebug(result
+				? $"{blockDlResultLog} - Node: Disconnect - Score: {keepNodeScore} - Nb Nodes remaining: {connectedNodes - 1}"
+				: $"{blockDlResultLog} - Node: Keep - Score: {keepNodeScore} - Nb Nodes: {connectedNodes}");
 			return result;
 		}
 	}
 	
-	public class BlockDl
+	private class BlockDl
 	{
 		public BlockDl(IPAddress from, double msElapsed, bool success)
 		{
@@ -116,5 +123,31 @@ public class BlockDownloadStats
 		public IPAddress From { get; }
 		public double MsElapsed { get; }
 		public bool Success { get; }
+	}
+	
+	private static class Const 
+	{
+		// Sample parameters
+		public static int SampleSize => 10;
+		public static int SampleMinSuccesses => 4;
+		
+		// Node timeout strategy parameters
+		public static int BlockDlFailedPenalty => 500;
+		public static double BlockDlFailedMultiplier => 1.5;
+		public static double StandardDerivationWeight => 2;
+		public static int MinimumSpread => 2000;
+		public static int TimeoutDefaultValue => 5000;
+		public static int TimeoutMaxValue => 256000;
+		
+		// Node disconnect strategy parameters
+		public static int ConnectedNodesGoal => 4;
+		public static double TooMuchNodesScoreMultiplier => 0.2;
+		public static double ConnectedNodesWeight => 0.25;
+		
+		public static double NodeFrequencyWeight => 0.1;
+		
+		
+		public static double NodeHistoryTimeoutsMultiplier => 2;
+		public static double NodeHistoryTimeoutsWeight => 0.65;
 	}
 }
