@@ -33,6 +33,7 @@ public class BlockDownloadStats
 	{
 		return MathUtils.AverageStandardDeviation(collection.Select(x => x.MsElapsed));
 	}
+	
 	public int NodeTimeoutStrategy(int lastTimeout)
 	{
 		lock (Lock)
@@ -129,7 +130,7 @@ public class BlockDownloadStats
 	{
 		// Sample parameters
 		public static int SampleSize => 10;
-		public static int SampleMinSuccesses => 4;
+		public static int SampleMinSuccesses => 2;
 		
 		// Node timeout strategy parameters
 		public static int BlockDlFailedPenalty => 500;
