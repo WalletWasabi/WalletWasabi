@@ -103,7 +103,6 @@ public class TorHttpPoolTests
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 
 		_ = mockTcpConnectionFactory.SetupSequence(c => c.ConnectAsync(It.IsAny<Uri>(), defaultCircuit, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => throw new TorConnectCommandFailedException(RepField.GeneralSocksServerFailure))
 			.ReturnsAsync(() => throw new TorConnectionException("Could not connect to Tor SOCKSPort."))
 			.ReturnsAsync(() => throw new OperationCanceledException("Deadline reached."));
 
@@ -121,8 +120,7 @@ public class TorHttpPoolTests
 
 			await Assert.ThrowsAsync<OperationCanceledException>(async () => await pool.SendAsync(request, defaultCircuit, timeoutCts.Token).ConfigureAwait(false));
 
-			// Note that the pool by default does three attempts to send an HTTP request.
-			Assert.Equal(5, defaultCircuit.IsolationId);
+			Assert.Equal(3, defaultCircuit.IsolationId);
 		}
 
 		// Verify IsolationId bumping for the Alice circuit.
@@ -131,6 +129,7 @@ public class TorHttpPoolTests
 
 			await Assert.ThrowsAsync<HttpRequestException>(async () => await pool.SendAsync(request, aliceCircuit, timeoutCts.Token).ConfigureAwait(false));
 
+			// Note that the pool by default does three attempts to send an HTTP request.
 			Assert.Equal(6, aliceCircuit.IsolationId);
 		}
 
