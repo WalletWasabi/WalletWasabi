@@ -34,8 +34,8 @@ public class Pocket
 
 	public static Pocket Merge(Pocket[] pocketArray, params Pocket[] pockets)
 	{
-		var mergedPocketArray = pocketArray.Aggregate((current, pocket) => Merge(current, pocket));
-		var mergedPockets = pockets.Aggregate((current, pocket) => Merge(current, pocket));
+		var mergedPocketArray = Merge(pocketArray);
+		var mergedPockets = Merge(pockets);
 
 		return Merge(mergedPocketArray, mergedPockets);
 	}
