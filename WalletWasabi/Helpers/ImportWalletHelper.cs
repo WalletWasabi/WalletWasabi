@@ -55,8 +55,7 @@ public static class ImportWalletHelper
 		var segwitXpubString = jsonWallet["ExtPubKey"]?.ToString()
 			?? throw new ArgumentNullException($"Can't get KeyManager, ExtPubKey was null.");
 
-		var taprootXpubString = jsonWallet["TaprootExtPubKey"]?.ToString()
-		                       ?? throw new ArgumentNullException($"Can't get KeyManager, TaprootExtPubKey was null.");
+		var taprootXpubString = jsonWallet["TaprootExtPubKey"]?.ToString();
 		
 		var mfpString = jsonWallet["MasterFingerprint"]?.ToString()
 			?? throw new ArgumentNullException($"Can't get KeyManager, MasterFingerprint was null.");
@@ -89,7 +88,9 @@ public static class ImportWalletHelper
 		}
 
 		ExtPubKey segwitExtPubKey = NBitcoinHelpers.BetterParseExtPubKey(segwitXpubString);
-		ExtPubKey taprootExtPubKey = NBitcoinHelpers.BetterParseExtPubKey(segwitXpubString);
+		ExtPubKey? taprootExtPubKey = taprootXpubString is { }
+			? NBitcoinHelpers.BetterParseExtPubKey(taprootXpubString)
+			: null;
 
 		return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, segwitExtPubKey, taprootExtPubKey, manager.Network, walletFullPath);
 	}
