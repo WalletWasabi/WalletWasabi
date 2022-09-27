@@ -296,15 +296,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var usedPockets = _allPockets.Where(pocket => pocket.Coins.Any(usedCoins.Contains)).ToImmutableArray();
 		var remainingUsablePockets = _allPockets.Except(usedPockets).ToList();
 
-		if (!usedPockets.Contains(_privatePocket)) // Private pocket hasn't been used. Don't deal with it then.
-		{
-			remainingUsablePockets.Remove(_privatePocket);
-		}
-
-		if (!usedPockets.Contains(_semiPrivatePocket)) // Semi private pocket hasn't been used. Don't deal with it then.
-		{
-			remainingUsablePockets.Remove(_semiPrivatePocket);
-		}
+		// They are handled silently, do not take them into account as manually selectable pockets.
+		remainingUsablePockets.Remove(_privatePocket);
+		remainingUsablePockets.Remove(_semiPrivatePocket);
 
 		if (usedPockets.Length == 1 && usedPockets.First() == _privatePocket)
 		{
