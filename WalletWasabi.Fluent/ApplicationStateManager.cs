@@ -195,22 +195,14 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void ObserveWindowSize(Window window, CompositeDisposable disposables)
 	{
-		window?
+		window
 			.WhenAnyValue(x => x.Bounds)
-			.Where(b => !b.IsEmpty)
-			.Take(1)
-			.Subscribe(_ =>
+			.Skip(1)
+			.Where(b => !b.IsEmpty && window.WindowState == WindowState.Normal)
+			.Subscribe(b =>
 			{
-				window
-					.WhenAnyValue(x => x.Bounds)
-					.Skip(1)
-					.Where(b => !b.IsEmpty && window.WindowState == WindowState.Normal)
-					.Subscribe(b =>
-					{
-						Services.UiConfig.WindowWidth = b.Width;
-						Services.UiConfig.WindowHeight = b.Height;
-					})
-					.DisposeWith(disposables);
+				Services.UiConfig.WindowWidth = b.Width;
+				Services.UiConfig.WindowHeight = b.Height;
 			})
 			.DisposeWith(disposables);
 	}
