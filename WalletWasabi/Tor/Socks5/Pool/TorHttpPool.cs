@@ -231,9 +231,9 @@ public class TorHttpPool : IAsyncDisposable
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
 					}
 				}
-				catch (TorConnectCommandFailedException e)
+				catch (TorConnectionException e)
 				{
-					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connect command failed.", e);
+					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connection failed.", e);
 
 					if (i == attemptsNo)
 					{
