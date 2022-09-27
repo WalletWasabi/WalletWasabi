@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -240,6 +241,19 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> InitialiseTransactionAsync()
 	{
+		if (_info.FeeRate == FeeRate.Zero)
+		{
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
+			{
+				_info.FeeRate = newFeeRate;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
@@ -250,19 +264,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_info.Coins = coins;
 			}
 			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
-			}
-		}
-
-		if (_info.FeeRate == FeeRate.Zero)
-		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
-			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
-			{
-				_info.FeeRate = newFeeRate;
-			}
-			else
 			{
 				return false;
 			}
@@ -558,7 +559,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
-		var labelSelection = new LabelSelectionViewModel(amount);
+		var labelSelection = new LabelSelectionViewModel(amount, _info.FeeRate);
 		labelSelection.Reset(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
