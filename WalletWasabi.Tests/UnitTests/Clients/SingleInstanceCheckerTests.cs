@@ -13,23 +13,12 @@ namespace WalletWasabi.Tests.UnitTests.Clients;
 [Collection("Serial unit tests collection")]
 public class SingleInstanceCheckerTests
 {
-	private static Random Random { get; } = new();
-
-	/// <summary>
-	/// Global port may collide when several PRs are being tested on CI at the same time,
-	/// so we need some sort of non-determinism here (i.e. random numbers).
-	/// </summary>
-	private static int GenerateRandomPort()
-	{
-		return Random.Next(37128, 50000);
-	}
-
 	[Fact]
 	public async Task SingleInstanceTestsAsync()
 	{
-		int mainNetPort = GenerateRandomPort();
-		int testNetPort = mainNetPort + 1;
-		int regTestPort = testNetPort + 1;
+		int mainNetPort = 39900;
+		int testNetPort = 40000;
+		int regTestPort = 40001;
 
 		// Disposal test.
 		await using (SingleInstanceChecker sic = new(mainNetPort))
@@ -57,7 +46,7 @@ public class SingleInstanceCheckerTests
 	[Fact]
 	public async Task OtherInstanceStartedTestsAsync()
 	{
-		int mainNetPort = GenerateRandomPort();
+		int mainNetPort = 40003;
 
 		// Disposal test.
 		await using SingleInstanceChecker firstInstance = new(mainNetPort);
