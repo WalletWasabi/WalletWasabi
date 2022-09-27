@@ -597,7 +597,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectKnownByRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.9"), new FeeRate(2m));
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -609,17 +609,17 @@ public class PocketSelectionTests
 		selection.Reset(pockets.ToArray());
 
 		var output = selection.AutoSelectPockets("David");
-		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
 		Assert.Contains(pocket4, output);
-		Assert.DoesNotContain(pocket5, output);
+		Assert.Contains(pocket5, output);
 	}
 
 	[Fact]
 	public void AutoSelectKnownByMultipleRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.9"), new FeeRate(2m));
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -635,7 +635,7 @@ public class PocketSelectionTests
 		selection.Reset(pockets.ToArray());
 
 		var output = selection.AutoSelectPockets("David, Lucas");
-		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
 		Assert.Contains(pocket4, output);
@@ -643,7 +643,7 @@ public class PocketSelectionTests
 		Assert.DoesNotContain(pocket6, output);
 		Assert.DoesNotContain(pocket7, output);
 		Assert.DoesNotContain(pocket8, output);
-		Assert.DoesNotContain(pocket9, output);
+		Assert.Contains(pocket9, output);
 	}
 
 	[Fact]
