@@ -122,14 +122,14 @@ public class P2pBlockProvider : IBlockProvider
 						}
 						BlockDlStats.AddBlockDl(node.RemoteSocketAddress, dlProfiler.ElapsedMilliseconds, true);
 						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-						NodeTimeouts();
+						await NodeTimeoutsAsync();
 					}
 					catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 					{
 						dlProfiler.Stop();
 						BlockDlStats.AddBlockDl(node.RemoteSocketAddress, dlProfiler.ElapsedMilliseconds, false);
 						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download timeout.");
-						NodeTimeouts();
+						await NodeTimeoutsAsync();
 						continue;
 					}
 					catch (Exception ex)
@@ -289,7 +289,7 @@ public class P2pBlockProvider : IBlockProvider
 
 	private void DisconnectNode(Node node, string disconnectReason, bool force = false)
 	{
-		if (BlockDlStats.NodeDisconnectStrategy(node, Nodes.ConnectedNodes.Count) || force)
+		if (force || BlockDlStats.NodeDisconnectStrategy(node, Nodes.ConnectedNodes.Count))
 		{
 			node.DisconnectAsync(disconnectReason);
 		}
@@ -298,8 +298,15 @@ public class P2pBlockProvider : IBlockProvider
 	/// <summary>
 	/// Current timeout used when downloading a block from the remote node. It is defined in milliseconds.
 	/// </summary>
-	private void NodeTimeouts()
+	private async Task NodeTimeoutsAsync()
 	{
 		NodeTimeout = BlockDlStats.NodeTimeoutStrategy(NodeTimeout);
+		// Save to RuntimeParams only if difference is significant
+		if ((double)RuntimeParams.Instance.NetworkNodeTimeout / 2  >= NodeTimeout
+		    || RuntimeParams.Instance.NetworkNodeTimeout * 2 <= NodeTimeout)
+		{
+			RuntimeParams.Instance.NetworkNodeTimeout = NodeTimeout;
+			await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
+		}
 	}
 }
