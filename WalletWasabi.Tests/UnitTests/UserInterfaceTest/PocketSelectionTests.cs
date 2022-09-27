@@ -851,7 +851,7 @@ public class PocketSelectionTests
 		Assert.True(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
 		// No other pocket can be used case.
-		recipient = "Dan, Lucas";
+		recipient = "Adam";
 		output = selection.AutoSelectPockets(recipient);
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
