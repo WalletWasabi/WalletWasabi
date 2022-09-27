@@ -146,7 +146,6 @@ public class BlockDownloadStats
 		
 		public static double NodeFrequencyWeight => 0.1;
 		
-		
 		public static double NodeHistoryTimeoutsMultiplier => 2;
 		public static double NodeHistoryTimeoutsWeight => 0.65;
 	}
