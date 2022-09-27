@@ -66,7 +66,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPockets(knownByRecipientPockets, _targetAmount, _feeRate, recipient, out var pockets))
+		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -84,11 +84,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
-	private bool TryGetBestKnownByRecipientPockets(Pocket[] knownByRecipientPockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
+	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
 		pockets = null;
 
-		if (knownByRecipientPockets.EffectiveSumValue(feeRate) < _targetAmount)
+		if (Pocket.Merge(knownByRecipientPockets, privateAndSemiPrivatePockets).EffectiveSumValue(feeRate) < _targetAmount)
 		{
 			return false;
 		}
@@ -111,6 +111,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 				.ToArray();
 
 		var bestPockets = new List<Pocket>();
+		bestPockets.AddRange(privateAndSemiPrivatePockets);
+
+		// Iterate through the ordered by privacy pockets and add them one by one until the total amount covers the payment.
+		// The first one is the best from the privacy point of view, and the last one is the worst.
 		foreach (var p in privacyRankedPockets)
 		{
 			bestPockets.Add(p);
@@ -121,7 +125,13 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			}
 		}
 
-		foreach (var p in bestPockets.OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
+		// It can happen that there are unnecessary selected pockets, so remove the ones that are not needed.
+		// Use Except to make sure the private and semi private pockets never get removed.
+		// Example for an over selection:
+		// Privacy ordered pockets: [A - 3 BTC] [B - 1 BTC] [C - 2 BTC] (A is the best for privacy, C is the worst)
+		// Target amount is 4.5 BTC so the algorithm will select all because it happened in privacy order.
+		// But B is unnecessary because A and C can cover the case, so remove it.
+		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
 		{
 			if (bestPockets.EffectiveSumValue(feeRate) - p.EffectiveSumValue(feeRate) >= targetAmount)
 			{
