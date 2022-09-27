@@ -536,7 +536,7 @@ public class CoinJoinClient
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
-					Logger.LogDebug("Signature was already sent - bypassing error.",ex);
+					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
 
 			})
