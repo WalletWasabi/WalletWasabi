@@ -1,5 +1,5 @@
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;

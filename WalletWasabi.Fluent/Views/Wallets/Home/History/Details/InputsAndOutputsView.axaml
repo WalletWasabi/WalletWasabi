@@ -8,7 +8,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="450"
              x:DataType="details:ITransactionViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.InputAndOutputs">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.InputsAndOutputsView">
 
   <Design.DataContext>
     <fluent:TransactionDetailsViewModelDesign />
@@ -17,8 +17,7 @@
   <UserControl.DataTemplates>
     <DataTemplate DataType="fluent:UnknownInputViewModel">
       <Grid ColumnDefinitions="Auto,*" Margin="5">
-        <PathIcon x:Name="Output"
-                  Foreground="Red"
+        <PathIcon Foreground="LightGray"
                   Width="20" Data="{StaticResource right_arrow_bubble}" />
         <controls:CopyableContentControl Margin="4 0" Grid.Column="1" TextualValue="{Binding TransactionId}">
           <TextBlock
@@ -32,8 +31,7 @@
     </DataTemplate>
     <DataTemplate DataType="fluent:KnownInputViewModel">
       <Grid ColumnDefinitions="Auto,*,Auto" Margin="5">
-        <PathIcon x:Name="Output"
-                  Foreground="Red"
+        <PathIcon Foreground="Red"
                   Width="20" Data="{StaticResource right_arrow_bubble}" />
         <controls:CopyableContentControl Margin="4 0" Grid.Column="1" TextualValue="{Binding Address}">
           <TextBlock

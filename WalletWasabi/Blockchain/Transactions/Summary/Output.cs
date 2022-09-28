@@ -1,6 +1,6 @@
 using NBitcoin;
 
-namespace WalletWasabi.Blockchain.Transactions;
+namespace WalletWasabi.Blockchain.Transactions.Summary;
 
 public class Output
 {

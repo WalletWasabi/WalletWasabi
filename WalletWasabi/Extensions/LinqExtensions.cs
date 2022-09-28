@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Extensions;

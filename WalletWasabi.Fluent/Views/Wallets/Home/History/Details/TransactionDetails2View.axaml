@@ -22,7 +22,7 @@
   <ScrollViewer>
     <StackPanel Spacing="10">
       <details:HeaderView />
-      <details:InputAndOutputs />
+      <details:InputsAndOutputsView />
       <details:DetailsView />
     </StackPanel>
   </ScrollViewer>

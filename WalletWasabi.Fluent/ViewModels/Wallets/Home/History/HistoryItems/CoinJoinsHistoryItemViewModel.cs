@@ -5,10 +5,10 @@ using System.Linq;
 using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
+using WalletWasabi.Blockchain.Transactions.Summary;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 

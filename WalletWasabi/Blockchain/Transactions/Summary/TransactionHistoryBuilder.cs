@@ -1,12 +1,13 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Blockchain.Transactions;
+namespace WalletWasabi.Blockchain.Transactions.Summary;
 
 public class TransactionHistoryBuilder
 {
@@ -51,11 +52,12 @@ public class TransactionHistoryBuilder
 					BlockIndex = containingTransaction.BlockIndex,
 					BlockHash = containingTransaction.BlockHash,
 					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
-					Inputs = GetInputs(wallet.Network, wallet.TransactionProcessor.TransactionStore, containingTransaction),
-					Outputs = containingTransaction.WalletOutputs.Select(x => new Output(x.Amount, x.ScriptPubKey.GetDestinationAddress(wallet.Network), x.SpenderTransaction is not null)),
+					Inputs = GetInputs(wallet.Network, containingTransaction),
+					Outputs = GetOutputs(containingTransaction, wallet.Network),
 					VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
-					Version = (int) containingTransaction.Transaction.Version,
+					Version = (int)containingTransaction.Transaction.Version,
 					BlockTime = containingTransaction.FirstSeen.ToUnixTimeSeconds(),
+					Size = containingTransaction.Transaction.GetSerializedSize(),
 				});
 			}
 
@@ -76,17 +78,18 @@ public class TransactionHistoryBuilder
 					{
 						DateTime = dateTime,
 						Height = spenderTransaction.Height,
-						Amount = Money.Zero - coin.Amount,
+						Amount = coin.Amount,
 						Label = spenderTransaction.Label,
 						TransactionId = spenderTxId,
 						BlockIndex = spenderTransaction.BlockIndex,
 						BlockHash = spenderTransaction.BlockHash,
 						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
-						Inputs = GetInputs(wallet.Network, wallet.TransactionProcessor.TransactionStore, containingTransaction),
-						Outputs = containingTransaction.WalletOutputs.Select(x => new Output(x.Amount, x.ScriptPubKey.GetDestinationAddress(wallet.Network), x.SpenderTransaction is not null)),
-						VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
-						Version = (int) containingTransaction.Transaction.Version,
-						BlockTime = containingTransaction.FirstSeen.ToUnixTimeSeconds(),
+						Inputs = GetInputs(wallet.Network, containingTransaction),
+						Outputs = GetOutputs(spenderTransaction, wallet.Network),
+						VirtualSize = spenderTransaction.Transaction.GetVirtualSize(),
+						Version = (int)spenderTransaction.Transaction.Version,
+						BlockTime = spenderTransaction.FirstSeen.ToUnixTimeSeconds(),
+						Size = spenderTransaction.Transaction.GetSerializedSize(),
 					});
 				}
 			}
@@ -96,37 +99,33 @@ public class TransactionHistoryBuilder
 		return txRecordList;
 	}
 
-	private static IEnumerable<Input> GetInputs(Network network, AllTransactionStore store, SmartTransaction transaction)
+	private static IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
+	{
+		var txOutList = smartTransaction.Transaction.Outputs.Select(
+			txOut =>
+			{
+				var amount = txOut.Value;
+				var address = txOut.ScriptPubKey.GetDestinationAddress(network);
+				var coin = smartTransaction.WalletOutputs.FirstOrDefault(smartCoin => smartCoin.TxOut == txOut);
+				bool isSpent = true;
+				if (coin != null)
+				{
+					isSpent = coin.SpenderTransaction != null;
+				}
+
+				return new Output(amount, address, isSpent);
+			});
+
+		return txOutList;
+
+		return smartTransaction.WalletOutputs.Select(x => new Output(x.Amount, x.ScriptPubKey.GetDestinationAddress(network), x.SpenderTransaction is not null));
+	}
+
+	private static IEnumerable<Input> GetInputs(Network network, SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs.Select(x => (Input)new InputAmount(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
 		var unknown = transaction.ForeignInputs.Select(x => (Input)new UnknownInput(x.Transaction.GetHash()));
-		
+
 		return known.Concat(unknown);
-	}
-}
-
-public abstract class Input
-{
-}
-
-public class UnknownInput : Input
-{
-	public UnknownInput(uint256 transactionId)
-	{
-		TransactionId = transactionId;
-	}
-
-	public uint256 TransactionId { get;  }
-}
-
-public class InputAmount : Input
-{
-	public Money Amount { get; }
-	public BitcoinAddress Address { get; }
-
-	public InputAmount(Money amount, BitcoinAddress address)
-	{
-		Amount = amount;
-		Address = address;
 	}
 }

@@ -26,7 +26,7 @@ public interface ITransaction
 public static class TransactionExtensions
 {
 	public static Money OutputAmount(this ITransaction transaction) => transaction.Outputs.Sum(x => x.Amount);
-	public static Money? InputAmount(this ITransaction transaction) => transaction.Inputs.Cast<UnknownInputViewModel>().Any() ? null : transaction.Inputs.Cast<KnownInputViewModel>().Sum(x => x.Amount);
+	public static Money? InputAmount(this ITransaction transaction) => transaction.Inputs.OfType<UnknownInputViewModel>().Any() ? null : transaction.Inputs.Cast<KnownInputViewModel>().Sum(x => x.Amount);
 
 	public static Money? Fee(this ITransaction transaction)
 	{

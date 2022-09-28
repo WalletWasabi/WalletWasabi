@@ -3,7 +3,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Blockchain.Transactions;
+namespace WalletWasabi.Blockchain.Transactions.Summary;
 
 public class TransactionSummary
 {
@@ -20,4 +20,6 @@ public class TransactionSummary
 	public int VirtualSize { get; set; }
 	public int Version { get; set; }
 	public long BlockTime { get; set; }
+	public int Size { get; set; }
+	public double Weight { get; set; }
 }

@@ -4,7 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
@@ -15,17 +15,19 @@ public class ReactiveTransaction : ITransaction
 	private readonly TransactionHistoryBuilder _historyBuilder;
 	private readonly Wallet _wallet;
 
-	public ReactiveTransaction(Wallet wallet, uint256 summaryTransactionId)
+	public ReactiveTransaction(Wallet wallet, uint256 transactionId)
 	{
 		_wallet = wallet;
 		_historyBuilder = new TransactionHistoryBuilder(wallet);
-		var transaction = GetTransaction(summaryTransactionId);
+		var transaction = GetTransaction(transactionId);
 		Id = transaction.TransactionId.ToString();
 		Timestamp = transaction.DateTime;
 		IncludedInBlock = transaction.Height;
 		Version = transaction.Version;
 		BlockTime = transaction.BlockTime;
 		VirtualSize = transaction.VirtualSize;
+		Size = transaction.Size;
+		Weight = transaction.Weight;
 
 		Inputs = transaction.Inputs.Select(
 			x => x switch
@@ -39,7 +41,7 @@ public class ReactiveTransaction : ITransaction
 		Labels = transaction.Label.Labels;
 		Amount = transaction.Amount;
 		Confirmations = GetSomethingChanged()
-			.Select(_ => GetTransaction(summaryTransactionId).GetConfirmations())
+			.Select(_ => GetTransaction(transactionId).GetConfirmations())
 			.StartWith(transaction.GetConfirmations());
 	}
 
