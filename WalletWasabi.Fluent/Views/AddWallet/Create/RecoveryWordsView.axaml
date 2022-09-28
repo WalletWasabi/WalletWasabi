@@ -9,17 +9,17 @@
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Write down the following Recovery Words in the correct order and store them in a safe place. They are needed to recover this wallet."
+                 Caption="Write down the following recovery words in the correct order and store them in a safe place. They are needed to recover this wallet."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
     <DockPanel>
-      <c:InfoMessage Foreground="{StaticResource WarningMessageForeground}"
+      <c:InfoMessage Opacity="0.5"
                      HorizontalAlignment="Center"
                      DockPanel.Dock="Bottom">
-        <TextBlock Text="Warning: You will not be able to see these words again." />
+        <TextBlock Text="You will not be able to see these words again." />
       </c:InfoMessage>
 
       <Panel>
