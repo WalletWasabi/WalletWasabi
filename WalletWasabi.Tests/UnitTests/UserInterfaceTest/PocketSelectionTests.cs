@@ -336,6 +336,27 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
+	public void DoNotUsePrivateFunds()
+	{
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "Dan");
+
+		var pockets = new List<Pocket>();
+		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+
+		selection.Reset(pockets.ToArray());
+
+		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
+		Assert.True(selection.EnoughSelected);
+
+		var output = selection.GetUsedPockets();
+		Assert.DoesNotContain(pocket1, output);
+		Assert.Contains(pocket2, output);
+		Assert.DoesNotContain(pocket3, output);
+	}
+
+	[Fact]
 	public void IncludePrivateFunds()
 	{
 		var selection = new LabelSelectionViewModel(Money.Parse("0.8"), new FeeRate(2m), SmartLabel.Empty);
