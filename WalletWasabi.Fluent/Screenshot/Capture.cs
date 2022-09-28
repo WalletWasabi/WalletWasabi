@@ -30,6 +30,11 @@ public static class Capture
 
 	private static async Task SaveAsync(TopLevel root)
 	{
+		if (root is not Window window)
+		{
+			return;
+		}
+
 		var dlg = new SaveFileDialog
 		{
 			Title = "Save screenshot",
@@ -45,10 +50,6 @@ public static class Capture
 			InitialFileName = "WalletWasabi",
 			DefaultExtension = "svg"
 		};
-		if (root is not Window window)
-		{
-			return;
-		}
 
 		var result = await dlg.ShowAsync(window);
 		if (result is { } path)
