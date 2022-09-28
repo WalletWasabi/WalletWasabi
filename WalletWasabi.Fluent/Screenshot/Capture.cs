@@ -30,18 +30,21 @@ public static class Capture
 
 	private static async Task SaveAsync(TopLevel root)
 	{
-		var dlg = new SaveFileDialog { Title = "Save screenshot" };
-		dlg.Filters = new()
+		var dlg = new SaveFileDialog
 		{
-			new() { Name = "Svg", Extensions = { "svg" } },
-			new() { Name = "Png", Extensions = { "png" } },
-			new() { Name = "Pdf", Extensions = { "pdf" } },
-			new() { Name = "Xps", Extensions = { "xps" } },
-			new() { Name = "Skp", Extensions = { "skp" } },
-			new() { Name = "All", Extensions = { "*" } }
+			Title = "Save screenshot",
+			Filters = new()
+			{
+				new() { Name = "Svg", Extensions = { "svg" } },
+				new() { Name = "Png", Extensions = { "png" } },
+				new() { Name = "Pdf", Extensions = { "pdf" } },
+				new() { Name = "Xps", Extensions = { "xps" } },
+				new() { Name = "Skp", Extensions = { "skp" } },
+				new() { Name = "All", Extensions = { "*" } }
+			},
+			InitialFileName = "WalletWasabi",
+			DefaultExtension = "svg"
 		};
-		dlg.InitialFileName = "WalletWasabi";
-		dlg.DefaultExtension = "svg";
 		if (root is not Window window)
 		{
 			return;
