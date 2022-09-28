@@ -172,10 +172,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		OnSelectionChanged();
 	}
 
-	private void CheckAndIncludeHiddenPockets()
-	{
-	}
-
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
 	{
 		if (labelViewModel.IsBlackListed)
