@@ -660,7 +660,7 @@ public class CoordinatorRound
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).",exc);
 		}
 
-		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint)));
+		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
 		Logger.LogInfo($"Alices({alicesToRemove.Count()}) was force banned in round '{RoundId}'.");
 		foreach (var alice in alicesToRemove)
 		{
