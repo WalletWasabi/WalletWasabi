@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
@@ -113,6 +114,11 @@ public class WabiSabiConfig : ConfigBase
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool IsCoinVerifierEnabled { get; set; } = false;
+
+	[DefaultValueIntegerArray("")]
+	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(IntegerArrayJsonConverter))]
+	public IEnumerable<int> RiskFlags { get; set; } = Enumerable.Empty<int>();
 
 	[DefaultValue("")]
 	[JsonProperty(PropertyName = "CoinVerifierApiUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
