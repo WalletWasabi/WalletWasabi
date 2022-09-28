@@ -186,6 +186,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
+		// We unselect any previous selection. Otherwise, if the item is already selected, it won't flash again.
+		Source.RowSelection!.SelectedIndex = IndexPath.Unselected;
+
 		var node = TransactionItemNode.Create(Transactions)
 			.SelectMany(node => node.Children.Concat(new [] { node }))
 			.FirstOrDefault(x => x.Item.Id == txid);
