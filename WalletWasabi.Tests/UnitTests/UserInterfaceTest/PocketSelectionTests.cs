@@ -16,7 +16,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabel()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -41,7 +41,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AllWhitelistPocketsAreOutput()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -62,7 +62,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -80,7 +80,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAndTheOtherLabelsInThosePockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -98,7 +98,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void WhiteListSwapsAllLabelsInOtherPocketsThatContainTargetLabelAndTheOtherLabelsInThosePockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -116,7 +116,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void OutPutMatchesWhiteListScenario1()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -135,7 +135,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void BlackListHighlightsLabelsExclusivelyThatExistInMultiplePockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -164,7 +164,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void BlackListHighlightsDealWithMultipleOverlapsCorrectly()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
@@ -195,7 +195,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void WhiteListHighlightsDealWithMultipleOverlapsCorrectly()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan");
@@ -214,7 +214,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void WhiteListSwapsGroupedLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
@@ -239,7 +239,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void MovesFromWhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabel()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -273,7 +273,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void PrivateAndSemiPrivatePocketsAreHidden()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -292,7 +292,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void UseOnlyPrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.1M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -315,7 +315,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void UsePrivateAndSemiPrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.9M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -336,30 +336,9 @@ public class PocketSelectionTests
 	}
 
 	[Fact]
-	public void DoNotUsePrivateFunds()
-	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
-
-		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
-
-		selection.Reset(pockets.ToArray());
-
-		Assert.Contains(selection.GetLabel("Dan"), selection.LabelsWhiteList);
-		Assert.True(selection.EnoughSelected);
-
-		var output = selection.GetUsedPockets();
-		Assert.DoesNotContain(pocket1, output);
-		Assert.Contains(pocket2, output);
-		Assert.DoesNotContain(pocket3, output);
-	}
-
-	[Fact]
 	public void IncludePrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("2.5"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("0.8"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -379,7 +358,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void IncludePrivateAndSemiPrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("2.5"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("2.5"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.6M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -399,7 +378,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void StillIncludePrivateFundsAfterSwap()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 		var pockets = new List<Pocket>();
 
 		var privateCoin = LabelTestExtensions.CreateCoin(0.8m, "", 999);
@@ -432,7 +411,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void NotEnoughSelected()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), SmartLabel.Empty);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "David");
@@ -449,7 +428,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectOnlyPrivatePocket()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("0.7"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("0.7"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -459,7 +438,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -469,7 +448,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectPrivateAndSemiPrivatePockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("0.7"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("0.7"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.4M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -479,7 +458,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -489,7 +468,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectPrivateAndSemiPrivateAndKnownPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -499,7 +478,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -509,7 +488,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectPrivateAndSemiPrivateAndUnknownPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -519,7 +498,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -529,7 +508,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectAllPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("2.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("2.0"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -539,7 +518,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.Contains(pocket3, output);
@@ -549,7 +528,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectOnlyKnownByRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "David, Lucas");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -563,7 +542,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets(new SmartLabel("David", "Lucas"));
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -577,7 +556,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectOnlyKnownByRecipientPocketsCaseInsensitive()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "dAN");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -587,7 +566,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets(new SmartLabel("dAN"));
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.Contains(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -597,7 +576,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectKnownByRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "David");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -608,7 +587,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("David");
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -619,7 +598,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectKnownByMultipleRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "David, Lucas");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -634,7 +613,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("David, Lucas");
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -649,7 +628,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectMultipleKnownByMultipleRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "David, Lucas");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -664,7 +643,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("David, Lucas");
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -679,7 +658,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void AutoSelectRequiredKnownByRecipientPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "David");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -692,7 +671,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("David");
+		var output = selection.AutoSelectPockets();
 		Assert.DoesNotContain(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 		Assert.DoesNotContain(pocket3, output);
@@ -705,7 +684,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void NotEnoughSelectedWhenSameLabelFoundInSeveralPockets()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.4M, out _, "Dan");
@@ -725,7 +704,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void SetUsedLabelIgnoreCase()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.0"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.2M, out var pocket1, "Dan");
@@ -733,7 +712,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 		Assert.Contains(pocket1, output);
 		Assert.DoesNotContain(pocket2, output);
 
@@ -748,7 +727,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void SetUsedLabelIncludePrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Dan");
@@ -764,7 +743,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 
 		selection.SetUsedLabel(output.SelectMany(x => x.Coins), privateThreshold: 10);
 
@@ -774,7 +753,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void SetUsedLabelIncludeSemiPrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Dan");
@@ -790,7 +769,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 
 		selection.SetUsedLabel(output.SelectMany(x => x.Coins), privateThreshold: 10);
 
@@ -800,7 +779,7 @@ public class PocketSelectionTests
 	[Fact]
 	public void SetUsedLabelIncludePrivateAndSemiPrivateFunds()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("2.5"), new FeeRate(2m));
+		var selection = new LabelSelectionViewModel(Money.Parse("2.5"), new FeeRate(2m), "Dan");
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Dan");
@@ -825,7 +804,7 @@ public class PocketSelectionTests
 
 		selection.Reset(pockets.ToArray());
 
-		var output = selection.AutoSelectPockets("Dan");
+		var output = selection.AutoSelectPockets();
 
 		selection.SetUsedLabel(output.SelectMany(x => x.Coins), privateThreshold: 10);
 
@@ -835,7 +814,6 @@ public class PocketSelectionTests
 	[Fact]
 	public void IsOtherSelectionPossibleCases()
 	{
-		var selection = new LabelSelectionViewModel(Money.Parse("0.5"), new FeeRate(2m));
 		var pockets = new List<Pocket>();
 
 		var privatePocket = LabelTestExtensions.CreateSingleCoinPocket(1.0m, CoinPocketHelper.PrivateFundsText, anonSet: 999);
@@ -843,16 +821,19 @@ public class PocketSelectionTests
 
 		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan"));
 		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan, Lucas"));
-		selection.Reset(pockets.ToArray());
 
 		// Other pocket can be used case.
 		var recipient = "Lucas";
-		var output = selection.AutoSelectPockets(recipient);
+		var selection = new LabelSelectionViewModel(Money.Parse("0.5"), new FeeRate(2m), recipient);
+		selection.Reset(pockets.ToArray());
+		var output = selection.AutoSelectPockets();
 		Assert.True(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
 		// Exact match. Recipient == pocket, no better selection.
 		recipient = "Dan";
-		output = selection.AutoSelectPockets(recipient);
+		selection = new LabelSelectionViewModel(Money.Parse("0.5"), new FeeRate(2m), recipient);
+		selection.Reset(pockets.ToArray());
+		output = selection.AutoSelectPockets();
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
 		pockets.Add(privatePocket);
@@ -860,26 +841,26 @@ public class PocketSelectionTests
 
 		// Private funds are enough for the payment, no better selection.
 		recipient = "Doesn't matter, it will use private coins";
-		output = selection.AutoSelectPockets(recipient);
+		selection = new LabelSelectionViewModel(Money.Parse("0.5"), new FeeRate(2m), recipient);
+		selection.Reset(pockets.ToArray());
+		output = selection.AutoSelectPockets();
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
 		pockets.Remove(privatePocket);
 		pockets.Add(semiPrivatePocket);
-		selection = new LabelSelectionViewModel(Money.Parse("0.5"), new FeeRate(2m));
+		selection = new LabelSelectionViewModel(Money.Parse("0.5"), new FeeRate(2m), recipient);
 		selection.Reset(pockets.ToArray());
 
 		// Semi funds are enough for the payment, no better selection.
-		recipient = "Doesn't matter, it will use semi private coins";
-		output = selection.AutoSelectPockets(recipient);
+		output = selection.AutoSelectPockets();
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
 		pockets.Add(privatePocket);
-		selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m));
+		selection = new LabelSelectionViewModel(Money.Parse("1.5"), new FeeRate(2m), recipient);
 		selection.Reset(pockets.ToArray());
 
 		// Private and semi funds are enough for the payment, no better selection.
-		recipient = "Doesn't matter, it will use semi private coins";
-		output = selection.AutoSelectPockets(recipient);
+		output = selection.AutoSelectPockets();
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 	}
 }

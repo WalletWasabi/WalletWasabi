@@ -524,7 +524,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
 		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
-		var labelSelection = new LabelSelectionViewModel(amount, _info.FeeRate);
+		var labelSelection = new LabelSelectionViewModel(amount, _info.FeeRate, _info.UserLabels);
 		labelSelection.Reset(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);

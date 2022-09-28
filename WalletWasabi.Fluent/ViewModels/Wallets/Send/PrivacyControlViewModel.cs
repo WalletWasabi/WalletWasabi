@@ -28,7 +28,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_usedCoins = usedCoins;
 
 		var amount = transactionInfo.MinimumRequiredAmount == Money.Zero ? transactionInfo.Amount : transactionInfo.MinimumRequiredAmount;
-		LabelSelection = new LabelSelectionViewModel(amount, _transactionInfo.FeeRate);
+		LabelSelection = new LabelSelectionViewModel(amount, _transactionInfo.FeeRate, transactionInfo.UserLabels);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -70,7 +70,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var autoSelectedPockets = LabelSelection.AutoSelectPockets(_transactionInfo.UserLabels);
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 
 			Complete(autoSelectedPockets);
 		}
