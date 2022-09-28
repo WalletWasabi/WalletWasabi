@@ -65,33 +65,39 @@ public static class Capture
 			return;
 		}
 
-		if (path.EndsWith("png", StringComparison.OrdinalIgnoreCase))
+		var extension = Path.GetExtension(path);
+		switch (extension.ToLower())
 		{
-			PngRenderer.Render(control, size, path);
-		}
-
-		if (path.EndsWith("svg", StringComparison.OrdinalIgnoreCase))
-		{
-			using var stream = File.Create(path);
-			SvgRenderer.Render(control, size, stream);
-		}
-
-		if (path.EndsWith("pdf", StringComparison.OrdinalIgnoreCase))
-		{
-			using var stream = File.Create(path);
-			PdfRenderer.Render(control, size, stream, 96);
-		}
-
-		if (path.EndsWith("xps", StringComparison.OrdinalIgnoreCase))
-		{
-			using var stream = File.Create(path);
-			XpsRenderer.Render(control, size, stream, 96);
-		}
-
-		if (path.EndsWith("skp", StringComparison.OrdinalIgnoreCase))
-		{
-			using var stream = File.Create(path);
-			SkpRenderer.Render(control, size, stream);
+			case ".png":
+			{
+				using var stream = File.Create(path);
+				PngRenderer.Render(control, size, stream);
+				break;
+			}
+			case ".svg":
+			{
+				using var stream = File.Create(path);
+				SvgRenderer.Render(control, size, stream);
+				break;
+			}
+			case ".pdf":
+			{
+				using var stream = File.Create(path);
+				PdfRenderer.Render(control, size, stream);
+				break;
+			}
+			case ".xps":
+			{
+				using var stream = File.Create(path);
+				XpsRenderer.Render(control, size, stream);
+				break;
+			}
+			case ".skp":
+			{
+				using var stream = File.Create(path);
+				SkpRenderer.Render(control, size, stream);
+				break;
+			}
 		}
 	}
 }
