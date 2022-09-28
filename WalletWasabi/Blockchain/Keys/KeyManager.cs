@@ -211,6 +211,9 @@ public class KeyManager
 	public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
 	private HdPubKeyCache HdPubKeyCache { get; } = new();
+
+	// `CriticalStateLock` is aimed to synchronize read/write access to the "critical" properties:
+	// keys (stored in the `HdPubKeyCache`), minGapLimit, secrets, height, network.
 	private object CriticalStateLock { get; } = new();
 	
 	#endregion

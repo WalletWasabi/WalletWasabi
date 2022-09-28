@@ -12,5 +12,5 @@ public class HdPubKeyGlobalView : HdPubKeyPathView
 	}
 
 	internal HdPubKeyPathView GetChildKeyOf(KeyPath keyPath) =>
-		new (Keys.Where(x => x.FullKeyPath.Parent == keyPath));
+		new (Keys.Where(x => x.FullKeyPath.Parent == keyPath).ToImmutableList());
 }
