@@ -43,7 +43,6 @@ public static class Capture
 				new() { Name = "Svg", Extensions = { "svg" } },
 				new() { Name = "Png", Extensions = { "png" } },
 				new() { Name = "Pdf", Extensions = { "pdf" } },
-				new() { Name = "Xps", Extensions = { "xps" } },
 				new() { Name = "Skp", Extensions = { "skp" } },
 				new() { Name = "All", Extensions = { "*" } }
 			},
