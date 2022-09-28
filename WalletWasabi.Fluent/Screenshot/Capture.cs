@@ -86,12 +86,6 @@ public static class Capture
 				PdfRenderer.Render(control, size, stream);
 				break;
 			}
-			case ".xps":
-			{
-				using var stream = File.Create(path);
-				XpsRenderer.Render(control, size, stream);
-				break;
-			}
 			case ".skp":
 			{
 				using var stream = File.Create(path);
