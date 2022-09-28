@@ -16,7 +16,8 @@
     </i:Interaction.Behaviors>
 
     <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
-            ToolTip.Tip="Show Details">
+            ToolTip.Tip="Show Details"
+            IsVisible="{Binding !PrivacyBar.IsEmpty^}">
       <ItemsControl Items="{Binding PrivacyBar.Items}" Height="10">
         <ItemsControl.Styles>
           <Style Selector="Path.private">

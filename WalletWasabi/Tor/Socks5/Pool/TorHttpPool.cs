@@ -242,6 +242,10 @@ public class TorHttpPool : IAsyncDisposable
 					TorConnectionException innerException = new("Connection was refused.", e);
 					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 				}
+				catch (OperationCanceledException)
+				{
+					throw;
+				}
 				catch (Exception e)
 				{
 					Logger.LogTrace($"['{connection}'] Exception occurred.", e);
@@ -336,6 +340,11 @@ public class TorHttpPool : IAsyncDisposable
 			connection = await TcpConnectionFactory.ConnectAsync(requestUri, circuit, cancellationToken).ConfigureAwait(false);
 			Logger.LogTrace($"[NEW {connection}]['{requestUri}'] Created new Tor SOCKS5 connection.");
 		}
+		catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
+		{
+			Logger.LogTrace($"['{requestUri}'] TTL expired occurred. Probably some relay/networking problem. No need to worry too much.");
+			throw;
+		}
 		catch (TorException e)
 		{
 			Logger.LogTrace($"['{requestUri}'][ERROR] Failed to create a new pool connection.", e);
@@ -418,15 +427,15 @@ public class TorHttpPool : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Allows to report that a Tor circuit status changed.
+	/// Allows to report that a Tor stream status changed.
 	/// </summary>
-	/// <param name="circuitID">Tor circuit ID for logging purposes. Example is: <c>35</c>.</param>
 	/// <param name="streamUsername">Username of the Tor stream. Example is: <c>IK1DG1HZCZFEQUTF86O86</c>.</param>
+	/// <param name="circuitID">Tor circuit ID for logging purposes. Example is: <c>35</c>.</param>
 	/// <remarks>
 	/// Useful to clean up <see cref="ConnectionPerHost"/> so that we do not exhaust <see cref="MaxConnectionsPerHost"/> limit.
 	/// <para>If client code forgets to dispose <see cref="PersonCircuit"/>, this should help us to recover eventually.</para>
 	/// </remarks>
-	public void ReportCircuitStatus(string streamUsername, StreamStatusFlag streamStatus, string circuitID)
+	public void ReportStreamStatus(string streamUsername, StreamStatusFlag streamStatus, string circuitID)
 	{
 		lock (ConnectionsLock)
 		{

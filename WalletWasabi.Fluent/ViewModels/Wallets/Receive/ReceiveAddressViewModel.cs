@@ -11,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
