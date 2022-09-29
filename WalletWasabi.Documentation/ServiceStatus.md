@@ -14,4 +14,4 @@ https://status.torproject.org/
 https://stats.uptimerobot.com/YQqGyUL8A7
 
 #### Wasabi downloads
-https://stats.wasabiwallet.io/search/38/from2022-08-29/to2022-09-29
+https://stats.wasabiwallet.io/
