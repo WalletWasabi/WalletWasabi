@@ -69,4 +69,22 @@ public class WasabiSignerToolsTests
 		bool withWrongFile = WasabiSignerTools.VerifySHASumsFile(filepaths.First(), goodPublicKey);
 		Assert.False(withWrongFile);
 	}
+
+	[Fact]
+	public void CanGenerateReadHashFromFileTest()
+	{
+		string[] filepaths = _installerFolder.GetFiles().Select(file => file.FullName).ToArray();
+
+		uint256 fileHash = WasabiSignerTools.GenerateHashFromFile(filepaths.First());
+		uint256 otherFileHash = WasabiSignerTools.GenerateHashFromFile(filepaths.ElementAt(1));
+
+		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
+		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
+		Assert.True(File.Exists(destinationPath));
+
+		uint256 sameFileHash = WasabiSignerTools.ReadHashFromFile(destinationPath, filepaths.First().Split("\\").Last());
+		uint256 otherFileSameHash = WasabiSignerTools.ReadHashFromFile(destinationPath, filepaths.ElementAt(1).Split("\\").Last());
+		Assert.Equal(fileHash, sameFileHash);
+		Assert.Equal(otherFileHash, otherFileSameHash);
+	}
 }
