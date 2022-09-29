@@ -10,7 +10,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -105,11 +104,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SelectedCount = selectedCoins.Select(models => models.Count);
 
-		SummaryText = RemainingAmount.CombineLatest(
-			SelectedAmount,
-			SelectedCount,
-			CreateFormatSummaryText);
-
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, GetCoins().Where(x => models.Any(coin => coin.OutPoint == x.OutPoint))));
 
@@ -142,16 +136,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
-	private static string CreateFormatSummaryText(Money remainingAmount, Money selectedAmount, int selectedCoinsCount)
-	{
-		var remainingPart = remainingAmount == Money.Zero
-			? Array.Empty<string>()
-			: new[] { $"{remainingAmount.FormattedBtc()} BTC" };
-		var totalPart = new[] { $"{selectedCoinsCount} coin{TextHelpers.AddSIfPlural(selectedCoinsCount)} selected" };
-
-		return string.Join(" | ", remainingPart.Concat(totalPart));
 	}
 
 	private static Money Sum(IEnumerable<SelectableCoin> coinViewModels)
