@@ -317,7 +317,7 @@
           </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="Wasabi is free, open-source and deterministically reproducible software.&#10;&#10;You can verify exactly what's going on." />
+                       Text="Wasabi is open-source.&#10;&#10;You can verify exactly what's going on under the hood, and help us make it better." />
             <TextBlock Text="Open-Source"
                        Classes="title" />
           </DockPanel>
