@@ -44,7 +44,7 @@
           </Panel>
           <DockPanel>
             <DockPanel.Styles>
-              <Style Selector="ContentControl c|ContentArea /template/ :is(Control)#PART_ButtonArea">
+              <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
                 <Setter Property="IsVisible" Value="False" />
               </Style>
 

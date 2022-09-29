@@ -97,9 +97,6 @@
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0">
-      <i:Interaction.Behaviors>
-        <behaviors:ScrollToSelectedItemBehavior />
-      </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:CustomElementFactory />
       </TreeDataGrid.ElementFactory>
@@ -249,7 +246,8 @@
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Template">
             <ControlTemplate>
-              <Border Background="{TemplateBinding Background}">
+              <Border Background="{TemplateBinding Background}"
+                      Padding="0">
                 <DockPanel>
                   <Border DockPanel.Dock="Left"
                           Margin="4 0"
