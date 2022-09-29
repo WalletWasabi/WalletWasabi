@@ -44,4 +44,29 @@ public class WasabiSignerToolsTests
 		bool isSignatureValid = WasabiSignerTools.VerifySHASumsFile(destinationPath, publicKey);
 		Assert.True(isSignatureValid);
 	}
+
+	[Fact]
+	public void WritingSHASumsThrowsErrorWithWrongArgumentTest()
+	{
+		string[] invalidFilePaths = new[] { "notAValidFilePath" };
+		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
+		Assert.Throws<FileNotFoundException>(() => WasabiSignerTools.SignAndSaveSHASumsFile(invalidFilePaths, destinationPath, _privateKey));
+	}
+
+	[Fact]
+	public void VerifyingSUMSFileWithInvalidArgumentsFailsTest()
+	{
+		string[] filepaths = _installerFolder.GetFiles().Select(file => file.FullName).ToArray();
+		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
+		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
+		Assert.True(File.Exists(destinationPath));
+
+		PubKey goodPublicKey = WasabiSignerTools.GetPublicKey(_privateKey);
+		PubKey wrongPublicKey = WasabiSignerTools.GenerateKey().PubKey;
+
+		bool withWrongKey = WasabiSignerTools.VerifySHASumsFile(destinationPath, wrongPublicKey);
+		Assert.False(withWrongKey);
+		bool withWrongFile = WasabiSignerTools.VerifySHASumsFile(filepaths.First(), goodPublicKey);
+		Assert.False(withWrongFile);
+	}
 }
