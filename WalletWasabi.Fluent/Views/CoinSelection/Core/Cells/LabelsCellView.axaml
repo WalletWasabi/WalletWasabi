@@ -8,5 +8,27 @@
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.LabelsCellView"
              x:DataType="cells:LabelsCellViewModel"
              x:CompileBindings="True">
-  <controls:LabelsItemsPresenter Items="{Binding SmartLabel}" />
+
+  <UserControl.Styles>
+    <Style Selector="controls|LabelsItemsPresenter.NonPrivate">
+      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+    </Style>
+    <Style Selector="controls|LabelsItemsPresenter.SemiPrivate">
+      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+      <Setter Property="MaxLabelWidth" Value="1000" />
+    </Style>
+    <Style Selector="controls|LabelsItemsPresenter.Private">
+      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="MaxLabelWidth" Value="1000" />
+    </Style>
+  </UserControl.Styles>
+
+  <controls:LabelsItemsPresenter
+    Classes.NonPrivate="{Binding IsNonPrivate}"
+    Classes.SemiPrivate="{Binding IsSemiPrivate}"
+    Classes.Private="{Binding IsPrivate}"
+    Items="{Binding Labels}" />
 </UserControl>

@@ -1,13 +1,34 @@
-using WalletWasabi.Blockchain.Analysis.Clustering;
+using System.Collections;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
 public class LabelsCellViewModel : ViewModelBase
 {
-	public LabelsCellViewModel(SmartLabel smartLabel)
+	public LabelsCellViewModel(IEnumerable labels, PrivacyLevel privacyLevel = PrivacyLevel.None)
 	{
-		SmartLabel = smartLabel;
+		Labels = labels;
+		PrivacyLevel = privacyLevel;
+
+		if (PrivacyLevel == PrivacyLevel.None || PrivacyLevel == PrivacyLevel.NonPrivate)
+		{
+			IsNonPrivate = true;
+		} else if (PrivacyLevel == PrivacyLevel.SemiPrivate)
+		{
+			IsSemiPrivate = true;
+		}
+		else
+		{
+			IsPrivate = true;
+		}
 	}
 
-	public SmartLabel SmartLabel { get; }
+	public bool IsPrivate { get; }
+
+	public bool IsSemiPrivate { get; }
+
+	public bool IsNonPrivate { get; set; }
+
+	public IEnumerable Labels { get; }
+
+	public PrivacyLevel PrivacyLevel { get; }
 }

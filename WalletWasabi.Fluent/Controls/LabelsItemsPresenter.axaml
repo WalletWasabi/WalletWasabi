@@ -26,7 +26,6 @@
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="38" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
     <Setter Property="CornerRadius" Value="2" />
   </Style>
@@ -34,14 +33,18 @@
   <Style Selector="c|LabelsItemsPresenter">
     <Setter Property="Margin" Value="0" />
     <Setter Property="VirtualizationMode" Value="Simple" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="MaxLabelWidth" Value="120" />
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
-          <Border Classes="label" ToolTip.Tip="{Binding}">
+          <Border Classes="label" ToolTip.Tip="{Binding}" BorderBrush="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=c:LabelsItemsPresenter}, Path=BorderBrush}">
             <TextBlock Text="{Binding}"
                        TextTrimming="CharacterEllipsis"
                        TextWrapping="NoWrap"
-                       MaxWidth="120" />
+                       Foreground="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=c:LabelsItemsPresenter}, Path=Foreground}"
+                       MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=c:LabelsItemsPresenter}, Path=MaxLabelWidth}" />
           </Border>
         </Panel>
       </DataTemplate>
@@ -51,7 +54,7 @@
         <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
-              <Border Classes="label">
+              <Border Classes="label" BorderBrush="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=c:LabelsItemsPresenter}, Path=BorderBrush}">
                 <ToolTip.Tip>
                   <Panel>
                     <c:TagsBox IsReadOnly="True"
@@ -62,6 +65,7 @@
                 <TextBlock Text="..."
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
+                           Foreground="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=c:LabelsItemsPresenter}, Path=Foreground}"
                            MaxWidth="120" />
               </Border>
             </Panel>

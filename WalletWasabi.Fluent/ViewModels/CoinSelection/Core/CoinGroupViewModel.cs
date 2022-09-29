@@ -20,11 +20,6 @@ public class CoinGroupViewModel : IDisposable
 		PrivacyIndex = privacyIndex;
 		Labels = privacyIndex.Labels;
 
-		if (Labels.IsEmpty)
-		{
-			PrivacyLevel = privacyIndex.PrivacyLevel;
-		}
-
 		coins
 			.Cast(x => (ISelectable) x)
 			.Bind(out _items)
@@ -43,8 +38,6 @@ public class CoinGroupViewModel : IDisposable
 	public IObservable<Money> TotalAmount { get; }
 
 	public ReadOnlyObservableCollection<ISelectable> Items => _items;
-
-	public PrivacyLevel? PrivacyLevel { get; }
 
 	public PrivacyIndex PrivacyIndex { get; }
 

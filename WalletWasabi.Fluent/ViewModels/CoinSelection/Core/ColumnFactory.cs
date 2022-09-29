@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -89,8 +90,7 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				group => group.Value switch
 				{
-					CoinGroupViewModel { PrivacyLevel: null } vm => new LabelsCellViewModel(vm.Labels),
-					CoinGroupViewModel vm => GetLabelFromPrivacyLevel(vm.PrivacyLevel.Value),
+					CoinGroupViewModel vm => new LabelsCellViewModel(GetLabelsForGroup(vm), vm.PrivacyIndex.PrivacyLevel),
 					_ => new LabelsCellViewModel(new SmartLabel())
 				}),
 			GridLength.Star,
@@ -151,13 +151,23 @@ public static class ColumnFactory
 			node => node.Children.Count() > 1);
 	}
 
+	private static IEnumerable GetLabelsForGroup(CoinGroupViewModel vm)
+	{
+		if (vm.Labels.IsEmpty)
+		{
+			return new[] { GetLabelFromPrivacyLevel(vm.PrivacyIndex.PrivacyLevel) };
+		}
+
+		return vm.Labels;
+	}
+
 	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)
 	{
 		return privacyLevel switch
 		{
 			PrivacyLevel.None => "(Invalid privacy level)",
-			PrivacyLevel.SemiPrivate => "Semi-private coins",
-			PrivacyLevel.Private => "Private coins",
+			PrivacyLevel.SemiPrivate => "Semi-private",
+			PrivacyLevel.Private => "Private",
 			PrivacyLevel.NonPrivate => "",
 			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
 		};
