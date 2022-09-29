@@ -7,13 +7,6 @@ namespace WalletWasabi.Fluent.Extensions;
 
 public static class DynamicDataExtensions
 {
-	public static IDisposable AddOrUpdate<TObject, TKey>(
-		this ISourceCache<TObject, TKey> sourceCache,
-		IObservable<IEnumerable<TObject>> contents) where TKey : notnull
-	{
-		return contents.Subscribe(list => sourceCache.Edit(updater => updater.AddOrUpdate(list)));
-	}
-
 	/// <summary>
 	///     Transforms the items, and when an update is received, allows the preservation of the previous view model
 	/// </summary>
@@ -27,10 +20,7 @@ public static class DynamicDataExtensions
 	///     previousTransformedItem.Value = newOriginalItem
 	/// </param>
 	/// <returns>The resulting observable changeset</returns>
-	public static IObservable<IChangeSet<TDestination, TKey>> TransformWithInlineUpdate<TObject, TKey, TDestination>(
-		this IObservable<IChangeSet<TObject, TKey>> source,
-		Func<TObject, TDestination> transformFactory,
-		Action<TDestination, TObject>? updateAction = null) where TKey : notnull
+	public static IObservable<IChangeSet<TDestination, TKey>> TransformWithInlineUpdate<TObject, TKey, TDestination>(this IObservable<IChangeSet<TObject, TKey>> source, Func<TObject, TDestination> transformFactory, Action<TDestination, TObject>? updateAction = null) where TKey : notnull
 	{
 		return source.Scan(
 			(ChangeAwareCache<TDestination, TKey>?) null,
