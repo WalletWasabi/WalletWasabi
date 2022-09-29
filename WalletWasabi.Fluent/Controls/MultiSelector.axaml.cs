@@ -8,6 +8,7 @@ using Avalonia;
 using Avalonia.Controls;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -41,11 +42,10 @@ public class MultiSelector : ItemsControl, IDisposable
             .DisposeWith(_disposables);
 
         IsChecked = isSelected
-            .CombineLatest(Toggle.IsExecuting)
-            .Where(x => !x.Second)
-            .Select(x => x.First)
-            .Replay(1)
-            .RefCount();
+	        .CombineLatest(Toggle.IsExecuting)
+	        .Where(x => !x.Second)
+	        .Select(x => x.First)
+	        .ReplayLastActive();
     }
 
     public ReactiveCommand<Unit, IReadOnlyCollection<ISelectable>> Toggle { get; }
