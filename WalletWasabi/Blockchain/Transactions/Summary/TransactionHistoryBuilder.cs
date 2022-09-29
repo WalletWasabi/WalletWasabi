@@ -42,23 +42,7 @@ public class TransactionHistoryBuilder
 			}
 			else
 			{
-				txRecordList.Add(new TransactionSummary
-				{
-					DateTime = dateTime,
-					Height = coin.Height,
-					Amount = coin.Amount,
-					Label = containingTransaction.Label,
-					TransactionId = coin.TransactionId,
-					BlockIndex = containingTransaction.BlockIndex,
-					BlockHash = containingTransaction.BlockHash,
-					IsOwnCoinjoin = containingTransaction.IsOwnCoinjoin(),
-					Inputs = GetInputs(wallet.Network, containingTransaction),
-					Outputs = GetOutputs(containingTransaction, wallet.Network),
-					VirtualSize = containingTransaction.Transaction.GetVirtualSize(),
-					Version = (int)containingTransaction.Transaction.Version,
-					BlockTime = containingTransaction.FirstSeen.ToUnixTimeSeconds(),
-					Size = containingTransaction.Transaction.GetSerializedSize(),
-				});
+				txRecordList.Add(ToSummary(containingTransaction, coin, wallet));
 			}
 
 			var spenderTransaction = coin.SpenderTransaction;
@@ -74,29 +58,35 @@ public class TransactionHistoryBuilder
 				}
 				else
 				{
-					txRecordList.Add(new TransactionSummary
-					{
-						DateTime = dateTime,
-						Height = spenderTransaction.Height,
-						Amount = coin.Amount,
-						Label = spenderTransaction.Label,
-						TransactionId = spenderTxId,
-						BlockIndex = spenderTransaction.BlockIndex,
-						BlockHash = spenderTransaction.BlockHash,
-						IsOwnCoinjoin = spenderTransaction.IsOwnCoinjoin(),
-						Inputs = GetInputs(wallet.Network, containingTransaction),
-						Outputs = GetOutputs(spenderTransaction, wallet.Network),
-						VirtualSize = spenderTransaction.Transaction.GetVirtualSize(),
-						Version = (int)spenderTransaction.Transaction.Version,
-						BlockTime = spenderTransaction.FirstSeen.ToUnixTimeSeconds(),
-						Size = spenderTransaction.Transaction.GetSerializedSize(),
-					});
+					txRecordList.Add(ToSummary(spenderTransaction, coin, wallet));
 				}
 			}
 		}
 
 		txRecordList = txRecordList.OrderByBlockchain().ToList();
 		return txRecordList;
+	}
+
+	private static TransactionSummary ToSummary(SmartTransaction transaction, SmartCoin coin, Wallet wallet)
+	{
+		return new TransactionSummary
+		{
+			DateTime = transaction.FirstSeen,
+			Height = coin.Height,
+			Amount = coin.Amount,
+			Label = transaction.Label,
+			TransactionId = coin.TransactionId,
+			BlockIndex = transaction.BlockIndex,
+			BlockHash = transaction.BlockHash,
+			IsOwnCoinjoin = transaction.IsOwnCoinjoin(),
+			Inputs = GetInputs(wallet.Network, transaction),
+			Outputs = GetOutputs(transaction, wallet.Network),
+			Version = (int)transaction.Transaction.Version,
+			BlockTime = transaction.FirstSeen.ToUnixTimeSeconds(),
+			Size = transaction.Transaction.GetSerializedSize(),
+			VirtualSize = transaction.Transaction.GetVirtualSize(),
+			//Weight = ??
+		};
 	}
 
 	private static IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
