@@ -121,19 +121,19 @@
 
     <DockPanel>
 
-      <DockPanel DockPanel.Dock="Top" Margin="8" LastChildFill="False">
+      <DockPanel DockPanel.Dock="Top" Margin="0 0 0 10" >
         <DockPanel.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
           </Style>
         </DockPanel.Styles>
-        <CheckBox IsChecked="True" x:Name="GroupByLabels" DockPanel.Dock="Left" Content="Group by Labels" />
+        <ToggleButton IsChecked="True" x:Name="GroupByLabels" DockPanel.Dock="Left" Content="Group by Labels" />
         <TextBox Classes="FilterBox"
-                 Width="200"
+                 Margin="16 0 0 0"
                  Classes.Visible="{Binding #GroupByLabels.IsChecked}"
                  Classes.Hidden="{Binding !#GroupByLabels.IsChecked}"
           Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
-          Watermark="Filter" Margin="20 0 0 0">
+          Watermark="Filter">
         </TextBox>
       </DockPanel>
 
