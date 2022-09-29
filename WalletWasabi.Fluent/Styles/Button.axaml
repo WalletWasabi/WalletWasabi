@@ -7,7 +7,7 @@
         <Button Classes="plain" Content="Plain Button" />
         <Button Classes="function" Content="Function Button" />
         <Button Classes="invisible" Content="Invisible Button" />
-        <Button Classes="quickAction" Content="Quick" />
+        <Button Classes="plainHyperlink" Content="Quick" />
       </StackPanel>
     </Border>
   </Design.PreviewWith>
@@ -75,21 +75,22 @@
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
 
-  <Style Selector="Button.quickAction">
+  <Style Selector="Button.plainHyperlink">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.quickAction:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="Button.plainHyperlink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
   </Style>
-  <Style Selector="Button.quickAction:disabled /template/ ContentPresenter#PART_ContentPresenter">
+  <Style Selector="Button.plainHyperlink:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
   </Style>
-  <Style Selector="Button.quickAction:pointerover TextBlock">
+  <Style Selector="Button.plainHyperlink:pointerover TextBlock">
     <Setter Property="TextDecorations" Value="Underline" />
   </Style>
-  <Style Selector="Button.quickAction:pointerover AccessText">
+  <Style Selector="Button.plainHyperlink:pointerover AccessText">
     <Setter Property="TextDecorations" Value="Underline" />
   </Style>
 
