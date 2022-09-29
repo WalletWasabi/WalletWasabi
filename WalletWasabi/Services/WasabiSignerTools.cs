@@ -15,7 +15,7 @@ public static class WasabiSignerTools
 {
 	public static string SHASumsFileName { get; } = "SHA256SUMS.asc";
 
-	private static Key GenerateKey() => new();
+	public static Key GenerateKey() => new();
 
 	public static PubKey GetPublicKey(Key key) => key.PubKey;
 
@@ -28,6 +28,29 @@ public static class WasabiSignerTools
 		byte[] sigBytes = Convert.FromBase64String(base64Signature);
 		var wasabiSignature = ECDSASignature.FromDER(sigBytes);
 		return publicKey.Verify(hash, wasabiSignature);
+	}
+
+	public static uint256 ReadHashFromFile(string filepath, string installerName)
+	{
+		(string content, string _) = ReadSHASumsContent(filepath);
+		var lines = content.Split("\n");
+		foreach (var line in lines)
+		{
+			if (string.IsNullOrEmpty(line))
+			{
+				continue;
+			}
+
+			var splitLine = line.Split(" ");
+			var fileName = splitLine[1].Trim();
+
+			Console.WriteLine(fileName);
+			if (fileName == installerName)
+			{
+				return new(splitLine[0].Trim());
+			}
+		}
+		throw new ArgumentException($"{installerName} not found in {filepath}");
 	}
 
 	private static (string content, string base64Signature) ReadSHASumsContent(string filepath)
@@ -80,19 +103,19 @@ public static class WasabiSignerTools
 
 	public static uint256 GenerateHashFromString(string content)
 	{
-		byte[] bytes = File.ReadAllBytes(content);
+		byte[] bytes = Encoding.UTF8.GetBytes(content);
 		using SHA256 sha = SHA256.Create();
 		byte[] computedHash = sha.ComputeHash(bytes);
 		return new(computedHash);
 	}
 
-	public static void WriteAndSaveSHASumsFile(string[] filepaths, string destinationPath, Key key)
+	public static void WriteAndSaveSHASumsFile(IEnumerable<string> filepaths, string destinationPath, Key key)
 	{
 		StringBuilder fileContent = new();
 		foreach (string filepath in filepaths)
 		{
 			uint256 fileHash = GenerateHashFromFile(filepath);
-			fileContent.AppendLine($"{fileHash} {filepath}");
+			fileContent.AppendLine($"{fileHash} {filepath.Split("\\").Last()}");
 		}
 		uint256 contentHash = GenerateHashFromString(fileContent.ToString());
 
@@ -109,10 +132,6 @@ public static class WasabiSignerTools
 
 	public static void SavePrivateKeyToFile(string path, Key key)
 	{
-		if (File.Exists(path))
-		{
-			throw new InvalidOperationException("Private key file already exists.");
-		}
 		using StreamWriter streamWriter = new(path);
 		streamWriter.WriteLine("-----BEGIN WASABI PRIVATE KEY-----");
 		streamWriter.WriteLine(key.ToString(Network.Main));
