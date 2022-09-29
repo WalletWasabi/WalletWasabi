@@ -83,6 +83,8 @@ public class CoinJoinClient
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 	private static Money? LiquidityClue { get; set; }
 	private static object LiquidityClueLock { get; } = new object();
+	private PersonCircuit RoundCircuit { get; set; }
+	private Tor.Http.IHttpClient? RoundHttpClient { get; set; }
 
 	public static Money? GetLiquidityClue()
 	{
@@ -223,6 +225,9 @@ public class CoinJoinClient
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
 		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
+		RoundCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
+		RoundHttpClient = httpClient;
+
 		try
 		{
 			try
@@ -306,8 +311,11 @@ public class CoinJoinClient
 			foreach (var aliceClientAndCircuit in registeredAliceClientAndCircuits)
 			{
 				aliceClientAndCircuit.AliceClient.Finish();
-				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
+
+			RoundCircuit.Dispose();
+			RoundHttpClient = null;
+
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
@@ -358,11 +366,11 @@ public class CoinJoinClient
 			PersonCircuit? personCircuit = null;
 			try
 			{
-				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
-				Tor.Http.IHttpClient httpClientReadyAndSigning = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
+				personCircuit = RoundCircuit;
+				Tor.Http.IHttpClient httpClientReadyAndSigning = RoundHttpClient;
 
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
-				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
+				var arenaRequestHandler = new WabiSabiHttpApiClient(RoundHttpClient);
 				var arenaRequestHandlerReadyAndSigning = new WabiSabiHttpApiClient(httpClientReadyAndSigning);
 
 				var aliceArenaClient = new ArenaClient(
@@ -413,7 +421,6 @@ public class CoinJoinClient
 					}
 				}
 
-				personCircuit?.Dispose();
 				return (null, null);
 			}
 			catch (OperationCanceledException ex)
@@ -435,20 +442,17 @@ public class CoinJoinClient
 					Logger.LogDebug(ex);
 				}
 
-				personCircuit?.Dispose();
 				return (null, null);
 			}
 			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
 			{
 				lastAbortedNotEnoughAlicesException = ex;
 				Logger.LogTrace(ex);
-				personCircuit?.Dispose();
 				return (null, null);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
-				personCircuit?.Dispose();
 				return (null, null);
 			}
 		}
@@ -495,7 +499,7 @@ public class CoinJoinClient
 
 	private BobClient CreateBobClient(RoundState roundState)
 	{
-		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
+		var arenaRequestHandler = new WabiSabiHttpApiClient(RoundHttpClient);
 
 		return new BobClient(
 			roundState.Id,
@@ -536,9 +540,8 @@ public class CoinJoinClient
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
-					Logger.LogDebug("Signature was already sent - bypassing error.",ex);
+					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
-
 			})
 			.ToImmutableArray();
 
