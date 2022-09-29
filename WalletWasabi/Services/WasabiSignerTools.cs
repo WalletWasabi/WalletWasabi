@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
 
@@ -17,17 +18,31 @@ public static class WasabiSignerTools
 
 	public static Key GenerateKey() => new();
 
+	// PublicKey should be saved in Constants.cs later on
 	public static PubKey GetPublicKey(Key key) => key.PubKey;
 
 	public static bool VerifySHASumsFile(string filepath, PubKey publicKey)
 	{
-		(string content, string base64Signature) = ReadSHASumsContent(filepath);
+		try
+		{
+			(string content, string base64Signature) = ReadSHASumsContent(filepath);
 
-		uint256 hash = GenerateHashFromString(content);
+			uint256 hash = GenerateHashFromString(content);
 
-		byte[] sigBytes = Convert.FromBase64String(base64Signature);
-		var wasabiSignature = ECDSASignature.FromDER(sigBytes);
-		return publicKey.Verify(hash, wasabiSignature);
+			byte[] sigBytes = Convert.FromBase64String(base64Signature);
+			var wasabiSignature = ECDSASignature.FromDER(sigBytes);
+			return publicKey.Verify(hash, wasabiSignature);
+		}
+		catch (FormatException)
+		{
+			Logger.LogWarning("SHASums file signature was invalid, DER bytes are not in right format.");
+			return false;
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError(exc);
+			return false;
+		}
 	}
 
 	public static uint256 ReadHashFromFile(string filepath, string installerName)
@@ -44,7 +59,6 @@ public static class WasabiSignerTools
 			var splitLine = line.Split(" ");
 			var fileName = splitLine[1].Trim();
 
-			Console.WriteLine(fileName);
 			if (fileName == installerName)
 			{
 				return new(splitLine[0].Trim());
@@ -109,7 +123,7 @@ public static class WasabiSignerTools
 		return new(computedHash);
 	}
 
-	public static void WriteAndSaveSHASumsFile(IEnumerable<string> filepaths, string destinationPath, Key key)
+	public static void SignAndSaveSHASumsFile(IEnumerable<string> filepaths, string destinationPath, Key key)
 	{
 		StringBuilder fileContent = new();
 		foreach (string filepath in filepaths)
@@ -132,6 +146,10 @@ public static class WasabiSignerTools
 
 	public static void SavePrivateKeyToFile(string path, Key key)
 	{
+		if (File.Exists(path))
+		{
+			throw new InvalidOperationException("Private key file already exists.");
+		}
 		using StreamWriter streamWriter = new(path);
 		streamWriter.WriteLine("-----BEGIN WASABI PRIVATE KEY-----");
 		streamWriter.WriteLine(key.ToString(Network.Main));
