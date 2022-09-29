@@ -109,11 +109,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin.OutPoint == coin.OutPoint)));
 
-		SelectAllCoinsCommand =
-			ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = true));
+		SelectAllCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = true));
 
-		ClearCoinSelectionCommand =
-			ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = false));
+		ClearCoinSelectionCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = false));
 
 		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.PrivacyLevel == PrivacyLevel.Private));
 
