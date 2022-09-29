@@ -77,7 +77,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
-				using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : totalTimeout);
+				var requestTimeout = retryTimeout ?? TimeSpan.MaxValue;
+				using CancellationTokenSource requestTimeoutCts = new(requestTimeout);
 				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
 				// Any transport layer errors will throw an exception here.
