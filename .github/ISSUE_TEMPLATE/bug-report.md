@@ -27,7 +27,7 @@ Example: Ubuntu 16.04
 ### Logs
 
 Please consider your privacy, before completing this section.  
-You can find the log file by opening it from the main menu: `File/Open/Logs` File or `File/Open/TorLogs` File.
+You can find the `Logs` file in the dropdown menu of the search bar or inside your Wasabi data folder.
 
 ### Wasabi Version
 
