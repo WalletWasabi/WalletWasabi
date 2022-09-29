@@ -243,7 +243,7 @@
           </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="Wasabi provides privacy by default.&#10;&#10;Nobody can breach your privacy.&#10;&#10;And for that you pay a fee to the Wasabi backend." />
+                       Text="Wasabi provides privacy by default.&#10;&#10;Nobody can breach your privacy.&#10;&#10;For that you pay a fee of 0.3%." />
             <TextBlock Text="Anonymous"
                        Classes="title" />
           </DockPanel>
