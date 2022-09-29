@@ -141,7 +141,7 @@
         <Grid ColumnDefinitions="Auto,*">
           <DockPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="Wasabi is a Bitcoin wallet. You can simply receive and send money with it.&#10;&#10;Securely and privately." />
+                       Text="Wasabi is a Bitcoin wallet. You can easily receive and send money with it.&#10;&#10;Securely and privately." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
           </DockPanel>
