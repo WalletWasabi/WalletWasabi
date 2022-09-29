@@ -177,7 +177,7 @@
           </Viewbox>
           <DockPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="With Wasabi only you know the keys to spend your money.&#10;&#10;Nobody can steal from you." />
+                       Text="With Wasabi only you are in full control of your money.&#10;&#10;Nobody can steal from you." />
             <TextBlock Text="Non-Custodial"
                        Classes="title" />
           </DockPanel>
