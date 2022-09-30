@@ -12,7 +12,8 @@ public class LabelsCellViewModel : ViewModelBase
 		if (PrivacyLevel == PrivacyLevel.None || PrivacyLevel == PrivacyLevel.NonPrivate)
 		{
 			IsNonPrivate = true;
-		} else if (PrivacyLevel == PrivacyLevel.SemiPrivate)
+		}
+		else if (PrivacyLevel == PrivacyLevel.SemiPrivate)
 		{
 			IsSemiPrivate = true;
 		}
