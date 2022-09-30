@@ -1069,16 +1069,72 @@ public class CoinJoinClient
 			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
 			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
 
+		var paymentsToBatch = (await DestinationProvider.GetPendingPayments(roundParameters,registeredAliceClients).ConfigureAwait(false)).ToList();
 		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, outputVirtualSize, inputVirtualSize, (int)availableVsize);
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
+		
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
+		IEnumerable<Money> outputValues;
+		if (paymentsToBatch.Any())
+		{
+			var filteredPaymentsToBatch = new List<PendingPayment>();
+			// While GetPendingPayments should return a subset of pending payments that corresponds to what we have available, we double-check here to avoid any issues going forward.
+			var effectiveValueSum = registeredAliceClients.Select(x => x.EffectiveValue).Sum().ToDecimal(MoneyUnit.BTC);
+			var pendingPaymentBatchSum = 0m;
+			foreach (var pendingPayment in paymentsToBatch)
+			{
+				var scriptType = pendingPayment.Destination.ScriptPubKey
+					.TryGetScriptType();
+				if (scriptType is null || !roundParameters.AllowedOutputAmounts.Contains(pendingPayment.Value) ||
+				    !roundParameters.AllowedOutputTypes.Contains((ScriptType) scriptType))
+				{
+					continue;
+				}
+
+				var pendingPaymentValue = pendingPayment.Value.ToDecimal(MoneyUnit.BTC);
+				int size;
+				switch (scriptType)
+				{
+					case ScriptType.P2SH:
+						
+						size = Constants.P2shOutputVirtualSize;
+						break;
+					case ScriptType.P2WPKH:
+						size = Constants.P2wpkhOutputVirtualSize;
+						break;
+					case ScriptType.P2WSH:
+						size = Constants.P2wpshOutputVirtualSize;
+						break;
+					case ScriptType.Taproot:
+						size = Constants.P2trOutputVirtualSize;
+						break;
+					default:
+						continue;
+				}
+				var outFee = roundParameters.MiningFeeRate.GetFee(size);
+				pendingPaymentValue += outFee.ToDecimal(MoneyUnit.BTC);
+				if (pendingPaymentBatchSum +pendingPaymentValue < effectiveValueSum)
+				{
+					pendingPaymentBatchSum += pendingPaymentValue;
+					filteredPaymentsToBatch.Add(pendingPayment);
+				}
+			}
+
+			paymentsToBatch = filteredPaymentsToBatch;
+			var remainder = effectiveValueSum - pendingPaymentBatchSum;
+			outputValues = amountDecomposer.Decompose(new []{ new Money(remainder, MoneyUnit.BTC)}, theirCoinEffectiveValues);
+		}
+		else
+		{
+			outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+		}
 		// Get as many destinations as outputs we need.
-		var destinations = DestinationProvider.GetNextDestinations(outputValues.Count(), preferTaprootOutputs).ToArray();
-		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
-
+		var destinations = await DestinationProvider.GetNextDestinations(outputValues.Count()).ConfigureAwait(false);
+		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey))
+			.Concat(paymentsToBatch.Select(payment => new TxOut(payment.Value, payment.Destination.ScriptPubKey)));
+		
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
@@ -1096,6 +1152,7 @@ public class CoinJoinClient
 			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
 			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
 			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
+			paymentsToBatch.ForEach(payment => payment.PaymentStarted.Invoke());
 		}
 		catch (Exception e)
 		{

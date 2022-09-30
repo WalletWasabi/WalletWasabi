@@ -52,6 +52,18 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		Transaction.TryAddWalletOutput(this);
 	}
 
+	public SmartCoin(TxIn transactionInput, Money value, Script script,  HdPubKey pubKey)
+	{
+		
+		Index = transactionInput.PrevOut.N;
+		_transactionId = new Lazy<uint256>(() => transactionInput.PrevOut.Hash, true);
+		_outPoint = new Lazy<OutPoint>(() => transactionInput.PrevOut, true);
+		_txOut = new Lazy<TxOut>(() => new TxOut(value, script ), true);
+		
+		_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+		HdPubKey = pubKey;
+	}
+
 	public SmartTransaction Transaction { get; }
 	public uint Index { get; }
 	public uint256 TransactionId => _transactionId.Value;

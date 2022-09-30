@@ -1,7 +1,10 @@
 using NBitcoin;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client;
 
