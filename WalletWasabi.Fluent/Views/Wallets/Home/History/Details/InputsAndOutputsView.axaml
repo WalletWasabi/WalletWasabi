@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
@@ -11,11 +10,11 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.InputsAndOutputsView">
 
   <Design.DataContext>
-    <fluent:TransactionDetailsViewModelDesign />
+    <details:TransactionDetailsViewModelDesign />
   </Design.DataContext>
 
   <UserControl.DataTemplates>
-    <DataTemplate DataType="fluent:UnknownInputViewModel">
+    <DataTemplate DataType="details:UnknownInputViewModel">
       <Grid ColumnDefinitions="Auto,*" Margin="5">
         <PathIcon Foreground="LightGray"
                   Width="20" Data="{StaticResource right_arrow_bubble}" />
@@ -29,7 +28,7 @@
       </Grid>
 
     </DataTemplate>
-    <DataTemplate DataType="fluent:KnownInputViewModel">
+    <DataTemplate DataType="details:KnownInputViewModel">
       <Grid ColumnDefinitions="Auto,*,Auto" Margin="5">
         <PathIcon Foreground="Red"
                   Width="20" Data="{StaticResource right_arrow_bubble}" />
@@ -49,7 +48,7 @@
 
     </DataTemplate>
 
-    <DataTemplate DataType="fluent:OutputViewModel">
+    <DataTemplate DataType="details:OutputViewModel">
       <Grid ColumnDefinitions="Auto,*,Auto" Margin="5">
         <PathIcon x:Name="Output" Classes.Spent="{Binding IsSpent}"
                   Classes.Unspent="{Binding !IsSpent}" Width="20" Data="{StaticResource right_arrow_bubble}" />

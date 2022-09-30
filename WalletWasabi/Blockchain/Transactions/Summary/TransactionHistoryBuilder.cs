@@ -1,5 +1,7 @@
 using NBitcoin;
+using NBitcoin.Protocol.Payloads;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -69,6 +71,8 @@ public class TransactionHistoryBuilder
 
 	private static TransactionSummary ToSummary(SmartTransaction transaction, SmartCoin coin, Wallet wallet)
 	{
+		var outputs = GetOutputs(transaction, wallet.Network).ToList();
+
 		return new TransactionSummary
 		{
 			DateTime = transaction.FirstSeen,
@@ -80,7 +84,7 @@ public class TransactionHistoryBuilder
 			BlockHash = transaction.BlockHash,
 			IsOwnCoinjoin = transaction.IsOwnCoinjoin(),
 			Inputs = GetInputs(wallet.Network, transaction),
-			Outputs = GetOutputs(transaction, wallet.Network),
+			Outputs = outputs,
 			Version = (int)transaction.Transaction.Version,
 			BlockTime = transaction.FirstSeen.ToUnixTimeSeconds(),
 			Size = transaction.Transaction.GetSerializedSize(),
@@ -88,7 +92,7 @@ public class TransactionHistoryBuilder
 			//Weight = ??
 		};
 	}
-
+	
 	private static IEnumerable<Output> GetOutputs(SmartTransaction smartTransaction, Network network)
 	{
 		var txOutList = smartTransaction.Transaction.Outputs.Select(
@@ -96,25 +100,28 @@ public class TransactionHistoryBuilder
 			{
 				var amount = txOut.Value;
 				var address = txOut.ScriptPubKey.GetDestinationAddress(network);
-				var coin = smartTransaction.WalletOutputs.FirstOrDefault(smartCoin => smartCoin.TxOut == txOut);
-				bool isSpent = true;
-				if (coin != null)
-				{
-					isSpent = coin.SpenderTransaction != null;
-				}
-
-				return new Output(amount, address, isSpent);
+				var associatedCoin = smartTransaction.WalletOutputs.FirstOrDefault(smartCoin => smartCoin.TxOut == txOut);
+				var features = GetFeatures(txOut, associatedCoin);
+				return new Output(amount, address, associatedCoin?.IsSpent() ?? false, features);
 			});
 
 		return txOutList;
+	}
 
-		return smartTransaction.WalletOutputs.Select(x => new Output(x.Amount, x.ScriptPubKey.GetDestinationAddress(network), x.SpenderTransaction is not null));
+	private static IEnumerable<Feature> GetFeatures(TxOut txOut, SmartCoin? associatedCoin)
+	{
+		if (associatedCoin != null && associatedCoin.IsReplaceable())
+		{
+			yield return Feature.RBF;
+		}
+
+		yield return txOut.ScriptPubKey.IsScriptType(ScriptType.Taproot) ? Feature.Taproot : Feature.SegWit;
 	}
 
 	private static IEnumerable<Input> GetInputs(Network network, SmartTransaction transaction)
 	{
 		var known = transaction.WalletInputs.Select(x => (Input)new InputAmount(x.Amount, x.ScriptPubKey.GetDestinationAddress(network)));
-		var unknown = transaction.ForeignInputs.Select(x => (Input)new UnknownInput(x.Transaction.GetHash()));
+		var unknown = transaction.ForeignInputs.Select(x => (Input) new UnknownInput(x.Transaction.GetHash()));
 
 		return known.Concat(unknown);
 	}

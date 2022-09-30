@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -37,13 +38,15 @@ public class ReactiveTransaction : ITransaction
 			_ => throw new NotSupportedException("Invalid input type")
 		});
 
-		Outputs = transaction.Outputs.Select(x => new OutputViewModel(x.Amount, x.Destination.ToString(), x.IsSpent));
+		Outputs = transaction.Outputs.Select(x => new OutputViewModel(x.Amount, x.Destination.ToString(), x.IsSpent, x.Features));
 		Labels = transaction.Label.Labels;
 		Amount = transaction.Amount;
 		Confirmations = GetSomethingChanged()
 			.Select(_ => GetTransaction(transactionId).GetConfirmations())
 			.StartWith(transaction.GetConfirmations());
 	}
+
+	public IEnumerable<Feature> Features { get; }
 
 	public IEnumerable<string> Labels { get; }
 	public IObservable<int> Confirmations { get; }

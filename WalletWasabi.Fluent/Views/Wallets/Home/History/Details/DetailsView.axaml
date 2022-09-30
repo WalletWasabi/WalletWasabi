@@ -11,7 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.DetailsView">
 
   <Design.DataContext>
-    <fluent:TransactionDetailsViewModelDesign />
+    <details:TransactionDetailsViewModelDesign />
   </Design.DataContext>
 
   <UserControl.Styles>

@@ -16,7 +16,7 @@
   </UserControl.Styles>
 
   <Design.DataContext>
-    <fluent:TransactionDetailsViewModelDesign />
+    <details1:TransactionDetailsViewModelDesign />
   </Design.DataContext>
 
   <ScrollViewer>

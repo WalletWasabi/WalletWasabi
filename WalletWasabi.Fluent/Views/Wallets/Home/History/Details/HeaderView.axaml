@@ -3,15 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:fluent="clr-namespace:WalletWasabi.Fluent"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
-             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="details:ITransactionViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.HeaderView">
 
   <Design.DataContext>
-    <fluent:TransactionDetailsViewModelDesign />
+    <details:TransactionDetailsViewModelDesign />
   </Design.DataContext>
 
   <UserControl.Styles>
@@ -56,6 +55,21 @@
           <c:LabelsItemsPresenter Items="{Binding Labels}" />
         </c:CopyableContentControl>
       </HeaderedContentControl>
+      <HeaderedContentControl Header="Features">
+        <ItemsControl VerticalAlignment="Center" Items="{Binding Features}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border BorderBrush="White" BorderThickness="1" Padding="6" CornerRadius="6">
+                <TextBlock Text="{Binding Name}" />
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="6" Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl></HeaderedContentControl>
     </UniformGrid>
   </HeaderedContentControl>
 

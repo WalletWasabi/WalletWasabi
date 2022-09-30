@@ -1,30 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Transactions.Summary;
 
-namespace WalletWasabi.Fluent;
-
-public interface ITransaction
-{
-	public IObservable<int> Confirmations { get; }
-	public IEnumerable<InputViewModel> Inputs { get; }
-	public IEnumerable<OutputViewModel> Outputs { get; }
-	public DateTimeOffset Timestamp { get; }
-	public int IncludedInBlock { get; }
-	public Money OutputAmount => this.OutputAmount();
-	public Money? InputAmount => this.InputAmount();
-	public Money Amount { get; }
-	string Id { get; }
-	public double Size { get; }
-	public int Version { get; }
-	public long BlockTime { get; }
-	public double Weight { get; }
-	public double VirtualSize { get; }
-	IEnumerable<string> Labels { get; }
-}
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 public static class TransactionExtensions
 {
+	public static IEnumerable<Feature> Features(this ITransaction transaction) => transaction.Outputs.SelectMany(x => x.Features).Distinct();
 	public static Money OutputAmount(this ITransaction transaction) => transaction.Outputs.Sum(x => x.Amount);
 	public static Money? InputAmount(this ITransaction transaction) => transaction.Inputs.OfType<UnknownInputViewModel>().Any() ? null : transaction.Inputs.Cast<KnownInputViewModel>().Sum(x => x.Amount);
 

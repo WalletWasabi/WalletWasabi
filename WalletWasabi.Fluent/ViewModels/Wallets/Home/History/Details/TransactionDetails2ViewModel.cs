@@ -1,16 +1,11 @@
 using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
-
-public interface ITransactionViewModel : ITransaction
-{
-	FeeRate? FeeRate { get; }
-	Money? Fee { get; }
-}
 
 [NavigationMetaData(Title = "Transaction Details")]
 public partial class TransactionDetails2ViewModel : RoutableViewModel, ITransactionViewModel
@@ -35,6 +30,8 @@ public partial class TransactionDetails2ViewModel : RoutableViewModel, ITransact
 	public FeeRate? FeeRate => _transaction.FeeRate();
 
 	public Money? Fee => _transaction.Fee();
+
+	public IEnumerable<Feature> Features => _transaction.Features();
 
 	public IEnumerable<InputViewModel> Inputs => _transaction.Inputs;
 

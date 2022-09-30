@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using NBitcoin;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
+using WalletWasabi.Blockchain.Transactions.Summary;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
 public class TransactionDetailsViewModelDesign : ITransactionViewModel
 {
@@ -20,8 +19,8 @@ public class TransactionDetailsViewModelDesign : ITransactionViewModel
 
 	public IEnumerable<OutputViewModel> Outputs => new List<OutputViewModel>
 	{
-		new(Money.FromUnit((decimal) 0.00050849, MoneyUnit.BTC), "miner8VH6WPrsQ1Fxqb7MPgJEoFYX2RCkS", true),
-		new(Money.FromUnit((decimal) 0.00013103, MoneyUnit.BTC), "tb1q2aq8nwmywk4qge39hcq0gd2tme0wqzx7pf7w93", false)
+		new(Money.FromUnit((decimal) 0.00050849, MoneyUnit.BTC), "miner8VH6WPrsQ1Fxqb7MPgJEoFYX2RCkS", true, new [] { Feature.RBF } ),
+		new(Money.FromUnit((decimal) 0.00013103, MoneyUnit.BTC), "tb1q2aq8nwmywk4qge39hcq0gd2tme0wqzx7pf7w93", false, new [] { Feature.SegWit })
 	};
 
 	public DateTimeOffset Timestamp => new(2022, 8, 9, 12, 11, 0, 0, TimeSpan.FromHours(2));
@@ -36,44 +35,5 @@ public class TransactionDetailsViewModelDesign : ITransactionViewModel
 	public double Weight => 106.07;
 	public double VirtualSize => 26.52;
 	public IEnumerable<string> Labels => new[] { "Test1", "Test2", "Test3" };
-}
-
-public class OutputViewModel
-{
-	public Money Amount { get; }
-	public string Address { get; }
-	public bool IsSpent { get; }
-
-	public OutputViewModel(Money amount, string address, bool isSpent)
-	{
-		Amount = amount;
-		Address = address;
-		IsSpent = isSpent;
-	}
-}
-
-public class KnownInputViewModel : InputViewModel
-{
-	public Money Amount { get; }
-	public string Address { get; }
-
-	public KnownInputViewModel(Money amount, string address)
-	{
-		Amount = amount;
-		Address = address;
-	}
-}
-
-public abstract class InputViewModel
-{
-}
-
-public class UnknownInputViewModel : InputViewModel
-{
-	public uint256 TransactionId { get; }
-
-	public UnknownInputViewModel(uint256 transactionId)
-	{
-		TransactionId = transactionId;
-	}
+	public IEnumerable<Feature> Features => this.Features();
 }
