@@ -40,6 +40,7 @@ Wasabi dependencies are:
 Wasabi dependencies are:
 - [HWI](https://github.com/bitcoin-core/HWI), check the [device support](https://github.com/bitcoin-core/HWI#device-support) list there. Some hardware wallets supported by HWI are still not compatible with the Wallet because they implemented custom workflows.
 
-## What about Whonix and Tails?
+## What about Tails and Whonix?
 
-Whonix and Tails are privacy-oriented OSs, so it makes sense to use them with Wasabi Wallet. At the moment, Wasabi is working properly on these platforms, but our dependencies do not officially support them, so we cannot make promises regarding future stability.
+It is currently not possible to install Wasabi on Tails.
+Wasabi doesn't work on Whonix, because Wasabi uses the Tor control port.
