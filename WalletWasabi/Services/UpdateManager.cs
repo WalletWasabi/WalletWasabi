@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -21,6 +22,7 @@ public class UpdateManager : IDisposable
 	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
+	private const string DownloadURL = "https://github.com/zkSNACKs/WalletWasabi/releases/download";
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
@@ -55,7 +57,7 @@ public class UpdateManager : IDisposable
 				}
 				catch (OperationCanceledException ex)
 				{
-					Logger.LogTrace($"Geting new update was canceled.", ex);
+					Logger.LogInfo($"Geting new update was canceled.", ex);
 					break;
 				}
 				catch (Exception ex)
@@ -162,14 +164,29 @@ public class UpdateManager : IDisposable
 		var filePath = Path.Combine(InstallerDir, WasabiSignerTools.SHASumsFileName);
 
 		using HttpClient httpClient = new();
-		string url = $"{ReleaseURL}/download/{softwareVersion}/{WasabiSignerTools.SHASumsFileName}";
+		string url = $"{DownloadURL}/{softwareVersion}/{WasabiSignerTools.SHASumsFileName}";
+		try
+		{
+			using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 
-		using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
-
-		await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
-		SHASumsFilePath = filePath;
-		bool isSignatureValid = WasabiSignerTools.VerifySHASumsFile(filePath, WasabiSignerTools.GetPublicKey());
-		return isSignatureValid;
+			await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
+			SHASumsFilePath = filePath;
+			bool isSignatureValid = WasabiSignerTools.VerifySHASumsFile(filePath, WasabiSignerTools.GetPublicKey());
+			return isSignatureValid;
+		}
+		catch (HttpRequestException exc)
+		{
+			string message = "";
+			if (exc.StatusCode is HttpStatusCode.NotFound)
+			{
+				message = "Wasabi signature file is not available.";
+			}
+			else
+			{
+				message = "Something went wrong while geting Wasabi signature file.";
+			}
+			throw new OperationCanceledException(message, exc);
+		}
 	}
 
 	private bool TryGetDownloadedInstaller(string fileName)
