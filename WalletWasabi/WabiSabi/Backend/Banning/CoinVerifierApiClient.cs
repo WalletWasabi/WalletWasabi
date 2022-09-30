@@ -84,7 +84,7 @@ public class CoinVerifierApiClient
 				}
 				catch (OperationCanceledException)
 				{
-					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled by {nameof(cancellationToken)}.");
+					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
 					continue;
 				}
 				catch (Exception ex)
