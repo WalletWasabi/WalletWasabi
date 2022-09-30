@@ -40,7 +40,7 @@ public class WasabiSignerToolsTests
 		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
 		Assert.True(File.Exists(destinationPath));
 
-		PubKey publicKey = WasabiSignerTools.GetPublicKey(_privateKey);
+		PubKey publicKey = _privateKey.PubKey;
 		bool isSignatureValid = WasabiSignerTools.VerifySHASumsFile(destinationPath, publicKey);
 		Assert.True(isSignatureValid);
 	}
@@ -61,7 +61,7 @@ public class WasabiSignerToolsTests
 		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
 		Assert.True(File.Exists(destinationPath));
 
-		PubKey goodPublicKey = WasabiSignerTools.GetPublicKey(_privateKey);
+		PubKey goodPublicKey = _privateKey.PubKey;
 		PubKey wrongPublicKey = WasabiSignerTools.GenerateKey().PubKey;
 
 		bool withWrongKey = WasabiSignerTools.VerifySHASumsFile(destinationPath, wrongPublicKey);

@@ -1,4 +1,6 @@
+using NBitcoin;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -73,9 +75,7 @@ public class UpdateManager : IDisposable
 	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(Version targetVersion)
 	{
 		(Version newVersion, string url, string fileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
-
-		var tmpFilePath = Path.Combine(InstallerDir, $"{fileName}.tmp");
-		var newFilePath = Path.Combine(InstallerDir, fileName);
+		var filePath = Path.Combine(InstallerDir, fileName);
 
 		var installerDownloaded = TryGetDownloadedInstaller(fileName);
 		if (!installerDownloaded)
@@ -90,19 +90,35 @@ public class UpdateManager : IDisposable
 			// Get file stream and copy it to downloads folder to access.
 			using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 			Logger.LogInfo("Installer downloaded, copying...");
-			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
-			using (var file = File.OpenWrite(tmpFilePath))
+
+			await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
+
+			uint256 downloadedHash = WasabiSignerTools.GenerateHashFromFile(filePath);
+			uint256 expectedHash = WasabiSignerTools.ReadHashFromFile(SHASumsFilePath, fileName);
+			if (expectedHash != downloadedHash)
 			{
-				await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
-
-				// Closing the file to rename.
-				file.Close();
-			};
-
-			File.Move(tmpFilePath, newFilePath);
+				File.Delete(filePath);
+				throw new OperationCanceledException("Downloaded file hash doesn't match expected hash. Deleting invalid file.");
+			}
 		}
 
-		return (newFilePath, newVersion);
+		return (filePath, newVersion);
+	}
+
+	private async Task CopyStreamContentToFileAsync(Stream stream, string filePath)
+	{
+		var tmpFilePath = $"{filePath}.tmp";
+
+		IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
+		using (var file = File.OpenWrite(tmpFilePath))
+		{
+			await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
+
+			// Closing the file to rename.
+			file.Close();
+		};
+
+		File.Move(tmpFilePath, filePath);
 	}
 
 	private async Task<(Version Version, string DownloadUrl, string FileName)> GetLatestReleaseFromGithubAsync(Version targetVersion)
@@ -112,7 +128,6 @@ public class UpdateManager : IDisposable
 		var response = await HttpClient.SendAsync(message, CancellationToken).ConfigureAwait(false);
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(CancellationToken).ConfigureAwait(false));
-
 		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException("Endpoint gave back wrong json data or it's changed.");
 
 		// "tag_name" will have a 'v' at the beggining, needs to be removed.
@@ -121,6 +136,12 @@ public class UpdateManager : IDisposable
 		if (targetVersion != shortGithubVersion)
 		{
 			throw new InvalidDataException("Target version from backend does not match with the latest github release. This should be impossible.");
+		}
+
+		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion).ConfigureAwait(false);
+		if (!isReleaseValid)
+		{
+			throw new OperationCanceledException($"Downloading release cancelled, signature of {WasabiSignerTools.SHASumsFileName} was invalid.");
 		}
 
 		// Get all asset names and download urls to find the correct one.
@@ -134,6 +155,21 @@ public class UpdateManager : IDisposable
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
 		return (githubVersion, url, fileName);
+	}
+
+	private async Task<bool> ValidateWasabiSignatureAsync(string softwareVersion)
+	{
+		var filePath = Path.Combine(InstallerDir, WasabiSignerTools.SHASumsFileName);
+
+		using HttpClient httpClient = new();
+		string url = $"{ReleaseURL}/download/{softwareVersion}/{WasabiSignerTools.SHASumsFileName}";
+
+		using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
+
+		await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
+		SHASumsFilePath = filePath;
+		bool isSignatureValid = WasabiSignerTools.VerifySHASumsFile(filePath, WasabiSignerTools.GetPublicKey());
+		return isSignatureValid;
 	}
 
 	private bool TryGetDownloadedInstaller(string fileName)
@@ -222,6 +258,7 @@ public class UpdateManager : IDisposable
 
 	private UpdateChecker? UpdateChecker { get; set; }
 	private CancellationToken CancellationToken { get; set; }
+	private string SHASumsFilePath { get; set; }
 
 	public void StartInstallingNewVersion()
 	{

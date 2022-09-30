@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -21,7 +22,7 @@ public static class WasabiSignerTools
 	public static Key GenerateKey() => new();
 
 	// PublicKey should be saved in Constants.cs later on
-	public static PubKey GetPublicKey(Key key) => key.PubKey;
+	public static PubKey GetPublicKey() => Constants.WasabiPublicKey;
 
 	public static bool TryGetKeyFromFile(string fileName, [NotNullWhen(true)] out Key? key)
 	{
@@ -149,7 +150,7 @@ public static class WasabiSignerTools
 		}
 	}
 
-	public static uint256 GenerateHashFromString(string content)
+	private static uint256 GenerateHashFromString(string content)
 	{
 		byte[] bytes = Encoding.UTF8.GetBytes(content);
 		using SHA256 sha = SHA256.Create();
