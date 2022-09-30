@@ -145,7 +145,7 @@ public class DependencyGraphTaskScheduler
 		}
 	}
 
-	public async Task StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
+	public async Task<Dictionary<TxOut, Exception?>> StartOutputRegistrationsAsync(IEnumerable<TxOut> txOuts, BobClient bobClient, IKeyChain keyChain, ImmutableList<DateTimeOffset> outputRegistrationScheduledDates, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -163,7 +163,7 @@ public class DependencyGraphTaskScheduler
 			return smartRequestNode;
 		});
 
-		var tasks = txOuts.Zip(nodes, outputRegistrationScheduledDates,
+		var tasks = txOuts.Zip(nodes, outputRegistrationScheduledDates.AsEnumerable(),
 			async (txOut, smartRequestNode, scheduledDate) =>
 			{
 				try
@@ -173,21 +173,30 @@ public class DependencyGraphTaskScheduler
 					{
 						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 					}
-					await smartRequestNode.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+
+					await smartRequestNode
+						.StartOutputRegistrationAsync(bobClient, txOut.ScriptPubKey, cancellationToken)
+						.ConfigureAwait(false);
 				}
-				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
+				catch (WabiSabiProtocolException ex)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
 					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
+					
+					return (txOut, ex);
 				}
 				catch (Exception ex)
 				{
 					Logger.LogInfo($"Output registration error message:'{ex.Message}'.");
+					
+					return (txOut, ex);
 				}
+				
+				return (txOut, null)!;
 			}
 		).ToImmutableArray();
-
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		var result = await Task.WhenAll(tasks).ConfigureAwait(false);
+		return result.Where(tuple => tuple.ex is { }).ToDictionary(tuple => tuple.txOut, tuple => tuple.ex);
 	}
 
 	private IEnumerable<(AliceClient AliceClient, InputNode Node)> PairAliceClientAndRequestNodes(IEnumerable<AliceClient> aliceClients, DependencyGraph graph)

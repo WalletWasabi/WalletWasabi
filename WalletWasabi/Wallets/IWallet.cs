@@ -22,6 +22,7 @@ public interface IWallet
 	bool ConsolidationMode { get; }
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
+	bool BatchPayments { get; }
 
 	Task<bool> IsWalletPrivateAsync();
 

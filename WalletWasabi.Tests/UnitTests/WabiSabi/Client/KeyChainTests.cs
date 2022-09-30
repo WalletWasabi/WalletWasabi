@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -11,13 +12,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class KeyChainTests
 {
 	[Fact]
-	public void SignTransactionTest()
+	public async Task SignTransactionTest()
 	{
 		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
 		var destinationProvider = new InternalDestinationProvider(keyManager);
 		var keyChain = new KeyChain(keyManager, new Kitchen(""));
 
-		var coinDestination = destinationProvider.GetNextDestinations(1, false).First();
+		var coinDestination = (await destinationProvider.GetNextDestinationsAsync(1, false)).First();
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
 
 		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.

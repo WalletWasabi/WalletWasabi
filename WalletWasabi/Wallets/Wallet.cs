@@ -84,6 +84,7 @@ public class Wallet : BackgroundService, IWallet
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+	public bool BatchPayments { get; } = false;
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 

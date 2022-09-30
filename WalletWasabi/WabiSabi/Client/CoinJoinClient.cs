@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis;
+using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
@@ -18,12 +20,14 @@ using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinClient
 {
+	private readonly bool _batchPayments;
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
 	private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
@@ -48,8 +52,10 @@ public class CoinJoinClient
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
+		bool batchPayments = default)
 	{
+		_batchPayments = batchPayments;
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
 		DestinationProvider = destinationProvider;
@@ -142,8 +148,9 @@ public class CoinJoinClient
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
-			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
 
+			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, SemiPrivateThreshold, liquidityClue, SecureRandom);
+			
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
 				excludeRound = currentRoundState.Id;
@@ -217,11 +224,14 @@ public class CoinJoinClient
 		{
 			ImmutableArray<AliceClient> aliceClientsThatSigned = ImmutableArray<AliceClient>.Empty;
 			IEnumerable<TxOut> outputTxOuts = Enumerable.Empty<TxOut>();
-			Transaction? unsignedCoinJoin = null;
+			Transaction unsignedCoinJoin = null;
+			ImmutableDictionary<TxOut, PendingPayment> batchedPayments = ImmutableDictionary<TxOut, PendingPayment>.Empty;
 			try
 			{
-				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
-				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, smartCoins, cancelOrRoundEndedCts.Token).ConfigureAwait(false);
+				using CancellationTokenSource cancelOrRoundEndedCts =
+					CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
+				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin, batchedPayments) = await ProceedWithRoundAsync(roundState, smartCoins, cancelOrRoundEndedCts.Token)
+					.ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
 			{
@@ -239,6 +249,34 @@ public class CoinJoinClient
 			roundState = await waitRoundEndedTask.ConfigureAwait(false);
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
+
+			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+			if (batchedPayments.Any())
+			{
+				var success = roundState.EndRoundState == EndRoundState.TransactionBroadcasted;
+				foreach (var batchedPayment in batchedPayments)
+				{
+					if (success)
+					{
+						var index = -1;
+						foreach (var @out in unsignedCoinJoin.Outputs.AsIndexedOutputs())
+						{
+							if (@out.TxOut.Value == batchedPayment.Key.Value && @out.TxOut.ScriptPubKey == batchedPayment.Key.ScriptPubKey)
+							{
+								index = (int) @out.N;
+								break;
+							}
+						}
+
+						batchedPayment.Value.PaymentSucceeded?.Invoke((roundId, unsignedCoinJoin.GetHash(), 
+							index));
+					}
+					else
+					{
+						batchedPayment.Value.PaymentFailed?.Invoke();
+					}
+				}
+			}
 
 			var msg = roundState.EndRoundState switch
 			{
@@ -259,7 +297,9 @@ public class CoinJoinClient
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
 				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-				UnsignedCoinJoin: unsignedCoinJoin);
+				HandledPayments: batchedPayments.ToImmutableDictionary(),
+				UnsignedCoinJoin: unsignedCoinJoin,
+				RoundId: roundId);
 		}
 		finally
 		{
@@ -283,7 +323,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
+	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin, ImmutableDictionary<TxOut, PendingPayment> HandledPayments)> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
 	{
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 		try
@@ -302,12 +342,11 @@ public class CoinJoinClient
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts.outputTxOuts, cancellationToken).ConfigureAwait(false);
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
-			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
-
-			return (aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin);
+			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts.outputTxOuts);
+			return new(aliceClientsThatSigned, outputTxOuts.outputTxOuts, unsignedCoinJoin,outputTxOuts.batchedPayments.ToImmutableDictionary());
 		}
 		finally
 		{
@@ -601,29 +640,32 @@ public class CoinJoinClient
 		return remainingTime.SamplePoisson(howMany);
 	}
 
-	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
+	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, (IEnumerable<TxOut> outputTxOuts, Dictionary<TxOut, PendingPayment> batchedPayments) myOutputs, Transaction unsignedCoinJoinTransaction, RoundState roundState)
 	{
 		RoundParameters roundParameters = roundState.CoinjoinState.Parameters;
 		FeeRate feeRate = roundParameters.MiningFeeRate;
 
 		var totalEffectiveInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.EffectiveValue));
-		var totalEffectiveOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value - feeRate.GetFee(a.ScriptPubKey.EstimateOutputVsize())));
+		var totalEffectiveOutputAmount = Money.Satoshis(myOutputs.outputTxOuts.Sum(a => a.Value - feeRate.GetFee(a.ScriptPubKey.EstimateOutputVsize())));
 		var effectiveDifference = totalEffectiveInputAmount - totalEffectiveOutputAmount;
 
 		var totalInputAmount = Money.Satoshis(registeredAliceClients.Sum(a => a.SmartCoin.Amount));
-		var totalOutputAmount = Money.Satoshis(myOutputs.Sum(a => a.Value));
+		var totalOutputAmount = Money.Satoshis(myOutputs.outputTxOuts.Sum(a => a.Value));
 		var totalDifference = Money.Satoshis(totalInputAmount - totalOutputAmount);
 
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
-		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
+		var outputNetworkFee = Money.Satoshis(myOutputs.outputTxOuts.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
 		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => !a.IsPayingZeroCoordinationFee).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
-
+		
+		var batchedPaymentAmount = Money.Satoshis(myOutputs.batchedPayments.Keys.Sum(a => a.Value));
+		var batchedPayments = myOutputs.batchedPayments.Count;
+		
 		string[] summary = new string[]
 		{
 			"",
 			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
-			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
+			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)} BatcPaym: {batchedPaymentAmount.ToString(true, false)}({batchedPayments})",
 			$"\tTotal diff : {totalDifference.ToString(true, false)}",
 			$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
 			$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
@@ -1045,7 +1087,7 @@ public class CoinJoinClient
 		return targetInputCount;
 	}
 
-	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<(IEnumerable<TxOut> outputTxOuts, Dictionary<TxOut, PendingPayment> batchedPayments)> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
@@ -1079,16 +1121,69 @@ public class CoinJoinClient
 			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
 			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
 
+		var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters);
+
+		var remainingPendingPayments = _batchPayments
+			? (await DestinationProvider.GetPendingPaymentsAsync(utxoSelectionParameters).ConfigureAwait(false))
+			.Where(payment => utxoSelectionParameters.AllowedOutputScriptTypes.Contains(payment.Destination.ScriptPubKey.GetScriptType()))
+			.Where(payment => utxoSelectionParameters.AllowedInputAmounts.Contains(payment.Value))
+			.ToList()
+			: new List<PendingPayment>();
 		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, outputVirtualSize, inputVirtualSize, (int)availableVsize);
-		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
+		var theirCoins = constructionState.Inputs.Where(x => registeredCoins.All(y => x.Outpoint != y.Outpoint));
+		
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
+		IEnumerable<Money> outputValues;
+		var paymentsToBatch = new List<PendingPayment>();
+		if (remainingPendingPayments.Any())
+		{
+			var effectiveValueSum = registeredAliceClients.Select(x => x.EffectiveValue).Sum().ToDecimal(MoneyUnit.BTC);
+			var pendingPaymentBatchSum = 0m;
+			
+			// Loop through the pending payments and handle each payment by subtracting the payment amount from the total value of the selected coins
+			var potentialPayments = remainingPendingPayments
+				.Where(payment =>
+					payment.ToTxOut().EffectiveCost(utxoSelectionParameters.MiningFeeRate).ToDecimal(MoneyUnit.BTC) <=
+					(effectiveValueSum - pendingPaymentBatchSum)).ToList();
+                    
+			while (potentialPayments.Any())
+			{
+				var payment = potentialPayments.RandomElement();
+				var cost = payment.ToTxOut().EffectiveCost(utxoSelectionParameters.MiningFeeRate)
+					.ToDecimal(MoneyUnit.BTC);
+				if (!await payment.PaymentStarted.Invoke().ConfigureAwait(false))
+				{
+					potentialPayments.Remove(payment);
+					continue;
+				}
+				paymentsToBatch.Add(payment);
+				pendingPaymentBatchSum += cost;
+				potentialPayments.Remove(payment);
+				potentialPayments = potentialPayments
+					.Where(payment =>
+						payment.ToTxOut().EffectiveCost(utxoSelectionParameters.MiningFeeRate)
+							.ToDecimal(MoneyUnit.BTC) <= (effectiveValueSum - pendingPaymentBatchSum)).ToList();
+
+			}
+			
+			var remainder = effectiveValueSum - pendingPaymentBatchSum;
+			outputValues = amountDecomposer.Decompose(new []{ new Money(remainder, MoneyUnit.BTC)}, theirCoinEffectiveValues);
+		}
+		else
+		{
+			outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+		}
+		
 		// Get as many destinations as outputs we need.
-		var destinations = DestinationProvider.GetNextDestinations(outputValues.Count(), preferTaprootOutputs).ToArray();
-		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
+		var destinations = (await DestinationProvider
+			.GetNextDestinationsAsync(outputValues.Count(), preferTaprootOutputs).ConfigureAwait(false)).Zip(outputValues, (destination, money) => new TxOut(money, destination));
 
+		Dictionary<TxOut, PendingPayment> batchedPayments =
+			paymentsToBatch.ToDictionary(payment => new TxOut(payment.Value, payment.Destination.ScriptPubKey));
+		var outputTxOuts = destinations.Concat(batchedPayments.Keys);
+		
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
@@ -1104,8 +1199,12 @@ public class CoinJoinClient
 			roundState.LogDebug($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 
 			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Count(), outputRegistrationEndTime, MaximumRequestDelay);
-			await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
+			var failedOutputs = await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClient, KeyChain, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
 			roundState.LogInfo($"Outputs({outputTxOuts.Count()}) were registered.");
+			if (failedOutputs.Any())
+			{
+				paymentsToBatch.ForEach(payment => payment.PaymentFailed.Invoke());
+			}
 		}
 		catch (Exception e)
 		{
@@ -1117,7 +1216,7 @@ public class CoinJoinClient
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
-		return outputTxOuts;
+		return (outputTxOuts, batchedPayments);
 	}
 
 	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(

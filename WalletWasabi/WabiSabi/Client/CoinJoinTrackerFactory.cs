@@ -52,7 +52,8 @@ public class CoinJoinTrackerFactory
 			consolidationMode: wallet.ConsolidationMode,
 			redCoinIsolation: wallet.RedCoinIsolation,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
-			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
+			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
+			wallet.BatchPayments );
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, stopWhenAllMixed, overridePlebStop, CancellationToken);
 	}

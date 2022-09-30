@@ -9,6 +9,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -139,8 +140,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		// Test wallet doesn't care
 	}
 
-	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
-		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
+	public Task<IEnumerable<IDestination>> GetNextDestinationsAsync(int count, bool preferTaproot) =>
+		Task.FromResult<IEnumerable<IDestination>>(Enumerable.Range(0, count).Select(_ => CreateNewAddress()));
 
 	private void ScanTransaction(Transaction tx)
 	{
@@ -154,4 +155,9 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 	private ExtKey CreateNewKey() =>
 		ExtKey.Derive(NextKeyIndex++);
+
+	public Task<IEnumerable<PendingPayment>> GetPendingPaymentsAsync(UtxoSelectionParameters roundParameters)
+	{
+		return Task.FromResult(Enumerable.Empty<PendingPayment>());
+	}
 }
