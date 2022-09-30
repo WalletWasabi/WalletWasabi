@@ -82,9 +82,9 @@ public class CoinVerifierApiClient
 
 					response = await completedTask.ConfigureAwait(false);
 				}
-				catch (OperationCanceledException exc)
+				catch (OperationCanceledException)
 				{
-					Logger.LogInfo("API response didn't arrive in time.", exc);
+					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
 					continue;
 				}
 				catch (Exception ex)
