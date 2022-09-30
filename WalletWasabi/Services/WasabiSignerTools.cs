@@ -3,6 +3,7 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -14,12 +15,45 @@ namespace WalletWasabi.Services;
 
 public static class WasabiSignerTools
 {
+	private static string WasabiKeyHeadline { get; } = "WASABI PRIVATE KEY";
 	public static string SHASumsFileName { get; } = "SHA256SUMS.asc";
 
 	public static Key GenerateKey() => new();
 
 	// PublicKey should be saved in Constants.cs later on
 	public static PubKey GetPublicKey(Key key) => key.PubKey;
+
+	public static bool TryGetKeyFromFile(string fileName, [NotNullWhen(true)] out Key? key)
+	{
+		try
+		{
+			using StreamReader streamReader = new(fileName);
+			bool endRequested = false;
+			string wif = "";
+			while (!endRequested)
+			{
+				var line = streamReader.ReadLine();
+				if (line is null)
+				{
+					endRequested = true;
+				}
+				else if (line.Contains(WasabiKeyHeadline))
+				{
+					wif = streamReader.ReadLine()!;
+					endRequested = true;
+				}
+			}
+			BitcoinSecret secret = new(wif, Network.Main);
+			key = secret.PrivateKey;
+			return true;
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError("There was an error while reading Key from file.", exc);
+			key = null;
+			return false;
+		}
+	}
 
 	public static bool VerifySHASumsFile(string filepath, PubKey publicKey)
 	{
@@ -146,13 +180,20 @@ public static class WasabiSignerTools
 
 	public static void SavePrivateKeyToFile(string path, Key key)
 	{
-		if (File.Exists(path))
+		try
 		{
-			throw new InvalidOperationException("Private key file already exists.");
+			if (File.Exists(path))
+			{
+				throw new ArgumentException("Private key file already exists.");
+			}
+			using StreamWriter streamWriter = new(path);
+			streamWriter.WriteLine($"-----BEGIN {WasabiKeyHeadline}-----");
+			streamWriter.WriteLine(key.ToString(Network.Main));
+			streamWriter.WriteLine($"-----END {WasabiKeyHeadline}-----");
 		}
-		using StreamWriter streamWriter = new(path);
-		streamWriter.WriteLine("-----BEGIN WASABI PRIVATE KEY-----");
-		streamWriter.WriteLine(key.ToString(Network.Main));
-		streamWriter.WriteLine("-----END WASABI PRIVATE KEY-----");
+		catch (Exception)
+		{
+			throw;
+		}
 	}
 }

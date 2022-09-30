@@ -87,4 +87,20 @@ public class WasabiSignerToolsTests
 		Assert.Equal(fileHash, sameFileHash);
 		Assert.Equal(otherFileHash, otherFileSameHash);
 	}
+
+	[Fact]
+	public void CanSaveAndReadKeyFromFileTest()
+	{
+		var tmpFolder = Path.Combine(_installerFolder.FullName, "..");
+		var keyFilePath = Path.Combine(tmpFolder, "WasabiKey.txt");
+
+		WasabiSignerTools.SavePrivateKeyToFile(keyFilePath, _privateKey);
+		Assert.True(File.Exists(keyFilePath));
+		Assert.Throws<ArgumentException>(() => WasabiSignerTools.SavePrivateKeyToFile(keyFilePath, _privateKey));
+
+		bool canReadKey = WasabiSignerTools.TryGetKeyFromFile(keyFilePath, out Key? key);
+		Assert.True(canReadKey);
+		Assert.NotNull(key);
+		File.Delete(keyFilePath);
+	}
 }
