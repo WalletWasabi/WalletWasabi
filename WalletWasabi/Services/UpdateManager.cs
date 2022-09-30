@@ -20,6 +20,7 @@ namespace WalletWasabi.Services;
 public class UpdateManager : IDisposable
 {
 	private string InstallerPath { get; set; } = "";
+	private string SHASumsFilePath { get; set; } = "";
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 	private const string DownloadURL = "https://github.com/zkSNACKs/WalletWasabi/releases/download";
@@ -96,7 +97,7 @@ public class UpdateManager : IDisposable
 			await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
 
 			uint256 downloadedHash = WasabiSignerTools.GenerateHashFromFile(filePath);
-			uint256 expectedHash = WasabiSignerTools.ReadHashFromFile(SHASumsFilePath, fileName);
+			uint256 expectedHash = WasabiSignerTools.ReadHashFromSHASumsFile(SHASumsFilePath, fileName);
 			if (expectedHash != downloadedHash)
 			{
 				File.Delete(filePath);
@@ -143,7 +144,7 @@ public class UpdateManager : IDisposable
 		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion).ConfigureAwait(false);
 		if (!isReleaseValid)
 		{
-			throw new OperationCanceledException($"Downloading release cancelled, signature of {WasabiSignerTools.SHASumsFileName} was invalid.");
+			throw new OperationCanceledException($"Downloading new release was canceled, signature of {WasabiSignerTools.SHASumsFileName} was invalid.");
 		}
 
 		// Get all asset names and download urls to find the correct one.
@@ -275,7 +276,6 @@ public class UpdateManager : IDisposable
 
 	private UpdateChecker? UpdateChecker { get; set; }
 	private CancellationToken CancellationToken { get; set; }
-	private string SHASumsFilePath { get; set; }
 
 	public void StartInstallingNewVersion()
 	{

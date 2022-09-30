@@ -82,8 +82,8 @@ public class WasabiSignerToolsTests
 		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
 		Assert.True(File.Exists(destinationPath));
 
-		uint256 sameFileHash = WasabiSignerTools.ReadHashFromFile(destinationPath, filepaths.First().Split("\\").Last());
-		uint256 otherFileSameHash = WasabiSignerTools.ReadHashFromFile(destinationPath, filepaths.ElementAt(1).Split("\\").Last());
+		uint256 sameFileHash = WasabiSignerTools.ReadHashFromSHASumsFile(destinationPath, filepaths.First().Split("\\").Last());
+		uint256 otherFileSameHash = WasabiSignerTools.ReadHashFromSHASumsFile(destinationPath, filepaths.ElementAt(1).Split("\\").Last());
 		Assert.Equal(fileHash, sameFileHash);
 		Assert.Equal(otherFileHash, otherFileSameHash);
 	}

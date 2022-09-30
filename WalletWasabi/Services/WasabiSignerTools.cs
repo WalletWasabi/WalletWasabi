@@ -80,7 +80,7 @@ public static class WasabiSignerTools
 		}
 	}
 
-	public static uint256 ReadHashFromFile(string filepath, string installerName)
+	public static uint256 ReadHashFromSHASumsFile(string filepath, string installerName)
 	{
 		(string content, string _) = ReadSHASumsContent(filepath);
 		var lines = content.Split("\n");
