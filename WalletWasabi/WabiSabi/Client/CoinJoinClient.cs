@@ -254,7 +254,7 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			// We won't use AliceCircuits anymore, we can release them. At the end we crete new circuits for signing.
+			// We won't use AliceCircuits anymore, we can release them. In the end, we create new circuits for signing.
 			foreach (var aliceClientAndCircuit in registeredAliceClientAndCircuits)
 			{
 				aliceClientAndCircuit.PersonCircuit.Dispose();
