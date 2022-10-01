@@ -11,17 +11,15 @@
 
   <UserControl.Styles>
     <Style Selector="controls|LabelsItemsPresenter.NonPrivate">
-      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelNoneBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
     </Style>
     <Style Selector="controls|LabelsItemsPresenter.SemiPrivate">
-      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelMediumBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
     <Style Selector="controls|LabelsItemsPresenter.Private">
-      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelExtremeBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelExtremeBrush}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
   </UserControl.Styles>
