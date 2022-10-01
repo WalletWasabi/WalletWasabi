@@ -69,7 +69,7 @@
 
                     <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                              HorizontalAlignment="Center"
-                             Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
+                             Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}" IsVisible="{Binding IsOpen}">
                       <i:Interaction.Behaviors>
                         <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
                       </i:Interaction.Behaviors>
