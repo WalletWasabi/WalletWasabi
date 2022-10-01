@@ -17,6 +17,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : IWabiSabiApiRequestHandler
 {
+	public async Task<HumanMonitorResponse> GetHumanMonitorAsync(CancellationToken cancellationToken)
+	{
+		//TODO: What to do here?
+		return new HumanMonitorResponse(null);
+	}
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		try

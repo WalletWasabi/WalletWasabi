@@ -21,4 +21,6 @@ public interface IWabiSabiApiRequestHandler
 	Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken);
 
 	Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken);
+	
+	Task<HumanMonitorResponse> GetHumanMonitorAsync(CancellationToken cancellationToken);
 }

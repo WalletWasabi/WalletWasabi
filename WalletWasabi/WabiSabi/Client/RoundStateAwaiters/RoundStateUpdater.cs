@@ -21,6 +21,7 @@ public class RoundStateUpdater : PeriodicRunner
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
+	private HumanMonitorResponse? HumanMonitorResponse { get; set; }
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private List<RoundStateAwaiter> Awaiters { get; } = new();
@@ -57,7 +58,7 @@ public class RoundStateUpdater : PeriodicRunner
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
 		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
-
+		
 		lock (AwaitersLock)
 		{
 			foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
@@ -67,6 +68,10 @@ public class RoundStateUpdater : PeriodicRunner
 				break;
 			}
 		}
+		
+		//TODO: Should get directly from GetStatus
+		HumanMonitorResponse =
+				await ArenaRequestHandler.GetHumanMonitorAsync(linkedCts.Token).ConfigureAwait((false));
 	}
 
 	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
@@ -108,6 +113,12 @@ public class RoundStateUpdater : PeriodicRunner
 	public bool TryGetRoundState(uint256 roundId, [NotNullWhen(true)] out RoundState? roundState)
 	{
 		return RoundStates.TryGetValue(roundId, out roundState);
+	}
+
+	public int TryGetRegisteredInputsCount(uint256 roundId)
+	{
+		var roundState = HumanMonitorResponse?.RoundStates.FirstOrDefault(x => x.RoundId.Equals(roundId));
+		return roundState?.InputCount ?? 0;
 	}
 
 	public override Task StopAsync(CancellationToken cancellationToken)

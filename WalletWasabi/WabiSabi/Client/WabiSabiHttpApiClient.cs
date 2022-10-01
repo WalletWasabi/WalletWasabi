@@ -32,7 +32,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		ReissueCredential,
 		SignTransaction,
 		GetStatus,
-		ReadyToSign
+		ReadyToSign,
+		GetHumanMonitor
 	}
 
 	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
@@ -57,7 +58,10 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync(RemoteAction.ReadyToSign, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
+		SendAndReceiveAsync(RemoteAction.ReadyToSign, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));	
+	
+	public Task<HumanMonitorResponse> GetHumanMonitorAsync(CancellationToken cancellationToken) =>
+		SendAndReceiveAsync<string, HumanMonitorResponse>(RemoteAction.GetHumanMonitor, "", CancellationToken.None, retryTimeout: TimeSpan.FromSeconds(30));
 
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, TimeSpan? retryTimeout = null)
 	{
@@ -81,7 +85,19 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
 				// Any transport layer errors will throw an exception here.
-				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
+				HttpResponseMessage response;
+				if (action != RemoteAction.GetHumanMonitor)
+				{
+					response = await _client
+						.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token)
+						.ConfigureAwait(false);
+				}
+				else
+				{
+					response = await _client
+						.SendAsync(HttpMethod.Get, GetUriEndPoint(action), content, requestCts.Token)
+						.ConfigureAwait(false);
+				}
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 
@@ -90,7 +106,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 					Logger.LogDebug(
 						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
 				}
-				else if (action != RemoteAction.GetStatus)
+				else if (action != RemoteAction.GetStatus && action != RemoteAction.GetHumanMonitor)
 				{
 					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
 				}
@@ -203,6 +219,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			RemoteAction.SignTransaction => "transaction-signature",
 			RemoteAction.GetStatus => "status",
 			RemoteAction.ReadyToSign => "ready-to-sign",
+			RemoteAction.GetHumanMonitor => "human-monitor",
 			_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 		};
 }

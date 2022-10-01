@@ -119,7 +119,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	/// Information about the current Rounds designed for the human eyes.
 	/// </summary>
 	[HttpGet("human-monitor")]
-	public HumanMonitorResponse GetHumanMonitor()
+	public async Task<HumanMonitorResponse> GetHumanMonitorAsync(CancellationToken cancellationToken = default)
 	{
 		var response = Arena.Rounds
 			.Where(r => r.Phase is not Phase.Ended)

@@ -447,7 +447,8 @@ public class CoinJoinClient
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(ex);
+				// TODO: We might want to keep logging when network timeout
+				//Logger.LogWarning(ex);
 				personCircuit?.Dispose();
 				return (null, null);
 			}
@@ -458,26 +459,81 @@ public class CoinJoinClient
 
 		roundState.LogDebug($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.");
 
-		// Decrease the available time, so the clients hurry up.
+		// TODO: Having variations in these values between clients could harm privacy, should be round parameters
+		var hurryUpThreshold = 5;
+		var hurryUpWindow = TimeSpan.FromMinutes(1);
 		var safetyBuffer = TimeSpan.FromMinutes(1);
-		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd - safetyBuffer);
+		
+		var nbInputsToRegister = smartCoins.Count();
+		var scheduledDates = GetScheduledDates(nbInputsToRegister, roundState.InputRegistrationEnd - safetyBuffer);
 
-		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-		var aliceClients = smartCoins.Zip(
-			scheduledDates,
-			async (coin, date) =>
+		var aliceClients = new List<Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)>>();
+		var index = 0;
+		var hurryMode = false;
+		while(index < scheduledDates.Count && roundState.Phase is Phase.InputRegistration && !registrationsCts.IsCancellationRequested)
+		{
+			var date = scheduledDates[index];
+			var coin = smartCoins.ElementAt(index);
+			while (DateTime.UtcNow <= date && roundState.Phase is Phase.InputRegistration && !registrationsCts.IsCancellationRequested)
 			{
-				var delay = date - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
+				var nbInputsRegisteredCoordinator = RoundStatusUpdater.TryGetRegisteredInputsCount(roundState.Id);
+				if (nbInputsRegisteredCoordinator >= hurryUpThreshold && !hurryMode)
 				{
-					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
+					hurryMode = true;
+					remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+					var bestHurryUpWindow = remainingTimeForRegistration.CompareTo(hurryUpWindow) >= 0
+						? hurryUpWindow
+						: remainingTimeForRegistration; // No time for hurry up window, use time remaining instead
+					
+					// Schedule remaining register requests.
+					smartCoins = smartCoins.Skip(index);
+					scheduledDates = GetScheduledDates(smartCoins.Count(),
+						(DateTime.UtcNow + bestHurryUpWindow));
+					// TODO: Warning lvl for debug, it's not an abnormal situation and might happen all the time at scale so Info is enough
+					Logger.LogWarning($"Round almost full, need to hurry up to register {scheduledDates.Count} inputs.");
+					index = 0;
+					break;
 				}
-				return await RegisterInputAsync(coin).ConfigureAwait(false);
-			})
-			.ToImmutableArray();
 
+				// TODO: Maybe it can be better than a straight pause
+				var pause = TimeSpan.FromMilliseconds(1000);
+				var remainingTimeForScheduledDate = date - DateTime.UtcNow;
+				if ((pause).CompareTo(remainingTimeForScheduledDate) < 1)
+				{
+					// There is time to wait full pause.
+					await Task.Delay(pause, timeoutAndGlobalCts.Token).ConfigureAwait(false);
+				}
+				else
+				{
+					await  Task.Delay(remainingTimeForScheduledDate >= TimeSpan.Zero ? remainingTimeForScheduledDate : TimeSpan.Zero, timeoutAndGlobalCts.Token).ConfigureAwait(false);
+				}
+				roundState = UpdateRoundState(roundState.Id);
+			}
+
+			roundState = UpdateRoundState(roundState.Id);
+			
+			if (roundState.Phase is not Phase.InputRegistration || registrationsCts.IsCancellationRequested)
+			{
+				// Phase changed, can't register anymore. Probably round full or requests lag.
+				break;
+			}
+			
+			aliceClients.Add(RegisterInputAsync(coin));
+			index++;
+		}
+
+		if (roundState.Phase is not Phase.InputRegistration && !registrationsCts.IsCancellationRequested)
+		{
+			registrationsCts.Cancel();
+		}
+		
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
+		if (aliceClients.Count != nbInputsToRegister)
+		{
+			// TODO: Log is misleading, use only for debug
+			Logger.LogWarning($"Could only send {aliceClients.Count}/{nbInputsToRegister} register requests.");
+		}
 		var successfulAlices = aliceClients
 			.Select(x => x.Result)
 			.Where(r => r.AliceClient is not null && r.PersonCircuit is not null)
@@ -489,10 +545,19 @@ public class CoinJoinClient
 			// In this case the coordinator aborted the round - throw only one exception and log outside.
 			throw lastAbortedNotEnoughAlicesException;
 		}
-
+		
 		return successfulAlices;
 	}
 
+	private RoundState UpdateRoundState(uint256 roundId)
+	{
+		if (!RoundStatusUpdater.TryGetRoundState(roundId, out var newRoundState))
+		{
+			throw new InvalidOperationException($"Round '{roundId}' is missing.");
+		}
+		return newRoundState;
+	}
+	
 	private BobClient CreateBobClient(RoundState roundState)
 	{
 		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
