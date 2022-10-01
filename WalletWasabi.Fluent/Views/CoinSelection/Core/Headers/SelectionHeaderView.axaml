@@ -9,7 +9,7 @@
              x:DataType="headers:SelectionHeaderViewModel"
              ClipToBounds="False"
              x:CompileBindings="True">
-  <StackPanel Orientation="Horizontal" Margin="-6 0 0 0">
+  <StackPanel Orientation="Horizontal" Margin="-10 0 0 0">
 
     <controls:DropDownContentControl MenuItems="{Binding Commands}" DropDownButtonBrush="Transparent">
       <controls:DropDownContentControl.Styles>
