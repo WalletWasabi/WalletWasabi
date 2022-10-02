@@ -20,6 +20,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Tor.Socks5.Pool;
 
@@ -129,6 +130,11 @@ public class TorHttpPool : IAsyncDisposable
 		}
 	}
 
+	public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+	{
+		return SendAsync(request, circuit, statsLogger: null, cancellationToken);
+	}
+
 	/// <summary>
 	/// Sends an HTTP(s) request.
 	/// <para>HTTP(s) requests with loopback destination after forwarded to <see cref="ClearnetHttpClient"/> and that's it.</para>
@@ -143,7 +149,7 @@ public class TorHttpPool : IAsyncDisposable
 	/// </summary>
 	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
 	/// <exception cref="OperationCanceledException">When the operation was canceled.</exception>
-	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken)
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, StatsLogger? statsLogger, CancellationToken cancellationToken)
 	{
 		int i = 0;
 		int attemptsNo = 3;
@@ -177,7 +183,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				try
 				{
-					connection = await ObtainFreeConnectionAsync(request, namedCircuit, cancellationToken).ConfigureAwait(false);
+					connection = await ObtainFreeConnectionAsync(request, namedCircuit, statsLogger, cancellationToken).ConfigureAwait(false);
 					connectionToDispose = connection;
 
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
@@ -298,7 +304,7 @@ public class TorHttpPool : IAsyncDisposable
 		throw new NotImplementedException("This should never happen.");
 	}
 
-	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
+	private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, ICircuit circuit, StatsLogger? statsLogger, CancellationToken token)
 	{
 		Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
 
@@ -345,7 +351,7 @@ public class TorHttpPool : IAsyncDisposable
 
 				if (canBeAdded)
 				{
-					connection = await CreateNewConnectionAsync(request.RequestUri!, namedCircuit, token).ConfigureAwait(false);
+					connection = await CreateNewConnectionAsync(request.RequestUri!, namedCircuit, statsLogger, token).ConfigureAwait(false);
 
 					// Do not dispose.
 					oneOffCircuitToDispose = null;
@@ -374,19 +380,25 @@ public class TorHttpPool : IAsyncDisposable
 		while (true);
 	}
 
-	private async Task<TorTcpConnection?> CreateNewConnectionAsync(Uri requestUri, INamedCircuit circuit, CancellationToken cancellationToken)
+	private async Task<TorTcpConnection?> CreateNewConnectionAsync(Uri requestUri, INamedCircuit circuit, StatsLogger? statsLogger, CancellationToken cancellationToken)
 	{
 		lock (ConnectionsLock)
 		{
 			TorStreamsBeingBuilt[circuit.Name] = null;
 		}
 
+		DateTimeOffset t1 = DateTimeOffset.UtcNow;
 		TorTcpConnection? connection = null;
+
+		bool success = false;
+		bool cancelled = false;
 
 		try
 		{
 			connection = await TcpConnectionFactory.ConnectAsync(requestUri, circuit, cancellationToken).ConfigureAwait(false);
 			Logger.LogTrace($"[NEW {connection}]['{requestUri}'] Created new Tor SOCKS5 connection.");
+
+			success = true;
 		}
 		catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 		{
@@ -401,6 +413,7 @@ public class TorHttpPool : IAsyncDisposable
 		catch (OperationCanceledException)
 		{
 			Logger.LogTrace($"['{requestUri}'] Operation was canceled.");
+			cancelled = true;
 			throw;
 		}
 		catch (Exception e)
@@ -410,6 +423,15 @@ public class TorHttpPool : IAsyncDisposable
 		}
 		finally
 		{
+			string eventName = (success, cancelled) switch
+			{
+				(true, _) => "CircuitBuilt",
+				(false, true) => "CircuitBuildingCancelled",
+				(false, false) => "CircuitFailed",
+			};
+				
+			statsLogger?.Log(eventName, t1);
+
 			lock (ConnectionsLock)
 			{
 				if (TorStreamsBeingBuilt.Remove(circuit.Name, out TorStreamInfo? streamInfo))
@@ -603,7 +625,7 @@ public class TorHttpPool : IAsyncDisposable
 							Stopwatch sw = Stopwatch.StartNew();
 
 							// Not to be disposed now.
-							TorTcpConnection? _ = await CreateNewConnectionAsync(request.BaseUri, circuit, cancellationToken).ConfigureAwait(false);
+							TorTcpConnection? _ = await CreateNewConnectionAsync(request.BaseUri, circuit, statsLogger: null, cancellationToken).ConfigureAwait(false);
 							sw.Stop();
 
 							Logger.LogTrace($"[{i}][{circuit.Name}] Tor circuit built in {sw.ElapsedMilliseconds} ms.");

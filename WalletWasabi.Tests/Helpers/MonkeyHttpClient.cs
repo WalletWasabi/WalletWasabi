@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -26,13 +27,13 @@ public class MonkeyHttpClient : IHttpClient
 
 	public Func<Uri>? BaseUriGetter => HttpClient.BaseUriGetter;
 
-	public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+	public virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, StatsLogger? statsLogger = null, CancellationToken token = default)
 	{
 		foreach (Monkey monkey in _monkeys)
 		{
 			await monkey().ConfigureAwait(false);
 		}
 
-		return await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+		return await HttpClient.SendAsync(request, statsLogger: null, token).ConfigureAwait(false);
 	}
 }

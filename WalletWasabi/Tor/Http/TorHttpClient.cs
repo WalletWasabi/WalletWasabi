@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Tor.Http;
 
@@ -49,7 +50,7 @@ public class TorHttpClient : IHttpClient
 
 	/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
 	/// <exception cref="OperationCanceledException">When <paramref name="cancellationToken"/> is canceled by the user.</exception>
-	/// <inheritdoc cref="SendAsync(HttpRequestMessage, CancellationToken)"/>
+	/// <inheritdoc cref="SendAsync(HttpRequestMessage, StatsLogger?, CancellationToken)"/>
 	public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancellationToken = default)
 	{
 		if (BaseUriGetter is null)
@@ -65,7 +66,7 @@ public class TorHttpClient : IHttpClient
 			request.Content = content;
 		}
 
-		return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+		return await SendAsync(request, statsLogger: null, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
@@ -74,15 +75,15 @@ public class TorHttpClient : IHttpClient
 	/// No exception is thrown when the status code of the <see cref="HttpResponseMessage">response</see>
 	/// is, for example, <see cref="HttpStatusCode.NotFound"/>.
 	/// </remarks>
-	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, StatsLogger? statsLogger = null, CancellationToken cancellationToken = default)
 	{
 		if (Mode is Mode.NewCircuitPerRequest)
 		{
-			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, cancellationToken).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, AnyOneOffCircuit.Instance, statsLogger, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
-			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, cancellationToken).ConfigureAwait(false);
+			return await TorHttpPool.SendAsync(request, PredefinedCircuit!, statsLogger, cancellationToken).ConfigureAwait(false);
 		}
 	}
 

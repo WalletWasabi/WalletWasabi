@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -16,7 +17,7 @@ public class HttpClientWrapper : IHttpClient
 
 	public Func<Uri>? BaseUriGetter => () => HttpClient.BaseAddress;
 
-	public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+	public virtual Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, StatsLogger? statsLogger = null, CancellationToken token = default)
 	{
 		// HttpCompletionOption is required here because of a bug in dotnet.
 		// without it the test fails randomly with ObjectDisposedException

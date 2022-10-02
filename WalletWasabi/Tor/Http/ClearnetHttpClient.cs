@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Tor.Http;
 
@@ -23,7 +24,7 @@ public class ClearnetHttpClient : IHttpClient
 	private HttpClient HttpClient { get; }
 
 	/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
-	public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+	public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, StatsLogger? statsLogger = null, CancellationToken token = default)
 	{
 		return HttpClient.SendAsync(request, token);
 	}

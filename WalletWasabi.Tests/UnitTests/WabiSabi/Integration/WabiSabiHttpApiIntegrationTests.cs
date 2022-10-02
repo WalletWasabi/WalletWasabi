@@ -376,11 +376,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// when a signature is sent but it doesn't really send it.
 		var nonSigningHttpClientMock = new Mock<HttpClientWrapper>(MockBehavior.Strict, httpClient);
 		nonSigningHttpClientMock
-			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<StatsLogger>(), It.IsAny<CancellationToken>()))
 			.CallBase();
 		nonSigningHttpClientMock
 			.Setup(httpClient => httpClient.SendAsync(
 				It.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("transaction-signature")),
+				It.IsAny<StatsLogger>(),
 				It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new HttpRequestException("Something was wrong posting the signature."));
 

@@ -294,7 +294,7 @@ public class TorMonitor : PeriodicRunner
 
 						// Any HTTP response is fine (e.g. the response message might have the status code 403, 404, etc.) as we test only that
 						// the transport layer works.
-						using HttpResponseMessage response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+						using HttpResponseMessage response = await HttpClient.SendAsync(request, statsLogger: null, token).ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{

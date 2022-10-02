@@ -9,6 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
@@ -34,6 +35,11 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		GetStatus,
 		ReadyToSign
 	}
+
+	/// <summary>Logger for HTTP requests.</summary>
+	private static StatsLogger StatLogger { get; } = StatsLogger.From("Network", "Request");
+
+	private static long RequestNo = 0;
 
 	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
 		SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
@@ -62,7 +68,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, TimeSpan? retryTimeout = null)
 	{
 		var exceptions = new Dictionary<Exception, int>();
-		var start = DateTime.UtcNow;
+		DateTime t0 = DateTime.UtcNow;
 
 		var totalTimeout = TimeSpan.FromMinutes(30);
 
@@ -70,70 +76,86 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		CancellationToken combinedToken = linkedCts.Token;
 
+		long requestNo = Interlocked.Increment(ref RequestNo);
+
+		StatsLogger loggerAction = StatLogger.AddScope($"{requestNo:0000}", $"{action}");
+
 		int attempt = 1;
-		do
+		try
 		{
-			try
+			do
 			{
-				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
+				DateTimeOffset t1 = DateTimeOffset.UtcNow;
 
-				var requestTimeout = retryTimeout ?? TimeSpan.MaxValue;
-				using CancellationTokenSource requestTimeoutCts = new(requestTimeout);
-				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
-
-				// Any transport layer errors will throw an exception here.
-				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
-
-				TimeSpan totalTime = DateTime.UtcNow - start;
-
-				if (exceptions.Any())
+				try
 				{
-					Logger.LogDebug(
-						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
+					using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
+
+					using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : totalTimeout);
+					using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
+
+					// Any transport layer errors will throw an exception here.
+					HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, loggerAction, requestCts.Token).ConfigureAwait(false);
+					loggerAction.Log(eventName: "Sent", actionStart: t1, processStart: t0);
+
+					TimeSpan totalTime = DateTime.UtcNow - t0;
+
+					if (exceptions.Any())
+					{
+						Logger.LogDebug(
+							$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
+					}
+					else if (action != RemoteAction.GetStatus)
+					{
+						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					}
+
+					return response;
 				}
-				else if (action != RemoteAction.GetStatus)
+				catch (HttpRequestException e)
 				{
-					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
+					Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(HttpRequestException)}: {e.Message}.");
+					loggerAction.Log(eventName: $"Attempt#{attempt}.HttpRequestException", actionStart: t1, processStart: t0);
+					AddException(exceptions, e);
+				}
+				catch (OperationCanceledException e)
+				{
+					Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
+					loggerAction.Log(eventName: $"Attempt#{attempt}.OperationCanceledException", actionStart: t1, processStart: t0);
+					AddException(exceptions, e);
+				}
+				catch (Exception e)
+				{
+					Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
+					loggerAction.Log(eventName: $"Attempt#{attempt}.Exception", actionStart: t1, processStart: t0);
+
+					if (exceptions.Any())
+					{
+						AddException(exceptions, e);
+						throw new AggregateException(exceptions.Keys);
+					}
+
+					throw;
 				}
 
-				return response;
-			}
-			catch (HttpRequestException e)
-			{
-				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(HttpRequestException)}: {e.Message}.");
-				AddException(exceptions, e);
-			}
-			catch (OperationCanceledException e)
-			{
-				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
-				AddException(exceptions, e);
-			}
-			catch (Exception e)
-			{
-				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
-
-				if (exceptions.Any())
+				try
+				{
+					// Wait before the next try.
+					await Task.Delay(250, combinedToken).ConfigureAwait(false);
+				}
+				catch (Exception e)
 				{
 					AddException(exceptions, e);
-					throw new AggregateException(exceptions.Keys);
 				}
 
-				throw;
+				attempt++;
 			}
-
-			try
-			{
-				// Wait before the next try.
-				await Task.Delay(250, combinedToken).ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				AddException(exceptions, e);
-			}
-
-			attempt++;
+			while (!combinedToken.IsCancellationRequested);
 		}
-		while (!combinedToken.IsCancellationRequested);
+		catch
+		{
+			loggerAction.Log(eventName: "Exception", actionStart: t0);
+		}
 
 		throw new AggregateException(exceptions.Keys);
 	}
