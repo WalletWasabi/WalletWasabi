@@ -4,6 +4,7 @@
              xmlns:models="using:WalletWasabi.Models"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              x:DataType="vm:ApplicationViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.App">
@@ -42,6 +43,21 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LabelsItemsPresenter.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/SuggestionItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/ClipboardCopyButton.axaml" />
+
+    <Style Selector=":is(Control)[IsVisible=True]:pointerover">
+      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+        <Template>
+          <Border Width="{Binding $parent[Control].Bounds.Width}"
+                  Height="{Binding $parent[Control].Bounds.Height}"
+                  BorderBrush="Red"
+                  BorderThickness="1"
+                  Background="Transparent"
+                  IsHitTestVisible="False">
+          </Border>
+        </Template>
+      </Setter>
+    </Style>
+
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
