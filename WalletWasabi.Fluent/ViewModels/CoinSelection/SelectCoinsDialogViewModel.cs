@@ -144,31 +144,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private bool IsSelectionBadForPrivacy(IReadOnlyCollection<SelectableCoin> coins, SmartLabel transactionLabel)
 	{
 		var selectedCoins = coins.Where(x => x.IsSelected).ToList();
-		var privateAndSemiPrivate = coins.Where(x => x.PrivacyLevel == PrivacyLevel.Private || x.PrivacyLevel == PrivacyLevel.SemiPrivate).ToList();
-		var privateCoinsAreEnough = privateAndSemiPrivate.Sum(x => x.Amount) >= TargetAmount;
-		var isNonPrivateSelected = selectedCoins.Any(x => x.PrivacyLevel != PrivacyLevel.Private);
 
-		if (privateCoinsAreEnough && isNonPrivateSelected)
-		{
-			return true;
-		}
-
-		if (selectedCoins.All(x => x.SmartLabel == transactionLabel))
+		if (selectedCoins.All(x => x.SmartLabel == transactionLabel || x.PrivacyLevel == PrivacyLevel.Private || x.PrivacyLevel == PrivacyLevel.SemiPrivate))
 		{
 			return false;
 		}
 
 		if (selectedCoins.Any(x => x.AnonymitySet == 1))
-		{
-			return true;
-		}
-
-		if (selectedCoins.GroupBy(x => x.PrivacyLevel).Count() > 1)
-		{
-			return true;
-		}
-
-		if (selectedCoins.GroupBy(x => x.SmartLabel).Count() > 1)
 		{
 			return true;
 		}
