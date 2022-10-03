@@ -20,7 +20,6 @@ public partial class PrivacyBarViewModel : ViewModelBase
 	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
-	[AutoNotify] private bool _isEmpty;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -44,7 +43,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
+
+		IsEmpty = _coinsUpdated
+			.Select(_ => !Items.Any())
+			.ReplayLastActive();
 	}
+
+	public IObservable<bool> IsEmpty { get; }
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
@@ -60,11 +65,6 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		list.Clear();
 
 		var coinCount = pockets.SelectMany(x => x.Coins).Count();
-
-		Dispatcher.UIThread.Post(() =>
-		{
-			IsEmpty = true;
-		});
 
 		if (coinCount == 0d)
 		{
@@ -86,11 +86,6 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		{
 			list.Add(item);
 		}
-
-		Dispatcher.UIThread.Post(() =>
-		{
-			IsEmpty = false;
-		});
 	}
 
 	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
