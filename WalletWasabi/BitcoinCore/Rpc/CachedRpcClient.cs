@@ -121,11 +121,6 @@ public class CachedRpcClient : RpcClientBase
 	public override async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 	{
 		string cacheKey = nameof(GetMempoolInfoAsync);
-		var cacheOptions = new MemoryCacheEntryOptions
-		{
-			Size = 1,
-			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10)
-		};
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
