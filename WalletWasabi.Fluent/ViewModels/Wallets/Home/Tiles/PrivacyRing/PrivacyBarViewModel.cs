@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -19,6 +20,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
+	[AutoNotify] private bool _isEmpty;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
 	{
@@ -42,14 +44,10 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
-	
-		IsEmpty = this.WhenAnyValue(x => x.Items.Count).Select(count => count == 0);
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
-	public IObservable<bool> IsEmpty { get; }
-	
 	public Wallet Wallet { get; }
 
 	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
@@ -61,12 +59,17 @@ public partial class PrivacyBarViewModel : ViewModelBase
 	{
 		list.Clear();
 
-		if (Width == 0d)
+		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			IsEmpty = true;
+		});
+
+		if (coinCount == 0d)
 		{
 			return;
 		}
-
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
 
 		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
 
@@ -83,6 +86,11 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		{
 			list.Add(item);
 		}
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			IsEmpty = false;
+		});
 	}
 
 	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
