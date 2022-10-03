@@ -3,11 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
+             IsVisible="{Binding !PrivacyBar.IsEmpty^}">
   <Panel x:Name="Panel" DockPanel.Dock="Bottom" Margin="0 0 0 8">
     <i:Interaction.Behaviors>
       <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
@@ -16,8 +15,7 @@
     </i:Interaction.Behaviors>
 
     <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
-            ToolTip.Tip="Show Details"
-            IsVisible="{Binding !PrivacyBar.IsEmpty^}">
+            ToolTip.Tip="Show Details">
       <ItemsControl Items="{Binding PrivacyBar.Items}" Height="10">
         <ItemsControl.Styles>
           <Style Selector="Path.private">
