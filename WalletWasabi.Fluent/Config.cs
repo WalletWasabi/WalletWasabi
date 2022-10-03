@@ -10,7 +10,6 @@ using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent;
@@ -39,7 +38,7 @@ public class Config : ConfigBase
 
 	[JsonProperty(PropertyName = "Network")]
 	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; internal set; } = Network.TestNet;
+	public Network Network { get; internal set; } = Network.Main;
 
 	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
 	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -68,6 +67,10 @@ public class Config : ConfigBase
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool TerminateTorOnExit { get; internal set; } = false;
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "DownloadNewVersion", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool DownloadNewVersion { get; internal set; } = true;
 
 	[DefaultValue(false)]
 	[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -115,15 +118,17 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money DustThreshold { get; internal set; } = DefaultDustThreshold;
 
+	[JsonProperty(PropertyName = "EnableGpu")]
+	public bool EnableGpu { get; internal set; } = true;
+
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
+	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
+
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 	public Uri GetCurrentBackendUri()
 	{
-		if (TorMonitor.RequestFallbackAddressUsage)
-		{
-			return GetFallbackBackendUri();
-		}
-
 		if (_backendUri is { })
 		{
 			return _backendUri;

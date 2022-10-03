@@ -56,6 +56,8 @@ public partial class TransactionInfo
 
 	public bool IsOtherPocketSelectionPossible { get; set; }
 
+	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
+
 	public void Reset()
 	{
 		Amount = Money.Zero;

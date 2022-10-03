@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +14,8 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -267,6 +271,7 @@ public class BlockchainController : ControllerBase
 	/// </remarks>
 	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 	/// <param name="count">The number of filters to return.</param>
+	/// <param name="indexType">Type of index. Valid values: segwittaproot, taproot.</param>
 	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>
@@ -277,7 +282,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
 	{
 		if (count <= 0)
 		{
@@ -286,7 +291,12 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		if (!TryGetIndexer(indexType, out var indexer))
+		{
+			return BadRequest("Not supported index type.");
+		}
+
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
 		{
@@ -305,6 +315,30 @@ public class BlockchainController : ControllerBase
 		};
 
 		return Ok(response);
+	}
+
+	internal bool TryGetIndexer(string? indexType, [NotNullWhen(true)] out IndexBuilderService? indexer)
+	{
+		indexer = null;
+		if (indexType is null || indexType.Equals("segwittaproot", StringComparison.OrdinalIgnoreCase))
+		{
+			indexer = Global.SegwitTaprootIndexBuilderService;
+		}
+		else if (indexType.Equals("taproot", StringComparison.OrdinalIgnoreCase))
+		{
+			indexer = Global.TaprootIndexBuilderService;
+		}
+		else
+		{
+			return false;
+		}
+
+		if (indexer is null)
+		{
+			throw new NotSupportedException("This is impossible.");
+		}
+
+		return true;
 	}
 
 	[HttpGet("status")]
@@ -332,11 +366,20 @@ public class BlockchainController : ControllerBase
 	{
 		StatusResponse status = new();
 
+		// Select indexer that's behind the most.
+		var i1 = Global.SegwitTaprootIndexBuilderService;
+		var i2 = Global.TaprootIndexBuilderService;
+		if (i1 is null || i2 is null)
+		{
+			throw new NotSupportedException("This is impossible.");
+		}
+		var indexer = i1.LastFilterBuildTime > i2.LastFilterBuildTime ? i2 : i1;
+
 		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
+		if (DateTimeOffset.UtcNow - indexer.LastFilterBuildTime > FilterTimeout)
 		{
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
+			var lastFilter = indexer.GetLastFilter();
 			var lastFilterHash = lastFilter.Header.BlockHash;
 			var bestHash = await RpcClient.GetBestBlockHashAsync();
 			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
@@ -366,10 +409,11 @@ public class BlockchainController : ControllerBase
 		// Updating the status of WabiSabi coinjoin.
 		if (Global.WabiSabiCoordinator is { } wabiSabiCoordinator)
 		{
+			var ww2CjDownAfter = TimeSpan.FromHours(3);
 			var wabiSabiValidInterval = wabiSabiCoordinator.Config.StandardInputRegistrationTimeout * 2;
-			if (wabiSabiValidInterval < TimeSpan.FromHours(1))
+			if (wabiSabiValidInterval < ww2CjDownAfter)
 			{
-				wabiSabiValidInterval = TimeSpan.FromHours(1);
+				wabiSabiValidInterval = ww2CjDownAfter;
 			}
 			if (DateTimeOffset.UtcNow - wabiSabiCoordinator.LastSuccessfulCoinJoinTime < wabiSabiValidInterval)
 			{

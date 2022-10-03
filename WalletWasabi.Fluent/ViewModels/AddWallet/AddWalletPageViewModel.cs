@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(
 	Title = "Add Wallet",
-	Caption = "Create, recover or import wallet",
+	Caption = "Create, connect, import or recover",
 	Order = 2,
 	Category = "General",
 	Keywords = new[]
@@ -27,41 +27,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	NavBarPosition = NavBarPosition.Bottom)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
-	[AutoNotify] private AddWalletPageOption _selectedOption;
-
 	public AddWalletPageViewModel()
 	{
 		SelectionMode = NavBarItemSelectionMode.Button;
 
-		Options = new()
-		{
-			new AddWalletPageOption
-			{
-				CreationOption = WalletCreationOption.AddNewWallet,
-				Title = "Create a new wallet",
-				IconName = "add_regular"
-			},
-			new AddWalletPageOption
-			{
-				CreationOption = WalletCreationOption.ConnectToHardwareWallet,
-				Title = "Connect to hardware wallet",
-				IconName = "calculator_regular"
-			},
-			new AddWalletPageOption
-			{
-				CreationOption = WalletCreationOption.ImportWallet,
-				Title = "Import a wallet",
-				IconName = "import_regular"
-			},
-			new AddWalletPageOption
-			{
-				CreationOption = WalletCreationOption.RecoverWallet,
-				Title = "Recover a wallet",
-				IconName = "recover_arrow_right_regular"
-			},
-		};
+		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 
-		_selectedOption = Options.First();
+		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
+
+		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
+
+		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
 
 		OpenCommand = ReactiveCommand.Create(async () =>
 		{
@@ -69,11 +45,60 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
 			MainViewModel.Instance.IsOobeBackgroundVisible = false;
 		});
-
-		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 	}
 
-	public List<AddWalletPageOption> Options { get; }
+	public ICommand CreateWalletCommand { get; }
+
+	public ICommand ConnectHardwareWalletCommand { get; }
+
+	public ICommand ImportWalletCommand { get; }
+
+	public ICommand RecoverWalletCommand { get; }
+
+	private void OnCreateWallet()
+	{
+		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.AddNewWallet));
+	}
+
+	private void OnConnectHardwareWallet()
+	{
+		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ConnectToHardwareWallet));
+	}
+
+	private async Task OnImportWalletAsync()
+	{
+		try
+		{
+			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
+
+			if (filePath is null)
+			{
+				return;
+			}
+
+			var walletName = Path.GetFileNameWithoutExtension(filePath);
+
+			var validationError = WalletHelpers.ValidateWalletName(walletName);
+			if (validationError is { })
+			{
+				Navigate().To(new WalletNamePageViewModel(WalletCreationOption.ImportWallet, filePath));
+				return;
+			}
+
+			var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
+			Navigate().To(new AddedWalletPageViewModel(keyManager));
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync("Import wallet", ex.ToUserFriendlyString(), "Wasabi was unable to import your wallet.");
+		}
+	}
+
+	private void OnRecoverWallet()
+	{
+		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
+	}
 
 	private async Task ImportWalletAsync()
 	{
@@ -105,25 +130,11 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		}
 	}
 
-	private async Task OnNextAsync()
-	{
-		if (SelectedOption.CreationOption == WalletCreationOption.ImportWallet)
-		{
-			await ImportWalletAsync();
-		}
-		else
-		{
-			Navigate().To(new WalletNamePageViewModel(SelectedOption.CreationOption));
-		}
-	}
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
-
-		SelectedOption = Options.First();
 	}
 }

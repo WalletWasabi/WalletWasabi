@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services.Terminate;
@@ -36,8 +37,6 @@ public class TerminateService
 	}
 
 	private bool IsSystemEventsSubscribed { get; }
-
-	public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
 
 	private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 	{

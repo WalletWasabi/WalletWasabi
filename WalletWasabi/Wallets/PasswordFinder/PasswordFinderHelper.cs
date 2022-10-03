@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security;
 using System.Threading;
 
 namespace WalletWasabi.Wallets.PasswordFinder;
@@ -41,7 +40,7 @@ public static class PasswordFinderHelper
 				foundPassword = pwd;
 				return true;
 			}
-			
+
 			attempts++;
 			var percentage = (double)attempts / maxNumberAttempts * 100;
 			var remainingMilliseconds = sw.Elapsed.TotalMilliseconds / percentage * (100 - percentage);

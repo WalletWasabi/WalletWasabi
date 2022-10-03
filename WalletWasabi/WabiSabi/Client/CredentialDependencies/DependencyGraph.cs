@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
@@ -154,7 +155,7 @@ public record DependencyGraph
 	///
 	/// <para>Outgoing edges represent credential amounts to request and
 	/// present in a subsequent request, so for positive nodes if there is a
-	/// left over balance the outgoing dregree is limited to K-1, since an
+	/// left over balance the outgoing degree is limited to K-1, since an
 	/// extra credential for the remaining amount must also be
 	/// requested.</para>
 	///
@@ -313,7 +314,7 @@ public record DependencyGraph
 		var g = this;
 
 		// Unconstrained nodes have a remaining out degree greater than 1,
-		// so they can produce arbitary value outputs (final edge must leave
+		// so they can produce arbitrary value outputs (final edge must leave
 		// balance = 0).
 		// The remaining outdegree > 1 condition is equivalent to == K for
 		// K=2, so that also implies the positive valued nodes haven't been
@@ -438,7 +439,7 @@ public record DependencyGraph
 		// This can be done in 3 depth first passes, which all consume nodes
 		// whose remaining in degree is 0 and available zero degree is >0.
 		// - discharge only to AvailableZeroOutDegree >0 nodes (should be at most one such node per donor node)
-		// - discharge to direct descendents even if a net reduction in zero creds because of available zero out degree of 0
+		// - discharge to direct descendants even if a net reduction in zero creds because of available zero out degree of 0
 		// - discharge all remaining in degree >0 nodes by topological order
 
 		var edgeSet = EdgeSets[credentialType];

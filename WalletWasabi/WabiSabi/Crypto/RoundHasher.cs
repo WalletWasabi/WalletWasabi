@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.StrobeProtocol;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Crypto;
@@ -28,6 +27,7 @@ public static class RoundHasher
 			long maxVsizeCredentialValue,
 			long maxVsizeAllocationPerAlice,
 			long maxSuggestedAmount,
+			string coordinationIdentifier,
 			CredentialIssuerParameters amountCredentialIssuerParameters,
 			CredentialIssuerParameters vsizeCredentialIssuerParameters)
 	{
@@ -50,6 +50,7 @@ public static class RoundHasher
 					   .Append(ProtocolConstants.RoundMaxVsizeCredentialValueStrobeLabel, maxVsizeCredentialValue)
 					   .Append(ProtocolConstants.RoundMaxVsizePerAliceStrobeLabel, maxVsizeAllocationPerAlice)
 					   .Append(ProtocolConstants.RoundMaxSuggestedAmountLabel, maxSuggestedAmount)
+					   .Append(ProtocolConstants.RoundCoordinationIdentifier, coordinationIdentifier)
 					   .Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, amountCredentialIssuerParameters)
 					   .Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, vsizeCredentialIssuerParameters)
 					   .GetHash();

@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -142,8 +143,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			KeyManager.AssertCleanKeysIndexed(isInternal: true);
-			KeyManager.AssertLockedInternalKeysIndexed(14);
+			KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: true);
 			changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
 
 			builder.SetChange(changeHdPubKey.P2wpkhScript);
@@ -256,7 +256,7 @@ public class TransactionFactory
 		var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
 		foreach (var coin in spentCoins)
 		{
-			smartTransaction.WalletInputs.Add(coin);
+			smartTransaction.TryAddWalletInput(coin);
 		}
 		var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
 
@@ -267,7 +267,7 @@ public class TransactionFactory
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 				label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
-				smartTransaction.WalletOutputs.Add(smartCoin);
+				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 

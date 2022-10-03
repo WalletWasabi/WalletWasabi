@@ -1,5 +1,3 @@
-using NBitcoin;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
@@ -17,12 +15,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 public class AliceTimeoutTests
 {
 	[Fact]
-	public async Task AliceTimesoutAsync()
+	public async Task AliceRegistrationTimesOutAsync()
 	{
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5)); // Sanity timeout for the unit test.
+
 		// Alice times out when its deadline is reached.
 		WabiSabiConfig cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
-		var km = ServiceFactory.CreateKeyManager("");
+		var km = ServiceFactory.CreateKeyManager(password: "");
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
@@ -31,17 +31,17 @@ public class AliceTimeoutTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
-		await roundStateUpdater.StartAsync(CancellationToken.None);
+		await roundStateUpdater.StartAsync(testDeadlineCts.Token);
 
 		// Register Alices.
-		var keyChain = new KeyChain(km, new Kitchen(""));
+		KeyChain keyChain = new(km, new Kitchen(ingredients: ""));
 
-		using CancellationTokenSource cancellationTokenSource = new();
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, cancellationTokenSource.Token);
+		using CancellationTokenSource registrationCts = new();
+		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
 
 		while (round.Alices.Count == 0)
 		{
-			await Task.Delay(10);
+			await Task.Delay(10, testDeadlineCts.Token);
 		}
 
 		var alice = Assert.Single(round.Alices);
@@ -50,20 +50,20 @@ public class AliceTimeoutTests
 
 		Assert.Empty(round.Alices);
 
-		cancellationTokenSource.Cancel();
+		registrationCts.Cancel();
 
 		try
 		{
 			await task;
 			throw new InvalidOperationException("The operation should throw!");
 		}
-		catch (Exception exc)
+		catch (Exception ex)
 		{
-			Assert.True(exc is OperationCanceledException or WabiSabiProtocolException);
+			Assert.True(ex is OperationCanceledException or WabiSabiProtocolException);
 		}
 
-		await roundStateUpdater.StopAsync(CancellationToken.None);
-		await arena.StopAsync(CancellationToken.None);
+		await roundStateUpdater.StopAsync(testDeadlineCts.Token);
+		await arena.StopAsync(testDeadlineCts.Token);
 	}
 
 	[Fact]

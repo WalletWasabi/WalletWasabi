@@ -1,6 +1,5 @@
 using Moq;
 using NBitcoin;
-using NBitcoin.Policy;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -184,7 +183,7 @@ public class TransactionFactoryTests
 
 		keyManager.AssertCleanKeysIndexed();
 
-		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true, false);
+		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
 		var scoins = new[]
 		{
 				BitcoinFactory.CreateSmartCoin(NewKey("Pablo"), 0.9m),
@@ -518,7 +517,7 @@ public class TransactionFactoryTests
 				("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
 				("Daniel", 1, 0.04m, confirmed: true, anonymitySet: 1),
 				("Maria",  2, 0.08m, confirmed: true, anonymitySet: 100)
-			});
+		});
 
 		// Selecting 0.08 + 0.02 should be enough but it has to select 0.02 too because it is the same address
 		using Key key = new();
@@ -559,6 +558,26 @@ public class TransactionFactoryTests
 		var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
 		Assert.Single(result.OuterWalletOutputs);
 		Assert.False(result.Signed);
+	}
+
+	/// <summary>
+	/// Tests that we throw <see cref="TransactionSizeException"/> when NBitcoin returns a coin selection whose sum is lower than the desired one.
+	/// This can happen because bitcoin transactions can have only a limited number of coin inputs because of the transaction size limit.
+	/// </summary>
+	[Fact]
+	public void TooManyInputCoins()
+	{
+		Money paymentAmount = Money.Coins(0.29943925m);
+
+		using Key key = new();
+		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(DemoCoinSets.LotOfCoins);
+
+		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
+		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
+
+		TransactionSizeException ex = Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
+		Assert.Equal(paymentAmount, ex.Target);
+		Assert.Equal(Money.Coins(0.23022846m), ex.MaximumPossible);
 	}
 
 	[Fact]

@@ -21,18 +21,32 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
 
-		var speedyProfile = new SpeedyCoinJoinProfileViewModel();
-
-		Profiles = new()
-		{
-			new EconomicCoinJoinProfileViewModel(),
-			speedyProfile,
-			new PrivateCoinJoinProfileViewModel()
-		};
-
-		_selectedProfile = speedyProfile;
+		Profiles = DefaultProfiles.ToList();
 
 		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
+
+		if (isNewWallet)
+		{
+			_selectedProfile = Profiles[1];
+			return;
+		}
+
+		_selectedProfile = IdentifySelectedProfile(keyManager);
+	}
+
+	private static CoinJoinProfileViewModelBase[] DefaultProfiles { get; } = new CoinJoinProfileViewModelBase[]
+	{
+			new EconomicCoinJoinProfileViewModel(),
+			new SpeedyCoinJoinProfileViewModel(),
+			new PrivateCoinJoinProfileViewModel()
+	};
+
+	public static CoinJoinProfileViewModelBase IdentifySelectedProfile(KeyManager keyManager)
+	{
+		var currentProfile = new ManualCoinJoinProfileViewModel(keyManager);
+		var result = DefaultProfiles.FirstOrDefault(x => x == currentProfile) ?? currentProfile;
+
+		return result;
 	}
 
 	public ICommand ManualSetupCommand { get; }
@@ -48,10 +62,10 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
-		if (dialogResult.Result is ManualCoinJoinProfileViewModel profile)
+		if (dialogResult.Result is ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult result)
 		{
 			SelectedProfile = null;
-			SelectedManualProfile = profile;
+			SelectedManualProfile = result.Profile;
 		}
 	}
 
@@ -59,7 +73,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		keyManager.AutoCoinJoin = selected.AutoCoinjoin;
+		keyManager.RedCoinIsolation = selected.RedCoinIsolation;
 		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);
 		keyManager.IsCoinjoinProfileSelected = true;

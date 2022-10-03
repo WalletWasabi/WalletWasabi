@@ -1,21 +1,26 @@
+using WalletWasabi.Blockchain.Keys;
+
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	public ManualCoinJoinProfileViewModel(bool autoCoinjoin, int anonScoreTarget, int feeRateMedianTimeFrameHours)
+	public ManualCoinJoinProfileViewModel(int anonScoreTarget, int feeRateMedianTimeFrameHours, bool redCoinIsolation)
 	{
-		AutoCoinjoin = autoCoinjoin;
 		AnonScoreTarget = anonScoreTarget;
 		FeeRateMedianTimeFrameHours = feeRateMedianTimeFrameHours;
+		RedCoinIsolation = redCoinIsolation;
 	}
 
-	public override string Title => "Manual";
+	public ManualCoinJoinProfileViewModel(KeyManager keyManager) : this(keyManager.AnonScoreTarget, keyManager.FeeRateMedianTimeFrameHours, keyManager.RedCoinIsolation)
+	{
+	}
+
+	public override string Title => "Custom";
 
 	public override string Description => "";
-
-	public override bool AutoCoinjoin { get; }
 
 	public override int AnonScoreTarget { get; }
 
 	public override int FeeRateMedianTimeFrameHours { get; }
+	public override bool RedCoinIsolation { get; }
 }

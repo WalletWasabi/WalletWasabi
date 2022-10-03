@@ -41,6 +41,22 @@
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
     -->
+
+    <DockPanel>
+      <TextBlock Text="Network anonymization (Tor)" />
+      <ToggleSwitch IsChecked="{Binding UseTor}" />
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding UseTor}">
+      <TextBlock Text="Terminate Tor when Wasabi shuts down" />
+      <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Auto download new version" />
+      <ToggleSwitch IsChecked="{Binding DownloadNewVersion}" />
+    </DockPanel>
+
     <StackPanel Spacing="10">
       <TextBlock Text="Fee display unit" />
       <ComboBox HorizontalAlignment="Stretch" Items="{Binding FeeDisplayUnits}" SelectedItem="{Binding SelectedFeeDisplayUnit}">

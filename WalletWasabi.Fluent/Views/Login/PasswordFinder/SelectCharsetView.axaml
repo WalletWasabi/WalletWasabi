@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login.PasswordFinder"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:SelectCharsetViewModel"
              x:CompileBindings="True"
@@ -16,29 +15,34 @@
                  EnableNext="False">
 
     <ListBox Items="{Binding Charsets}"
-             SelectedItem="{Binding SelectedCharset}"
-             Background="Transparent">
+             Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel HorizontalAlignment="Stretch" />
+          <UniformGrid Columns="3" />
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Template">
+            <ControlTemplate>
+              <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+            </ControlTemplate>
+          </Setter>
+        </Style>
+      </ListBox.Styles>
       <ListBox.ItemTemplate>
-        <DataTemplate>
-          <Border BoxShadow="{DynamicResource OptionButtonShadow}"
-                  Background="{DynamicResource OptionButtonBackground}"
-                  ToolTip.Tip="{Binding Converter={x:Static conv:EnumConverters.ToCharset}}"
-                  Margin="15"
-                  Width="180"
-                  Height="180">
-            <Panel>
-              <TextBlock FontSize="50" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Converter={x:Static conv:EnumConverters.ToUpperCase}}"/>
-              <TextBlock Opacity="0.6" Margin="0 0 0 10" FontWeight="Light" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}"/>
-            </Panel>
-          </Border>
+        <DataTemplate x:DataType="vm:CharsetViewModel">
+          <c:TileButton Text="{Binding Title}"
+                        IconSize="60" Margin="10 10 10 20" Classes="bottomtext"
+                        ToolTip.Tip="{Binding Characters}"
+                        Command="{Binding SelectCommand}">
+            <Viewbox>
+              <TextBlock FontSize="50" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding ShortTitle}"
+                         Foreground="{DynamicResource SystemAccentColor}" />
+            </Viewbox>
+          </c:TileButton>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
-
   </c:ContentArea>
 </UserControl>

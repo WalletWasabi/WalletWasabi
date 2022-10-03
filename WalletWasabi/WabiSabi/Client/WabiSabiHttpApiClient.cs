@@ -1,10 +1,10 @@
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
@@ -16,8 +16,6 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 {
-	private const int MaxRetries = 20;
-
 	private IHttpClient _client;
 
 	public WabiSabiHttpApiClient(IHttpClient client)
@@ -38,104 +36,143 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	}
 
 	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request, cancellationToken);
+		SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request, cancellationToken);
+		SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<OutputRegistrationRequest>(RemoteAction.RegisterOutput, request, cancellationToken);
+		SendAndReceiveAsync(RemoteAction.RegisterOutput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken);
+		SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<InputsRemovalRequest>(RemoteAction.RemoveInput, request, cancellationToken);
+		SendAndReceiveAsync(RemoteAction.RemoveInput, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public virtual Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
+		SendAndReceiveAsync(RemoteAction.SignTransaction, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken);
+		SendAndReceiveAsync<RoundStateRequest, RoundStateResponse>(RemoteAction.GetStatus, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
 	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
-		SendAndReceiveAsync<ReadyToSignRequestRequest>(RemoteAction.ReadyToSign, request, cancellationToken);
+		SendAndReceiveAsync(RemoteAction.ReadyToSign, request, cancellationToken, retryTimeout: TimeSpan.FromSeconds(30));
 
-	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
+	private async Task<HttpResponseMessage> SendWithRetriesAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken, TimeSpan? retryTimeout = null)
 	{
-		var exceptions = new List<Exception>();
+		var exceptions = new Dictionary<Exception, int>();
+		var start = DateTime.UtcNow;
 
-		var start = DateTime.Now;
+		var totalTimeout = TimeSpan.FromMinutes(30);
 
-		for (var attempt = 0; attempt < MaxRetries; attempt++)
+		using CancellationTokenSource absoluteTimeoutCts = new(totalTimeout);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
+		CancellationToken combinedToken = linkedCts.Token;
+
+		int attempt = 1;
+		do
 		{
 			try
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
-				// Any transport layer errors will throw an exception here.
-				var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
+				var requestTimeout = retryTimeout ?? TimeSpan.MaxValue;
+				using CancellationTokenSource requestTimeoutCts = new(requestTimeout);
+				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
-				var totalTime = DateTime.Now - start;
+				// Any transport layer errors will throw an exception here.
+				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
+
+				TimeSpan totalTime = DateTime.UtcNow - start;
 
 				if (exceptions.Any())
 				{
-					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions)}.");
+					Logger.LogDebug(
+						$"Received a response for {action} in {totalTime.TotalSeconds:0.##s} after {attempt} failed attempts: {new AggregateException(exceptions.Keys)}.");
 				}
-				else
+				else if (action != RemoteAction.GetStatus)
 				{
-					if (action != RemoteAction.GetStatus)
-					{
-						Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
-					}
+					Logger.LogDebug($"Received a response for {action} in {totalTime.TotalSeconds:0.##s}.");
 				}
 
 				return response;
 			}
 			catch (HttpRequestException e)
 			{
-				exceptions.Add(e);
+				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(HttpRequestException)}: {e.Message}.");
+				AddException(exceptions, e);
+			}
+			catch (OperationCanceledException e)
+			{
+				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
+				AddException(exceptions, e);
 			}
 			catch (Exception e)
 			{
+				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
+
 				if (exceptions.Any())
 				{
-					exceptions.Add(e);
-					throw new AggregateException(exceptions);
+					AddException(exceptions, e);
+					throw new AggregateException(exceptions.Keys);
 				}
-				else
-				{
-					throw;
-				}
+
+				throw;
 			}
 
-			// Wait before the next try.
-			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
-		}
+			try
+			{
+				// Wait before the next try.
+				await Task.Delay(250, combinedToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				AddException(exceptions, e);
+			}
 
-		throw new AggregateException(exceptions);
+			attempt++;
+		}
+		while (!combinedToken.IsCancellationRequested);
+
+		throw new AggregateException(exceptions.Keys);
 	}
 
-	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private static void AddException(Dictionary<Exception, int> exceptions, Exception e)
 	{
-		using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken).ConfigureAwait(false);
+		bool Predicate(KeyValuePair<Exception, int> x) => e.GetType() == x.Key.GetType() && e.Message == x.Key.Message;
+
+		if (exceptions.Any(Predicate))
+		{
+			var first = exceptions.First(Predicate);
+			exceptions[first.Key]++;
+		}
+		else
+		{
+			exceptions.Add(e, 1);
+		}
+	}
+
+	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
+	{
+		using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken, retryTimeout).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
 		{
-			await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			await response.ThrowUnwrapExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
-		await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
+		await SendWithRetriesAsync(action, request, cancellationToken, retryTimeout).ConfigureAwait(false);
 	}
 
-	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
-		var jsonString = await SendWithRetriesAsync(action, request, cancellationToken).ConfigureAwait(false);
+		var jsonString = await SendWithRetriesAsync(action, request, cancellationToken, retryTimeout).ConfigureAwait(false);
 		return Deserialize<TResponse>(jsonString);
 	}
 

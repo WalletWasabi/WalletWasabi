@@ -20,6 +20,6 @@
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding NoCommand}"
                        ImageIcon="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"
-                       HighlightButton="YesButton"/>
+                       HighlightButton="YesButton" />
   </c:ContentArea>
 </UserControl>

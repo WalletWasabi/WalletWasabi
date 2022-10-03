@@ -4,7 +4,7 @@ public interface IMainWindowService
 {
 	void Show();
 
-	void Close();
+	void Hide();
 
-	void Shutdown();
+	void Shutdown(bool restart);
 }

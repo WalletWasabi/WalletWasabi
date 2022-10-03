@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -21,7 +20,7 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 	public LabelEntryDialogViewModel(Wallet wallet, TransactionInfo info)
 	{
 		_wallet = wallet;
-		SuggestionLabels = new SuggestionLabelsViewModel(3)
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
 		{
 			Labels = { info.UserLabels.Labels }
 		};

@@ -14,8 +14,8 @@ public class CrashReportWindowViewModel : ViewModelBase
 	public CrashReportWindowViewModel(SerializableException serializedException)
 	{
 		SerializedException = serializedException;
-		CancelCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
-		NextCommand = ReactiveCommand.Create(AppLifetimeHelper.Shutdown);
+		CancelCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));
+		NextCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false));
 
 		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
 
@@ -40,8 +40,7 @@ public class CrashReportWindowViewModel : ViewModelBase
 
 	public string Caption => $"A problem has occurred and Wasabi is unable to continue.";
 
-	public string Trace => $"{SerializedException.Message}{Environment.NewLine}" +
-						   $"{Environment.NewLine}{SerializedException.StackTrace}";
+	public string Trace => SerializedException.ToString();
 
 	public string Title => "Wasabi has crashed";
 }

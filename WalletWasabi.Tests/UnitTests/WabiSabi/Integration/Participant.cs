@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -65,7 +66,7 @@ internal class Participant
 		SplitTransaction = new SmartTransaction(splitTx, new Height(1));
 	}
 
-	public async Task StartParticipatingAsync(CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartParticipatingAsync(CancellationToken cancellationToken)
 	{
 		if (SplitTransaction is null)
 		{
@@ -76,7 +77,7 @@ internal class Participant
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, Wallet, roundStateUpdater, false);
 
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{
@@ -91,8 +92,10 @@ internal class Participant
 			.ToList();
 
 		// Run the coinjoin client task.
-		await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
+		var ret = await coinJoinClient.StartCoinJoinAsync(smartCoins, cancellationToken).ConfigureAwait(false);
 
 		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
+
+		return ret;
 	}
 }

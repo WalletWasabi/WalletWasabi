@@ -16,7 +16,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
 
-      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee plus the Bitcoin network fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
+      <TextBlock DockPanel.Dock="Top" Text="Wasabi takes care of your financial privacy by automatically starting to coinjoin all your funds for a fixed 0.3% coordination fee + the mining fees. Select a coinjoin strategy that fits you best!" TextWrapping="Wrap" />
 
       <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
               DockPanel.Dock="Bottom"
@@ -50,7 +50,7 @@
           <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
             <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="5" />
+            <Setter Property="Margin" Value="10 5 10 20" />
             <Setter Property="BorderBrush" Value="#14FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
@@ -60,7 +60,7 @@
           <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
             <Setter Property="Padding" Value="15 25 15 0" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="5" />
+            <Setter Property="Margin" Value="10 5 10 20" />
             <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
@@ -78,13 +78,13 @@
             <UniformGrid Rows="1" />
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
-        <ListBox.DataTemplates>
+        <ListBox.ItemTemplate>
           <DataTemplate>
             <c:SuggestionItem MaxHeight="280">
               <prof:CoinJoinProfileControl />
             </c:SuggestionItem>
           </DataTemplate>
-        </ListBox.DataTemplates>
+        </ListBox.ItemTemplate>
       </ListBox>
     </DockPanel>
   </c:ContentArea>

@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Models;
 
