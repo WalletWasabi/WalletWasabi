@@ -1,10 +1,9 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.CoinSelection;
 
-public partial class SelectCoinsDialogView : UserControl
+public class SelectCoinsDialogView : UserControl
 {
 	public SelectCoinsDialogView()
 	{

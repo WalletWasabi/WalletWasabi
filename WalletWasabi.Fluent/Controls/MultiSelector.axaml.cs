@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -7,6 +8,7 @@ using System.Reactive.Subjects;
 using Avalonia;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 
@@ -20,13 +22,13 @@ public class MultiSelector : ItemsControl, IDisposable
 	public MultiSelector()
     {
         var changes = this
-            .WhenAnyValue(x => x.Items)
-            .WhereNotNull()
-            .Select(x => x.Cast<ISelectable>())
-            .Select(x => x.AsObservableChangeSet())
-            .Switch();
-        
-        var isSelected = changes
+	        .WhenAnyValue(x => x.Items)
+	        .WhereNotNull()
+	        .OfType<ReadOnlyObservableCollection<ISelectable>>()
+	        .Select(x => x.ToObservableChangeSet())
+	        .Switch();
+
+		var isSelected = changes
             .AutoRefresh(x => x.IsSelected)
             .ToCollection()
             .Select(GetSelectionState);

@@ -8,7 +8,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.IndicatorsCellView">
 
-  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="5 0">
+  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="5 0"
+              IsVisible="{Binding IsVisible^}">
 
     <Panel>
       <!-- Confirmed -->

@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using ICoin = WalletWasabi.Fluent.ViewModels.CoinSelection.Core.ICoin;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 
@@ -63,10 +64,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private new ReactiveCommand<Unit, List<SelectableCoin>> NextCommand { get; set; }
 
-	[SuppressMessage(
-		"Reliability",
-		"CA2000:Dispose objects before losing scope",
-		Justification = "Objects use DisposeWith")]
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Objects use DisposeWith")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var coinChanges = _balanceChanged
@@ -74,9 +72,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SelectMany(_ => GetCoins())
 			.ToObservableChangeSet(x => x.OutPoint)
-			.TransformWithInlineUpdate(
-				smartCoin => new SelectableCoin(new SmartCoinAdapter(smartCoin, _walletViewModel.Wallet.AnonScoreTarget)),
-				(selectableCoin, smartCoin) => selectableCoin.Coin = new SmartCoinAdapter(smartCoin, _walletViewModel.Wallet.AnonScoreTarget))
+			.TransformWithInlineUpdate(smartCoin => new SelectableCoin(smartCoin), (selectableCoin, smartCoin) => selectableCoin.Coin = smartCoin)
 			.Replay();
 
 		coinChanges.Connect().DisposeWith(disposables);
@@ -105,7 +101,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		SelectedCount = selectedCoins.Select(models => models.Count);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
-		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, GetCoins().Where(x => models.Any(coin => coin.OutPoint == x.OutPoint))));
+		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, _walletViewModel.Wallet.Coins.Where(x => models.Any(coin => coin.OutPoint == x.OutPoint))));
 
 		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin.OutPoint == coin.OutPoint)));
 
@@ -158,8 +154,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return false;
 	}
 
-	private IEnumerable<SmartCoin> GetCoins()
+	private IEnumerable<ICoin> GetCoins()
 	{
-		return _walletViewModel.Wallet.Coins;
+		return _walletViewModel.Wallet.Coins.Select(coin => new SmartCoinAdapter(coin, _walletViewModel.Wallet.AnonScoreTarget));
 	}
 }

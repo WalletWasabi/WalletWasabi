@@ -27,8 +27,16 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 			.Transform(
 				group =>
 				{
-					var coinGroup = new CoinGroupViewModel(group.Key, group.Cache.Connect()).DisposeWith(_disposables);
-					return new TreeNode(coinGroup, coinGroup.Items.Select(x => new TreeNode(x)));
+					var childChanges = group.Cache.Connect();
+					var coinGroup = new CoinGroupViewModel(group.Key, childChanges).DisposeWith(_disposables);
+
+					childChanges
+						.Transform(x => new TreeNode(x))
+						.Bind(out var treeNodes)
+						.Subscribe()
+						.DisposeWith(_disposables);
+
+					return new TreeNode(coinGroup, treeNodes);
 				})
 			.Filter(FilterChanged)
 			.ObserveOn(RxApp.MainThreadScheduler)

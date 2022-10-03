@@ -23,7 +23,8 @@
 
     <Panel IsHitTestVisible="False">
       <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}" />
-      <TextBlock Text="{Binding Text^}" Foreground="{DynamicResource AcrylicTrimForeground}" VerticalAlignment="Center" HorizontalAlignment="Center" Classes="h9" />
+      <TextBlock Text="{Binding Text^}" Foreground="{DynamicResource AcrylicTrimForeground}" VerticalAlignment="Center"
+                 HorizontalAlignment="Center" Classes="h9" />
     </Panel>
 
   </StackPanel>

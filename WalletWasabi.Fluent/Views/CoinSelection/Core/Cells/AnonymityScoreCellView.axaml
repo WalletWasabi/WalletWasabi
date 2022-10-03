@@ -8,10 +8,11 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.AnonymityScoreCellView">
 
-  <TextBlock TextAlignment="Center" Text="{Binding PrivacyScore}"
-             Classes.IsPrivate="{Binding IsPrivate}"
-             Classes.IsSemiPrivate="{Binding IsSemiPrivate}"
-             Classes.IsNonPrivate="{Binding IsNonPrivate}">
+  <TextBlock TextAlignment="Center" Text="{Binding PrivacyScore^}"
+             IsVisible="{Binding IsVisible^}"
+             Classes.IsPrivate="{Binding IsPrivate^}"
+             Classes.IsSemiPrivate="{Binding IsSemiPrivate^}"
+             Classes.IsNonPrivate="{Binding IsNonPrivate^}">
 
     <TextBlock.Styles>
       <Style Selector="TextBlock.IsPrivate">

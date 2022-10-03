@@ -29,10 +29,10 @@
         <Style.Resources>
           <converters:IndentToColorConverter x:Key="IndentToBrushConverter">
             <converters:IndentToColorConverter.Brushes>
-             <generic:List x:TypeArguments="IBrush">
-               <SolidColorBrush>Transparent</SolidColorBrush>
-               <SolidColorBrush Color="{DynamicResource SystemListLowColor}" />
-             </generic:List>
+              <generic:List x:TypeArguments="IBrush">
+                <SolidColorBrush>Transparent</SolidColorBrush>
+                <SolidColorBrush Color="{DynamicResource SystemListLowColor}" />
+              </generic:List>
             </converters:IndentToColorConverter.Brushes>
           </converters:IndentToColorConverter>
         </Style.Resources>
@@ -52,7 +52,7 @@
               <TreeDataGridCellsPresenter x:Name="PART_CellsPresenter"
                                           ElementFactory="{TemplateBinding ElementFactory}"
                                           Items="{TemplateBinding Columns}"
-                                          Rows="{TemplateBinding Rows}"/>
+                                          Rows="{TemplateBinding Rows}" />
             </Border>
           </ControlTemplate>
         </Setter>
@@ -113,7 +113,9 @@
     <controls:ContentArea.Title>
       <Panel>
         <TextBlock Text="{Binding Title}" />
-        <Viewbox VerticalAlignment="Center" ToolTip.Tip="The current coin selection will decrease your privacy" HorizontalAlignment="Right" Height="20" IsVisible="{Binding IsSelectionBadlyChosen^, FallbackValue=False}">
+        <Viewbox VerticalAlignment="Center" ToolTip.Tip="The current coin selection will decrease your privacy"
+                 HorizontalAlignment="Right" Height="20"
+                 IsVisible="{Binding IsSelectionBadlyChosen^, FallbackValue=False}">
           <PathIcon Data="{StaticResource warning_filled}" Foreground="{DynamicResource WarningMessageForeground}" />
         </Viewbox>
       </Panel>
@@ -121,7 +123,7 @@
 
     <DockPanel>
 
-      <DockPanel DockPanel.Dock="Top" Margin="0 0 0 10" >
+      <DockPanel DockPanel.Dock="Top" Margin="0 0 0 10">
         <DockPanel.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
@@ -132,28 +134,27 @@
                  Margin="16 0 0 0"
                  Classes.Visible="{Binding #GroupByLabels.IsChecked}"
                  Classes.Hidden="{Binding !#GroupByLabels.IsChecked}"
-          Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
-          Watermark="Filter">
-        </TextBox>
+                 Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
+                 Watermark="Filter" />
       </DockPanel>
 
       <Panel DockPanel.Dock="Bottom" Margin="0 12 0 0" TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}">
         <ProgressBar Height="25" Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
-        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
-        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
+        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center"
+                   Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
+        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
       </Panel>
 
       <Panel>
         <TreeDataGrid
           IsVisible="{Binding !#GroupByLabels.IsChecked}"
           Source="{Binding CoinBasedSelection.Source}"
-          CanUserSortColumns="True">
-        </TreeDataGrid>
+          CanUserSortColumns="True" />
         <TreeDataGrid
           IsVisible="{Binding #GroupByLabels.IsChecked}"
           Source="{Binding LabelBasedSelection.Source}"
-          CanUserSortColumns="True">
-        </TreeDataGrid>
+          CanUserSortColumns="True" />
       </Panel>
 
     </DockPanel>

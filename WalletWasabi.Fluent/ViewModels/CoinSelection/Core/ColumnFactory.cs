@@ -4,11 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using DynamicData;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -29,8 +29,7 @@ public static class ColumnFactory
 				{
 					return group.Value switch
 					{
-						CoinGroupViewModel cg => cg.TotalAmount.Select(x => x.ToFormattedString()),
-						SelectableCoin coin => new BehaviorSubject<string>(coin.Coin.Amount.ToFormattedString()),
+						ICoin coin => coin.WhenAnyValue(x => x.Amount, amount => amount.ToFormattedString()),
 						_ => Observable.Return("")
 					};
 				}),
@@ -49,8 +48,7 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				group => group.Value switch
 				{
-					SelectableCoin coin => new AnonymityScoreCellViewModel(coin),
-					CoinGroupViewModel { Items.Count: 1 } cg => new AnonymityScoreCellViewModel((SelectableCoin) cg.Items.First()),
+					ICoin coin => new AnonymityScoreCellViewModel(coin),
 					_ => ""
 				}),
 			GridLength.Auto,
@@ -131,8 +129,7 @@ public static class ColumnFactory
 			new ConstantTemplate<TreeNode>(
 				n => n.Value switch
 				{
-					SelectableCoin coin => new IndicatorsCellViewModel(coin),
-					CoinGroupViewModel { Items.Count: 1 } cg => new IndicatorsCellViewModel((SelectableCoin) cg.Items.First()),
+					ICoin coin => new IndicatorsCellViewModel(coin),
 					_ => ""
 				}),
 			GridLength.Auto,
@@ -148,7 +145,7 @@ public static class ColumnFactory
 		return new HierarchicalExpanderColumn<TreeNode>(
 			textColumn,
 			group => group.Children,
-			node => node.Children.Count() > 1);
+			node => node.Children.Any());
 	}
 
 	private static IEnumerable GetLabelsForGroup(CoinGroupViewModel vm)

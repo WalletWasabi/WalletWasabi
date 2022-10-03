@@ -1,23 +1,32 @@
+using NBitcoin;
+using ReactiveUI;
+
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core.Cells;
 
 public class AnonymityScoreCellViewModel : ViewModelBase
 {
-	public AnonymityScoreCellViewModel(SelectableCoin coin)
+	public AnonymityScoreCellViewModel(ICoin coin)
 	{
-		PrivacyScore = coin.AnonymitySet;
-		PrivacyLevel = coin.PrivacyLevel;
-		IsPrivate = PrivacyLevel == PrivacyLevel.Private;
-		IsSemiPrivate = PrivacyLevel == PrivacyLevel.SemiPrivate;
-		IsNonPrivate = PrivacyLevel == PrivacyLevel.NonPrivate;
+		Coin = coin;
+
+		PrivacyScore = this.WhenAnyValue(x => x.Coin.AnonymitySet);
+
+		IsPrivate = this.WhenAnyValue(x => x.Coin.PrivacyLevel, x => x == PrivacyLevel.Private);
+		IsSemiPrivate = this.WhenAnyValue(x => x.Coin.PrivacyLevel, x => x == PrivacyLevel.SemiPrivate);
+		IsNonPrivate = this.WhenAnyValue(x => x.Coin.PrivacyLevel, x => x == PrivacyLevel.NonPrivate);
+
+		IsVisible = this.WhenAnyValue(x => x.Coin.OutPoint, point => point != OutPoint.Zero);
 	}
 
-	public bool IsSemiPrivate { get; }
+	public IObservable<bool> IsNonPrivate { get; }
 
-	public bool IsNonPrivate { get; }
+	public IObservable<bool> IsSemiPrivate { get; }
 
-	public bool IsPrivate { get; }
+	public IObservable<bool> IsPrivate { get; }
 
-	public PrivacyLevel PrivacyLevel { get; }
+	public IObservable<int> PrivacyScore { get; }
 
-	public int PrivacyScore { get; }
+	public IObservable<bool> IsVisible { get; }
+
+	private ICoin Coin { get; }
 }

@@ -3,31 +3,23 @@ using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
-public class TreeNode : TreeNode<object>
+public class TreeNode
 {
-	public TreeNode(object value, IEnumerable<TreeNode> children) : base(value, children)
+	public TreeNode(object value) : this(value, Enumerable.Empty<TreeNode>())
 	{
 	}
 
-	public TreeNode(object value) : base(value)
-	{
-	}
-
-	public new IEnumerable<TreeNode> Children => base.Children.Cast<TreeNode>();
-}
-
-public class TreeNode<T> : ViewModelBase
-{
-	public TreeNode(T value, IEnumerable<TreeNode<T>> children)
+	public TreeNode(object value, IEnumerable<TreeNode> children)
 	{
 		Value = value;
 		Children = children;
 	}
 
-	public TreeNode(T value) : this(value, Enumerable.Empty<TreeNode<T>>())
-	{
-	}
+	public object Value { get; }
+	public IEnumerable<TreeNode> Children { get; }
 
-	public T Value { get; }
-	public IEnumerable<TreeNode<T>> Children { get; }
+	public override string? ToString()
+	{
+		return Value.ToString();
+	}
 }
