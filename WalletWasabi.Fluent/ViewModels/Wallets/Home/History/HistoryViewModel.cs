@@ -186,9 +186,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
-		// We unselect any previous selection. Otherwise, if the item is already selected, it won't flash again.
-		Source.RowSelection!.SelectedIndex = IndexPath.Unselected;
-
 		var node = TransactionItemNode.Create(Transactions)
 			.SelectMany(node => node.Children.Concat(new [] { node }))
 			.FirstOrDefault(x => x.Item.Id == txid);
@@ -203,11 +200,16 @@ public partial class HistoryViewModel : ActivatableViewModel
 			node.Parent.Item.IsExpanded = true;
 		}
 
-		node.Item.IsFlashing = true;
-
 		var indexPath = node.Parent != null ? new IndexPath(node.Parent.Index, node.Index) : new IndexPath(node.Index);
 
+		// We clear any previous selection. Otherwise, if the item is already selected, it won't flash again.
+		Source.RowSelection!.SelectedIndex = IndexPath.Unselected;
+
+		// Select new item.
 		Source.RowSelection!.SelectedIndex = indexPath;
+
+		node.Item.IsFlashing = true;
+		
 		SelectedItem = node.Item;
 	}
 
