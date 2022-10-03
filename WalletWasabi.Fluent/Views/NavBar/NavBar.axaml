@@ -158,6 +158,16 @@
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}" Cursor="Hand" ClipToBounds="False">
+              <Panel.ContextMenu>
+                <ContextMenu >
+                  <MenuItem Header="Rename Wallet"
+                            Command="{Binding RenameCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource rename_regular_20}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
+                </ContextMenu>
+              </Panel.ContextMenu>
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />

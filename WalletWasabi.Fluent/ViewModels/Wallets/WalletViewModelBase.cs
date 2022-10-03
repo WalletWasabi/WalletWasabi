@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,6 +16,8 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 
+	public ICommand RenameCommand { get; protected set; }
+
 	private string _title;
 
 	protected WalletViewModelBase(Wallet wallet)
@@ -25,6 +28,12 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		WalletState = wallet.State;
 
 		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
+
+		RenameCommand= ReactiveCommand.Create(() =>
+		{
+
+		});
+
 
 		SetIcon();
 

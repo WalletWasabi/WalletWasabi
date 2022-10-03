@@ -68,7 +68,8 @@
       </id:BehaviorCollectionTemplate>
     </Setter>
     <Setter Property="Opacity" Value="0" />
-    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.NavBarItemParent)" Value="{Binding $parent[c:NavBarItem], Mode=OneWay}" />
+    <Setter Property="(behaviors:NavBarSelectedIndicatorChildBehavior.NavBarItemParent)"
+            Value="{Binding $parent[c:NavBarItem], Mode=OneWay}" />
   </Style>
 
   <Style Selector="c|NavBarItem:vertical /template/ Border#SelectionIndicator">
