@@ -69,8 +69,7 @@ public class RoundStateUpdater : PeriodicRunner
 					continue;
 				}
 
-				if (Math.Abs((listRoundStates[i].InputRegistrationEnd - listRoundStates[j].InputRegistrationEnd).TotalSeconds) >
-				    10)
+				if (Math.Abs((listRoundStates[i].InputRegistrationEnd - listRoundStates[j].InputRegistrationEnd).TotalSeconds) > 30)
 				{
 					continue;
 				}
