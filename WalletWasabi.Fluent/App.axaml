@@ -75,6 +75,22 @@
       </Setter>
     </Style>
 
+    <!--
+    <Style Selector=":is(Control)[IsVisible=True]:disabled:not(:pointerover)">
+      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+        <Template>
+          <Border Width="{Binding $parent[Control].Bounds.Width}"
+                  Height="{Binding $parent[Control].Bounds.Height}"
+                  BorderBrush="Blue"
+                  BorderThickness="1"
+                  Background="Transparent"
+                  IsHitTestVisible="False">
+          </Border>
+        </Template>
+      </Setter>
+    </Style>
+    -->
+
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
