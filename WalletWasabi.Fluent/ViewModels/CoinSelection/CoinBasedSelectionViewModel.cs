@@ -21,14 +21,7 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 
 	public CoinBasedSelectionViewModel(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
 	{
-		coinChanges
-			.Transform(selectableCoin => new TreeNode(selectableCoin))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out var treeNodesCollection)
-			.Subscribe()
-			.DisposeWith(_disposables);
-
-		Source = CreateGridSource(treeNodesCollection, coinChanges, commands)
+		Source = CreateGridSource(coinChanges, commands)
 			.DisposeWith(_disposables);
 	}
 
@@ -37,14 +30,18 @@ public partial class CoinBasedSelectionViewModel : ViewModelBase, IDisposable
 		_disposables.Dispose();
 	}
 
-	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> coins, IObservable<IChangeSet<SelectableCoin, OutPoint>> selectables, IEnumerable<CommandViewModel> commands)
+	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
 	{
-		var selectionColumn = ColumnFactory.SelectionColumn(
-			selectables.Cast(x => (ISelectable) x),
-			commands,
-			_disposables);
+		coinChanges
+			.Transform(selectableCoin => new TreeNode(selectableCoin))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(out var treeNodes)
+			.Subscribe()
+			.DisposeWith(_disposables);
 
-		var source = new HierarchicalTreeDataGridSource<TreeNode>(coins)
+		var selectionColumn = ColumnFactory.SelectionColumn(coinChanges.Cast(x => (ISelectable)x), commands, _disposables);
+
+		var source = new HierarchicalTreeDataGridSource<TreeNode>(treeNodes)
 		{
 			Columns =
 			{

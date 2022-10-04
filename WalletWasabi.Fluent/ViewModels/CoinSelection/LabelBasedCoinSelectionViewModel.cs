@@ -22,29 +22,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 
 	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
 	{
-		coinChanges
-			.Group(x => PrivacyIndex.Get(x.SmartLabel, x.PrivacyLevel))
-			.Transform(
-				group =>
-				{
-					var childChanges = group.Cache.Connect();
-					var coinGroup = new CoinGroupViewModel(group.Key, childChanges).DisposeWith(_disposables);
-
-					childChanges
-						.Transform(x => new TreeNode(x))
-						.Bind(out var treeNodes)
-						.Subscribe()
-						.DisposeWith(_disposables);
-
-					return new TreeNode(coinGroup, treeNodes);
-				})
-			.Filter(FilterChanged)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(out var nodes)
-			.Subscribe()
-			.DisposeWith(_disposables);
-
-		Source = CreateGridSource(nodes, coinChanges, commands)
+		Source = CreateGridSource(coinChanges, commands)
 			.DisposeWith(_disposables);
 	}
 
@@ -79,11 +57,20 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		};
 	}
 
-	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IEnumerable<TreeNode> groups, IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
+	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
 	{
+		coinChanges
+			.Group(x => PrivacyIndex.Get(x.SmartLabel, x.PrivacyLevel))
+			.Transform(ToTreeNode)
+			.Filter(FilterChanged)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(out var treeNodes)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
 		var selectionColumn = ColumnFactory.SelectionColumn(coinChanges.Cast(model => (ISelectable) model), commands, _disposables);
 
-		var source = new HierarchicalTreeDataGridSource<TreeNode>(groups)
+		var source = new HierarchicalTreeDataGridSource<TreeNode>(treeNodes)
 		{
 			Columns =
 			{
@@ -99,5 +86,21 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		source.SortBy(source.Columns[4], ListSortDirection.Descending);
 
 		return source;
+	}
+
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
+	private TreeNode ToTreeNode(IGroup<SelectableCoin, OutPoint, PrivacyIndex> group)
+	{
+		var childChanges = group.Cache.Connect();
+		var coinGroup = new CoinGroupViewModel(group.Key, childChanges)
+			.DisposeWith(_disposables);
+
+		childChanges
+			.Transform(x => new TreeNode(x))
+			.Bind(out var childNodes)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		return new TreeNode(coinGroup, childNodes);
 	}
 }
