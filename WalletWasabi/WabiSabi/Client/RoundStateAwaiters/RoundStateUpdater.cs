@@ -54,9 +54,43 @@ public class RoundStateUpdater : PeriodicRunner
 		var newRoundStates = roundStates
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
+		var listRoundStates = newRoundStates.Concat(updatedRoundStates).ToList();
+		for (var i = 0; i < listRoundStates.Count - 1; i++)
+		{
+			if (listRoundStates[i].Phase != Phase.InputRegistration)
+			{
+				continue;
+			}
+
+			for (var j = i + 1; j < listRoundStates.Count; j++)
+			{
+				if (listRoundStates[j].Phase != Phase.InputRegistration)
+				{
+					continue;
+				}
+
+				if (Math.Abs((listRoundStates[i].InputRegistrationEnd - listRoundStates[j].InputRegistrationEnd).TotalSeconds) >
+				    10)
+				{
+					continue;
+				}
+
+				// Both rounds created almost at the same time, probably via load balancer.
+				if (listRoundStates[i].CoinjoinState.Parameters.MaxSuggestedAmount <=
+				    listRoundStates[j].CoinjoinState.Parameters.MaxSuggestedAmount)
+				{
+					continue;
+				}
+
+				// Big round is first, swap
+				(listRoundStates[i], listRoundStates[j]) = (listRoundStates[j], listRoundStates[i]);
+				break;
+			}
+		}
+
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
-		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
+		RoundStates = listRoundStates.ToDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
