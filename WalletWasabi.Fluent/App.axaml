@@ -75,6 +75,20 @@
       </Setter>
     </Style>
 
+    <Style Selector=":is(Control)[IsVisible=False]">
+      <Setter Property="(c:XamlAdornerLayer.Adorner)">
+        <Template>
+          <Border Width="{Binding $parent[Control].Bounds.Width}"
+                  Height="{Binding $parent[Control].Bounds.Height}"
+                  BorderBrush="Yellow"
+                  BorderThickness="1"
+                  Background="Transparent"
+                  IsHitTestVisible="False">
+          </Border>
+        </Template>
+      </Setter>
+    </Style>
+
     <!--
     <Style Selector=":is(Control)[IsVisible=True]:disabled:not(:pointerover)">
       <Setter Property="(c:XamlAdornerLayer.Adorner)">
