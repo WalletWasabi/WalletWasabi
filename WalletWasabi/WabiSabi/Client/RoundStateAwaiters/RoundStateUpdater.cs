@@ -45,10 +45,10 @@ public class RoundStateUpdater : PeriodicRunner
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
 			.Select(
-			x => x.NewRoundState with
-			{
-				CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
-			})
+				x => x.NewRoundState with
+				{
+					CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState)
+				})
 			.ToList();
 
 		var newRoundStates = roundStates
@@ -64,26 +64,15 @@ public class RoundStateUpdater : PeriodicRunner
 
 			for (var j = i + 1; j < listRoundStates.Count; j++)
 			{
-				if (listRoundStates[j].Phase != Phase.InputRegistration)
+				if (listRoundStates[j].Phase == Phase.InputRegistration
+				    || listRoundStates[i].BlameOf.Equals(listRoundStates[j].BlameOf)
+				    || Math.Abs((listRoundStates[i].InputRegistrationEnd - listRoundStates[j].InputRegistrationEnd).TotalSeconds) <= 30
+				    || listRoundStates[i].CoinjoinState.Parameters.MaxSuggestedAmount > listRoundStates[j].CoinjoinState.Parameters.MaxSuggestedAmount)
 				{
-					continue;
+					// Both i and j were created by the load balancer and big round is first, swap
+					(listRoundStates[i], listRoundStates[j]) = (listRoundStates[j], listRoundStates[i]);
+					break;
 				}
-
-				if (Math.Abs((listRoundStates[i].InputRegistrationEnd - listRoundStates[j].InputRegistrationEnd).TotalSeconds) > 30)
-				{
-					continue;
-				}
-
-				// Both rounds created almost at the same time, probably via load balancer.
-				if (listRoundStates[i].CoinjoinState.Parameters.MaxSuggestedAmount <=
-				    listRoundStates[j].CoinjoinState.Parameters.MaxSuggestedAmount)
-				{
-					continue;
-				}
-
-				// Big round is first, swap
-				(listRoundStates[i], listRoundStates[j]) = (listRoundStates[j], listRoundStates[i]);
-				break;
 			}
 		}
 
@@ -152,6 +141,7 @@ public class RoundStateUpdater : PeriodicRunner
 				awaiter.Cancel();
 			}
 		}
+
 		return base.StopAsync(cancellationToken);
 	}
 }
