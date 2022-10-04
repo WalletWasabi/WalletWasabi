@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -57,12 +58,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => new List<SelectableCoin>());
+		NextCommand = ReactiveCommand.Create(() => new List<ICoin>());
 	}
 
 	public Money TargetAmount { get; }
 
-	private new ReactiveCommand<Unit, List<SelectableCoin>> NextCommand { get; set; }
+	private new ReactiveCommand<Unit, List<ICoin>> NextCommand { get; set; }
 
 	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Objects use DisposeWith")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -88,20 +89,23 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler);
 
 		var selectedCoins = allCoins
-			.Select(items => items.Where(t => t.IsSelected).ToList());
+			.Select(items => items.Where(t => t.IsSelected).Select(x => x.Coin).ToList());
+		var coinsSubject = new BehaviorSubject<List<ICoin>>(new List<ICoin>());
+
+		selectedCoins.Subscribe(coinsSubject).DisposeWith(disposables);
 
 		EnoughSelected = selectedCoins.Select(coins => coins.Sum(x => x.Amount) >= TargetAmount);
 
 		IsSelectionBadlyChosen = allCoins.Select(coins => IsSelectionBadForPrivacy(coins, _transactionLabels)).ReplayLastActive();
 
-		SelectedAmount = selectedCoins.Select(Sum);
+		SelectedAmount = selectedCoins.Select(list => new Money(list.Sum(x => x.Amount)));
 
 		RemainingAmount = SelectedAmount.Select(money => Money.Max(TargetAmount - money, Money.Zero));
 
 		SelectedCount = selectedCoins.Select(models => models.Count);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
-		NextCommand.Subscribe(models => Close(DialogResultKind.Normal, _walletViewModel.Wallet.Coins.Where(x => models.Any(coin => coin.OutPoint == x.OutPoint))));
+		NextCommand.Subscribe(CloseAndReturnCoins);
 
 		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = _usedCoins.Any(coin => x.Coin.OutPoint == coin.OutPoint)));
 
@@ -132,12 +136,23 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
+	private void CloseAndReturnCoins(IEnumerable<ICoin> coins)
+	{
+		var smartCoins = GetAssociatedSmartCoins(coins);
+		Close(DialogResultKind.Normal, smartCoins);
+	}
+
+	private IEnumerable<SmartCoin> GetAssociatedSmartCoins(IEnumerable<ICoin> coins)
+	{
+		return coins.Join(_walletViewModel.Wallet.Coins, x => x.OutPoint, x => x.OutPoint, (_, smartCoin) => smartCoin);
+	}
+
 	private static Money Sum(IEnumerable<SelectableCoin> coinViewModels)
 	{
 		return coinViewModels.Sum(coinViewModel => coinViewModel.Amount);
 	}
 
-	private bool IsSelectionBadForPrivacy(IReadOnlyCollection<SelectableCoin> coins, SmartLabel transactionLabel)
+	private bool IsSelectionBadForPrivacy(IEnumerable<SelectableCoin> coins, SmartLabel transactionLabel)
 	{
 		var selectedCoins = coins.Where(x => x.IsSelected).ToList();
 

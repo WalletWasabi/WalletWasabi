@@ -49,7 +49,7 @@ public class PrivacyIndex : IComparable<PrivacyIndex>
 		return HashCode.Combine(Labels, (int) PrivacyLevel);
 	}
 
-	protected bool Equals(PrivacyIndex other)
+	private bool Equals(PrivacyIndex other)
 	{
 		if (Labels.IsEmpty && other.Labels.IsEmpty)
 		{
