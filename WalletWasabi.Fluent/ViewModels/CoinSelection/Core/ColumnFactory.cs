@@ -112,7 +112,8 @@ public static class ColumnFactory
 				{
 					CoinGroupViewModel cg => new SelectableCollectionCellViewModel(cg.Items),
 					SelectableCoin coin => new CoinSelectionCellViewModel(coin),
-					_ => throw new NotSupportedException() }),
+					_ => throw new NotSupportedException()
+				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
