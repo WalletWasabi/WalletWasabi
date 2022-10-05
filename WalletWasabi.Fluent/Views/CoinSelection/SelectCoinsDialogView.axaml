@@ -142,7 +142,7 @@
         <ProgressBar Height="25" Maximum="{Binding TargetAmount.Satoshi}" Value="{Binding SelectedAmount^.Satoshi}" />
         <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center"
                    Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
-        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center"
+        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !EnoughSelected^}"
                    Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
       </Panel>
 
