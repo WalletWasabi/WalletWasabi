@@ -53,8 +53,7 @@
         <Template>
           <Border Width="{Binding $parent[Control].Bounds.Width}"
                   Height="{Binding $parent[Control].Bounds.Height}"
-                  BorderBrush="Gray"
-                  Opacity="0.1"
+                  BorderBrush="#09C0C0C0"
                   BorderThickness="1"
                   Background="Transparent"
                   IsHitTestVisible="False">
