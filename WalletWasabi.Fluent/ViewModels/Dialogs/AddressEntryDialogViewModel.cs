@@ -142,6 +142,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 		{
 			_payJoinUrlFound = false;
 			_amountUrlFound = false;
+			_resultToReturn = null;
 		}
 
 		return _resultToReturn is { };
