@@ -134,7 +134,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(1, 4, true),
+			CacheOptions(1, 10, true),
 			() => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
 
