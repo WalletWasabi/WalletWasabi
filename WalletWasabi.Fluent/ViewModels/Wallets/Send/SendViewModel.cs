@@ -40,7 +40,6 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
-	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private bool _parsingTo;
 	private SmartLabel _parsedLabel = SmartLabel.Empty;
@@ -56,7 +55,6 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 		_wallet = wallet;
-		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
@@ -79,18 +77,7 @@ public partial class SendViewModel : RoutableViewModel
 			.Subscribe(ParseToField);
 
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
-			.Subscribe(endPoint =>
-			{
-				if (endPoint is { })
-				{
-					_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint);
-					IsPayJoin = true;
-				}
-				else
-				{
-					IsPayJoin = false;
-				}
-			});
+			.Subscribe(endPoint => IsPayJoin = endPoint is { });
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
@@ -117,21 +104,21 @@ public partial class SendViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			var address = BitcoinAddress.Create(To, wallet.Network);
-
-			_transactionInfo.Reset();
-			_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
-
-			var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+			var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
 			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 			if (result.Result is not { } label)
 			{
 				return;
 			}
 
-			_transactionInfo.UserLabels = label;
+			var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, wallet.Network), wallet.AnonScoreTarget)
+			{
+				Amount = new Money(AmountBtc, MoneyUnit.BTC),
+				UserLabels = label,
+				PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null
+			};
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, _transactionInfo, address, _isFixedAmount));
+			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, _isFixedAmount));
 		}, nextCommandCanExecute);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
