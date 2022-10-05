@@ -16,13 +16,13 @@
 
     <TextBlock.Styles>
       <Style Selector="TextBlock.IsPrivate">
-        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelPrivate}" />
       </Style>
       <Style Selector="TextBlock.IsSemiPrivate">
-        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelMediumBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelSemiPrivate}" />
       </Style>
       <Style Selector="TextBlock.IsNonPrivate">
-        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNoneBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelNonPrivate}" />
       </Style>
     </TextBlock.Styles>
   </TextBlock>
