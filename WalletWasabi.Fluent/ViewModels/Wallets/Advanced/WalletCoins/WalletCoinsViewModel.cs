@@ -36,7 +36,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -103,7 +103,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return concat;
 	}
 
-	private async Task OnSendCoins()
+	private async Task OnSendCoinsAsync()
 	{
 		var wallet = _walletViewModel.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
