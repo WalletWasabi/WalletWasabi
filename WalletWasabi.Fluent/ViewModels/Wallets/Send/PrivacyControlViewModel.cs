@@ -28,7 +28,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_usedCoins = usedCoins;
 
 		var amount = transactionInfo.MinimumRequiredAmount == Money.Zero ? transactionInfo.Amount : transactionInfo.MinimumRequiredAmount;
-		LabelSelection = new LabelSelectionViewModel(amount);
+		LabelSelection = new LabelSelectionViewModel(amount, _transactionInfo.FeeRate);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;

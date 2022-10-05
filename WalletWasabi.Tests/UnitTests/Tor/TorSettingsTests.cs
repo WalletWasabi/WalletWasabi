@@ -24,6 +24,7 @@ public class TorSettingsTests
 			$"--LogTimeGranularity 1",
 			$"--SOCKSPort \"127.0.0.1:37150 ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
 			$"--SocksTimeout 30",
+			$"--UseEntryGuards 0",
 			$"--CookieAuthentication 1",
 			$"--ControlPort 37151",
 			$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
