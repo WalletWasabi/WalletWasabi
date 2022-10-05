@@ -74,9 +74,6 @@ public static class Constants
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };
 
-	// TODO: Use the signer Wasabi key's public key here
-	public static readonly PubKey WasabiPublicKey = new Key().PubKey;
-
 	public static readonly NodeRequirement NodeRequirements = new()
 	{
 		RequiredServices = NodeServices.NODE_WITNESS,

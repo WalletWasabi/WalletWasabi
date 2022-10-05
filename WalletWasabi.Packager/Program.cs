@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Packager;
@@ -43,7 +42,6 @@ public static class Program
 
 	private static bool OnlyBinaries;
 	private static bool IsContinuousDelivery;
-	private static Key PrivateKey = WasabiSignerTools.GenerateKey();
 
 	public static string PackagerProjectDirectory { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 	public static string SolutionDirectory { get; } = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
@@ -51,7 +49,6 @@ public static class Program
 	public static string LibraryProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
 	public static string WixProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
 	public static string BinDistDirectory { get; } = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
-	public static string PrivateKeyPath { get; } = Path.GetFullPath(SolutionDirectory, "WasabiKey.txt");
 
 	/// <summary>
 	/// Main entry point.
@@ -59,23 +56,6 @@ public static class Program
 	private static async Task Main(string[] args)
 	{
 		var argsProcessor = new ArgsProcessor(args);
-
-		try
-		{
-			if (WasabiSignerTools.TryGetKeyFromFile(PrivateKeyPath, out Key? key))
-			{
-				PrivateKey = key;
-			}
-			else
-			{
-				WasabiSignerTools.SavePrivateKeyToFile(PrivateKeyPath, PrivateKey);
-			}
-		}
-		catch (Exception)
-		{
-			Console.WriteLine("There was an error while saving Key.");
-			throw;
-		}
 
 		// For now this is enough. If you run it on macOS you want to sign.
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -173,8 +153,6 @@ public static class Program
 
 		Console.WriteLine("Signing final files...");
 		var finalFiles = Directory.GetFiles(BinDistDirectory);
-
-		WasabiSignerTools.SignAndSaveSHASumsFile(finalFiles, Path.Combine(BinDistDirectory, WasabiSignerTools.SHASumsFileName), PrivateKey);
 
 		foreach (var finalFile in finalFiles)
 		{
