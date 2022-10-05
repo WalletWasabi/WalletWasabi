@@ -110,6 +110,11 @@ public class RoundStateUpdater : PeriodicRunner
 		return RoundStates.TryGetValue(roundId, out roundState);
 	}
 
+	public IEnumerable<RoundState> GetRoundStates()
+	{
+		return RoundStates.Select(x => x.Value);
+	}
+
 	public override Task StopAsync(CancellationToken cancellationToken)
 	{
 		lock (AwaitersLock)
