@@ -45,7 +45,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource singleRunCts = new();
 
@@ -70,7 +70,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 				var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
-				if (hasChange && !isFixedAmount && !info.IsPayJoin)
+				if (hasChange && !info.IsFixedAmount && !info.IsPayJoin)
 				{
 					// Exchange rate can change substantially during computation itself.
 					// Reporting up-to-date exchange rates would just confuse users.

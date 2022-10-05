@@ -129,10 +129,11 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			Amount = selectedSmartCoins.Sum(x => x.Amount),
 			SubtractFee = true,
 			UserLabels = label,
-			IsSelectedCoinModificationEnabled = false
+			IsSelectedCoinModificationEnabled = false,
+			IsFixedAmount = true,
 		};
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, true));
+		Navigate().To(new TransactionPreviewViewModel(wallet, info));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)

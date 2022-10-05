@@ -27,7 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
-	private readonly bool _isFixedAmount;
 	private readonly Wallet _wallet;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
@@ -38,13 +37,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, bool isFixedAmount)
+	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
-		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
@@ -98,7 +96,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _isFixedAmount, _cancellationTokenSource.Token))
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _cancellationTokenSource.Token))
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -352,7 +350,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (totalBalanceUsed)
 		{
-			if (selectedAmount == _info.Amount && !(_isFixedAmount || _info.IsPayJoin))
+			if (selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
 			{
 				_info.SubtractFee = true;
 				return true;

@@ -59,6 +59,8 @@ public partial class TransactionInfo
 
 	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
 
+	public bool IsFixedAmount { get; init; }
+
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
@@ -87,7 +89,8 @@ public partial class TransactionInfo
 			IsCustomFeeUsed = IsCustomFeeUsed,
 			SubtractFee = SubtractFee,
 			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible,
-			IsSelectedCoinModificationEnabled = IsSelectedCoinModificationEnabled
+			IsSelectedCoinModificationEnabled = IsSelectedCoinModificationEnabled,
+			IsFixedAmount = IsFixedAmount
 		};
 	}
 }

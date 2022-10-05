@@ -115,10 +115,11 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				Amount = new Money(AmountBtc, MoneyUnit.BTC),
 				UserLabels = label,
-				PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null
+				PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
+				IsFixedAmount = _isFixedAmount
 			};
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, _isFixedAmount));
+			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo));
 		}, nextCommandCanExecute);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
