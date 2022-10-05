@@ -9,7 +9,6 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -30,6 +29,9 @@ public class CurrencyEntryBox : TextBox
 
 	public static readonly StyledProperty<bool> IsRightSideProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsRightSide));
+
+	public static readonly StyledProperty<int> MaxDecimalsProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, int>(nameof(MaxDecimals), 8);
 
 	private readonly CultureInfo _customCultureInfo;
 	private readonly char _decimalSeparator = '.';
@@ -112,6 +114,12 @@ public class CurrencyEntryBox : TextBox
 		set => SetValue(IsRightSideProperty, value);
 	}
 
+	public int MaxDecimals
+	{
+		get => GetValue(MaxDecimalsProperty);
+		set => SetValue(MaxDecimalsProperty, value);
+	}
+
 	private decimal FiatToBitcoin(decimal fiatValue)
 	{
 		if (ConversionRate == 0m)
@@ -164,7 +172,7 @@ public class CurrencyEntryBox : TextBox
 		decimal fiatValue = 0;
 
 		e.Handled = !(ValidateEntryText(preComposedText) &&
-		              decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+					  decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 		if (IsFiat & !e.Handled)
 		{
@@ -216,7 +224,7 @@ public class CurrencyEntryBox : TextBox
 
 		// Check for consecutive spaces (2 or more) and leading spaces.
 		var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
-		                                           _regexConsecutiveSpaces.IsMatch(preComposedText));
+												   _regexConsecutiveSpaces.IsMatch(preComposedText));
 
 		// Check for trailing spaces in the whole number part and in the last part of the precomp string.
 		var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
@@ -254,7 +262,7 @@ public class CurrencyEntryBox : TextBox
 		{
 			// Bitcoin input restriction is to only allow 8 decimal places max
 			// and also 8 whole number places.
-			if ((whole > 8 && !trailingDecimal) || frac > 8)
+			if ((whole > 8 && !trailingDecimal) || frac > MaxDecimals)
 			{
 				return false;
 			}
@@ -327,8 +335,8 @@ public class CurrencyEntryBox : TextBox
 		var selectionEnd = SelectionEnd;
 
 		if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
-		                                     input.Length + preComposedText.Length -
-		                                     Math.Abs(selectionStart - selectionEnd) <= MaxLength))
+											 input.Length + preComposedText.Length -
+											 Math.Abs(selectionStart - selectionEnd) <= MaxLength))
 		{
 			if (selectionStart != selectionEnd)
 			{

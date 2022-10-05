@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 
@@ -22,9 +23,9 @@ public class SmartHeaderTests
 	[Fact]
 	public void StartingHeaderTests()
 	{
-		var startingMain = SmartHeader.GetStartingHeader(Network.Main);
-		var startingTest = SmartHeader.GetStartingHeader(Network.TestNet);
-		var startingReg = SmartHeader.GetStartingHeader(Network.RegTest);
+		var startingMain = SmartHeader.GetStartingHeader(Network.Main, IndexType.SegwitTaproot);
+		var startingTest = SmartHeader.GetStartingHeader(Network.TestNet, IndexType.SegwitTaproot);
+		var startingReg = SmartHeader.GetStartingHeader(Network.RegTest, IndexType.SegwitTaproot);
 
 		var expectedHashMain = new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893");
 		var expectedPrevHashMain = new uint256("000000000000000000cbeff0b533f8e1189cf09dfbebf57a8ebe349362811b80");

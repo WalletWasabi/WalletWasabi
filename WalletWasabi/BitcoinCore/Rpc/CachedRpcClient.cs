@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
 
@@ -67,6 +68,16 @@ public class CachedRpcClient : RpcClientBase
 			() => base.GetBlockAsync(blockHeight, cancellationToken)).ConfigureAwait(false);
 	}
 
+	public override async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	{
+		string cacheKey = $"{nameof(GetVerboseBlockAsync)}:{blockId}";
+
+		return await Cache.AtomicGetOrCreateAsync(
+			cacheKey,
+			CacheOptions(20, 4),
+			() => base.GetVerboseBlockAsync(blockId, cancellationToken)).ConfigureAwait(false);
+	}
+
 	public override async Task<BlockHeader> GetBlockHeaderAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
 		string cacheKey = $"{nameof(GetBlockHeaderAsync)}:{blockHash}";
@@ -110,11 +121,6 @@ public class CachedRpcClient : RpcClientBase
 	public override async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 	{
 		string cacheKey = nameof(GetMempoolInfoAsync);
-		var cacheOptions = new MemoryCacheEntryOptions
-		{
-			Size = 1,
-			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10)
-		};
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
@@ -128,7 +134,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(1, 4, true),
+			CacheOptions(1, 10, true),
 			() => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
 

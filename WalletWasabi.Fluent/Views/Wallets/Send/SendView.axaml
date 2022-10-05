@@ -11,12 +11,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
   <c:ContentArea
-    EnableBack="{Binding EnableBack}"
-    EnableNext="True"
-    NextContent="Continue"
-    EnableCancel="{Binding EnableCancel}"
-    IsBusy="{Binding IsBusy}"
-    ScrollViewer.VerticalScrollBarVisibility="Auto">
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True"
+                 NextContent="Continue"
+                 EnableCancel="{Binding EnableCancel}"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
     <c:ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Send" />
@@ -108,14 +108,6 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
         </DockPanel>
       </DockPanel>
-
-      <!-- Advanced -->
-      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
-              Command="{Binding AdvancedOptionsCommand}"
-              DockPanel.Dock="Bottom"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Bottom"
-              Content="Advanced options" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>

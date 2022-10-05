@@ -17,10 +17,15 @@ public static class Constants
 
 	public const uint ProtocolVersionWitnessVersion = 70012;
 
+	public const int InputBaseSizeInBytes = 41;
+
 	public const int P2wpkhInputSizeInBytes = 41;
 	public const int P2wpkhInputVirtualSize = 69;
 	public const int P2pkhInputSizeInBytes = 145;
 	public const int P2wpkhOutputVirtualSize = 31;
+
+	public const int P2trInputVirtualSize = 58;
+	public const int P2trOutputVirtualSize = 43;
 
 	/// <summary>
 	/// OBSOLATED, USE SPECIFIC TYPE
@@ -59,7 +64,7 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 1, 3);
+	public static readonly Version ClientVersion = new(2, 0, 1, 4);
 
 	public static readonly Version HwiVersion = new("2.1.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");

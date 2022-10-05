@@ -2,7 +2,6 @@ using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -27,7 +26,7 @@ public static class ServiceFactory
 		var toGenerate = coinArray.Length - generated;
 		for (int i = 0; i < toGenerate; i++)
 		{
-			keyManager.GenerateNewKey("", KeyState.Clean, false, false);
+			keyManager.GenerateNewKey("", KeyState.Clean, false);
 		}
 
 		var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
@@ -39,7 +38,7 @@ public static class ServiceFactory
 			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
-		var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, 0, x.Confirmed, x.AnonymitySet)).ToArray();
+		var scoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 		foreach (var coin in scoins)
 		{
 			foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))

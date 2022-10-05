@@ -152,6 +152,7 @@ public class CoinsRegistry : ICoinsView
 
 	public void Spend(SmartCoin spentCoin, SmartTransaction tx)
 	{
+		tx.TryAddWalletInput(spentCoin);
 		spentCoin.SpenderTransaction = tx;
 		lock (Lock)
 		{

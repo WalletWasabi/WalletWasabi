@@ -7,7 +7,6 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;

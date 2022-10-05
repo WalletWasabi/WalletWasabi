@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -462,10 +461,11 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
+		scriptPubKey.TryGetScriptType() switch
 		{
-			true => Constants.P2wpkhInputVirtualSize,
-			false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
+			ScriptType.Taproot => Constants.P2trInputVirtualSize,
+			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
@@ -496,5 +496,32 @@ public static class NBitcoinExtensions
 		}
 
 		return instance;
+	}
+
+	/// <summary>
+	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
+	/// </summary>
+	public static byte[] ExtractKeyId(this Script scriptPubKey)
+	{
+		return scriptPubKey.TryGetScriptType() switch
+		{
+			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
+			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
+			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
+			_ => scriptPubKey.ToBytes()
+		};
+	}
+
+	public static ScriptType? TryGetScriptType(this Script script)
+	{
+		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.Taproot })
+		{
+			if (script.IsScriptType(scriptType))
+			{
+				return scriptType;
+			}
+		}
+
+		return null;
 	}
 }

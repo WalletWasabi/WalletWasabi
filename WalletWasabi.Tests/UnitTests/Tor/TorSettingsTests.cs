@@ -26,6 +26,7 @@ public class TorSettingsTests
 			$"--LearnCircuitBuildTimeout 0",
 			$"--CircuitBuildTimeout 30",
 			$"--SocksTimeout 30",
+			$"--UseEntryGuards 0",
 			$"--CookieAuthentication 1",
 			$"--ControlPort 37151",
 			$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",

@@ -15,7 +15,7 @@ namespace WalletWasabi.Packager;
 /// <summary>
 /// Instructions:
 /// <list type="number">
-/// <item>Bump Client version (or else wrong .msi will be created) - <see cref="Helpers.Constants.ClientVersion"/>.</item>
+/// <item>Bump Client version (or else wrong .msi will be created) - <see cref="Constants.ClientVersion"/>.</item>
 /// <item>Publish with Packager.</item>
 /// <item>Build WIX project with Release and x64 configuration.</item>
 /// <item>Sign with Packager, set restore true so the password won't be kept.</item>
@@ -183,7 +183,7 @@ public static class Program
 		if (Directory.Exists(desktopBinReleaseDirectory))
 		{
 			await IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).ConfigureAwait(false);
-			Console.WriteLine($"#Deleted {desktopBinReleaseDirectory}");
+			Console.WriteLine($"# Deleted {desktopBinReleaseDirectory}");
 		}
 
 		if (Directory.Exists(libraryBinReleaseDirectory))
@@ -208,7 +208,7 @@ public static class Program
 			string currentBinDistDirectory = publishedFolder;
 
 			Console.WriteLine();
-			Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
+			Console.WriteLine($"# Packaging for platform '{target}' to folder:\t{currentBinDistDirectory}");
 
 			Console.WriteLine();
 			if (!Directory.Exists(currentBinDistDirectory))
@@ -368,15 +368,16 @@ public static class Program
 				var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
+				string chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
 
-				var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
-				string arguments = Tools.CreateWslCommand(
-					BinDistDirectory,
+				string[] commands = new string[]
+				{
 					$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
-					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}");
+					$"tar -pczvf {newFolderName}.tar.gz {newFolderName}",
+				};
 
-				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+				ExecuteBashCommands(commands);
 
 				Console.WriteLine("# Create Linux .deb");
 
@@ -456,14 +457,16 @@ public static class Program
 
 				string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 
-				arguments = Tools.CreateWslCommand(BinDistDirectory,
+				commands = new string[]
+				{
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
 					$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 					$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 					$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
-					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)");
+					$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
+				};
 
-				StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+				ExecuteBashCommands(commands);
 
 				await IoHelpers.TryDeleteDirectoryAsync(debFolderPath).ConfigureAwait(false);
 
@@ -517,6 +520,26 @@ public static class Program
 		}
 
 		return JsonSerializer.Serialize(new BuildInfo(runtimeVersion.ToString(), sdkVersion, gitCommitId), new JsonSerializerOptions() { WriteIndented = true });
+	}
+
+	/// <summary>
+	/// Executes a set of commands in either WSL2 (on Windows) or Bash (on other platforms).
+	/// </summary>
+	/// <param name="commands">Commands to execute.</param>
+	private static void ExecuteBashCommands(string[] commands)
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			// Use WSL on Windows.
+			string arguments = Tools.CreateWslCommand(BinDistDirectory, commands);
+			StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+		}
+		else
+		{
+			// Use Bash on other platforms.
+			string arguments = string.Join(" && ", commands);
+			StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
+		}
 	}
 
 	private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)

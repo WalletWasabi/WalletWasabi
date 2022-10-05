@@ -99,7 +99,12 @@ public class P2pBlockProvider : IBlockProvider
 					// Download block from selected node.
 					try
 					{
-						using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
+						// More permissive timeout if few nodes are connected to avoid exhaustion
+						var timeout = Nodes.ConnectedNodes.Count < 3
+							? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout*1.5,600)
+							: RuntimeParams.Instance.NetworkNodeTimeout;
+
+						using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 						{
 							using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 							block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
@@ -307,7 +312,7 @@ public class P2pBlockProvider : IBlockProvider
 		if (NodeTimeouts >= 2)
 		{
 			NodeTimeouts = 0;
-			timeout *= 2;
+			timeout = (int)Math.Round(timeout * 1.5);
 		}
 		else if (NodeTimeouts <= -3) // If it does not time out 3 times in a row, lower the timeout.
 		{
@@ -316,9 +321,11 @@ public class P2pBlockProvider : IBlockProvider
 		}
 
 		// Sanity check
-		if (timeout < 32)
+		var minTimeout = Network == Network.Main ? 3 : 2;
+		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout*1.5) : minTimeout;
+		if (timeout < minTimeout)
 		{
-			timeout = 32;
+			timeout = minTimeout;
 		}
 		else if (timeout > 600)
 		{
@@ -329,7 +336,6 @@ public class P2pBlockProvider : IBlockProvider
 		{
 			return;
 		}
-
 		RuntimeParams.Instance.NetworkNodeTimeout = timeout;
 		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 
