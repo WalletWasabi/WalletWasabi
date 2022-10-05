@@ -14,7 +14,7 @@
     <controls:DropDownContentControl MenuItems="{Binding Commands}" DropDownButtonBrush="Transparent">
       <controls:DropDownContentControl.Styles>
         <Style Selector="MenuItem" x:CompileBindings="False">
-          <Setter Property="Header" Value="{Binding Header}" />
+          <Setter Property="Header" Value="{Binding Name}" />
           <Setter Property="Command" Value="{Binding Command}" />
         </Style>
       </controls:DropDownContentControl.Styles>
