@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:statistics="clr-namespace:WalletWasabi.Fluent.ViewModels.Statistics"
+             xmlns:models="clr-namespace:WalletWasabi.WabiSabi.Models;assembly=WalletWasabi"
+             x:DataType="statistics:CoinJoinMonitorViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitorView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="{Binding !EnableBack}"
+                 NextContent="Close"
+                 EnableBack="{Binding EnableBack}">
+    <ItemsControl Items="{Binding RoundStates}">
+      <ItemsControl.Styles>
+        <Style Selector="ItemsControl">
+          <Setter Property="ItemsPanel">
+            <Setter.Value>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </Setter.Value>
+          </Setter>
+        </Style>
+        </ItemsControl.Styles>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="models:RoundState">
+          <StackPanel Margin="4" Spacing="2">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Id: " />
+              <TextBlock Text="{Binding Id}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="BlameOf: " />
+              <TextBlock Text="{Binding BlameOf}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="AmountCredentialIssuerParameters: " />
+              <TextBlock Text="{Binding AmountCredentialIssuerParameters}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="VsizeCredentialIssuerParameters: " />
+              <TextBlock Text="{Binding VsizeCredentialIssuerParameters}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Phase: " />
+              <TextBlock Text="{Binding Phase}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="EndRoundState: " />
+              <TextBlock Text="{Binding EndRoundState}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="InputRegistrationStart: " />
+              <TextBlock Text="{Binding InputRegistrationStart}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="InputRegistrationTimeout: " />
+              <TextBlock Text="{Binding InputRegistrationTimeout}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="CoinjoinState: " />
+              <TextBlock Text="{Binding CoinjoinState}" />
+            </StackPanel>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </c:ContentArea>
+</UserControl>
