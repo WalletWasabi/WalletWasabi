@@ -43,6 +43,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private bool _parsingTo;
+	private SmartLabel _parsedLabel = SmartLabel.Empty;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -264,7 +265,11 @@ public partial class SendViewModel : RoutableViewModel
 			result = true;
 			if (url.Label is { } label)
 			{
-				_transactionInfo.UserLabels = new SmartLabel(label);
+				_parsedLabel = new SmartLabel(label);
+			}
+			else
+			{
+				_parsedLabel = SmartLabel.Empty;
 			}
 
 			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
@@ -295,6 +300,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
+			_parsedLabel = SmartLabel.Empty;
 		}
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
