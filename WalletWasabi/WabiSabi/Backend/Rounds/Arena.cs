@@ -603,12 +603,19 @@ public partial class Arena : PeriodicRunner
 			}
 			else
 			{
-				round.LogWarning($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				if (allReady)
+				{
+					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				}
+				else
+				{ 
+					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				}
 			}
 		}
 		else if (!allReady)
 		{
-			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+			round.LogWarning($"Could not add blame script, because the amount was too small: {diffMoney}.");
 		}
 
 		return coinjoin;
