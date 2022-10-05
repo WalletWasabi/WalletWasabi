@@ -129,7 +129,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		info.UserLabels = label;
 		info.IsSelectedCoinModificationEnabled = false;
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
+		Navigate().To(new TransactionPreviewViewModel(_walletViewModel, info, address, true));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)

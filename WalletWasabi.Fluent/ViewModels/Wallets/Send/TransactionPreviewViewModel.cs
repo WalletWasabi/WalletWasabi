@@ -39,10 +39,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
+	public TransactionPreviewViewModel(WalletViewModel walletVm, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
 	{
 		_undoHistory = new();
-		_wallet = wallet;
+		_wallet = walletVm.Wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_destination = destination;
@@ -85,6 +85,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 				}
+				else if (x is CoinjoinMoreSuggestionViewModel)
+				{
+					walletVm.CoinJoinStateViewModel.PlayCommand.Execute(null);
+					CancelCommand.Execute(null);
+				}
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
@@ -100,7 +105,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, _cancellationTokenSource.Token))
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, false, _cancellationTokenSource.Token))
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -136,6 +141,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		});
 
 		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
+
+		var showMoreCanExecute =
+			this.WhenAnyValue(x => x.Transaction)
+				.Select(x => x is { });
+
+		ShowOtherSuggestionsCommand = ReactiveCommand.CreateFromTask(async () => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, Transaction, _isFixedAmount, true, _cancellationTokenSource.Token), showMoreCanExecute);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -153,6 +164,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand ChangePocketCommand { get; }
 
 	public ICommand UndoCommand { get; }
+
+	public ICommand ShowOtherSuggestionsCommand { get; }
 
 	private async Task OnExportPsbtAsync()
 	{

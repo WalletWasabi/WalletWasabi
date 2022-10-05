@@ -30,7 +30,7 @@
     <Setter Property="CornerRadius" Value="8 8 8 8" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel MaxHeight="500">
+        <Panel>
           <Border Name="LayoutRoot" Margin="3 20 3 0"
                   Classes.IsActive="{Binding IsActive, FallbackValue=false}"
                   BoxShadow="0 0 5 0 #7F000000"

@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -9,6 +12,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
@@ -143,5 +147,59 @@ public static class TransactionHelpers
 		}
 
 		return false;
+	}
+
+	public static async IAsyncEnumerable<BuildTransactionResult> GeneratePrivacySuggestionTransactionsAsync(
+		TransactionInfo transactionInfo,
+		BitcoinAddress destination,
+		Wallet wallet,
+		ImmutableArray<SmartCoin> coinsToUse,
+		int maxInputCount,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
+	{
+		IAsyncEnumerable<IEnumerable<SmartCoin>> selectionsTask = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
+			coinsToUse,
+			transactionInfo.FeeRate,
+			new TxOut(transactionInfo.Amount, destination),
+			maxInputCount,
+			cancellationToken);
+
+		HashSet<Money> foundSolutionsByAmount = new();
+
+		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
+		{
+			if (selection.Any())
+			{
+				BuildTransactionResult? transaction = null;
+
+				try
+				{
+					transaction = BuildChangelessTransaction(
+						wallet,
+						destination,
+						transactionInfo.UserLabels,
+						transactionInfo.FeeRate,
+						selection,
+						tryToSign: false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Failed to build changeless transaction. Exception: {ex}");
+				}
+
+				if (transaction is not null)
+				{
+					Money destinationAmount = transaction.CalculateDestinationAmount();
+
+					// If BnB solutions become the same transaction somehow, do not show the same suggestion twice.
+					if (!foundSolutionsByAmount.Contains(destinationAmount))
+					{
+						foundSolutionsByAmount.Add(destinationAmount);
+
+						yield return transaction;
+					}
+				}
+			}
+		}
 	}
 }
