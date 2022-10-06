@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Models;
@@ -88,6 +89,33 @@ public static class TransactionHelpers
 			transactionInfo.SubtractFee,
 			isPayJoin ? transactionInfo.PayJoinClient : null,
 			tryToSign: tryToSign);
+	}
+
+	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, IEnumerable<SmartCoin> coins, out Money minimumAmount)
+	{
+		minimumAmount = Money.Zero;
+
+		try
+		{
+			BuildTransaction(
+				wallet,
+				destination,
+				transactionInfo.Amount,
+				transactionInfo.UserLabels,
+				transactionInfo.FeeRate,
+				coins,
+				transactionInfo.SubtractFee,
+				transactionInfo.PayJoinClient,
+				tryToSign: false);
+
+			return true;
+		}
+		catch (InsufficientBalanceException ex)
+		{
+			minimumAmount = ex.Minimum;
+		}
+
+		return false;
 	}
 
 	public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)
