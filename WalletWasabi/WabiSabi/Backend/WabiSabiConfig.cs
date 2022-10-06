@@ -142,7 +142,7 @@ public class WabiSabiConfig : ConfigBase
 
 	[DefaultValue(0.9)]
 	[JsonProperty(PropertyName = "LoadBalancingInputSplit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double LoadBalancingInputSplit { get; set; } = 0.9;
+	public double LoadBalancingInputSplit { get; set; } = 0.85;
 
 	[DefaultValue("CoinJoinCoordinatorIdentifier")]
 	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]

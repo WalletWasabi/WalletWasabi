@@ -15,7 +15,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task RoundFullAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3, LoadBalancing = false };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
@@ -37,7 +37,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task DetectSpentTxoBeforeSteppingIntoConnectionConfirmationAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3, LoadBalancing = false };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var offendingAlice = WabiSabiFactory.CreateAlice(round); // this Alice spent the coin after registration
 
