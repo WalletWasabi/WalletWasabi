@@ -20,15 +20,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		var amount = transactionInfo.MinimumRequiredAmount == Money.Zero ? transactionInfo.Amount : transactionInfo.MinimumRequiredAmount;
-		LabelSelection = new LabelSelectionViewModel(amount, _transactionInfo.FeeRate);
+		LabelSelection = new LabelSelectionViewModel(wallet, _transactionInfo, destination);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -40,7 +39,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void Complete(IEnumerable<Pocket> pockets)
 	{
-		var coins = pockets.SelectMany(x => x.Coins);
+		var coins = Pocket.Merge(pockets.ToArray()).Coins;
 
 		Close(DialogResultKind.Normal, coins);
 	}

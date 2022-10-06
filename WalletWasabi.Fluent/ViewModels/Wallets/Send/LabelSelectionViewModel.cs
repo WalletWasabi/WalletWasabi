@@ -9,11 +9,15 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class LabelSelectionViewModel : ViewModelBase
 {
+	private readonly Wallet _wallet;
+	private readonly TransactionInfo _info;
+	private readonly BitcoinAddress _destination;
 	private readonly Money _targetAmount;
 	private readonly FeeRate _feeRate;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
@@ -24,10 +28,13 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(Money targetAmount, FeeRate feeRate)
+	public LabelSelectionViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination)
 	{
-		_targetAmount = targetAmount;
-		_feeRate = feeRate;
+		_wallet = wallet;
+		_info = info;
+		_destination = destination;
+		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
+		_feeRate = _info.FeeRate;
 	}
 
 	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
@@ -37,6 +44,18 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	public IEnumerable<LabelViewModel> LabelsWhiteList => AllLabelsViewModel.Where(x => !x.IsBlackListed);
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelsViewModel.Where(x => x.IsBlackListed);
+
+	public bool IsPocketEnough(params Pocket[] pockets)
+	{
+		var coins = Pocket.Merge(pockets).Coins;
+
+		if (!coins.Any())
+		{
+			return false;
+		}
+
+		return TransactionHelpers.TryBuildTransaction(_wallet, _info, _destination, coins, out _);
+	}
 
 	public Pocket[] AutoSelectPockets(SmartLabel recipient)
 	{
@@ -51,19 +70,19 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
 		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
 
-		if (onlyKnownByRecipientPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
+		if (IsPocketEnough(onlyKnownByRecipientPockets))
 		{
 			return onlyKnownByRecipientPockets;
 		}
 
-		if (_privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount)
+		if (IsPocketEnough(_privatePocket))
 		{
 			return new[] { _privatePocket };
 		}
 
-		if (privateAndSemiPrivatePockets.EffectiveSumValue(_feeRate) >= _targetAmount)
+		if (IsPocketEnough(privateAndSemiPrivatePockets))
 		{
-			return privateAndSemiPrivatePockets;
+			return onlyKnownByRecipientPockets;
 		}
 
 		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, recipient, out var pockets))
@@ -71,24 +90,24 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return pockets;
 		}
 
-		if (privateAndSemiPrivateAndKnownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
+		if (IsPocketEnough(privateAndSemiPrivateAndKnownPockets))
 		{
 			return privateAndSemiPrivateAndKnownPockets;
 		}
 
-		if (privateAndSemiPrivateAndUnknownPockets.EffectiveSumValue(_feeRate) >= _targetAmount)
+		if (IsPocketEnough(privateAndSemiPrivateAndUnknownPockets))
 		{
 			return privateAndSemiPrivateAndUnknownPockets;
 		}
 
-		return _allPockets.ToArray();
+		return _allPockets;
 	}
 
 	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
 		pockets = null;
 
-		if (Pocket.Merge(knownByRecipientPockets, privateAndSemiPrivatePockets).EffectiveSumValue(feeRate) < _targetAmount)
+		if (!IsPocketEnough(Pocket.Merge(knownByRecipientPockets, privateAndSemiPrivatePockets)))
 		{
 			return false;
 		}
@@ -119,7 +138,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		{
 			bestPockets.Add(p);
 
-			if (bestPockets.EffectiveSumValue(feeRate) >= targetAmount)
+			if (IsPocketEnough(bestPockets.ToArray()))
 			{
 				break;
 			}
@@ -133,7 +152,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		// But B is unnecessary because A and C can cover the case, so remove it.
 		foreach (var p in bestPockets.Except(privateAndSemiPrivatePockets).OrderBy(x => x.Amount).ThenByDescending(x => x.Labels.Count()).ToImmutableArray())
 		{
-			if (bestPockets.EffectiveSumValue(feeRate) - p.EffectiveSumValue(feeRate) >= targetAmount)
+			if (IsPocketEnough(bestPockets.Except(new[] { p }).ToArray()))
 			{
 				bestPockets.Remove(p);
 			}
@@ -247,9 +266,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			_hiddenIncludedPockets.Add(_semiPrivatePocket);
 		}
 
-		var totalSelected = whiteListPockets.EffectiveSumValue(_feeRate) + _hiddenIncludedPockets.EffectiveSumValue(_feeRate);
+		var totalSelected = Pocket.Merge(whiteListPockets.ToArray(), _hiddenIncludedPockets.ToArray());
 
-		EnoughSelected = totalSelected >= _targetAmount;
+		EnoughSelected = IsPocketEnough(totalSelected);
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
@@ -257,24 +276,24 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private bool IsPrivatePocketNeeded()
 	{
-		var isNonPrivateNotEnough = NonPrivatePockets.EffectiveSumValue(_feeRate) < _targetAmount;
-		var isPrivateAndSemiPrivateNotEnough = Pocket.Merge(_privatePocket, _semiPrivatePocket).EffectiveSumValue(_feeRate) < _targetAmount;
-		var isNonPrivateAndPrivateEnough = Pocket.Merge(NonPrivatePockets, _privatePocket).EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isNonPrivateNotEnough = IsPocketEnough(NonPrivatePockets);
+		var isPrivateAndSemiPrivateNotEnough = IsPocketEnough(Pocket.Merge(_privatePocket, _semiPrivatePocket));
+		var isNonPrivateAndPrivateEnough = IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket));
 
 		var isPrivateNeededBesideNonPrivate = isNonPrivateNotEnough && isPrivateAndSemiPrivateNotEnough && isNonPrivateAndPrivateEnough;
-		var isOnlyPrivateNeeded = LabelsWhiteList.IsEmpty() && _privatePocket.EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isOnlyPrivateNeeded = LabelsWhiteList.IsEmpty() && IsPocketEnough(_privatePocket);
 
 		return isPrivateNeededBesideNonPrivate || isOnlyPrivateNeeded;
 	}
 
 	private bool IsPrivateAndSemiPrivatePocketNeeded()
 	{
-		var isNonPrivateAndPrivateNotEnough = Pocket.Merge(NonPrivatePockets, _privatePocket).EffectiveSumValue(_feeRate) < _targetAmount;
-		var isNonPrivateAndPrivateAndSemiPrivateEnough = Pocket.Merge(NonPrivatePockets, _privatePocket, _semiPrivatePocket).EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isNonPrivateAndPrivateNotEnough = IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket));
+		var isNonPrivateAndPrivateAndSemiPrivateEnough = IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket, _semiPrivatePocket));
 		var isPrivateAndSemiPrivateNeededBesideNonPrivate = isNonPrivateAndPrivateNotEnough && isNonPrivateAndPrivateAndSemiPrivateEnough;
 
-		var isPrivateNotEnough = _privatePocket.EffectiveSumValue(_feeRate) < _targetAmount;
-		var isPrivateAndSemiPrivateEnough = Pocket.Merge(_privatePocket, _semiPrivatePocket).EffectiveSumValue(_feeRate) >= _targetAmount;
+		var isPrivateNotEnough = IsPocketEnough(_privatePocket);
+		var isPrivateAndSemiPrivateEnough = IsPocketEnough(Pocket.Merge(_privatePocket, _semiPrivatePocket));
 		var isOnlyPrivateAndSemiPrivateNeeded = LabelsWhiteList.IsEmpty() &&  isPrivateNotEnough && isPrivateAndSemiPrivateEnough;
 
 		return isPrivateAndSemiPrivateNeededBesideNonPrivate || isOnlyPrivateAndSemiPrivateNeeded;
