@@ -22,8 +22,6 @@ public class Pocket
 
 	public static Pocket Empty => new((SmartLabel.Empty, new CoinsView(Enumerable.Empty<SmartCoin>())));
 
-	public Money EffectiveSumValue(FeeRate feeRate) => Coins.Sum(coin => coin.EffectiveValue(feeRate));
-
 	public static Pocket Merge(params Pocket[] pockets)
 	{
 		var mergedLabels = SmartLabel.Merge(pockets.Select(p => p.Labels));
