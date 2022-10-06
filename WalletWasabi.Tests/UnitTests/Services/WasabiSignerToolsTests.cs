@@ -18,7 +18,7 @@ public class WasabiSignerToolsTests
 
 	private static DirectoryInfo CreateTestFolderWithFiles()
 	{
-		var installerFolder = Directory.CreateDirectory(Path.Combine(Common.GetWorkDir(nameof(WasabiSignerToolsTests)), "tmp", "installers"));
+		var installerFolder = Directory.CreateDirectory(Path.Combine(Common.GetWorkDir(nameof(WasabiSignerToolsTests)), "installers"));
 		string[] filenames = new[] { "Wasabi.msi", "Wasabi.deb", "Wasabi.dmg", "Wasabi.tar.gz" };
 		string path;
 		for (int i = 0; i < filenames.Length; i++)
@@ -76,15 +76,15 @@ public class WasabiSignerToolsTests
 	{
 		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
 
-		uint256 firstInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths.First());
-		uint256 secondInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths.ElementAt(1));
+		uint256 firstInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths[0]);
+		uint256 secondInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths[1]);
 
 		string shaSumsDestinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
 		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, shaSumsDestinationPath, PrivateKey);
 		Assert.True(File.Exists(shaSumsDestinationPath));
 
-		string firstInstallerFileName = filepaths.First().Split("\\").Last();
-		string secondInstallerFileName = filepaths.ElementAt(1).Split("\\").Last();
+		string firstInstallerFileName = filepaths[0].Split("\\").Last();
+		string secondInstallerFileName = filepaths[1].Split("\\").Last();
 		(string _, Dictionary<string, uint256> fileDictionary, string _) = WasabiSignerTools.ReadShaSumsContent(shaSumsDestinationPath);
 
 		uint256 firstInstallerHashFromFile = fileDictionary[firstInstallerFileName];

@@ -12,9 +12,9 @@ namespace WalletWasabi.Services;
 
 public static class WasabiSignerTools
 {
-	private static string WasabiKeyHeadline { get; } = "WASABI PRIVATE KEY";
-	private static string WasabiContentHeadline { get; } = "SIGNED CONTENT";
-	private static string WasabiSignatureHeadline { get; } = "WASABI SIGNATURE";
+	private const string WasabiKeyHeadline = "WASABI PRIVATE KEY";
+	private const string WasabiContentHeadline = "SIGNED CONTENT";
+	private const string WasabiSignatureHeadline = "WASABI SIGNATURE";
 	public static string ShaSumsFileName { get; } = "SHA256SUMS.asc";
 
 	public static Key GeneratePrivateKey() => new();
@@ -133,10 +133,10 @@ public static class WasabiSignerTools
 		return new(computedHash);
 	}
 
-	public static void SignAndSaveSHASumsFile(IEnumerable<string> installerFilepaths, string destinationPath, Key key)
+	public static void SignAndSaveSHASumsFile(IEnumerable<string> installerFilePaths, string destinationPath, Key key)
 	{
 		StringBuilder fileContent = new();
-		foreach (string filepath in installerFilepaths)
+		foreach (string filepath in installerFilePaths)
 		{
 			uint256 fileHash = GenerateHashFromFile(filepath);
 			fileContent.AppendLine($"{fileHash} {filepath.Split("\\").Last()}");
@@ -154,15 +154,15 @@ public static class WasabiSignerTools
 		File.WriteAllText(destinationPath, fileContent.ToString());
 	}
 
-	public static void SavePrivateKeyToFile(string destionationPath, Key key)
+	public static void SavePrivateKeyToFile(string destinationPath, Key key)
 	{
 		try
 		{
-			if (File.Exists(destionationPath))
+			if (File.Exists(destinationPath))
 			{
 				throw new ArgumentException("Private key file already exists.");
 			}
-			using StreamWriter streamWriter = new(destionationPath);
+			using StreamWriter streamWriter = new(destinationPath);
 			streamWriter.WriteLine($"-----BEGIN {WasabiKeyHeadline}-----");
 			streamWriter.WriteLine(key.ToString(Network.Main));
 			streamWriter.WriteLine($"-----END {WasabiKeyHeadline}-----");
