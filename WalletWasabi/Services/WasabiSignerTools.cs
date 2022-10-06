@@ -21,34 +21,29 @@ public static class WasabiSignerTools
 
 	public static bool TryGetPrivateKeyFromFile(string fileName, [NotNullWhen(true)] out Key? key)
 	{
+		key = null;
 		try
 		{
-			using StreamReader streamReader = new(fileName);
-			bool endRequested = false;
-			string wif = "";
-			while (!endRequested)
+			string[] keyFileContent = File.ReadAllLines(fileName);
+			bool isHeadlineBeginValid = keyFileContent[0] == $"-----BEGIN {WasabiKeyHeadline}-----";
+			bool isHeadlineEndValid = keyFileContent[2] == $"-----END {WasabiKeyHeadline}-----";
+
+			if (!isHeadlineBeginValid || !isHeadlineEndValid)
 			{
-				var line = streamReader.ReadLine();
-				if (line is null)
-				{
-					endRequested = true;
-				}
-				else if (line.Contains(WasabiKeyHeadline))
-				{
-					wif = streamReader.ReadLine()!;
-					endRequested = true;
-				}
+				throw new ArgumentException("Wasabi private key file's content was invalid.");
 			}
+
+			string wif = keyFileContent[1];
 			BitcoinSecret secret = new(wif, Network.Main);
+
 			key = secret.PrivateKey;
 			return true;
 		}
 		catch (Exception exc)
 		{
 			Logger.LogError("There was an error while reading Key from file.", exc);
-			key = null;
-			return false;
 		}
+		return false;
 	}
 
 	public static bool VerifyShaSumsFile(string shaSumsFilePath, PubKey publicKey)
@@ -66,13 +61,12 @@ public static class WasabiSignerTools
 		catch (FormatException)
 		{
 			Logger.LogWarning("SHASums file signature was invalid, DER bytes are not in right format.");
-			return false;
 		}
 		catch (Exception exc)
 		{
 			Logger.LogError(exc);
-			return false;
 		}
+		return false;
 	}
 
 	public static (string content, Dictionary<string, uint256> installerDictionary, string base64Signature) ReadShaSumsContent(string shaSumsFilePath)
@@ -173,8 +167,9 @@ public static class WasabiSignerTools
 			streamWriter.WriteLine(key.ToString(Network.Main));
 			streamWriter.WriteLine($"-----END {WasabiKeyHeadline}-----");
 		}
-		catch (Exception)
+		catch (Exception exc)
 		{
+			Logger.LogError(exc);
 			throw;
 		}
 	}

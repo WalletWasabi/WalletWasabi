@@ -98,6 +98,7 @@ public class WasabiSignerToolsTests
 	{
 		var tmpFolder = Path.Combine(InstallerFolder.FullName, "..");
 		var tmpKeyFilePath = Path.Combine(tmpFolder, "WasabiKey.txt");
+		File.Delete(tmpKeyFilePath);
 
 		WasabiSignerTools.SavePrivateKeyToFile(tmpKeyFilePath, PrivateKey);
 		Assert.True(File.Exists(tmpKeyFilePath));
@@ -106,6 +107,5 @@ public class WasabiSignerToolsTests
 		bool canReadKey = WasabiSignerTools.TryGetPrivateKeyFromFile(tmpKeyFilePath, out Key? key);
 		Assert.True(canReadKey);
 		Assert.NotNull(key);
-		File.Delete(tmpKeyFilePath);
 	}
 }
