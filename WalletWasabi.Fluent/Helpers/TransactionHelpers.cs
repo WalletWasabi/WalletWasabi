@@ -12,6 +12,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -121,6 +122,7 @@ public static class TransactionHelpers
 
 	public static bool TryBuildTransaction(
 		KeyManager keyManager,
+		BitcoinStore bitcoinStore,
 		TransactionInfo transactionInfo,
 		BitcoinAddress destination,
 		ICoinsView allCoins,
@@ -137,8 +139,6 @@ public static class TransactionHelpers
 				amount: transactionInfo.Amount,
 				subtractFee: transactionInfo.SubtractFee,
 				label: transactionInfo.UserLabels);
-
-			var bitcoinStore = Services.BitcoinStore;
 
 			var builder = new TransactionFactory(Network.TestNet, keyManager, allCoins, bitcoinStore.TransactionStore, password, true);
 

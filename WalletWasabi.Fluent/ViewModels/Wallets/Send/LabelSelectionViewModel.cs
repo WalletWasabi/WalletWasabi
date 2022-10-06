@@ -7,10 +7,9 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Wallets;
+using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -18,6 +17,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 {
 	private readonly KeyManager _keyManager;
 	private readonly string _password;
+	private readonly BitcoinStore _bitcoinStore;
 	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _destination;
 	private readonly Money _targetAmount;
@@ -30,10 +30,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info, BitcoinAddress destination)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, BitcoinStore bitcoinStore, TransactionInfo info, BitcoinAddress destination)
 	{
 		_keyManager = keyManager;
 		_password = password;
+		_bitcoinStore = bitcoinStore;
 		_info = info;
 		_destination = destination;
 		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
@@ -61,6 +62,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 		return TransactionHelpers.TryBuildTransaction(
 			keyManager: _keyManager,
+			bitcoinStore: _bitcoinStore,
 			transactionInfo: _info,
 			destination: _destination,
 			allCoins: new CoinsView(allCoins),
@@ -94,7 +96,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 		if (IsPocketEnough(privateAndSemiPrivatePockets))
 		{
-			return onlyKnownByRecipientPockets;
+			return privateAndSemiPrivatePockets;
 		}
 
 		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, recipient, out var pockets))
@@ -288,8 +290,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private bool IsPrivatePocketNeeded()
 	{
-		var isNonPrivateNotEnough = IsPocketEnough(NonPrivatePockets);
-		var isPrivateAndSemiPrivateNotEnough = IsPocketEnough(Pocket.Merge(_privatePocket, _semiPrivatePocket));
+		var isNonPrivateNotEnough = !IsPocketEnough(NonPrivatePockets);
+		var isPrivateAndSemiPrivateNotEnough = !IsPocketEnough(Pocket.Merge(_privatePocket, _semiPrivatePocket));
 		var isNonPrivateAndPrivateEnough = IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket));
 
 		var isPrivateNeededBesideNonPrivate = isNonPrivateNotEnough && isPrivateAndSemiPrivateNotEnough && isNonPrivateAndPrivateEnough;
@@ -300,11 +302,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	private bool IsPrivateAndSemiPrivatePocketNeeded()
 	{
-		var isNonPrivateAndPrivateNotEnough = IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket));
+		var isNonPrivateAndPrivateNotEnough = !IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket));
 		var isNonPrivateAndPrivateAndSemiPrivateEnough = IsPocketEnough(Pocket.Merge(NonPrivatePockets, _privatePocket, _semiPrivatePocket));
 		var isPrivateAndSemiPrivateNeededBesideNonPrivate = isNonPrivateAndPrivateNotEnough && isNonPrivateAndPrivateAndSemiPrivateEnough;
 
-		var isPrivateNotEnough = IsPocketEnough(_privatePocket);
+		var isPrivateNotEnough = !IsPocketEnough(_privatePocket);
 		var isPrivateAndSemiPrivateEnough = IsPocketEnough(Pocket.Merge(_privatePocket, _semiPrivatePocket));
 		var isOnlyPrivateAndSemiPrivateNeeded = LabelsWhiteList.IsEmpty() &&  isPrivateNotEnough && isPrivateAndSemiPrivateEnough;
 
