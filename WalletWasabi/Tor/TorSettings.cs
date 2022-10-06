@@ -100,7 +100,6 @@ public class TorSettings
 			$"--LearnCircuitBuildTimeout 0", // Default is 1 (true).
 			$"--CircuitBuildTimeout 30", // 30 seconds, default is 1 minute.
 			$"--SocksTimeout 30", // 30 seconds, default is 2 minutes.
-			$"--UseEntryGuards 0", // Default is 1 (yes).
 			$"--CookieAuthentication 1",
 			$"--ControlPort {port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
