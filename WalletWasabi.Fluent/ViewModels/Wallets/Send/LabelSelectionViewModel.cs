@@ -114,7 +114,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivateAndUnknownPockets;
 		}
 
-		return _allPockets;
+		return _allPockets.ToArray();
 	}
 
 	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
@@ -280,9 +280,9 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			_hiddenIncludedPockets.Add(_semiPrivatePocket);
 		}
 
-		var totalSelected = Pocket.Merge(whiteListPockets.ToArray(), _hiddenIncludedPockets.ToArray());
+		var allSelectedPocket = Pocket.Merge(whiteListPockets.ToArray(), _hiddenIncludedPockets.ToArray());
 
-		EnoughSelected = IsPocketEnough(totalSelected);
+		EnoughSelected = IsPocketEnough(allSelectedPocket);
 
 		this.RaisePropertyChanged(nameof(LabelsWhiteList));
 		this.RaisePropertyChanged(nameof(LabelsBlackList));

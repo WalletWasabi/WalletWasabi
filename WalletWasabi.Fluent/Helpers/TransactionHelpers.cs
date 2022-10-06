@@ -93,33 +93,6 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
-	public static bool TryBuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, IEnumerable<SmartCoin> coins, out Money minimumAmount)
-	{
-		minimumAmount = Money.Zero;
-
-		try
-		{
-			BuildTransaction(
-				wallet,
-				destination,
-				transactionInfo.Amount,
-				transactionInfo.UserLabels,
-				transactionInfo.FeeRate,
-				coins,
-				transactionInfo.SubtractFee,
-				transactionInfo.PayJoinClient,
-				tryToSign: false);
-
-			return true;
-		}
-		catch (InsufficientBalanceException ex)
-		{
-			minimumAmount = ex.Minimum;
-		}
-
-		return false;
-	}
-
 	public static bool TryBuildTransaction(
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
@@ -140,7 +113,7 @@ public static class TransactionHelpers
 				subtractFee: transactionInfo.SubtractFee,
 				label: transactionInfo.UserLabels);
 
-			var builder = new TransactionFactory(Network.TestNet, keyManager, allCoins, bitcoinStore.TransactionStore, password, true);
+			var builder = new TransactionFactory(keyManager.GetNetwork(), keyManager, allCoins, bitcoinStore.TransactionStore, password, true);
 
 			builder.BuildTransaction(
 				intent,
