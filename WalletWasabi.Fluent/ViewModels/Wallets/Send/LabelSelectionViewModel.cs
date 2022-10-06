@@ -5,6 +5,7 @@ using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -15,7 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class LabelSelectionViewModel : ViewModelBase
 {
-	private readonly Wallet _wallet;
+	private readonly KeyManager _keyManager;
+	private readonly string _password;
 	private readonly TransactionInfo _info;
 	private readonly BitcoinAddress _destination;
 	private readonly Money _targetAmount;
@@ -28,9 +30,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info, BitcoinAddress destination)
 	{
-		_wallet = wallet;
+		_keyManager = keyManager;
+		_password = password;
 		_info = info;
 		_destination = destination;
 		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
@@ -54,7 +57,16 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return false;
 		}
 
-		return TransactionHelpers.TryBuildTransaction(_wallet, _info, _destination, coins, out _);
+		var allCoins = Pocket.Merge(_allPockets).Coins;
+
+		return TransactionHelpers.TryBuildTransaction(
+			keyManager: _keyManager,
+			transactionInfo: _info,
+			destination: _destination,
+			allCoins: new CoinsView(allCoins),
+			allowedCoins: coins,
+			password: _password,
+			minimumAmount: out _);
 	}
 
 	public Pocket[] AutoSelectPockets(SmartLabel recipient)

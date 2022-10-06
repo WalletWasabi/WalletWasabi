@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -105,6 +106,51 @@ public static class TransactionHelpers
 				transactionInfo.FeeRate,
 				coins,
 				transactionInfo.SubtractFee,
+				transactionInfo.PayJoinClient,
+				tryToSign: false);
+
+			return true;
+		}
+		catch (InsufficientBalanceException ex)
+		{
+			minimumAmount = ex.Minimum;
+		}
+
+		return false;
+	}
+
+	public static bool TryBuildTransaction(
+		KeyManager keyManager,
+		TransactionInfo transactionInfo,
+		BitcoinAddress destination,
+		ICoinsView allCoins,
+		IEnumerable<SmartCoin> allowedCoins,
+		string password,
+		out Money minimumAmount)
+	{
+		minimumAmount = Money.Zero;
+
+		try
+		{
+			var intent = new PaymentIntent(
+				destination: destination,
+				amount: transactionInfo.Amount,
+				subtractFee: transactionInfo.SubtractFee,
+				label: transactionInfo.UserLabels);
+
+			var bitcoinStore = Services.BitcoinStore;
+
+			var builder = new TransactionFactory(Network.TestNet, keyManager, allCoins, bitcoinStore.TransactionStore, password, true);
+
+			builder.BuildTransaction(
+				intent,
+				feeRateFetcher: () => transactionInfo.FeeRate,
+				allowedCoins.Select(x => x.OutPoint),
+				lockTimeSelector: () =>
+				{
+					var currentTipHeight = bitcoinStore.SmartHeaderChain.TipHeight;
+					return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
+				},
 				transactionInfo.PayJoinClient,
 				tryToSign: false);
 
