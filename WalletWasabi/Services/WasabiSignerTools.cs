@@ -1,15 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using NBitcoin.Crypto;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -17,14 +13,13 @@ namespace WalletWasabi.Services;
 public static class WasabiSignerTools
 {
 	private static string WasabiKeyHeadline { get; } = "WASABI PRIVATE KEY";
-	public static string SHASumsFileName { get; } = "SHA256SUMS.asc";
+	private static string WasabiContentHeadline { get; } = "SIGNED CONTENT";
+	private static string WasabiSignatureHeadline { get; } = "WASABI SIGNATURE";
+	public static string ShaSumsFileName { get; } = "SHA256SUMS.asc";
 
-	public static Key GenerateKey() => new();
+	public static Key GeneratePrivateKey() => new();
 
-	// PublicKey should be saved in Constants.cs later on
-	public static PubKey GetPublicKey() => Constants.WasabiPublicKey;
-
-	public static bool TryGetKeyFromFile(string fileName, [NotNullWhen(true)] out Key? key)
+	public static bool TryGetPrivateKeyFromFile(string fileName, [NotNullWhen(true)] out Key? key)
 	{
 		try
 		{
@@ -56,11 +51,11 @@ public static class WasabiSignerTools
 		}
 	}
 
-	public static bool VerifySHASumsFile(string filepath, PubKey publicKey)
+	public static bool VerifyShaSumsFile(string shaSumsFilePath, PubKey publicKey)
 	{
 		try
 		{
-			(string content, string base64Signature) = ReadSHASumsContent(filepath);
+			(string content, Dictionary<string, uint256> _, string base64Signature) = ReadShaSumsContent(shaSumsFilePath);
 
 			uint256 hash = GenerateHashFromString(content);
 
@@ -80,59 +75,45 @@ public static class WasabiSignerTools
 		}
 	}
 
-	public static uint256 ReadHashFromSHASumsFile(string filepath, string installerName)
+	public static (string content, Dictionary<string, uint256> installerDictionary, string base64Signature) ReadShaSumsContent(string shaSumsFilePath)
 	{
-		(string content, string _) = ReadSHASumsContent(filepath);
-		var lines = content.Split("\n");
-		foreach (var line in lines)
-		{
-			if (string.IsNullOrEmpty(line))
-			{
-				continue;
-			}
-
-			var splitLine = line.Split(" ");
-			var fileName = splitLine[1].Trim();
-
-			if (fileName == installerName)
-			{
-				return new(splitLine[0].Trim());
-			}
-		}
-		throw new ArgumentException($"{installerName} not found in {filepath}");
-	}
-
-	private static (string content, string base64Signature) ReadSHASumsContent(string filepath)
-	{
-		bool endRequested = false;
+		Dictionary<string, uint256> installerDictionary = new();
 		string base64Signature = "";
 		StringBuilder stringBuilder = new();
 
-		using StreamReader reader = new(filepath);
-		while (!endRequested)
-		{
-			string? line = reader.ReadLine();
-			if (line is null)
-			{
-				endRequested = true;
-			}
-			else if (line.Contains("WASABI"))
-			{
-				string? nextLine = reader.ReadLine();
+		string[] sumsFileLines = File.ReadAllLines(shaSumsFilePath);
 
-				if (nextLine is not null)
-				{
-					base64Signature = nextLine;
-				}
-				endRequested = true;
-			}
-			else if (!line.Contains("-----"))
+		string? headline = sumsFileLines.FirstOrDefault();
+		int contentEndIndex = Array.IndexOf(sumsFileLines, $"-----END {WasabiContentHeadline}-----");
+		if (headline is null ||
+			headline != $"-----BEGIN {WasabiContentHeadline}-----" ||
+			contentEndIndex == -1)
+		{
+			throw new ArgumentException($"{ShaSumsFileName}'s content was invalid.");
+		}
+
+		for (int i = 1; i < contentEndIndex; i++)
+		{
+			string line = sumsFileLines[i].Trim();
+			string[] splitLine = line.Split(" ");
+
+			bool isHashValid = uint256.TryParse(splitLine[0], out uint256 installerHash);
+			if (isHashValid)
 			{
+				string installerName = splitLine[1];
+				installerDictionary.Add(installerName, installerHash);
 				stringBuilder.AppendLine(line);
 			}
 		}
 		string content = stringBuilder.ToString();
-		return (content, base64Signature);
+
+		int signatureBeginIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {WasabiSignatureHeadline}-----");
+		if (signatureBeginIndex != -1)
+		{
+			base64Signature = sumsFileLines[signatureBeginIndex + 1].Trim();
+		}
+
+		return (content, installerDictionary, base64Signature);
 	}
 
 	public static uint256 GenerateHashFromFile(string filePath)
@@ -158,10 +139,10 @@ public static class WasabiSignerTools
 		return new(computedHash);
 	}
 
-	public static void SignAndSaveSHASumsFile(IEnumerable<string> filepaths, string destinationPath, Key key)
+	public static void SignAndSaveSHASumsFile(IEnumerable<string> installerFilepaths, string destinationPath, Key key)
 	{
 		StringBuilder fileContent = new();
-		foreach (string filepath in filepaths)
+		foreach (string filepath in installerFilepaths)
 		{
 			uint256 fileHash = GenerateHashFromFile(filepath);
 			fileContent.AppendLine($"{fileHash} {filepath.Split("\\").Last()}");
@@ -171,23 +152,23 @@ public static class WasabiSignerTools
 		ECDSASignature signature = key.Sign(contentHash);
 		string base64Signature = Convert.ToBase64String(signature.ToDER());
 
-		fileContent.Insert(0, "-----BEGIN SIGNED CONTENT-----\n");
-		fileContent.AppendLine("-----END SIGNED CONTENT-----");
-		fileContent.AppendLine("-----BEGIN WASABI SIGNATURE-----");
+		fileContent.Insert(0, $"-----BEGIN {WasabiContentHeadline}-----\n");
+		fileContent.AppendLine($"-----END {WasabiContentHeadline}-----");
+		fileContent.AppendLine($"-----BEGIN {WasabiSignatureHeadline}-----");
 		fileContent.AppendLine(base64Signature);
-		fileContent.AppendLine("-----END WASABI SIGNATURE-----");
+		fileContent.AppendLine($"-----END {WasabiSignatureHeadline}-----");
 		File.WriteAllText(destinationPath, fileContent.ToString());
 	}
 
-	public static void SavePrivateKeyToFile(string path, Key key)
+	public static void SavePrivateKeyToFile(string destionationPath, Key key)
 	{
 		try
 		{
-			if (File.Exists(path))
+			if (File.Exists(destionationPath))
 			{
 				throw new ArgumentException("Private key file already exists.");
 			}
-			using StreamWriter streamWriter = new(path);
+			using StreamWriter streamWriter = new(destionationPath);
 			streamWriter.WriteLine($"-----BEGIN {WasabiKeyHeadline}-----");
 			streamWriter.WriteLine(key.ToString(Network.Main));
 			streamWriter.WriteLine($"-----END {WasabiKeyHeadline}-----");

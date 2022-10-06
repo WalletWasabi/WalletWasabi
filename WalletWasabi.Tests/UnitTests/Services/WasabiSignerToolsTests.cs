@@ -6,18 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Services;
 
 public class WasabiSignerToolsTests
 {
-	private Key _privateKey = WasabiSignerTools.GenerateKey();
-	private DirectoryInfo _installerFolder = CreateTestFolderWithFiles();
+	private Key PrivateKey { get; } = WasabiSignerTools.GeneratePrivateKey();
+	private DirectoryInfo InstallerFolder { get; } = CreateTestFolderWithFiles();
 
 	private static DirectoryInfo CreateTestFolderWithFiles()
 	{
-		var installerFolder = Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "tmp", "installers"));
+		var installerFolder = Directory.CreateDirectory(Path.Combine(Common.GetWorkDir(nameof(WasabiSignerToolsTests)), "tmp", "installers"));
 		string[] filenames = new[] { "Wasabi.msi", "Wasabi.deb", "Wasabi.dmg", "Wasabi.tar.gz" };
 		string path;
 		for (int i = 0; i < filenames.Length; i++)
@@ -33,74 +34,78 @@ public class WasabiSignerToolsTests
 	}
 
 	[Fact]
-	public void WritingAndVerifyingSHASumsTest()
+	public void WritingAndVerifyingShaSumsTest()
 	{
-		string[] filepaths = _installerFolder.GetFiles().Select(file => file.FullName).ToArray();
-		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
-		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
+		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
+		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
+		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, PrivateKey);
 		Assert.True(File.Exists(destinationPath));
 
-		PubKey publicKey = _privateKey.PubKey;
-		bool isSignatureValid = WasabiSignerTools.VerifySHASumsFile(destinationPath, publicKey);
+		PubKey publicKey = PrivateKey.PubKey;
+		bool isSignatureValid = WasabiSignerTools.VerifyShaSumsFile(destinationPath, publicKey);
 		Assert.True(isSignatureValid);
 	}
 
 	[Fact]
-	public void WritingSHASumsThrowsErrorWithWrongArgumentTest()
+	public void WritingShaSumsThrowsErrorWithWrongArgumentTest()
 	{
 		string[] invalidFilePaths = new[] { "notAValidFilePath" };
-		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
-		Assert.Throws<FileNotFoundException>(() => WasabiSignerTools.SignAndSaveSHASumsFile(invalidFilePaths, destinationPath, _privateKey));
+		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
+		Assert.Throws<FileNotFoundException>(() => WasabiSignerTools.SignAndSaveSHASumsFile(invalidFilePaths, destinationPath, PrivateKey));
 	}
 
 	[Fact]
-	public void VerifyingSUMSFileWithInvalidArgumentsFailsTest()
+	public void VerifyingShaSumsFileWithInvalidArgumentsFailsTest()
 	{
-		string[] filepaths = _installerFolder.GetFiles().Select(file => file.FullName).ToArray();
-		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
-		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
+		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
+		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
+		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, PrivateKey);
 		Assert.True(File.Exists(destinationPath));
 
-		PubKey goodPublicKey = _privateKey.PubKey;
-		PubKey wrongPublicKey = WasabiSignerTools.GenerateKey().PubKey;
+		PubKey goodPublicKey = PrivateKey.PubKey;
+		PubKey wrongPublicKey = WasabiSignerTools.GeneratePrivateKey().PubKey;
 
-		bool withWrongKey = WasabiSignerTools.VerifySHASumsFile(destinationPath, wrongPublicKey);
+		bool withWrongKey = WasabiSignerTools.VerifyShaSumsFile(destinationPath, wrongPublicKey);
 		Assert.False(withWrongKey);
-		bool withWrongFile = WasabiSignerTools.VerifySHASumsFile(filepaths.First(), goodPublicKey);
+		bool withWrongFile = WasabiSignerTools.VerifyShaSumsFile(filepaths.First(), goodPublicKey);
 		Assert.False(withWrongFile);
 	}
 
 	[Fact]
-	public void CanGenerateReadHashFromFileTest()
+	public void CanGenerateAndReadHashFromFileTest()
 	{
-		string[] filepaths = _installerFolder.GetFiles().Select(file => file.FullName).ToArray();
+		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
 
-		uint256 fileHash = WasabiSignerTools.GenerateHashFromFile(filepaths.First());
-		uint256 otherFileHash = WasabiSignerTools.GenerateHashFromFile(filepaths.ElementAt(1));
+		uint256 firstInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths.First());
+		uint256 secondInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths.ElementAt(1));
 
-		string destinationPath = Path.Combine(_installerFolder.Parent!.FullName, WasabiSignerTools.SHASumsFileName);
-		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, _privateKey);
-		Assert.True(File.Exists(destinationPath));
+		string shaSumsDestinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
+		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, shaSumsDestinationPath, PrivateKey);
+		Assert.True(File.Exists(shaSumsDestinationPath));
 
-		uint256 sameFileHash = WasabiSignerTools.ReadHashFromSHASumsFile(destinationPath, filepaths.First().Split("\\").Last());
-		uint256 otherFileSameHash = WasabiSignerTools.ReadHashFromSHASumsFile(destinationPath, filepaths.ElementAt(1).Split("\\").Last());
-		Assert.Equal(fileHash, sameFileHash);
-		Assert.Equal(otherFileHash, otherFileSameHash);
+		string firstInstallerFileName = filepaths.First().Split("\\").Last();
+		string secondInstallerFileName = filepaths.ElementAt(1).Split("\\").Last();
+		(string _, Dictionary<string, uint256> fileDictionary, string _) = WasabiSignerTools.ReadShaSumsContent(shaSumsDestinationPath);
+
+		uint256 firstInstallerHashFromFile = fileDictionary[firstInstallerFileName];
+		uint256 secondInstallerHashFromFile = fileDictionary[secondInstallerFileName];
+		Assert.Equal(firstInstallerHash, firstInstallerHashFromFile);
+		Assert.Equal(secondInstallerHash, secondInstallerHashFromFile);
 	}
 
 	[Fact]
 	public void CanSaveAndReadKeyFromFileTest()
 	{
-		var tmpFolder = Path.Combine(_installerFolder.FullName, "..");
-		var keyFilePath = Path.Combine(tmpFolder, "WasabiKey.txt");
+		var tmpFolder = Path.Combine(InstallerFolder.FullName, "..");
+		var tmpKeyFilePath = Path.Combine(tmpFolder, "WasabiKey.txt");
 
-		WasabiSignerTools.SavePrivateKeyToFile(keyFilePath, _privateKey);
-		Assert.True(File.Exists(keyFilePath));
-		Assert.Throws<ArgumentException>(() => WasabiSignerTools.SavePrivateKeyToFile(keyFilePath, _privateKey));
+		WasabiSignerTools.SavePrivateKeyToFile(tmpKeyFilePath, PrivateKey);
+		Assert.True(File.Exists(tmpKeyFilePath));
+		Assert.Throws<ArgumentException>(() => WasabiSignerTools.SavePrivateKeyToFile(tmpKeyFilePath, PrivateKey));
 
-		bool canReadKey = WasabiSignerTools.TryGetKeyFromFile(keyFilePath, out Key? key);
+		bool canReadKey = WasabiSignerTools.TryGetPrivateKeyFromFile(tmpKeyFilePath, out Key? key);
 		Assert.True(canReadKey);
 		Assert.NotNull(key);
-		File.Delete(keyFilePath);
+		File.Delete(tmpKeyFilePath);
 	}
 }
