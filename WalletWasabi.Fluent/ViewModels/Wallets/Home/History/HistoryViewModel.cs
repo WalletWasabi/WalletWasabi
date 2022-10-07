@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
-using Avalonia.Layout;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -21,6 +19,8 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
+using Zafiro.Core.Mixins;
+using Zafiro.Core.Trees;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
@@ -186,31 +186,24 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
-		var node = TransactionItemNode.Create(Transactions)
-			.SelectMany(node => node.Children.Concat(new [] { node }))
-			.FirstOrDefault(x => x.Item.Id == txid);
+		// We clear any previous selection. Otherwise, if the item is already selected, it won't flash again.
+		Source.RowSelection!.SelectedIndex = IndexPath.Unselected;
+
+		var treeNodes = Source.Items
+			.ToTreeNodes(x => x.Children)
+			.Flatten(x => x.Children)
+			.Where(x => Equals(x.Item.Id, txid))
+			.OrderByDescending(x => x.Path.Count());
+
+		var node = treeNodes.FirstOrDefault();
 
 		if (node == null)
 		{
 			return;
 		}
 		
-		if (node.Parent != null)
-		{
-			node.Parent.Item.IsExpanded = true;
-		}
-
-		var indexPath = node.Parent != null ? new IndexPath(node.Parent.Index, node.Index) : new IndexPath(node.Index);
-
-		// We clear any previous selection. Otherwise, if the item is already selected, it won't flash again.
-		Source.RowSelection!.SelectedIndex = IndexPath.Unselected;
-
-		// Select new item.
-		Source.RowSelection!.SelectedIndex = indexPath;
-
+		Source.RowSelection.SelectedIndex = new IndexPath(node.Path);
 		node.Item.IsFlashing = true;
-		
-		SelectedItem = node.Item;
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)
