@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -247,8 +248,15 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	public void NavigateAndHighlight(uint256 txid)
 	{
+		if (MainViewModel.Instance.IsBusy)
+		{
+			return;
+		}
+
 		Navigate().To(this, NavigationMode.Clear);
 
+		MainViewModel.Instance.NavBar.SelectedItem = MainViewModel.Instance.NavBar.Wallets.First(x => x == this);
+		
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
 			await Task.Delay(500);
