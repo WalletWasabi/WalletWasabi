@@ -119,11 +119,7 @@ public static class TransactionHelpers
 				intent,
 				feeRateFetcher: () => transactionInfo.FeeRate,
 				allowedCoins.Select(x => x.OutPoint),
-				lockTimeSelector: () =>
-				{
-					var currentTipHeight = bitcoinStore.SmartHeaderChain.TipHeight;
-					return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
-				},
+				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
 				transactionInfo.PayJoinClient,
 				tryToSign: false);
 
