@@ -442,6 +442,7 @@ public partial class Arena : PeriodicRunner
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
+
 				// Use an existing large round instead of creating a new one if there is one with enough time remaining
 				// and not already too crowded to support inputs inflow from next to be destroyed round
 				Round? foundLargeRound = roundWithoutThis
