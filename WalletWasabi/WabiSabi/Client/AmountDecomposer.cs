@@ -302,7 +302,7 @@ public class AmountDecomposer
 
 		// We want to introduce randomness between the best selections.
 		var bestCandidateCost = orderedCandidates.First().Cost;
-		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.3m);
+		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
 		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
 
 		// We want to make sure our random selection is not between similar decompositions.
