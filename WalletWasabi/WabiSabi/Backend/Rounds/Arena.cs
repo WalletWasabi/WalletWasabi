@@ -442,11 +442,13 @@ public partial class Arena : PeriodicRunner
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
 				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
+				// Use an existing large round instead of creating a new one if there is one with enough time remaining
+				// and not already too crowded to support inputs inflow from next to be destroyed round
 				Round? foundLargeRound = roundWithoutThis
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
-									&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+									&& roundDestroyerInputCount * 0.7 < x.InputCount / (1 - (x.InputRegistrationTimeFrame.Remaining.TotalSeconds / x.InputRegistrationTimeFrame.Duration.TotalSeconds))
 									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(150));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
