@@ -20,13 +20,11 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceNonPrivateBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasBalance;
-	[AutoNotify] private double _percentPrivate;
 
 	public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
 	{
@@ -64,22 +62,14 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceFiat = fiatAmount.GenerateFiatText("USD", fiatFormat).TrimEnd();
 
+		HasBalance = totalAmount > Money.Zero;
+
 		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
-		var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
-
 		var privateDecimalAmount = privateCoins.TotalAmount();
-		var totalDecimalAmount = _wallet.Coins.TotalAmount();
-
-		HasBalance = totalAmount > Money.Zero;
 
 		BalancePrivateBtc = privateDecimalAmount
 			.FormattedBtc() + " BTC";
-
-		BalanceNonPrivateBtc = normalCoins.TotalAmount().ToDecimal(MoneyUnit.BTC)
-			.FormattedBtc() + " BTC";
-
-		PercentPrivate = totalDecimalAmount.ToDecimal(MoneyUnit.BTC) == 0M ? 0d : (double)(privateDecimalAmount.ToDecimal(MoneyUnit.BTC) / totalDecimalAmount.ToDecimal(MoneyUnit.BTC));
 	}
 
 	private void UpdateRecentTransaction()
