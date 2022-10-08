@@ -20,6 +20,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateFiat;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
@@ -70,6 +71,14 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalancePrivateBtc = privateDecimalAmount
 			.FormattedBtc() + " BTC";
+
+		var privateFiatAmount = privateCoins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
+		var privateFiatFormat =
+			privateFiatAmount >= 10
+			? "N0"
+			: "N2";
+
+		BalancePrivateFiat = privateFiatAmount.GenerateFiatText("USD", privateFiatFormat).TrimEnd();
 	}
 
 	private void UpdateRecentTransaction()

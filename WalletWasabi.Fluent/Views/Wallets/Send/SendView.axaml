@@ -27,6 +27,9 @@
               <TextBlock Opacity="0.6" Classes="h8" Text="Balance: " />
               <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}" />
               <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}" />
+              <TextBlock Opacity="0.6" Classes="h8" Text="Private: " />
+              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalancePrivateBtc}" />
+              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalancePrivateFiat}" />
             </StackPanel>
           </c:PrivacyContentControl>
         </StackPanel>
