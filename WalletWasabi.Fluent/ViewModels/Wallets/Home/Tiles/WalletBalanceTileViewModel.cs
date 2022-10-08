@@ -55,7 +55,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
-		var fiatAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
+		var fiatAmount = totalAmount.ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
 		var fiatFormat =
 			fiatAmount >= 10
 			? "N0"
@@ -69,10 +69,9 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var privateDecimalAmount = privateCoins.TotalAmount();
 
-		BalancePrivateBtc = privateDecimalAmount
-			.FormattedBtc() + " BTC";
+		BalancePrivateBtc = privateDecimalAmount.FormattedBtc() + " BTC";
 
-		var privateFiatAmount = privateCoins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
+		var privateFiatAmount = privateDecimalAmount.ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
 		var privateFiatFormat =
 			privateFiatAmount >= 10
 			? "N0"
