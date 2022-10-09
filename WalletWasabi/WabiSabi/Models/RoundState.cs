@@ -15,7 +15,8 @@ public record RoundState(uint256 Id,
 	EndRoundState EndRoundState,
 	DateTimeOffset InputRegistrationStart,
 	TimeSpan InputRegistrationTimeout,
-	MultipartyTransactionState CoinjoinState)
+	MultipartyTransactionState CoinjoinState,
+	int InputCount)
 {
 	public DateTimeOffset InputRegistrationEnd => InputRegistrationStart + InputRegistrationTimeout;
 
@@ -29,8 +30,9 @@ public record RoundState(uint256 Id,
 			round.EndRoundState,
 			round.InputRegistrationTimeFrame.StartTime,
 			round.InputRegistrationTimeFrame.Duration,
-			round.CoinjoinState.GetStateFrom(stateId)
-			);
+			round.CoinjoinState.GetStateFrom(stateId),
+			round.InputCount
+		);
 
 	public RoundState GetSubState(int skipFromBaseState) =>
 		new(
@@ -42,8 +44,9 @@ public record RoundState(uint256 Id,
 			EndRoundState,
 			InputRegistrationStart,
 			InputRegistrationTimeout,
-			CoinjoinState.GetStateFrom(skipFromBaseState)
-			);
+			CoinjoinState.GetStateFrom(skipFromBaseState),
+			InputCount
+		);
 
 	public TState Assert<TState>() where TState : MultipartyTransactionState =>
 		CoinjoinState switch
