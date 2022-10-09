@@ -449,7 +449,7 @@ public partial class Arena : PeriodicRunner
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
-									&& (x.InputCount < 50 || roundDestroyerInputCount * 0.7 <= roundDestroyerInputCount - x.InputCount / (1 - (x.InputRegistrationTimeFrame.Remaining.TotalSeconds / x.InputRegistrationTimeFrame.Duration.TotalSeconds)))
+									&& (x.InputCount < 50 || roundDestroyerInputCount * 0.6 <= roundDestroyerInputCount - x.InputCount / (1 - (x.InputRegistrationTimeFrame.Remaining.TotalSeconds / x.InputRegistrationTimeFrame.Duration.TotalSeconds)))
 									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(150));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
