@@ -17,12 +17,12 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 {
 	private readonly Wallet _wallet;
 
-	public LabelEntryDialogViewModel(Wallet wallet, TransactionInfo info)
+	public LabelEntryDialogViewModel(Wallet wallet, SmartLabel label)
 	{
 		_wallet = wallet;
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Send, 3)
 		{
-			Labels = { info.UserLabels.Labels }
+			Labels = { label.Labels }
 		};
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

@@ -50,7 +50,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 	public static async IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> GenerateSuggestionsAsync(
 		TransactionInfo transactionInfo,
-		BitcoinAddress destination,
 		Wallet wallet,
 		ImmutableArray<SmartCoin> coinsToUse,
 		int maxInputCount,
@@ -60,7 +59,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		IAsyncEnumerable<IEnumerable<SmartCoin>> selectionsTask = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 			coinsToUse,
 			transactionInfo.FeeRate,
-			new TxOut(transactionInfo.Amount, destination),
+			new TxOut(transactionInfo.Amount, transactionInfo.Destination),
 			maxInputCount,
 			cancellationToken);
 
@@ -76,7 +75,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 				{
 					transaction = TransactionHelpers.BuildChangelessTransaction(
 						wallet,
-						destination,
+						transactionInfo.Destination,
 						transactionInfo.UserLabels,
 						transactionInfo.FeeRate,
 						selection,
