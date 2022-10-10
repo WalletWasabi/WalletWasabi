@@ -1,8 +1,8 @@
-﻿using NBitcoin;
+﻿using System.Collections.Generic;
+using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Fluent.ViewModels.Statistics;
 
@@ -27,5 +27,51 @@ public partial class RoundStateViewModel : RoutableViewModel
 		InputRegistrationStart = roundState.InputRegistrationStart;
 		InputRegistrationTimeout = roundState.InputRegistrationTimeout;
 		// TODO: CoinjoinState
+	}
+
+	public static Comparison<RoundStateViewModel?> SortAscending<T>(Func<RoundStateViewModel, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return -1;
+			}
+			else if (y is null)
+			{
+				return 1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(x), selector(y));
+			}
+		};
+	}
+
+	public static Comparison<RoundStateViewModel?> SortDescending<T>(Func<RoundStateViewModel, T> selector)
+	{
+		return (x, y) =>
+		{
+			if (x is null && y is null)
+			{
+				return 0;
+			}
+			else if (x is null)
+			{
+				return 1;
+			}
+			else if (y is null)
+			{
+				return -1;
+			}
+			else
+			{
+				return Comparer<T>.Default.Compare(selector(y), selector(x));
+			}
+		};
 	}
 }

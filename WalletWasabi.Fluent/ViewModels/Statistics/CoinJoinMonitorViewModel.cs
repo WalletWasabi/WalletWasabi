@@ -78,6 +78,8 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.Id),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.Id),
 						MinWidth = new GridLength(100, GridUnitType.Pixel)
 					},
 					width: new GridLength(0, GridUnitType.Auto),
@@ -95,6 +97,8 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.BlameOf),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.BlameOf),
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -107,6 +111,8 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.Phase),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.Phase),
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -119,6 +125,8 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.EndRoundState),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.EndRoundState),
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -131,6 +139,8 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.InputRegistrationStart),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.InputRegistrationStart),
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -143,6 +153,8 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.InputRegistrationTimeout),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.InputRegistrationTimeout),
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
