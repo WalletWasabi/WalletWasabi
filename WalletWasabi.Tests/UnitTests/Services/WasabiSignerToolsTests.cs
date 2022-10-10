@@ -42,8 +42,10 @@ public class WasabiSignerToolsTests
 		Assert.True(File.Exists(destinationPath));
 
 		PubKey publicKey = PrivateKey.PubKey;
-		bool isSignatureValid = WasabiSignerTools.VerifyShaSumsFile(destinationPath, publicKey);
-		Assert.True(isSignatureValid);
+		(string content, Dictionary<string, uint256> installerFiles, string signature) = WasabiSignerTools.ReadShaSumsContent(destinationPath, publicKey);
+		Assert.NotEmpty(installerFiles);
+		Assert.NotNull(content);
+		Assert.NotNull(signature);
 	}
 
 	[Fact]
@@ -64,17 +66,13 @@ public class WasabiSignerToolsTests
 
 		PubKey goodPublicKey = PrivateKey.PubKey;
 		PubKey wrongPublicKey = WasabiSignerTools.GeneratePrivateKey().PubKey;
-
-		bool withWrongKey = WasabiSignerTools.VerifyShaSumsFile(destinationPath, wrongPublicKey);
-		Assert.False(withWrongKey);
-		bool withWrongFile = WasabiSignerTools.VerifyShaSumsFile(filepaths.First(), goodPublicKey);
-		Assert.False(withWrongFile);
 	}
 
 	[Fact]
 	public void CanGenerateAndReadHashFromFileTest()
 	{
 		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
+		PubKey publicKey = PrivateKey.PubKey;
 
 		uint256 firstInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths[0]);
 		uint256 secondInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths[1]);
@@ -85,7 +83,7 @@ public class WasabiSignerToolsTests
 
 		string firstInstallerFileName = filepaths[0].Split("\\").Last();
 		string secondInstallerFileName = filepaths[1].Split("\\").Last();
-		(string _, Dictionary<string, uint256> fileDictionary, string _) = WasabiSignerTools.ReadShaSumsContent(shaSumsDestinationPath);
+		(string _, Dictionary<string, uint256> fileDictionary, string _) = WasabiSignerTools.ReadShaSumsContent(shaSumsDestinationPath, publicKey);
 
 		uint256 firstInstallerHashFromFile = fileDictionary[firstInstallerFileName];
 		uint256 secondInstallerHashFromFile = fileDictionary[secondInstallerFileName];

@@ -46,13 +46,11 @@ public static class WasabiSignerTools
 		return false;
 	}
 
-	public static bool VerifyShaSumsFile(string shaSumsFilePath, PubKey publicKey)
+	private static bool VerifyShaSumsFile(string shaSumsFileContent, string base64Signature, PubKey publicKey)
 	{
 		try
 		{
-			(string content, Dictionary<string, uint256> _, string base64Signature) = ReadShaSumsContent(shaSumsFilePath);
-
-			uint256 hash = GenerateHashFromString(content);
+			uint256 hash = GenerateHashFromString(shaSumsFileContent);
 
 			byte[] sigBytes = Convert.FromBase64String(base64Signature);
 			var wasabiSignature = ECDSASignature.FromDER(sigBytes);
@@ -60,7 +58,7 @@ public static class WasabiSignerTools
 		}
 		catch (FormatException)
 		{
-			Logger.LogWarning("SHASums file signature was invalid, DER bytes are not in right format.");
+			Logger.LogWarning($"{ShaSumsFileName}'s signature was invalid, DER bytes are not in right format.");
 		}
 		catch (Exception exc)
 		{
@@ -69,7 +67,7 @@ public static class WasabiSignerTools
 		return false;
 	}
 
-	public static (string content, Dictionary<string, uint256> installerDictionary, string base64Signature) ReadShaSumsContent(string shaSumsFilePath)
+	public static (string content, Dictionary<string, uint256> installerDictionary, string base64Signature) ReadShaSumsContent(string shaSumsFilePath, PubKey pubKey)
 	{
 		Dictionary<string, uint256> installerDictionary = new();
 		string base64Signature = "";
@@ -106,7 +104,11 @@ public static class WasabiSignerTools
 		{
 			base64Signature = sumsFileLines[signatureBeginIndex + 1].Trim();
 		}
-
+		bool isSignatureValid = VerifyShaSumsFile(content, base64Signature, pubKey);
+		if (!isSignatureValid)
+		{
+			throw new ArgumentException($"Couldn't verify Wasabi's signature in {ShaSumsFileName}.");
+		}
 		return (content, installerDictionary, base64Signature);
 	}
 
