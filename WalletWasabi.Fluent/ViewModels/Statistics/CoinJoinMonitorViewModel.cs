@@ -45,7 +45,7 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Sort(SortExpressionComparer<RoundStateViewModel>
-				.Ascending(x => x.InputRegistrationStart))
+				.Descending(x => x.InputRegistrationStart))
 			.Bind(_roundStates)
 			.Subscribe();
 
