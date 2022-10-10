@@ -60,13 +60,13 @@ public static class TransactionHelpers
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, bool isPayJoin = false, bool tryToSign = true)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
 		if (transactionInfo.IsOptimized)
 		{
 			return BuildChangelessTransaction(
 				wallet,
-				destination,
+				transactionInfo.Destination,
 				transactionInfo.UserLabels,
 				transactionInfo.FeeRate,
 				transactionInfo.ChangelessCoins,
@@ -80,7 +80,7 @@ public static class TransactionHelpers
 
 		return BuildTransaction(
 			wallet,
-			destination,
+			transactionInfo.Destination,
 			transactionInfo.Amount,
 			transactionInfo.UserLabels,
 			transactionInfo.FeeRate,
