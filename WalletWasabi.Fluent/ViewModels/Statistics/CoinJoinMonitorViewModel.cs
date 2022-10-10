@@ -40,10 +40,6 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 
 	private List<RoundState>? GetRoundStates()
 	{
-		// TODO: How to get same data as:
-		// WabiSabiCoordinator.Arena.Rounds
-		// WabiSabiController.GetHumanMonitor()
-
 		var coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 		if (coinJoinManager?.RoundStatusUpdater is { } roundStateUpdater)
 		{
