@@ -5,9 +5,9 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class TreeNode<T, TPath>
 {
-	public delegate TPath PathFactory(TreeNode<T, TPath>? previousNode, TreeNode<T, TPath> currentNode);
-
 	private readonly PathFactory _pathFactory;
+
+	public delegate TPath PathFactory(TreeNode<T, TPath>? previousNode, TreeNode<T, TPath> currentNode);
 
 	public TreeNode(T item, int index, TreeNode<T, TPath>? parent, PathFactory pathFactory)
 	{
@@ -32,26 +32,6 @@ public class TreeNode<T, TPath>
 				var children = Create(getChildren(x), parentNode, getChildren, pathFactory);
 				parentNode.Children = children;
 				return parentNode;
-			});
-	}
-}
-
-public class TreeNode
-{
-	public static IEnumerable<TreeNode<T, IEnumerable<int>>> Create<T>(IEnumerable<T> nodes, TreeNode<T, IEnumerable<int>>? parent, Func<T, IEnumerable<T>> getChildren)
-	{
-		return TreeNode<T, IEnumerable<int>>.Create(
-			nodes,
-			parent,
-			getChildren,
-			(p, n) =>
-			{
-				if (p != null)
-				{
-					return p.Path.Concat(new[] { n.Index });
-				}
-
-				return new[] { n.Index };
 			});
 	}
 }
