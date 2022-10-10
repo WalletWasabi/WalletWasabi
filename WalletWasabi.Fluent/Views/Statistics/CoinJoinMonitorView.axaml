@@ -10,6 +10,15 @@
                  EnableNext="{Binding !EnableBack}"
                  NextContent="Close"
                  EnableBack="{Binding EnableBack}">
+    <TreeDataGrid Source="{Binding Source}"
+                  CanUserSortColumns="True">
+      <TreeDataGrid.Styles>
+        <Style Selector="TreeDataGridRow">
+          <Setter Property="Height" Value="47.5" />
+        </Style>
+      </TreeDataGrid.Styles>
+    </TreeDataGrid>
+    <!--
     <ItemsControl Items="{Binding RoundStates}">
       <ItemsControl.Styles>
         <Style Selector="ItemsControl">
@@ -65,5 +74,6 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
+    -->
   </c:ContentArea>
 </UserControl>
