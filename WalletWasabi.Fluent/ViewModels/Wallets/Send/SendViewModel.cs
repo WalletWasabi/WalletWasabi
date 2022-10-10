@@ -41,9 +41,9 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly WalletViewModel _walletViewModel;
-	private readonly TransactionInfo _transactionInfo;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private bool _parsingTo;
+	private SmartLabel _parsedLabel = SmartLabel.Empty;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -58,7 +58,6 @@ public partial class SendViewModel : RoutableViewModel
 		_to = "";
 		_walletViewModel = walletViewModel;
 		_wallet = walletViewModel.Wallet;
-		_transactionInfo = new TransactionInfo(_wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
@@ -81,18 +80,7 @@ public partial class SendViewModel : RoutableViewModel
 			.Subscribe(ParseToField);
 
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
-			.Subscribe(endPoint =>
-			{
-				if (endPoint is { })
-				{
-					_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint);
-					IsPayJoin = true;
-				}
-				else
-				{
-					IsPayJoin = false;
-				}
-			});
+			.Subscribe(endPoint => IsPayJoin = endPoint is { });
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
@@ -117,31 +105,25 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(
-			async () =>
+		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var address = BitcoinAddress.Create(To, _wallet.Network);
-
-				_transactionInfo.Reset();
-				_transactionInfo.Amount = new Money(AmountBtc, MoneyUnit.BTC);
-				_transactionInfo.IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled;
-
-				var labelDialog = new LabelEntryDialogViewModel(_wallet, _transactionInfo);
+				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 				if (result.Result is not { } label)
 				{
 					return;
 				}
 
-				_transactionInfo.UserLabels = label;
+				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
+				{
+					Amount = new Money(AmountBtc, MoneyUnit.BTC),
+					UserLabels = label,
+					PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
+					IsFixedAmount = _isFixedAmount,
+					IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled
+				};
 
-				Navigate().To(
-					new TransactionPreviewViewModel(
-						_walletViewModel,
-						_transactionInfo,
-						address,
-						_isFixedAmount,
-						balanceChanged));
+				Navigate().To(new TransactionPreviewViewModel(_walletViewModel, transactionInfo, balanceChanged));
 			},
 			nextCommandCanExecute);
 
@@ -280,7 +262,11 @@ public partial class SendViewModel : RoutableViewModel
 			result = true;
 			if (url.Label is { } label)
 			{
-				_transactionInfo.UserLabels = new SmartLabel(label);
+				_parsedLabel = new SmartLabel(label);
+			}
+			else
+			{
+				_parsedLabel = SmartLabel.Empty;
 			}
 
 			if (url.UnknownParameters.TryGetValue("pj", out var endPoint))
@@ -311,6 +297,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			IsFixedAmount = false;
 			PayJoinEndPoint = null;
+			_parsedLabel = SmartLabel.Empty;
 		}
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);

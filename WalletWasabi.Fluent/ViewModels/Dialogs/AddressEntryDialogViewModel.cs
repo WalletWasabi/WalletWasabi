@@ -19,20 +19,19 @@ using WalletWasabi.Userfacing;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Address")]
-public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAddress?>
+public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUrlBuilder?>
 {
 	private readonly Network _network;
-	private readonly TransactionInfo _info;
 	[AutoNotify] private string _to = "";
 
 	private bool _parsingUrl;
 	private bool _payJoinUrlFound;
 	private bool _amountUrlFound;
+	private BitcoinUrlBuilder? _resultToReturn;
 
-	public AddressEntryDialogViewModel(Network network, TransactionInfo info)
+	public AddressEntryDialogViewModel(Network network)
 	{
 		_network = network;
-		_info = info;
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -65,7 +64,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 					return addressFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, BitcoinAddress.Create(To, _network)), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, _resultToReturn), nextCommandCanExecute);
 	}
 
 	public bool IsQrButtonVisible { get; }
@@ -126,15 +125,9 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 			return false;
 		}
 
-		bool result = false;
-
 		if (AddressStringParser.TryParse(text, _network, out BitcoinUrlBuilder? url))
 		{
-			result = true;
-			if (url.Label is { } label)
-			{
-				_info.UserLabels = new SmartLabel(label);
-			}
+			_resultToReturn = url;
 
 			_payJoinUrlFound = url.UnknownParameters.TryGetValue("pj", out _);
 
@@ -149,9 +142,10 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinAd
 		{
 			_payJoinUrlFound = false;
 			_amountUrlFound = false;
+			_resultToReturn = null;
 		}
 
-		return result;
+		return _resultToReturn is { };
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
