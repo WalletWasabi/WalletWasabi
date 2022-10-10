@@ -13,7 +13,8 @@ namespace WalletWasabi.Services;
 public static class WasabiSignerTools
 {
 	private const string WasabiKeyHeadline = "WASABI PRIVATE KEY";
-	private const string WasabiContentHeadline = "SIGNED CONTENT";
+	private const string PGPMessageHeadline = "PGP SIGNED MESSAGE";
+	private const string PGPSignatureHeadline = "PGP SIGNATURE";
 	private const string WasabiSignatureHeadline = "WASABI SIGNATURE";
 	public static string ShaSumsFileName { get; } = "SHA256SUMS.asc";
 
@@ -71,40 +72,45 @@ public static class WasabiSignerTools
 	{
 		Dictionary<string, uint256> installerDictionary = new();
 		string base64Signature = "";
-		StringBuilder stringBuilder = new();
+		StringBuilder contentBuilder = new();
 
-		string[] sumsFileLines = File.ReadAllLines(shaSumsFilePath);
+		string content = File.ReadAllText(shaSumsFilePath).Replace("\r\n", "\n");
+		string[] sumsFileLines = content.Split("\n");
 
 		string? headline = sumsFileLines.FirstOrDefault();
-		int contentEndIndex = Array.IndexOf(sumsFileLines, $"-----END {WasabiContentHeadline}-----");
+		int contentEndIndex = Array.IndexOf(sumsFileLines, $"-----END {PGPSignatureHeadline}-----");
 		if (headline is null ||
-			headline != $"-----BEGIN {WasabiContentHeadline}-----" ||
+			headline != $"-----BEGIN {PGPMessageHeadline}-----" ||
 			contentEndIndex == -1)
 		{
 			throw new ArgumentException($"{ShaSumsFileName}'s content was invalid.");
 		}
-
-		for (int i = 1; i < contentEndIndex; i++)
+		int installerFilesEndIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {PGPSignatureHeadline}-----");
+		for (int i = 0; i < installerFilesEndIndex; i++)
 		{
 			string line = sumsFileLines[i].Trim();
-			string[] splitLine = line.Split(" ");
+			contentBuilder.AppendLine(line);
 
+			string[] splitLine = line.Split(" ");
 			bool isHashValid = uint256.TryParse(splitLine[0], out uint256 installerHash);
 			if (isHashValid)
 			{
 				string installerName = splitLine[1];
 				installerDictionary.Add(installerName, installerHash);
-				stringBuilder.AppendLine(line);
 			}
 		}
-		string content = stringBuilder.ToString();
 
 		int signatureBeginIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {WasabiSignatureHeadline}-----");
 		if (signatureBeginIndex != -1)
 		{
 			base64Signature = sumsFileLines[signatureBeginIndex + 1].Trim();
 		}
-		bool isSignatureValid = VerifyShaSumsFile(content, base64Signature, pubKey);
+
+		for (int i = installerFilesEndIndex; i < signatureBeginIndex; i++)
+		{
+			contentBuilder.AppendLine(sumsFileLines[i]);
+		}
+		bool isSignatureValid = VerifyShaSumsFile(contentBuilder.ToString().Replace("\r\n", "\n"), base64Signature, pubKey);
 		if (!isSignatureValid)
 		{
 			throw new ArgumentException($"Couldn't verify Wasabi's signature in {ShaSumsFileName}.");
@@ -135,25 +141,20 @@ public static class WasabiSignerTools
 		return new(computedHash);
 	}
 
-	public static void SignAndSaveSHASumsFile(IEnumerable<string> installerFilePaths, string destinationPath, Key key)
+	public static void SignAndSaveSHASumsFile(string signatureFilePath, string destinationPath, Key key)
 	{
-		StringBuilder fileContent = new();
-		foreach (string filepath in installerFilePaths)
-		{
-			uint256 fileHash = GenerateHashFromFile(filepath);
-			fileContent.AppendLine($"{fileHash} {filepath.Split("\\").Last()}");
-		}
-		uint256 contentHash = GenerateHashFromString(fileContent.ToString());
+		string content = File.ReadAllText(signatureFilePath);
+		uint256 contentHash = GenerateHashFromString(content.Replace("\r\n", "\n"));
 
 		ECDSASignature signature = key.Sign(contentHash);
 		string base64Signature = Convert.ToBase64String(signature.ToDER());
 
-		fileContent.Insert(0, $"-----BEGIN {WasabiContentHeadline}-----\n");
-		fileContent.AppendLine($"-----END {WasabiContentHeadline}-----");
-		fileContent.AppendLine($"-----BEGIN {WasabiSignatureHeadline}-----");
-		fileContent.AppendLine(base64Signature);
-		fileContent.AppendLine($"-----END {WasabiSignatureHeadline}-----");
-		File.WriteAllText(destinationPath, fileContent.ToString());
+		StringBuilder stringBuilder = new(content);
+		stringBuilder.AppendLine($"-----BEGIN {WasabiSignatureHeadline}-----");
+		stringBuilder.AppendLine(base64Signature);
+		stringBuilder.AppendLine($"-----END {WasabiSignatureHeadline}-----");
+
+		File.WriteAllText(destinationPath, stringBuilder.ToString());
 	}
 
 	public static void SavePrivateKeyToFile(string destinationPath, Key key)

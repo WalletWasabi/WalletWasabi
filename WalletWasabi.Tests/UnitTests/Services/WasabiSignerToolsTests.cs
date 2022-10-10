@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,8 +14,9 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 
 public class WasabiSignerToolsTests
 {
-	private Key PrivateKey { get; } = WasabiSignerTools.GeneratePrivateKey();
-	private DirectoryInfo InstallerFolder { get; } = CreateTestFolderWithFiles();
+	private static Key PrivateKey { get; } = WasabiSignerTools.GeneratePrivateKey();
+	private static DirectoryInfo InstallerFolder { get; } = CreateTestFolderWithFiles();
+	private string ShaSumsFilePath { get; } = CreateShaSumsFile(InstallerFolder);
 
 	private static DirectoryInfo CreateTestFolderWithFiles()
 	{
@@ -33,12 +35,32 @@ public class WasabiSignerToolsTests
 		return installerFolder;
 	}
 
+	private static string CreateShaSumsFile(DirectoryInfo installerFolder)
+	{
+		StringBuilder fileContent = new();
+		fileContent.AppendLine($"-----BEGIN PGP SIGNED MESSAGE-----");
+		fileContent.AppendLine("Hash: SHA256");
+		fileContent.AppendLine();
+		foreach (FileInfo file in installerFolder.GetFiles())
+		{
+			uint256 fileHash = WasabiSignerTools.GenerateHashFromFile(file.FullName);
+			fileContent.AppendLine($"{fileHash} {file.Name}");
+		}
+
+		fileContent.AppendLine($"-----BEGIN PGP SIGNATURE-----");
+		fileContent.AppendLine();
+		fileContent.AppendLine("iHUEARYIAB0WIQSzezSaXyNsjjmXathSPF4ghfWtAQUCYz7rVAAKCRBSPF4ghfWt\r\nAUjNAP0da7wUClzLL/MEAJ7UDfRJ9vSVuJ11KNqZj4yStWBzlAD+P+ZEUd3gCW3J\r\nR8y3yqiZplCIdDzmtToIr/48peW5SgM=\r\n=VsaF");
+		fileContent.AppendLine($"-----END PGP SIGNATURE-----");
+		string shaSumsFilePath = Path.Combine(installerFolder.Parent!.FullName, "SHASUMS.asc");
+		File.WriteAllText(shaSumsFilePath, fileContent.ToString());
+		return shaSumsFilePath;
+	}
+
 	[Fact]
 	public void WritingAndVerifyingShaSumsTest()
 	{
-		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
 		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, PrivateKey);
+		WasabiSignerTools.SignAndSaveSHASumsFile(ShaSumsFilePath, destinationPath, PrivateKey);
 		Assert.True(File.Exists(destinationPath));
 
 		PubKey publicKey = PrivateKey.PubKey;
@@ -49,23 +71,11 @@ public class WasabiSignerToolsTests
 	}
 
 	[Fact]
-	public void WritingShaSumsThrowsErrorWithWrongArgumentTest()
-	{
-		string[] invalidFilePaths = new[] { "notAValidFilePath" };
-		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		Assert.Throws<FileNotFoundException>(() => WasabiSignerTools.SignAndSaveSHASumsFile(invalidFilePaths, destinationPath, PrivateKey));
-	}
-
-	[Fact]
 	public void VerifyingShaSumsFileWithInvalidArgumentsFailsTest()
 	{
-		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
 		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, destinationPath, PrivateKey);
+		WasabiSignerTools.SignAndSaveSHASumsFile(ShaSumsFilePath, destinationPath, PrivateKey);
 		Assert.True(File.Exists(destinationPath));
-
-		PubKey goodPublicKey = PrivateKey.PubKey;
-		PubKey wrongPublicKey = WasabiSignerTools.GeneratePrivateKey().PubKey;
 	}
 
 	[Fact]
@@ -78,7 +88,7 @@ public class WasabiSignerToolsTests
 		uint256 secondInstallerHash = WasabiSignerTools.GenerateHashFromFile(filepaths[1]);
 
 		string shaSumsDestinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		WasabiSignerTools.SignAndSaveSHASumsFile(filepaths, shaSumsDestinationPath, PrivateKey);
+		WasabiSignerTools.SignAndSaveSHASumsFile(ShaSumsFilePath, shaSumsDestinationPath, PrivateKey);
 		Assert.True(File.Exists(shaSumsDestinationPath));
 
 		string firstInstallerFileName = filepaths[0].Split("\\").Last();
