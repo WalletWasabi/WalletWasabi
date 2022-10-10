@@ -42,53 +42,115 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
+	
+		IsEmpty = this.WhenAnyValue(x => x.Items.Count).Select(count => count == 0);
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
+	public IObservable<bool> IsEmpty { get; }
+	
 	public Wallet Wallet { get; }
 
 	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
 	{
-		_itemsSourceList.Edit(list =>
+		_itemsSourceList.Edit(list => CreateSegments(list, pockets));
+	}
+
+	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list, IEnumerable<Pocket> pockets)
+	{
+		list.Clear();
+
+		if (Width == 0d)
 		{
-			list.Clear();
+			return;
+		}
 
-			if (Width == 0d)
+		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+
+		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
+
+		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
+		{
+			result = CreateCoinSegments(pockets, coinCount);
+		}
+		else
+		{
+			result = CreatePocketSegments(pockets);
+		}
+
+		foreach (var item in result)
+		{
+			list.Add(item);
+		}
+	}
+
+	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
+	{
+		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var start = 0.0m;
+
+		var usableWidth = Width - (coinCount * 2);
+
+		var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+		foreach (var pocket in usablePockets)
+		{
+			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
+
+			foreach (var coin in pocketCoins)
 			{
-				return;
-			}
+				var margin = 2;
+				var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+				var width = Math.Abs((decimal)usableWidth * amount / total);
 
-			var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-			var start = 0.0m;
-
-			var usableWidth = Width - (pockets.SelectMany(x => x.Coins).Count() * 2);
-
-			foreach (var pocket in pockets.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet))
-			{
-				var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
-
-				foreach (var coin in pocketCoins)
+				// Artificially enlarge segments smaller than 2 px in order to make them visible.
+				if (width < 2)
 				{
-					var margin = 2;
-					var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-					var width = Math.Abs((decimal)usableWidth * amount / total);
-
-					// Artificially enlarge UTXOs smaller than 2 px in order to make them visible.
-					if (width < 2)
-					{
-						width++;
-						margin--;
-					}
-
-					var item = new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
-
-					list.Add(item);
-
-					start += width + margin;
+					width++;
+					margin--;
 				}
+
+				yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
+
+				start += width + margin;
 			}
-		});
+		}
+	}
+
+	private IEnumerable<PrivacyBarItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
+	{
+		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var start = 0.0m;
+
+		var usableWidth = Width - (pockets.Count() * 2);
+
+		var usablePockets =
+				pockets.Where(x => x.Coins.Any())
+					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
+					   .ToList();
+
+		foreach (var pocket in usablePockets)
+		{
+			var margin = 2;
+			var amount = pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+
+			var width = Math.Abs((decimal)usableWidth * amount / total);
+
+			// Artificially enlarge segments smaller than 2 px in order to make them visible.
+			if (width < 2)
+			{
+				width++;
+				margin--;
+			}
+
+			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
+
+			start += width + margin;
+		}
 	}
 
 	public void Dispose()

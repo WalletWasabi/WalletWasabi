@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;
 
-namespace System;
+namespace WalletWasabi.Extensions;
 
 public static class ExceptionExtensions
 {

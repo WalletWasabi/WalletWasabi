@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
-	private readonly BitcoinAddress _address;
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _amountText = "";
 	[AutoNotify] private bool _transactionHasChange;
@@ -25,17 +24,16 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
 
-	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, BitcoinAddress address, bool isPreview = false)
+	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
 		Parent = parent;
 		_wallet = wallet;
-		_address = address;
 		IsPreview = isPreview;
 
 		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
 			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
 
-		AddressText = _address.ToString();
+		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
@@ -67,7 +65,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		FeeText = $"{feeText} {fiatFeeText}";
 
 		TransactionHasChange =
-			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);
+			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
 		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.UserLabels.Labels));
 		TransactionHasPockets = Labels.Any();

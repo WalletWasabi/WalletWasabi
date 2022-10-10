@@ -77,7 +77,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			{
 				using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
 
-				using CancellationTokenSource requestTimeoutCts = new(retryTimeout is { } timeout ? timeout : totalTimeout);
+				var requestTimeout = retryTimeout ?? TimeSpan.MaxValue;
+				using CancellationTokenSource requestTimeoutCts = new(requestTimeout);
 				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
 				// Any transport layer errors will throw an exception here.
@@ -99,17 +100,17 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 			}
 			catch (HttpRequestException e)
 			{
-				Logger.LogTrace($"Attempt {attempt} failed with {nameof(HttpRequestException)}: {e.Message}.");
+				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(HttpRequestException)}: {e.Message}.");
 				AddException(exceptions, e);
 			}
 			catch (OperationCanceledException e)
 			{
-				Logger.LogTrace($"Attempt {attempt} failed with {nameof(OperationCanceledException)}: {e.Message}.");
+				Logger.LogTrace($"Attempt {attempt} to perform '{action}' failed with {nameof(OperationCanceledException)}: {e.Message}.");
 				AddException(exceptions, e);
 			}
 			catch (Exception e)
 			{
-				Logger.LogDebug($"Attempt {attempt} failed with exception {e}.");
+				Logger.LogDebug($"Attempt {attempt} to perform '{action}' failed with exception {e}.");
 
 				if (exceptions.Any())
 				{

@@ -157,16 +157,28 @@ public class TorHttpPool : IAsyncDisposable
 				TorTcpConnection? connectionToDispose = null;
 				OneOffCircuit? oneOffCircuitToDispose = null;
 
+				INamedCircuit? namedCircuit = null;
+
+				if (circuit is AnyOneOffCircuit)
+				{
+					oneOffCircuitToDispose = new();
+					namedCircuit = oneOffCircuitToDispose;
+				}
+				else if (circuit is INamedCircuit withName)
+				{
+					namedCircuit = withName;
+				}
+				else
+				{
+					throw new NotImplementedException("This should never happen.");
+				}
+
+				bool attemptSuccessful = false;
+
 				try
 				{
-					connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
+					connection = await ObtainFreeConnectionAsync(request, namedCircuit, cancellationToken).ConfigureAwait(false);
 					connectionToDispose = connection;
-
-					// AnyOneOffCircuit is a special choice and it must lead to OneOffCircuit disposal every time. 
-					if (circuit is AnyOneOffCircuit && connection.Circuit is OneOffCircuit oneOffCircuit)
-					{
-						oneOffCircuitToDispose = oneOffCircuit;
-					}
 
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
 					HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
@@ -178,6 +190,7 @@ public class TorHttpPool : IAsyncDisposable
 					TcpConnectionState state = connection.Unreserve();
 					Logger.LogTrace($"['{connection}'][Attempt #{i}] Unreserve. State is: '{state}'.");
 
+					attemptSuccessful = true;
 					TorDoesntWorkSince = null;
 					LatestTorException = null;
 
@@ -201,9 +214,9 @@ public class TorHttpPool : IAsyncDisposable
 				}
 				catch (TorCircuitExpiredException e)
 				{
-					Logger.LogTrace($"['{connection}'] Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+					Logger.LogTrace($"['{connection}'] Circuit '{namedCircuit.Name}' has expired and cannot be used again.", e);
 
-					throw new HttpRequestException($"Circuit '{circuit.Name}' has expired and cannot be used again.", e);
+					throw new HttpRequestException($"Circuit '{namedCircuit.Name}' has expired and cannot be used again.", e);
 				}
 				catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 				{
@@ -218,9 +231,9 @@ public class TorHttpPool : IAsyncDisposable
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
 					}
 				}
-				catch (TorConnectCommandFailedException e)
+				catch (TorConnectionException e)
 				{
-					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connect command failed.", e);
+					Logger.LogTrace($"['{connection}'] Tor SOCKS5 connection failed.", e);
 
 					if (i == attemptsNo)
 					{
@@ -242,6 +255,10 @@ public class TorHttpPool : IAsyncDisposable
 					TorConnectionException innerException = new("Connection was refused.", e);
 					throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 				}
+				catch (OperationCanceledException)
+				{
+					throw;
+				}
 				catch (Exception e)
 				{
 					Logger.LogTrace($"['{connection}'] Exception occurred.", e);
@@ -253,6 +270,12 @@ public class TorHttpPool : IAsyncDisposable
 					{
 						Logger.LogTrace($"['{connectionToDispose}'] marked as to be disposed.");
 						connectionToDispose.MarkAsToDispose();
+					}
+
+					// If our request failed but other requests seem to work, try a different circuit.
+					if (!attemptSuccessful && TorDoesntWorkSince is null)
+					{
+						namedCircuit.IncrementIsolationId();
 					}
 
 					oneOffCircuitToDispose?.Dispose();
@@ -298,22 +321,51 @@ public class TorHttpPool : IAsyncDisposable
 				}
 			}
 
-			// The circuit may be disposed almost immediately after this check but we don't mind.
-			if (!circuit.IsActive)
+			OneOffCircuit? oneOffCircuitToDispose = null;
+
+			INamedCircuit namedCircuit;
+
+			if (circuit is AnyOneOffCircuit)
 			{
-				throw new TorCircuitExpiredException();
+				oneOffCircuitToDispose = new OneOffCircuit();
+				namedCircuit = oneOffCircuitToDispose;
+			}
+			else
+			{
+				namedCircuit = (INamedCircuit)circuit;
 			}
 
-			if (canBeAdded)
+			try
 			{
-				connection = await CreateNewConnectionAsync(request.RequestUri!, circuit, token).ConfigureAwait(false);
-
-				if (connection is not null)
+				// The circuit may be disposed almost immediately after this check but we don't mind.
+				if (!namedCircuit.IsActive)
 				{
-					DateTime end = DateTime.UtcNow;
-					Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
-					return connection;
+					throw new TorCircuitExpiredException();
 				}
+
+				if (canBeAdded)
+				{
+					connection = await CreateNewConnectionAsync(request.RequestUri!, namedCircuit, token).ConfigureAwait(false);
+
+					// Do not dispose.
+					oneOffCircuitToDispose = null;
+
+					if (connection is not null)
+					{
+						DateTime end = DateTime.UtcNow;
+						Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'][{(end - start).TotalSeconds:0.##s}] Using new Tor SOCKS5 connection.");
+						return connection;
+					}
+				}
+			}
+			catch (TorException)
+			{
+				namedCircuit.IncrementIsolationId();
+				throw;
+			}
+			finally
+			{
+				oneOffCircuitToDispose?.Dispose();
 			}
 
 			Logger.LogTrace("Wait 1s for a free pool connection.");
@@ -322,7 +374,7 @@ public class TorHttpPool : IAsyncDisposable
 		while (true);
 	}
 
-	private async Task<TorTcpConnection?> CreateNewConnectionAsync(Uri requestUri, ICircuit circuit, CancellationToken cancellationToken)
+	private async Task<TorTcpConnection?> CreateNewConnectionAsync(Uri requestUri, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		lock (ConnectionsLock)
 		{
@@ -335,6 +387,11 @@ public class TorHttpPool : IAsyncDisposable
 		{
 			connection = await TcpConnectionFactory.ConnectAsync(requestUri, circuit, cancellationToken).ConfigureAwait(false);
 			Logger.LogTrace($"[NEW {connection}]['{requestUri}'] Created new Tor SOCKS5 connection.");
+		}
+		catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
+		{
+			Logger.LogTrace($"['{requestUri}'] TTL expired occurred. Probably some relay/networking problem. No need to worry too much.");
+			throw;
 		}
 		catch (TorException e)
 		{
@@ -418,15 +475,15 @@ public class TorHttpPool : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Allows to report that a Tor circuit status changed.
+	/// Allows to report that a Tor stream status changed.
 	/// </summary>
-	/// <param name="circuitID">Tor circuit ID for logging purposes. Example is: <c>35</c>.</param>
 	/// <param name="streamUsername">Username of the Tor stream. Example is: <c>IK1DG1HZCZFEQUTF86O86</c>.</param>
+	/// <param name="circuitID">Tor circuit ID for logging purposes. Example is: <c>35</c>.</param>
 	/// <remarks>
 	/// Useful to clean up <see cref="ConnectionPerHost"/> so that we do not exhaust <see cref="MaxConnectionsPerHost"/> limit.
 	/// <para>If client code forgets to dispose <see cref="PersonCircuit"/>, this should help us to recover eventually.</para>
 	/// </remarks>
-	public void ReportCircuitStatus(string streamUsername, StreamStatusFlag streamStatus, string circuitID)
+	public void ReportStreamStatus(string streamUsername, StreamStatusFlag streamStatus, string circuitID)
 	{
 		lock (ConnectionsLock)
 		{

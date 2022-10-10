@@ -121,11 +121,6 @@ public class CachedRpcClient : RpcClientBase
 	public override async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 	{
 		string cacheKey = nameof(GetMempoolInfoAsync);
-		var cacheOptions = new MemoryCacheEntryOptions
-		{
-			Size = 1,
-			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10)
-		};
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
@@ -139,7 +134,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(1, 4, true),
+			CacheOptions(1, 10, true),
 			() => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
 

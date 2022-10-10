@@ -1,3 +1,4 @@
+using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,21 +7,20 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
-using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -58,8 +58,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					Wallet.TransactionProcessor,
 					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.Select(_ => Unit.Default)
-				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-						.Select(_ => Unit.Default))
+				.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed)).Throttle(TimeSpan.FromSeconds(1)).Select(_ => Unit.Default))
 				.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.Merge(CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).Select(_ => Unit.Default).Skip(1).Throttle(TimeSpan.FromMilliseconds(3000))
