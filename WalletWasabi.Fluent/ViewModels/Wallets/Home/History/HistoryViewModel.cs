@@ -19,8 +19,6 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 using WalletWasabi.Logging;
-using Zafiro.Core.Mixins;
-using Zafiro.Core.Trees;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 

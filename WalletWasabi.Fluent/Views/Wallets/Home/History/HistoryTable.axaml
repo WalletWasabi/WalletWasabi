@@ -8,7 +8,6 @@
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
-             xmlns:global="clr-namespace:;assembly=Zafiro.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -99,11 +98,11 @@
                   CanUserResizeColumns="False"
                   Margin="0 0 0 0">
       <i:Interaction.Behaviors>
-        <global:ScrollToSelectedItemBehavior x:TypeArguments="historyItems:HistoryItemViewModelBase">
+        <behaviors:ScrollToSelectedItemBehavior x:TypeArguments="historyItems:HistoryItemViewModelBase">
           <x:Arguments>
             <x:String>Children</x:String>
           </x:Arguments>
-        </global:ScrollToSelectedItemBehavior>
+        </behaviors:ScrollToSelectedItemBehavior>
       </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:CustomElementFactory />
