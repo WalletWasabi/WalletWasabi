@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -9,9 +10,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Statistics;
 
@@ -48,19 +47,6 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 				.Descending(x => x.InputRegistrationStart))
 			.Bind(_roundStates)
 			.Subscribe();
-
-		Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
-			{
-				var newRoundStatesList = GenerateRoundStatesList().ToArray();
-
-				_roundStatesList.Edit(x =>
-				{
-					x.Clear();
-					x.AddRange(newRoundStatesList);
-				});
-			});
 
 		Source = new FlatTreeDataGridSource<RoundStateViewModel>(_roundStates)
 		{
@@ -171,6 +157,34 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 	public ObservableCollection<RoundStateViewModel> RoundStates => _roundStates;
 
 	public FlatTreeDataGridSource<RoundStateViewModel> Source { get; }
+
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+	{
+		base.OnNavigatedTo(isInHistory, disposables);
+
+		Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => Update())
+			.DisposeWith(disposables);
+	}
+
+	private void Update()
+	{
+		var selectedItemId = SelectedItem?.Id;
+		var newRoundStatesList = GenerateRoundStatesList().ToArray();
+
+		_roundStatesList.Edit(x =>
+		{
+			x.Clear();
+			x.AddRange(newRoundStatesList);
+		});
+
+		var selectedItem = newRoundStatesList.FirstOrDefault(x => x.Id == selectedItemId);
+		if (selectedItem is { })
+		{
+			SelectedItem = selectedItem;
+		}
+	}
 
 	private IEnumerable<RoundStateViewModel> GenerateRoundStatesList()
 	{
