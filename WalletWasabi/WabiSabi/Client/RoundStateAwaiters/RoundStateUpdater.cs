@@ -28,8 +28,15 @@ public class RoundStateUpdater : PeriodicRunner
 
 	public bool AnyRound => RoundStates.Any();
 
+	public IHighestCoinJoinClientStateProvider? HighestCoinJoinClientStateProvider { get; private set; }
+
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		if (HighestCoinJoinClientStateProvider?.HighestCoinJoinClientState is CoinJoinClientState.Idle)
+		{
+			return;
+		}
+
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
@@ -120,5 +127,10 @@ public class RoundStateUpdater : PeriodicRunner
 			}
 		}
 		return base.StopAsync(cancellationToken);
+	}
+
+	public void SetHighestCoinJoinClientStateProvider(IHighestCoinJoinClientStateProvider provider)
+	{
+		HighestCoinJoinClientStateProvider = provider;
 	}
 }
