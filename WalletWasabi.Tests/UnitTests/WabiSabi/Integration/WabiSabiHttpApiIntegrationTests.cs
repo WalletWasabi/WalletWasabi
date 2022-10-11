@@ -429,7 +429,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 		try
 		{
-			var rpc = new TesteableRpcClient(node.RpcClient as RpcClientBase);
+			var rpc = new TesteableRpcClient((RpcClientBase)node.RpcClient);
 
 			TaskCompletionSource<Transaction> coinJoinBoadcasted = new();
 			rpc.AfterSendRawTransaction = (tx) =>
@@ -561,7 +561,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					throw new Exception("This is not so possible.");
 				}
 			}
-			catch (OperationCanceledException e)
+			catch (OperationCanceledException)
 			{
 				throw new TimeoutException("Coinjoin was not propagated.");
 			}

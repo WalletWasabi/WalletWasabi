@@ -13,8 +13,9 @@ public partial class TransactionInfo
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo(int anonScoreTarget)
+	public TransactionInfo(BitcoinAddress destination, int anonScoreTarget)
 	{
+		Destination = destination;
 		PrivateCoinThreshold = anonScoreTarget;
 
 		this.WhenAnyValue(x => x.FeeRate)
@@ -32,7 +33,9 @@ public partial class TransactionInfo
 	/// </summary>
 	public Money MinimumRequiredAmount { get; set; } = Money.Zero;
 
-	public Money Amount { get; set; } = Money.Zero;
+	public Money Amount { get; init; } = Money.Zero;
+
+	public BitcoinAddress Destination { get; init; }
 
 	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
 
@@ -48,8 +51,6 @@ public partial class TransactionInfo
 
 	public bool IsOptimized => ChangelessCoins.Any();
 
-	public bool IsPrivate => Coins.All(x => x.HdPubKey.AnonymitySet >= PrivateCoinThreshold);
-
 	public bool IsCustomFeeUsed { get; set; }
 
 	public bool SubtractFee { get; set; }
@@ -58,23 +59,7 @@ public partial class TransactionInfo
 
 	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
 
-	public void Reset()
-	{
-		Amount = Money.Zero;
-		MinimumRequiredAmount = Money.Zero;
-		UserLabels = SmartLabel.Empty;
-		MaximumPossibleFeeRate = null;
-		ConfirmationTimeSpan = TimeSpan.Zero;
-		Coins = Enumerable.Empty<SmartCoin>();
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
-		SubtractFee = default;
-		IsOtherPocketSelectionPossible = default;
-
-		if (!IsCustomFeeUsed)
-		{
-			FeeRate = FeeRate.Zero;
-		}
-	}
+	public bool IsFixedAmount { get; init; }
 
 	private void OnFeeChanged()
 	{
@@ -89,20 +74,23 @@ public partial class TransactionInfo
 
 	public TransactionInfo Clone()
 	{
-		return new TransactionInfo(PrivateCoinThreshold)
+		return new TransactionInfo(Destination, PrivateCoinThreshold)
 		{
-			Amount = Amount,
-			MinimumRequiredAmount = MinimumRequiredAmount,
-			ChangelessCoins = ChangelessCoins,
-			Coins = Coins,
-			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			FeeRate = FeeRate,
-			IsCustomFeeUsed = IsCustomFeeUsed,
-			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
-			PayJoinClient = PayJoinClient,
-			SubtractFee = SubtractFee,
+			Coins = Coins,
+			MinimumRequiredAmount = MinimumRequiredAmount,
+			Amount = Amount,
+			Destination = Destination,
 			UserLabels = UserLabels,
-			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible
+			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
+			ConfirmationTimeSpan = ConfirmationTimeSpan,
+			ChangelessCoins = ChangelessCoins,
+			PayJoinClient = PayJoinClient,
+			IsCustomFeeUsed = IsCustomFeeUsed,
+			SubtractFee = SubtractFee,
+			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible,
+			IsSelectedCoinModificationEnabled = IsSelectedCoinModificationEnabled,
+			IsFixedAmount = IsFixedAmount
 		};
 	}
 }

@@ -259,11 +259,22 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
-			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			var outputScripts = Rounds
+				.Where(r => r.Id != round.Id && r.Phase != Phase.Ended)
+				.SelectMany(r => r.Bobs)
+				.Select(x => x.Script)
+				.ToHashSet();
+			if (outputScripts.Contains(request.Script))
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
+			}
+
+			var inputScripts = Rounds.SelectMany(r => round.Alices).Select(a => a.Coin.ScriptPubKey).ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script some round.");
 			}
 
 			Bob bob = new(request.Script, credentialAmount);
