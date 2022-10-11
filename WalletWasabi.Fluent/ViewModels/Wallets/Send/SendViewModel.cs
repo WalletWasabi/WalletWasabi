@@ -26,6 +26,10 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
+using Avalonia.Animation.Animators;
+using WalletWasabi.Exceptions;
+using DynamicData;
+using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -93,6 +97,15 @@ public partial class SendViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+		InsertMaxCommand = ReactiveCommand.Create(() =>
+		{
+			if (Balance.BalanceBtc is not null)
+			{
+				string[] balanceStringParts = Balance.BalanceBtc.Split(" ");
+				string wholeBalance = string.Join("", balanceStringParts.SkipLast(1));
+				AmountBtc = decimal.Parse(wholeBalance);
+			}
+		});
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
@@ -145,6 +158,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand AutoPasteCommand { get; }
 
 	public ICommand QrCommand { get; }
+
+	public ICommand InsertMaxCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 
