@@ -165,7 +165,7 @@ public static class ColumnFactory
 			PrivacyLevel.None => "(Invalid privacy level)",
 			PrivacyLevel.SemiPrivate => "Semi-private",
 			PrivacyLevel.Private => "Private",
-			PrivacyLevel.NonPrivate => "",
+			PrivacyLevel.NonPrivate => "Non-private",
 			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
 		};
 	}
