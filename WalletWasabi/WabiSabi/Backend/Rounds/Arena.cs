@@ -100,29 +100,6 @@ public partial class Arena : PeriodicRunner
 						.ThenBy(x => x.InputCount)
 						.ToList();
 
-		var standardRegistrableRounds = rounds
-			.Where(x =>
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
-			.ToArray();
-
-		// Let's make sure that newer clients prefer rounds that WW2.0.0 clients don't.
-		// In WW2.0.0 on client side we accidentally order rounds by calling .ToImmutableDictionary(x => x.Id, x => x)
-		// therefore whichever round ToImmutableDictionary would make to be the first round, we send it to the back of our list.
-		// With this we can make sure that WW2.0.0 and newer clients prefer different rounds in parallel round configuration.
-		if (standardRegistrableRounds.Any())
-		{
-			var firstRegistrableRoundAccordingToWW200 = standardRegistrableRounds
-				.ToImmutableDictionary(x => x.Id, x => x)
-				.First()
-				.Value;
-
-			// Remove from whatever WW2.0.0's most preferred round is, then add it back to the end of our list.
-			rounds.Remove(firstRegistrableRoundAccordingToWW200);
-			rounds.Add(firstRegistrableRoundAccordingToWW200);
-		}
-
 		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0));
 	}
 
