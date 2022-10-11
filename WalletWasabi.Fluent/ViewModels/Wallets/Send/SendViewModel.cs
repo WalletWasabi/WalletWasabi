@@ -26,9 +26,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
-using Avalonia.Animation.Animators;
-using WalletWasabi.Exceptions;
-using DynamicData;
 using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
