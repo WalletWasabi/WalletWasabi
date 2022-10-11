@@ -18,8 +18,8 @@ public interface IWallet
 	IKeyChain? KeyChain { get; }
 
 	IDestinationProvider DestinationProvider { get; }
-	public int AnonScoreTarget { get; }
-	public bool ConsolidationMode { get; }
+	int AnonScoreTarget { get; }
+	bool ConsolidationMode { get; }
 	TimeSpan FeeRateMedianTimeFrame { get; }
 	bool RedCoinIsolation { get; }
 

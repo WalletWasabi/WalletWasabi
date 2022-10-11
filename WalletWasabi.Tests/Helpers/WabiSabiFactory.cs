@@ -315,7 +315,7 @@ public static class WabiSabiFactory
 			destinationProvider,
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
-			new LiquidityClueHelper(),
+			new LiquidityClueProvider(),
 			int.MaxValue,
 			true,
 			redCoinIsolation,
