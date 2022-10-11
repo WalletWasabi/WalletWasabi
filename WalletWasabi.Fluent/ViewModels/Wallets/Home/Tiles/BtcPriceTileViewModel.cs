@@ -1,29 +1,23 @@
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
-public partial class BtcPriceTileViewModel : TileViewModel
+public class BtcPriceTileViewModel : TileViewModel
 {
-	private readonly Wallet _wallet;
-	[AutoNotify] private string _btcPrice;
-
 	public BtcPriceTileViewModel(Wallet wallet)
 	{
-		_wallet = wallet;
-		_btcPrice = "";
-	}
+		Wallet = wallet;
 
-	protected override void OnActivated(CompositeDisposable disposables)
-	{
-		base.OnActivated(disposables);
-
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+		BtcPrice = this
+			.WhenAnyValue(x => x.Wallet.Synchronizer.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(usd => BtcPrice = usd.FormattedFiat(format: "N0") + " USD")
-			.DisposeWith(disposables);
+			.ReplayLastActive();
 	}
+
+	public IObservable<decimal> BtcPrice { get; }
+
+	private Wallet Wallet { get; }
 }
