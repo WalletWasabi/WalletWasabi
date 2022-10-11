@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:statistics="clr-namespace:WalletWasabi.Fluent.ViewModels.Statistics"
-             xmlns:models="clr-namespace:WalletWasabi.WabiSabi.Models;assembly=WalletWasabi"
              x:DataType="statistics:CoinJoinMonitorViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitorView">
