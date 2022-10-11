@@ -21,7 +21,7 @@
       <controls:MultiSelector Padding="0" HorizontalAlignment="Center" Items="{Binding Selectables}" />
     </controls:DropDownContentControl>
 
-    <Panel IsHitTestVisible="False">
+    <Panel ToolTip.Tip="Number of selected coins">
       <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}" />
       <TextBlock Text="{Binding Text^}" Foreground="{DynamicResource AcrylicTrimForeground}" VerticalAlignment="Center"
                  HorizontalAlignment="Center" Classes="h9" />
