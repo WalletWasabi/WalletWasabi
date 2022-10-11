@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -15,46 +15,23 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection;
 public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
-	[AutoNotify] private string _filter = "";
+	private readonly IObservable<string> _filterChanged;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private HierarchicalTreeDataGridSource<TreeNode> _source = new(new List<TreeNode>());
 
-	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
+	public LabelBasedCoinSelectionViewModel(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands, IObservable<string> filterChanged)
 	{
+		_filterChanged = filterChanged;
 		Source = CreateGridSource(coinChanges, commands)
 			.DisposeWith(_disposables);
 	}
 
-	private IObservable<Func<TreeNode, bool>> FilterChanged =>
-		this
-			.WhenAnyValue(x => x.Filter)
-			.Throttle(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
-			.DistinctUntilChanged()
-			.Select(FilterFunction);
+	private IObservable<Func<TreeNode, bool>> FilterChanged => _filterChanged.Select(FilterHelper.FilterFunction<CoinGroupViewModel>);
 
 	public void Dispose()
 	{
 		_disposables.Dispose();
-	}
-
-	private static Func<TreeNode, bool> FilterFunction(string? text)
-	{
-		return tn =>
-		{
-			if (string.IsNullOrWhiteSpace(text))
-			{
-				return true;
-			}
-
-			if (tn.Value is CoinGroupViewModel cg)
-			{
-				var containsLabel = cg.Labels.Any(s => s.Contains(text, StringComparison.InvariantCultureIgnoreCase));
-				return containsLabel;
-			}
-
-			return false;
-		};
 	}
 
 	private HierarchicalTreeDataGridSource<TreeNode> CreateGridSource(IObservable<IChangeSet<SelectableCoin, OutPoint>> coinChanges, IEnumerable<CommandViewModel> commands)
@@ -88,7 +65,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		return source;
 	}
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
 	private TreeNode ToTreeNode(IGroup<SelectableCoin, OutPoint, PrivacyIndex> group)
 	{
 		var childChanges = group.Cache.Connect();

@@ -32,6 +32,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private readonly SmartLabel _transactionLabels;
 	private readonly IEnumerable<SmartCoin> _usedCoins;
 	private readonly WalletViewModel _walletViewModel;
+
+	[AutoNotify] private string _searchFilter = "";
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
@@ -123,10 +125,14 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			new CommandViewModel("Smart", SelectPredefinedCoinsCommand)
 		};
 
-		CoinBasedSelection = new CoinBasedSelectionViewModel(coinChanges, commands)
+		var filterChanged = this
+			.WhenAnyValue(x => x.SearchFilter)
+			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler);
+
+		CoinBasedSelection = new CoinBasedSelectionViewModel(coinChanges, commands, filterChanged)
 			.DisposeWith(disposables);
 
-		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges, commands)
+		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges, commands, filterChanged)
 			.DisposeWith(disposables);
 
 		SelectPredefinedCoinsCommand.Execute()

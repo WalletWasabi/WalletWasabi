@@ -91,23 +91,6 @@
         <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
       </Style>
 
-      <Style Selector="TextBox.FilterBox">
-        <Setter Property="Transitions">
-          <Setter.Value>
-            <Transitions>
-              <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
-            </Transitions>
-          </Setter.Value>
-        </Setter>
-      </Style>
-
-      <Style Selector="TextBox.FilterBox.Visible">
-        <Setter Property="Opacity" Value="1" />
-      </Style>
-      <Style Selector="TextBox.FilterBox.Hidden">
-        <Setter Property="Opacity" Value="0" />
-      </Style>
-
     </controls:ContentArea.Styles>
 
     <controls:ContentArea.Title>
@@ -130,11 +113,8 @@
           </Style>
         </DockPanel.Styles>
         <ToggleButton IsChecked="True" x:Name="GroupByLabels" DockPanel.Dock="Left" Content="Group by Labels" />
-        <TextBox Classes="FilterBox"
-                 Margin="16 0 0 0"
-                 Classes.Visible="{Binding #GroupByLabels.IsChecked}"
-                 Classes.Hidden="{Binding !#GroupByLabels.IsChecked}"
-                 Text="{Binding LabelBasedSelection.Filter, Mode=TwoWay}"
+        <TextBox Margin="16 0 0 0"
+                 Text="{Binding SearchFilter, Mode=TwoWay}"
                  Watermark="Filter" />
       </DockPanel>
 
