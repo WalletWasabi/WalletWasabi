@@ -19,7 +19,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class CoinJoinManager : BackgroundService
+public class CoinJoinManager : BackgroundService, IHighestCoinJoinClientStateProvider
 {
 	private record CoinJoinCommand(IWallet Wallet);
 	private record StartCoinJoinCommand(IWallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
@@ -32,6 +32,7 @@ public class CoinJoinManager : BackgroundService
 		HttpClientFactory = backendHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		roundStatusUpdater.SetHighestCoinJoinClientStateProvider(this);
 	}
 
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
