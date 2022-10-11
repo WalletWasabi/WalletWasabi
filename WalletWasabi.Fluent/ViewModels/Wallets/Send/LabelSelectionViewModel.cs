@@ -19,7 +19,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private readonly string _password;
 	private readonly BitcoinStore _bitcoinStore;
 	private readonly TransactionInfo _info;
-	private readonly BitcoinAddress _destination;
 	private readonly Money _targetAmount;
 	private readonly FeeRate _feeRate;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
@@ -30,13 +29,12 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, BitcoinStore bitcoinStore, TransactionInfo info, BitcoinAddress destination)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, BitcoinStore bitcoinStore, TransactionInfo info)
 	{
 		_keyManager = keyManager;
 		_password = password;
 		_bitcoinStore = bitcoinStore;
 		_info = info;
-		_destination = destination;
 		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
 		_feeRate = _info.FeeRate;
 	}
@@ -64,7 +62,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			keyManager: _keyManager,
 			bitcoinStore: _bitcoinStore,
 			transactionInfo: _info,
-			destination: _destination,
 			allCoins: new CoinsView(allCoins),
 			allowedCoins: coins,
 			password: _password,

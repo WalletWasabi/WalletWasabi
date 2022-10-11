@@ -212,7 +212,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task OnChangePocketsAsync()
 	{
 		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _destination, Transaction?.SpentCoins, false));
+			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
 
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
@@ -240,7 +240,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _destination, Transaction?.SpentCoins, isSilent: true));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
 				privacyControlDialogResult.Result is { } coins)
 			{
@@ -369,7 +369,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.MinimumRequiredAmount = minimumRequiredAmount;
 
 			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _destination, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
 
 			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 			{
@@ -519,7 +519,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
-		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), Services.BitcoinStore, _info, _destination);
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), Services.BitcoinStore, _info);
 		labelSelection.Reset(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);

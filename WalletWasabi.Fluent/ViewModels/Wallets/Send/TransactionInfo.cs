@@ -33,7 +33,7 @@ public partial class TransactionInfo
 	/// </summary>
 	public Money MinimumRequiredAmount { get; set; } = Money.Zero;
 
-	public Money Amount { get; init; } = Money.Zero;
+	public Money Amount { get; set; } = Money.Zero;
 
 	public BitcoinAddress Destination { get; init; }
 

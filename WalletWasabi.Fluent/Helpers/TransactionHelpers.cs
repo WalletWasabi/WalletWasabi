@@ -97,7 +97,6 @@ public static class TransactionHelpers
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
 		TransactionInfo transactionInfo,
-		BitcoinAddress destination,
 		ICoinsView allCoins,
 		IEnumerable<SmartCoin> allowedCoins,
 		string password,
@@ -108,7 +107,7 @@ public static class TransactionHelpers
 		try
 		{
 			var intent = new PaymentIntent(
-				destination: destination,
+				destination: transactionInfo.Destination,
 				amount: transactionInfo.Amount,
 				subtractFee: transactionInfo.SubtractFee,
 				label: transactionInfo.UserLabels);

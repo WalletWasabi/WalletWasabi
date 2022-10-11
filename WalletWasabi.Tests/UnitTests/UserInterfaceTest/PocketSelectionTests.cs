@@ -23,11 +23,11 @@ public class PocketSelectionTests
 {
 	public PocketSelectionTests()
 	{
-		Info = new TransactionInfo(100)
+		var address = BitcoinAddress.Create("bc1q7v7qfhwx55erxkc66nsv39x4azwufvy6zq8ya4", Network.Main);
+		Info = new TransactionInfo(address, 100)
 		{
 			FeeRate = new FeeRate(2m)
 		};
-		Address = BitcoinAddress.Create("bc1q7v7qfhwx55erxkc66nsv39x4azwufvy6zq8ya4", Network.Main);
 		Password = "";
 		KeyManager = KeyManager.Recover(
 			new Mnemonic("all all all all all all all all all all all all"),
@@ -39,7 +39,6 @@ public class PocketSelectionTests
 	private KeyManager KeyManager { get; }
 	private TransactionInfo Info { get; }
 	private string Password { get; }
-	private BitcoinAddress Address { get; }
 	private BitcoinStore? BitcoinStore { get; set; }
 
 	private async Task<BitcoinStore> InitOrGetBitcoinStoreAsync()
@@ -69,7 +68,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -97,7 +96,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -121,7 +120,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -142,7 +141,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -163,7 +162,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -184,7 +183,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -206,7 +205,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
@@ -238,7 +237,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
@@ -272,7 +271,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan");
@@ -294,7 +293,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
@@ -322,7 +321,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
@@ -359,7 +358,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -381,7 +380,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.1M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -407,7 +406,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.9M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -433,7 +432,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -457,7 +456,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("2.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -480,7 +479,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("2.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.6M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -503,7 +502,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 		var pockets = new List<Pocket>();
 
 		var privateCoin = LabelTestExtensions.CreateCoin(0.8m, "", 999);
@@ -539,7 +538,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "David");
@@ -559,7 +558,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("0.7");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -582,7 +581,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("0.7");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.4M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -605,7 +604,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -628,7 +627,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -651,7 +650,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("2.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -674,7 +673,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -705,7 +704,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -728,7 +727,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.9");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -753,7 +752,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.9");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -786,7 +785,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.2M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -819,7 +818,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.3");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.2M, out var pocket1, CoinPocketHelper.PrivateFundsText);
@@ -848,7 +847,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(0.4M, out _, "Dan");
@@ -871,7 +870,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.0");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.2M, out var pocket1, "Dan");
@@ -897,7 +896,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Dan");
@@ -926,7 +925,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("1.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Dan");
@@ -955,7 +954,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("2.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 
 		var pockets = new List<Pocket>();
 		pockets.AddPocket(1.0M, out _, "Dan");
@@ -993,7 +992,7 @@ public class PocketSelectionTests
 		Info.Amount = Money.Parse("0.5");
 
 		var bitcoinStore = await InitOrGetBitcoinStoreAsync();
-		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		var selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 		var pockets = new List<Pocket>();
 
 		var privatePocket = LabelTestExtensions.CreateSingleCoinPocket(1.0m, CoinPocketHelper.PrivateFundsText, anonSet: 999);
@@ -1029,7 +1028,7 @@ public class PocketSelectionTests
 		pockets.Remove(privatePocket);
 		pockets.Add(semiPrivatePocket);
 		Info.Amount = Money.Parse("0.5");
-		selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 		selection.Reset(pockets.ToArray());
 
 		// Semi funds are enough for the payment, no better selection.
@@ -1039,7 +1038,7 @@ public class PocketSelectionTests
 
 		pockets.Add(privatePocket);
 		Info.Amount = Money.Parse("1.5");
-		selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info, Address);
+		selection = new LabelSelectionViewModel(KeyManager, Password, bitcoinStore, Info);
 		selection.Reset(pockets.ToArray());
 
 		// Private and semi funds are enough for the payment, no better selection.
