@@ -9,4 +9,3 @@ public class TxOutEqualityComparer : IEqualityComparer<TxOut>
 	public bool Equals(TxOut? x, TxOut? y) => (x?.Value, x?.ScriptPubKey) == (y?.Value, y?.ScriptPubKey);
 	public int GetHashCode(TxOut txOut) => (txOut.Value, txOut.ScriptPubKey).GetHashCode();
 }
-
