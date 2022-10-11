@@ -50,12 +50,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	public bool IsPocketEnough(params Pocket[] pockets)
 	{
 		var coins = Pocket.Merge(pockets).Coins;
-
-		if (!coins.Any())
-		{
-			return false;
-		}
-
 		var allCoins = Pocket.Merge(_allPockets).Coins;
 
 		return TransactionHelpers.TryBuildTransaction(

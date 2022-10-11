@@ -128,6 +128,10 @@ public static class TransactionHelpers
 		{
 			minimumAmount = ex.Minimum;
 		}
+		catch (Exception)
+		{
+			// Ignore.
+		}
 
 		return false;
 	}
