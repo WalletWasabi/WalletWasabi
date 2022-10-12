@@ -10,7 +10,7 @@ public static class MoneyExtensions
 	public static string ToUsdAproxBetweenParens(this decimal n) => $"(≈{ToUsd(n)})";
 	public static string ToUsd(this decimal n)
 	{
-		var amountPart = n < 10 ? n.ToString("N2") : n.RoundToSignificantFigures(5).ToString(CultureInfo.InvariantCulture);
+		var amountPart = n < 10 ? n.ToString("N2") : n.RoundToSignificantFigures(5).ToString("N0");
 		return amountPart + " USD";
 	}
 }
