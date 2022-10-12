@@ -100,9 +100,6 @@ public class TransactionFactory
 			}
 		}
 
-		// Get and calculate fee
-		Logger.LogInfo("Calculating dynamic transaction fee...");
-
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
 		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
@@ -168,10 +165,8 @@ public class TransactionFactory
 		{
 			throw new InvalidOperationException("Impossible to get the fees of the PSBT, this should never happen.");
 		}
-		Logger.LogInfo($"Fee: {fee.Satoshi} Satoshi.");
 
 		var vSize = builder.EstimateSize(psbt.GetOriginalTransaction(), true);
-		Logger.LogInfo($"Estimated tx size: {vSize} vBytes.");
 
 		// Do some checks
 		Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
@@ -193,22 +188,11 @@ public class TransactionFactory
 
 		// Cannot divide by zero, so use the closest number we have to zero.
 		decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-		decimal feePc = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
+		decimal feePercentage = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
 
-		if (feePc > 1)
+		if (feePercentage > 100)
 		{
-			Logger.LogInfo($"The transaction fee is {feePc:0.#}% of the sent amount.{Environment.NewLine}"
-				+ $"Sending:\t {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
-				+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
-		}
-		if (feePc > 100)
-		{
-			throw new TransactionFeeOverpaymentException(feePc);
-		}
-
-		if (spentCoins.Any(u => !u.Confirmed))
-		{
-			Logger.LogInfo("Unconfirmed transaction is spent.");
+			throw new TransactionFeeOverpaymentException(feePercentage);
 		}
 
 		// Build the transaction
@@ -224,7 +208,6 @@ public class TransactionFactory
 		}
 		else
 		{
-			Logger.LogInfo("Signing transaction...");
 			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			builder.SignPSBT(psbt);
@@ -287,9 +270,15 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
+		Logger.LogDebug(string.Join(Environment.NewLine,
+			$"The transaction fee is {feePercentage:0.#}% of the sent amount.",
+			$"Sending: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.",
+			$"Fee: {fee.Satoshi} Satoshi.",
+			$"Estimated tx size: {vSize} vBytes."),
+			$"Tx hash: {tx.GetHash()}");
+
 		var sign = !KeyManager.IsWatchOnly;
-		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc);
+		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
 	}
 
 	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)
