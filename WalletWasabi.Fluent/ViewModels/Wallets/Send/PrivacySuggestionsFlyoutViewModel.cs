@@ -92,7 +92,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 					await foreach (var suggestion in suggestions)
 					{
-						Suggestions.Insert(Suggestions.Count - 1, suggestion);
+						Suggestions.Add(suggestion);
 					}
 				}
 			}
