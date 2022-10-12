@@ -18,7 +18,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	private const int SignificantFiguresForFiatAmount = 3;
 	[AutoNotify] private string _amount;
-	[AutoNotify] private string _amountFiat;
+	[AutoNotify] private decimal _amountFiat;
 	[AutoNotify] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(
@@ -31,9 +31,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		var totalAmount = transactionResult.CalculateDestinationAmount();
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 
-		_amountFiat = total.RoundToSignificantFigures(SignificantFiguresForFiatAmount).GenerateFiatText(fiatExchangeRate, "USD");
-
 		var fiatTotal = total * fiatExchangeRate;
+
+		_amountFiat = fiatTotal;
+
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
 		var roundedFiatDifference = fiatDifference.RoundToSignificantFigures(SignificantFiguresForFiatAmount);
