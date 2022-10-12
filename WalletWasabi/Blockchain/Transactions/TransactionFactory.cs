@@ -270,7 +270,8 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogDebug(string.Join(Environment.NewLine,
+		Logger.LogDebug(string.Join(
+			Environment.NewLine,
 			$"The transaction fee is {feePercentage:0.#}% of the sent amount.",
 			$"Sending: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.",
 			$"Fee: {fee.Satoshi} Satoshi.",
