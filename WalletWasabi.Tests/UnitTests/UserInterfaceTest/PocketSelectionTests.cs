@@ -889,8 +889,6 @@ public class PocketSelectionTests
 
 		pockets.Remove(privatePocket);
 		pockets.Add(semiPrivatePocket);
-		// Info.Amount = Money.Parse("0.5");
-		// selection = new LabelSelectionViewModel(KeyManager, Password, Info);
 		selection.Reset(pockets.ToArray());
 
 		// Semi funds are enough for the payment, no better selection.
