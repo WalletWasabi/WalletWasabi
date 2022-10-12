@@ -23,15 +23,16 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <!-- Balance -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
-            <StackPanel Spacing="5" Orientation="Horizontal" VerticalAlignment="Top">
-              <TextBlock Opacity="0.6" Classes="h8" Text="Balance: " />
-              <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
-                <Panel>
-                  <TextBlock Opacity="0.6" Classes="h8" Text="{Binding Balance.BalanceBtc}" />
-                </Panel>
-              </Button>
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding Balance.BalanceFiat}" />
-            </StackPanel>
+            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+              <TextBlock DataContext="{Binding Balance}" Opacity="0.6">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="Balance: {0} {1}">
+                    <Binding Path="BalanceBtc" />
+                    <Binding Path="BalanceFiat" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </Button>
           </c:PrivacyContentControl>
         </StackPanel>
       </DockPanel>
