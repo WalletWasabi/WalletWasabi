@@ -47,7 +47,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 	public IEnumerable<LabelViewModel> LabelsBlackList => AllLabelsViewModel.Where(x => x.IsBlackListed);
 
-	public bool IsPocketEnough(params Pocket[] pockets)
+	private bool IsPocketEnough(params Pocket[] pockets)
 	{
 		var coins = Pocket.Merge(pockets).Coins;
 		var allCoins = Pocket.Merge(_allPockets).Coins;
