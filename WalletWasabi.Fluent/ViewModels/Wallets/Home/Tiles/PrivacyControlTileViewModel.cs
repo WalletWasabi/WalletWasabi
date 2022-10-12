@@ -27,11 +27,10 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
 		_balanceChanged = balanceChanged;
-		_showPrivacyBar = showPrivacyBar;
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
 
-		if (_showPrivacyBar)
+		if (showPrivacyBar)
 		{
 			PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
 		}
