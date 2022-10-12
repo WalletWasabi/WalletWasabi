@@ -11,13 +11,13 @@ public class BtcPriceTileViewModel : TileViewModel
 	{
 		Wallet = wallet;
 
-		BtcPrice = this
+		UsdPerBtc = this
 			.WhenAnyValue(x => x.Wallet.Synchronizer.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.ReplayLastActive();
 	}
 
-	public IObservable<decimal> BtcPrice { get; }
+	public IObservable<decimal> UsdPerBtc { get; }
 
 	private Wallet Wallet { get; }
 }

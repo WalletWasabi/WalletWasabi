@@ -1,15 +1,13 @@
 using Avalonia.Data.Converters;
-using NBitcoin;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Helpers;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
-	public static readonly IValueConverter ToFormattedString =
-		new FuncValueConverter<Money?, string>(money => money is null ? "" : money.ToFormattedString());
-
 	public static readonly IValueConverter ToUsd =
-		new FuncValueConverter<decimal, string>(n => n.RoundToSignificantFigures(5) + " USD");
+		new FuncValueConverter<decimal, string>(n => n.ToUsd());
+
+	public static readonly IValueConverter ToUsdAproxBetweenParens =
+		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
 }

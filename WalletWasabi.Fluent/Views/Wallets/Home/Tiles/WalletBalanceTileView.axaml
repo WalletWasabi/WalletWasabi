@@ -19,7 +19,7 @@
                                         HorizontalAlignment="Center"
                                         Opacity="0.8">
           <controls:PrivacyContentControl.Content>
-            <TextBlock Text="{Binding BalanceFiat, Converter={x:Static converters:MoneyConverters.ToUsd}, StringFormat='(≈{0})'}" />
+            <TextBlock Text="{Binding BalanceFiat, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
           </controls:PrivacyContentControl.Content>
         </controls:PrivacyContentControl>
       </StackPanel>

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -37,11 +38,10 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 		var fiatOriginal = originalAmount * fiatExchangeRate;
 		var fiatDifference = fiatTotal - fiatOriginal;
-		var roundedFiatDifference = fiatDifference.RoundToSignificantFigures(SignificantFiguresForFiatAmount);
 
 		_differenceFiat = (fiatDifference > 0
-				? $"{roundedFiatDifference.GenerateFiatText("USD")} More"
-				: $"{Math.Abs(roundedFiatDifference).GenerateFiatText("USD")} Less")
+				? $"{fiatDifference.ToUsd()} More"
+				: $"{Math.Abs(fiatDifference).ToUsd()} Less")
 			.Replace("(", "").Replace(")", "");
 
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
