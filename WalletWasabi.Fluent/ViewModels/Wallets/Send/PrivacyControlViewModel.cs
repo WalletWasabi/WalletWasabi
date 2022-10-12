@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -27,7 +26,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Kitchen.SaltSoup(), Services.BitcoinStore, _transactionInfo);
+		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Kitchen.SaltSoup(), _transactionInfo);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;

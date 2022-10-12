@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -17,7 +16,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 {
 	private readonly KeyManager _keyManager;
 	private readonly string _password;
-	private readonly BitcoinStore _bitcoinStore;
 	private readonly TransactionInfo _info;
 	private readonly Money _targetAmount;
 	private readonly FeeRate _feeRate;
@@ -29,11 +27,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, BitcoinStore bitcoinStore, TransactionInfo info)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info)
 	{
 		_keyManager = keyManager;
 		_password = password;
-		_bitcoinStore = bitcoinStore;
 		_info = info;
 		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
 		_feeRate = _info.FeeRate;
@@ -54,7 +51,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 		return TransactionHelpers.TryBuildTransaction(
 			keyManager: _keyManager,
-			bitcoinStore: _bitcoinStore,
 			transactionInfo: _info,
 			allCoins: new CoinsView(allCoins),
 			allowedCoins: coins,

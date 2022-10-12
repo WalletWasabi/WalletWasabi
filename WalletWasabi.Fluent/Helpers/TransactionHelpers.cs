@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
@@ -95,7 +96,6 @@ public static class TransactionHelpers
 
 	public static bool TryBuildTransaction(
 		KeyManager keyManager,
-		BitcoinStore bitcoinStore,
 		TransactionInfo transactionInfo,
 		ICoinsView allCoins,
 		IEnumerable<SmartCoin> allowedCoins,
@@ -112,7 +112,10 @@ public static class TransactionHelpers
 				subtractFee: transactionInfo.SubtractFee,
 				label: transactionInfo.UserLabels);
 
-			var builder = new TransactionFactory(keyManager.GetNetwork(), keyManager, allCoins, bitcoinStore.TransactionStore, password, true);
+			var network = keyManager.GetNetwork();
+			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "DummyDirectory"));
+			var emptyTransactionStore = new AllTransactionStore(dataDir, network);
+			var builder = new TransactionFactory(network, keyManager, allCoins, emptyTransactionStore, password, true);
 
 			builder.BuildTransaction(
 				intent,
