@@ -29,7 +29,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
 
-		if (_showPrivacyBar)
+		if (showPrivacyBar)
 		{
 			PrivacyBar = new PrivacyBarViewModel(_walletVm);
 		}
