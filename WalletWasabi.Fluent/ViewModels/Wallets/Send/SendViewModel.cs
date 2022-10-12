@@ -26,7 +26,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
 using System.Collections.ObjectModel;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
-using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
