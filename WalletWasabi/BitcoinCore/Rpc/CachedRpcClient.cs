@@ -55,7 +55,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(10, 4),
+			CacheOptions(10, 300),
 			() => base.GetBlockAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -65,7 +65,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(10, 4),
+			CacheOptions(10, 300),
 			() => base.GetBlockAsync(blockHeight, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -75,7 +75,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(20, 4),
+			CacheOptions(20, 300),
 			() => base.GetVerboseBlockAsync(blockId, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -85,7 +85,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(2, 4),
+			CacheOptions(2, 300),
 			() => base.GetBlockHeaderAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -135,7 +135,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(1, 10, true),
+			CacheOptions(1, 60, true),
 			() => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
 
