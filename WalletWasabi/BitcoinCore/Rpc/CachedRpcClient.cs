@@ -20,6 +20,7 @@ public class CachedRpcClient : RpcClientBase
 
 	private object CancellationTokenSourceLock { get; } = new object();
 
+	// SizeLimit is not set, so cache size set on the entry will be ignored.
 	public IMemoryCache Cache { get; }
 
 	private CancellationTokenSource TipChangeCancellationTokenSource
@@ -158,12 +159,14 @@ public class CachedRpcClient : RpcClientBase
 			() => base.GetTxOutAsync(txid, index, includeMempool, cancellationToken)).ConfigureAwait(false);
 	}
 
+	// Only used in Regtest mode or in tests.
 	public override async Task<uint256[]> GenerateAsync(int blockCount, CancellationToken cancellationToken = default)
 	{
 		TipChangeCancellationTokenSource.Cancel();
 		return await base.GenerateAsync(blockCount, cancellationToken).ConfigureAwait(false);
 	}
 
+	// Only used in Regtest mode or in tests.
 	public override async Task InvalidateBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
 		TipChangeCancellationTokenSource.Cancel();
