@@ -270,14 +270,7 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogDebug(
-			string.Join(
-				Environment.NewLine,
-				$"The transaction fee is {feePercentage:0.#}% of the sent amount.",
-				$"Sending: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.",
-				$"Fee: {fee.Satoshi} Satoshi.",
-				$"Estimated tx size: {vSize} vBytes.",
-				$"Tx hash: {tx.GetHash()}"));
+		Logger.LogDebug($"Total: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 
 		var sign = !KeyManager.IsWatchOnly;
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
