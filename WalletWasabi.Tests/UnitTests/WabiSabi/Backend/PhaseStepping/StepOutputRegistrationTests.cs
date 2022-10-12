@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
 public class StepOutputRegistrationTests
 {
-	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(1);
+	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(3);
 
 	[Fact]
 	public async Task AllBobsRegisteredAsync()

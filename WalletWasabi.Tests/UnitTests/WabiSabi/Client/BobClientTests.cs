@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class BobClientTests
 {
-	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(1);
+	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(3);
 
 	[Fact]
 	public async Task RegisterOutputTestAsync()
