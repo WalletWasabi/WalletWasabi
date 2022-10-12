@@ -315,12 +315,12 @@ public static class WabiSabiFactory
 			destinationProvider,
 			roundStateUpdater,
 			"CoinJoinCoordinatorIdentifier",
+			new LiquidityClueProvider(),
 			int.MaxValue,
 			true,
 			redCoinIsolation,
 			TimeSpan.Zero,
-			TimeSpan.Zero,
-			null);
+			TimeSpan.Zero);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))

@@ -660,13 +660,13 @@ public class CoordinatorRound
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
 		}
 
-		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint)));
-
-		RemoveAlicesBy(alicesToRemove.Select(alice => alice.UniqueId).ToArray());
-
+		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
+		Logger.LogInfo($"Alices({alicesToRemove.Length}) was force banned in round '{RoundId}'.");
+		foreach (var alice in alicesToRemove)
+		{
+			Alices.Remove(alice);
+		}
 		await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: true, inputsToBan.ToArray()).ConfigureAwait(false);
-
-		Logger.LogInfo($"Alices({alicesToRemove.Count()}) was force banned in round '{RoundId}'.");
 	}
 
 	private async Task MoveToInputRegistrationAsync()
