@@ -253,7 +253,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	{
 		_hiddenIncludedPockets.Clear();
 
-		var (isPrivateNeeded, isSemiPrivateNeeded) = IsPrivateAndSemiPrivatePocketNeeded();
+		var (isPrivateNeeded, isSemiPrivateNeeded) = ArePrivateAndSemiPrivatePocketsNeeded();
 
 		if (isPrivateNeeded)
 		{
@@ -271,7 +271,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		this.RaisePropertyChanged(nameof(LabelsBlackList));
 	}
 
-	private (bool, bool) IsPrivateAndSemiPrivatePocketNeeded()
+	private (bool, bool) ArePrivateAndSemiPrivatePocketsNeeded()
 	{
 		var isPrivateNeeded = false;
 		var isSemiPrivateNeeded = false;
