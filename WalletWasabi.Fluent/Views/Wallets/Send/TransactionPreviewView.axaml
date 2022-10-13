@@ -67,11 +67,10 @@
                   <DockPanel>
                     <TextBlock Text="Suggestions to improve your privacy" HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
-                    <Panel>
+                    <StackPanel Orientation="Horizontal">
                       <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                                HorizontalAlignment="Center"
-                               Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}"
-                               IsVisible="{Binding !IsBusy}">
+                               Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
                         <i:Interaction.Behaviors>
                           <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />
                         </i:Interaction.Behaviors>
@@ -137,8 +136,10 @@
                         </ListBox.DataTemplates>
                       </ListBox>
 
-                      <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" IsVisible="{Binding IsBusy}" Margin="0 20 0 0" />
-                    </Panel>
+                      <Viewbox Height="50" VerticalAlignment="Center" Margin="25">
+                        <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" IsVisible="{Binding IsBusy}" />
+                      </Viewbox>
+                    </StackPanel>
                   </DockPanel>
                 </Panel>
               </Flyout>
