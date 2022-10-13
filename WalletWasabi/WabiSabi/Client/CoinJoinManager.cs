@@ -25,13 +25,14 @@ public class CoinJoinManager : BackgroundService
 	private record StartCoinJoinCommand(IWallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(IWallet Wallet) : CoinJoinCommand(Wallet);
 
-	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
+	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier, CoinJoinClientStateProvider clientStateProvider)
 	{
 		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = backendHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		CoinJoinClientStateProvider = clientStateProvider;
 	}
 
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
@@ -40,12 +41,11 @@ public class CoinJoinManager : BackgroundService
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
+	public CoinJoinClientStateProvider CoinJoinClientStateProvider { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
-
-	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
 
 	private Channel<CoinJoinCommand> CommandChannel { get; } = Channel.CreateUnbounded<CoinJoinCommand>();
 
@@ -356,7 +356,7 @@ public class CoinJoinManager : BackgroundService
 					? CoinJoinClientState.InCriticalPhase
 					: CoinJoinClientState.InProgress;
 
-			HighestCoinJoinClientState = onGoingHighestState is not CoinJoinClientState.Idle
+			CoinJoinClientStateProvider.HighestCoinJoinState = onGoingHighestState is not CoinJoinClientState.Idle
 				? onGoingHighestState
 				: scheduledCoinJoins.Any()
 					? CoinJoinClientState.InProgress
