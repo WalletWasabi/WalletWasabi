@@ -112,10 +112,7 @@ public static class TransactionHelpers
 				subtractFee: transactionInfo.SubtractFee,
 				label: transactionInfo.UserLabels);
 
-			var network = keyManager.GetNetwork();
-			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "DummyDirectory"));
-			var emptyTransactionStore = new AllTransactionStore(dataDir, network);
-			var builder = new TransactionFactory(network, keyManager, allCoins, emptyTransactionStore, password, true);
+			var builder = new TransactionFactory(keyManager.GetNetwork(), keyManager, allCoins, new EmptyTransactionStore(), password, true);
 
 			builder.BuildTransaction(
 				intent,
