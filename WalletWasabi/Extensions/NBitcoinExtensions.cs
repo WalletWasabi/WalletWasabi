@@ -430,7 +430,7 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Tries to equip the PSBT with previous transactions with best effort. Always <see cref="AddKeyPaths"/> first otherwise the prev tx won't be added.
 	/// </summary>
-	public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
+	public static void AddPrevTxs(this PSBT psbt, ITransactionStore transactionStore)
 	{
 		// Fill out previous transactions.
 		foreach (var psbtInput in psbt.Inputs)
