@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -56,9 +57,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
-		var fiatAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
-
-		BalanceFiat = fiatAmount;
+		BalanceFiat = _wallet.Coins.TotalAmount().BtcToUsd(_wallet.Synchronizer.UsdExchangeRate);
 
 		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);

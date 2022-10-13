@@ -12,7 +12,7 @@ public static class MoneyExtensions
 	{
 		var amountPart = n switch
 		{
-			>= 10 => n.RoundToSignificantFigures(5).ToString("N0", FormatInfo),
+			>= 10 => Math.Ceiling(n).ToString("N0", FormatInfo),
 			>= 1 => n.ToString("N1", FormatInfo),
 			_ => n.ToString("N2", FormatInfo)
 		};
