@@ -6,7 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
