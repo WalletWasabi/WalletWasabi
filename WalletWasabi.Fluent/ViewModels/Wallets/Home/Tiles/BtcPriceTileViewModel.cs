@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -13,8 +12,7 @@ public class BtcPriceTileViewModel : TileViewModel
 
 		UsdPerBtc = this
 			.WhenAnyValue(x => x.Wallet.Synchronizer.UsdExchangeRate)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ReplayLastActive();
+			.ObserveOn(RxApp.MainThreadScheduler);
 	}
 
 	public IObservable<decimal> UsdPerBtc { get; }
