@@ -449,7 +449,7 @@ public partial class Arena : PeriodicRunner
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
-									&& (x.InputCount < 50 || roundDestroyerInputCount * 0.6 <= roundDestroyerInputCount - x.InputCount / (1 - (x.InputRegistrationTimeFrame.Remaining.TotalSeconds / x.InputRegistrationTimeFrame.Duration.TotalSeconds)))
+									&& !IsRoundProbablyTooCrowded(roundDestroyerInputCount, x.InputCount, x.InputRegistrationTimeFrame)
 									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(150));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
@@ -530,6 +530,32 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
+	private static bool IsRoundProbablyTooCrowded(int roundDestroyerInputCount, int inputCount, TimeFrame inputRegistrationTimeFrame, double balancingBias = 0.1)
+	{
+		// Not representative when InputCount is small, default to false.
+		if (inputCount < roundDestroyerInputCount / 10)
+		{
+			return false;
+		}
+
+		// Division-by-zero safe
+		if ((int)inputRegistrationTimeFrame.Remaining.TotalSeconds == (int)inputRegistrationTimeFrame.Duration.TotalSeconds)
+		{
+			return false;
+		}
+
+		// Estimate spots that will be available using how fast current inputs have been registering so far.
+		var remainingTime = inputRegistrationTimeFrame.Remaining.TotalSeconds / inputRegistrationTimeFrame.Duration.TotalSeconds;
+		var spentTime = 1 - remainingTime;
+		var projectedInputCount = inputCount / spentTime;
+		var projectedRemainingSpots = roundDestroyerInputCount - projectedInputCount;
+
+		// Estimate how many spots are needed for inputs in the round that will be destroyed.
+		var projectedInputsToBalance = roundDestroyerInputCount * (0.5 + balancingBias);
+		
+		return projectedInputsToBalance <= projectedRemainingSpots;
+	}
+	
 	private void TimeoutRounds()
 	{
 		foreach (var expiredRound in Rounds.Where(
