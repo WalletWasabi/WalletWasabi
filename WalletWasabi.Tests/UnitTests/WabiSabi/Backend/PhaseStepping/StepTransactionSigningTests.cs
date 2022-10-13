@@ -21,12 +21,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
 public class StepTransactionSigningTests
 {
-	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(3);
+	private TimeSpan TestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	[Fact]
 	public async Task EveryoneSignedAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -61,7 +61,7 @@ public class StepTransactionSigningTests
 	[Fact]
 	public async Task FailsBroadcastAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -102,7 +102,7 @@ public class StepTransactionSigningTests
 	[Fact]
 	public async Task AlicesSpentAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -149,7 +149,7 @@ public class StepTransactionSigningTests
 	[Fact]
 	public async Task TimeoutInsufficientPeersAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -190,7 +190,7 @@ public class StepTransactionSigningTests
 	[Fact]
 	public async Task TimeoutSufficientPeersAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -246,7 +246,7 @@ public class StepTransactionSigningTests
 	private async Task<(Round Round, AliceClient AliceClient1, AliceClient AliceClient2)>
 			CreateRoundWithOutputsReadyToSignAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		// Create the round.

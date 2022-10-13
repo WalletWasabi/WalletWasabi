@@ -18,12 +18,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
 public class StepOutputRegistrationTests
 {
-	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(3);
+	private TimeSpan TestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	[Fact]
 	public async Task AllBobsRegisteredAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -72,7 +72,7 @@ public class StepOutputRegistrationTests
 	[Fact]
 	public async Task SomeBobsRegisteredTimeoutAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -112,7 +112,7 @@ public class StepOutputRegistrationTests
 	[Fact]
 	public async Task DiffTooSmallToBlameAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		WabiSabiConfig cfg = new()
@@ -167,7 +167,7 @@ public class StepOutputRegistrationTests
 	[Fact]
 	public async Task DoesntSwitchImmaturelyAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 		
 		WabiSabiConfig cfg = new()
@@ -201,7 +201,7 @@ public class StepOutputRegistrationTests
 	private async Task<(Round Round, ArenaClient ArenaClient, AliceClient[] alices)>
 			CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		// Get the round.

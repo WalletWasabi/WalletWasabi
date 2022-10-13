@@ -56,10 +56,10 @@ public abstract class PeriodicRunner : BackgroundService
 		await eventAwaiter.WaitAsync(token).ConfigureAwait(false);
 	}
 
-	public Task TriggerAndWaitRoundAsync(TimeSpan timeout)
+	public async Task TriggerAndWaitRoundAsync(TimeSpan timeout)
 	{
 		using CancellationTokenSource cancellationTokenSource = new(timeout);
-		return TriggerAndWaitRoundAsync(cancellationTokenSource.Token);
+		await TriggerAndWaitRoundAsync(cancellationTokenSource.Token).ConfigureAwait(false);
 	}
 
 	/// <summary>

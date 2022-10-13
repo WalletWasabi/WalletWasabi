@@ -22,12 +22,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class BobClientTests
 {
-	private TimeSpan Timeout { get; } = TimeSpan.FromMinutes(3);
+	private TimeSpan TestTimeout { get; } = TimeSpan.FromMinutes(3);
 
 	[Fact]
 	public async Task RegisterOutputTestAsync()
 	{
-		using CancellationTokenSource cancellationTokenSource = new(Timeout);
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
 		var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
