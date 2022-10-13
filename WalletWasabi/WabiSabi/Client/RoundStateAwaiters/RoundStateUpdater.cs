@@ -32,6 +32,11 @@ public class RoundStateUpdater : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		if (CoinJoinClientStateProvider is not null && CoinJoinClientStateProvider.HighestCoinJoinState is CoinJoinClientState.Idle)
+		{
+			return;
+		}
+
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
