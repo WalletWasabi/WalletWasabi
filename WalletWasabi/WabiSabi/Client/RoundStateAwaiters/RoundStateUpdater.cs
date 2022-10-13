@@ -14,12 +14,14 @@ namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public class RoundStateUpdater : PeriodicRunner
 {
-	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler, CoinJoinClientStateProvider? clientStateProvider = null) : base(requestInterval)
 	{
 		ArenaRequestHandler = arenaRequestHandler;
+		CoinJoinClientStateProvider = clientStateProvider;
 	}
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
+	private CoinJoinClientStateProvider? CoinJoinClientStateProvider { get; }
 	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
