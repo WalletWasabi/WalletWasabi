@@ -94,7 +94,7 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
-	public static bool TryBuildTransaction(
+	public static bool TryBuildTransactionWithoutPrevTx(
 		KeyManager keyManager,
 		TransactionInfo transactionInfo,
 		ICoinsView allCoins,

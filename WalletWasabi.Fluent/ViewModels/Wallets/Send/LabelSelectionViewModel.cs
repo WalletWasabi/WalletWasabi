@@ -49,7 +49,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var coins = Pocket.Merge(pockets).Coins;
 		var allCoins = Pocket.Merge(_allPockets).Coins;
 
-		return TransactionHelpers.TryBuildTransaction(
+		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(
 			keyManager: _keyManager,
 			transactionInfo: _info,
 			allCoins: new CoinsView(allCoins),
