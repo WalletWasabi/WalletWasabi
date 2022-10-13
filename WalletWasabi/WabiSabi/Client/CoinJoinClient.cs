@@ -44,7 +44,7 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
-		LiquidityClueHelper liquidityClueHelper,
+		LiquidityClueProvider liquidityClueProvider,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
@@ -57,7 +57,7 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
-		LiquidityClueHelper = liquidityClueHelper;
+		LiquidityClueProvider = liquidityClueProvider;
 		ConsolidationMode = consolidationMode;
 		RedCoinIsolation = redCoinIsolation;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
@@ -73,7 +73,7 @@ public class CoinJoinClient
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
-	public LiquidityClueHelper LiquidityClueHelper { get; }
+	public LiquidityClueProvider LiquidityClueProvider { get; }
 	public int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
@@ -140,7 +140,8 @@ public class CoinJoinClient
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, LiquidityClueHelper.GetLiquidityClue(roundParameteers), SecureRandom);
+			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -257,7 +258,7 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
-			LiquidityClueHelper.UpdateLiquidityClue(roundState.CoinjoinState.Parameters, unsignedCoinJoin, outputTxOuts);
+			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
 
 			return new CoinJoinResult(
 				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
@@ -279,27 +280,6 @@ public class CoinJoinClient
 			}
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
-		}
-	}
-
-	public static Money? TryCalculateLiquidityClue(Transaction coinjoin, IEnumerable<TxOut>? ownTxOuts = null)
-	{
-		var denoms = coinjoin.Outputs
-				.Where(x =>
-					BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi) // We only care about denom outputs as those can be considered reasonably mixed.
-					&& !ownTxOuts?.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value) is true) // We only care about outputs those aren't ours.
-				.Select(x => x.Value)
-				.OrderByDescending(x => x)
-				.Distinct()
-				.ToArray();
-		var topDenoms = denoms.Take((int)Math.Ceiling(denoms.Length * 10 / 100d)); // Take top 10% of denominations.
-		if (topDenoms.Any())
-		{
-			return Money.Coins(topDenoms.Average(x => x.ToDecimal(MoneyUnit.BTC)));
-		}
-		else
-		{
-			return null;
 		}
 	}
 
