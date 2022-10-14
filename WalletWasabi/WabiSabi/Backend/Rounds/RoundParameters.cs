@@ -6,7 +6,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
-public record RoundParameters : IUtxoSelectionParameters
+public record RoundParameters
 {
 	public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create(ScriptType.P2WPKH);
 
@@ -114,4 +114,6 @@ public record RoundParameters : IUtxoSelectionParameters
 
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
+
+	public UtxoSelectionParameters ToUtxoSelectionParameters() => new UtxoSelectionParameters(AllowedInputAmounts, AllowedOutputAmounts, CoordinationFeeRate, MiningFeeRate, AllowedInputTypes);
 }

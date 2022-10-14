@@ -142,7 +142,7 @@ public class CoinJoinClient
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
+			coins = SelectCoinsForRound(coinCandidates, roundParameteers.ToUtxoSelectionParameters(), ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -580,7 +580,7 @@ public class CoinJoinClient
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public static ImmutableList<TCoin> SelectCoinsForRound<TCoin>(
 		IEnumerable<TCoin> coins,
-		IUtxoSelectionParameters parameters,
+		UtxoSelectionParameters parameters,
 		bool consolidationMode,
 		int anonScoreTarget,
 		bool redCoinIsolation,
@@ -906,7 +906,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private static bool TryAddGroup<TCoin>(IUtxoSelectionParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
+	private static bool TryAddGroup<TCoin>(UtxoSelectionParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
 		where TCoin : ISmartCoin
 	{
 		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));

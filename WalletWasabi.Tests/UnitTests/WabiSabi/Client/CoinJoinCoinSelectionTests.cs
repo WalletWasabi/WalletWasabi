@@ -20,7 +20,7 @@ public class CoinJoinCoinSelectionTests
 		// This test is to make sure no coins are selected when there are no coins.
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: Enumerable.Empty<SmartCoin>(),
-			CreateMultipartyTransactionParameters(),
+			CreateMultipartyTransactionParameters().ToUtxoSelectionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: 10,
 			redCoinIsolation: false,
@@ -43,7 +43,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			CreateMultipartyTransactionParameters().ToUtxoSelectionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
@@ -68,7 +68,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			CreateMultipartyTransactionParameters().ToUtxoSelectionParameters(),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
@@ -92,7 +92,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			CreateMultipartyTransactionParameters().ToUtxoSelectionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
@@ -117,7 +117,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			CreateMultipartyTransactionParameters().ToUtxoSelectionParameters(),
 			consolidationMode: false,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
@@ -141,7 +141,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = CoinJoinClient.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateMultipartyTransactionParameters(),
+			CreateMultipartyTransactionParameters().ToUtxoSelectionParameters(),
 			consolidationMode: true,
 			anonScoreTarget: AnonymitySet,
 			redCoinIsolation: false,
