@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
 
-namespace WalletWasabi.Backend.Controllers.WabiSabi;
+namespace WalletWasabi.Cache;
 
 public class IdempotencyRequestCache
 {
@@ -46,7 +46,7 @@ public class IdempotencyRequestCache
 				{
 					callAction = true;
 					responseTcs = new();
-					ResponseCache.Set(request, responseTcs, DateTimeOffset.UtcNow.Add(CacheTimeout));
+					ResponseCache.Set(request, responseTcs, absoluteExpiration: DateTimeOffset.UtcNow.Add(CacheTimeout));
 				}
 			}
 
