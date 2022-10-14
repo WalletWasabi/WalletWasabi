@@ -106,7 +106,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 			foreach (var coin in pocketCoins)
 			{
-				var margin = 2;
+				var margin = 1.5m;
 				var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
 				var width = Math.Abs((decimal)usableWidth * amount / total);
 
@@ -114,7 +114,6 @@ public partial class PrivacyBarViewModel : ViewModelBase
 				if (width < 2)
 				{
 					width++;
-					margin--;
 				}
 
 				yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
@@ -138,7 +137,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 		foreach (var pocket in usablePockets)
 		{
-			var margin = 2;
+			var margin = 1.5m;
 			var amount = pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
 
 			var width = Math.Abs((decimal)usableWidth * amount / total);
@@ -147,7 +146,6 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			if (width < 2)
 			{
 				width++;
-				margin--;
 			}
 
 			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
