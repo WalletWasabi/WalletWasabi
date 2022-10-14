@@ -33,7 +33,24 @@ public class IdempotencyRequestCache
 	/// and <see cref="object.Equals(object?)"/> are generated for <see langword="record"/> types automatically.
 	/// </typeparam>
 	/// <typeparam name="TResponse">Type associated with <typeparamref name="TRequest"/>. The correspondence should be 1:1 mapping.</typeparam>
-	public async Task<TResponse> GetCachedResponseAsync<TRequest, TResponse>(TRequest request, ProcessRequestDelegateAsync<TRequest, TResponse> action, CancellationToken cancellationToken = default) where TRequest : notnull where TResponse : class
+	public Task<TResponse> GetCachedResponseAsync<TRequest, TResponse>(TRequest request, ProcessRequestDelegateAsync<TRequest, TResponse> action, CancellationToken cancellationToken = default)
+		where TRequest : notnull
+	{
+		MemoryCacheEntryOptions options = new()
+		{
+			AbsoluteExpiration = DateTimeOffset.UtcNow.Add(CacheTimeout),
+		};
+
+		return GetCachedResponseAsync(request, action, options, cancellationToken);
+	}
+
+	/// <typeparam name="TRequest">
+	/// <see langword="record"/>s are preferred as <see cref="object.GetHashCode"/>
+	/// and <see cref="object.Equals(object?)"/> are generated for <see langword="record"/> types automatically.
+	/// </typeparam>
+	/// <typeparam name="TResponse">Type associated with <typeparamref name="TRequest"/>. The correspondence should be 1:1 mapping.</typeparam>
+	public async Task<TResponse> GetCachedResponseAsync<TRequest, TResponse>(TRequest request, ProcessRequestDelegateAsync<TRequest, TResponse> action, MemoryCacheEntryOptions options, CancellationToken cancellationToken)
+		where TRequest : notnull
 	{
 		bool callAction = false;
 		TaskCompletionSource<TResponse> responseTcs;
@@ -46,7 +63,7 @@ public class IdempotencyRequestCache
 				{
 					callAction = true;
 					responseTcs = new();
-					ResponseCache.Set(request, responseTcs, absoluteExpiration: DateTimeOffset.UtcNow.Add(CacheTimeout));
+					ResponseCache.Set(request, responseTcs, options);
 				}
 			}
 
