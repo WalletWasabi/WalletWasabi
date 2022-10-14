@@ -18,7 +18,7 @@ public class CachedRpcClient : RpcClientBase
 		Cache = cache;
 	}
 
-	private object CancellationTokenSourceLock { get; } = new object();
+	private object CancellationTokenSourceLock { get; } = new();
 
 	public IMemoryCache Cache { get; }
 
