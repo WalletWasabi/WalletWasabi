@@ -270,7 +270,7 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogDebug($"Total: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
+		Logger.LogDebug($"Sending: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 
 		var sign = !KeyManager.IsWatchOnly;
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
