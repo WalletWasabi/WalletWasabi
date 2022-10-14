@@ -33,26 +33,28 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		Observable.FromEventPattern<Bitmap>(_qrReader, nameof(_qrReader.NewImageArrived))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args => QrImage = args.EventArgs)
+			.Do(args => QrImage = args.EventArgs)
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.CorrectAddressFound))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args => Close(DialogResultKind.Normal, args.EventArgs))
-			.DisposeWith(disposables);
+			.Do(args => Close(DialogResultKind.Normal, args.EventArgs))
+			.Subscribe().DisposeWith(disposables);
 
 		Observable.FromEventPattern<string>(_qrReader, nameof(_qrReader.InvalidAddressFound))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(args =>
+			.Do(args =>
 			{
 				ErrorMessage = "No valid Bitcoin address found";
 				QrContent = args.EventArgs;
 			})
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		Observable.FromEventPattern<Exception>(_qrReader, nameof(_qrReader.ErrorOccurred))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.SubscribeAsync(async args =>
+			.DoAsync(async args =>
 			{
 				await ShowErrorAsync(
 					Title,
@@ -61,6 +63,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 				Close();
 			})
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		if (!isInHistory)

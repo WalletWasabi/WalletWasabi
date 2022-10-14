@@ -40,7 +40,8 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 
 		this.WhenAnyValue(x => x.To)
 			.Skip(1)
-			.Subscribe(ParseToField);
+			.Do(ParseToField)
+			.Subscribe();
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());

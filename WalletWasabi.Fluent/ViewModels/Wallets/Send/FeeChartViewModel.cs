@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -34,16 +35,18 @@ public partial class FeeChartViewModel : ViewModelBase
 		_currentConfirmationTargetString = "";
 
 		this.WhenAnyValue(x => x.CurrentConfirmationTarget)
-			.Subscribe(x =>
+			.Do(x =>
 			{
 				if (x > 0)
 				{
 					SetSliderValue(x);
 				}
-			});
+			})
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.SliderValue)
-			.Subscribe(SetXAxisCurrentValue);
+			.Do(SetXAxisCurrentValue)
+			.Subscribe();
 
 		MoveSliderRightCommand = ReactiveCommand.Create(() => SliderValue = Math.Max(SliderMinimum, SliderValue - 10));
 		MoveSliderLeftCommand = ReactiveCommand.Create(() => SliderValue = Math.Min(SliderMaximum, SliderValue + 10));

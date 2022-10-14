@@ -44,7 +44,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
 		this.WhenAnyValue(x => x.UnfilteredTransactions.Count)
-			.Subscribe(x => IsTransactionHistoryEmpty = x <= 0);
+			.Do(x => IsTransactionHistoryEmpty = x <= 0)
+			.Subscribe();
 
 		_transactionSourceList
 			.Connect()
@@ -171,7 +172,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		Source.RowSelection
 			.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(x => SelectedItem = x);
+			.Do(x => SelectedItem = x)
+			.Subscribe();
 	}
 
 	public ObservableCollection<HistoryItemViewModelBase> UnfilteredTransactions => _unfilteredTransactions;

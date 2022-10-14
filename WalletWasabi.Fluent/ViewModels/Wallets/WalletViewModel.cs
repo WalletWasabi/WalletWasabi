@@ -56,7 +56,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		History = new HistoryViewModel(this);
 
 		UiTriggers.TransactionsUpdateTrigger
-			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
+			.Do(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
+			.Subscribe()
 			.DisposeWith(Disposables);
 
 		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
@@ -74,12 +75,14 @@ public partial class WalletViewModel : WalletViewModelBase
 				.Select(args => args.EventArgs)
 				.Where(e => e.Wallet == Wallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => IsCoinJoining = MaybeCoinjoining(e) ?? IsCoinJoining)
+				.Do(e => IsCoinJoining = MaybeCoinjoining(e) ?? IsCoinJoining)
+				.Subscribe()
 				.DisposeWith(Disposables);
 		}
 
 		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
-			.Subscribe(x => IsEmptyWallet = x);
+			.Do(x => IsEmptyWallet = x)
+			.Subscribe();
 
 		_smallLayoutHeightBreakpoint = double.MaxValue;
 		_wideLayoutWidthBreakpoint = double.MaxValue;
@@ -99,21 +102,25 @@ public partial class WalletViewModel : WalletViewModelBase
 			: TileHelper.GetNormalWalletTiles(this);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
-			.Subscribe(x =>
+			.Do(x =>
 			{
 				SetLayoutFlag(x);
 				NotifyLayoutChanged();
 				UpdateTiles();
-			});
+			})
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.WidthSource)
-			.Subscribe(x => LayoutSelector(x, _heightSource));
+			.Do(x => LayoutSelector(x, _heightSource))
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.HeightSource)
-			.Subscribe(x => LayoutSelector(_widthSource, x));
+			.Do(x => LayoutSelector(_widthSource, x))
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
+			.Do(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet))
+			.Subscribe();
 
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)

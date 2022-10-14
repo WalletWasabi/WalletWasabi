@@ -50,22 +50,24 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
-			.Subscribe(
-				x =>
-				{
-					Services.UiConfig.DarkModeEnabled = x;
-					Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
-				});
+			.Do(x =>
+			{
+				Services.UiConfig.DarkModeEnabled = x;
+				Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
+			})
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.AutoCopy)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.Autocopy = x);
+			.Do(x => Services.UiConfig.Autocopy = x)
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.AutoPaste)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.AutoPaste = x);
+			.Do(x => Services.UiConfig.AutoPaste = x)
+			.Subscribe();
 
 		StartupCommand = ReactiveCommand.Create(async () =>
 		{
@@ -85,17 +87,20 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		this.WhenAnyValue(x => x.CustomChangeAddress)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
+			.Do(x => Services.UiConfig.IsCustomChangeAddress = x)
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.SelectedFeeDisplayUnit)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.FeeDisplayUnit = (int)x);
+			.Do(x => Services.UiConfig.FeeDisplayUnit = (int)x)
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.HideOnClose)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.HideOnClose = x);
+			.Do(x => Services.UiConfig.HideOnClose = x)
+			.Subscribe();
 
 		this.WhenAnyValue(
 				x => x.UseTor,
@@ -104,7 +109,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
-			.Subscribe(_ => Save());
+			.Do(_ => Save())
+			.Subscribe();
 	}
 
 	public ICommand StartupCommand { get; }

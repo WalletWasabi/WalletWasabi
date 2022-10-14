@@ -15,14 +15,14 @@ public partial class DialogScreenViewModel : TargettedNavigationStack
 		this.WhenAnyValue(x => x.IsDialogOpen)
 			.Skip(1) // Skip the initial value change (which is false).
 			.DistinctUntilChanged()
-			.Subscribe(
-				x =>
+			.Do(x =>
+			{
+				if (!x)
 				{
-					if (!x)
-					{
-						CloseScreen();
-					}
-				});
+					CloseScreen();
+				}
+			})
+			.Subscribe();
 	}
 
 	protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage, bool newInStack)

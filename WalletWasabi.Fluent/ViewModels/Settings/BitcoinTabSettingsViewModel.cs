@@ -52,7 +52,8 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
-			.Subscribe(_ => Save());
+			.Do(_ => Save())
+			.Subscribe();
 	}
 
 	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;

@@ -54,7 +54,8 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		SaveQrCodeCommand.ThrownExceptions
 			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(ex => Logger.LogError(ex));
+			.Do(ex => Logger.LogError(ex))
+			.Subscribe();
 
 		NextCommand = CancelCommand;
 	}
@@ -121,13 +122,14 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(_wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
+			.Do(_ =>
 			{
 				if (_wallet.KeyManager.GetKeys(x => x == _model && x.KeyState == KeyState.Used).Any())
 				{
 					Navigate().Back();
 				}
 			})
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 	private void GenerateQrCode()

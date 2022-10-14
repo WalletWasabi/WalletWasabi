@@ -46,7 +46,8 @@ public partial class WalletStatsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		Observable.FromEventPattern(_wallet, nameof(_wallet.WalletRelevantTransactionProcessed))
-			.Subscribe(_ => UpdateProps())
+			.Do(_ => UpdateProps())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

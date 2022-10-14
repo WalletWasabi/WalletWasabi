@@ -27,13 +27,13 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin = coin;
 		Amount = Coin.Amount;
 
-		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposables);
-		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.Confirmed).Do(x => Confirmed = x).Subscribe().DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Do(x => SmartLabel = x).Subscribe().DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Do(x => AnonymitySet = (int)x).Subscribe().DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Do(x => CoinJoinInProgress = x).Subscribe().DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.IsBanned).Do(x => IsBanned = x).Subscribe().DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Do(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").Subscribe().DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Do(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").Subscribe().DisposeWith(_disposables);
 	}
 
 	public SmartCoin Coin { get; }

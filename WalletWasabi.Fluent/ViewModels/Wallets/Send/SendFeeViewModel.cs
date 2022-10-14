@@ -109,7 +109,8 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			})
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
+			.Do(estimations => FeeChart.UpdateFeeEstimates(estimations, _transactionInfo.MaximumPossibleFeeRate))
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () =>

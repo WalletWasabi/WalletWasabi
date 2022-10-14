@@ -63,7 +63,8 @@ public partial class MainViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.WindowState)
 			.Where(state => state != WindowState.Minimized)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
+			.Do(state => Services.UiConfig.WindowState = state.ToString())
+			.Subscribe();
 
 		IsMainContentEnabled = this.WhenAnyValue(
 				x => x.DialogScreen.IsDialogOpen,

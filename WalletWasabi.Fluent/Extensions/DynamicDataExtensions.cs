@@ -53,7 +53,7 @@ public static class DynamicDataExtensions
 
 							updateAction(previous, change.Current);
 
-							// send a refresh as this will force downstream operators 
+							// send a refresh as this will force downstream operators
 							cache.Refresh(change.Key);
 						}
 							break;
@@ -75,6 +75,6 @@ public static class DynamicDataExtensions
 
 	public static IDisposable RefillFrom<TObject, TKey>(this ISourceCache<TObject, TKey> sourceCache, IObservable<IEnumerable<TObject>> contents) where TKey : notnull
 	{
-		return contents.Subscribe(list => sourceCache.Edit(updater => updater.Load(list)));
+		return contents.Do(list => sourceCache.Edit(updater => updater.Load(list))).Subscribe();
 	}
 }

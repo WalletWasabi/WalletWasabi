@@ -26,7 +26,8 @@ public partial class AdvancedSettingsTabViewModel : SettingsTabViewModelBase
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Skip(1)
-			.Subscribe(_ => Save());
+			.Do(_ => Save())
+			.Subscribe();
 	}
 
 	protected override void EditConfigOnSave(Config config)

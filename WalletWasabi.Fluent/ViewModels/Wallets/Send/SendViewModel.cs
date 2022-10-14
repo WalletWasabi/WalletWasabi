@@ -74,10 +74,12 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.To)
 			.Skip(1)
-			.Subscribe(ParseToField);
+			.Do(ParseToField)
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
-			.Subscribe(endPoint => IsPayJoin = endPoint is { });
+			.Do(endPoint => IsPayJoin = endPoint is { })
+			.Subscribe();
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
@@ -125,7 +127,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+			.Do(x => Services.UiConfig.SendAmountConversionReversed = x)
+			.Subscribe();
 	}
 
 	public bool IsQrButtonVisible { get; }
@@ -315,7 +318,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => ExchangeRate = x)
+			.Do(x => ExchangeRate = x)
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());

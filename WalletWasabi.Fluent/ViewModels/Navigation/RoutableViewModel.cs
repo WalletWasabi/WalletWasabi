@@ -131,7 +131,8 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 			(command as IReactiveCommand)?.IsExecuting
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => IsBusy = x);
+				.Do(x => IsBusy = x)
+				.Subscribe();
 		}
 	}
 

@@ -32,10 +32,11 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
-			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
+			.DoAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
+			.Subscribe();
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-			.SubscribeAsync(async _ =>
+			.DoAsync(async _ =>
 			{
 				if (Services.Synchronizer.BackendStatus == BackendStatus.Connected)
 				{
@@ -43,7 +44,8 @@ public partial class LoadingViewModel : ActivatableViewModel
 				}
 
 				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
-			});
+			})
+			.Subscribe();
 	}
 
 	public string WalletName => _wallet.WalletName;
@@ -62,11 +64,12 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
+			.Do(_ =>
 			{
 				var processedCount = GetCurrentProcessedCount();
 				UpdateStatus(processedCount);
 			})
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

@@ -63,7 +63,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => InitializeLabels())
+			.Do(_ => InitializeLabels())
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		if (_isSilent)

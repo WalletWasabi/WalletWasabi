@@ -27,7 +27,8 @@ public partial class NavBarViewModel : ViewModelBase
 			.WhereNotNull()
 			.OfType<NavBarItemViewModel>()
 			.DistinctUntilChanged()
-			.Subscribe(CurrentPageChanged);
+			.Do(CurrentPageChanged)
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.SelectedItem)
 			.WhereNotNull()

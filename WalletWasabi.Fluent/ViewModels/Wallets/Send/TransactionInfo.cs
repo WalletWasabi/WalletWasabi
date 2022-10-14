@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -19,10 +20,12 @@ public partial class TransactionInfo
 		PrivateCoinThreshold = anonScoreTarget;
 
 		this.WhenAnyValue(x => x.FeeRate)
-			.Subscribe(_ => OnFeeChanged());
+			.Do(_ => OnFeeChanged())
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.Coins)
-			.Subscribe(_ => OnCoinsChanged());
+			.Do(_ => OnCoinsChanged())
+			.Subscribe();
 	}
 
 	public int PrivateCoinThreshold { get; }

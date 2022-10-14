@@ -33,11 +33,12 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
-			.SubscribeAsync(async _ =>
+			.DoAsync(async _ =>
 			{
 				await Task.Delay(1260);
 				IsFlashing = false;
-			});
+			})
+			.Subscribe();
 	}
 
 	public uint256 Id { get; }

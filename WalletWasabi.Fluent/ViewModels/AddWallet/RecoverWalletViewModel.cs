@@ -32,11 +32,12 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
-			.Subscribe(x =>
+			.Do(x =>
 			{
 				CurrentMnemonics = x;
 				this.RaisePropertyChanged(nameof(Mnemonics));
-			});
+			})
+			.Subscribe();
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 

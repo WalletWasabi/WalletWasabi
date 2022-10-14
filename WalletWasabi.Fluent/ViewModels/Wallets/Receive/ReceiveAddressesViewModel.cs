@@ -100,7 +100,8 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		Observable
 			.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => InitializeAddresses())
+			.Do(_ => InitializeAddresses())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

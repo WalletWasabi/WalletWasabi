@@ -60,7 +60,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 				x => x.IsConnectionIssueDetected)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ =>
+			.Do(_ =>
 			{
 				if (BackendStatus == BackendStatus.Connected)
 				{
@@ -68,7 +68,8 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 				}
 
 				SetStatusIconState();
-			});
+			})
+			.Subscribe();
 
 		var issues = statusCheckerWrapper.Issues
 			.Select(r => r.Where(issue => !issue.Resolved).ToList())
@@ -142,16 +143,18 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 		synchronizer.WhenAnyValue(x => x.TorStatus)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(status => TorStatus = UseTor ? status : TorStatus.TurnedOff)
+			.Do(status => TorStatus = UseTor ? status : TorStatus.TurnedOff)
+			.Subscribe()
 			.DisposeWith(Disposables);
 
 		synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(status => BackendStatus = status)
+			.Do(status => BackendStatus = status)
+			.Subscribe()
 			.DisposeWith(Disposables);
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
-			.Subscribe(_ =>
+			.Do(_ =>
 			{
 				if (BackendStatus == BackendStatus.Connected) // TODO: the event invoke must be refactored in Synchronizer
 				{
@@ -160,6 +163,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 				IsConnectionIssueDetected = true;
 			})
+			.Subscribe()
 			.DisposeWith(Disposables);
 
 		Peers = TorStatus == TorStatus.NotRunning ? 0 : nodes.Count;
@@ -168,20 +172,22 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 			.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(_ => Unit.Default)
 			.Merge(Services.Synchronizer.WhenAnyValue(x => x.TorStatus).Select(_ => Unit.Default))))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => Peers = synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+			.Do(_ => Peers = synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+			.Subscribe()
 			.DisposeWith(Disposables);
 
 		if (rpcMonitor is { }) // TODO: Is it possible?
 		{
 			Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
+				.Do(e => BitcoinCoreStatus = e.EventArgs)
+				.Subscribe()
 				.DisposeWith(Disposables);
 		}
 
 		Observable.FromEventPattern<UpdateStatus>(updateManager, nameof(updateManager.UpdateAvailableToGet))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(e =>
+			.Do(e =>
 			{
 				var updateStatus = e.EventArgs;
 
@@ -202,6 +208,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 					VersionText = $"Version {updateStatus.ClientVersion} is now available";
 				}
 			})
+			.Subscribe()
 			.DisposeWith(Disposables);
 	}
 

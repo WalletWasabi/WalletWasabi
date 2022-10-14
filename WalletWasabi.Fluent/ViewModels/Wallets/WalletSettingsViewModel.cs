@@ -32,13 +32,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)
-			.Subscribe(
-				value =>
-				{
-					_wallet.KeyManager.PreferPsbtWorkflow = value;
-					_wallet.KeyManager.ToFile();
-					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
-				});
+			.Do(value =>
+			{
+				_wallet.KeyManager.PreferPsbtWorkflow = value;
+				_wallet.KeyManager.ToFile();
+				walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
+			})
+			.Subscribe();
 	}
 
 	public bool IsHardwareWallet { get; }

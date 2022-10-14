@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -44,7 +45,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		base.OnActivated(disposables);
 
 		_walletVm.UiTriggers.PrivacyProgressUpdateTrigger
-			.Subscribe(_ => Update())
+			.Do(_ => Update())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

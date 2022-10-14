@@ -40,13 +40,15 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 		base.OnActivated(disposables);
 
 		_balanceChanged
-			.Subscribe(_ => UpdateBalance())
+			.Do(_ => UpdateBalance())
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		_history.ToObservableChangeSet()
 			.Throttle(TimeSpan.FromMilliseconds(50))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => UpdateRecentTransaction())
+			.Do(_ => UpdateRecentTransaction())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

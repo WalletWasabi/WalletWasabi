@@ -41,7 +41,8 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.Message)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
+			.Do(message => ConfirmationRequired = !string.IsNullOrEmpty(message))
+			.Subscribe();
 	}
 
 	private HwiEnumerateEntry? DetectedDevice { get; set; }

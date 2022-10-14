@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 
@@ -13,11 +14,12 @@ public abstract partial class TileViewModel : ActivatableViewModel
 	protected TileViewModel()
 	{
 		this.WhenAnyValue(x => x.TilePresetIndex)
-			.Subscribe(_ =>
+			.Do(_ =>
 			{
 				UpdatePresetFlags();
 				NotifyPresetChanged();
-			});
+			})
+			.Subscribe();
 	}
 
 	public int Column => CurrentTilePreset?.Column ?? 0;

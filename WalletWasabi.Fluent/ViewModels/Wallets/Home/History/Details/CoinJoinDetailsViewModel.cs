@@ -49,7 +49,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_updateTrigger
-			.Subscribe(_ => Update())
+			.Do(_ => Update())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

@@ -22,7 +22,8 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 		_disposable = this.WhenAnyValue(x => x.IsDialogOpen)
 						  .Skip(1) // Skip the initial value change (which is false).
 						  .DistinctUntilChanged()
-						  .Subscribe(OnIsDialogOpenChanged);
+						  .Do(OnIsDialogOpenChanged)
+						  .Subscribe();
 
 		BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
 

@@ -50,7 +50,8 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 		_wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
 			.Select(_ => Unit.Default)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => SuggestionLabels.UpdateLabels())
+			.Do(_ => SuggestionLabels.UpdateLabels())
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 }

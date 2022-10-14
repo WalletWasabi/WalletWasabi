@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -31,7 +32,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		IsPreview = isPreview;
 
 		this.WhenAnyValue(x => x.TransactionHasChange, x => x.TransactionHasPockets)
-			.Subscribe(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange);
+			.Do(_ => MaxPrivacy = !TransactionHasPockets && !TransactionHasChange)
+			.Subscribe();
 
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;

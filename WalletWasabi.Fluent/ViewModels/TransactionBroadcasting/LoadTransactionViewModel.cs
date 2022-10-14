@@ -30,7 +30,8 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 		this.WhenAnyValue(x => x.FinalTransaction)
 			.Where(x => x is { })
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(finalTransaction => Close(result: finalTransaction));
+			.Do(finalTransaction => Close(result: finalTransaction))
+			.Subscribe();
 
 		ImportTransactionCommand = ReactiveCommand.CreateFromTask(
 			async () => await OnImportTransactionAsync(),

@@ -30,7 +30,8 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
-			.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
+			.Do(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive())
+			.Subscribe();
 	}
 
 	public override string Title
@@ -69,7 +70,8 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 		Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => WalletState = x.EventArgs)
+			.Do(x => WalletState = x.EventArgs)
+			.Subscribe()
 			.DisposeWith(disposables);
 	}
 

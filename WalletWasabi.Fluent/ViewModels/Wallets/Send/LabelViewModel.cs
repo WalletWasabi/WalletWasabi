@@ -25,11 +25,12 @@ public partial class LabelViewModel : ViewModelBase
 		this.WhenAnyValue(x => x.IsPointerOver)
 			.Skip(1)
 			.Where(value => value == true)
-			.Subscribe(_ =>
+			.Do(_ =>
 			{
 				owner.OnPointerOver(this);
 				owner.OnFade(this);
-			});
+			})
+			.Subscribe();
 
 		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
 
@@ -49,7 +50,8 @@ public partial class LabelViewModel : ViewModelBase
 		triggerSource
 			.WhenAnyValue(x => x.IsPointerOver)
 			.TakeUntil(value => value == false)
-			.Subscribe(value => IsHighlighted = value);
+			.Do(value => IsHighlighted = value)
+			.Subscribe();
 	}
 
 	public void Fade(LabelViewModel triggerSource)
@@ -57,6 +59,7 @@ public partial class LabelViewModel : ViewModelBase
 		triggerSource
 			.WhenAnyValue(x => x.IsPointerOver)
 			.TakeUntil(value => value == false)
-			.Subscribe(value => IsFaded = value);
+			.Do(value => IsFaded = value)
+			.Subscribe();
 	}
 }

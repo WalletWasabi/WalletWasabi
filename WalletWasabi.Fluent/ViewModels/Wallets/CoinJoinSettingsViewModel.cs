@@ -65,7 +65,8 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
+			.Do(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget))
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)

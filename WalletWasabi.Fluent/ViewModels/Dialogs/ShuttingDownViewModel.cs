@@ -22,7 +22,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 	{
 		Observable.Interval(TimeSpan.FromSeconds(3))
 				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Subscribe(_ =>
+				  .Do(_ =>
 				  {
 					  if (_applicationViewModel.CanShutdown())
 					  {
@@ -30,6 +30,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 						  _applicationViewModel.Shutdown(_restart);
 					  }
 				  })
+				  .Subscribe()
 				  .DisposeWith(disposables);
 	}
 }

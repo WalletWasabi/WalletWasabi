@@ -58,7 +58,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		DisplayedTransactionSummary = CurrentTransactionSummary;
 
 		PrivacySuggestions.WhenAnyValue(x => x.PreviewSuggestion)
-			.Subscribe(x =>
+			.Do(x =>
 			{
 				if (x is ChangeAvoidanceSuggestionViewModel ca)
 				{
@@ -68,10 +68,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				{
 					DisplayedTransactionSummary = CurrentTransactionSummary;
 				}
-			});
+			})
+			.Subscribe();
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.Subscribe(x =>
+			.Do(x =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
@@ -81,16 +82,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
 				}
-			});
+			})
+			.Subscribe();
 
 		PrivacySuggestions.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
+			.Do(x =>
 			{
 				if (!x)
 				{
 					DisplayedTransactionSummary = CurrentTransactionSummary;
 				}
-			});
+			})
+			.Subscribe();
 
 		this.WhenAnyValue(x => x.Transaction)
 			.WhereNotNull()
@@ -409,7 +412,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		Observable
 			.FromEventPattern(_wallet.FeeProvider, nameof(_wallet.FeeProvider.AllFeeEstimateChanged))
-			.Subscribe(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
+			.Do(_ => AdjustFeeAvailable = !TransactionFeeHelper.AreTransactionFeesEqual(_wallet))
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		if (!isInHistory)

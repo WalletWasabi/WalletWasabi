@@ -88,7 +88,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		walletVm.UiTriggers.TransactionsUpdateTrigger.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
+		walletVm.UiTriggers.TransactionsUpdateTrigger.Do(_ => _stateMachine.Fire(Trigger.BalanceChanged)).Subscribe();
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -114,7 +114,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		AutoCoinJoinObservable
 			.Skip(1) // The first one is triggered at the creation.
-			.SubscribeAsync(async (autoCoinJoin) =>
+			.DoAsync(async (autoCoinJoin) =>
 			{
 				if (autoCoinJoin)
 				{
@@ -125,7 +125,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					await coinJoinManager.StopAsync(wallet, CancellationToken.None);
 					_stateMachine.Fire(Trigger.AutoCoinJoinOff);
 				}
-			});
+			})
+			.Subscribe();
 
 		walletVm.Settings.WhenAnyValue(x => x.PlebStopThreshold)
 			.SubscribeAsync(async _ =>
