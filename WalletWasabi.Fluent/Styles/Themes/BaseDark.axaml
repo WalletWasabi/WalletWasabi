@@ -99,6 +99,8 @@
 
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow1">0 6 16 0 #22000000</BoxShadows>
     <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 9 23 0 #4A000000</BoxShadows>
+
+    <StaticResource x:Key="PrivacyLevelNoneBrush" ResourceKey="SystemBaseHighColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml" />
 

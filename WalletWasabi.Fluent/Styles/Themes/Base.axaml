@@ -60,9 +60,8 @@
     <Color x:Key="LogoFixedAccentColor">#97D234</Color>
     <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
 
-    <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#C95050" />
-    <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#DDA73E" />
-    <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#72BD81" />
+    <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#A9C35E" />
+    <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#3E992F" />
 
     <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
     <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
