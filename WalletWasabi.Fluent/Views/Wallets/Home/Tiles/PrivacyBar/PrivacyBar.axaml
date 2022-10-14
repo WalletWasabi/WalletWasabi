@@ -18,7 +18,6 @@
 
     <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
             ToolTip.Tip="Show Details">
-
       <ItemsControl Items="{Binding PrivacyBar.Items}" Height="8">
         <ItemsControl.Styles>
           <Style Selector="Path.private">
