@@ -112,7 +112,8 @@ public static class TransactionHelpers
 				subtractFee: transactionInfo.SubtractFee,
 				label: transactionInfo.UserLabels);
 
-			var builder = new TransactionFactory(keyManager.GetNetwork(), keyManager, allCoins, new EmptyTransactionStore(), password, true);
+			var network = keyManager.GetNetwork();
+			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);
 
 			builder.BuildTransaction(
 				intent,
