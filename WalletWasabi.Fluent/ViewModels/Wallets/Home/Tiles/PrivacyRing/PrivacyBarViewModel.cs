@@ -1,4 +1,3 @@
-using Avalonia;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -21,7 +20,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 	[AutoNotify] private double _width;
 
-	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public PrivacyBarViewModel(WalletViewModel walletViewModel)
 	{
 		Wallet = walletViewModel.Wallet;
 
@@ -33,7 +32,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Subscribe();
 
 		_coinsUpdated =
-			balanceChanged.ToSignal()
+			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 						  .Merge(walletViewModel
 						  .WhenAnyValue(w => w.IsCoinJoining)
 						  .ToSignal());
