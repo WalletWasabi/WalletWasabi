@@ -61,7 +61,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockAsync(blockHash, cancellationToken),
-			options: CacheOptions(size: 10, expireInSeconds: 4),
+			options: CacheOptions(size: 10, expireInSeconds: 300),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -72,7 +72,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockAsync(blockHeight, cancellationToken),
-			options: CacheOptions(size: 10, expireInSeconds: 4),
+			options: CacheOptions(size: 10, expireInSeconds: 300),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -83,7 +83,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetVerboseBlockAsync(blockId, cancellationToken),
-			options: CacheOptions(size: 20, expireInSeconds: 4),
+			options: CacheOptions(size: 20, expireInSeconds: 300),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -94,7 +94,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockHeaderAsync(blockHash, cancellationToken),
-			options: CacheOptions(size: 2, expireInSeconds: 4),
+			options: CacheOptions(size: 2, expireInSeconds: 300),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -105,7 +105,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockCountAsync(cancellationToken),
-			options: CacheOptions(size: 1, expireInSeconds: 2),
+			options: CacheOptions(size: 1, expireInSeconds: 2, addExpirationToken: true),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -149,7 +149,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken),
-			options: CacheOptions(size: 1, expireInSeconds: 10, addExpirationToken: true),
+			options: CacheOptions(size: 1, expireInSeconds: 60, addExpirationToken: true),
 			cancellationToken).ConfigureAwait(false);
 	}
 

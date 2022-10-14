@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.Transactions;
 public class TransactionFactory
 {
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 	{
 		Network = network;
 		KeyManager = keyManager;
@@ -35,7 +35,7 @@ public class TransactionFactory
 	public ICoinsView Coins { get; }
 	public string Password { get; }
 	public bool AllowUnconfirmed { get; }
-	private AllTransactionStore TransactionStore { get; }
+	private ITransactionStore TransactionStore { get; }
 
 	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
 	public BuildTransactionResult BuildTransaction(

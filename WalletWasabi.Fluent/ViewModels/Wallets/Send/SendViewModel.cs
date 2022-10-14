@@ -51,10 +51,10 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	public SendViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
+	public SendViewModel(WalletViewModel walletVm)
 	{
 		_to = "";
-		_wallet = wallet;
+		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
@@ -63,7 +63,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
+		Balance = new WalletBalanceTileViewModel(walletVm);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -112,7 +112,7 @@ public partial class SendViewModel : RoutableViewModel
 				return;
 			}
 
-			var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, wallet.Network), wallet.AnonScoreTarget)
+			var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 			{
 				Amount = new Money(AmountBtc, MoneyUnit.BTC),
 				UserLabels = label,
@@ -120,7 +120,7 @@ public partial class SendViewModel : RoutableViewModel
 				IsFixedAmount = _isFixedAmount
 			};
 
-			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo));
+			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo));
 		}, nextCommandCanExecute);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
