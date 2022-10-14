@@ -136,8 +136,8 @@
                         </ListBox.DataTemplates>
                       </ListBox>
 
-                      <Viewbox Height="50" VerticalAlignment="Center" Margin="25">
-                        <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" IsVisible="{Binding IsBusy}" />
+                      <Viewbox Height="50" VerticalAlignment="Center" Margin="25" IsVisible="{Binding IsBusy}">
+                        <c:ProgressRing Height="100" Width="100" IsIndeterminate="True" />
                       </Viewbox>
                     </StackPanel>
                   </DockPanel>
