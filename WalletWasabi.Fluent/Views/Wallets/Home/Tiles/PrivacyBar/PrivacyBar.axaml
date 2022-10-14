@@ -9,7 +9,12 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
              x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
              IsVisible="{Binding !PrivacyBar.IsEmpty^}">
-  <Panel x:Name="Panel" DockPanel.Dock="Bottom" Margin="0 0 0 8">
+  <Panel x:Name="Panel">
+    <Panel.Styles>
+      <Style Selector="Button.faded">
+        <Setter Property="Opacity" Value="0.7" />
+      </Style>
+    </Panel.Styles>
     <i:Interaction.Behaviors>
       <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
                                         Width="{Binding PrivacyBar.Width, Mode=TwoWay}"
@@ -17,8 +22,10 @@
     </i:Interaction.Behaviors>
 
     <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
-            ToolTip.Tip="Show Details">
-      <ItemsControl Items="{Binding PrivacyBar.Items}" Height="10">
+            ToolTip.Tip="Show Details"
+            Classes.faded="{Binding $self.IsPointerOver, Converter={x:Static BoolConverters.Not}}">
+
+      <ItemsControl Items="{Binding PrivacyBar.Items}" Height="8">
         <ItemsControl.Styles>
           <Style Selector="Path.private">
             <Setter Property="Fill" Value="{DynamicResource PrivacyLevelStrongBrush}" />
