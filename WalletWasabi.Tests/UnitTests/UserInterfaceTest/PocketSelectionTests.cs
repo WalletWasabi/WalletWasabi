@@ -903,7 +903,7 @@ public class PocketSelectionTests
 		Assert.False(selection.IsOtherSelectionPossible(output.SelectMany(x => x.Coins), recipient));
 
 		pockets.Add(privatePocket);
-		selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), recipient);
+		selection = CreateLabelSelectionViewModel(Money.Parse("3.5"), recipient);
 		selection.Reset(pockets.ToArray());
 
 		// Private and semi funds are enough for the payment, no better selection.
