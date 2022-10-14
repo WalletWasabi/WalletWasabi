@@ -441,7 +441,7 @@ public static class NBitcoinExtensions
 			}
 			else
 			{
-				Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+				Logger.LogDebug($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
 			}
 		}
 	}
