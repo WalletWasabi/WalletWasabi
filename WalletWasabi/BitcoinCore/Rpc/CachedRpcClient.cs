@@ -170,14 +170,14 @@ public class CachedRpcClient : RpcClientBase
 		await base.InvalidateBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
 
-	private MemoryCacheEntryOptions CacheOptions(int size, double expireInSeconds, bool addExpitationToken = false)
+	private MemoryCacheEntryOptions CacheOptions(int size, double expireInSeconds, bool addExpirationToken = false)
 	{
 		var cacheOptions = new MemoryCacheEntryOptions
 		{
 			Size = size,
 			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(expireInSeconds)
 		};
-		if (addExpitationToken)
+		if (addExpirationToken)
 		{
 			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 		}
