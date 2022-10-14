@@ -586,7 +586,7 @@ public class CoinJoinClient
 		bool redCoinIsolation,
 		Money liquidityClue,
 		WasabiRandom rnd)
-		where TCoin : class, ISmartCoin
+		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
 		// Sanity check.
 		if (liquidityClue <= Money.Zero)
