@@ -1,5 +1,3 @@
-using Avalonia.Threading;
-using NBitcoin;
 using Nito.AsyncEx;
 using ReactiveUI;
 using System.Collections.Generic;
