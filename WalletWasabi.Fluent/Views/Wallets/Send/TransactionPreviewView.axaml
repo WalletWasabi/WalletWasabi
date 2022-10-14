@@ -67,7 +67,7 @@
                   <DockPanel>
                     <TextBlock Text="Suggestions to improve your privacy" HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                       <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center"
                                HorizontalAlignment="Center"
                                Items="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
