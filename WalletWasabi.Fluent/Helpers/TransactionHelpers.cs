@@ -102,7 +102,7 @@ public static class TransactionHelpers
 		string password,
 		out Money minimumAmount)
 	{
-		minimumAmount = Money.Zero;
+		minimumAmount = transactionInfo.Amount;
 
 		try
 		{

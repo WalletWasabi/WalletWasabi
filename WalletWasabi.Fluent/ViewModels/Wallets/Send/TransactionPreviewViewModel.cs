@@ -160,7 +160,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		return _info.IsAutomaticSelectionEnabled
 			? new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: false)
-			: new SelectCoinsDialogViewModel(_walletViewModel, _info, _balanceChanged, Transaction?.SpentCoins);
+			: new SelectCoinsDialogViewModel(_walletViewModel, _info, Transaction?.SpentCoins);
 	}
 
 	private async Task OnExportPsbtAsync()
@@ -419,7 +419,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (!_info.IsAutomaticSelectionEnabled)
 			{
-				var coinSelectionDialogResult = await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, _info, _balanceChanged, Transaction?.SpentCoins));
+				var coinSelectionDialogResult = await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, _info, Transaction?.SpentCoins));
 
 				if (coinSelectionDialogResult.Kind == DialogResultKind.Normal && coinSelectionDialogResult.Result is { })
 				{
