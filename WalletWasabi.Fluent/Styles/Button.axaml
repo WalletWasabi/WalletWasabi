@@ -33,7 +33,6 @@
     <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
   </Style>
 
-
   <Style Selector="Button.plain">
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />

@@ -14,7 +14,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPreviewItem
 {
 	private readonly WalletViewModel _walletVm;
-	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _fullyMixed;
 	[AutoNotify] private string _percentText = "";
@@ -22,18 +21,17 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	[AutoNotify] private bool _hasPrivateBalance;
 	[AutoNotify] private bool _showPrivacyBar;
 
-	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged, bool showPrivacyBar = true)
+	public PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
 	{
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
-		_balanceChanged = balanceChanged;
 		_showPrivacyBar = showPrivacyBar;
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
 
-		if (_showPrivacyBar)
+		if (showPrivacyBar)
 		{
-			PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
+			PrivacyBar = new PrivacyBarViewModel(_walletVm);
 		}
 	}
 
@@ -45,14 +43,14 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	{
 		base.OnActivated(disposables);
 
-		_balanceChanged
+		_walletVm.UiTriggers.PrivacyProgressUpdateTrigger
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
 	}
 
 	private void ShowDetails()
 	{
-		NavigationState.Instance.DialogScreenNavigation.To(new PrivacyRingViewModel(_walletVm, _balanceChanged));
+		NavigationState.Instance.DialogScreenNavigation.To(new PrivacyRingViewModel(_walletVm));
 	}
 
 	private void Update()

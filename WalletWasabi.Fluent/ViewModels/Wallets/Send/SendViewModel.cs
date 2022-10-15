@@ -24,8 +24,6 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using System.Reactive;
-using System.Collections.ObjectModel;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -40,7 +38,6 @@ public partial class SendViewModel : RoutableViewModel
 {
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
-	private readonly WalletViewModel _walletViewModel;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private bool _parsingTo;
 	private SmartLabel _parsedLabel = SmartLabel.Empty;
@@ -53,10 +50,9 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _conversionReversed;
 	[AutoNotify] private bool _isAutomaticSelectionEnabled = true;
 
-	public SendViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
+	public SendViewModel(WalletViewModel walletViewModel)
 	{
 		_to = "";
-		_walletViewModel = walletViewModel;
 		_wallet = walletViewModel.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
@@ -66,7 +62,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		Balance = new WalletBalanceTileViewModel(_wallet, balanceChanged, history);
+		Balance = new WalletBalanceTileViewModel(walletViewModel);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -84,6 +80,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
+		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
@@ -123,7 +120,7 @@ public partial class SendViewModel : RoutableViewModel
 					IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled
 				};
 
-				Navigate().To(new TransactionPreviewViewModel(_walletViewModel, transactionInfo, balanceChanged));
+				Navigate().To(new TransactionPreviewViewModel(walletViewModel, transactionInfo));
 			},
 			nextCommandCanExecute);
 
@@ -143,6 +140,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand ToggleCoinControlCommand { get; }
+
+	public ICommand InsertMaxCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 

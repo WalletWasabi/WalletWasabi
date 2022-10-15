@@ -41,14 +41,14 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 
-	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info, IObservable<Unit> balanceChanged)
+	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_walletViewModel = walletViewModel;
 		_wallet = _walletViewModel.Wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
-		_balanceChanged = balanceChanged;
+		_balanceChanged = walletViewModel.UiTriggers.BalanceUpdateTrigger;
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
@@ -554,8 +554,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
-		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
-		var labelSelection = new LabelSelectionViewModel(amount, _info.FeeRate);
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info);
 		labelSelection.Reset(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
