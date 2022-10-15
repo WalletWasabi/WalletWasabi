@@ -116,12 +116,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		// Meanwhile decrease those segments that are larger than 2 px on order the fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
+			var enlargeBy = 1m;
 			var segmentsToReduce = rawSegments.Except(segmentsToEnlarge);
-			var reduceBy = (decimal)segmentsToReduce.Count() / segmentsToEnlarge.Length;
+			var reduceBy = segmentsToEnlarge.Length * enlargeBy / segmentsToReduce.Count();
 
 			rawSegments = rawSegments.Select(x =>
 			{
-				var finalWidth = x.Width < 2 ? x.Width + 1 : x.Width - reduceBy;
+				var finalWidth = x.Width < 2 ? x.Width + enlargeBy : x.Width - reduceBy;
 				return (Coin: x.Coin, Width: finalWidth);
 			}).ToArray();
 		}
@@ -164,12 +165,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		// Meanwhile decrease those segments that are larger than 2 px on order the fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
+			var enlargeBy = 1m;
 			var segmentsToReduce = rawSegments.Except(segmentsToEnlarge);
-			var reduceBy = (decimal)segmentsToReduce.Count() / segmentsToEnlarge.Length;
+			var reduceBy = segmentsToEnlarge.Length * enlargeBy / segmentsToReduce.Count();
 
 			rawSegments = rawSegments.Select(x =>
 			{
-				var finalWidth = x.Width < 2 ? x.Width + 1 : x.Width - reduceBy;
+				var finalWidth = x.Width < 2 ? x.Width + enlargeBy : x.Width - reduceBy;
 				return (Coin: x.Pocket, Width: finalWidth);
 			}).ToArray();
 		}
