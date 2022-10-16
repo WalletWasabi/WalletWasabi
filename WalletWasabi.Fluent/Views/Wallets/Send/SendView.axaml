@@ -22,15 +22,32 @@
         <TextBlock Text="Send" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <!-- Balance -->
-          <c:PrivacyContentControl PrivacyReplacementMode="Text" DataContext="{Binding Balance}" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
-            <StackPanel Spacing="5" Orientation="Horizontal" VerticalAlignment="Top">
-              <TextBlock Opacity="0.6" Classes="h8" Text="Balance: " />
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}" />
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}" />
-              <TextBlock Opacity="0.6" Classes="h8" Text="Private: " />
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalancePrivateBtc}" />
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalancePrivateFiat}" />
-            </StackPanel>
+          <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
+            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+              <TextBlock DataContext="{Binding Balance}" Opacity="0.6">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="Balance: {0} {1}">
+                    <Binding Path="BalanceBtc" />
+                    <Binding Path="BalanceFiat" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </Button>
+          </c:PrivacyContentControl>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
+          <!-- Private -->
+          <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
+            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+              <TextBlock DataContext="{Binding Balance}" Opacity="0.6">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="Private: {0} {1}">
+                    <Binding Path="BalancePrivateBtc" />
+                    <Binding Path="BalancePrivateFiat" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </Button>
           </c:PrivacyContentControl>
         </StackPanel>
       </DockPanel>

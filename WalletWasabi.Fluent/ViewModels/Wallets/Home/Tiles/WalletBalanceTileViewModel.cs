@@ -27,11 +27,11 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _showRecentTransaction;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasBalance;
 
-	public WalletBalanceTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged, ObservableCollection<HistoryItemViewModelBase> history)
+	public WalletBalanceTileViewModel(WalletViewModel walletVm)
 	{
-		_wallet = wallet;
-		_balanceChanged = balanceChanged;
-		_history = history;
+		_wallet = walletVm.Wallet;
+		_balanceChanged = walletVm.UiTriggers.BalanceUpdateTrigger;
+		_history = walletVm.History.UnfilteredTransactions;
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)

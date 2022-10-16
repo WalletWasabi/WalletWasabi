@@ -362,6 +362,8 @@ public class CoinJoinManager : BackgroundService
 					? CoinJoinClientState.InProgress
 					: CoinJoinClientState.Idle;
 
+			RoundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
+
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
 	}
