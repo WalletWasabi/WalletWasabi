@@ -113,7 +113,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		var segmentsToEnlarge = rawSegments.Where(x => x.Width < 2).ToArray();
 
 		// Artificially enlarge segments smaller than 2 px in order to make them visible.
-		// Meanwhile decrease those segments that are larger than 2 px on order the fit all in the bar.
+		// Meanwhile decrease those segments that are larger than 2 px in order to fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
 			var enlargeBy = 1m;
