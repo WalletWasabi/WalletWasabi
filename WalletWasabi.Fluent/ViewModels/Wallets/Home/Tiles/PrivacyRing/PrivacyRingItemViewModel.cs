@@ -21,7 +21,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
+		IsPrivate = coin.IsPrivate(parent.Wallet.AnonScoreTarget);
 		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
@@ -35,7 +35,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget));
+		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.AnonScoreTarget));
 		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
