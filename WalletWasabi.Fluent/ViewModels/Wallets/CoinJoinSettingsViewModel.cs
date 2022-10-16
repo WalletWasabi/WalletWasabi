@@ -25,8 +25,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 	{
 		_wallet = walletViewModelBase.Wallet;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
-		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ??
-							 KeyManager.DefaultPlebStopThreshold.ToString();
+		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -95,7 +94,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 		IsCoinjoinProfileSelected = _wallet.KeyManager.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
 			(_wallet.KeyManager.IsCoinjoinProfileSelected,
-					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.KeyManager)) switch
+			CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.KeyManager)) switch
 			{
 				(true, CoinJoinProfileViewModelBase x) => x.Title,
 				(false, _) => "None",
