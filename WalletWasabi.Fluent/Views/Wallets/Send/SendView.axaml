@@ -38,7 +38,7 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <!-- Private -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
-            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxCommand}">
+            <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding InsertMaxPrivateCommand}">
               <TextBlock DataContext="{Binding Balance}" Opacity="0.6">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Private: {0} {1}">

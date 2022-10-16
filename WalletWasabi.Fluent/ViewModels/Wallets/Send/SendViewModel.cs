@@ -82,6 +82,7 @@ public partial class SendViewModel : RoutableViewModel
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
+		InsertMaxPrivateCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= _wallet.KeyManager.AnonScoreTarget).TotalAmount().ToDecimal(MoneyUnit.BTC));
 		QrCommand = ReactiveCommand.Create(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
@@ -137,6 +138,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand InsertMaxCommand { get; }
+
+	public ICommand InsertMaxPrivateCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 
