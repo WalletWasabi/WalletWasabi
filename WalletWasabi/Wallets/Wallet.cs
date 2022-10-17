@@ -91,7 +91,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), KeyManager.AnonScoreTarget) >= 1;
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight) => Task.FromResult(GetCoinjoinCoinCandidates(bestHeight));
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
@@ -110,7 +110,7 @@ public class Wallet : BackgroundService, IWallet
 		return walletTransactions.OrderByBlockchain().ToList();
 	}
 
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates(int bestHeight) => Coins;
+	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
 	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
 	{
@@ -136,7 +136,6 @@ public class Wallet : BackgroundService, IWallet
 	public bool IsLoggedIn { get; private set; }
 
 	public Kitchen Kitchen { get; } = new();
-	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 

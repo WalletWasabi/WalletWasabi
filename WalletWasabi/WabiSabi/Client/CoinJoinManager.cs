@@ -497,7 +497,7 @@ public class CoinJoinManager : BackgroundService
 			.ToImmutableDictionary(x => x.Identifier, x => x);
 
 	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
-		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync(bestHeight).ConfigureAwait(false))
+		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
 			.Confirmed()
 			.Where(x => !x.IsImmature(bestHeight))
