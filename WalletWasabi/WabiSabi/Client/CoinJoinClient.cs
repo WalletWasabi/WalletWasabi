@@ -142,7 +142,8 @@ public class CoinJoinClient
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
 			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
-			coins = SelectCoinsForRound(coinCandidates, roundParameteers.ToUtxoSelectionParameters(), ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameteers);
+			coins = SelectCoinsForRound(coinCandidates, utxoSelectionParameters, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
 
 			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{

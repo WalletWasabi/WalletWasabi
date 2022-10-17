@@ -9,5 +9,13 @@ public record UtxoSelectionParameters(
 	MoneyRange AllowedOutputAmounts,
 	CoordinationFeeRate CoordinationFeeRate,
 	FeeRate MiningFeeRate,
-	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes
-);
+	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
+{
+	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters) =>
+		new (
+			roundParameters.AllowedInputAmounts,
+			roundParameters.AllowedOutputAmounts,
+			roundParameters.CoordinationFeeRate,
+			roundParameters.MiningFeeRate,
+			roundParameters.AllowedInputTypes);
+}

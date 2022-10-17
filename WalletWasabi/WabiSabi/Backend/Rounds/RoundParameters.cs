@@ -113,6 +113,4 @@ public record RoundParameters
 
 	public Transaction CreateTransaction()
 		=> Transaction.Create(Network);
-
-	public UtxoSelectionParameters ToUtxoSelectionParameters() => new UtxoSelectionParameters(AllowedInputAmounts, AllowedOutputAmounts, CoordinationFeeRate, MiningFeeRate, AllowedInputTypes);
 }
