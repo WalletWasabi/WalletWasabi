@@ -1,3 +1,4 @@
+using Moq;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
@@ -5,12 +6,61 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.RouterStatus;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control;
 
 public class TorControlClientTests
 {
+	/// <summary>
+	/// </summary>
+	[Fact]
+	public async Task GetRouterNodesStatusInfoAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
+
+		// Pipes are ignored.
+		Pipe toServer = new();
+		Pipe toClient = new();
+
+		IList<string> response = new List<string>()
+		{
+			"ns/all=",
+			"r seele AAoQ1DAR6kkoo19hBAX5K0QztNw vYhOSdTjnfJ1tkOAdAx8qGVeyKY 2022-10-16 09:55:13 104.53.221.159 9001 0",
+			"s Fast Running V2Dir Valid",
+			"w Bandwidth=850",
+			"r ididnteditheconfig AAw2+P4mtYexQ7T4Kq2MVVweySQ dGbneqjGUW2jUEt2UkBEn9UTNOc 2022-10-16 14:50:57 137.184.13.120 443 0",
+			"a [2604:a880:4:1d0::27d:f000]:443",
+			"s Fast HSDir Running Stable V2Dir Valid",
+			"w Bandwidth=330",
+			".",
+			"250 OK"
+		};
+
+		Mock<TorControlClient> mockTorControlClient = new(MockBehavior.Strict, new object[] { toClient.Reader, toServer.Writer })
+		{
+			CallBase = true,
+		};
+
+		_ = mockTorControlClient.Setup(c => c.SendCommandAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new TorControlReply(StatusCode.OK, response));
+
+		await using TorControlClient client = mockTorControlClient.Object;
+		IReadOnlyList<RouterNode> exitNodes = await client.GetRouterNodesStatusInfoAsync(timeoutCts.Token);
+		Assert.Equal(2, exitNodes.Count);
+
+		// First router node.
+		Assert.Equal("seele", exitNodes[0].Nickname);
+		Assert.Equal(new RouterNodeFlags[] { RouterNodeFlags.Fast, RouterNodeFlags.Running, RouterNodeFlags.V2Dir, RouterNodeFlags.Valid }, exitNodes[0].Flags);
+		Assert.Equal(850, exitNodes[0].Bandwidth);
+
+		// Second router node.
+		Assert.Equal("ididnteditheconfig", exitNodes[1].Nickname);
+		Assert.Equal(new RouterNodeFlags[] { RouterNodeFlags.Fast, RouterNodeFlags.HSDir, RouterNodeFlags.Running, RouterNodeFlags.Stable, RouterNodeFlags.V2Dir, RouterNodeFlags.Valid }, exitNodes[1].Flags);
+		Assert.Equal(330, exitNodes[1].Bandwidth);
+	}
+
 	/// <summary>Verifies that client receives correct async events from Tor.</summary>
 	[Fact]
 	public async Task ReceiveTorAsyncEventsUsingForeachAsync()

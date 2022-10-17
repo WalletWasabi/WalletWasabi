@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.RouterStatus;
 using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control;
@@ -86,6 +87,17 @@ public class TorControlClient : IAsyncDisposable
 				return AsyncChannels.Count;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Router status info (v3 directory style) for all ORs we that the [Tor] consensus has an opinion about.
+	/// </summary>
+	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO</seealso>
+	public async Task<IReadOnlyList<RouterNode>> GetRouterNodesStatusInfoAsync(CancellationToken cancellationToken)
+	{
+		TorControlReply reply = await SendCommandAsync("GETINFO ns/all\r\n", cancellationToken).ConfigureAwait(false);
+
+		return RouterNode.FromReply(reply);
 	}
 
 	/// <summary>
@@ -177,7 +189,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>Sends a command to Tor.</summary>
 	/// <remarks>This is meant as a low-level API method, if needed for some reason.</remarks>
 	/// <param name="command">A Tor control command which must end with <c>\r\n</c>.</param>
-	public async Task<TorControlReply> SendCommandAsync(string command, CancellationToken cancellationToken)
+	public virtual async Task<TorControlReply> SendCommandAsync(string command, CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await MessageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 		return await SendCommandNoLockAsync(command, cancellationToken).ConfigureAwait(false);
