@@ -26,14 +26,14 @@ public partial class SelectableCoin : ReactiveObject, ISelectable, ICoin
 
 		Amount = Money.Zero;
 
-		this.WhenAnyValue(x => x.Coin.Amount).Do(x => Amount = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.AnonymitySet).Do(x => AnonymitySet = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.IsConfirmed).Do(x => IsConfirmed = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.PrivacyLevel).Do(x => PrivacyLevel = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.BannedUntil).Do(x => BannedUntil = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.OutPoint).Do(x => OutPoint = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.SmartLabel).Do(x => SmartLabel = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.IsCoinjoining).Do(x => IsCoinjoining = x).Subscribe();
+		this.WhenAnyValue(x => x.Coin.Amount).BindTo(this, x => x.Amount);
+		this.WhenAnyValue(x => x.Coin.AnonymitySet).BindTo(this, x => x.AnonymitySet);
+		this.WhenAnyValue(x => x.Coin.IsConfirmed).BindTo(this, x => x.IsConfirmed);
+		this.WhenAnyValue(x => x.Coin.PrivacyLevel).BindTo(this, x => x.PrivacyLevel);
+		this.WhenAnyValue(x => x.Coin.BannedUntil).BindTo(this, x => x.BannedUntil);
+		this.WhenAnyValue(x => x.Coin.OutPoint).BindTo(this, x => x.OutPoint);
+		this.WhenAnyValue(x => x.Coin.SmartLabel).BindTo(this, x => x.SmartLabel);
+		this.WhenAnyValue(x => x.Coin.IsCoinjoining).BindTo(this, x => x.IsCoinjoining);
 	}
 
 	public bool IsCoinjoining

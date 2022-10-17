@@ -24,12 +24,12 @@ public partial class SmartCoinAdapter : ReactiveObject, ICoin
 
 		Amount = coin.Amount;
 
-		this.WhenAnyValue(x => x.Coin.BannedUntilUtc).Do(x => BannedUntil = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.Confirmed).Do(x => IsConfirmed = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.CoinJoinInProgress).Do(x => IsCoinjoining = x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.HdPubKey.Cluster.Labels).Do(x => SmartLabel = x).Subscribe();
+		this.WhenAnyValue(x => x.Coin.BannedUntilUtc).BindTo(this, x => x.BannedUntil);
+		this.WhenAnyValue(x => x.Coin.Confirmed).BindTo(this, x => x.IsConfirmed);
+		this.WhenAnyValue(x => x.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinjoining);
+		this.WhenAnyValue(x => x.Coin.HdPubKey.Cluster.Labels).BindTo(this, x => x.SmartLabel);
 		this.WhenAnyValue(x => x.Coin.HdPubKey.AnonymitySet).Do(x => AnonymitySet = (int) x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.OutPoint).Do(x => OutPoint = x).Subscribe();
+		this.WhenAnyValue(x => x.Coin.OutPoint).BindTo(this, x => x.OutPoint);
 
 		_privacyLevel = GetPrivacyLevel(anonScoreTarget);
 	}

@@ -70,17 +70,17 @@ public class MultiSelector : ItemsControl, IDisposable
         return collection.All(x => x.IsSelected) ? true : collection.Any(x => x.IsSelected) ? null : false;
     }
 
-    private static IObservable<IReadOnlyCollection<ISelectable>> ToggleChildrenSelection(
-        IObservable<IChangeSet<ISelectable>> changes, bool getNextValue)
+    private static IObservable<IReadOnlyCollection<ISelectable>> ToggleChildrenSelection(IObservable<IChangeSet<ISelectable>> changes, bool getNextValue)
     {
-        return changes
-            .ToCollection()
-            .Do(x =>
-            {
-                var isChildSelected = getNextValue;
-                x.ToList().ForEach(notify => notify.IsSelected = isChildSelected);
-            })
-            .Take(1);
+	    return changes
+		    .ToCollection()
+		    .Do(
+			    collection =>
+			    {
+				    var isChildSelected = getNextValue;
+				    collection.ToList().ForEach(notify => notify.IsSelected = isChildSelected);
+			    })
+		    .Take(1);
     }
 
     private static bool GetNextValue(bool? currentValue)
