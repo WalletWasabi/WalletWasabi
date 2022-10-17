@@ -70,5 +70,5 @@ public static class CoinPocketHelper
 		return pockets;
 	}
 
-	public static IEnumerable<Pocket> GetPockets(this Wallet wallet) => wallet.Coins.GetPockets(wallet.KeyManager.AnonScoreTarget).Select(x => new Pocket(x));
+	public static IEnumerable<Pocket> GetPockets(this Wallet wallet) => wallet.Coins.GetPockets(wallet.AnonScoreTarget).Select(x => new Pocket(x));
 }

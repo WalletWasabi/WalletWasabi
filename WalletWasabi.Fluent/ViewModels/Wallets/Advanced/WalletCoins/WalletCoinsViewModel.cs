@@ -121,7 +121,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			return;
 		}
 
-		var info = new TransactionInfo(address.Address, wallet.KeyManager.AnonScoreTarget)
+		var info = new TransactionInfo(address.Address, wallet.AnonScoreTarget)
 		{
 			Coins = selectedSmartCoins,
 			Amount = selectedSmartCoins.Sum(x => x.Amount),
