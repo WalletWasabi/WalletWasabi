@@ -9,11 +9,11 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TileHelper
 {
-	public static List<TileViewModel> GetNormalWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public static List<TileViewModel> GetNormalWalletTiles(WalletViewModel walletVm)
 	{
 		return new List<TileViewModel>
 			{
-				new WalletBalanceTileViewModel(walletViewModel.Wallet, balanceChanged, walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceTileViewModel(walletVm)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -21,10 +21,10 @@ public static class TileHelper
 						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
-					TilePresetIndex = walletViewModel.LayoutIndex
+					TilePresetIndex = walletVm.LayoutIndex
 				},
 
-				new PrivacyControlTileViewModel(walletViewModel, balanceChanged)
+				new PrivacyControlTileViewModel(walletVm)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -32,10 +32,10 @@ public static class TileHelper
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 					},
-					TilePresetIndex = walletViewModel.LayoutIndex
+					TilePresetIndex = walletVm.LayoutIndex
 				},
 
-				new BtcPriceTileViewModel(walletViewModel.Wallet)
+				new BtcPriceTileViewModel(walletVm.Wallet)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -43,16 +43,16 @@ public static class TileHelper
 						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 2, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 					},
-					TilePresetIndex = walletViewModel.LayoutIndex
+					TilePresetIndex = walletVm.LayoutIndex
 				},
 			};
 	}
 
-	public static List<TileViewModel> GetWatchOnlyWalletTiles(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public static List<TileViewModel> GetWatchOnlyWalletTiles(WalletViewModel walletVm)
 	{
 		return new List<TileViewModel>
 			{
-				new WalletBalanceTileViewModel(walletViewModel.Wallet, balanceChanged, walletViewModel.History.UnfilteredTransactions)
+				new WalletBalanceTileViewModel(walletVm)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -60,10 +60,10 @@ public static class TileHelper
 						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 0, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
-					TilePresetIndex = walletViewModel.LayoutIndex
+					TilePresetIndex = walletVm.LayoutIndex
 				},
 
-				new BtcPriceTileViewModel(walletViewModel.Wallet)
+				new BtcPriceTileViewModel(walletVm.Wallet)
 				{
 					TilePresets = new ObservableCollection<TilePresetViewModel>()
 					{
@@ -71,7 +71,7 @@ public static class TileHelper
 						new(column: 0, row: 1, columnSpan: 1, rowSpan: 1, TileSize.Medium),
 						new(column: 1, row: 0, columnSpan: 1, rowSpan: 1, TileSize.Medium)
 					},
-					TilePresetIndex = walletViewModel.LayoutIndex
+					TilePresetIndex = walletVm.LayoutIndex
 				}
 			};
 	}

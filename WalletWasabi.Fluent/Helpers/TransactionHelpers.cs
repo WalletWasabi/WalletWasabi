@@ -4,12 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -88,6 +92,49 @@ public static class TransactionHelpers
 			transactionInfo.SubtractFee,
 			isPayJoin ? transactionInfo.PayJoinClient : null,
 			tryToSign: tryToSign);
+	}
+
+	public static bool TryBuildTransactionWithoutPrevTx(
+		KeyManager keyManager,
+		TransactionInfo transactionInfo,
+		ICoinsView allCoins,
+		IEnumerable<SmartCoin> allowedCoins,
+		string password,
+		out Money minimumAmount)
+	{
+		minimumAmount = transactionInfo.Amount;
+
+		try
+		{
+			var intent = new PaymentIntent(
+				destination: transactionInfo.Destination,
+				amount: transactionInfo.Amount,
+				subtractFee: transactionInfo.SubtractFee,
+				label: transactionInfo.UserLabels);
+
+			var network = keyManager.GetNetwork();
+			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);
+
+			builder.BuildTransaction(
+				intent,
+				feeRateFetcher: () => transactionInfo.FeeRate,
+				allowedCoins.Select(x => x.OutPoint),
+				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
+				transactionInfo.PayJoinClient,
+				tryToSign: false);
+
+			return true;
+		}
+		catch (InsufficientBalanceException ex)
+		{
+			minimumAmount = ex.Minimum;
+		}
+		catch (Exception)
+		{
+			// Ignore.
+		}
+
+		return false;
 	}
 
 	public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)
