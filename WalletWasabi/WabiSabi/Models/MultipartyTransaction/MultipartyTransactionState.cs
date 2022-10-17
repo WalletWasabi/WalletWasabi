@@ -48,7 +48,7 @@ public abstract record MultipartyTransactionState
 	// to do for now, but in the future EstimatedVsize should be used
 	// including the shared overhead
 	[JsonIgnore]
-	public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
+	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize);
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 
