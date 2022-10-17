@@ -8,7 +8,7 @@ namespace WalletWasabi.Wallets;
 
 public interface IWallet
 {
-	string Identifier { get; }
+	string WalletName { get; }
 	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
 

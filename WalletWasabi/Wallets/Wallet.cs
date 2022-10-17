@@ -507,8 +507,6 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public string Identifier => WalletName;
-
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
 		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
