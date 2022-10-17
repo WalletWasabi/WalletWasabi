@@ -72,10 +72,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.StartWith(Unit.Default)
 			.SelectMany(_ => GetCoins())
 			.ToObservableChangeSet(x => x.OutPoint)
-			.TransformWithInlineUpdate(smartCoin => new SelectableCoin(smartCoin), (selectableCoin, smartCoin) => selectableCoin.Coin = smartCoin)
+			.TransformWithInlineUpdate(coin => new SelectableCoin(coin), (selectableCoin, smartCoin) => selectableCoin.Coin = smartCoin)
 			.Replay();
-
-		coinChanges.Connect().DisposeWith(disposables);
 
 		coinChanges
 			.Bind(out var coinCollection)
@@ -85,29 +83,24 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var allCoins = coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler);
+			.Throttle(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler);
 
 		var selectedCoins = allCoins
-			.Select(items => items.Where(t => t.IsSelected).Select(x => x.Coin).ToList());
-		
-		IsSelectionBadlyChosen = allCoins.Select(coins => IsSelectionBadForPrivacy(coins, _transactionLabels)).ReplayLastActive();
+			.Select(items => items.Where(coin => coin.IsSelected).Select(x => x.Coin).ToList());
 
-		SelectedAmount = selectedCoins.Select(list => new Money(list.Sum(x => x.Amount))).Publish().RefCount();
+		IsSelectionBadlyChosen = allCoins.Select(coins => IsSelectionBadForPrivacy(coins, _transactionLabels));
 
-		RequiredAmount = selectedCoins.Select(
-			list =>
-			{
-				TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, GetAssociatedSmartCoins(list), _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
-				return minimumAmount;
-			})
+		SelectedAmount = selectedCoins.Select(coins => new Money(coins.Sum(x => x.Amount)));
+
+		var requiredAmount = selectedCoins.Select(GetRequiredAmount)
 			.Publish()
 			.RefCount();
 
-		RemainingAmount = SelectedAmount.CombineLatest(RequiredAmount, (s, r) => r - s);
+		RequiredAmount = requiredAmount;
 
-		EnoughSelected = RemainingAmount.Select(r => r <= Money.Zero);
+		RemainingAmount = SelectedAmount.CombineLatest(RequiredAmount, (selected, remaining) => remaining - selected);
 
-		SelectedCount = selectedCoins.Select(models => models.Count);
+		EnoughSelected = RemainingAmount.Select(remaining => remaining <= Money.Zero);
 
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(CloseAndReturnCoins);
@@ -130,7 +123,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		var filterChanged = this
 			.WhenAnyValue(x => x.SearchFilter)
-			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler);
+			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler);
 
 		CoinBasedSelection = new CoinBasedSelectionViewModel(coinChanges, commands, filterChanged)
 			.DisposeWith(disposables);
@@ -138,11 +131,19 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges, commands, filterChanged)
 			.DisposeWith(disposables);
 
+		coinChanges.Connect();
+
 		SelectPredefinedCoinsCommand.Execute()
 			.Subscribe()
 			.DisposeWith(disposables);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private Money GetRequiredAmount(List<ICoin> coins)
+	{
+		TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, GetAssociatedSmartCoins(coins), _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
+		return minimumAmount;
 	}
 
 	private void CloseAndReturnCoins(IEnumerable<ICoin> coins)
@@ -154,11 +155,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private IEnumerable<SmartCoin> GetAssociatedSmartCoins(IEnumerable<ICoin> coins)
 	{
 		return coins.Join(_walletViewModel.Wallet.Coins, x => x.OutPoint, x => x.OutPoint, (_, smartCoin) => smartCoin);
-	}
-
-	private static Money Sum(IEnumerable<SelectableCoin> coinViewModels)
-	{
-		return coinViewModels.Sum(coinViewModel => coinViewModel.Amount);
 	}
 
 	private bool IsSelectionBadForPrivacy(IEnumerable<SelectableCoin> coins, SmartLabel transactionLabel)
