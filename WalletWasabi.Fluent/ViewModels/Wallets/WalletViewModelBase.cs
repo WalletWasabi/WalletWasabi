@@ -17,10 +17,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 	[AutoNotify] private string _walletName;
 
-	public ICommand RenameCommand { get; protected set; }
-
-	private string _title;
-
 	protected WalletViewModelBase(Wallet wallet)
 	{
 		Wallet = Guard.NotNull(nameof(wallet), wallet);
@@ -46,6 +42,10 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 			.Do(x => Title = x)
 			.Subscribe();
 	}
+
+	public ICommand RenameCommand { get; protected set; }
+
+	private string _title;
 
 	public override string Title
 	{
