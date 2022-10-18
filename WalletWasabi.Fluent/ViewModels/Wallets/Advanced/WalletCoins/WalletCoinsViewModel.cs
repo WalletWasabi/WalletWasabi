@@ -10,6 +10,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -107,29 +108,32 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	{
 		var wallet = _walletViewModel.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
-		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
-		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
+		var addressDialog = new AddressEntryDialogViewModel(wallet.Network);
 		var addressResult = await NavigateDialogAsync(addressDialog, NavigationTarget.CompactDialogScreen);
-		if (addressResult.Result is not { } address)
+		if (addressResult.Result is not { } address || address.Address is null)
 		{
 			return;
 		}
 
-		var labelDialog = new LabelEntryDialogViewModel(wallet, info);
+		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? SmartLabel.Empty);
 		var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 		if (result.Result is not { } label)
 		{
 			return;
 		}
 
-		info.Coins = selectedSmartCoins;
-		info.Amount = selectedSmartCoins.Sum(x => x.Amount);
-		info.SubtractFee = true;
-		info.UserLabels = label;
-		info.IsSelectedCoinModificationEnabled = false;
+		var info = new TransactionInfo(address.Address, wallet.KeyManager.AnonScoreTarget)
+		{
+			Coins = selectedSmartCoins,
+			Amount = selectedSmartCoins.Sum(x => x.Amount),
+			SubtractFee = true,
+			UserLabels = label,
+			IsSelectedCoinModificationEnabled = false,
+			IsFixedAmount = true,
+		};
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
+		Navigate().To(new TransactionPreviewViewModel(wallet, info));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
