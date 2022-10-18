@@ -263,6 +263,19 @@ public class KeyManager
 		return km;
 	}
 
+	public void SetWalletName(string? newName)
+	{
+		var directory = Path.GetDirectoryName(FilePath);
+		var candidateName = string.IsNullOrWhiteSpace(newName) || Path.GetInvalidFileNameChars().Any(newName.Contains) ? null : newName;
+		if (candidateName is null || directory is null)
+		{
+			return;
+		}
+		
+		SetFilePath(Path.Combine(directory, $"{newName}.{WalletDirectories.WalletFileExtension}"));
+		ToFile();	
+	}
+	
 	public void SetFilePath(string? filePath)
 	{
 		FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
