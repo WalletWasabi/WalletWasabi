@@ -122,7 +122,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					tuple =>
 				{
 					var (isSelected, isWalletBalanceZero, areAllCoinsPrivate, pointerOver) = tuple;
-					return isSelected && !isWalletBalanceZero && !wallet.KeyManager.IsWatchOnly && !areAllCoinsPrivate || pointerOver;
+					return (isSelected && !isWalletBalanceZero && !areAllCoinsPrivate || pointerOver) && !wallet.KeyManager.IsWatchOnly;
 				});
 
 		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
