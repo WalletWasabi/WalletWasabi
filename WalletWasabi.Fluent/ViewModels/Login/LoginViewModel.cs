@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -18,12 +19,12 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPasswordNeeded;
 	[AutoNotify] private string _errorMessage;
 	[AutoNotify] private bool _isForgotPasswordVisible;
+	[AutoNotify] private string _walletName;
 
 	public LoginViewModel(ClosedWalletViewModel closedWalletViewModel)
 	{
 		var wallet = closedWalletViewModel.Wallet;
 		IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
-		WalletName = wallet.WalletName;
 		_password = "";
 		_errorMessage = "";
 		WalletType = WalletHelpers.GetType(closedWalletViewModel.Wallet.KeyManager);
@@ -34,12 +35,14 @@ public partial class LoginViewModel : RoutableViewModel
 
 		ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
 
+		closedWalletViewModel.WhenAnyValue(x => x.WalletName)
+			.Do(x => WalletName = x)
+			.Subscribe();
+
 		EnableAutoBusyOn(NextCommand);
 	}
 
 	public WalletType WalletType { get; }
-
-	public string WalletName { get; }
 
 	public ICommand OkCommand { get; }
 

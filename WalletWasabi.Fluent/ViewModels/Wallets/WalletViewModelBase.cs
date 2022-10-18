@@ -43,6 +43,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 		this.WhenAnyValue(x => x.WalletName)
 			.Do(x => Wallet.WalletName = x)
+			.Do(x => Title = x)
 			.Subscribe();
 	}
 
