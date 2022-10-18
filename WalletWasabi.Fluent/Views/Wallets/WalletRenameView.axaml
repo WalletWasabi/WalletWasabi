@@ -5,17 +5,21 @@
              xmlns:local="using:WalletWasabi.Fluent.Views.Wallets"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletRenameViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletRenameView">
-
-
   <controls:ContentArea Title="{Binding Title}"
                         EnableNext="True" NextContent="Rename" FocusNext="True"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <TextBox Text="{Binding WalletName, Mode=TwoWay}" VerticalAlignment="Top"/>
-    </DockPanel>
+                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <StackPanel DockPanel.Dock="Top">
+      <TextBox MaxLength="50" Text="{Binding WalletName, Mode=TwoWay}" Watermark="Type in a wallet name">
+        <Interaction.Behaviors>
+          <behaviors:FocusOnAttachedBehavior />
+          <behaviors:TextBoxSelectAllTextBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
+    </StackPanel>
   </controls:ContentArea>
 </UserControl>
