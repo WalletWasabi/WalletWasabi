@@ -101,7 +101,7 @@ public class AliceClient
 			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
 			coin.CoinJoinInProgress = true;
 
-			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
+			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
 		}
 		catch (WabiSabiProtocolException wpe)
 		{
@@ -206,7 +206,7 @@ public class AliceClient
 
 			await RemoveInputAsync(linkedCts.Token).ConfigureAwait(false);
 			SmartCoin.CoinJoinInProgress = false;
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.OutPoint}.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
 		}
 		catch (Exception e) when (e is OperationCanceledException || (e is AggregateException ae && ae.InnerExceptions.Last() is OperationCanceledException))
 		{
