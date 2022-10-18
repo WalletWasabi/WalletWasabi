@@ -16,6 +16,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 	[AutoNotify] private string _walletName;
+	private string _title;
 
 	protected WalletViewModelBase(Wallet wallet)
 	{
@@ -44,8 +45,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	}
 
 	public ICommand RenameCommand { get; protected set; }
-
-	private string _title;
 
 	public override string Title
 	{
