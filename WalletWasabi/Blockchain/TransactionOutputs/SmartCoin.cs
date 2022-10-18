@@ -60,7 +60,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		_outPoint = new Lazy<OutPoint>(() => transactionInput.PrevOut, true);
 		_txOut = new Lazy<TxOut>(() => new TxOut(value, script ), true);
 		
-		_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+		_hashCode = new Lazy<int>(() => _outPoint.GetHashCode(), true);
 		HdPubKey = pubKey;
 	}
 

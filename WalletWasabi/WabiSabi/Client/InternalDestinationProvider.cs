@@ -17,7 +17,7 @@ public class InternalDestinationProvider : IDestinationProvider
 
 	private KeyManager KeyManager { get; }
 
-	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot)
+	public Task<IEnumerable<IDestination>> GetNextDestinations(int count, bool preferTaproot)
 	{
 		// Get all locked internal keys we have and assert we have enough.
 		KeyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
@@ -30,8 +30,14 @@ public class InternalDestinationProvider : IDestinationProvider
 			hdPubKey.KeyState == KeyState.Locked &&
 			hdPubKey.FullKeyPath.GetScriptTypeFromKeyPath() == preferedScriptPubKeyType;
 
-		return KeyManager
+		return Task.FromResult<IEnumerable<IDestination>>(KeyManager
 			.GetKeys(IsAvailable)
-			.Select(x => x.GetAddress(KeyManager.GetNetwork()));
+			.Select(x => x.GetAddress(KeyManager.GetNetwork())));
+	}
+
+	public Task<IEnumerable<PendingPayment>> GetPendingPayments(RoundParameters roundParameters,
+		ImmutableArray<AliceClient> registeredAliceClients)
+	{
+		return Task.FromResult<IEnumerable<PendingPayment>>(Array.Empty<PendingPayment>());
 	}
 }
