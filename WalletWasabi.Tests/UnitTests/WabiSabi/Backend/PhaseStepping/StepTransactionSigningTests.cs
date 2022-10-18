@@ -182,7 +182,7 @@ public class StepTransactionSigningTests
 		Assert.Equal(Phase.Ended, round.Phase);
 		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
 		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
-		Assert.Contains(aliceClient2.SmartCoin.OutPoint, prison.GetInmates().Select(x => x.Utxo));
+		Assert.Contains(aliceClient2.SmartCoin.Outpoint, prison.GetInmates().Select(x => x.Utxo));
 
 		await arena.StopAsync(token);
 	}
@@ -236,8 +236,8 @@ public class StepTransactionSigningTests
 		Assert.Equal(round.Id, blameRound.BlameOf.Id);
 
 		var whitelist = blameRound.BlameWhitelist;
-		Assert.Contains(aliceClient1.SmartCoin.OutPoint, whitelist);
-		Assert.Contains(aliceClient2.SmartCoin.OutPoint, whitelist);
+		Assert.Contains(aliceClient1.SmartCoin.Outpoint, whitelist);
+		Assert.Contains(aliceClient2.SmartCoin.Outpoint, whitelist);
 		Assert.DoesNotContain(badOutpoint, whitelist);
 
 		await arena.StopAsync(token);
