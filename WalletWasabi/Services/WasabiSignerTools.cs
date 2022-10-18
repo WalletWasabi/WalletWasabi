@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -68,13 +69,14 @@ public static class WasabiSignerTools
 		return false;
 	}
 
-	public static (string content, Dictionary<string, uint256> installerDictionary, string base64Signature) ReadShaSumsContent(string shaSumsFilePath, PubKey pubKey)
+	public static async Task<(string content, Dictionary<string, uint256> installerDictionary, string base64Signature)> ReadShaSumsContentAsync(string shaSumsFilePath, PubKey pubKey)
 	{
 		Dictionary<string, uint256> installerDictionary = new();
 		string base64Signature = "";
 		StringBuilder contentBuilder = new();
 
-		string content = File.ReadAllText(shaSumsFilePath).Replace("\r\n", "\n");
+		string rawcontent = await File.ReadAllTextAsync(shaSumsFilePath).ConfigureAwait(false);
+		string content = rawcontent.Replace("\r\n", "\n");
 		string[] sumsFileLines = content.Split("\n");
 
 		string? headline = sumsFileLines.FirstOrDefault();
@@ -118,11 +120,11 @@ public static class WasabiSignerTools
 		return (content, installerDictionary, base64Signature);
 	}
 
-	public static uint256 GenerateHashFromFile(string filePath)
+	public static async Task<uint256> GenerateHashFromFileAsync(string filePath)
 	{
 		if (File.Exists(filePath))
 		{
-			byte[] bytes = File.ReadAllBytes(filePath);
+			byte[] bytes = await File.ReadAllBytesAsync(filePath).ConfigureAwait(false);
 			using SHA256 sha = SHA256.Create();
 			byte[] computedHash = sha.ComputeHash(bytes);
 			return new(computedHash);
@@ -141,9 +143,9 @@ public static class WasabiSignerTools
 		return new(computedHash);
 	}
 
-	public static void SignAndSaveSHASumsFile(string signatureFilePath, string destinationPath, Key key)
+	public static async Task SignAndSaveSHASumsFileAsync(string signatureFilePath, string destinationPath, Key key)
 	{
-		string content = File.ReadAllText(signatureFilePath);
+		string content = await File.ReadAllTextAsync(signatureFilePath).ConfigureAwait(false);
 		uint256 contentHash = GenerateHashFromString(content.Replace("\r\n", "\n"));
 
 		ECDSASignature signature = key.Sign(contentHash);
@@ -154,10 +156,10 @@ public static class WasabiSignerTools
 		stringBuilder.AppendLine(base64Signature);
 		stringBuilder.AppendLine($"-----END {WasabiSignatureHeadline}-----");
 
-		File.WriteAllText(destinationPath, stringBuilder.ToString());
+		await File.WriteAllTextAsync(destinationPath, stringBuilder.ToString()).ConfigureAwait(false);
 	}
 
-	public static void SavePrivateKeyToFile(string destinationPath, Key key)
+	public static async Task SavePrivateKeyToFileAsync(string destinationPath, Key key)
 	{
 		try
 		{
@@ -166,9 +168,9 @@ public static class WasabiSignerTools
 				throw new ArgumentException("Private key file already exists.");
 			}
 			using StreamWriter streamWriter = new(destinationPath);
-			streamWriter.WriteLine($"-----BEGIN {WasabiKeyHeadline}-----");
-			streamWriter.WriteLine(key.ToString(Network.Main));
-			streamWriter.WriteLine($"-----END {WasabiKeyHeadline}-----");
+			await streamWriter.WriteLineAsync($"-----BEGIN {WasabiKeyHeadline}-----").ConfigureAwait(false);
+			await streamWriter.WriteLineAsync(key.ToString(Network.Main)).ConfigureAwait(false);
+			await streamWriter.WriteLineAsync($"-----END {WasabiKeyHeadline}-----").ConfigureAwait(false);
 		}
 		catch (Exception exc)
 		{
