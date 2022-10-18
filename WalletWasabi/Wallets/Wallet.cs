@@ -78,7 +78,12 @@ public class Wallet : BackgroundService, IWallet
 	public KeyManager KeyManager { get; }
 	public WasabiSynchronizer Synchronizer { get; private set; }
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
-	public string WalletName => KeyManager.WalletName;
+
+	public string WalletName
+	{
+		get => KeyManager.WalletName;
+		set => KeyManager.SetWalletName(value);
+	}
 
 	/// <summary>
 	/// Unspent Transaction Outputs

@@ -15,6 +15,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
+	[AutoNotify] private string _walletName;
 
 	public ICommand RenameCommand { get; protected set; }
 
@@ -40,6 +41,10 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 		this.WhenAnyValue(x => x.IsCoinJoining)
 			.Skip(1)
 			.Subscribe(_ => MainViewModel.Instance.InvalidateIsCoinJoinActive());
+
+		this.WhenAnyValue(x => x.WalletName)
+			.Do(x => Wallet.WalletName = x)
+			.Subscribe();
 	}
 
 	public override string Title
@@ -49,8 +54,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	}
 
 	public Wallet Wallet { get; }
-
-	public string WalletName => Wallet.WalletName;
 
 	public bool IsLoggedIn => Wallet.IsLoggedIn;
 
