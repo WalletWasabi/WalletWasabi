@@ -236,11 +236,13 @@ public class WalletManager : IWalletProvider
 			Wallets.Add(wallet);
 		}
 
+		wallet.KeyManager.WalletDirectories = WalletDirectories;
+
 		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
 		{
 			wallet.KeyManager.ToFile();
 		}
-
+		
 		wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 		wallet.StateChanged += Wallet_StateChanged;
 
@@ -304,9 +306,8 @@ public class WalletManager : IWalletProvider
 					if (wallet.State >= WalletState.Initialized)
 					{
 						var keyManager = wallet.KeyManager;
-						string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)!).walletBackupFilePath;
-						keyManager.ToFile(backupWalletFilePath);
-						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
+						keyManager.CreateBackup();
+						Logger.LogInfo($"{nameof(keyManager)} backup saved to `{WalletDirectories.WalletsBackupDir}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}

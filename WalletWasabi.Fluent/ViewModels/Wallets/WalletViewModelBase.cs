@@ -24,17 +24,16 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	protected WalletViewModelBase(Wallet wallet)
 	{
 		Wallet = Guard.NotNull(nameof(wallet), wallet);
-
+		_walletName = Wallet.WalletName;
 		_title = WalletName;
 		WalletState = wallet.State;
 
 		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 
-		RenameCommand= ReactiveCommand.Create(() =>
+		RenameCommand = ReactiveCommand.Create(async () =>
 		{
-
+			await NavigateDialogAsync(new WalletRenameViewModel(this), NavigationTarget.DialogScreen);
 		});
-
 
 		SetIcon();
 

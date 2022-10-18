@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="using:WalletWasabi.Fluent.Views.Wallets"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="wallets:WalletRenameViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.WalletRenameView">
+
+
+  <controls:ContentArea Title="{Binding Title}"
+                        EnableNext="True" NextContent="Rename" FocusNext="True"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+      <TextBox Text="{Binding WalletName, Mode=TwoWay}" VerticalAlignment="Top"/>
+    </DockPanel>
+  </controls:ContentArea>
+</UserControl>

@@ -185,6 +185,7 @@ public class KeyManager
 	private object ScriptHdPubKeyMapLock { get; } = new();
 	private object ToFileLock { get; } = new();
 	public string WalletName => string.IsNullOrWhiteSpace(FilePath) ? "" : Path.GetFileNameWithoutExtension(FilePath);
+	public WalletDirectories? WalletDirectories { get; set; }
 
 	public static KeyManager CreateNew(out Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
@@ -264,16 +265,52 @@ public class KeyManager
 	}
 
 	public void SetWalletName(string? newName)
-	{
+	{ 
 		var directory = Path.GetDirectoryName(FilePath);
 		var candidateName = string.IsNullOrWhiteSpace(newName) || Path.GetInvalidFileNameChars().Any(newName.Contains) ? null : newName;
-		if (candidateName is null || directory is null)
+		if (WalletDirectories is null || newName == WalletName || candidateName is null || directory is null)
 		{
 			return;
 		}
 		
+		CreateBackup(true);
 		SetFilePath(Path.Combine(directory, $"{newName}.{WalletDirectories.WalletFileExtension}"));
-		ToFile();	
+		ToFile();
+	}
+	
+	
+	public void CreateBackup(bool move = false)
+	{
+		if (WalletDirectories is null)
+		{
+			return;
+		}
+		
+		var oldPath = FilePath;
+		var oldName = WalletName;
+		
+		var i = 0;
+
+		if (move)
+		{
+			while (true)
+			{
+				var potentialBackupPath = Path.Combine(WalletDirectories.WalletsBackupDir,
+					$"{oldName}{(i > 0 ? '.' : null)}{(i > 0 ? i.ToString() : null)}.{Wallets.WalletDirectories.WalletFileExtension}");
+
+				if (!File.Exists(potentialBackupPath))
+				{
+					File.Move(oldPath, potentialBackupPath);
+					break;
+				}
+				i++;
+			}
+		}
+		else
+		{
+			ToFile(Path.Combine(WalletDirectories.WalletsBackupDir,
+				$"{oldName}.{Wallets.WalletDirectories.WalletFileExtension}"));
+		}
 	}
 	
 	public void SetFilePath(string? filePath)
@@ -784,4 +821,5 @@ public class KeyManager
 	}
 
 	#endregion BlockchainState
+
 }
