@@ -429,7 +429,7 @@ public static class Program
 					$"Architecture: amd64\n" +
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +
-					$"Recommends: policykit-desktop-privileges\n" +
+					$"Recommends: policykit-1\n" +
 					$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
 					$"  Built-in Tor, coinjoin, payjoin and coin control features.\n";
 
