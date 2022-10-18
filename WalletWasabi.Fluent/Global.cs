@@ -88,15 +88,10 @@ public class Global
 
 		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
 
-		if (Config.UseTor)
-		{
-			HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
-				TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri());
-		}
-		else
-		{
-			HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-		}
+		HttpClientFactory = new HttpClientFactory(
+			Config.UseTor ? TorSettings.SocksEndpoint : null,
+			backendUriGetter: () =>
+			Config.GetFallbackBackendUri());
 
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
