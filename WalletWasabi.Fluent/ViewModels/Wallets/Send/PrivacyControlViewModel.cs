@@ -68,7 +68,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var autoSelectedPockets = LabelSelection.AutoSelectPockets(_transactionInfo.UserLabels);
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 
 			Complete(autoSelectedPockets);
 		}
