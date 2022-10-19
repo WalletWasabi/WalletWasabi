@@ -42,13 +42,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
-
-		IsEmpty = _coinsUpdated
-			.Select(_ => !Items.Any())
-			.ReplayLastActive();
 	}
-
-	public IObservable<bool> IsEmpty { get; }
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
