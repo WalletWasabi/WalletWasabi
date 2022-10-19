@@ -145,7 +145,8 @@ public static class ColumnFactory
 		return new HierarchicalExpanderColumn<TreeNode>(
 			textColumn,
 			group => group.Children,
-			node => node.Children.Any());
+			node => node.Children.Any(),
+			node => node.IsExpanded);
 	}
 
 	private static IEnumerable GetLabelsForGroup(CoinGroupViewModel vm)

@@ -36,7 +36,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	[AutoNotify] private string _searchFilter = "";
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _clearCoinSelectionCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private CoinBasedSelectionViewModel? _coinBasedSelection;
 	[AutoNotify] private IObservable<bool> _enoughSelected = Observable.Return(false);
 	[AutoNotify] private IObservable<bool> _isSelectionBadlyChosen = Observable.Return(false);
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
@@ -124,9 +123,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var filterChanged = this
 			.WhenAnyValue(x => x.SearchFilter)
 			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler);
-
-		CoinBasedSelection = new CoinBasedSelectionViewModel(coinChanges, commands, filterChanged)
-			.DisposeWith(disposables);
 
 		LabelBasedSelection = new LabelBasedCoinSelectionViewModel(coinChanges, commands, filterChanged)
 			.DisposeWith(disposables);

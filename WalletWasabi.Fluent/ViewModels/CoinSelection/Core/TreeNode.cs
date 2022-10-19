@@ -3,8 +3,10 @@ using System.Linq;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
-public class TreeNode
+public partial class TreeNode
 {
+	[AutoNotify] private bool _isExpanded;
+
 	public TreeNode(object value) : this(value, Enumerable.Empty<TreeNode>())
 	{
 	}
