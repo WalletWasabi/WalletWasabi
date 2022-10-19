@@ -86,23 +86,18 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 		var usableWidth = (decimal)Width - (coinCount - 1) * _gapBetweenSegments;
 
-		// Order the coins as they will be shown in the bar.
-		var orderedCoins =
-			pockets
-				.Where(x => x.Coins.Any())
-				.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-				.Select(x => x.Coins.OrderByDescending(x => x.Amount))
-				.SelectMany(x => x)
-				.ToArray();
-
 		// Calculate the width of the segments.
-		var rawSegments = orderedCoins.Select(coin =>
-		{
-			var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-			var width = Math.Abs(usableWidth * amount / totalAmount);
+		var rawSegments = pockets
+			.Where(x => x.Coins.Any())
+			.SelectMany(pocket => pocket.Coins)
+			.Select(coin =>
+			{
+				var pocket = pockets.First(pocket => pocket.Coins.Contains(coin));
+				var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+				var width = Math.Abs(usableWidth * amount / totalAmount);
 
-			return (Coin: coin, Width: width);
-		}).ToArray();
+				return (OwnerPocket: pocket, Coin: coin, Width: width);
+			}).ToArray();
 
 		var segmentsToEnlarge = rawSegments.Where(x => x.Width < 2).ToArray();
 
@@ -117,14 +112,20 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			rawSegments = rawSegments.Select(x =>
 			{
 				var finalWidth = x.Width < 2 ? x.Width + enlargeBy : x.Width - reduceBy;
-				return (Coin: x.Coin, Width: finalWidth);
+				return (OwnerPocket: x.OwnerPocket, Coin: x.Coin, Width: finalWidth);
 			}).ToArray();
 		}
+
+		// Order the coins as they will be shown in the bar.
+		rawSegments = rawSegments
+			.OrderByDescending(x => x.OwnerPocket.Coins.First().HdPubKey.AnonymitySet)
+			.ThenByDescending(x => x.Width)
+			.ToArray();
 
 		var start = 0.0m;
 		foreach (var tup in rawSegments)
 		{
-			var (coin, width) = tup;
+			var (_, coin, width) = tup;
 
 			yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
 
@@ -137,15 +138,8 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 		var usableWidth = (decimal)Width - (pockets.Count() - 1) * _gapBetweenSegments;
 
-		// Order the pockets as they will be shown in the bar.
-		var orderedPockets =
-			pockets
-				.Where(x => x.Coins.Any())
-				.OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-				.ToArray();
-
 		// Calculate the width of the segments.
-		var rawSegments = orderedPockets.Select(pocket =>
+		var rawSegments = pockets.Select(pocket =>
 		{
 			var amount = pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
 			var width = Math.Abs(usableWidth * amount / totalAmount);
@@ -169,6 +163,12 @@ public partial class PrivacyBarViewModel : ViewModelBase
 				return (Coin: x.Pocket, Width: finalWidth);
 			}).ToArray();
 		}
+
+		// Order the pockets as they will be shown in the bar.
+		rawSegments = rawSegments
+			.OrderByDescending(x => x.Pocket.Coins.First().HdPubKey.AnonymitySet)
+			.ThenByDescending(x => x.Width)
+			.ToArray();
 
 		var start = 0.0m;
 		foreach (var tup in rawSegments)
