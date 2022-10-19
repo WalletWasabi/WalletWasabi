@@ -65,7 +65,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 		var coinCount = pockets.SelectMany(x => x.Coins).Count();
 
-		if (coinCount == 0d)
+		if (Width == 0d || coinCount == 0d)
 		{
 			return;
 		}
