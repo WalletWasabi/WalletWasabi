@@ -73,7 +73,7 @@ public class MemoryExtensionsTests
 				}
 			}
 
-			Task<string> t = taskProvider.Invoke(i %2) ;
+			Task<string> t = taskProvider.Invoke(i %2);
 			tasks[i] = t;
 		}
 
