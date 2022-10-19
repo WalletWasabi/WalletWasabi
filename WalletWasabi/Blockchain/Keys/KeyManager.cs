@@ -268,13 +268,21 @@ public class KeyManager
 	{ 
 		var directory = Path.GetDirectoryName(FilePath);
 		var candidateName = string.IsNullOrWhiteSpace(newName) || Path.GetInvalidFileNameChars().Any(newName.Contains) ? null : newName;
+
 		if (WalletDirectories is null || newName == WalletName || candidateName is null || directory is null)
 		{
 			return;
 		}
+
+		var newPath = Path.Combine(directory, $"{newName}.{WalletDirectories.WalletFileExtension}");
+		
+		if (File.Exists(newPath))
+		{
+			throw new InvalidOperationException($"There's a wallet already named '{newName}'.");
+		}
 		
 		CreateBackup(true);
-		SetFilePath(Path.Combine(directory, $"{newName}.{WalletDirectories.WalletFileExtension}"));
+		SetFilePath(newPath);
 		ToFile();
 	}
 	
