@@ -27,11 +27,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 		OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 
-		RenameCommand = ReactiveCommand.Create(async () =>
-		{
-			await NavigateDialogAsync(new WalletRenameViewModel(this), NavigationTarget.DialogScreen);
-		});
-
 		SetIcon();
 
 		this.WhenAnyValue(x => x.IsCoinJoining)
@@ -43,8 +38,6 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 			.Do(x => Title = x)
 			.Subscribe();
 	}
-
-	public ICommand RenameCommand { get; protected set; }
 
 	public override string Title
 	{
