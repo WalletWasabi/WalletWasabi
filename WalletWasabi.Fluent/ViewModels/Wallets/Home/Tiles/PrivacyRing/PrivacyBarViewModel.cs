@@ -16,6 +16,8 @@ public partial class PrivacyBarViewModel : ViewModelBase
 {
 	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 	private readonly decimal _gapBetweenSegments = 1.5m;
+	private readonly decimal _enlargeThreshold = 2m;
+	private readonly decimal _enlargeBy = 1m;
 	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
@@ -99,19 +101,18 @@ public partial class PrivacyBarViewModel : ViewModelBase
 				return (OwnerPocket: pocket, Coin: coin, Width: width);
 			}).ToArray();
 
-		var segmentsToEnlarge = rawSegments.Where(x => x.Width < 2).ToArray();
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < _enlargeThreshold).ToArray();
 
-		// Artificially enlarge segments smaller than 2 px in order to make them visible.
-		// Meanwhile decrease those segments that are larger than 2 px in order to fit all in the bar.
+		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
+		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
-			var enlargeBy = 1m;
-			var segmentsToReduce = rawSegments.Except(segmentsToEnlarge);
-			var reduceBy = segmentsToEnlarge.Length * enlargeBy / segmentsToReduce.Count();
+			var segmentsToReduceCount = rawSegments.Except(segmentsToEnlarge).Count();
+			var reduceBy = segmentsToEnlarge.Length * _enlargeBy / segmentsToReduceCount;
 
 			rawSegments = rawSegments.Select(x =>
 			{
-				var finalWidth = x.Width < 2 ? x.Width + enlargeBy : x.Width - reduceBy;
+				var finalWidth = x.Width < _enlargeThreshold ? x.Width + _enlargeBy : x.Width - reduceBy;
 				return (OwnerPocket: x.OwnerPocket, Coin: x.Coin, Width: finalWidth);
 			}).ToArray();
 		}
@@ -147,19 +148,18 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			return (Pocket: pocket, Width: width);
 		}).ToArray();
 
-		var segmentsToEnlarge = rawSegments.Where(x => x.Width < 2).ToArray();
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < _enlargeThreshold).ToArray();
 
-		// Artificially enlarge segments smaller than 2 px in order to make them visible.
-		// Meanwhile decrease those segments that are larger than 2 px in order to fit all in the bar.
+		// Artificially enlarge segments smaller than threshold px in order to make them visible.
+		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
-			var enlargeBy = 1m;
 			var segmentsToReduce = rawSegments.Except(segmentsToEnlarge);
-			var reduceBy = segmentsToEnlarge.Length * enlargeBy / segmentsToReduce.Count();
+			var reduceBy = segmentsToEnlarge.Length * _enlargeBy / segmentsToReduce.Count();
 
 			rawSegments = rawSegments.Select(x =>
 			{
-				var finalWidth = x.Width < 2 ? x.Width + enlargeBy : x.Width - reduceBy;
+				var finalWidth = x.Width < _enlargeThreshold ? x.Width + _enlargeBy : x.Width - reduceBy;
 				return (Coin: x.Pocket, Width: finalWidth);
 			}).ToArray();
 		}
