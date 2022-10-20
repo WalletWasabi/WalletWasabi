@@ -58,8 +58,8 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <DockPanel>
 
-      <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Left" Margin="2">
-        <TextBlock Text="References:" Classes="h8" VerticalAlignment="Center" Margin="2" />
+      <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 10 0 0" Spacing="2">
+        <TextBlock Text="References:" Classes="h8" VerticalAlignment="Center" />
         <ItemsControl Items="{Binding References}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
