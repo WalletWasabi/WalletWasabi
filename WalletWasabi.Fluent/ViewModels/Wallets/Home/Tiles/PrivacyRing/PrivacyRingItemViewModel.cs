@@ -27,6 +27,21 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
 		Unconfirmed = !coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
+
+		Reference =
+			this switch
+			{
+				{ IsPrivate: true } => "Private",
+				{ IsSemiPrivate: true } => "Semi private",
+				{ IsNonPrivate: true } => "Non private",
+				_ => ""
+			};
+
+		Reference += " coin";
+		if (Unconfirmed)
+		{
+			Reference += " (unconfirmed)";
+		}
 	}
 
 	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, Pocket pocket, double start, double end)
@@ -40,6 +55,17 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
+
+		Reference =
+			this switch
+			{
+				{ IsPrivate: true } => "Private",
+				{ IsSemiPrivate: true } => "Semi private",
+				{ IsNonPrivate: true } => "Non private",
+				_ => ""
+			};
+
+		Reference += " coins";
 	}
 
 	public WalletCoinViewModel? Coin { get; }
@@ -54,6 +80,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 	public string AmountText { get; }
 	public bool Unconfirmed { get; }
 	public int Confirmations { get; }
+	public string Reference { get; }
 
 	private PathGeometry CreateGeometry(double start, double end, double outerRadius)
 	{
