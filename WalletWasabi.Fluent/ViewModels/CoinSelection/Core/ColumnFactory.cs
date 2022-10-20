@@ -84,7 +84,7 @@ public static class ColumnFactory
 	public static TemplateColumn<TreeNode> LabelsColumnForGroups()
 	{
 		return new TemplateColumn<TreeNode>(
-			"Labels (Cluster)",
+			"Pocket",
 			new ConstantTemplate<TreeNode>(
 				group => group.Value switch
 				{
@@ -166,7 +166,7 @@ public static class ColumnFactory
 			PrivacyLevel.None => "(Invalid privacy level)",
 			PrivacyLevel.SemiPrivate => "Semi-private",
 			PrivacyLevel.Private => "Private",
-			PrivacyLevel.NonPrivate => "Non-private",
+			PrivacyLevel.NonPrivate => "Unknown People",
 			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
 		};
 	}
