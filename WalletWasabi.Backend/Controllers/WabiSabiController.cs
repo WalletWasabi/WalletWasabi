@@ -39,7 +39,8 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		var before = DateTimeOffset.UtcNow;
 		var response = await Arena.GetStatusAsync(request, cancellationToken);
 		var medians = CoinJoinFeeRateStatStore.GetDefaultMedians();
-		var ret = new RoundStateResponse(response.RoundStates, medians);
+		var affiliateInformation = AffiliationManager.GetAffiliateInformation();
+		var ret = new RoundStateResponse(response.RoundStates, medians, affiliateInformation);
 
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("status", duration);
