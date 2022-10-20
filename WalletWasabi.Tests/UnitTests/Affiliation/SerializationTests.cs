@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Newtonsoft.Json;
 using WalletWasabi.Affiliation;
 using WalletWasabi.Affiliation.Serialization;
@@ -12,6 +14,13 @@ public class SerializationTests
 	{
 		AssertSerialization(AffiliationFlag.Default);
 		AssertSerialization(AffiliationFlag.Trezor);
+	}
+
+	[Fact]
+	public void AffiliateServersSerialization()
+	{
+		AssertSerialization(new Dictionary<AffiliationFlag, string> { { AffiliationFlag.Trezor, "www.test.io" } }.ToImmutableDictionary());
+		AssertSerialization(new Dictionary<AffiliationFlag, string> { }.ToImmutableDictionary());
 	}
 
 	private static void AssertSerialization<T>(T message)
