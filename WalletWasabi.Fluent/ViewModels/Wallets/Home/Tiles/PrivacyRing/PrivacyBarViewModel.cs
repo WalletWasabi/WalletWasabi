@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -85,7 +86,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
 	{
-		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var usableWidth = (decimal)Width - (coinCount - 1) * _gapBetweenSegments;
 
 		// Calculate the width of the segments.
@@ -95,7 +96,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(coin =>
 			{
 				var pocket = pockets.First(pocket => pocket.Coins.Contains(coin));
-				var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+				var amount = coin.Amount.ToDecimal(MoneyUnit.BTC);
 				var width = Math.Abs(usableWidth * amount / totalAmount);
 
 				return (OwnerPocket: pocket, Coin: coin, Width: width);
@@ -136,13 +137,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 	private IEnumerable<PrivacyBarItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
 	{
-		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var usableWidth = (decimal)Width - (pockets.Count() - 1) * _gapBetweenSegments;
 
 		// Calculate the width of the segments.
 		var rawSegments = pockets.Select(pocket =>
 		{
-			var amount = pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+			var amount = pocket.Amount.ToDecimal(MoneyUnit.BTC);
 			var width = Math.Abs(usableWidth * amount / totalAmount);
 
 			return (Pocket: pocket, Width: width);
