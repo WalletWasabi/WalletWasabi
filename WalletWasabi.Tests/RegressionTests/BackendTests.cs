@@ -240,7 +240,7 @@ public class BackendTests
 				await rpc.GenerateAsync(1);
 
 				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController))!;
-				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
+				await blockchainController.Cache.RemoveAsync($"{nameof(BlockchainController.GetStatusAsync)}");
 
 				segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
 				taprootIndexBuilderService = global.TaprootIndexBuilderService;

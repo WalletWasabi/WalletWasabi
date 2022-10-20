@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Nito.AsyncEx;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -23,7 +24,7 @@ public class IdempotencyRequestCache
 	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
 	/// <seealso href="https://github.com/dotnet/runtime/issues/36499"/>
-	private object ResponseCacheLock { get; } = new();
+	private AsyncLock ResponseCacheLock { get; } = new();
 
 	/// <remarks>Guarded by <see cref="ResponseCacheLock"/>.</remarks>
 	private IMemoryCache ResponseCache { get; }
@@ -53,17 +54,19 @@ public class IdempotencyRequestCache
 		where TRequest : notnull
 	{
 		bool callAction = false;
-		TaskCompletionSource<TResponse> responseTcs;
 
 		while (true)
 		{
-			lock (ResponseCacheLock)
+			if (!ResponseCache.TryGetValue(request, out TaskCompletionSource<TResponse> responseTcs))
 			{
-				if (!ResponseCache.TryGetValue(request, out responseTcs))
+				using (await ResponseCacheLock.LockAsync(cancellationToken))
 				{
-					callAction = true;
-					responseTcs = new();
-					ResponseCache.Set(request, responseTcs, options);
+					if (!ResponseCache.TryGetValue(request, out responseTcs))
+					{
+						callAction = true;
+						responseTcs = new();
+						ResponseCache.Set(request, responseTcs, options);
+					}
 				}
 			}
 
@@ -87,14 +90,9 @@ public class IdempotencyRequestCache
 			}
 			else
 			{
-				using CancellationTokenSource timeoutCts = new(RequestTimeout);
-				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
 				try
 				{
-					// All requests where this idempotent behavior (i.e. retry behavior) makes sense are mutex/CPU bound on the server,
-					// and perform no IO or network requests, so the only reason that processing of a request should ever time out is if we have a deadlock type bug.
-					result = await responseTcs.Task.WithAwaitCancellationAsync(linkedCts.Token).ConfigureAwait(false);
+					result = await responseTcs.Task.WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
 					return result;
 				}
 				catch (OperationCanceledException e)
@@ -111,7 +109,7 @@ public class IdempotencyRequestCache
 				}
 				catch (Exception)
 				{
-					lock (ResponseCacheLock)
+					using (await ResponseCacheLock.LockAsync(cancellationToken))
 					{
 						ResponseCache.Remove(request);
 					}
@@ -120,9 +118,9 @@ public class IdempotencyRequestCache
 		}
 	}
 
-	internal void Remove(string cacheKey)
+	internal async Task RemoveAsync(string cacheKey)
 	{
-		lock (ResponseCacheLock)
+		using (await ResponseCacheLock.LockAsync())
 		{
 			ResponseCache.Remove(cacheKey);
 		}
