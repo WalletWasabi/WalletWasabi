@@ -1,4 +1,3 @@
-using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -8,14 +7,14 @@ namespace WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
 public partial class SelectableCoin : ReactiveObject, ISelectable, ICoin
 {
+	private bool _isCoinjoining;
+	private bool _isSelected;
 	[AutoNotify] private Money _amount;
-	[AutoNotify] private int _anonScoreTarget = 5;
+	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private int _anonymitySet;
 	[AutoNotify] private DateTimeOffset? _bannedUntil;
 	[AutoNotify] private ICoin _coin;
-	private bool _isCoinjoining;
 	[AutoNotify] private bool _isConfirmed;
-	private bool _isSelected;
 	[AutoNotify] private OutPoint _outPoint;
 	[AutoNotify] private PrivacyLevel _privacyLevel;
 	[AutoNotify] private SmartLabel _smartLabel;

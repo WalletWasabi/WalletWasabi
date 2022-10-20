@@ -36,8 +36,8 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<SelectableCoin, Money>(model => model.Coin.Amount),
-				CompareDescending = SortDescending<SelectableCoin, Money>(model => model.Coin.Amount)
+				CompareAscending = SortAscending<ICoin, Money>(model => model.Amount),
+				CompareDescending = SortDescending<ICoin, Money>(model => model.Amount)
 			});
 	}
 
@@ -57,8 +57,8 @@ public static class ColumnFactory
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
 			{
-				CompareAscending = SortAscending<SelectableCoin, int>(model => model.Coin.AnonymitySet),
-				CompareDescending = SortDescending<SelectableCoin, int>(model => model.Coin.AnonymitySet)
+				CompareAscending = SortAscending<ICoin, int>(model => model.AnonymitySet),
+				CompareDescending = SortDescending<ICoin, int>(model => model.AnonymitySet)
 			});
 	}
 
