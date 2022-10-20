@@ -28,7 +28,6 @@ public class MemoryExtensionsTests
 		StateObject stateObject = new();
 
 		RunTest(stateObject, taskProvider: (int i) => memoryCache.AtomicGetOrCreateAsync(key: i % 2, cacheOptions, factory: () => stateObject.CounterTaskAsync(i % 2, CancellationToken.None)));
-
 	}
 
 	[Fact]
