@@ -102,15 +102,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 				return (OwnerPocket: pocket, Coin: coin, Width: width);
 			}).ToArray();
 
-		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
-
 		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
 		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
-		if (segmentsToEnlarge.Any())
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
+		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
+		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
+		if (segmentsToEnlarge.Any() && segmentsToReduce.Length > 0 && segmentsToReduce.All(x => x.Width - reduceBy > 0))
 		{
-			var segmentsToReduceCount = rawSegments.Except(segmentsToEnlarge).Count();
-			var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduceCount;
-
 			rawSegments = rawSegments.Select(x =>
 			{
 				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
@@ -147,15 +145,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			return (Pocket: pocket, Width: width);
 		}).ToArray();
 
-		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
-
 		// Artificially enlarge segments smaller than threshold px in order to make them visible.
 		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
-		if (segmentsToEnlarge.Any())
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
+		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
+		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
+		if (segmentsToEnlarge.Any() && segmentsToReduce.Length > 0 && segmentsToReduce.All(x => x.Width - reduceBy > 0))
 		{
-			var segmentsToReduce = rawSegments.Except(segmentsToEnlarge);
-			var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Count();
-
 			rawSegments = rawSegments.Select(x =>
 			{
 				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
