@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Cache;
 
 namespace WalletWasabi.Wallets;
 
@@ -14,12 +15,12 @@ public class SmartBlockProvider : IBlockProvider
 	public SmartBlockProvider(IBlockProvider provider, IMemoryCache cache)
 	{
 		InnerBlockProvider = provider;
-		Cache = cache;
+		Cache = new(cache);
 	}
 
 	private IBlockProvider InnerBlockProvider { get; }
 
-	private IMemoryCache Cache { get; }
+	private IdempotencyRequestCache Cache { get; }
 
 	public async Task<Block> GetBlockAsync(uint256 blockHash, CancellationToken cancel)
 	{
@@ -30,9 +31,10 @@ public class SmartBlockProvider : IBlockProvider
 			SlidingExpiration = TimeSpan.FromSeconds(4)
 		};
 
-		return await Cache.AtomicGetOrCreateAsync(
+		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			cacheOptions,
-			() => InnerBlockProvider.GetBlockAsync(blockHash, cancel)).ConfigureAwait(false);
+			action: (string request, CancellationToken token) => InnerBlockProvider.GetBlockAsync(blockHash, token),
+			options: cacheOptions,
+			cancel).ConfigureAwait(false);
 	}
 }

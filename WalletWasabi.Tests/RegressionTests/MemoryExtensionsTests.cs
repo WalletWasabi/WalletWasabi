@@ -16,21 +16,6 @@ public class MemoryExtensionsTests
 	private const int TotalIterationCount = 50_000_000;
 
 	[Fact]
-	public void AtomicGetOrCreateStressTest()
-	{
-		using MemoryCache memoryCache = new(new MemoryCacheOptions());
-		MemoryCacheEntryOptions cacheOptions = new()
-		{
-			Size = 10,
-			SlidingExpiration = TimeSpan.FromMilliseconds(50)
-		};
-
-		StateObject stateObject = new();
-
-		RunTest(stateObject, taskProvider: (i) => memoryCache.AtomicGetOrCreateAsync(key: i % 2, cacheOptions, factory: () => stateObject.CounterTaskAsync(i % 2, CancellationToken.None)));
-	}
-
-	[Fact]
 	public void GetCachedResponseStressTest()
 	{
 		using MemoryCache memoryCache = new(new MemoryCacheOptions());

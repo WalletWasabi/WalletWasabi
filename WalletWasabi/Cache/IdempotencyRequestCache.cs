@@ -119,4 +119,12 @@ public class IdempotencyRequestCache
 			}
 		}
 	}
+
+	internal void Remove(string cacheKey)
+	{
+		lock (ResponseCacheLock)
+		{
+			ResponseCache.Remove(cacheKey);
+		}
+	}
 }
