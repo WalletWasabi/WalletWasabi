@@ -19,8 +19,6 @@ public class IdempotencyRequestCache
 	/// <summary>Timeout specifying how long a request response can stay in memory.</summary>
 	private static TimeSpan CacheTimeout { get; } = TimeSpan.FromMinutes(5);
 
-	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(1);
-
 	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
 	/// <seealso href="https://github.com/dotnet/runtime/issues/36499"/>
