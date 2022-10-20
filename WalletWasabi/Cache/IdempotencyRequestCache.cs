@@ -59,7 +59,7 @@ public class IdempotencyRequestCache
 		{
 			if (!ResponseCache.TryGetValue(request, out TaskCompletionSource<TResponse> responseTcs))
 			{
-				using (await ResponseCacheLock.LockAsync(cancellationToken))
+				using (await ResponseCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
 					if (!ResponseCache.TryGetValue(request, out responseTcs))
 					{
@@ -109,7 +109,7 @@ public class IdempotencyRequestCache
 				}
 				catch (Exception)
 				{
-					using (await ResponseCacheLock.LockAsync(cancellationToken))
+					using (await ResponseCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
 					{
 						ResponseCache.Remove(request);
 					}
@@ -120,7 +120,7 @@ public class IdempotencyRequestCache
 
 	internal async Task RemoveAsync(string cacheKey)
 	{
-		using (await ResponseCacheLock.LockAsync())
+		using (await ResponseCacheLock.LockAsync().ConfigureAwait(false))
 		{
 			ResponseCache.Remove(cacheKey);
 		}
