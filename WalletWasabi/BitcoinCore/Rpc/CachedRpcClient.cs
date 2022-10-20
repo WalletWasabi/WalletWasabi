@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Cache;
-using static WalletWasabi.Cache.IdempotencyRequestCache;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
 
@@ -17,13 +16,10 @@ public class CachedRpcClient : RpcClientBase
 	public CachedRpcClient(RPCClient rpc, IMemoryCache cache)
 		: base(rpc)
 	{
-		Cache = cache;
 		IdempotencyRequestCache = new(cache);
 	}
 
 	private object CancellationTokenSourceLock { get; } = new();
-
-	public IMemoryCache Cache { get; }
 
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 
@@ -185,16 +181,6 @@ public class CachedRpcClient : RpcClientBase
 	{
 		TipChangeCancellationTokenSource.Cancel();
 		await base.InvalidateBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
-	}
-
-	public Task<TResult> GetDataAsync<TRequest, TResult>(
-		TRequest request,
-		ProcessRequestDelegateAsync<TRequest, TResult> action,
-		MemoryCacheEntryOptions memoryCacheEntryOptions,
-		CancellationToken cancellationToken)
-		where TRequest : notnull
-	{
-		return IdempotencyRequestCache.GetCachedResponseAsync(request, action, memoryCacheEntryOptions, cancellationToken);
 	}
 
 	private MemoryCacheEntryOptions CacheOptions(int size, double expireInSeconds, bool addExpirationToken = false)

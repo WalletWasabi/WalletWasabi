@@ -1,11 +1,9 @@
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Cache;
 using WalletWasabi.Logging;
-using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Extensions;
@@ -25,11 +23,11 @@ public class MemoryExtensionsTests
 		{
 			Size = 10,
 			SlidingExpiration = TimeSpan.FromMilliseconds(50)
-		};		
+		};
 
 		StateObject stateObject = new();
 
-				RunTest(stateObject, taskProvider: (int i) => memoryCache.AtomicGetOrCreateAsync(key: i % 2, cacheOptions, factory: () => stateObject.CounterTaskAsync(i % 2, CancellationToken.None)));
+		RunTest(stateObject, taskProvider: (int i) => memoryCache.AtomicGetOrCreateAsync(key: i % 2, cacheOptions, factory: () => stateObject.CounterTaskAsync(i % 2, CancellationToken.None)));
 
 	}
 
@@ -68,7 +66,7 @@ public class MemoryExtensionsTests
 				}
 			}
 
-			Task<string> t = taskProvider.Invoke(i %2);
+			Task<string> t = taskProvider.Invoke(i % 2);
 			tasks[i] = t;
 		}
 
@@ -83,7 +81,7 @@ public class MemoryExtensionsTests
 	private class StateObject
 	{
 		private long[] _counters = new long[2];
-		
+
 		private long _testResult = 1;
 
 		/// <summary>1 ~ success, 0 ~ error.</summary>
