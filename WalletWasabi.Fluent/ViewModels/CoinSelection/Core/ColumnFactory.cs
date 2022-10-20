@@ -45,11 +45,14 @@ public static class ColumnFactory
 	{
 		return new TemplateColumn<TreeNode>(
 			new AnonymityScoreHeaderViewModel(),
-			new ConstantTemplate<TreeNode>(
-				group => group.Value switch
+			new ObservableTemplate<TreeNode, string>(
+				group =>
 				{
-					ICoin coin => new AnonymityScoreCellViewModel(coin),
-					_ => ""
+					return group.Value switch
+					{
+						ICoin coin => coin.WhenAnyValue(x => x.AnonymitySet).Select(i => i.ToString()),
+						_ => Observable.Return("")
+					};
 				}),
 			GridLength.Auto,
 			new ColumnOptions<TreeNode>
