@@ -16,9 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 public partial class PrivacyBarViewModel : ViewModelBase
 {
 	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
-	private readonly decimal _gapBetweenSegments = 1.5m;
-	private readonly decimal _enlargeThreshold = 2m;
-	private readonly decimal _enlargeBy = 1m;
+	private const decimal GapBetweenSegments = 1.5m;
+	private const decimal EnlargeThreshold = 2m;
+	private const decimal EnlargeBy = 1m;
 	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
@@ -87,7 +87,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
 	{
 		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
-		var usableWidth = (decimal)Width - (coinCount - 1) * _gapBetweenSegments;
+		var usableWidth = (decimal)Width - (coinCount - 1) * GapBetweenSegments;
 
 		// Calculate the width of the segments.
 		var rawSegments = pockets
@@ -102,18 +102,18 @@ public partial class PrivacyBarViewModel : ViewModelBase
 				return (OwnerPocket: pocket, Coin: coin, Width: width);
 			}).ToArray();
 
-		var segmentsToEnlarge = rawSegments.Where(x => x.Width < _enlargeThreshold).ToArray();
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
 
 		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
 		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
 			var segmentsToReduceCount = rawSegments.Except(segmentsToEnlarge).Count();
-			var reduceBy = segmentsToEnlarge.Length * _enlargeBy / segmentsToReduceCount;
+			var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduceCount;
 
 			rawSegments = rawSegments.Select(x =>
 			{
-				var finalWidth = x.Width < _enlargeThreshold ? x.Width + _enlargeBy : x.Width - reduceBy;
+				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
 				return (OwnerPocket: x.OwnerPocket, Coin: x.Coin, Width: finalWidth);
 			}).ToArray();
 		}
@@ -131,14 +131,14 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 			yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
 
-			start += width + _gapBetweenSegments;
+			start += width + GapBetweenSegments;
 		}
 	}
 
 	private IEnumerable<PrivacyBarItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
 	{
 		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
-		var usableWidth = (decimal)Width - (pockets.Count() - 1) * _gapBetweenSegments;
+		var usableWidth = (decimal)Width - (pockets.Count() - 1) * GapBetweenSegments;
 
 		// Calculate the width of the segments.
 		var rawSegments = pockets.Select(pocket =>
@@ -149,18 +149,18 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			return (Pocket: pocket, Width: width);
 		}).ToArray();
 
-		var segmentsToEnlarge = rawSegments.Where(x => x.Width < _enlargeThreshold).ToArray();
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
 
 		// Artificially enlarge segments smaller than threshold px in order to make them visible.
 		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
 		if (segmentsToEnlarge.Any())
 		{
 			var segmentsToReduce = rawSegments.Except(segmentsToEnlarge);
-			var reduceBy = segmentsToEnlarge.Length * _enlargeBy / segmentsToReduce.Count();
+			var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Count();
 
 			rawSegments = rawSegments.Select(x =>
 			{
-				var finalWidth = x.Width < _enlargeThreshold ? x.Width + _enlargeBy : x.Width - reduceBy;
+				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
 				return (Coin: x.Pocket, Width: finalWidth);
 			}).ToArray();
 		}
@@ -178,7 +178,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
 
-			start += width + _gapBetweenSegments;
+			start += width + GapBetweenSegments;
 		}
 	}
 
