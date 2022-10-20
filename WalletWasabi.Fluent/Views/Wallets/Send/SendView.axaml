@@ -6,6 +6,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -28,7 +29,7 @@
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
                     <Binding Path="BalanceBtc" />
-                    <Binding Path="BalanceFiat" />
+                    <Binding Path="BalanceFiat" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>

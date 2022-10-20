@@ -1,4 +1,3 @@
-using NBitcoin;
 using Nito.AsyncEx;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -25,6 +24,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
+	[AutoNotify] private bool _isVisible;
+	[AutoNotify] private bool _isBusy;
 
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
@@ -65,8 +66,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 				Suggestions.Clear();
 				SelectedSuggestion = null;
 
-				var loadingRing = new LoadingSuggestionViewModel();
-				Suggestions.Add(loadingRing);
+				IsVisible = true;
+				IsBusy = true;
 
 				var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
@@ -89,11 +90,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 					await foreach (var suggestion in suggestions)
 					{
-						Suggestions.Insert(Suggestions.Count - 1, suggestion);
+						Suggestions.Add(suggestion);
 					}
 				}
-
-				Suggestions.Remove(loadingRing);
 			}
 			catch (OperationCanceledException)
 			{
@@ -104,6 +103,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 				lock (_lock)
 				{
 					_suggestionCancellationTokenSource = null;
+				}
+
+				IsBusy = false;
+				IsVisible = Suggestions.Any();
+				if (!IsVisible)
+				{
+					IsOpen = false;
 				}
 			}
 		}

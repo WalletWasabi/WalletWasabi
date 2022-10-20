@@ -130,7 +130,7 @@ public class CoinsRegistry : ICoinsView
 			}
 			toRemove.UnregisterFromHdPubKey();
 
-			var removedCoinOutPoint = toRemove.OutPoint;
+			var removedCoinOutPoint = toRemove.Outpoint;
 
 			// If we can find it in our outpoint to coins cache.
 			if (TryGetSpenderSmartCoinsByOutPointNoLock(removedCoinOutPoint, out var coinsByOutPoint))
