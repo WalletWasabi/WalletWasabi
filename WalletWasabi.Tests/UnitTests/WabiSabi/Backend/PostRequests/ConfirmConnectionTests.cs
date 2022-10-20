@@ -90,7 +90,7 @@ public class ConfirmConnectionTests
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
 		round.Alices.Add(alice);
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 		foreach (Phase phase in Enum.GetValues(typeof(Phase)))

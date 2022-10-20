@@ -29,12 +29,12 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	[AutoNotify] private Thickness _margin;
 	[AutoNotify] private Thickness _negativeMargin;
 
-	public PrivacyRingViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public PrivacyRingViewModel(WalletViewModel walletViewModel)
 	{
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
-		PrivacyTile = new PrivacyControlTileViewModel(walletViewModel, balanceChanged, false);
+		PrivacyTile = new PrivacyControlTileViewModel(walletViewModel, false);
 		PrivacyTile.Activate(_disposables);
 
 		PreviewItems.Add(PrivacyTile);
@@ -47,7 +47,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			.Subscribe();
 
 		_coinsUpdated =
-			balanceChanged.ToSignal()
+			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 						  .Merge(walletViewModel
 						  .WhenAnyValue(w => w.IsCoinJoining)
 						  .ToSignal());

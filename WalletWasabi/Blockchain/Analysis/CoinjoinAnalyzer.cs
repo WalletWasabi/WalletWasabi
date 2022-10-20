@@ -73,7 +73,7 @@ public class CoinjoinAnalyzer
 		IEnumerable<WalletVirtualOutput> walletVirtualOutputs = transaction.WalletVirtualOutputs;
 		IEnumerable<ForeignVirtualOutput> foreignVirtualOutputs = transaction.ForeignVirtualOutputs;
 
-		Money amount = walletVirtualOutputs.Where(o => o.Coins.Select(c => c.OutPoint).Contains(transactionOutput.OutPoint)).First().Amount;
+		Money amount = walletVirtualOutputs.Where(o => o.Coins.Select(c => c.Outpoint).Contains(transactionOutput.Outpoint)).First().Amount;
 		bool IsRelevantVirtualOutput(ForeignVirtualOutput output) => relevantOutpoints is null || relevantOutpoints.Intersect(output.OutPoints).Any();
 
 		// Count the outputs that have the same value as our transactionOutput.

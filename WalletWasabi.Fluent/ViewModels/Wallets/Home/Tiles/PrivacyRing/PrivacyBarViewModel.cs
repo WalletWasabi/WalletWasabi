@@ -1,12 +1,11 @@
-using Avalonia;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -21,7 +20,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 	[AutoNotify] private double _width;
 
-	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public PrivacyBarViewModel(WalletViewModel walletViewModel)
 	{
 		Wallet = walletViewModel.Wallet;
 
@@ -33,7 +32,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Subscribe();
 
 		_coinsUpdated =
-			balanceChanged.ToSignal()
+			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 						  .Merge(walletViewModel
 						  .WhenAnyValue(w => w.IsCoinJoining)
 						  .ToSignal());
@@ -43,7 +42,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
+
+		IsEmpty = _coinsUpdated
+			.Select(_ => !Items.Any())
+			.ReplayLastActive();
 	}
+
+	public IObservable<bool> IsEmpty { get; }
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
@@ -58,12 +63,12 @@ public partial class PrivacyBarViewModel : ViewModelBase
 	{
 		list.Clear();
 
-		if (Width == 0d)
+		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+
+		if (coinCount == 0d)
 		{
 			return;
 		}
-
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
 
 		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
 

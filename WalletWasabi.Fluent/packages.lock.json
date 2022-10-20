@@ -19,11 +19,11 @@
       },
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Direct",
-        "requested": "[0.10.14, )",
-        "resolved": "0.10.14",
-        "contentHash": "GVdIFw1VBmYjtdwGRu3+RWpHmSoKzDTUYYCGWor7T60abnWkz9QZCKtoh53jO5oFEzaSBbhRP1LW28i+v+4O+w==",
+        "requested": "[0.10.18, )",
+        "resolved": "0.10.18",
+        "contentHash": "qm4y7cz+0Xcno4pOne1C7wJjV4J0igXUgBnQFCmXyx6P7orFaoGOMfaF/7jIOgGOFYlnmxrlmdLKBBOOcGZ1TA==",
         "dependencies": {
-          "Avalonia": "0.10.14"
+          "Avalonia": "0.10.18"
         }
       },
       "Avalonia.Diagnostics": {
@@ -278,11 +278,11 @@
       },
       "NBitcoin": {
         "type": "Transitive",
-        "resolved": "7.0.10",
-        "contentHash": "O6cfz8wkpZY9o7g2LwTP9Scka74d1pCb83fejdIuCe1w3CB+BlxJp7bhKyzfYt48KyguCu2RiOJlWCb4q2B08Q==",
+        "resolved": "7.0.14",
+        "contentHash": "P5M1IeJbFuClYo0v4dzgf3MGA/z03EaL+HzfCsQRm70l2irTN8RonEuRX5QSuUOPc4oUbKFPR+K7OTGMT/gL4Q==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
-          "Newtonsoft.Json": "11.0.2"
+          "Newtonsoft.Json": "13.0.1"
         }
       },
       "NBitcoin.Secp256k1": {
@@ -589,10 +589,10 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[6.0.8, )",
-          "Microsoft.Win32.SystemEvents": "[6.0.1, )",
-          "NBitcoin": "[7.0.10, )",
-          "NBitcoin.Secp256k1": "[3.0.1, )"
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "6.0.8",
+          "Microsoft.Win32.SystemEvents": "6.0.1",
+          "NBitcoin": "7.0.14",
+          "NBitcoin.Secp256k1": "3.0.1"
         }
       }
     },

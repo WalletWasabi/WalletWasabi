@@ -818,11 +818,13 @@ public class TransactionProcessorTests
 		// Ensure even if only tx2 was processed, the reference of the registered spender is to tx1
 		// and that the labels were merged.
 		var txid = tx1.GetHash();
-		var registeredSpender = transactionProcessor.Coins.AsAllCoinsView().SpentBy(txid).Single().SpenderTransaction;
+		SmartTransaction? registeredSpender = transactionProcessor.Coins.AsAllCoinsView().SpentBy(txid).Single().SpenderTransaction;
+		Assert.NotNull(registeredSpender);
+
 		Assert.Same(tx1, registeredSpender);
 		Assert.NotSame(tx2, registeredSpender);
-		Assert.Contains("foo", registeredSpender?.Label.Select(x => x.ToString()));
-		Assert.Contains("bar", registeredSpender?.Label.Select(x => x.ToString()));
+		Assert.Contains("foo", registeredSpender.Label.Select(x => x.ToString()));
+		Assert.Contains("bar", registeredSpender.Label.Select(x => x.ToString()));
 	}
 
 	[Fact]
@@ -1299,7 +1301,7 @@ public class TransactionProcessorTests
 		{
 			cjtx.Outputs.Add(Money.Coins(0.1m), new Key());
 		}
-		cjtx.Inputs.Add(receivedCoin.OutPoint, Script.Empty, WitScript.Empty);
+		cjtx.Inputs.Add(receivedCoin.Outpoint, Script.Empty, WitScript.Empty);
 		cjtx.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("").P2wpkhScript);
 		cjtx.Outputs.Add(Money.Coins(0.9m), transactionProcessor.NewKey("").P2wpkhScript);
 		var tx1 = new SmartTransaction(cjtx, Height.Mempool);

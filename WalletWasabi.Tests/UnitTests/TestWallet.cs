@@ -141,7 +141,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	}
 
 	public IEnumerable<IDestination> GetNextDestinations(int count) =>
-		Enumerable.Repeat(CreateNewAddress(), count);
+		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
 
 	private void ScanTransaction(Transaction tx)
 	{

@@ -20,6 +20,7 @@ public class CachedRpcClient : RpcClientBase
 
 	private object CancellationTokenSourceLock { get; } = new object();
 
+	// SizeLimit is not set, so cache size set on the entry will be ignored.
 	public IMemoryCache Cache { get; }
 
 	private CancellationTokenSource TipChangeCancellationTokenSource
@@ -54,7 +55,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(10, 4),
+			CacheOptions(10, 300),
 			() => base.GetBlockAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -64,7 +65,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(10, 4),
+			CacheOptions(10, 300),
 			() => base.GetBlockAsync(blockHeight, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -74,7 +75,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(20, 4),
+			CacheOptions(20, 300),
 			() => base.GetVerboseBlockAsync(blockId, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -84,7 +85,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(2, 4),
+			CacheOptions(2, 300),
 			() => base.GetBlockHeaderAsync(blockHash, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -121,11 +122,6 @@ public class CachedRpcClient : RpcClientBase
 	public override async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 	{
 		string cacheKey = nameof(GetMempoolInfoAsync);
-		var cacheOptions = new MemoryCacheEntryOptions
-		{
-			Size = 1,
-			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10)
-		};
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
@@ -139,7 +135,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await Cache.AtomicGetOrCreateAsync(
 			cacheKey,
-			CacheOptions(1, 4, true),
+			CacheOptions(1, 60, true),
 			() => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken)).ConfigureAwait(false);
 	}
 
@@ -163,12 +159,14 @@ public class CachedRpcClient : RpcClientBase
 			() => base.GetTxOutAsync(txid, index, includeMempool, cancellationToken)).ConfigureAwait(false);
 	}
 
+	// Only used in Regtest mode or in tests.
 	public override async Task<uint256[]> GenerateAsync(int blockCount, CancellationToken cancellationToken = default)
 	{
 		TipChangeCancellationTokenSource.Cancel();
 		return await base.GenerateAsync(blockCount, cancellationToken).ConfigureAwait(false);
 	}
 
+	// Only used in Regtest mode or in tests.
 	public override async Task InvalidateBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
 		TipChangeCancellationTokenSource.Cancel();
