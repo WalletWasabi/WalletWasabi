@@ -84,33 +84,32 @@ public class IdempotencyRequestCache
 
 					// To avoid unobserved exception.
 					await responseTcs.Task.ConfigureAwait(false);
+					continue;
 				}
 			}
-			else
+
+			try
 			{
-				try
+				result = await responseTcs.Task.WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
+				return result;
+			}
+			catch (OperationCanceledException e)
+			{
+				if (e.CancellationToken == cancellationToken)
 				{
-					result = await responseTcs.Task.WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
-					return result;
-				}
-				catch (OperationCanceledException e)
-				{
-					if (e.CancellationToken == cancellationToken)
-					{
-						// Cancelled by application shutting down or when the HTTP request is cancelled.
-						throw;
-					}
-				}
-				catch (Exception e) when (e is WabiSabiProtocolException or WabiSabiCryptoException)
-				{
+					// Cancelled by application shutting down or when the HTTP request is cancelled.
 					throw;
 				}
-				catch (Exception)
+			}
+			catch (Exception e) when (e is WabiSabiProtocolException or WabiSabiCryptoException)
+			{
+				throw;
+			}
+			catch (Exception)
+			{
+				using (await ResponseCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
-					using (await ResponseCacheLock.LockAsync(cancellationToken).ConfigureAwait(false))
-					{
-						ResponseCache.Remove(request);
-					}
+					ResponseCache.Remove(request);
 				}
 			}
 		}
