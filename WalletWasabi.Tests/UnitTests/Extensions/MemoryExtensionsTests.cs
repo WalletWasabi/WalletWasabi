@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.Extensions;
 /// </summary>
 public class MemoryExtensionsTests
 {
-	private const int TotalIterationCount = 10_000_000;
+	private const int TotalIterationCount = 50_000_000;
 
 	[Fact]
 	public void AtomicGetOrCreateStressTest()
