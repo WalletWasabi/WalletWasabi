@@ -19,7 +19,7 @@
 
       <StackPanel Classes="settingsLayout">
         <DockPanel>
-          <TextBlock Text="Rename Wallet" />
+          <TextBlock Text="Wallet name" />
           <TextBox MaxLength="50" Text="{Binding WalletName, Mode=TwoWay}" Watermark="Type in a wallet name">
             <Interaction.Behaviors>
               <behaviors:FocusOnAttachedBehavior />
