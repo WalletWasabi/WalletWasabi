@@ -125,10 +125,8 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.ToArray();
 
 		var start = 0.0m;
-		foreach (var tup in rawSegments)
+		foreach (var (_, coin, width) in rawSegments)
 		{
-			var (_, coin, width) = tup;
-
 			yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
 
 			start += width + GapBetweenSegments;
@@ -172,10 +170,8 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.ToArray();
 
 		var start = 0.0m;
-		foreach (var tup in rawSegments)
+		foreach (var (pocket, width) in rawSegments)
 		{
-			var (pocket, width) = tup;
-
 			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
 
 			start += width + GapBetweenSegments;
