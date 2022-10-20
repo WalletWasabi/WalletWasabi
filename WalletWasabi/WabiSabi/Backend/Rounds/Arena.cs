@@ -581,7 +581,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 				}
 				else
-				{ 
+				{
 					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 				}
 			}
