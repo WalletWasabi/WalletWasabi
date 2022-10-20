@@ -6,7 +6,7 @@ using WalletWasabi.Cache;
 using WalletWasabi.Logging;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Extensions;
+namespace WalletWasabi.Tests.RegressionTests;
 
 /// <summary>
 /// Tests for <see cref="MemoryExtensions"/>.
@@ -27,7 +27,7 @@ public class MemoryExtensionsTests
 
 		StateObject stateObject = new();
 
-		RunTest(stateObject, taskProvider: (int i) => memoryCache.AtomicGetOrCreateAsync(key: i % 2, cacheOptions, factory: () => stateObject.CounterTaskAsync(i % 2, CancellationToken.None)));
+		RunTest(stateObject, taskProvider: (i) => memoryCache.AtomicGetOrCreateAsync(key: i % 2, cacheOptions, factory: () => stateObject.CounterTaskAsync(i % 2, CancellationToken.None)));
 	}
 
 	[Fact]
@@ -43,7 +43,7 @@ public class MemoryExtensionsTests
 		IdempotencyRequestCache requestCache = new(memoryCache);
 		StateObject stateObject = new();
 
-		RunTest(stateObject, taskProvider: (int i) => requestCache.GetCachedResponseAsync(i % 2, stateObject.CounterTaskAsync));
+		RunTest(stateObject, taskProvider: (i) => requestCache.GetCachedResponseAsync(i % 2, stateObject.CounterTaskAsync));
 	}
 
 	private void RunTest(StateObject stateObject, Func<int, Task<string>> taskProvider)
