@@ -156,22 +156,10 @@ public static class ColumnFactory
 	{
 		if (vm.Labels.IsEmpty)
 		{
-			return new[] { GetLabelFromPrivacyLevel(vm.PrivacyIndex.PrivacyLevel) };
+			return new[] { PrivacyLevelHelper.GetLabelFromPrivacyLevel(vm.PrivacyIndex.PrivacyLevel) };
 		}
 
 		return vm.Labels;
-	}
-
-	private static string GetLabelFromPrivacyLevel(PrivacyLevel privacyLevel)
-	{
-		return privacyLevel switch
-		{
-			PrivacyLevel.None => "(Invalid privacy level)",
-			PrivacyLevel.SemiPrivate => "Semi-private",
-			PrivacyLevel.Private => "Private",
-			PrivacyLevel.NonPrivate => "Unknown People",
-			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
-		};
 	}
 
 	private static Comparison<TreeNode?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)

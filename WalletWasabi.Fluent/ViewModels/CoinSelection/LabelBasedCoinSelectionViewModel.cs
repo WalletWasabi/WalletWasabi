@@ -11,6 +11,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 using ISelectable = WalletWasabi.Fluent.Controls.ISelectable;
 
@@ -88,7 +89,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 		}
 	}
 
-	private IObservable<Func<TreeNode, bool>> FilterChanged => _filterChanged.Select(FilterHelper.FilterFunction<CoinGroupViewModel>);
+	private IObservable<Func<TreeNode, bool>> FilterChanged => _filterChanged.Select(CoinNodeFilterHelper.FilterFunction<CoinGroupViewModel>);
 
 	public void Dispose()
 	{
