@@ -41,7 +41,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	[AutoNotify] private LabelBasedCoinSelectionViewModel? _labelBasedSelection;
 	[AutoNotify] private IObservable<Money> _remainingAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllCoinsCommand = ReactiveCommand.Create(() => { });
-	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectAllPrivateCoinsCommand = ReactiveCommand.Create(() => { });
+	[AutoNotify] private ReactiveCommand<Unit, Unit> _selectPrivateCoinsCommand = ReactiveCommand.Create(() => { });
 	[AutoNotify] private IObservable<Money> _selectedAmount = Observable.Return(Money.Zero);
 	[AutoNotify] private IObservable<int> _selectedCount = Observable.Return(0);
 	[AutoNotify] private IObservable<Money> _requiredAmount = Observable.Return(Money.Zero);
@@ -110,13 +110,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		ClearCoinSelectionCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = false));
 
-		SelectAllPrivateCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.PrivacyLevel == PrivacyLevel.Private));
+		var areTherePrivateCoins = allCoins.Select(x => x.Any(c => c.PrivacyLevel == PrivacyLevel.Private));
+
+		SelectPrivateCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(coinViewModel => coinViewModel.IsSelected = coinViewModel.PrivacyLevel == PrivacyLevel.Private), areTherePrivateCoins);
 
 		var commands = new[]
 		{
 			new CommandViewModel("All", SelectAllCoinsCommand),
 			new CommandViewModel("None", ClearCoinSelectionCommand),
-			new CommandViewModel("Private coins", SelectAllPrivateCoinsCommand),
+			new CommandViewModel("Private coins", SelectPrivateCoinsCommand),
 			new CommandViewModel("Smart", SelectPredefinedCoinsCommand)
 		};
 
