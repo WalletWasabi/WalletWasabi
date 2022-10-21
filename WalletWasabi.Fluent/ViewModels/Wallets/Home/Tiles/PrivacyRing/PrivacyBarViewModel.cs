@@ -92,14 +92,13 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		// Calculate the width of the segments.
 		var rawSegments = pockets
 			.Where(x => x.Coins.Any())
-			.SelectMany(pocket => pocket.Coins)
-			.Select(coin =>
+			.SelectMany(pocket => pocket.Coins.Select(coin => 
 			{
-				var pocket = pockets.First(pocket => pocket.Coins.Contains(coin));
 				var amount = coin.Amount.ToDecimal(MoneyUnit.BTC);
 				var width = Math.Abs(usableWidth * amount / totalAmount);
 
 				return (OwnerPocket: pocket, Coin: coin, Width: width);
+			})).ToArray();
 			}).ToArray();
 
 		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
