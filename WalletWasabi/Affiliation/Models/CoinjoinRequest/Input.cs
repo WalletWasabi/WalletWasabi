@@ -31,4 +31,9 @@ public record Input
 
 	[JsonProperty(PropertyName = "is_no_fee")]
 	public bool IsNoFee { get; }
+
+	public static Input FromAffiliateInput(AffiliateInput affiliateInput, AffiliationFlag affiliationFlag)
+	{
+		return new Input(Outpoint.FromOutPoint(affiliateInput.Prevout), affiliateInput.ScriptPubKey.ToBytes(), affiliateInput.AffiliationFlag == affiliationFlag, affiliateInput.IsNoFee);
+	}
 }
