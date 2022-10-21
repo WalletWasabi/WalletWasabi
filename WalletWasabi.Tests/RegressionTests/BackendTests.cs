@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
@@ -239,7 +241,7 @@ public class BackendTests
 
 				await rpc.GenerateAsync(1);
 
-				var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController))!;
+				var blockchainController = RegTestFixture.BackendHost.Services.GetRequiredService<BlockchainController>();
 				blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
 				segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
