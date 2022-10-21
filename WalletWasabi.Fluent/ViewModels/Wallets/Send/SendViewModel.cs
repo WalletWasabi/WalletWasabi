@@ -9,6 +9,8 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -124,7 +126,50 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+
+		BitcoinContent = ClipboardBtcContent();
+		UsdContent = ClipboardUsdContent();
 	}
+
+	private IObservable<string?> ClipboardUsdContent()
+	{
+		return ApplicationHelper.GetClipboardTextChanged(RxApp.MainThreadScheduler)
+			.CombineLatest(
+				Balance.BalanceBtc,
+				Balance.ExchangeRate,
+				(text, balance, exchangeRate) =>
+				{
+					return ParseToUsd(text).Ensure(n => n <= balance.ToDecimal(MoneyUnit.BTC) * exchangeRate);
+				})
+			.Select(money => money?.ToString("0.00"));
+	}
+
+	private IObservable<string?> ClipboardBtcContent()
+	{
+		return ApplicationHelper.GetClipboardTextChanged(RxApp.MainThreadScheduler)
+			.CombineLatest(
+				Balance.BalanceBtc,
+				(text, balance) =>
+				{
+					return ParseToMoney(text)
+						.Ensure(m => m <= balance);
+				})
+			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
+	}
+
+	private static decimal? ParseToUsd(string text)
+	{
+		return decimal.TryParse(text, out var n) ? n : (decimal?)default;
+	}
+
+	private static Money? ParseToMoney(string text)
+	{
+		return (Money.TryParse(text, out var n) ? n : default);
+	}
+
+	public IObservable<string?> UsdContent { get; }
+
+	public IObservable<string?> BitcoinContent { get; }
 
 	public bool IsQrButtonVisible { get; }
 

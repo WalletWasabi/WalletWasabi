@@ -6,11 +6,32 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+
+
+  <UserControl.DataTemplates>
+
+    <DataTemplate DataType="behaviors:Suggestion">
+      <Button Background="Transparent" HorizontalAlignment="Center" Margin="8" Padding="0" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False" Cursor="Hand">
+        <DockPanel>
+          <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
+          <TextBlock Margin="8" Text="{Binding Text}" VerticalAlignment="Center" />
+        </DockPanel>
+      </Button>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <UserControl.Styles>
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+  </UserControl.Styles>
+
   <c:ContentArea
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
@@ -28,8 +49,8 @@
               <TextBlock DataContext="{Binding Balance}">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^" />
-                    <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
+                    <Binding Path="BalanceBtc^" Converter="{x:Static conv:MoneyConverters.ToFormattedBtc}" />
+                    <Binding Path="BalanceFiat^" Converter="{x:Static conv:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
@@ -111,7 +132,35 @@
                                   ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
+            <c:DualCurrencyEntryBox.Resources>
+
+              <conv:BooleanConverter x:Key="LeftBooleanConverter">
+                <conv:BooleanConverter.TrueValue>
+                  <FlyoutPlacementMode>BottomEdgeAlignedRight</FlyoutPlacementMode>
+                </conv:BooleanConverter.TrueValue>
+                <conv:BooleanConverter.FalseValue>
+                  <FlyoutPlacementMode>BottomEdgeAlignedLeft</FlyoutPlacementMode>
+                </conv:BooleanConverter.FalseValue>
+              </conv:BooleanConverter>
+
+              <conv:BooleanConverter x:Key="RightBooleanConverter">
+                <conv:BooleanConverter.TrueValue>
+                  <FlyoutPlacementMode>BottomEdgeAlignedLeft</FlyoutPlacementMode>
+                </conv:BooleanConverter.TrueValue>
+                <conv:BooleanConverter.FalseValue>
+                  <FlyoutPlacementMode>BottomEdgeAlignedRight</FlyoutPlacementMode>
+                </conv:BooleanConverter.FalseValue>
+              </conv:BooleanConverter>
+
+            </c:DualCurrencyEntryBox.Resources>
+            <i:Interaction.Behaviors>
+              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
+                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource LeftBooleanConverter}}" />
+              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
+                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource RightBooleanConverter}}" />
+            </i:Interaction.Behaviors>
+          </c:DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
     </DockPanel>
