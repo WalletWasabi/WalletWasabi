@@ -27,7 +27,7 @@ public class PocketSelectionTests
 		{
 			Amount = amount,
 			FeeRate = new FeeRate(2m),
-			UserLabels = recipient
+			Recipient = recipient
 		};
 
 		return new LabelSelectionViewModel(km, pw, info);
