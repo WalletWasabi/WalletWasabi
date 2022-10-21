@@ -46,6 +46,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_walletVm.UiTriggers.PrivacyProgressUpdateTrigger
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
+
+		PrivacyBar?.Activate(disposables);
 	}
 
 	private void ShowDetails()

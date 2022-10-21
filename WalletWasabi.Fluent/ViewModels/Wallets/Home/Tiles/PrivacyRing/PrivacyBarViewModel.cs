@@ -10,54 +10,64 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-public partial class PrivacyBarViewModel : ViewModelBase
+public partial class PrivacyBarViewModel : ActivatableViewModel
 {
-	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
+	private readonly WalletViewModel _walletViewModel;
 	private const decimal GapBetweenSegments = 1.5m;
 	private const decimal EnlargeThreshold = 2m;
 	private const decimal EnlargeBy = 1m;
-	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel)
 	{
+		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
-
-		_itemsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(Items)
-			.DisposeMany()
-			.Subscribe();
-
-		_coinsUpdated =
-			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
-						  .Merge(walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		_coinsUpdated
-			.CombineLatest(this.WhenAnyValue(x => x.Width))
-			.Select(_ => walletViewModel.Wallet.GetPockets())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList);
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
 	public Wallet Wallet { get; }
 
-	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	protected override void OnActivated(CompositeDisposable disposables)
 	{
-		_itemsSourceList.Edit(list => CreateSegments(list, pockets));
+		var itemsSourceList = new SourceList<PrivacyBarItemViewModel>().DisposeWith(disposables);
+
+		itemsSourceList
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(Items)
+			.DisposeMany()
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		var coinsUpdated =
+			_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
+						  .Merge(_walletViewModel
+						  .WhenAnyValue(w => w.IsCoinJoining)
+						  .ToSignal());
+
+		coinsUpdated
+			.CombineLatest(this.WhenAnyValue(x => x.Width))
+			.Select(_ => _walletViewModel.Wallet.GetPockets())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => RefreshCoinsList(itemsSourceList, x))
+			.DisposeWith(disposables);
+	}
+
+	private void RefreshCoinsList(SourceList<PrivacyBarItemViewModel> itemsSourceList, IEnumerable<Pocket> pockets)
+	{
+		itemsSourceList.Edit(list => CreateSegments(list, pockets));
 	}
 
 	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list, IEnumerable<Pocket> pockets)
 	{
+		Items.Clear();
 		list.Clear();
 
 		var coinCount = pockets.SelectMany(x => x.Coins).Count();
@@ -172,10 +182,5 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 			start += width + GapBetweenSegments;
 		}
-	}
-
-	public void Dispose()
-	{
-		_itemsSourceList.Dispose();
 	}
 }
