@@ -64,7 +64,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var privateDecimalAmount = privateCoins.TotalAmount();
 
-		BalancePrivateBtc = privateDecimalAmount.FormattedBtc() + " BTC";
+		BalancePrivateBtc = privateDecimalAmount.ToFormattedString() + " BTC";
 
 		BalancePrivateFiat = privateDecimalAmount.BtcToUsd(_wallet.Synchronizer.UsdExchangeRate);
 	}
