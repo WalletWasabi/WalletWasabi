@@ -16,7 +16,10 @@ public class IdempotencyRequestCache
 	public delegate Task<TResponse> ProcessRequestDelegateAsync<TRequest, TResponse>(TRequest sender, CancellationToken cancellationToken);
 
 	/// <summary>Timeout specifying how long a request response can stay in memory.</summary>
-	private static TimeSpan CacheTimeout { get; } = TimeSpan.FromMinutes(5);
+	private static MemoryCacheEntryOptions IdempotencyEntryOptions = new()
+	{
+		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+	};
 
 	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(1);
 
@@ -36,12 +39,7 @@ public class IdempotencyRequestCache
 	public Task<TResponse> GetCachedResponseAsync<TRequest, TResponse>(TRequest request, ProcessRequestDelegateAsync<TRequest, TResponse> action, CancellationToken cancellationToken = default)
 		where TRequest : notnull
 	{
-		MemoryCacheEntryOptions options = new()
-		{
-			AbsoluteExpiration = DateTimeOffset.UtcNow.Add(CacheTimeout),
-		};
-
-		return GetCachedResponseAsync(request, action, options, cancellationToken);
+		return GetCachedResponseAsync(request, action, IdempotencyEntryOptions, cancellationToken);
 	}
 
 	/// <typeparam name="TRequest">
