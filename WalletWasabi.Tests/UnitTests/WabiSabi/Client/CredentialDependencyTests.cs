@@ -62,7 +62,7 @@ public class CredentialDependencyTests
 			return requested;
 		}
 
-		var ct = new CancellationTokenSource(new TimeSpan(0, 2, 0));
+		var ct = new CancellationTokenSource(new TimeSpan(0, 4, 0));
 
 		for (var remainingSteps = 2 * pendingCredentialsToPresent.Count; remainingSteps > 0 && pendingCredentialsToPresent.Count + inFlightRequests.Count > 0; remainingSteps--)
 		{
