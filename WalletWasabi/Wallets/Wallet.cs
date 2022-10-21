@@ -154,6 +154,11 @@ public class Wallet : BackgroundService, IWallet
 			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
 		}
 
+		if (IsLoggedIn && KeyChain is KeyChain keychain)
+		{
+			keychain.PreloadMasterKey();
+		}
+
 		return IsLoggedIn;
 	}
 
