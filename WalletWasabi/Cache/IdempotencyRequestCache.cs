@@ -21,7 +21,7 @@ public class IdempotencyRequestCache
 		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
 	};
 
-	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(1);
+	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
 
 	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
@@ -53,69 +53,43 @@ public class IdempotencyRequestCache
 		bool callAction = false;
 		TaskCompletionSource<TResponse> responseTcs;
 
-		while (true)
+		lock (ResponseCacheLock)
 		{
-			lock (ResponseCacheLock)
+			if (!ResponseCache.TryGetValue(request, out responseTcs))
 			{
-				if (!ResponseCache.TryGetValue(request, out responseTcs))
-				{
-					callAction = true;
-					responseTcs = new();
-					ResponseCache.Set(request, responseTcs, options);
-				}
-			}
-
-			TResponse result;
-
-			if (callAction)
-			{
-				try
-				{
-					result = await action(request, cancellationToken).ConfigureAwait(false);
-					responseTcs.SetResult(result);
-					return result;
-				}
-				catch (Exception e)
-				{
-					responseTcs.SetException(e);
-
-					// To avoid unobserved exception.
-					await responseTcs.Task.ConfigureAwait(false);
-				}
-			}
-			else
-			{
-				using CancellationTokenSource timeoutCts = new(RequestTimeout);
-				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-				try
-				{
-					// All requests where this idempotent behavior (i.e. retry behavior) makes sense are mutex/CPU bound on the server,
-					// and perform no IO or network requests, so the only reason that processing of a request should ever time out is if we have a deadlock type bug.
-					result = await responseTcs.Task.WithAwaitCancellationAsync(linkedCts.Token).ConfigureAwait(false);
-					return result;
-				}
-				catch (OperationCanceledException e)
-				{
-					if (e.CancellationToken == cancellationToken)
-					{
-						// Cancelled by application shutting down or when the HTTP request is cancelled.
-						throw;
-					}
-				}
-				catch (Exception e) when (e is WabiSabiProtocolException or WabiSabiCryptoException)
-				{
-					throw;
-				}
-				catch (Exception)
-				{
-					lock (ResponseCacheLock)
-					{
-						ResponseCache.Remove(request);
-					}
-				}
+				callAction = true;
+				responseTcs = new();
+				ResponseCache.Set(request, responseTcs, options);
 			}
 		}
+
+		if (callAction)
+		{
+			using CancellationTokenSource timeoutCts = new(RequestTimeout);
+			try
+			{
+				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
+				var result = await action(request, cancellationToken).WithAwaitCancellationAsync(linkedCts.Token).ConfigureAwait(false);
+				responseTcs.SetResult(result);
+				return result;
+			}
+			catch (Exception e)
+			{
+				lock (ResponseCacheLock)
+				{
+					ResponseCache.Remove(request);
+				}
+
+				responseTcs.SetException(!timeoutCts.IsCancellationRequested
+					? e
+					: new InvalidOperationException("DeadLock prevention timeout kicked in!", e));
+
+				// The exception will be thrown below at 'await' to avoid unobserved exception.
+			}
+		}
+
+		return await responseTcs.Task.ConfigureAwait(false);
 	}
 
 	/// <remarks>
