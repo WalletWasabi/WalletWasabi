@@ -20,7 +20,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <c:ContentArea.Title>
       <DockPanel>
-        <TextBlock Text="Send" />
+        <TextBlock Text="Send" Margin="0 0 22 0" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center">
           <!-- Balance -->
           <c:PrivacyContentControl PrivacyReplacementMode="Text" DockPanel.Dock="Top" HorizontalAlignment="Center" NumberOfPrivacyChars="0">
