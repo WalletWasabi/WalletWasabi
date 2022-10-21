@@ -335,7 +335,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				? feeRate
 				: FeeRate.Zero;
 
-		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
+		if (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold ||
 			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;

@@ -8,7 +8,7 @@ namespace WalletWasabi.Wallets;
 
 public interface IWallet
 {
-	string Identifier { get; }
+	string WalletName { get; }
 	bool IsUnderPlebStop { get; }
 	bool IsMixable { get; }
 
@@ -25,7 +25,7 @@ public interface IWallet
 
 	Task<bool> IsWalletPrivateAsync();
 
-	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(int bestHeight);
+	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();
 
 	Task<IEnumerable<SmartTransaction>> GetTransactionsAsync();
 }

@@ -152,7 +152,7 @@ public class TransactionFactory
 
 		var psbt = builder.BuildPSBT(false);
 
-		var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.OutPoint == txin.PrevOut)).ToArray();
+		var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.Outpoint == txin.PrevOut)).ToArray();
 
 		var realToSend = payments.Requests
 			.Select(t =>

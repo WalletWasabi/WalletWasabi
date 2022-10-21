@@ -87,7 +87,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignInputsCache is null)
 			{
-				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
 				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 			}
 			return ForeignInputsCache;
@@ -100,7 +100,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignOutputsCache is null)
 			{
-				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
 				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 			}
 			return ForeignOutputsCache;
