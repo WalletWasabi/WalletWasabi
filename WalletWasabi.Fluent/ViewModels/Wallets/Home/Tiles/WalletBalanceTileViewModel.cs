@@ -20,7 +20,6 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	private readonly ObservableCollection<HistoryItemViewModelBase> _history;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private decimal _balanceFiat;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionDate;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionStatus;
@@ -56,12 +55,6 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
 		BalanceFiat = totalAmount.BtcToUsd(_wallet.Synchronizer.UsdExchangeRate);
-
-		var privateThreshold = _wallet.AnonScoreTarget;
-		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
-		var privateDecimalAmount = privateCoins.TotalAmount();
-
-		BalancePrivateBtc = $"{privateDecimalAmount.FormattedBtc()} BTC";
 
 		HasBalance = totalAmount > Money.Zero;
 	}
