@@ -55,16 +55,15 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
-		BalanceFiat = _wallet.Coins.TotalAmount().BtcToUsd(_wallet.Synchronizer.UsdExchangeRate);
+		BalanceFiat = totalAmount.BtcToUsd(_wallet.Synchronizer.UsdExchangeRate);
 
 		var privateThreshold = _wallet.AnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var privateDecimalAmount = privateCoins.TotalAmount();
 
-		HasBalance = totalAmount > Money.Zero;
+		BalancePrivateBtc = $"{privateDecimalAmount.FormattedBtc()} BTC";
 
-		BalancePrivateBtc = privateDecimalAmount
-			.FormattedBtc() + " BTC";
+		HasBalance = totalAmount > Money.Zero;
 	}
 
 	private void UpdateRecentTransaction()
