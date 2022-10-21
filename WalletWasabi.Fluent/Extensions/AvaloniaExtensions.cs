@@ -15,4 +15,11 @@ public static class AvaloniaExtensions
 			add => target.AddHandler(routedEvent, add, routingStrategies),
 			remove => target.RemoveHandler(routedEvent, remove));
 	}
+
+	public static IObservable<EventPattern<TEventArgs>> OnEvent<TEventArgs>(
+		this object target,
+		string eventName) where TEventArgs : RoutedEventArgs
+	{
+		return Observable.FromEventPattern<TEventArgs>(target, eventName);
+	}
 }
