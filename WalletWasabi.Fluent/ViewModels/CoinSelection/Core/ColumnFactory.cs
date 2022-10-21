@@ -50,7 +50,7 @@ public static class ColumnFactory
 				{
 					return group.Value switch
 					{
-						ICoin coin => coin.WhenAnyValue(x => x.AnonymitySet).Select(i => i.ToString()),
+						ICoin coin => coin.WhenAnyValue(x => x.AnonymitySet, x => x.OutPoint, (anon, outPoint) => outPoint == OutPoint.Zero ? "" : anon.ToString()),
 						_ => Observable.Return("")
 					};
 				}),
