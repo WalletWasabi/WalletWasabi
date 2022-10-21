@@ -19,6 +19,12 @@ public class CachedRpcClient : RpcClientBase
 		IdempotencyRequestCache = new(cache);
 	}
 
+	private static MemoryCacheEntryOptions GetBlockCacheOptions { get; } = CacheOptions(size: 10, expireInSeconds: 300);
+	private static MemoryCacheEntryOptions GetVerboseBlockCacheOptions { get; } = CacheOptions(size: 20, expireInSeconds: 300);
+	private static MemoryCacheEntryOptions GetBlockHeaderCacheOptions { get; } = CacheOptions(size: 2, expireInSeconds: 300);
+	private static MemoryCacheEntryOptions GetPeersInfoCacheOptions { get; } = CacheOptions(size: 2, expireInSeconds: 0.5);
+	private static MemoryCacheEntryOptions GetMempoolInfoCacheOptions { get; } = CacheOptions(size: 1, expireInSeconds: 10);
+
 	private object CancellationTokenSourceLock { get; } = new();
 
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
@@ -46,7 +52,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBestBlockHashAsync(cancellationToken),
-			options: CacheOptions(size: 1, expireInSeconds: 4, addExpirationToken: true),
+			options: CacheOptionsWithExpirationToken(size: 1, expireInSeconds: 4),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -57,7 +63,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockAsync(blockHash, cancellationToken),
-			options: CacheOptions(size: 10, expireInSeconds: 300),
+			options: GetBlockCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -68,7 +74,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockAsync(blockHeight, cancellationToken),
-			options: CacheOptions(size: 10, expireInSeconds: 300),
+			options: GetBlockCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -79,7 +85,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetVerboseBlockAsync(blockId, cancellationToken),
-			options: CacheOptions(size: 20, expireInSeconds: 300),
+			options: GetVerboseBlockCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -90,7 +96,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockHeaderAsync(blockHash, cancellationToken),
-			options: CacheOptions(size: 2, expireInSeconds: 300),
+			options: GetBlockHeaderCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -101,7 +107,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetBlockCountAsync(cancellationToken),
-			options: CacheOptions(size: 1, expireInSeconds: 2, addExpirationToken: true),
+			options: CacheOptionsWithExpirationToken(size: 1, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -112,7 +118,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetPeersInfoAsync(cancellationToken),
-			options: CacheOptions(size: 2, expireInSeconds: 0.5),
+			options: GetPeersInfoCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -123,7 +129,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken),
-			options: CacheOptions(size: 20, expireInSeconds: 2, addExpirationToken: true),
+			options: CacheOptionsWithExpirationToken(size: 20, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -134,7 +140,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetMempoolInfoAsync(cancellationToken),
-			options: CacheOptions(size: 1, expireInSeconds: 10),
+			options: GetMempoolInfoCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -145,7 +151,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken),
-			options: CacheOptions(size: 1, expireInSeconds: 60, addExpirationToken: true),
+			options: CacheOptionsWithExpirationToken(size: 1, expireInSeconds: 60),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -156,7 +162,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetRawMempoolAsync(cancellationToken),
-			options: CacheOptions(size: 20, expireInSeconds: 2, addExpirationToken: true),
+			options: CacheOptionsWithExpirationToken(size: 20, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -167,7 +173,7 @@ public class CachedRpcClient : RpcClientBase
 		return await IdempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
 			action: (string request, CancellationToken cancellationToken) => base.GetTxOutAsync(txid, index, includeMempool, cancellationToken),
-			options: CacheOptions(size: 2, expireInSeconds: 2, addExpirationToken: true),
+			options: CacheOptionsWithExpirationToken(size: 2, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -183,17 +189,22 @@ public class CachedRpcClient : RpcClientBase
 		await base.InvalidateBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
 
-	private MemoryCacheEntryOptions CacheOptions(int size, double expireInSeconds, bool addExpirationToken = false)
+	private MemoryCacheEntryOptions CacheOptionsWithExpirationToken(int size, double expireInSeconds)
+	{
+		MemoryCacheEntryOptions cacheOptions = CacheOptions(size, expireInSeconds);
+		cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+
+		return cacheOptions;
+	}
+
+	private static MemoryCacheEntryOptions CacheOptions(int size, double expireInSeconds)
 	{
 		var cacheOptions = new MemoryCacheEntryOptions
 		{
 			Size = size,
 			AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(expireInSeconds)
 		};
-		if (addExpirationToken)
-		{
-			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
-		}
+		
 		return cacheOptions;
 	}
 }
