@@ -15,10 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public partial class PrivacyBarViewModel : ViewModelBase
 {
-	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 	private const decimal GapBetweenSegments = 1.5m;
 	private const decimal EnlargeThreshold = 2m;
 	private const decimal EnlargeBy = 1m;
+	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
