@@ -16,7 +16,7 @@ public class IdempotencyRequestCache
 	public delegate Task<TResponse> ProcessRequestDelegateAsync<TRequest, TResponse>(TRequest sender, CancellationToken cancellationToken);
 
 	/// <summary>Timeout specifying how long a request response can stay in memory.</summary>
-	private static MemoryCacheEntryOptions IdempotencyEntryOptions = new()
+	private static MemoryCacheEntryOptions IdempotencyEntryOptions { get; } = new()
 	{
 		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
 	};
