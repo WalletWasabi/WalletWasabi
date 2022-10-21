@@ -65,8 +65,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		_walletViewModel.UiTriggers
 						.PrivacyProgressUpdateTrigger
-						.Merge(_walletViewModel.WhenAnyValue(w => w.IsCoinJoining).ToSignal())
-						.Skip(3)
+						.Skip(2)
 						.Select(_ => _walletViewModel.Wallet.GetPockets())
 						.ObserveOn(RxApp.MainThreadScheduler)
 						.Subscribe(_ => RefreshCoinsList(itemsSourceList))
