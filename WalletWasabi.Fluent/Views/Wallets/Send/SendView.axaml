@@ -44,7 +44,7 @@
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Private: {0} {1}">
                     <Binding Path="BalancePrivateBtc" />
-                    <Binding Path="BalancePrivateFiat" />
+                    <Binding Path="BalancePrivateFiat" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
