@@ -2,11 +2,11 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Controllers.WabiSabi;
+using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Backend.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Controllers;
+namespace WalletWasabi.Tests.UnitTests.Cache;
 
 /// <summary>
 /// Tests for <see cref="IdempotencyRequestCache"/> class.
