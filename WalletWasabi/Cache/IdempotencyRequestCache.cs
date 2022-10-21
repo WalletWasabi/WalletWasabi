@@ -119,4 +119,16 @@ public class IdempotencyRequestCache
 			}
 		}
 	}
+
+	/// <remarks>
+	/// For testing purposes only.
+	/// <para>Note that if there is a simultaneous request for the cache key, it is not stopped and its result is discarded.</para>
+	/// </remarks>
+	internal void Remove<TRequest>(TRequest cacheKey)
+	{
+		lock (ResponseCacheLock)
+		{
+			ResponseCache.Remove(cacheKey);
+		}
+	}
 }
