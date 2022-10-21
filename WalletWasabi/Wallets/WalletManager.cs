@@ -242,7 +242,6 @@ public class WalletManager : IWalletProvider
 		{
 			wallet.KeyManager.ToFile();
 		}
-		
 		wallet.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
 		wallet.StateChanged += Wallet_StateChanged;
 
