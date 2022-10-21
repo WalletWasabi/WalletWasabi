@@ -24,11 +24,9 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 		}
 
 		AutoPaster(AssociatedObject, "PART_LeftEntryBox", IsValidBtc)
-			.Subscribe()
 			.DisposeWith(disposable);
 
 		AutoPaster(AssociatedObject, "PART_RightEntryBox", IsValidUsd)
-			.Subscribe()
 			.DisposeWith(disposable);
 	}
 
@@ -80,7 +78,7 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 		return Observable.Return("");
 	}
 
-	private IObservable<Unit> AutoPaster(TemplatedControl dualCurrencyEntryBox, string templatePartName, Func<string, bool> isValidAmount)
+	private IDisposable AutoPaster(TemplatedControl dualCurrencyEntryBox, string templatePartName, Func<string, bool> isValidAmount)
 	{
 		return dualCurrencyEntryBox
 			.OnEvent<TemplateAppliedEventArgs>(nameof(dualCurrencyEntryBox.TemplateApplied))
@@ -89,17 +87,14 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 			.Switch()
 			.SelectMany(textBox => GetClipboard().Select(str => new { Text = str, TextBox = textBox }))
 			.Where(x => isValidAmount(x.Text))
-			.Do(s => Paste(s.TextBox, s.Text))
-			.ToSignal();
+			.Do(x => x.TextBox.Text = x.Text)
+			.Subscribe();
 	}
 
-	private IObservable<EventPattern<PointerPressedEventArgs>> LeftButtonPressed(IInteractive p)
+	private IObservable<EventPattern<PointerPressedEventArgs>> LeftButtonPressed(IInteractive interactive)
 	{
-		return p.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel).Where(q => q.EventArgs.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed);
-	}
-
-	private void Paste(TextBox textBox, string text)
-	{
-		textBox.Text = text;
+		return interactive
+			.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
+			.Where(q => q.EventArgs.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed);
 	}
 }
