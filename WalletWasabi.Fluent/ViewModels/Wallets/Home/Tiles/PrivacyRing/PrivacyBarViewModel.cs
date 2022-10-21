@@ -92,21 +92,20 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		// Calculate the width of the segments.
 		var rawSegments = pockets
 			.Where(x => x.Coins.Any())
-			.SelectMany(pocket => pocket.Coins.Select(coin => 
+			.SelectMany(pocket => pocket.Coins.Select(coin =>
 			{
 				var amount = coin.Amount.ToDecimal(MoneyUnit.BTC);
 				var width = Math.Abs(usableWidth * amount / totalAmount);
 
 				return (OwnerPocket: pocket, Coin: coin, Width: width);
 			})).ToArray();
-			}).ToArray();
 
 		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
 		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
 		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
 		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
 		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
-		if (segmentsToEnlarge.Any() && segmentsToReduce.Length > 0 && segmentsToReduce.All(x => x.Width - reduceBy > 0))
+		if (segmentsToEnlarge.Any() && segmentsToReduce.Any() && segmentsToReduce.All(x => x.Width - reduceBy > 0))
 		{
 			rawSegments = rawSegments.Select(x =>
 			{
@@ -149,7 +148,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
 		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
 		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
-		if (segmentsToEnlarge.Any() && segmentsToReduce.Length > 0 && segmentsToReduce.All(x => x.Width - reduceBy > 0))
+		if (segmentsToEnlarge.Any() && segmentsToReduce.Any() && segmentsToReduce.All(x => x.Width - reduceBy > 0))
 		{
 			rawSegments = rawSegments.Select(x =>
 			{
