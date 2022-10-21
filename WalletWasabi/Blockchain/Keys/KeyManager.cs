@@ -829,5 +829,4 @@ public class KeyManager
 	}
 
 	#endregion BlockchainState
-
 }
