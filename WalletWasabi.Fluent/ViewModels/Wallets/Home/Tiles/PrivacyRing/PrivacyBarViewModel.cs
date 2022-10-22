@@ -48,21 +48,22 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 
 		_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 			.CombineLatest(this.WhenAnyValue(x => x.Width))
-			.Select(_ => _walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => RefreshCoinsList(itemsSourceList, x))
+			.Subscribe(_ => RefreshCoinsList(itemsSourceList))
 			.DisposeWith(disposables);
 	}
 
-	private void RefreshCoinsList(SourceList<PrivacyBarItemViewModel> itemsSourceList, IEnumerable<Pocket> pockets)
+	private void RefreshCoinsList(SourceList<PrivacyBarItemViewModel> itemsSourceList)
 	{
-		itemsSourceList.Edit(list => CreateSegments(list, pockets));
+		itemsSourceList.Edit(list => CreateSegments(list));
 	}
 
-	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list, IEnumerable<Pocket> pockets)
+	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list)
 	{
 		Items.Clear();
 		list.Clear();
+
+		var pockets = _walletViewModel.Wallet.GetPockets();
 
 		var coinCount = pockets.SelectMany(x => x.Coins).Count();
 
