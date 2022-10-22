@@ -36,7 +36,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
-		var itemsSourceList = new SourceList<PrivacyBarItemViewModel>().DisposeWith(disposables);
+		var itemsSourceList = new SourceList<PrivacyBarItemViewModel>();
 
 		itemsSourceList
 			.Connect()
@@ -46,13 +46,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
-		var coinsUpdated =
-			_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
-						  .Merge(_walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		coinsUpdated
+		_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 			.CombineLatest(this.WhenAnyValue(x => x.Width))
 			.Select(_ => _walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
