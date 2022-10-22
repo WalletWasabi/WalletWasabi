@@ -28,15 +28,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		Unconfirmed = !coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
 
-		Reference =
-			this switch
-			{
-				{ IsPrivate: true } => "Private",
-				{ IsSemiPrivate: true } => "Semi private",
-				{ IsNonPrivate: true } => "Non private",
-				_ => ""
-			};
-
+		Reference = GetPrivacyLevelDescription();
 		Reference += " coin";
 		if (Unconfirmed)
 		{
@@ -56,14 +48,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
 
-		Reference =
-			this switch
-			{
-				{ IsPrivate: true } => "Private",
-				{ IsSemiPrivate: true } => "Semi private",
-				{ IsNonPrivate: true } => "Non private",
-				_ => ""
-			};
+		Reference = GetPrivacyLevelDescription();
 
 		Reference += " coins";
 	}
@@ -137,6 +122,18 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		var x = r * Math.Cos(angle);
 		var y = r * Math.Sin(angle);
 		return new Point(x, y);
+	}
+
+	private string GetPrivacyLevelDescription()
+	{
+		return
+			this switch
+			{
+				{ IsPrivate: true } => "Private",
+				{ IsSemiPrivate: true } => "Semi private",
+				{ IsNonPrivate: true } => "Non private",
+				_ => "[Unknown]"
+			};
 	}
 
 	public void Dispose()
