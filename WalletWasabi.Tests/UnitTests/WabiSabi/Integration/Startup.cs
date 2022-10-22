@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WalletWasabi.Backend.Controllers.WabiSabi;
+using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
