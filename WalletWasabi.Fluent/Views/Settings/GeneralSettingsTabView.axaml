@@ -25,13 +25,13 @@
       <ToggleSwitch IsChecked="{Binding HideOnClose}" />
     </DockPanel>
 
-    <DockPanel>
+    <DockPanel ToolTip.Tip="Copies addresses automatically to the clipboard for easier sharing.">
       <TextBlock Text="Auto copy addresses" />
       <ToggleSwitch IsChecked="{Binding AutoCopy}" />
     </DockPanel>
 
-    <DockPanel>
-      <TextBlock Text="Auto paste addresses" />
+    <DockPanel ToolTip.Tip="Checks the clipboard for relevant information and pastes it automatically when required. Eg. Send amount and send address.">
+      <TextBlock Text="Smart paste" />
       <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
     <!-- Temporarily remove from settings view for release
