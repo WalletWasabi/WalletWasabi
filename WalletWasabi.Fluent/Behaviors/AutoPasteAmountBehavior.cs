@@ -1,13 +1,9 @@
 using System.Globalization;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
@@ -19,6 +15,11 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject is null)
+		{
+			return;
+		}
+
+		if (!Services.UiConfig.AutoPaste)
 		{
 			return;
 		}
@@ -68,33 +69,16 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 		return result;
 	}
 
-	private static IObservable<string> GetClipboard()
-	{
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			return clipboard.GetTextAsync().ToObservable().Select(x => x ?? "");
-		}
-
-		return Observable.Return("");
-	}
-
 	private IDisposable AutoPaster(TemplatedControl dualCurrencyEntryBox, string templatePartName, Func<string, bool> isValidAmount)
 	{
 		return dualCurrencyEntryBox
 			.OnEvent<TemplateAppliedEventArgs>(nameof(dualCurrencyEntryBox.TemplateApplied))
 			.Select(x => x.EventArgs.NameScope.Find<CurrencyEntryBox>(templatePartName))
-			.Select(entryBox => LeftButtonPressed(entryBox).Select(_ => entryBox))
+			.Select(entryBox => entryBox.OnEvent(InputElement.GotFocusEvent).Select(_ => entryBox))
 			.Switch()
-			.SelectMany(textBox => GetClipboard().Select(str => new { Text = str, TextBox = textBox }))
-			.Where(x => isValidAmount(x.Text))
+			.SelectMany(textBox => ApplicationUtils.GetClipboard().Select(str => new { Text = str, TextBox = textBox }))
+			.Where(x => isValidAmount(x.Text) && x.TextBox.Text.Trim() == "")
 			.Do(x => x.TextBox.Text = x.Text)
 			.Subscribe();
-	}
-
-	private IObservable<EventPattern<PointerPressedEventArgs>> LeftButtonPressed(IInteractive interactive)
-	{
-		return interactive
-			.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
-			.Where(q => q.EventArgs.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed);
 	}
 }
