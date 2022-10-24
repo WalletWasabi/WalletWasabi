@@ -42,5 +42,5 @@ Wasabi dependencies are:
 
 ## What about Tails and Whonix?
 
-It is currently not possible to install Wasabi on Tails or Whonix. 
+It is currently not possible to use Wasabi on Tails or Whonix.
 That is because Wasabi uses the Tor control port, which is not exposed in these operating systems.
