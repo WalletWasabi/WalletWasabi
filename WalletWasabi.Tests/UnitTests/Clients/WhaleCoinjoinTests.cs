@@ -37,47 +37,25 @@ public class WhaleCoinjoinTests
 	public void ScoreForWhales()
 	{
 		decimal whaleAmountBtc = 1;
-		//var othersRatioAmount = 0.01;
-		var nbOtherClients = 5;
-		var otherNbInputs = 10;
+		var nbOtherClients = 30;
+		var otherNbInputs = 150;
 
 		var analyser = new BlockchainAnalyzer();
 		var whaleMinInputAnonSet = 1.0;
 
-		KeyManager km = KeyManager.CreateNew(out _, "testestest", Network.RegTest);
+		KeyManager km = KeyManager.CreateNew(out _, "", Network.RegTest);
 		HdPubKey hdPub = BitcoinFactory.CreateHdPubKey(km);
 		HdPubKey[] otherHdPub = new HdPubKey[nbOtherClients];
 		for (int i = 0; i < nbOtherClients; i++)
 		{
-			KeyManager kmTmp = KeyManager.CreateNew(out _, "testestest", Network.RegTest);
+			KeyManager kmTmp = KeyManager.CreateNew(out _, "", Network.RegTest);
 			otherHdPub[i] = BitcoinFactory.CreateHdPubKey(kmTmp);
 		}
 
 		var whaleSmartCoins = new List<SmartCoin> { BitcoinFactory.CreateSmartCoin(hdPub, whaleAmountBtc) };
 		var whaleCoins = whaleSmartCoins.Select(sm => sm.Coin);
 
-
-		var otherSmartCoins = new List<List<SmartCoin>>();
-		var rnd = new Random();
-		var otherIndex = 0;
-		foreach (int i in DivideEvenly(otherNbInputs, nbOtherClients))
-		{
-			var listCoinsCurrentOther = new List<SmartCoin>();
-			for (int j = 0; j < i; j++)
-			{
-				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], (whaleAmountBtc * (decimal)GetRandomDouble(rnd))));
-			}
-
-			otherIndex++;
-			otherSmartCoins.Add(listCoinsCurrentOther);
-		}
-
 		_testOutputHelper.WriteLine($"WhaleCoin: {whaleCoins.First().Amount} BTC");
-		_testOutputHelper.WriteLine($"Other coins: ");
-		foreach (var otherCoin in otherSmartCoins)
-		{
-			_testOutputHelper.WriteLine($"- {otherCoin.First().Amount}, {otherCoin.Skip(1).First().Amount}");
-		}
 
 		var counter = 0;
 		while (whaleMinInputAnonSet < 100)
@@ -85,8 +63,14 @@ public class WhaleCoinjoinTests
 			counter++;
 			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins);
 			var whaleSelectedCoins = whaleSelectedSmartCoins.Select(sm => sm.Coin);
+			if (!whaleSelectedCoins.Any())
+			{
+				break;
+			}
+
 			whaleSmartCoins.Remove(whaleSelectedSmartCoins);
 
+			var otherSmartCoins = CreateOtherSmartCoins(otherHdPub, otherNbInputs, whaleAmountBtc);
 			var otherSelectedSmartCoins = new List<List<SmartCoin>>();
 			var otherSelectedCoins = new List<IEnumerable<Coin>>();
 			var otherOutputs = new List<List<(Money, int)>>();
@@ -97,7 +81,6 @@ public class WhaleCoinjoinTests
 				otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
 				var tmpSelectedCoins = tmpSelectedSmartCoins.Select(x => x.Coin);
 				otherSelectedCoins.Add(tmpSelectedCoins);
-				other.Remove(tmpSelectedSmartCoins);
 			}
 
 			foreach (var otherSelectedCoin in otherSelectedCoins)
@@ -113,15 +96,7 @@ public class WhaleCoinjoinTests
 			whaleSmartCoins.Add(tx.WalletOutputs.ToList());
 			whaleMinInputAnonSet = whaleSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
 
-			for (int i = 0; i < nbOtherClients; i++)
-			{
-				var otherInputs = otherSelectedSmartCoins[i].Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
-				var txOther = BitcoinFactory.CreateSmartTransaction(otherSelectedCoins.Where((v, index) => index != i).SelectMany(x => x).Concat(whaleSelectedCoins).Count(), otherOutputs.Where((v, index) => index != i).SelectMany(x => x).Select(x => x.Item1).Concat(whaleOutputs.Select(x => x.Item1)), otherInputs, otherOutputs[i]);
-				analyser.Analyze(txOther);
-				otherSmartCoins[i].Add(txOther.WalletOutputs.ToList());
-			}
-
-			if (counter % 2 == 0)
+			if (counter % 25 == 0)
 			{
 				_testOutputHelper.WriteLine($"WhaleCoin after {counter} rounds");
 				_testOutputHelper.WriteLine($"Coin       AnonSet");
@@ -133,8 +108,30 @@ public class WhaleCoinjoinTests
 			}
 		}
 
+		_testOutputHelper.WriteLine($"FINISHED after {counter} rounds");
 		// TODO: what to do? counters has the nb rounds needed.
 		// We never get here
+	}
+
+	private static List<List<SmartCoin>> CreateOtherSmartCoins(IReadOnlyList<HdPubKey> otherHdPub, int otherNbInputs, decimal whaleAmountBtc)
+	{
+		var nbOtherClients = otherHdPub.Count;
+		var otherSmartCoins = new List<List<SmartCoin>>();
+		var rnd = new Random();
+		var otherIndex = 0;
+		foreach (var i in DivideEvenly(otherNbInputs, nbOtherClients))
+		{
+			var listCoinsCurrentOther = new List<SmartCoin>();
+			for (var j = 0; j < i; j++)
+			{
+				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], (whaleAmountBtc * (decimal)GetRandomDouble(rnd))));
+			}
+
+			otherIndex++;
+			otherSmartCoins.Add(listCoinsCurrentOther);
+		}
+
+		return otherSmartCoins;
 	}
 
 	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc)
@@ -179,8 +176,8 @@ public class WhaleCoinjoinTests
 
 	private static double GetRandomDouble(Random rnd)
 	{
-		double random = rnd.Next(10, 100);
-		double ratio = random / 1000;
+		double random = rnd.Next(5, 500);
+		double ratio = random / 10000;
 		return ratio;
 	}
 
