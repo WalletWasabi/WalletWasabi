@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:statistics="clr-namespace:WalletWasabi.Fluent.ViewModels.Statistics"
-             x:DataType="statistics:CoinJoinMonitorViewModel"
+             xmlns:cjm="clr-namespace:WalletWasabi.Fluent.ViewModels.Statistics.CoinJoinMonitor"
+             x:DataType="cjm:CoinJoinMonitorViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitorView">
+             x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitor.CoinJoinMonitorView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="{Binding !EnableBack}"
                  NextContent="Close"

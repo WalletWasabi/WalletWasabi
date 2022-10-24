@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Statistics;
+namespace WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitor.Columns;
 
-public class CoinJoinMonitorView : UserControl
+public partial class IsBlameRoundColumnView : UserControl
 {
-	public CoinJoinMonitorView()
+	public IsBlameRoundColumnView()
 	{
 		InitializeComponent();
 	}

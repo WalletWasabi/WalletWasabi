@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.Statistics;
+namespace WalletWasabi.Fluent.ViewModels.Statistics.CoinJoinMonitor;
 
 [NavigationMetaData(Title = "Round State Details")]
 public partial class RoundStateDetailsViewModel : RoutableViewModel

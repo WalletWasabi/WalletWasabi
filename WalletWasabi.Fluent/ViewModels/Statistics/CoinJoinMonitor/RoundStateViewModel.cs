@@ -5,12 +5,12 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.Fluent.ViewModels.Statistics;
+namespace WalletWasabi.Fluent.ViewModels.Statistics.CoinJoinMonitor;
 
 [NavigationMetaData(Title = "Round State")]
 public partial class RoundStateViewModel : RoutableViewModel
 {
-	[AutoNotify] private uint256 _id;
+	[AutoNotify] private uint256? _id;
 	[AutoNotify] private bool _isBlameRound;
 	[AutoNotify] private int _inputCount;
 	[AutoNotify] private decimal _maxSuggestedAmount;
@@ -18,6 +18,11 @@ public partial class RoundStateViewModel : RoutableViewModel
 	[AutoNotify] private Phase _phase;
 
 	public RoundStateViewModel(RoundState roundState)
+	{
+		Update(roundState);
+	}
+
+	public void Update(RoundState roundState)
 	{
 		Id = roundState.Id;
 		IsBlameRound = roundState.BlameOf != uint256.Zero;
@@ -29,6 +34,7 @@ public partial class RoundStateViewModel : RoutableViewModel
 		{
 			inputRegistrationRemaining = TimeSpan.Zero;
 		}
+
 		InputRegistrationRemaining = inputRegistrationRemaining;
 
 		Phase = roundState.Phase;
