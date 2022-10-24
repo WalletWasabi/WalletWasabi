@@ -127,7 +127,10 @@ public class MempoolMirror : PeriodicRunner
 				{
 					if (mempoolTx.Value.Inputs.Select(x => x.PrevOut).Contains(input))
 					{
-						spenders.Add(mempoolTx.Key, mempoolTx.Value);
+						if (!spenders.TryAdd(mempoolTx.Key, mempoolTx.Value))
+						{
+							Logger.LogInfo("Transaction hash has already been added.");
+						}
 					}
 				}
 			}
