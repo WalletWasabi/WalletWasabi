@@ -56,21 +56,22 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		var btcAmountText = $"{destinationAmount.ToFormattedString()} BTC";
-		var fiatAmountText = destinationAmount.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		var fiatAmountText = destinationAmount.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
 		AmountText = $"{btcAmountText} {fiatAmountText}";
 
 		var fee = _transaction.Fee;
 		var feeText = fee.ToFeeDisplayUnitString();
-		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
+		var fiatFeeText = fee.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
 		FeeText = $"{feeText} {fiatFeeText}";
 
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
-		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.UserLabels.Labels));
+		Labels = new SmartLabel(transactionResult.SpentCoins.SelectMany(x => x.GetLabels(info.PrivateCoinThreshold)).Except(info.Recipient.Labels));
 		TransactionHasPockets = Labels.Any();
 
-		Recipient = info.UserLabels;
+		Recipient = info.Recipient;
 
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;

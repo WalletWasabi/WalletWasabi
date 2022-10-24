@@ -55,7 +55,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		_balanceChanged = walletViewModel.UiTriggers.BalanceUpdateTrigger;
 		_predefinedCoins = predefinedCoins;
 		
-		_transactionLabels = transactionInfo.UserLabels;
+		_transactionLabels = transactionInfo.Recipient;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -104,7 +104,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		NextCommand = ReactiveCommand.CreateFromObservable(() => selectedCoins, EnoughSelected);
 		NextCommand.Subscribe(CloseAndReturnCoins);
 
-		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = _predefinedCoins.Any(coin => x.Coin.OutPoint == coin.OutPoint)));
+		SelectPredefinedCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = _predefinedCoins.Any(coin => x.Coin.OutPoint == coin.Outpoint)));
 
 		SelectAllCoinsCommand = ReactiveCommand.Create(() => coinCollection.ToList().ForEach(x => x.IsSelected = true));
 
@@ -152,7 +152,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private IEnumerable<SmartCoin> GetAssociatedSmartCoins(IEnumerable<ICoin> coins)
 	{
-		return coins.Join(_walletViewModel.Wallet.Coins, x => x.OutPoint, x => x.OutPoint, (_, smartCoin) => smartCoin);
+		return coins.Join(_walletViewModel.Wallet.Coins, x => x.OutPoint, x => x.Outpoint, (_, smartCoin) => smartCoin);
 	}
 
 	private bool IsSelectionBadForPrivacy(IEnumerable<SelectableCoin> coins, SmartLabel transactionLabel)

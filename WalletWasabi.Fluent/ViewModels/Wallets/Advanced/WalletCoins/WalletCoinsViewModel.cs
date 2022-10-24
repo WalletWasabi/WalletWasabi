@@ -43,7 +43,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		var coins = CreateCoinsObservable(_walletVm.UiTriggers.TransactionsUpdateTrigger);
 
 		var coinChanges = coins
-			.ToObservableChangeSet(c => c.OutPoint)
+			.ToObservableChangeSet(c => c.Outpoint)
 			.AsObservableCache()
 			.Connect()
 			.TransformWithInlineUpdate(x => new WalletCoinViewModel(x))
@@ -121,12 +121,12 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			return;
 		}
 
-		var info = new TransactionInfo(address.Address, wallet.KeyManager.AnonScoreTarget)
+		var info = new TransactionInfo(address.Address, wallet.AnonScoreTarget)
 		{
 			Coins = selectedSmartCoins,
 			Amount = selectedSmartCoins.Sum(x => x.Amount),
 			SubtractFee = true,
-			UserLabels = label,
+			Recipient = label,
 			IsSelectedCoinModificationEnabled = false,
 			IsFixedAmount = true,
 		};

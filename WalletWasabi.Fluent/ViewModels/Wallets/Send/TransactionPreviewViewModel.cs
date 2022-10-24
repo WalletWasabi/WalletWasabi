@@ -348,7 +348,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				? feeRate
 				: FeeRate.Zero;
 
-		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
+		if (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold ||
 			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
@@ -557,6 +557,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info);
 		labelSelection.Reset(pockets);
 
-		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
 }

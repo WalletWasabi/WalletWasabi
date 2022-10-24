@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -18,7 +19,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	private readonly IObservable<Unit> _balanceChanged;
 	private readonly ObservableCollection<HistoryItemViewModelBase> _history;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceBtc;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceFiat;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private decimal _balanceFiat;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balancePrivateBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _balanceNonPrivateBtc;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _recentTransactionName;
@@ -56,15 +57,9 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 		BalanceBtc = $"{totalAmount.ToFormattedString()} BTC";
 
-		var fiatAmount = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC) * _wallet.Synchronizer.UsdExchangeRate;
-		var fiatFormat =
-			fiatAmount >= 10
-			? "N0"
-			: "N2";
+		BalanceFiat = _wallet.Coins.TotalAmount().BtcToUsd(_wallet.Synchronizer.UsdExchangeRate);
 
-		BalanceFiat = fiatAmount.GenerateFiatText("USD", fiatFormat).TrimEnd();
-
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
+		var privateThreshold = _wallet.AnonScoreTarget;
 		var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 		var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 

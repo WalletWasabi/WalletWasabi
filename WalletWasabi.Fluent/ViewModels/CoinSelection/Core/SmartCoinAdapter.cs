@@ -29,7 +29,7 @@ public partial class SmartCoinAdapter : ReactiveObject, ICoin
 		this.WhenAnyValue(x => x.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinjoining);
 		this.WhenAnyValue(x => x.Coin.HdPubKey.Cluster.Labels).BindTo(this, x => x.SmartLabel);
 		this.WhenAnyValue(x => x.Coin.HdPubKey.AnonymitySet).Do(x => AnonymitySet = (int) x).Subscribe();
-		this.WhenAnyValue(x => x.Coin.OutPoint).BindTo(this, x => x.OutPoint);
+		this.WhenAnyValue(x => x.Coin.Outpoint).BindTo(this, x => x.OutPoint);
 
 		_privacyLevel = GetPrivacyLevel(anonScoreTarget);
 	}

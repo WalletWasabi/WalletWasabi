@@ -33,7 +33,7 @@ public static class TransactionHelpers
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			coins.Select(coin => coin.OutPoint),
+			coins.Select(coin => coin.Outpoint),
 			tryToSign: tryToSign);
 
 		return txRes;
@@ -57,7 +57,7 @@ public static class TransactionHelpers
 			payments: intent,
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			allowedInputs: coins.Select(coin => coin.OutPoint),
+			allowedInputs: coins.Select(coin => coin.Outpoint),
 			payjoinClient: payJoinClient,
 			tryToSign: tryToSign);
 
@@ -71,7 +71,7 @@ public static class TransactionHelpers
 			return BuildChangelessTransaction(
 				wallet,
 				transactionInfo.Destination,
-				transactionInfo.UserLabels,
+				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
 				transactionInfo.ChangelessCoins,
 				tryToSign: tryToSign);
@@ -86,7 +86,7 @@ public static class TransactionHelpers
 			wallet,
 			transactionInfo.Destination,
 			transactionInfo.Amount,
-			transactionInfo.UserLabels,
+			transactionInfo.Recipient,
 			transactionInfo.FeeRate,
 			transactionInfo.Coins,
 			transactionInfo.SubtractFee,
@@ -110,7 +110,7 @@ public static class TransactionHelpers
 				destination: transactionInfo.Destination,
 				amount: transactionInfo.Amount,
 				subtractFee: transactionInfo.SubtractFee,
-				label: transactionInfo.UserLabels);
+				label: transactionInfo.Recipient);
 
 			var network = keyManager.GetNetwork();
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);
@@ -118,7 +118,7 @@ public static class TransactionHelpers
 			builder.BuildTransaction(
 				intent,
 				feeRateFetcher: () => transactionInfo.FeeRate,
-				allowedCoins.Select(x => x.OutPoint),
+				allowedCoins.Select(x => x.Outpoint),
 				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
 				transactionInfo.PayJoinClient,
 				tryToSign: false);
