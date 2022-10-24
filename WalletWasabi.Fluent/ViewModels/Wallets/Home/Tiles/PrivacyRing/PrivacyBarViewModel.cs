@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
