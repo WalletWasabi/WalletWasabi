@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -14,32 +13,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 {
-	private readonly WalletViewModel _walletViewModel;
-	private readonly IObservable<Unit> _updateTrigger;
+	private readonly WalletViewModel _walletVm;
 
 	public CoinJoinsHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary firstItem,
-		WalletViewModel walletViewModel,
-		IObservable<Unit> updateTrigger)
+		WalletViewModel walletVm)
 		: base(orderIndex, firstItem)
 	{
-		_walletViewModel = walletViewModel;
-		_updateTrigger = updateTrigger;
+		_walletVm = walletVm;
 
 		CoinJoinTransactions = new List<TransactionSummary>();
 		IsCoinJoin = true;
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinsDetailsViewModel(this, _updateTrigger)));
+				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		Add(firstItem);
 	}
 
 	public List<TransactionSummary> CoinJoinTransactions { get; private set; }
 
-	public WalletViewModel WalletViewModel => _walletViewModel;
+	public WalletViewModel WalletViewModel => _walletVm;
 
 	protected override ObservableCollection<HistoryItemViewModelBase> LoadChildren()
 	{
@@ -54,9 +50,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 			var transaction = new CoinJoinHistoryItemViewModel(
 				i,
 				item,
-				WalletViewModel,
+				_walletVm,
 				balance,
-				_updateTrigger,
 				false);
 
 			balance -= item.Amount;

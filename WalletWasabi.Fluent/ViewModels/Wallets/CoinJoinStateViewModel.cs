@@ -29,12 +29,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin, continuing..." };
 	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for next round" };
 	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
-	private readonly MusicStatusMessageViewModel _outputRegistrationMessage = new() { Message = "Constructing coinjoin" };
+	private readonly MusicStatusMessageViewModel _coinJoinInProgress = new() { Message = "Coinjoin in progress" };
 	private readonly MusicStatusMessageViewModel _inputRegistrationMessage = new() { Message = "Waiting for other participants" };
-	private readonly MusicStatusMessageViewModel _transactionSigningMessage = new() { Message = "Finalizing coinjoin" };
 	private readonly MusicStatusMessageViewModel _waitingForBlameRoundMessage = new() { Message = "Waiting for the fallback round" };
 	private readonly MusicStatusMessageViewModel _waitingRoundMessage = new() { Message = "Waiting for a round" };
-	private readonly MusicStatusMessageViewModel _connectionConfirmationMessage = new() { Message = "Preparing coinjoin" };
 	private readonly MusicStatusMessageViewModel _plebStopMessage = new() { Message = "Coinjoining might be uneconomical" };
 	private readonly MusicStatusMessageViewModel _plebStopMessageBelow = new() { Message = "Receive more funds or press play to bypass" };
 
@@ -57,7 +55,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public bool IsAutoCoinJoinEnabled => WalletVm.CoinJoinSettings.AutoCoinJoin;
 
-	public CoinJoinStateViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged)
+	public CoinJoinStateViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;
 		var wallet = walletVm.Wallet;
@@ -90,7 +88,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		ConfigureStateMachine();
 
-		balanceChanged.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
+		walletVm.UiTriggers.TransactionsUpdateTrigger.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -342,17 +340,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case EnteringOutputRegistrationPhase outputRegPhase:
-				StartCountDown(
-					message: _outputRegistrationMessage,
-					start: outputRegPhase.TimeoutAt - outputRegPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout,
-					end: outputRegPhase.TimeoutAt);
+				_countDownEndTime = outputRegPhase.TimeoutAt + outputRegPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout;
 				break;
 
 			case EnteringSigningPhase signingPhase:
-				StartCountDown(
-					message: _transactionSigningMessage,
-					start: signingPhase.TimeoutAt - signingPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout,
-					end: signingPhase.TimeoutAt);
+				_countDownEndTime = signingPhase.TimeoutAt;
 				break;
 
 			case EnteringInputRegistrationPhase inputRegPhase:
@@ -372,10 +364,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case EnteringConnectionConfirmationPhase confirmationPhase:
+
+				var startTime = confirmationPhase.TimeoutAt - confirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+				var totalEndTime = confirmationPhase.TimeoutAt +
+				                   confirmationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout +
+				                   confirmationPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout;
+
 				StartCountDown(
-					message: _connectionConfirmationMessage,
-					start: confirmationPhase.TimeoutAt - confirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout,
-					end: confirmationPhase.TimeoutAt);
+					message: _coinJoinInProgress,
+					start: startTime,
+					end: totalEndTime);
+
 				break;
 
 			case EnteringCriticalPhase:

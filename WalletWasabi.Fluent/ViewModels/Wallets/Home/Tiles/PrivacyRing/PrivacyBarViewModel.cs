@@ -1,4 +1,3 @@
-using Avalonia;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -6,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -15,12 +15,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public partial class PrivacyBarViewModel : ViewModelBase
 {
+	private const decimal GapBetweenSegments = 1.5m;
+	private const decimal EnlargeThreshold = 2m;
+	private const decimal EnlargeBy = 1m;
 	private readonly SourceList<PrivacyBarItemViewModel> _itemsSourceList = new();
 	private IObservable<Unit> _coinsUpdated;
 
 	[AutoNotify] private double _width;
 
-	public PrivacyBarViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public PrivacyBarViewModel(WalletViewModel walletViewModel)
 	{
 		Wallet = walletViewModel.Wallet;
 
@@ -32,7 +35,7 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Subscribe();
 
 		_coinsUpdated =
-			balanceChanged.ToSignal()
+			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 						  .Merge(walletViewModel
 						  .WhenAnyValue(w => w.IsCoinJoining)
 						  .ToSignal());
@@ -42,14 +45,10 @@ public partial class PrivacyBarViewModel : ViewModelBase
 			.Select(_ => walletViewModel.Wallet.GetPockets())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(RefreshCoinsList);
-	
-		IsEmpty = this.WhenAnyValue(x => x.Items.Count).Select(count => count == 0);
 	}
 
 	public ObservableCollectionExtended<PrivacyBarItemViewModel> Items { get; } = new();
 
-	public IObservable<bool> IsEmpty { get; }
-	
 	public Wallet Wallet { get; }
 
 	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
@@ -61,12 +60,12 @@ public partial class PrivacyBarViewModel : ViewModelBase
 	{
 		list.Clear();
 
-		if (Width == 0d)
+		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+
+		if (Width == 0d || coinCount == 0d)
 		{
 			return;
 		}
-
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
 
 		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
 
@@ -87,69 +86,89 @@ public partial class PrivacyBarViewModel : ViewModelBase
 
 	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-		var start = 0.0m;
+		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
+		var usableWidth = (decimal)Width - (coinCount - 1) * GapBetweenSegments;
 
-		var usableWidth = Width - (coinCount * 2);
-
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
-
-		foreach (var pocket in usablePockets)
-		{
-			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
-
-			foreach (var coin in pocketCoins)
+		// Calculate the width of the segments.
+		var rawSegments = pockets
+			.Where(x => x.Coins.Any())
+			.SelectMany(pocket => pocket.Coins.Select(coin =>
 			{
-				var margin = 2;
-				var amount = coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
-				var width = Math.Abs((decimal)usableWidth * amount / total);
+				var amount = coin.Amount.ToDecimal(MoneyUnit.BTC);
+				var width = Math.Abs(usableWidth * amount / totalAmount);
 
-				// Artificially enlarge segments smaller than 2 px in order to make them visible.
-				if (width < 2)
-				{
-					width++;
-					margin--;
-				}
+				return (OwnerPocket: pocket, Coin: coin, Width: width);
+			})).ToArray();
 
-				yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
+		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
+		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
+		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
+		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
+		if (segmentsToEnlarge.Any() && segmentsToReduce.Any() && segmentsToReduce.All(x => x.Width - reduceBy > 0))
+		{
+			rawSegments = rawSegments.Select(x =>
+			{
+				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
+				return (OwnerPocket: x.OwnerPocket, Coin: x.Coin, Width: finalWidth);
+			}).ToArray();
+		}
 
-				start += width + margin;
-			}
+		// Order the coins as they will be shown in the bar.
+		rawSegments = rawSegments
+			.OrderByDescending(x => x.OwnerPocket.Coins.First().HdPubKey.AnonymitySet)
+			.ThenByDescending(x => x.Width)
+			.ToArray();
+
+		var start = 0.0m;
+		foreach (var (_, coin, width) in rawSegments)
+		{
+			yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
+
+			start += width + GapBetweenSegments;
 		}
 	}
 
 	private IEnumerable<PrivacyBarItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
-		var start = 0.0m;
+		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
+		var usableWidth = (decimal)Width - (pockets.Count() - 1) * GapBetweenSegments;
 
-		var usableWidth = Width - (pockets.Count() * 2);
-
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
-
-		foreach (var pocket in usablePockets)
+		// Calculate the width of the segments.
+		var rawSegments = pockets.Select(pocket =>
 		{
-			var margin = 2;
-			var amount = pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC);
+			var amount = pocket.Amount.ToDecimal(MoneyUnit.BTC);
+			var width = Math.Abs(usableWidth * amount / totalAmount);
 
-			var width = Math.Abs((decimal)usableWidth * amount / total);
+			return (Pocket: pocket, Width: width);
+		}).ToArray();
 
-			// Artificially enlarge segments smaller than 2 px in order to make them visible.
-			if (width < 2)
+		// Artificially enlarge segments smaller than threshold px in order to make them visible.
+		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
+		var segmentsToEnlarge = rawSegments.Where(x => x.Width < EnlargeThreshold).ToArray();
+		var segmentsToReduce = rawSegments.Except(segmentsToEnlarge).ToArray();
+		var reduceBy = segmentsToEnlarge.Length * EnlargeBy / segmentsToReduce.Length;
+		if (segmentsToEnlarge.Any() && segmentsToReduce.Any() && segmentsToReduce.All(x => x.Width - reduceBy > 0))
+		{
+			rawSegments = rawSegments.Select(x =>
 			{
-				width++;
-				margin--;
-			}
+				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
+				return (Coin: x.Pocket, Width: finalWidth);
+			}).ToArray();
+		}
 
+		// Order the pockets as they will be shown in the bar.
+		rawSegments = rawSegments
+			.OrderByDescending(x => x.Pocket.Coins.First().HdPubKey.AnonymitySet)
+			.ThenByDescending(x => x.Width)
+			.ToArray();
+
+		var start = 0.0m;
+		foreach (var (pocket, width) in rawSegments)
+		{
 			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
 
-			start += width + margin;
+			start += width + GapBetweenSegments;
 		}
 	}
 

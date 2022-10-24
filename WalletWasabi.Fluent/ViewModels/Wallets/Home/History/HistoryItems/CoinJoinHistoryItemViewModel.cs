@@ -1,4 +1,3 @@
-using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions.Summary;
@@ -14,9 +13,8 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 	public CoinJoinHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
-		WalletViewModel walletViewModel,
+		WalletViewModel walletVm,
 		Money balance,
-		IObservable<Unit> updateTrigger,
 		bool isSingleCoinJoinTransaction)
 		: base(orderIndex, transactionSummary)
 	{
@@ -25,7 +23,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		Balance = balance;
 		IsCoinJoin = true;
 		CoinJoinTransaction = transactionSummary;
-		WalletViewModel = walletViewModel;
+		WalletViewModel = walletVm;
 		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
 
 		var confirmations = transactionSummary.GetConfirmations();
@@ -43,7 +41,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinDetailsViewModel(this, updateTrigger)));
+				new CoinJoinDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}

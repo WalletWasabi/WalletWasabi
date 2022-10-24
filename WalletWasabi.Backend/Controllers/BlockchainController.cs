@@ -15,6 +15,7 @@ using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Cache;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -30,20 +31,21 @@ namespace WalletWasabi.Backend.Controllers;
 public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
+	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
 	{
-		Cache = memoryCache;
+		Cache = new(memoryCache);
 		Global = global;
 	}
 
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
 
-	public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
-	public static object TransactionHexCacheLock { get; } = new object();
+	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
+	public static object TransactionHexCacheLock { get; } = new();
+	public IdempotencyRequestCache Cache { get; }
 
-	public IMemoryCache Cache { get; }
 	public Global Global { get; }
 
 	/// <summary>
@@ -69,15 +71,15 @@ public class BlockchainController : ControllerBase
 		return Ok(estimation.Estimations);
 	}
 
-	internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
+	internal Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode, CancellationToken cancellationToken = default)
 	{
 		var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
-		return await Cache.AtomicGetOrCreateAsync(
+		return Cache.GetCachedResponseAsync(
 			cacheKey,
-			cacheOptions,
-			() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true));
+			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, token),
+			options: CacheEntryOptions,
+			cancellationToken);
 	}
 
 	/// <summary>
@@ -111,20 +113,21 @@ public class BlockchainController : ControllerBase
 		}
 	}
 
-	internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync()
+	internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync(CancellationToken cancellationToken = default)
 	{
 		var cacheKey = $"{nameof(GetRawMempoolStringsWithCacheAsync)}";
 		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3) };
 
-		return await Cache.AtomicGetOrCreateAsync(
+		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			cacheOptions,
-			() => GetRawMempoolStringsNoCacheAsync());
+			action: (string request, CancellationToken token) => GetRawMempoolStringsNoCacheAsync(token),
+			options: cacheOptions,
+			cancellationToken);
 	}
 
-	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
+	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync(CancellationToken cancellationToken = default)
 	{
-		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
 		return transactionHashes.Select(x => x.ToString());
 	}
 
@@ -350,10 +353,11 @@ public class BlockchainController : ControllerBase
 			var cacheKey = $"{nameof(GetStatusAsync)}";
 			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
 
-			return await Cache.AtomicGetOrCreateAsync(
+			return await Cache.GetCachedResponseAsync(
 				cacheKey,
-				cacheOptions,
-				() => FetchStatusAsync());
+				action: (string request, CancellationToken token) => FetchStatusAsync(token),
+				options: cacheOptions,
+				CancellationToken.None);
 		}
 		catch (Exception ex)
 		{
@@ -362,7 +366,7 @@ public class BlockchainController : ControllerBase
 		}
 	}
 
-	private async Task<StatusResponse> FetchStatusAsync()
+	private async Task<StatusResponse> FetchStatusAsync(CancellationToken cancellationToken = default)
 	{
 		StatusResponse status = new();
 
@@ -381,8 +385,8 @@ public class BlockchainController : ControllerBase
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
 			var lastFilter = indexer.GetLastFilter();
 			var lastFilterHash = lastFilter.Header.BlockHash;
-			var bestHash = await RpcClient.GetBestBlockHashAsync();
-			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
+			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
+			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);
 			var prevHash = lastBlockHeader.HashPrevBlock;
 
 			if (bestHash == lastFilterHash || prevHash == lastFilterHash)
