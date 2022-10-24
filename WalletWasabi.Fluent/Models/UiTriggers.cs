@@ -13,8 +13,6 @@ public class UiTriggers
 	private readonly WalletViewModel _walletViewModel;
 	private readonly Wallet _wallet;
 
-	private readonly TimeSpan _throttleTime = TimeSpan.FromMilliseconds(100);
-
 	public UiTriggers(WalletViewModel walletViewModel)
 	{
 		_walletViewModel = walletViewModel;
