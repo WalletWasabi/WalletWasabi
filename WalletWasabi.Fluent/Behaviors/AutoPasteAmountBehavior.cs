@@ -43,7 +43,7 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 
 		if (canParseAsDecimal)
 		{
-			var lessThanMaximum = d < Constants.MaximumNumberOfSatoshis;
+			var lessThanMaximum = d < Constants.MaximumNumberOfBitcoins;
 			var hasValidDecimalPlaces = CountDecimalPlaces(d) <= 8;
 			return lessThanMaximum && hasValidDecimalPlaces && d > 0;
 		}
