@@ -1,10 +1,7 @@
 using NBitcoin;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -98,19 +95,22 @@ public class WhaleCoinjoinTests
 
 			if (counter % 25 == 0)
 			{
-				_testOutputHelper.WriteLine($"WhaleCoin after {counter} rounds");
-				_testOutputHelper.WriteLine($"Coin       AnonSet");
-				var whaleSmartCoinsOrdered = whaleSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
-				foreach (var whaleSC in whaleSmartCoinsOrdered)
-				{
-					_testOutputHelper.WriteLine($"{whaleSC.Amount} {(int)Math.Round(whaleSC.HdPubKey.AnonymitySet)}");
-				}
+				DisplayWhaleCoinsAnonSet(counter, _testOutputHelper, whaleSmartCoins);
 			}
 		}
 
 		_testOutputHelper.WriteLine($"FINISHED after {counter} rounds");
-		// TODO: what to do? counters has the nb rounds needed.
-		// We never get here
+	}
+
+	private static void DisplayWhaleCoinsAnonSet(int counter, ITestOutputHelper testOutputHelper, IEnumerable<SmartCoin> whaleSmartCoins)
+	{
+		testOutputHelper.WriteLine($"WhaleCoin after {counter} rounds");
+		testOutputHelper.WriteLine($"Coin       AnonSet");
+		var whaleSmartCoinsOrdered = whaleSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
+		foreach (var whaleSC in whaleSmartCoinsOrdered)
+		{
+			testOutputHelper.WriteLine($"{whaleSC.Amount} {(int)Math.Round(whaleSC.HdPubKey.AnonymitySet)}");
+		}
 	}
 
 	private static List<List<SmartCoin>> CreateOtherSmartCoins(IReadOnlyList<HdPubKey> otherHdPub, int otherNbInputs, decimal whaleAmountBtc)
@@ -142,7 +142,7 @@ public class WhaleCoinjoinTests
 			consolidationMode: false,
 			anonScoreTarget: 100,
 			redCoinIsolation: false,
-			liquidityClue: WalletWasabi.Helpers.Constants.MaximumNumberOfBitcoinsMoney,
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
 			SecureRandom.Instance);
 	}
 
