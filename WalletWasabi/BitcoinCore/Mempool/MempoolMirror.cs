@@ -118,25 +118,15 @@ public class MempoolMirror : PeriodicRunner
 
 	public IEnumerable<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
 	{
-		Dictionary<uint256, Transaction> spenders = new();
 		lock (MempoolLock)
 		{
-			foreach (var input in txOuts)
-			{
-				foreach (var mempoolTx in Mempool)
-				{
-					if (mempoolTx.Value.Inputs.Select(x => x.PrevOut).Contains(input))
-					{
-						if (!spenders.TryAdd(mempoolTx.Key, mempoolTx.Value))
-						{
-							Logger.LogInfo("Transaction hash has already been added.");
-						}
-					}
-				}
-			}
-		}
+			var mempool = Mempool.Values;
+			var txOutSet = txOuts.ToHashSet();
 
-		return spenders.Values;
+			return mempool.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
+				.Where(x => txOutSet.Contains(x.PrevOut))
+				.Select(x => x.tx);
+		}
 	}
 
 	public ISet<uint256> GetMempoolHashes()
