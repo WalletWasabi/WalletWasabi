@@ -71,7 +71,7 @@ public static class TransactionHelpers
 			return BuildChangelessTransaction(
 				wallet,
 				transactionInfo.Destination,
-				transactionInfo.UserLabels,
+				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
 				transactionInfo.ChangelessCoins,
 				tryToSign: tryToSign);
@@ -86,7 +86,7 @@ public static class TransactionHelpers
 			wallet,
 			transactionInfo.Destination,
 			transactionInfo.Amount,
-			transactionInfo.UserLabels,
+			transactionInfo.Recipient,
 			transactionInfo.FeeRate,
 			transactionInfo.Coins,
 			transactionInfo.SubtractFee,
@@ -110,7 +110,7 @@ public static class TransactionHelpers
 				destination: transactionInfo.Destination,
 				amount: transactionInfo.Amount,
 				subtractFee: transactionInfo.SubtractFee,
-				label: transactionInfo.UserLabels);
+				label: transactionInfo.Recipient);
 
 			var network = keyManager.GetNetwork();
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);

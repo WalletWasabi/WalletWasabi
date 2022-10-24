@@ -115,7 +115,7 @@ public partial class SendViewModel : RoutableViewModel
 			var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 			{
 				Amount = new Money(AmountBtc, MoneyUnit.BTC),
-				UserLabels = label,
+				Recipient = label,
 				PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
 				IsFixedAmount = _isFixedAmount
 			};
