@@ -16,10 +16,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public partial class PrivacyBarViewModel : ActivatableViewModel
 {
-	private readonly WalletViewModel _walletViewModel;
 	private const decimal GapBetweenSegments = 1.5m;
 	private const decimal EnlargeThreshold = 2m;
 	private const decimal EnlargeBy = 1m;
+	private readonly WalletViewModel _walletViewModel;
 
 	[AutoNotify] private double _width;
 
