@@ -72,6 +72,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.Width, x => x.Height)
 			.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x =>
 			{
 				var usableHeight = x.Item2;
