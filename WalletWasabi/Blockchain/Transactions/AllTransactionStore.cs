@@ -14,7 +14,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-public class AllTransactionStore : IAsyncDisposable
+public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 {
 	public AllTransactionStore(string workFolderPath, Network network)
 	{

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
@@ -17,6 +18,9 @@ namespace WalletWasabi.Blockchain.Transactions;
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	#region Constructors
+
+	private Lazy<long[]> _outputValues;
+	private Lazy<bool> _isWasabi2Cj;
 
 	public SmartTransaction(Transaction transaction, Height height, uint256? blockHash = null, int blockIndex = 0, SmartLabel? label = null, bool isReplacement = false, DateTimeOffset firstSeen = default)
 	{
@@ -37,11 +41,20 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		WalletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		WalletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
+
+		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
+		_isWasabi2Cj = new Lazy<bool>(() => Transaction.Outputs.Count >= 2 // Sanity check.
+					&& Transaction.Inputs.Count >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+					&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+					&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), true); // Outputs are ordered descending.
 	}
 
 	#endregion Constructors
 
 	#region Members
+
+	public long[] OutputValues => _outputValues.Value;
+	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private HashSet<SmartCoin> WalletInputsInternal { get; }
@@ -74,7 +87,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignInputsCache is null)
 			{
-				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.OutPoint).ToHashSet();
+				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
 				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 			}
 			return ForeignInputsCache;
@@ -87,7 +100,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (ForeignOutputsCache is null)
 			{
-				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.OutPoint.N).ToHashSet();
+				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
 				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 			}
 			return ForeignOutputsCache;
@@ -99,13 +112,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (WalletVirtualInputsCache is null)
-			{
-				WalletVirtualInputsCache = WalletInputs
+			WalletVirtualInputsCache ??= WalletInputs
 					.GroupBy(i => i.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
 					.Select(g => new WalletVirtualInput(g.Key, g.ToHashSet()))
 					.ToHashSet();
-			}
 			return WalletVirtualInputsCache;
 		}
 	}
@@ -115,13 +125,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (WalletVirtualOutputsCache is null)
-			{
-				WalletVirtualOutputsCache = WalletOutputs
+			WalletVirtualOutputsCache ??= WalletOutputs
 					.GroupBy(o => o.HdPubKey.PubKeyHash.ToBytes(), new ByteArrayEqualityComparer())
-					.Select(g => new WalletVirtualOutput(g.Key, g.Sum(o => o.Amount), g.Select(o => new OutPoint(GetHash(), o.Index)).ToHashSet()))
+					.Select(g => new WalletVirtualOutput(g.Key, g.ToHashSet()))
 					.ToHashSet();
-			}
 			return WalletVirtualOutputsCache;
 		}
 	}
@@ -131,13 +138,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (ForeignVirtualOutputsCache is null)
-			{
-				ForeignVirtualOutputsCache = ForeignOutputs
+			ForeignVirtualOutputsCache ??= ForeignOutputs
 					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
 					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
 					.ToHashSet();
-			}
 			return ForeignVirtualOutputsCache;
 		}
 	}

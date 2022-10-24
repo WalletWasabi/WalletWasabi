@@ -130,7 +130,6 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void WitnessValidation()
 	{
-
 		using Key key1 = new();
 		using Key key2 = new();
 
@@ -255,7 +254,7 @@ public class MultipartyTransactionTests
 	[Fact]
 	public void OnlyAllowedInputTypes()
 	{
-		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputTypes = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2PKH) });
+		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputTypes = ImmutableSortedSet.Create(ScriptType.P2PKH) });
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof();
 		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(coin, ownershipProof, commitmentData));
 	}
