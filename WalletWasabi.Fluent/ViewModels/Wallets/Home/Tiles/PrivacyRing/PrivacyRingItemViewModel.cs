@@ -49,7 +49,6 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		Unconfirmed = false;
 
 		Reference = GetPrivacyLevelDescription();
-
 		Reference += " coins";
 	}
 
