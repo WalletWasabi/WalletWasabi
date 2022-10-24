@@ -402,9 +402,6 @@
             <SolidColorBrush x:Key="Brush3" Color="#FF6DB907" />
             <SolidColorBrush x:Key="Brush4" Color="#FFFFFFFF" />
             <LinearGradientBrush x:Key="Brush9" StartPoint="-1380.36,-1011.72" EndPoint="-1129.01,-1011.72">
-              <!--<LinearGradientBrush.Transform>
-                <MatrixTransform Matrix="0.70488185,-0.7093247,0.7093247,0.70488185,1970.12,-3.94" />
-              </LinearGradientBrush.Transform>-->
               <LinearGradientBrush.GradientStops>
                 <GradientStop Offset="0" Color="#33FFFFFF" />
                 <GradientStop Offset="1" Color="#BFFFFFFF" />
