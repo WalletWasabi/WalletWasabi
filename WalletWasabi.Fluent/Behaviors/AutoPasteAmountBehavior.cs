@@ -33,30 +33,37 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 
 	private static bool IsValidUsd(string s)
 	{
-		var canParse = decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d);
-		return canParse && CountDecimalPlaces(d) <= 2 && d > 0;
+		if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
+		{
+			return false;
+		}
+
+		var hasValidDecimalPlaces = CountDecimalPlaces(d) <= 2;
+		var isGreaterThanZero = d > 0;
+
+		return hasValidDecimalPlaces && isGreaterThanZero;
 	}
 
 	private static bool IsValidBtc(string s)
 	{
-		var canParseAsDecimal = decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d);
-
-		if (canParseAsDecimal)
+		if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
 		{
-			var lessThanMaximum = d < Constants.MaximumNumberOfBitcoins;
-			var hasValidDecimalPlaces = CountDecimalPlaces(d) <= 8;
-			return lessThanMaximum && hasValidDecimalPlaces && d > 0;
+			return false;
 		}
 
-		return false;
+		var lessThanMaximum = d < Constants.MaximumNumberOfBitcoins;
+		var hasValidDecimalPlaces = CountDecimalPlaces(d) <= 8;
+		var isGreaterThanZero = d > 0;
+
+		return lessThanMaximum && hasValidDecimalPlaces && isGreaterThanZero;
 	}
 
 	private static decimal CountDecimalPlaces(decimal dec)
 	{
 		Console.Write("{0}: ", dec);
 		var bits = decimal.GetBits(dec);
-		ulong lowInt = (uint) bits[0];
-		ulong midInt = (uint) bits[1];
+		ulong lowInt = (uint)bits[0];
+		ulong midInt = (uint)bits[1];
 		var exponent = (bits[3] & 0x00FF0000) >> 16;
 		var result = exponent;
 		var lowDecimal = lowInt | (midInt << 32);
