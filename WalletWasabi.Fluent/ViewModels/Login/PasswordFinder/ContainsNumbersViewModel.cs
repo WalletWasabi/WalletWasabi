@@ -1,7 +1,5 @@
 using System.Windows.Input;
-using Avalonia.Media;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 

@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +14,9 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Cache;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -26,20 +31,21 @@ namespace WalletWasabi.Backend.Controllers;
 public class BlockchainController : ControllerBase
 {
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
+	private static readonly MemoryCacheEntryOptions CacheEntryOptions = new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
 	public BlockchainController(IMemoryCache memoryCache, Global global)
 	{
-		Cache = memoryCache;
+		Cache = new(memoryCache);
 		Global = global;
 	}
 
 	private IRPCClient RpcClient => Global.RpcClient;
 	private Network Network => Global.Config.Network;
 
-	public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
-	public static object TransactionHexCacheLock { get; } = new object();
+	public static Dictionary<uint256, string> TransactionHexCache { get; } = new();
+	public static object TransactionHexCacheLock { get; } = new();
+	public IdempotencyRequestCache Cache { get; }
 
-	public IMemoryCache Cache { get; }
 	public Global Global { get; }
 
 	/// <summary>
@@ -65,15 +71,15 @@ public class BlockchainController : ControllerBase
 		return Ok(estimation.Estimations);
 	}
 
-	internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
+	internal Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode, CancellationToken cancellationToken = default)
 	{
 		var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
-		return await Cache.AtomicGetOrCreateAsync(
+		return Cache.GetCachedResponseAsync(
 			cacheKey,
-			cacheOptions,
-			() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true));
+			action: (string request, CancellationToken token) => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, token),
+			options: CacheEntryOptions,
+			cancellationToken);
 	}
 
 	/// <summary>
@@ -107,20 +113,21 @@ public class BlockchainController : ControllerBase
 		}
 	}
 
-	internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync()
+	internal async Task<IEnumerable<string>> GetRawMempoolStringsWithCacheAsync(CancellationToken cancellationToken = default)
 	{
 		var cacheKey = $"{nameof(GetRawMempoolStringsWithCacheAsync)}";
 		var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3) };
 
-		return await Cache.AtomicGetOrCreateAsync(
+		return await Cache.GetCachedResponseAsync(
 			cacheKey,
-			cacheOptions,
-			() => GetRawMempoolStringsNoCacheAsync());
+			action: (string request, CancellationToken token) => GetRawMempoolStringsNoCacheAsync(token),
+			options: cacheOptions,
+			cancellationToken);
 	}
 
-	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
+	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync(CancellationToken cancellationToken = default)
 	{
-		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
 		return transactionHashes.Select(x => x.ToString());
 	}
 
@@ -267,6 +274,7 @@ public class BlockchainController : ControllerBase
 	/// </remarks>
 	/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 	/// <param name="count">The number of filters to return.</param>
+	/// <param name="indexType">Type of index. Valid values: segwittaproot, taproot.</param>
 	/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
 	/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 	/// <response code="204">When the provided hash is the tip.</response>
@@ -277,7 +285,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(204)]
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
+	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, [FromQuery] string? indexType = null)
 	{
 		if (count <= 0)
 		{
@@ -286,7 +294,12 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		if (!TryGetIndexer(indexType, out var indexer))
+		{
+			return BadRequest("Not supported index type.");
+		}
+
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
 		{
@@ -307,6 +320,30 @@ public class BlockchainController : ControllerBase
 		return Ok(response);
 	}
 
+	internal bool TryGetIndexer(string? indexType, [NotNullWhen(true)] out IndexBuilderService? indexer)
+	{
+		indexer = null;
+		if (indexType is null || indexType.Equals("segwittaproot", StringComparison.OrdinalIgnoreCase))
+		{
+			indexer = Global.SegwitTaprootIndexBuilderService;
+		}
+		else if (indexType.Equals("taproot", StringComparison.OrdinalIgnoreCase))
+		{
+			indexer = Global.TaprootIndexBuilderService;
+		}
+		else
+		{
+			return false;
+		}
+
+		if (indexer is null)
+		{
+			throw new NotSupportedException("This is impossible.");
+		}
+
+		return true;
+	}
+
 	[HttpGet("status")]
 	[ProducesResponseType(typeof(StatusResponse), 200)]
 	public async Task<StatusResponse> GetStatusAsync()
@@ -316,10 +353,11 @@ public class BlockchainController : ControllerBase
 			var cacheKey = $"{nameof(GetStatusAsync)}";
 			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(7) };
 
-			return await Cache.AtomicGetOrCreateAsync(
+			return await Cache.GetCachedResponseAsync(
 				cacheKey,
-				cacheOptions,
-				() => FetchStatusAsync());
+				action: (string request, CancellationToken token) => FetchStatusAsync(token),
+				options: cacheOptions,
+				CancellationToken.None);
 		}
 		catch (Exception ex)
 		{
@@ -328,18 +366,27 @@ public class BlockchainController : ControllerBase
 		}
 	}
 
-	private async Task<StatusResponse> FetchStatusAsync()
+	private async Task<StatusResponse> FetchStatusAsync(CancellationToken cancellationToken = default)
 	{
 		StatusResponse status = new();
 
+		// Select indexer that's behind the most.
+		var i1 = Global.SegwitTaprootIndexBuilderService;
+		var i2 = Global.TaprootIndexBuilderService;
+		if (i1 is null || i2 is null)
+		{
+			throw new NotSupportedException("This is impossible.");
+		}
+		var indexer = i1.LastFilterBuildTime > i2.LastFilterBuildTime ? i2 : i1;
+
 		// Updating the status of the filters.
-		if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)
+		if (DateTimeOffset.UtcNow - indexer.LastFilterBuildTime > FilterTimeout)
 		{
 			// Checking if the last generated filter is created for one of the last two blocks on the blockchain.
-			var lastFilter = Global.IndexBuilderService.GetLastFilter();
+			var lastFilter = indexer.GetLastFilter();
 			var lastFilterHash = lastFilter.Header.BlockHash;
-			var bestHash = await RpcClient.GetBestBlockHashAsync();
-			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash);
+			var bestHash = await RpcClient.GetBestBlockHashAsync(cancellationToken);
+			var lastBlockHeader = await RpcClient.GetBlockHeaderAsync(bestHash, cancellationToken);
 			var prevHash = lastBlockHeader.HashPrevBlock;
 
 			if (bestHash == lastFilterHash || prevHash == lastFilterHash)

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -431,7 +430,7 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Tries to equip the PSBT with previous transactions with best effort. Always <see cref="AddKeyPaths"/> first otherwise the prev tx won't be added.
 	/// </summary>
-	public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
+	public static void AddPrevTxs(this PSBT psbt, ITransactionStore transactionStore)
 	{
 		// Fill out previous transactions.
 		foreach (var psbtInput in psbt.Inputs)
@@ -442,7 +441,7 @@ public static class NBitcoinExtensions
 			}
 			else
 			{
-				Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+				Logger.LogDebug($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
 			}
 		}
 	}
@@ -462,10 +461,11 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
+		scriptPubKey.TryGetScriptType() switch
 		{
-			true => Constants.P2wpkhInputVirtualSize,
-			false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
+			ScriptType.Taproot => Constants.P2trInputVirtualSize,
+			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>

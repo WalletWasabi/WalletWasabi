@@ -36,7 +36,11 @@ public class BatchController : ControllerBase
 	public OffchainController OffchainController { get; }
 
 	[HttpGet("synchronize")]
-	public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
+	public async Task<IActionResult> GetSynchronizeAsync(
+		[FromQuery, Required] string bestKnownBlockHash,
+		[FromQuery, Required] int maxNumberOfFilters,
+		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
+		[FromQuery] string? indexType = null)
 	{
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
@@ -53,7 +57,12 @@ public class BatchController : ControllerBase
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+		if (!BlockchainController.TryGetIndexer(indexType, out var indexer))
+		{
+			return BadRequest("Not supported index type.");
+		}
+
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 

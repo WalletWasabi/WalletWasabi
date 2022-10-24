@@ -5,7 +5,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
-using WalletWasabi.Fluent.Converters;
 using System.Windows.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;

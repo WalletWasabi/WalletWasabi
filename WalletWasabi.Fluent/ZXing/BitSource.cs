@@ -14,8 +14,6 @@
 * limitations under the License.
 */
 
-using System;
-
 namespace ZXing.Common
 {
     /// <summary> <p>This provides an easy abstraction to read bits at a time from a sequence of bytes, where the

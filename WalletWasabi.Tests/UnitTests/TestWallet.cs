@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using System.Collections.Generic;
 using System.Linq;
@@ -120,7 +119,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return OwnershipProof.GenerateCoinJoinInputProof(
 				extKey.PrivateKey,
 				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				committedData);
+				committedData,
+				ScriptPubKeyType.Segwit);
 	}
 
 	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
@@ -141,7 +141,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	}
 
 	public IEnumerable<IDestination> GetNextDestinations(int count) =>
-		Enumerable.Repeat(CreateNewAddress(), count);
+		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
 
 	private void ScanTransaction(Transaction tx)
 	{

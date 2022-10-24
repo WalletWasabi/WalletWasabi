@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.Models;
@@ -13,6 +12,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Helpers;
 using NBitcoin;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 

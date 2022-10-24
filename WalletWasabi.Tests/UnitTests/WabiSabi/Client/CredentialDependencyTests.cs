@@ -21,7 +21,7 @@ public class CredentialDependencyTests
 		await SimulateAsyncRequestsAsync(g);
 	}
 
-	// Demonstrate how to use the dependency grap. Also checks it can be
+	// Demonstrate how to use the dependency graph. Also checks it can be
 	// executed with no deadlocks.
 	private async Task SimulateAsyncRequestsAsync(DependencyGraph g)
 	{
@@ -62,7 +62,7 @@ public class CredentialDependencyTests
 			return requested;
 		}
 
-		var ct = new CancellationTokenSource(new TimeSpan(0, 2, 0));
+		var ct = new CancellationTokenSource(new TimeSpan(0, 4, 0));
 
 		for (var remainingSteps = 2 * pendingCredentialsToPresent.Count; remainingSteps > 0 && pendingCredentialsToPresent.Count + inFlightRequests.Count > 0; remainingSteps--)
 		{
@@ -337,7 +337,7 @@ public class CredentialDependencyTests
 		// Ensure that vsize credentials do not exceed the range proof width
 		foreach (var edge in graph.EdgeSets[CredentialType.Vsize].Successors.Values.SelectMany(x => x))
 		{
-			Assert.InRange<long>(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
+			Assert.InRange(edge.Value, 0, ProtocolConstants.MaxVsizeCredentialValue);
 		}
 
 		// TODO add InlineData param for max depth?

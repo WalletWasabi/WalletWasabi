@@ -28,7 +28,7 @@ internal static class LabelTestExtensions
 
 	public static HdPubKey NewKey(string label = "", int anonymitySet = 1)
 	{
-		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true, false);
+		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true);
 		key.SetAnonymitySet(anonymitySet);
 		key.SetLabel(label);
 
