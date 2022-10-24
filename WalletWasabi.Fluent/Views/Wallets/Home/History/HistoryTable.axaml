@@ -268,9 +268,11 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <Panel IsVisible="{Binding IsTransactionHistoryEmpty}"
-           Margin="{StaticResource HistoryTablePlaceholderPanelMargin}">
+    <Panel IsVisible="{Binding IsTransactionHistoryLoaded}"
+           Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+           x:Name="EmptyWallet">
       <ContentControl Template="{StaticResource empty_wallet_infographic}"
+                      IsVisible="{Binding IsTransactionHistoryEmpty}"
                       MinHeight="80" MaxHeight="150" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="60" />
     </Panel>
   </Panel>
