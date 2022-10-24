@@ -101,17 +101,6 @@
 
     </controls:ContentArea.Styles>
 
-    <controls:ContentArea.Title>
-      <Panel>
-        <TextBlock Text="{Binding Title}" />
-        <Viewbox VerticalAlignment="Center" ToolTip.Tip="The current coin selection will decrease your privacy"
-                 HorizontalAlignment="Right" Height="20"
-                 IsVisible="{Binding IsSelectionBadlyChosen^, FallbackValue=False}">
-          <PathIcon Data="{StaticResource warning_filled}" Foreground="{DynamicResource WarningMessageForeground}" />
-        </Viewbox>
-      </Panel>
-    </controls:ContentArea.Title>
-
     <DockPanel>
 
       <DockPanel DockPanel.Dock="Top" Margin="0 0 0 10">

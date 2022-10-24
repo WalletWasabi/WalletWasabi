@@ -87,8 +87,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var selectedCoins = allCoins
 			.Select(items => items.Where(coin => coin.IsSelected).Select(x => x.Coin).ToList());
 
-		IsSelectionBadlyChosen = allCoins.Select(coins => IsSelectionBadForPrivacy(coins, _transactionLabels));
-
 		SelectedAmount = selectedCoins.Select(coins => new Money(coins.Sum(x => x.Amount)));
 
 		var requiredAmount = selectedCoins.Select(GetRequiredAmount)
@@ -153,23 +151,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private IEnumerable<SmartCoin> GetAssociatedSmartCoins(IEnumerable<ICoin> coins)
 	{
 		return coins.Join(_walletViewModel.Wallet.Coins, x => x.OutPoint, x => x.Outpoint, (_, smartCoin) => smartCoin);
-	}
-
-	private bool IsSelectionBadForPrivacy(IEnumerable<SelectableCoin> coins, SmartLabel transactionLabel)
-	{
-		var selectedCoins = coins.Where(x => x.IsSelected).ToList();
-
-		if (selectedCoins.All(x => x.SmartLabel == transactionLabel || x.PrivacyLevel == PrivacyLevel.Private || x.PrivacyLevel == PrivacyLevel.SemiPrivate))
-		{
-			return false;
-		}
-
-		if (selectedCoins.Any(x => x.AnonymitySet == 1))
-		{
-			return true;
-		}
-
-		return false;
 	}
 
 	private IEnumerable<ICoin> GetCoins()
