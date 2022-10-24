@@ -26,6 +26,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 		_wallet = walletViewModelBase.Wallet;
 		_autoCoinJoin = _wallet.KeyManager.AutoCoinJoin;
 		_plebStopThreshold = _wallet.KeyManager.PlebStopThreshold?.ToString() ?? KeyManager.DefaultPlebStopThreshold.ToString();
+		_anonScoreTarget = _wallet.AnonScoreTarget;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -57,14 +58,6 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 			});
 
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
-
-		_anonScoreTarget = _wallet.AnonScoreTarget;
-
-		this.WhenAnyValue(x => x.AnonScoreTarget)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.Skip(1)
-			.Subscribe(_ => _wallet.KeyManager.SetAnonScoreTarget(AnonScoreTarget));
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
