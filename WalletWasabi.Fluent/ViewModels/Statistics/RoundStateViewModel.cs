@@ -23,7 +23,14 @@ public partial class RoundStateViewModel : RoutableViewModel
 		IsBlameRound = roundState.BlameOf != uint256.Zero;
 		InputCount = roundState.CoinjoinState.Inputs.Count();
 		MaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount.ToDecimal(MoneyUnit.BTC);
-		InputRegistrationRemaining = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+
+		var inputRegistrationRemaining = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
+		if (inputRegistrationRemaining < TimeSpan.Zero)
+		{
+			inputRegistrationRemaining = TimeSpan.Zero;
+		}
+		InputRegistrationRemaining = inputRegistrationRemaining;
+
 		Phase = roundState.Phase;
 	}
 
