@@ -68,8 +68,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var privateAndSemiPrivateAndUnknownPockets = privateAndSemiPrivatePockets.Union(unknownPockets).ToArray();
 		var privateAndSemiPrivateAndKnownPockets = privateAndSemiPrivatePockets.Union(knownPockets).ToArray();
 
-		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => _info.UserLabels.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
-		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(_info.UserLabels, StringComparer.OrdinalIgnoreCase)).ToArray();
+		var knownByRecipientPockets = knownPockets.Where(pocket => pocket.Labels.Any(label => _info.Recipient.Contains(label, StringComparer.OrdinalIgnoreCase))).ToArray();
+		var onlyKnownByRecipientPockets = knownByRecipientPockets.Where(pocket => pocket.Labels.Equals(_info.Recipient, StringComparer.OrdinalIgnoreCase)).ToArray();
 
 		if (IsPocketEnough(onlyKnownByRecipientPockets))
 		{
@@ -86,7 +86,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, _info.UserLabels, out var pockets))
+		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, _info.Recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -279,7 +279,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var usedPockets = GetUsedPockets();
 		var usedPocketsLabels = new SmartLabel(usedPockets.SelectMany(p => p.Labels));
 
-		if (usedPocketsLabels != _info.UserLabels || !IsPocketEnough(usedPockets))
+		if (usedPocketsLabels != _info.Recipient || !IsPocketEnough(usedPockets))
 		{
 			isPrivateNeeded = true;
 
