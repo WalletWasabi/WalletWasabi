@@ -19,12 +19,16 @@ public partial class RoundStateDetailsViewModel : RoutableViewModel
 	{
 		Id = roundState.Id;
 		BlameOf = roundState.BlameOf;
+
 		// TODO: AmountCredentialIssuerParameters
+
 		// TODO: VsizeCredentialIssuerParameters
+
 		Phase = roundState.Phase;
 		EndRoundState = roundState.EndRoundState;
 		InputRegistrationStart = roundState.InputRegistrationStart;
 		InputRegistrationTimeout = roundState.InputRegistrationTimeout;
+
 		// TODO: CoinjoinState
 	}
 }
