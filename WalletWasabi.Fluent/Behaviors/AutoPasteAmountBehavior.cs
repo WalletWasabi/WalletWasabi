@@ -60,7 +60,6 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 
 	private static decimal CountDecimalPlaces(decimal dec)
 	{
-		Console.Write("{0}: ", dec);
 		var bits = decimal.GetBits(dec);
 		ulong lowInt = (uint)bits[0];
 		ulong midInt = (uint)bits[1];
