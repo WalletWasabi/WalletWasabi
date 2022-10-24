@@ -33,15 +33,15 @@ public class UiTriggers
 	/// <summary>
 	/// Triggers on subscription and when the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal().ObserveOn(RxApp.MainThreadScheduler);
+	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal();
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the USD exchange rate changed.
 	/// </summary>
-	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged).Skip(1).ObserveOn(RxApp.MainThreadScheduler);
+	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged).Skip(1);
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Skip(1).ObserveOn(RxApp.MainThreadScheduler);
+	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Skip(1);
 }
