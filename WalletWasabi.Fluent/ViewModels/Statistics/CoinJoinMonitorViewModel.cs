@@ -116,7 +116,7 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 				// InputRegistrationRemaining
 				new PrivacyTextColumn<RoundStateViewModel>(
 					"InputRegistrationRemaining",
-					x => $"{x.InputRegistrationRemaining:MM/dd/yyyy HH:mm}",
+					x => $"{x.InputRegistrationRemaining}",
 					options: new ColumnOptions<RoundStateViewModel>
 					{
 						CanUserResizeColumn = false,
