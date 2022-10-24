@@ -118,7 +118,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		References.Clear();
 
 		var references =
-			list.GroupBy(x => (x.IsPrivate, x.IsNonPrivate, x.IsSemiPrivate, x.Unconfirmed))
+			list.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
 				.Select(x => x.First())
 				.OrderBy(list.IndexOf)
 				.ToList();
