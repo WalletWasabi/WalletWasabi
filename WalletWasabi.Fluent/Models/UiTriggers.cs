@@ -35,15 +35,20 @@ public class UiTriggers
 	/// <summary>
 	/// Triggers on subscription and when the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal().Throttle(TimeSpan.FromMilliseconds(1000) + _throttleTime).ObserveOn(RxApp.MainThreadScheduler);
+	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget)
+		.ToSignal()
+		.Throttle(TimeSpan.FromMilliseconds(1000) + _throttleTime)
+		.Skip(1)
+		.StartWith(Unit.Default)
+		.ObserveOn(RxApp.MainThreadScheduler);
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the USD exchange rate changed.
 	/// </summary>
-	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged).Throttle(_throttleTime).ObserveOn(RxApp.MainThreadScheduler);
+	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged).Skip(1).ObserveOn(RxApp.MainThreadScheduler);
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Throttle(_throttleTime).ObserveOn(RxApp.MainThreadScheduler);
+	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Skip(1).ObserveOn(RxApp.MainThreadScheduler);
 }
