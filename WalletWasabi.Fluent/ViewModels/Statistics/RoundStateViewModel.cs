@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -10,23 +11,20 @@ namespace WalletWasabi.Fluent.ViewModels.Statistics;
 public partial class RoundStateViewModel : RoutableViewModel
 {
 	[AutoNotify] private uint256 _id;
-	[AutoNotify] private uint256 _blameOf;
+	[AutoNotify] private bool _isBlameRound;
+	[AutoNotify] private int _inputCount;
+	[AutoNotify] private decimal _maxSuggestedAmount;
+	[AutoNotify] private TimeSpan _inputRegistrationRemaining;
 	[AutoNotify] private Phase _phase;
-	[AutoNotify] private EndRoundState _endRoundState;
-	[AutoNotify] private DateTimeOffset _inputRegistrationStart;
-	[AutoNotify] private TimeSpan _inputRegistrationTimeout;
 
 	public RoundStateViewModel(RoundState roundState)
 	{
 		Id = roundState.Id;
-		BlameOf = roundState.BlameOf;
-		// TODO: AmountCredentialIssuerParameters
-		// TODO: VsizeCredentialIssuerParameters
+		IsBlameRound = roundState.BlameOf != uint256.Zero;
+		InputCount = roundState.CoinjoinState.Inputs.Count();
+		MaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount.ToDecimal(MoneyUnit.BTC);
+		InputRegistrationRemaining = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 		Phase = roundState.Phase;
-		EndRoundState = roundState.EndRoundState;
-		InputRegistrationStart = roundState.InputRegistrationStart;
-		InputRegistrationTimeout = roundState.InputRegistrationTimeout;
-		// TODO: CoinjoinState
 	}
 
 	public static Comparison<RoundStateViewModel?> SortAscending<T>(Func<RoundStateViewModel, T> selector)

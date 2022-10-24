@@ -44,7 +44,7 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Sort(SortExpressionComparer<RoundStateViewModel>
-				.Descending(x => x.InputRegistrationStart))
+				.Descending(x => x.Phase))
 			.Bind(_roundStates)
 			.Subscribe();
 
@@ -71,20 +71,58 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
 
-				// BlameOf
+				// IsBlameRound
 				new PrivacyTextColumn<RoundStateViewModel>(
-					"BlameOf",
-					x =>
-					{
-						var blameOf = x.BlameOf.ToString();
-						return blameOf.Substring(Math.Max(0, blameOf.Length - 6));
-					},
+					"IsBlameRound",
+					x => x.IsBlameRound.ToString(),
 					options: new ColumnOptions<RoundStateViewModel>
 					{
 						CanUserResizeColumn = false,
 						CanUserSortColumn = true,
-						CompareAscending = RoundStateViewModel.SortAscending(x => x.BlameOf),
-						CompareDescending = RoundStateViewModel.SortDescending(x => x.BlameOf),
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.IsBlameRound),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.IsBlameRound),
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+
+				// InputCount
+				new PrivacyTextColumn<RoundStateViewModel>(
+					"InputCount",
+					x => x.InputCount.ToString(),
+					options: new ColumnOptions<RoundStateViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.InputCount),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.InputCount),
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+
+				// MaxSuggestedAmount
+				new PrivacyTextColumn<RoundStateViewModel>(
+					"MaxSuggestedAmount",
+					x => x.MaxSuggestedAmount.ToString(),
+					options: new ColumnOptions<RoundStateViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.MaxSuggestedAmount),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.MaxSuggestedAmount),
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+
+				// InputRegistrationRemaining
+				new PrivacyTextColumn<RoundStateViewModel>(
+					"InputRegistrationRemaining",
+					x => $"{x.InputRegistrationRemaining:MM/dd/yyyy HH:mm}",
+					options: new ColumnOptions<RoundStateViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.InputRegistrationRemaining),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.InputRegistrationRemaining),
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
@@ -103,6 +141,26 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
 
+/*
+				// BlameOf
+				new PrivacyTextColumn<RoundStateViewModel>(
+					"BlameOf",
+					x =>
+					{
+						var blameOf = x.BlameOf.ToString();
+						return blameOf.Substring(Math.Max(0, blameOf.Length - 6));
+					},
+					options: new ColumnOptions<RoundStateViewModel>
+					{
+						CanUserResizeColumn = false,
+						CanUserSortColumn = true,
+						CompareAscending = RoundStateViewModel.SortAscending(x => x.BlameOf),
+						CompareDescending = RoundStateViewModel.SortDescending(x => x.BlameOf),
+					},
+					width: new GridLength(0, GridUnitType.Auto),
+					numberOfPrivacyChars: 9),
+*/
+/*
 				// EndRoundState
 				new PrivacyTextColumn<RoundStateViewModel>(
 					"EndRoundState",
@@ -144,6 +202,7 @@ public partial class CoinJoinMonitorViewModel : RoutableViewModel
 					},
 					width: new GridLength(0, GridUnitType.Auto),
 					numberOfPrivacyChars: 9),
+*/
 			}
 		};
 
