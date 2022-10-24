@@ -58,33 +58,31 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <DockPanel>
 
-      <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 10 0 0" Spacing="2">
-        <TextBlock Text="References:" Classes="h8" VerticalAlignment="Center" />
-        <ItemsControl Items="{Binding References}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <StackPanel Orientation="Horizontal">
-                <Path Classes.private="{Binding IsPrivate}"
-                      Classes.semiPrivate="{Binding IsSemiPrivate}"
-                      Classes.nonPrivate="{Binding IsNonPrivate}"
-                      Classes.unconfirmed="{Binding Unconfirmed}"
-                      VerticalAlignment="Center" Margin="5 2 0 0"
-                      IsHitTestVisible="False">
-                  <Path.Data>
-                    <EllipseGeometry RadiusX="5" RadiusY="5" Center="2.5,2.5" />
-                  </Path.Data>
-                </Path>
-                <TextBlock Text="{Binding Reference}" Margin="5" Classes="h8" VerticalAlignment="Center" Opacity="0.6" />
-              </StackPanel>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </StackPanel>
+      <ItemsControl Items="{Binding References}"
+                    DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 10 0 0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <Path Classes.private="{Binding IsPrivate}"
+                    Classes.semiPrivate="{Binding IsSemiPrivate}"
+                    Classes.nonPrivate="{Binding IsNonPrivate}"
+                    Classes.unconfirmed="{Binding Unconfirmed}"
+                    VerticalAlignment="Center" Margin="5 2 0 0"
+                    IsHitTestVisible="False">
+                <Path.Data>
+                  <EllipseGeometry RadiusX="5" RadiusY="5" Center="2.5,2.5" />
+                </Path.Data>
+              </Path>
+              <TextBlock Text="{Binding Reference}" Margin="5" Classes="h8" VerticalAlignment="Center" Opacity="0.6" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
 
       <Panel x:Name="Panel">
         <i:Interaction.Behaviors>
