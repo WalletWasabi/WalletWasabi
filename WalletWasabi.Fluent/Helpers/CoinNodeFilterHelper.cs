@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.ViewModels.CoinSelection.Core;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class CoinNodeFilterHelper
+public static class CoinNodeFilterHelper
 {
 	public static Func<TreeNode, bool> FilterFunction<T>(string? text) where T : ICoin
 	{
