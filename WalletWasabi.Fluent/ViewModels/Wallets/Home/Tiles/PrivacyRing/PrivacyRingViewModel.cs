@@ -64,26 +64,24 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			.Subscribe()
 			.DisposeWith(disposables);
 
+		var sizeTrigger =
+			this.WhenAnyValue(x => x.Width, x => x.Height)
+				.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
+				.Throttle(TimeSpan.FromMilliseconds(100));
+
 		_walletViewModel.UiTriggers
 						.PrivacyProgressUpdateTrigger
-						.Select(_ => _walletViewModel.Wallet.GetPockets())
+						.CombineLatest(sizeTrigger)
 						.ObserveOn(RxApp.MainThreadScheduler)
-						.Subscribe(_ => RefreshCoinsList(itemsSourceList))
+						.Subscribe(x =>
+						{
+							var usableHeight = x.Second.Item2;
+							var usableWidth = x.Second.Item1;
+							Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
+							NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
+							RefreshCoinsList(itemsSourceList);
+						})
 						.DisposeWith(disposables);
-
-		this.WhenAnyValue(x => x.Width, x => x.Height)
-			.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
-			{
-				var usableHeight = x.Item2;
-				var usableWidth = x.Item1;
-				Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
-				NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
-				RefreshCoinsList(itemsSourceList);
-			})
-			.DisposeWith(disposables);
 	}
 
 	private void RefreshCoinsList(SourceList<PrivacyRingItemViewModel> itemsSourceList)
