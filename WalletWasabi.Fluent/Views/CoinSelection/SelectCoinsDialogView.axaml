@@ -101,21 +101,21 @@
 
     </controls:ContentArea.Styles>
 
-    <DockPanel>
-
-      <DockPanel DockPanel.Dock="Top" Margin="0 0 0 10">
-        <DockPanel.Styles>
+    <controls:ContentArea.Title>
+      <TextBox Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
+        <TextBox.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
           </Style>
-        </DockPanel.Styles>
-        <TextBox Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label" />
-      </DockPanel>
+        </TextBox.Styles>
+      </TextBox>
+    </controls:ContentArea.Title>
+
+    <DockPanel>
 
       <Panel DockPanel.Dock="Bottom" Margin="0 12 0 0" TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}">
         <ProgressBar Height="25" Maximum="{Binding RequiredAmount^.Satoshi}" Value="{Binding SelectedAmount^.Satoshi, Mode=OneWay}" />
-        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center"
-                   Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
+        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
         <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !EnoughSelected^}"
                    Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
       </Panel>
