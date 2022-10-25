@@ -38,6 +38,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 		var itemsSourceList = new SourceList<PrivacyBarItemViewModel>();
 
 		itemsSourceList
+			.DisposeWith(disposables)
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(Items)
