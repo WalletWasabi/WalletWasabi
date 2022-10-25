@@ -9,9 +9,9 @@ internal static class PrivacyLevelHelper
 		return privacyLevel switch
 		{
 			PrivacyLevel.None => "(Invalid privacy level)",
-			PrivacyLevel.SemiPrivate => "Semi-private",
-			PrivacyLevel.Private => "Private",
-			PrivacyLevel.NonPrivate => "Unknown People",
+			PrivacyLevel.SemiPrivate => CoinPocketHelper.SemiPrivateFundsText,
+			PrivacyLevel.Private => CoinPocketHelper.PrivateFundsText,
+			PrivacyLevel.NonPrivate => CoinPocketHelper.UnlabelledFundsText,
 			_ => throw new ArgumentOutOfRangeException(nameof(privacyLevel), privacyLevel, null)
 		};
 	}
