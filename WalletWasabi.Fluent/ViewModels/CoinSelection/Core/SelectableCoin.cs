@@ -21,10 +21,12 @@ public partial class SelectableCoin : ReactiveObject, ISelectable, ICoin
 
 	public SelectableCoin(ICoin coin)
 	{
-		Coin = coin;
-
-		Amount = Money.Zero;
-
+		_coin = coin;
+		_amount = Money.Zero;
+		_amount = Money.Zero;
+		_outPoint = OutPoint.Zero;
+		_smartLabel = SmartLabel.Empty;
+		
 		this.WhenAnyValue(x => x.Coin.Amount).BindTo(this, x => x.Amount);
 		this.WhenAnyValue(x => x.Coin.AnonymitySet).BindTo(this, x => x.AnonymitySet);
 		this.WhenAnyValue(x => x.Coin.IsConfirmed).BindTo(this, x => x.IsConfirmed);
