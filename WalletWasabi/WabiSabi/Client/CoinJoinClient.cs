@@ -358,9 +358,6 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
-
-				personCircuit?.Dispose();
-				return (null, null);
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -380,23 +377,20 @@ public class CoinJoinClient
 				{
 					Logger.LogDebug(ex);
 				}
-
-				personCircuit?.Dispose();
-				return (null, null);
 			}
 			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
 			{
 				lastAbortedNotEnoughAlicesException = ex;
 				Logger.LogTrace(ex);
-				personCircuit?.Dispose();
-				return (null, null);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
-				personCircuit?.Dispose();
-				return (null, null);
 			}
+
+			// In case of any exception.
+			personCircuit?.Dispose();
+			return (null, null);
 		}
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
@@ -484,7 +478,6 @@ public class CoinJoinClient
 				{
 					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
-
 			})
 			.ToImmutableArray();
 
