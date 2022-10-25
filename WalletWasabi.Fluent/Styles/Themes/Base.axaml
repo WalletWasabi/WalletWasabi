@@ -64,10 +64,6 @@
     <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#3E992F" />
     <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#B8B8B8" />
 
-    <SolidColorBrush x:Key="PrivacyLevelNonPrivate" Color="{DynamicResource TextForegroundColor}" />
-    <SolidColorBrush x:Key="PrivacyLevelSemiPrivate" Color="#A9C35E" />
-    <SolidColorBrush x:Key="PrivacyLevelPrivate" Color="#3E992F" />
-
     <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="#72BD81" />
     <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="#72BD81" />
 
