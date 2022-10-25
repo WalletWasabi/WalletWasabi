@@ -105,7 +105,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => new List<ICoin>());
 	}
 
 	public LabelBasedCoinSelectionViewModel LabelBasedSelection { get; }
