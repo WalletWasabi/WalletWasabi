@@ -29,7 +29,7 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_showPrivacyBar = showPrivacyBar;
 
 		var showDetailsCanExecute =
-			walletVm.WhenAnyValue(x => x.IsEmptyWallet)
+			walletVm.WhenAnyValue(x => x.IsWalletBalanceZero)
 					.Select(x => !x);
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, showDetailsCanExecute);
