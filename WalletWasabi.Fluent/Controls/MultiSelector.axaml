@@ -9,7 +9,7 @@
     <!-- Set Defaults -->
     <Setter Property="Template">
       <ControlTemplate>
-        <CheckBox Command="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Toggle}" IsChecked="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsChecked^}" />
+        <CheckBox Focusable="False" Command="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Toggle}" IsChecked="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsChecked^}" />
       </ControlTemplate>
     </Setter>
   </Style>

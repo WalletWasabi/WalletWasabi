@@ -7,5 +7,5 @@
              x:Class="WalletWasabi.Fluent.Views.CoinSelection.Core.Cells.CoinSelectionCellView"
              x:DataType="cells:CoinSelectionCellViewModel"
              x:CompileBindings="True">
-  <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding IsEnabled}" />
+  <CheckBox Focusable="False" IsChecked="{Binding IsSelected}" IsEnabled="{Binding IsEnabled}" />
 </UserControl>
