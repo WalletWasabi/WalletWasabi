@@ -34,6 +34,8 @@ public class WhaleCoinjoinTests
 	public void ScoreForWhales()
 	{
 		decimal whaleAmountBtc = 1;
+		double otherClientsAmountMin = 0.0005;
+		double otherClientsAmountMax = 0.05;
 		var nbOtherClients = 30;
 		var otherNbInputs = 150;
 
@@ -54,6 +56,7 @@ public class WhaleCoinjoinTests
 
 		_testOutputHelper.WriteLine($"WhaleCoin: {whaleCoins.First().Amount} BTC");
 
+		var totalVSizeWhale = 0;
 		var counter = 0;
 		while (whaleMinInputAnonSet < 100)
 		{
@@ -67,7 +70,7 @@ public class WhaleCoinjoinTests
 
 			whaleSmartCoins.Remove(whaleSelectedSmartCoins);
 
-			var otherSmartCoins = CreateOtherSmartCoins(otherHdPub, otherNbInputs, whaleAmountBtc);
+			var otherSmartCoins = CreateOtherSmartCoins(otherHdPub, otherNbInputs, whaleAmountBtc, otherClientsAmountMin, otherClientsAmountMax);
 			var otherSelectedSmartCoins = new List<List<SmartCoin>>();
 			var otherSelectedCoins = new List<IEnumerable<Coin>>();
 			var otherOutputs = new List<List<(Money, int)>>();
@@ -90,20 +93,23 @@ public class WhaleCoinjoinTests
 
 			var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), whaleInputs, whaleOutputs);
 			analyser.Analyze(tx);
+
 			whaleSmartCoins.Add(tx.WalletOutputs.ToList());
 			whaleMinInputAnonSet = whaleSmartCoins.Min(x => x.HdPubKey.AnonymitySet);
+			totalVSizeWhale += tx.WalletInputs.Sum(x => x.ScriptPubKey.EstimateInputVsize());
 
 			if (counter % 25 == 0)
 			{
-				DisplayWhaleCoinsAnonSet(counter, _testOutputHelper, whaleSmartCoins);
+				DisplayWhaleCoinsAnonSet(counter, totalVSizeWhale, _testOutputHelper, whaleSmartCoins);
 			}
 		}
 
-		_testOutputHelper.WriteLine($"FINISHED after {counter} rounds");
+		_testOutputHelper.WriteLine($"FINISHED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
 	}
 
-	private static void DisplayWhaleCoinsAnonSet(int counter, ITestOutputHelper testOutputHelper, IEnumerable<SmartCoin> whaleSmartCoins)
+	private static void DisplayWhaleCoinsAnonSet(int counter, int totalVSizeWhale, ITestOutputHelper testOutputHelper, IEnumerable<SmartCoin> whaleSmartCoins)
 	{
+		testOutputHelper.WriteLine($"Total vSize Whale: {totalVSizeWhale}");
 		testOutputHelper.WriteLine($"WhaleCoin after {counter} rounds");
 		testOutputHelper.WriteLine($"Coin       AnonSet");
 		var whaleSmartCoinsOrdered = whaleSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
@@ -113,7 +119,7 @@ public class WhaleCoinjoinTests
 		}
 	}
 
-	private static List<List<SmartCoin>> CreateOtherSmartCoins(IReadOnlyList<HdPubKey> otherHdPub, int otherNbInputs, decimal whaleAmountBtc)
+	private static List<List<SmartCoin>> CreateOtherSmartCoins(IReadOnlyList<HdPubKey> otherHdPub, int otherNbInputs, decimal whaleAmountBtc, double otherClientsAmountMin, double otherClientsAmountMax)
 	{
 		var nbOtherClients = otherHdPub.Count;
 		var otherSmartCoins = new List<List<SmartCoin>>();
@@ -124,7 +130,7 @@ public class WhaleCoinjoinTests
 			var listCoinsCurrentOther = new List<SmartCoin>();
 			for (var j = 0; j < i; j++)
 			{
-				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], (whaleAmountBtc * (decimal)GetRandomDouble(rnd))));
+				listCoinsCurrentOther.Add(BitcoinFactory.CreateSmartCoin(otherHdPub[otherIndex], (whaleAmountBtc * (decimal)GetRandomDouble(rnd, otherClientsAmountMin, otherClientsAmountMax))));
 			}
 
 			otherIndex++;
@@ -174,11 +180,9 @@ public class WhaleCoinjoinTests
 		return roundParams;
 	}
 
-	private static double GetRandomDouble(Random rnd)
+	private static double GetRandomDouble(Random rnd, double min, double max)
 	{
-		double random = rnd.Next(5, 500);
-		double ratio = random / 10000;
-		return ratio;
+		return rnd.NextDouble() * (max - min) + min;
 	}
 
 	public static IEnumerable<int> DivideEvenly(int numerator, int denominator)
