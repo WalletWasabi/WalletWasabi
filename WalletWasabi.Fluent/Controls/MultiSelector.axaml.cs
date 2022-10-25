@@ -35,13 +35,13 @@ public class MultiSelector : ItemsControl, IDisposable
 
         var isSelectedSubject = new BehaviorSubject<bool?>(false);
         isSelected.Subscribe(isSelectedSubject);
-        
-        Toggle = ReactiveCommand.CreateFromObservable(() =>
-            {
-                var currentValue = isSelectedSubject.Value;
-                return ToggleChildrenSelection(changes, GetNextValue(currentValue));
-            })
-            .DisposeWith(_disposables);
+	        
+        Toggle = ReactiveCommand.CreateFromObservable(
+	        () =>
+	        {
+		        var currentValue = isSelectedSubject.Value;
+		        return ToggleChildrenSelection(changes, GetNextValue(currentValue));
+	        });
 
         IsChecked = isSelected
 	        .CombineLatest(Toggle.IsExecuting)
@@ -50,7 +50,7 @@ public class MultiSelector : ItemsControl, IDisposable
 	        .ReplayLastActive();
     }
 
-    public ReactiveCommand<Unit, IReadOnlyCollection<ISelectable>> Toggle { get; }
+    public ReactiveCommand<Unit, Unit> Toggle { get; }
 
     public IObservable<bool?> IsChecked { get; }
 
@@ -70,7 +70,7 @@ public class MultiSelector : ItemsControl, IDisposable
         return collection.All(x => x.IsSelected) ? true : collection.Any(x => x.IsSelected) ? null : false;
     }
 
-    private static IObservable<IReadOnlyCollection<ISelectable>> ToggleChildrenSelection(IObservable<IChangeSet<ISelectable>> changes, bool getNextValue)
+    private static IObservable<Unit> ToggleChildrenSelection(IObservable<IChangeSet<ISelectable>> changes, bool getNextValue)
     {
 	    return changes
 		    .ToCollection()
@@ -80,7 +80,8 @@ public class MultiSelector : ItemsControl, IDisposable
 				    var isChildSelected = getNextValue;
 				    collection.ToList().ForEach(notify => notify.IsSelected = isChildSelected);
 			    })
-		    .Take(1);
+		    .Take(1)
+		    .ToSignal();
     }
 
     private static bool GetNextValue(bool? currentValue)
