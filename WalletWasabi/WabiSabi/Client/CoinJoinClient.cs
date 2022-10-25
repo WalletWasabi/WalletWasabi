@@ -287,7 +287,7 @@ public class CoinJoinClient
 	{
 		int eventInvokedAlready = 0;
 
-		UnexpectedRoundPhaseException? lastAbortedNotEnoughAlicesException = null;
+		UnexpectedRoundPhaseException? lastUnexpectedRoundPhaseException = null;
 
 		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
@@ -378,9 +378,9 @@ public class CoinJoinClient
 					Logger.LogDebug(ex);
 				}
 			}
-			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
+			catch (UnexpectedRoundPhaseException ex)
 			{
-				lastAbortedNotEnoughAlicesException = ex;
+				lastUnexpectedRoundPhaseException = ex;
 				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
@@ -424,10 +424,10 @@ public class CoinJoinClient
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
 
-		if (!successfulAlices.Any() && lastAbortedNotEnoughAlicesException is { })
+		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
 		{
 			// In this case the coordinator aborted the round - throw only one exception and log outside.
-			throw lastAbortedNotEnoughAlicesException;
+			throw lastUnexpectedRoundPhaseException;
 		}
 
 		return successfulAlices;
