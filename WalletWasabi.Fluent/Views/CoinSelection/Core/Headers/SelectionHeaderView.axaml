@@ -9,23 +9,23 @@
              x:DataType="headers:SelectionHeaderViewModel"
              ClipToBounds="False"
              x:CompileBindings="True">
-  <StackPanel Orientation="Horizontal" Margin="-10 0 0 0">
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="-12 0 0 0">
 
-    <controls:DropDownContentControl MenuItems="{Binding Commands}" DropDownButtonBrush="Transparent">
+    <controls:DropDownContentControl Padding="0" MenuItems="{Binding Commands}" DropDownButtonBrush="Transparent">
       <controls:DropDownContentControl.Styles>
         <Style Selector="MenuItem" x:CompileBindings="False">
           <Setter Property="Header" Value="{Binding Name}" />
           <Setter Property="Command" Value="{Binding Command}" />
         </Style>
       </controls:DropDownContentControl.Styles>
-      <controls:MultiSelector Padding="0" HorizontalAlignment="Center" Items="{Binding Selectables}" />
-    </controls:DropDownContentControl>
 
-    <Panel ToolTip.Tip="Number of selected coins">
-      <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}" />
-      <TextBlock Text="{Binding Text^}" Foreground="{DynamicResource AcrylicTrimForeground}" VerticalAlignment="Center"
-                 HorizontalAlignment="Center" Classes="h9" />
-    </Panel>
+      <Panel ToolTip.Tip="Number of selected coins" Margin="5 0 0 0">
+        <Ellipse Width="20" Height="20" Fill="{DynamicResource SystemAccentColor}" />
+        <TextBlock Text="{Binding Text^}" Foreground="{DynamicResource AcrylicTrimForeground}" VerticalAlignment="Center"
+                   HorizontalAlignment="Center" Classes="h9" />
+      </Panel>
+
+    </controls:DropDownContentControl>
 
   </StackPanel>
 </UserControl>
