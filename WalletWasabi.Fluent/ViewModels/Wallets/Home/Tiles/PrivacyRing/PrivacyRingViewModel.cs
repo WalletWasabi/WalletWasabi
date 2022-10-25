@@ -75,6 +75,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	public PrivacyControlTileViewModel PrivacyTile { get; }
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
+	public ObservableCollectionExtended<PrivacyRingItemViewModel> References { get; } = new();
 	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
 
 	public Wallet Wallet { get; }
@@ -113,6 +114,16 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
 		PreviewItems.AddRange(list);
+
+		References.Clear();
+
+		var references =
+			list.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
+				.Select(x => x.First())
+				.OrderBy(list.IndexOf)
+				.ToList();
+
+		References.AddRange(references);
 	}
 
 	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets)
