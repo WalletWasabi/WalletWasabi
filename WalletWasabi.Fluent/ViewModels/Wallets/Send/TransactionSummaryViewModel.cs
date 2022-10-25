@@ -20,7 +20,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
-	[AutoNotify] private bool _isOtherPocketSelectionPossible;
+	[AutoNotify] private bool _isEditCoinsEnabled;
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
 
@@ -74,6 +74,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Recipient = info.Recipient;
 
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
-		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
+		IsEditCoinsEnabled = info.IsAutomaticSelectionEnabled
+			? info.IsOtherPocketSelectionPossible
+			: _transaction.SpentCoins.Sum(x => x.Amount) != _wallet.Coins.TotalAmount();
 	}
 }
