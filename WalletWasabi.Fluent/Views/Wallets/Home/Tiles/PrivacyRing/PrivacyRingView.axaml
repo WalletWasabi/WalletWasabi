@@ -6,8 +6,8 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             xmlns:tilesView="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:ring="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing"
+             xmlns:ringView="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingView"
              x:Name="View">
@@ -136,40 +136,38 @@
           </Carousel.PageTransition>
           <Carousel.DataTemplates>
             <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
-              <tilesView:PrivacyControlTileView Width="300" Height="150" IsEnabled="False">
+              <ringView:PrivacyRingDetailsView IsEnabled="False" Height="90" Width="230">
                 <i:Interaction.Behaviors>
                   <behaviors:FadeInBehavior InitialDelay="0:0:1" />
                 </i:Interaction.Behaviors>
-              </tilesView:PrivacyControlTileView>
+              </ringView:PrivacyRingDetailsView>
             </DataTemplate>
             <DataTemplate DataType="{x:Type ring:PrivacyRingItemViewModel}">
-              <c:TileControl TileSize="Medium" Width="300" Height="150">
-                <DockPanel>
-                  <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
-                  <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8">
-                    <Separator />
-                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                      <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" IsVisible="{Binding !IsNonPrivate}">
-                        <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
-                                BorderBrush="{StaticResource ButtonForeground}">
-                          <TextBlock
-                            Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        </Border>
-                      </StackPanel>
-                      <TextBlock Text="{Binding Coin.AnonymitySet, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              <DockPanel Width="230" Height="90">
+                <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+                <StackPanel DockPanel.Dock="Bottom" Spacing="8">
+                  <Separator />
+                  <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                    <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" IsVisible="{Binding !IsNonPrivate}">
+                      <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                              BorderBrush="{StaticResource ButtonForeground}">
+                        <TextBlock
+                          Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </Border>
                     </StackPanel>
+                    <TextBlock Text="{Binding Coin.AnonymitySet, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
                   </StackPanel>
+                </StackPanel>
 
-                  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 3">
-                    <TextBlock
-                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                      TextAlignment="Center"
-                      Text="{Binding AmountText}" Classes="h3" />
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 3">
+                  <TextBlock
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    TextAlignment="Center"
+                    Text="{Binding AmountText}" Classes="h3" />
 
-                    <TextBlock Text="{Binding Coin.Confirmations, StringFormat='Confirmations: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                  </StackPanel>
-                </DockPanel>
-              </c:TileControl>
+                  <TextBlock Text="{Binding Coin.Confirmations, StringFormat='Confirmations: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </StackPanel>
+              </DockPanel>
             </DataTemplate>
           </Carousel.DataTemplates>
         </Carousel>
