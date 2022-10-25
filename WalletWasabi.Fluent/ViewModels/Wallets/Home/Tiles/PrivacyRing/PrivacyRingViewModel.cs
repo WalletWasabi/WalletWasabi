@@ -56,6 +56,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var itemsSourceList = new SourceList<PrivacyRingItemViewModel>();
 
 		itemsSourceList
+			.DisposeWith(disposables)
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(Items)
