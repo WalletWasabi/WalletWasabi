@@ -129,8 +129,8 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 			this switch
 			{
 				{ IsPrivate: true } => "Private",
-				{ IsSemiPrivate: true } => "Semi private",
-				{ IsNonPrivate: true } => "Non private",
+				{ IsSemiPrivate: true } => "Semi-private",
+				{ IsNonPrivate: true } => "Non-private",
 				_ => "[Unknown]"
 			};
 	}
