@@ -37,7 +37,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		_walletViewModel = walletViewModel;
 		_transactionInfo = transactionInfo;
 
-		var coinChanges = walletViewModel.UiTriggers.BalanceUpdateTrigger
+		var coinChanges = walletViewModel.UiTriggers.TransactionsUpdateTrigger
 			.StartWith(Unit.Default)
 			.SelectMany(_ => GetCoins())
 			.ToObservableChangeSet(x => x.OutPoint)
