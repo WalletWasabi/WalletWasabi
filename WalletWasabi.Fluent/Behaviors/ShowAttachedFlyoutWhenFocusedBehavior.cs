@@ -56,6 +56,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		if (IsFlyoutOpen)
 		{
 			controller.SetIsForcedOpen(false);
+			IsFlyoutOpen = false;
 		}
 	}
 
