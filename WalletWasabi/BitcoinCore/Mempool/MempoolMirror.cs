@@ -66,7 +66,7 @@ public class MempoolMirror : PeriodicRunner
 		{
 			foreach (var tx in txs.Where(x => !Mempool.ContainsKey(x.GetHash())))
 			{
-				// Evict double spents.
+				// Evict double spends.
 				EvictSpendersNoLock(tx.Inputs.Select(x => x.PrevOut));
 
 				Mempool.Add(tx.GetHash(), tx);
