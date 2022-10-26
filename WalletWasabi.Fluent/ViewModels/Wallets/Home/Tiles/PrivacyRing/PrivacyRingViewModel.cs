@@ -130,7 +130,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 										 .OrderBy(x => (int)x.Key)
 										 .ToList();
 
-		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
 
 		foreach (var group in groupsByPrivacy)
@@ -139,7 +139,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 			foreach (var coin in coins)
 			{
-				var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+				var end = start + (Math.Abs(coin.Amount.ToDecimal(MoneyUnit.BTC)) / total);
 
 				var item = new PrivacyRingItemViewModel(this, coin, (double)start, (double)end);
 
@@ -152,7 +152,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByPrivacyLevel()
 	{
-		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var start = 0.0m;
 
 		var groupsByPrivacy =
@@ -163,7 +163,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		foreach (var group in groupsByPrivacy)
 		{
 			var groupAmount =
-				group.Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
+				group.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 
 			var end = start + (Math.Abs(groupAmount) / total);
 
