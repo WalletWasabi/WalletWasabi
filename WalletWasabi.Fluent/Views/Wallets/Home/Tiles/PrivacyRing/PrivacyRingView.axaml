@@ -95,7 +95,7 @@
                  SelectedItem="{Binding SelectedItem}"
                  x:Name="Ring" Margin="{Binding Margin}">
           <i:Interaction.Behaviors>
-            <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="1000" />
+            <behaviors:ListBoxPreviewBehavior PreviewItem="{Binding SelectedItem, Mode=TwoWay}" Delay="250" />
             <behaviors:ItemsControlAnimationBehavior />
           </i:Interaction.Behaviors>
           <ListBox.Template>
