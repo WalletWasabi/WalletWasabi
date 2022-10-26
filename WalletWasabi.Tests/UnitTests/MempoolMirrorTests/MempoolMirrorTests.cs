@@ -8,7 +8,10 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests;
 
-public class MirrorMempoolTests
+/// <summary>
+/// Tests for <see cref="MempoolMirror"/>.
+/// </summary>
+public class MempoolMirrorTests
 {
 	[Fact]
 	public async Task CanCopyMempoolFromRpcAsync()
