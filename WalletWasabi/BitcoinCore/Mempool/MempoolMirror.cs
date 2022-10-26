@@ -57,7 +57,7 @@ public class MempoolMirror : PeriodicRunner
 		AddTransactions(stx.Transaction);
 	}
 
-	private int AddTransactions(params Transaction[] txs) => AddTransactions(txs as IEnumerable<Transaction>);
+	internal int AddTransactions(params Transaction[] txs) => AddTransactions(txs as IEnumerable<Transaction>);
 
 	private int AddTransactions(IEnumerable<Transaction> txs)
 	{
