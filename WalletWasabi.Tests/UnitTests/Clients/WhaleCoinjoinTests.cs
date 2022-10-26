@@ -12,22 +12,25 @@ using Xunit;
 using WalletWasabi.Helpers;
 using WalletWasabi.Extensions;
 using WalletWasabi.Crypto.Randomness;
-using Moq;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using DynamicData;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using Xunit.Abstractions;
-using Xunit.Sdk;
+using System.IO;
 
 namespace WalletWasabi.Tests.UnitTests.Clients;
 
 public class WhaleCoinjoinTests
 {
-	private readonly ITestOutputHelper _testOutputHelper;
+	private ITestOutputHelper TestOutputHelper { get; }
+	private string OutputFilePath { get; }
 
 	public WhaleCoinjoinTests(ITestOutputHelper testOutputHelper)
 	{
-		_testOutputHelper = testOutputHelper;
+		TestOutputHelper = testOutputHelper;
+		var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(WhaleCoinjoinTests), "Output"));
+		var date = DateTime.Now.ToString("Md_HHmmss");
+		OutputFilePath = Path.Combine(outputFolder.FullName, $"Outputs{date}.txt");
 	}
 
 	[Theory]
@@ -45,6 +48,7 @@ public class WhaleCoinjoinTests
 		var analyser = new BlockchainAnalyzer();
 		var whaleMinInputAnonSet = 1.0;
 
+		RoundParameters roundParams = CreateMultipartyTransactionParameters();
 		KeyManager km = KeyManager.CreateNew(out _, "", Network.RegTest);
 		HdPubKey hdPub = BitcoinFactory.CreateHdPubKey(km);
 		HdPubKey[] otherHdPub = new HdPubKey[nbOtherClients];
@@ -62,7 +66,7 @@ public class WhaleCoinjoinTests
 		while (whaleMinInputAnonSet < anonScoreTarget || counter >= maxTestRounds)
 		{
 			counter++;
-			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins, anonScoreTarget, mockSecureRandom);
+			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins, anonScoreTarget, roundParams, mockSecureRandom);
 			var whaleSelectedCoins = whaleSelectedSmartCoins.Select(sm => sm.Coin);
 			if (!whaleSelectedCoins.Any())
 			{
@@ -78,7 +82,7 @@ public class WhaleCoinjoinTests
 
 			foreach (var other in otherSmartCoins)
 			{
-				var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, mockSecureRandom);
+				var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom);
 				otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
 				var tmpSelectedCoins = tmpSelectedSmartCoins.Select(x => x.Coin);
 				otherSelectedCoins.Add(tmpSelectedCoins);
@@ -91,7 +95,7 @@ public class WhaleCoinjoinTests
 
 			var whaleInputs = whaleSelectedSmartCoins.Select(x => (x.Amount, (int)x.HdPubKey.AnonymitySet));
 			var whaleOutputs = DecomposeWithAnonSet(whaleSelectedCoins, otherSelectedCoins.SelectMany(x => x), mockSecureRandom);
-			_testOutputHelper.WriteLine($"whaleSelectedCoins: {whaleSelectedCoins.Sum(x => x.Amount)}, otherSmartCoins: {otherSmartCoins.SelectMany(x => x).Sum(x => x.Amount)}, otherSelectedCoins: {otherSelectedCoins.SelectMany(x => x).Sum(x => x.Amount)}, whaleOutputs: {whaleOutputs.Sum(x => x.Item1.Satoshi)}, whaleOutputsCount: {whaleOutputs.Count}, whaleOutputs: {otherOutputs.SelectMany(x => x).Sum(x => x.Item1.Satoshi)}, otherOutputsCount: {otherOutputs.SelectMany(x => x).Count()}, whaleSum: {whaleInputs.Sum(x => x.Item1)} - otherSum: {otherSelectedCoins.SelectMany(x => x).Sum(x => x.Amount)}");
+			WriteLine($"whaleSelectedCoins: {whaleSelectedCoins.Sum(x => x.Amount)}, otherSmartCoins: {otherSmartCoins.SelectMany(x => x).Sum(x => x.Amount)}, otherSelectedCoins: {otherSelectedCoins.SelectMany(x => x).Sum(x => x.Amount)}, whaleOutputs: {whaleOutputs.Sum(x => x.Item1.Satoshi)}, whaleOutputsCount: {whaleOutputs.Count}, whaleOutputs: {otherOutputs.SelectMany(x => x).Sum(x => x.Item1.Satoshi)}, otherOutputsCount: {otherOutputs.SelectMany(x => x).Count()}, whaleSum: {whaleInputs.Sum(x => x.Amount)} - otherSum: {otherSelectedCoins.SelectMany(x => x).Sum(x => x.Amount)}");
 			var tx = BitcoinFactory.CreateSmartTransaction(otherSelectedCoins.SelectMany(x => x).Count(), otherOutputs.SelectMany(x => x).Select(x => x.Item1), whaleInputs, whaleOutputs);
 			analyser.Analyze(tx);
 
@@ -101,12 +105,12 @@ public class WhaleCoinjoinTests
 
 			if (counter % displayWhaleCoinsEachRounds == 0)
 			{
-				DisplayWhaleCoinsAnonSet(counter, totalVSizeWhale, _testOutputHelper, whaleSmartCoins);
+				DisplayWhaleCoinsAnonSet(counter, totalVSizeWhale, whaleSmartCoins);
 			}
 		}
 
-		_testOutputHelper.WriteLine($"whaleAmountBtc: {whaleAmountBtc}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
-		_testOutputHelper.WriteLine(counter >= maxTestRounds
+		WriteLine($"whaleAmountBtc: {whaleAmountBtc}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
+		WriteLine(counter >= maxTestRounds
 			? $"FAILED whaleMinInputAnonSet only reached {whaleMinInputAnonSet} after {counter} rounds"
 			: $"PASSED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
 	}
@@ -131,15 +135,22 @@ public class WhaleCoinjoinTests
 		}
 	}
 
-	private static void DisplayWhaleCoinsAnonSet(int counter, int totalVSizeWhale, ITestOutputHelper testOutputHelper, IEnumerable<SmartCoin> whaleSmartCoins)
+	private void WriteLine(string content)
 	{
-		testOutputHelper.WriteLine($"Total vSize Whale: {totalVSizeWhale}");
-		testOutputHelper.WriteLine($"WhaleCoin after {counter} rounds");
-		testOutputHelper.WriteLine($"Coin       AnonSet");
+		TestOutputHelper.WriteLine(content);
+		using StreamWriter sw = new(OutputFilePath, append: true);
+		sw.WriteLine(content);
+	}
+
+	private void DisplayWhaleCoinsAnonSet(int counter, int totalVSizeWhale, IEnumerable<SmartCoin> whaleSmartCoins)
+	{
+		WriteLine($"Total vSize Whale: {totalVSizeWhale}");
+		WriteLine($"WhaleCoin after {counter} rounds");
+		WriteLine($"Coin       AnonSet");
 		var whaleSmartCoinsOrdered = whaleSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
 		foreach (var whaleSC in whaleSmartCoinsOrdered)
 		{
-			testOutputHelper.WriteLine($"{whaleSC.Amount} {(int)Math.Round(whaleSC.HdPubKey.AnonymitySet)}");
+			WriteLine($"{whaleSC.Amount} {(int)Math.Round(whaleSC.HdPubKey.AnonymitySet)}");
 		}
 	}
 
@@ -163,11 +174,11 @@ public class WhaleCoinjoinTests
 		return otherSmartCoins;
 	}
 
-	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, TestRandomSeed mockSecureRandom)
+	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom)
 	{
 		return CoinJoinClient.SelectCoinsForRound(
 			coins: sc,
-			CreateMultipartyTransactionParameters(),
+			roundParams,
 			consolidationMode: false,
 			anonScoreTarget: anonScoreTarget,
 			redCoinIsolation: false,
@@ -211,8 +222,7 @@ public class WhaleCoinjoinTests
 
 	public static IEnumerable<int> DivideEvenly(int numerator, int denominator)
 	{
-		int rem;
-		int div = Math.DivRem(numerator, denominator, out rem);
+		int div = Math.DivRem(numerator, denominator, out int rem);
 
 		for (int i = 0; i < denominator; i++)
 		{
