@@ -23,7 +23,11 @@ public class UiTriggers
 	/// Triggers on subscription and when a transaction to the wallet is processed.
 	/// </summary>
 	public IObservable<Unit> TransactionsUpdateTrigger =>
-		Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal().StartWith(Unit.Default);
+		Observable
+			.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.ToSignal()
+			.StartWith(Unit.Default);
 
 	/// <summary>
 	/// Triggers on subscription and when the USD exchange rate changed.
