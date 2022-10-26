@@ -97,7 +97,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
 		{
-			result = CreateCoinSegments();
+			result = CreateSegmentsByCoin();
 		}
 		else
 		{
@@ -123,7 +123,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		References.AddRange(references);
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments()
+	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin()
 	{
 		var groupsByPrivacy =
 			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
