@@ -86,7 +86,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 
 			RecentTransactionName = isIncoming ? "Incoming" : "Outgoing";
 			RecentTransactionDate = recent.DateString;
-			RecentTransactionStatus = $"{(isIncoming ? recent.IncomingAmount : recent.OutgoingAmount)} BTC - {(recent.IsConfirmed ? "Confirmed" : "Pending")}";
+			RecentTransactionStatus = $"{(isIncoming ? recent.IncomingAmount : recent.OutgoingAmount)} BTC - {(recent.IsConfirmed ? "Confirmed" : "Unconfirmed")}";
 
 			ShowRecentTransaction = true;
 		}

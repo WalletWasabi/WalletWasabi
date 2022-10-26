@@ -39,7 +39,7 @@
         <StackPanel Orientation="Horizontal">
           <Panel>
             <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
-            <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
+            <TextBlock Text="Unconfirmed" IsVisible="{Binding !IsConfirmed}" />
           </Panel>
           <TextBlock IsVisible="{Binding IsConfirmed}" Margin="4 0 0 0 " Text="{Binding Confirmations, StringFormat='({0} confirmations)'}" />
         </StackPanel>

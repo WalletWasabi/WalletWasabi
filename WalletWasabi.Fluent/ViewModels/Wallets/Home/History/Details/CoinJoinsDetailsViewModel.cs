@@ -59,7 +59,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoinGroup.DateString;
-		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Pending";
+		Status = _coinJoinGroup.IsConfirmed ? "Confirmed" : "Unconfirmed";
 		CoinJoinFee = _coinJoinGroup.OutgoingAmount;
 		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
 

@@ -25,12 +25,12 @@
                 Height="11"
                 Opacity="0.6"
                 ToolTip.Tip="{Binding ConfirmedToolTip}" />
-      <!-- Pending -->
+      <!-- Unconfirmed -->
       <PathIcon IsVisible="{Binding !IsConfirmed}"
                 Data="{StaticResource clock_regular}"
                 Height="14"
                 Opacity="0.6"
-                ToolTip.Tip="Pending" />
+                ToolTip.Tip="Unconfirmed" />
     </Panel>
 
     <!-- Type -->

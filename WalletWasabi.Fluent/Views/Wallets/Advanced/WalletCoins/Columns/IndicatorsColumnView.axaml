@@ -16,12 +16,12 @@
                 Foreground="{DynamicResource SystemAccentColor}"
                 Height="11"
                 ToolTip.Tip="{Binding ConfirmedToolTip}" />
-      <!-- Pending -->
+      <!-- Unconfirmed -->
       <PathIcon IsVisible="{Binding !Confirmed}"
                 Data="{StaticResource clock_regular}"
                 Height="14"
                 Opacity="0.6"
-                ToolTip.Tip="Pending" />
+                ToolTip.Tip="Unconfirmed" />
     </Panel>
 
     <Panel IsVisible="{Binding !IsBanned}">
