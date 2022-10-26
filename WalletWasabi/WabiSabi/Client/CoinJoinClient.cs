@@ -305,6 +305,8 @@ public class CoinJoinClient
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
 			PersonCircuit? personCircuit = null;
+			bool disposeCircuit = true;
+
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
@@ -326,6 +328,8 @@ public class CoinJoinClient
 					CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
 				}
 
+				// Do not dispose the circuit, it will be used later.
+				disposeCircuit = false;
 				return (aliceClient, personCircuit);
 			}
 			catch (WabiSabiProtocolException wpe)
@@ -387,9 +391,15 @@ public class CoinJoinClient
 			{
 				Logger.LogWarning(ex);
 			}
+			finally
+			{
+				if (disposeCircuit)
+				{
+					personCircuit?.Dispose();
+				}
+			}
 
 			// In case of any exception.
-			personCircuit?.Dispose();
 			return (null, null);
 		}
 
