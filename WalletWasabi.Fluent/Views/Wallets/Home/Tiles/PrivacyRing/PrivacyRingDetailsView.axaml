@@ -3,33 +3,49 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingDetailsView">
+  <UserControl.Styles>
+    <Style Selector="StackPanel.balance">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="10" />
+    </Style>
+    <Style Selector="StackPanel.balance.small">
+      <Setter Property="Orientation" Value="Vertical" />
+      <Setter Property="Spacing" Value="5" />
+    </Style>
+  </UserControl.Styles>
   <DockPanel>
     <TextBlock Text="PRIVACY PROGRESS" DockPanel.Dock="Top" Classes="h8 bold" HorizontalAlignment="Center" />
 
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
+      <i:Interaction.Behaviors>
+        <ir:AdaptiveBehavior>
+          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="190" MaxWidthOperator="LessThanOrEqual" ClassName="small" TargetControl="{Binding #Balance}" />
+        </ir:AdaptiveBehavior>
+      </i:Interaction.Behaviors>
+
       <Separator />
-      <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+
+      <StackPanel Opacity="0.8" HorizontalAlignment="Center" Classes="balance" x:Name="Balance">
+
         <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
-                BorderBrush="{StaticResource ButtonForeground}">
+                BorderBrush="{StaticResource ButtonForeground}" HorizontalAlignment="Center">
           <TextBlock
             Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>
         <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9"
-                                        VerticalAlignment="Center"
-
+                                        VerticalAlignment="Center" HorizontalAlignment="Center"
                                         Content="{Binding BalancePrivateBtc}" />
       </StackPanel>
     </StackPanel>
 
     <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
-
       <Image Source="{StaticResource privacy_indicator_good}"
              VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 0 10 0"
              Height="36" Width="36" />
-
       <TextBlock
         VerticalAlignment="Center" HorizontalAlignment="Center"
         TextAlignment="Center"
