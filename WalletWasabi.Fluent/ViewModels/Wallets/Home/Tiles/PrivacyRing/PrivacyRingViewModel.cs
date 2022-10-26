@@ -101,13 +101,13 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			return;
 		}
 
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+		var coinCount = _walletViewModel.Wallet.Coins.Count();
 
 		var result = Enumerable.Empty<PrivacyRingItemViewModel>();
 
 		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
 		{
-			result = CreateCoinSegments(pockets);
+			result = CreateCoinSegments();
 		}
 		else
 		{
@@ -133,21 +133,21 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		References.AddRange(references);
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets)
+	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments()
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var groupsByPrivacy =
+			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+										 .OrderBy(x => (int)x.Key)
+										 .ToList();
+
+		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
-
-		foreach (var pocket in usablePockets)
+		foreach (var group in groupsByPrivacy)
 		{
-			var pocketCoins = pocket.Coins.OrderByDescending(x => x.Amount).ToList();
+			var coins = group.OrderByDescending(x => x.Amount).ToList();
 
-			foreach (var coin in pocketCoins)
+			foreach (var coin in coins)
 			{
 				var end = start + (Math.Abs(coin.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
 
