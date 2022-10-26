@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyRing.PrivacyRingItemDetailsView">
+  <DockPanel VerticalAlignment="Center">
+    <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8">
+      <Separator />
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+        <StackPanel Opacity="0.8" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" IsVisible="{Binding !IsNonPrivate}">
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{StaticResource ButtonForeground}">
+            <TextBlock
+              Text="PRIVATE" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
+        </StackPanel>
+        <TextBlock Text="{Binding Coin.AnonymitySet, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+      </StackPanel>
+    </StackPanel>
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 3">
+      <Viewbox>
+        <TextBlock
+          VerticalAlignment="Center" HorizontalAlignment="Center"
+          TextAlignment="Center"
+          Text="{Binding AmountText}" Classes="h3" />
+      </Viewbox>
+      <TextBlock Text="{Binding Coin.Confirmations, StringFormat='Confirmations: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+    </StackPanel>
+  </DockPanel>
+</UserControl>
