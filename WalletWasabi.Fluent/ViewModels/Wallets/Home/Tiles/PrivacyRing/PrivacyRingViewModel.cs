@@ -79,22 +79,14 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	private void RenderRing(SourceList<PrivacyRingItemViewModel> list)
 	{
 		SetMargins();
-		Items.Clear();
 
+		Items.Clear();
 		list.Edit(list => CreateSegments(list));
 
 		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
 		PreviewItems.AddRange(list.Items);
 
-		References.Clear();
-
-		var references =
-			list.Items.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
-				.Select(x => x.First())
-				.OrderBy(list.Items.IndexOf)
-				.ToList();
-
-		References.AddRange(references);
+		SetReferences(list);
 	}
 
 	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list)
@@ -176,5 +168,18 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	{
 		Margin = new Thickness(Width / 2, Height / 2, 0, 0);
 		NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
+	}
+
+	private void SetReferences(SourceList<PrivacyRingItemViewModel> list)
+	{
+		References.Clear();
+
+		var references =
+			list.Items.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
+				.Select(x => x.First())
+				.OrderBy(list.Items.IndexOf)
+				.ToList();
+
+		References.AddRange(references);
 	}
 }
