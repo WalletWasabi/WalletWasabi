@@ -100,10 +100,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			? CreateSegmentsByCoin()
 			: CreateSegmentsByPrivacyLevel();
 
-		foreach (var item in result)
-		{
-			list.Add(item);
-		}
+		list.AddRange(result);
 
 		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
 		PreviewItems.AddRange(list);
