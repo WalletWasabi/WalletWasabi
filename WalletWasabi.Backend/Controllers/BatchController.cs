@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
@@ -39,6 +40,7 @@ public class BatchController : ControllerBase
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
 		[FromQuery, Required] int maxNumberOfFilters,
+		CancellationToken cancellationToken,
 		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
 		[FromQuery] string? indexType = null)
 	{
@@ -86,7 +88,7 @@ public class BatchController : ControllerBase
 		{
 			try
 			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode, cancellationToken);
 			}
 			catch (Exception ex)
 			{
