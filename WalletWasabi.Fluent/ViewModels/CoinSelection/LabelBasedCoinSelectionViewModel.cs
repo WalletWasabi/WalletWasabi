@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
 using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -105,6 +106,7 @@ public partial class LabelBasedCoinSelectionViewModel : ViewModelBase, IDisposab
 
 		childChanges
 			.Transform(x => new TreeNode(x))
+			.Sort(SortExpressionComparer<TreeNode>.Descending(node => ((SelectableCoin)node.Value).Amount))
 			.Bind(out var childNodes)
 			.Subscribe()
 			.DisposeWith(_disposables);
