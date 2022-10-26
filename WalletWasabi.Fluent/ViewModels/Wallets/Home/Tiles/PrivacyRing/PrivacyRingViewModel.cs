@@ -93,16 +93,12 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		var coinCount = _walletViewModel.Wallet.Coins.Count();
 
-		var result = Enumerable.Empty<PrivacyRingItemViewModel>();
+		var shouldCreateSegmentsByCoin = coinCount < UIConstants.PrivacyRingMaxItemCount;
 
-		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
-		{
-			result = CreateSegmentsByCoin();
-		}
-		else
-		{
-			result = CreateSegmentsByPrivacyLevel();
-		}
+		var result =
+			shouldCreateSegmentsByCoin
+			? CreateSegmentsByCoin()
+			: CreateSegmentsByPrivacyLevel();
 
 		foreach (var item in result)
 		{
