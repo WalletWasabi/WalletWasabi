@@ -9,6 +9,7 @@ using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using Xunit;
 using WalletWasabi.Interfaces;
+using System.Threading;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -40,7 +41,7 @@ public class ExternalApiTests
 
 	private async Task AssertProviderAsync(IExchangeRateProvider provider)
 	{
-		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync();
+		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(CancellationToken.None);
 
 		var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
 		Assert.NotEqual(0.0m, usdRate.Rate);

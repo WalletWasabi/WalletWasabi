@@ -26,6 +26,6 @@ public class LegacyController : ControllerBase
 		=> await BlockchainController.GetAllFeesAsync(estimateSmartFeeMode, cancellationToken);
 
 	[HttpGet("api/v3/btc/Offchain/exchange-rates")]
-	public async Task<IActionResult> GetExchangeRatesV3Async()
-		=> await OffchainController.GetExchangeRatesAsync();
+	public async Task<IActionResult> GetExchangeRatesV3Async(CancellationToken cancellationToken)
+		=> await OffchainController.GetExchangeRatesAsync(cancellationToken);
 }

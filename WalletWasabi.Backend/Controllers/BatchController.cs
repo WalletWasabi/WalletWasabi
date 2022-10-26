@@ -96,7 +96,7 @@ public class BatchController : ControllerBase
 			}
 		}
 
-		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
+		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
 
 		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
 

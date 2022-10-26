@@ -10,6 +10,7 @@ using WalletWasabi.WebClients.CoinGecko;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
 using System.Linq;
+using System.Threading;
 
 namespace WalletWasabi.WebClients;
 
@@ -25,13 +26,13 @@ public class ExchangeRateProvider : IExchangeRateProvider
 			new ItBitExchangeRateProvider()
 		};
 
-	public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
+	public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync(CancellationToken cancellationToken)
 	{
 		foreach (var provider in _exchangeRateProviders)
 		{
 			try
 			{
-				return await provider.GetExchangeRateAsync().ConfigureAwait(false);
+				return await provider.GetExchangeRateAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
