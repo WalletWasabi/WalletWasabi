@@ -126,7 +126,6 @@ public class MempoolMirror : PeriodicRunner
 			return mempoolTxs.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
 				.Where(x => txOutsSet.Contains(x.PrevOut))
 				.Select(x => x.tx)
-				.Distinct()
 				.ToHashSet();
 		}
 	}
