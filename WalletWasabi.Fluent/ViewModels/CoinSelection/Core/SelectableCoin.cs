@@ -23,7 +23,6 @@ public partial class SelectableCoin : ReactiveObject, ISelectable, ICoin
 	{
 		_coin = coin;
 		_amount = Money.Zero;
-		_amount = Money.Zero;
 		_outPoint = OutPoint.Zero;
 		_smartLabel = SmartLabel.Empty;
 		
