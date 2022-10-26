@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Helpers;
@@ -74,10 +75,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 						.ObserveOn(RxApp.MainThreadScheduler)
 						.Subscribe(x =>
 						{
-							var usableHeight = x.Second.Item2;
-							var usableWidth = x.Second.Item1;
-							Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
-							NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
+							SetMargins(x.Second.Item1, x.Second.Item2);
 							itemsSourceList.Edit(list => CreateSegments(list));
 						})
 						.DisposeWith(disposables);
@@ -177,5 +175,11 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 			start = end;
 		}
+	}
+
+	private void SetMargins(double width, double height)
+	{
+		Margin = new Thickness(width / 2, height / 2, 0, 0);
+		NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
 	}
 }
