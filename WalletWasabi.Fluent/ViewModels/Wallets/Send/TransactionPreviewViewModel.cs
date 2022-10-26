@@ -16,6 +16,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -36,11 +37,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
+	private readonly WalletViewModel _walletViewModel;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
+	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
-		_wallet = wallet;
+		_walletViewModel = walletViewModel;
+		_wallet = _walletViewModel.Wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
@@ -199,20 +202,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task BuildAndUpdateAsync(BuildTransactionReason reason)
+	private async Task BuildAndUpdateAsync(BuildTransactionReason reason, bool addToUndoHistory = true)
 	{
 		var newTransaction = await BuildTransactionAsync(reason);
 
 		if (newTransaction is { })
 		{
-			UpdateTransaction(CurrentTransactionSummary, newTransaction);
+			UpdateTransaction(CurrentTransactionSummary, newTransaction, addToUndoHistory);
 		}
 	}
 
 	private async Task OnChangePocketsAsync()
 	{
-		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
+		var coinSelectionDialog = GetCoinSelectionDialog();
+		var selectPocketsDialog = await NavigateDialogAsync(coinSelectionDialog);
 
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
@@ -365,18 +368,25 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		else
 		{
-			var doSilentPocketSelection = reason == BuildTransactionReason.Initialization;
 			_info.MinimumRequiredAmount = minimumRequiredAmount;
 
-			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
-
-			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
+			DialogResult<IEnumerable<SmartCoin>> dialogResult;
+			if (reason == BuildTransactionReason.Initialization)
 			{
-				_info.Coins = selectPocketsDialog.Result;
+				dialogResult = await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
+			}
+			else
+			{
+				var coinSelectionDialog = GetCoinSelectionDialog();
+				dialogResult = await NavigateDialogAsync(coinSelectionDialog);
+			}
+
+			if (dialogResult.Kind == DialogResultKind.Normal && dialogResult.Result is { })
+			{
+				_info.Coins = dialogResult.Result;
 				return true;
 			}
-			else if (selectPocketsDialog.Kind != DialogResultKind.Normal)
+			else if (dialogResult.Kind != DialogResultKind.Normal)
 			{
 				return false;
 			}
@@ -396,6 +406,21 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (await BuildTransactionAsync(BuildTransactionReason.Initialization) is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
+
+			if (!_info.IsAutomaticSelectionEnabled)
+			{
+				var coinSelectionDialogResult = await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, _info, Transaction?.SpentCoins));
+
+				if (coinSelectionDialogResult.Kind == DialogResultKind.Normal && coinSelectionDialogResult.Result is { })
+				{
+					_info.Coins = coinSelectionDialogResult.Result;
+					await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged, addToUndoHistory: false);
+				}
+				else
+				{
+					Navigate().Back();
+				}
+			}
 		}
 		else
 		{
@@ -523,5 +548,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		labelSelection.Reset(pockets);
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
+	}
+
+	private DialogViewModelBase<IEnumerable<SmartCoin>> GetCoinSelectionDialog()
+	{
+		return _info.IsAutomaticSelectionEnabled
+			? new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: false)
+			: new SelectCoinsDialogViewModel(_walletViewModel, _info, Transaction?.SpentCoins);
 	}
 }

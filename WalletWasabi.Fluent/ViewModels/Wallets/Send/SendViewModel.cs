@@ -23,9 +23,6 @@ using Constants = WalletWasabi.Helpers.Constants;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using System.Reactive;
-using System.Collections.ObjectModel;
-using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -50,6 +47,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify] private bool _isAutomaticSelectionEnabled = true;
 
 	public SendViewModel(WalletViewModel walletVm)
 	{
@@ -103,29 +101,47 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
-			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
-			if (result.Result is not { } label)
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () =>
 			{
-				return;
-			}
+				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
+				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+				if (result.Result is not { } label)
+				{
+					return;
+				}
 
-			var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
-			{
-				Amount = new Money(AmountBtc, MoneyUnit.BTC),
-				Recipient = label,
-				PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
-				IsFixedAmount = _isFixedAmount
-			};
+				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
+				{
+					Amount = new Money(AmountBtc, MoneyUnit.BTC),
+					Recipient = label,
+					PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
+					IsFixedAmount = _isFixedAmount,
+					IsAutomaticSelectionEnabled = IsAutomaticSelectionEnabled
+				};
 
-			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo));
-		}, nextCommandCanExecute);
+				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
+			},
+			nextCommandCanExecute);
+
+		ToggleCoinControlCommand = ReactiveCommand.Create(() => IsAutomaticSelectionEnabled = !IsAutomaticSelectionEnabled);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+	}
+
+	public bool IsCoinControlEnabled
+	{
+		get
+		{
+			{
+#if DEBUG
+				return true;
+#endif
+				return false;
+			}
+		}
 	}
 
 	public bool IsQrButtonVisible { get; }
@@ -137,6 +153,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand InsertMaxCommand { get; }
+
+	public ICommand ToggleCoinControlCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
 

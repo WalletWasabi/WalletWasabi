@@ -61,6 +61,8 @@ public partial class TransactionInfo
 
 	public bool IsFixedAmount { get; init; }
 
+	public bool IsAutomaticSelectionEnabled { get; set; }
+
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
