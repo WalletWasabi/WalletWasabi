@@ -18,8 +18,6 @@
     </Style>
   </UserControl.Styles>
   <DockPanel>
-    <TextBlock Text="PRIVACY PROGRESS" DockPanel.Dock="Top" Classes="h8 bold" HorizontalAlignment="Center" />
-
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" IsVisible="{Binding HasPrivateBalance}">
       <i:Interaction.Behaviors>
         <ir:AdaptiveBehavior>
