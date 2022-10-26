@@ -21,8 +21,8 @@ public class MempoolMirror : PeriodicRunner
 		Node = node;
 	}
 
-	public IRPCClient Rpc { get; }
-	public P2pNode Node { get; }
+	private IRPCClient Rpc { get; }
+	private P2pNode Node { get; }
 	private Dictionary<uint256, Transaction> Mempool { get; } = new();
 	private object MempoolLock { get; } = new();
 
