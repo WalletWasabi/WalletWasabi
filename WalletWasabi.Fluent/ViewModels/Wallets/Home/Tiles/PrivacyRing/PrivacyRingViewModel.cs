@@ -5,7 +5,6 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Helpers;
@@ -75,15 +74,34 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 						.ObserveOn(RxApp.MainThreadScheduler)
 						.Subscribe(x =>
 						{
-							SetMargins(x.Second.Item1, x.Second.Item2);
-							itemsSourceList.Edit(list => CreateSegments(list));
+							RenderRing(itemsSourceList);
 						})
 						.DisposeWith(disposables);
 	}
 
+	private void RenderRing(SourceList<PrivacyRingItemViewModel> list)
+	{
+		SetMargins();
+		Items.Clear();
+
+		list.Edit(list => CreateSegments(list));
+
+		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
+		PreviewItems.AddRange(list.Items);
+
+		References.Clear();
+
+		var references =
+			list.Items.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
+				.Select(x => x.First())
+				.OrderBy(list.Items.IndexOf)
+				.ToList();
+
+		References.AddRange(references);
+	}
+
 	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list)
 	{
-		Items.Clear();
 		list.Clear();
 
 		if (Width == 0d)
@@ -101,19 +119,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			: CreateSegmentsByPrivacyLevel();
 
 		list.AddRange(result);
-
-		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
-		PreviewItems.AddRange(list);
-
-		References.Clear();
-
-		var references =
-			list.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
-				.Select(x => x.First())
-				.OrderBy(list.IndexOf)
-				.ToList();
-
-		References.AddRange(references);
 	}
 
 	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin()
@@ -170,9 +175,9 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		}
 	}
 
-	private void SetMargins(double width, double height)
+	private void SetMargins()
 	{
-		Margin = new Thickness(width / 2, height / 2, 0, 0);
+		Margin = new Thickness(Width / 2, Height / 2, 0, 0);
 		NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
 	}
 }
