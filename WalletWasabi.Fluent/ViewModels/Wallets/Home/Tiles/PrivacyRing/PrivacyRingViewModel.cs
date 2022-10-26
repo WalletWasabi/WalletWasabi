@@ -72,10 +72,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 						.PrivacyProgressUpdateTrigger
 						.CombineLatest(sizeTrigger)
 						.ObserveOn(RxApp.MainThreadScheduler)
-						.Subscribe(x =>
-						{
-							RenderRing(itemsSourceList);
-						})
+						.Subscribe(_ => RenderRing(itemsSourceList))
 						.DisposeWith(disposables);
 	}
 
