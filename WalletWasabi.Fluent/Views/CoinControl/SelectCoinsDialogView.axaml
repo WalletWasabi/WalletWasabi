@@ -1,0 +1,119 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
+             xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
+             x:DataType="coinControl:SelectCoinsDialogViewModel"
+             x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView">
+
+  <controls:ContentArea
+    EnableBack="{Binding EnableBack}"
+    EnableNext="True"
+    NextContent="Continue"
+    EnableCancel="{Binding EnableCancel}"
+    IsBusy="{Binding IsBusy}"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
+    <controls:ContentArea.Styles>
+      <Style Selector="TreeDataGridRow">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Height" Value="37.5" />
+      </Style>
+
+      <Style Selector="TreeDataGridRow" x:CompileBindings="False">
+        <Style.Resources>
+          <converters:IndentToColorConverter x:Key="IndentToBrushConverter">
+            <converters:IndentToColorConverter.Brushes>
+              <generic:List x:TypeArguments="IBrush">
+                <SolidColorBrush>Transparent</SolidColorBrush>
+                <SolidColorBrush Color="{DynamicResource SystemListLowColor}" />
+              </generic:List>
+            </converters:IndentToColorConverter.Brushes>
+          </converters:IndentToColorConverter>
+        </Style.Resources>
+        <Setter Property="Template">
+          <ControlTemplate TargetType="TreeDataGridRow">
+            <Border x:Name="RowBorder"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Padding="0">
+              <Border.Background>
+                <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
+                  <Binding Path="." />
+                  <Binding Path="Rows" RelativeSource="{RelativeSource Mode=TemplatedParent}" />
+                </MultiBinding>
+              </Border.Background>
+              <TreeDataGridCellsPresenter x:Name="PART_CellsPresenter"
+                                          ElementFactory="{TemplateBinding ElementFactory}"
+                                          Items="{TemplateBinding Columns}"
+                                          Rows="{TemplateBinding Rows}" />
+            </Border>
+          </ControlTemplate>
+        </Setter>
+      </Style>
+
+      <Style Selector="TreeDataGridExpanderCell">
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Border Background="{TemplateBinding Background}">
+              <DockPanel>
+                <Border DockPanel.Dock="Left"
+                        Margin="4 0"
+                        Width="12" Height="12">
+                  <ToggleButton Classes="ExpandCollapseChevron"
+                                Focusable="False"
+                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+                                IsVisible="{TemplateBinding ShowExpander}"
+                                Cursor="Hand" />
+                </Border>
+                <Decorator Name="PART_Content" />
+              </DockPanel>
+            </Border>
+          </ControlTemplate>
+        </Setter>
+      </Style>
+
+      <Style Selector="TreeDataGridRow ContentPresenter">
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+
+      <Style Selector="TreeDataGridTemplateCell > ContentPresenter">
+        <Setter Property="Margin" Value="5 0 10 0" />
+      </Style>
+
+      <Style Selector="ContentPresenter > TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+      </Style>
+
+    </controls:ContentArea.Styles>
+
+    <controls:ContentArea.Title>
+      <TextBox Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
+        <TextBox.Styles>
+          <Style Selector="TextBox /template/ DataValidationErrors">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+        </TextBox.Styles>
+      </TextBox>
+    </controls:ContentArea.Title>
+
+    <DockPanel>
+
+      <Panel DockPanel.Dock="Bottom" Margin="0 12 0 0" TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}">
+        <ProgressBar Height="25" Maximum="{Binding RequiredAmount^.Satoshi}" Value="{Binding SelectedAmount^.Satoshi, Mode=OneWay}" />
+        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
+        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !EnoughSelected^}"
+                   Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
+      </Panel>
+
+      <TreeDataGrid Source="{Binding LabelBasedSelection.Source}" CanUserSortColumns="True" />
+
+    </DockPanel>
+
+  </controls:ContentArea>
+</UserControl>
