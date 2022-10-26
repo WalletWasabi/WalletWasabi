@@ -92,5 +92,4 @@
   <Style Selector="Button.plainHyperlink:pointerover AccessText">
     <Setter Property="TextDecorations" Value="Underline" />
   </Style>
-
 </Styles>
