@@ -59,14 +59,14 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
 	[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode)
+	public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
 	{
 		if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 		{
 			return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 		}
 
-		AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode);
+		AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode, cancellationToken);
 
 		return Ok(estimation.Estimations);
 	}
@@ -93,14 +93,14 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
 	[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
-	public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64)
+	public async Task<IActionResult> GetMempoolHashesAsync(CancellationToken cancellationToken, [FromQuery] int compactness = 64)
 	{
 		if (compactness is < 1 or > 64)
 		{
 			return BadRequest("Invalid compactness parameter is provided.");
 		}
 
-		IEnumerable<string> fulls = await GetRawMempoolStringsWithCacheAsync();
+		IEnumerable<string> fulls = await GetRawMempoolStringsWithCacheAsync(cancellationToken);
 
 		if (compactness == 64)
 		{
@@ -141,7 +141,7 @@ public class BlockchainController : ControllerBase
 	[HttpGet("transaction-hexes")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds)
+	public async Task<IActionResult> GetTransactionsAsync([FromQuery, Required] IEnumerable<string> transactionIds, CancellationToken cancellationToken)
 	{
 		var maxTxToRequest = 10;
 		if (transactionIds.Count() > maxTxToRequest)
@@ -187,7 +187,7 @@ public class BlockchainController : ControllerBase
 
 			if (missingTxs.Any())
 			{
-				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, CancellationToken.None))
+				foreach (var tx in await RpcClient.GetRawTransactionsAsync(missingTxs, cancellationToken))
 				{
 					string hex = tx.ToHex();
 					hexes.Add(tx.GetHash(), hex);
@@ -230,7 +230,7 @@ public class BlockchainController : ControllerBase
 	[HttpPost("broadcast")]
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
-	public async Task<IActionResult> BroadcastAsync([FromBody, Required] string hex)
+	public async Task<IActionResult> BroadcastAsync([FromBody, Required] string hex, CancellationToken cancellationToken)
 	{
 		Transaction transaction;
 		try
@@ -245,7 +245,7 @@ public class BlockchainController : ControllerBase
 
 		try
 		{
-			await RpcClient.SendRawTransactionAsync(transaction);
+			await RpcClient.SendRawTransactionAsync(transaction, cancellationToken);
 		}
 		catch (RPCException ex) when (ex.Message.Contains("already in block chain", StringComparison.InvariantCultureIgnoreCase))
 		{
@@ -346,7 +346,7 @@ public class BlockchainController : ControllerBase
 
 	[HttpGet("status")]
 	[ProducesResponseType(typeof(StatusResponse), 200)]
-	public async Task<StatusResponse> GetStatusAsync()
+	public async Task<StatusResponse> GetStatusAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -357,7 +357,7 @@ public class BlockchainController : ControllerBase
 				cacheKey,
 				action: (string request, CancellationToken token) => FetchStatusAsync(token),
 				options: cacheOptions,
-				CancellationToken.None);
+				cancellationToken);
 		}
 		catch (Exception ex)
 		{
