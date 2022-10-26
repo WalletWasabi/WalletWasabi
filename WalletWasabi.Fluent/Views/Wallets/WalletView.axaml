@@ -89,7 +89,7 @@
       <Panel Classes.smallLayout="{Binding IsSmallLayout}"
              Classes.normalLayout="{Binding IsNormalLayout}"
              Classes.wideLayout="{Binding IsWideLayout}"
-             Classes.isEmptyWallet="{Binding IsEmptyWallet}">
+             Classes.isTransactionHistoryEmpty="{Binding IsTransactionHistoryEmpty}">
         <Panel.Styles>
           <Style Selector="Panel.smallLayout">
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -109,7 +109,7 @@
             <Setter Property="Margin" Value="0,0,11,0" />
             <Setter Property="(DockPanel.Dock)" Value="Left" />
           </Style>
-          <Style Selector="Panel.isEmptyWallet">
+          <Style Selector="Panel.isTransactionHistoryEmpty">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
           </Style>

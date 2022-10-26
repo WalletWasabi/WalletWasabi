@@ -21,8 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
 	private readonly CompositeDisposable _disposables = new();
-	private readonly SourceList<PrivacyRingItemViewModel> _itemsSourceList = new();
-	private IObservable<Unit> _coinsUpdated;
+	private readonly WalletViewModel _walletViewModel;
+
 	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
 	[AutoNotify] private double _height;
 	[AutoNotify] private double _width;
@@ -31,6 +31,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	public PrivacyRingViewModel(WalletViewModel walletViewModel)
 	{
+		_walletViewModel = walletViewModel;
 		Wallet = walletViewModel.Wallet;
 
 		NextCommand = CancelCommand;
@@ -39,53 +40,60 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		PreviewItems.Add(PrivacyTile);
 
-		_itemsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Bind(Items)
-			.DisposeMany()
-			.Subscribe();
-
-		_coinsUpdated =
-			walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
-						  .Merge(walletViewModel
-						  .WhenAnyValue(w => w.IsCoinJoining)
-						  .ToSignal());
-
-		_coinsUpdated
-			.Select(_ => walletViewModel.Wallet.GetPockets())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(RefreshCoinsList);
-
-		_disposables.Add(_itemsSourceList);
-
-		this.WhenAnyValue(x => x.Width, x => x.Height)
-			.Subscribe(x =>
-			{
-				var usableHeight = x.Item2;
-				var usableWidth = x.Item1;
-				Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
-				NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
-				RefreshCoinsList(walletViewModel.Wallet.GetPockets());
-			});
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
 	public PrivacyControlTileViewModel PrivacyTile { get; }
 
 	public ObservableCollectionExtended<PrivacyRingItemViewModel> Items { get; } = new();
+	public ObservableCollectionExtended<PrivacyRingItemViewModel> References { get; } = new();
 	public ObservableCollectionExtended<IPrivacyRingPreviewItem> PreviewItems { get; } = new();
 
 	public Wallet Wallet { get; }
 
-	private void RefreshCoinsList(IEnumerable<Pocket> pockets)
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_itemsSourceList.Edit(list => CreateSegments(pockets, list));
+		var itemsSourceList = new SourceList<PrivacyRingItemViewModel>();
+
+		itemsSourceList
+			.DisposeWith(disposables)
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Bind(Items)
+			.DisposeMany()
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		var sizeTrigger =
+			this.WhenAnyValue(x => x.Width, x => x.Height)
+				.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
+				.Throttle(TimeSpan.FromMilliseconds(100));
+
+		_walletViewModel.UiTriggers
+						.PrivacyProgressUpdateTrigger
+						.CombineLatest(sizeTrigger)
+						.ObserveOn(RxApp.MainThreadScheduler)
+						.Subscribe(x =>
+						{
+							var usableHeight = x.Second.Item2;
+							var usableWidth = x.Second.Item1;
+							Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
+							NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
+							RefreshCoinsList(itemsSourceList);
+						})
+						.DisposeWith(disposables);
+	}
+
+	private void RefreshCoinsList(SourceList<PrivacyRingItemViewModel> itemsSourceList)
+	{
+		var pockets = _walletViewModel.Wallet.GetPockets();
+		itemsSourceList.Edit(list => CreateSegments(pockets, list));
 	}
 
 	private void CreateSegments(IEnumerable<Pocket> pockets, IExtendedList<PrivacyRingItemViewModel> list)
 	{
+		Items.Clear();
 		list.Clear();
 
 		if (Width == 0d)
@@ -113,6 +121,16 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
 		PreviewItems.AddRange(list);
+
+		References.Clear();
+
+		var references =
+			list.GroupBy(x => (x.IsPrivate, x.IsSemiPrivate, x.IsNonPrivate, x.Unconfirmed))
+				.Select(x => x.First())
+				.OrderBy(list.IndexOf)
+				.ToList();
+
+		References.AddRange(references);
 	}
 
 	private IEnumerable<PrivacyRingItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets)
@@ -164,11 +182,5 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 			start = end;
 		}
-	}
-
-	public void Dispose()
-	{
-		_itemsSourceList?.Dispose();
-		_disposables.Dispose();
 	}
 }

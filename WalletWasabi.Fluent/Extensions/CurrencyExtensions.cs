@@ -32,11 +32,6 @@ public static class CurrencyExtensions
 		}
 	}
 
-	public static string FormattedBtc(this Money amount)
-	{
-		return amount.ToDecimal(MoneyUnit.BTC).FormattedBtc();
-	}
-
 	public static string FormattedBtc(this decimal amount)
 	{
 		return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
