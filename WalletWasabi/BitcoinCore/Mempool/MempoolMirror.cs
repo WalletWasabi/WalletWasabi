@@ -120,12 +120,13 @@ public class MempoolMirror : PeriodicRunner
 	{
 		lock (MempoolLock)
 		{
-			var mempool = Mempool.Values;
-			var txOutSet = txOuts.ToHashSet();
+			var mempoolTxs = Mempool.Values;
+			var txOutsSet = txOuts.ToHashSet();
 
-			return mempool.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
-				.Where(x => txOutSet.Contains(x.PrevOut))
-				.Select(x => x.tx);
+			return mempoolTxs.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
+				.Where(x => txOutsSet.Contains(x.PrevOut))
+				.Select(x => x.tx)
+				.Distinct();
 		}
 	}
 
