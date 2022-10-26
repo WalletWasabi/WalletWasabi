@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Avalonia.Data;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
