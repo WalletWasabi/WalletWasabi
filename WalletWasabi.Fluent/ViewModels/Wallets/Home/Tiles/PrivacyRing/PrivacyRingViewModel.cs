@@ -81,18 +81,12 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 							var usableWidth = x.Second.Item1;
 							Margin = new Thickness(usableWidth / 2, usableHeight / 2, 0, 0);
 							NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
-							RefreshCoinsList(itemsSourceList);
+							itemsSourceList.Edit(list => CreateSegments(list));
 						})
 						.DisposeWith(disposables);
 	}
 
-	private void RefreshCoinsList(SourceList<PrivacyRingItemViewModel> itemsSourceList)
-	{
-		var pockets = _walletViewModel.Wallet.GetPockets();
-		itemsSourceList.Edit(list => CreateSegments(pockets, list));
-	}
-
-	private void CreateSegments(IEnumerable<Pocket> pockets, IExtendedList<PrivacyRingItemViewModel> list)
+	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list)
 	{
 		Items.Clear();
 		list.Clear();
