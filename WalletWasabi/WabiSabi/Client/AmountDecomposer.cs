@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Models;
 
@@ -17,7 +18,7 @@ public class AmountDecomposer
 	/// <param name="inputSize">Size of an input.</param>
 	/// <param name="availableVsize">Available virtual size for outputs.</param>
 	/// <param name="random">Allows testing by setting a seed value for the random number generator. Use <c>null</c> in production code.</param>
-	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int inputSize, int availableVsize, Random? random = null)
+	public AmountDecomposer(FeeRate feeRate, MoneyRange allowedOutputAmount, int outputSize, int inputSize, int availableVsize, WasabiRandom? random = null)
 	{
 		FeeRate = feeRate;
 
@@ -32,7 +33,7 @@ public class AmountDecomposer
 		MinAllowedOutputAmountPlusFee = allowedOutputAmount.Min + OutputFee;
 		MaxAllowedOutputAmount = allowedOutputAmount.Max;
 
-		Random = random ?? Random.Shared;
+		Random = random ?? InsecureRandom.Instance;
 
 		// Create many standard denominations.
 		DenominationsPlusFees = CreateDenominationsPlusFees();
@@ -48,7 +49,7 @@ public class AmountDecomposer
 	public int OutputSize { get; }
 	public int InputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
-	private Random Random { get; }
+	private WasabiRandom Random { get; }
 
 	private IOrderedEnumerable<ulong> CreateDenominationsPlusFees()
 	{
@@ -192,6 +193,7 @@ public class AmountDecomposer
 			{
 				denoms.Add(denom);
 			}
+
 			currentLength--;
 		}
 
@@ -203,7 +205,7 @@ public class AmountDecomposer
 		var setCandidates = new Dictionary<int, (IEnumerable<Money> Decomp, Money Cost)>();
 
 		// How many times can we participate with the same denomination.
-		var maxDenomUsage = Random.Next(2, 8);
+		var maxDenomUsage = Random.GetInt(2, 8);
 
 		// Create the most naive decomposition for starter.
 		List<Money> naiveSet = new();
@@ -272,10 +274,10 @@ public class AmountDecomposer
 		if (maxNumberOfOutputsAllowed > 1)
 		{
 			foreach (var (sum, count, decomp) in Decomposer.Decompose(
-				target: (long)myInputSum,
-				tolerance: (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee),
-				maxCount: Math.Min(maxNumberOfOutputsAllowed, 8),
-				stdDenoms: stdDenoms))
+				         target: (long)myInputSum,
+				         tolerance: (long)Math.Max(loss, 0.5 * (ulong)MinAllowedOutputAmountPlusFee),
+				         maxCount: Math.Min(maxNumberOfOutputsAllowed, 8),
+				         stdDenoms: stdDenoms))
 			{
 				var currentSet = Decomposer.ToRealValuesArray(
 					decomp,
@@ -287,13 +289,14 @@ public class AmountDecomposer
 				{
 					hash.Add(item);
 				}
+
 				setCandidates.TryAdd(hash.ToHashCode(), (currentSet, myInputSum - (ulong)currentSet.Sum() + (ulong)count * OutputFee + (ulong)count * InputFee)); // The cost is the remaining + output cost + input cost.
 			}
 		}
 
 		var denomHashSet = preFilteredDenoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
-		preCandidates.Shuffle();
+		preCandidates.Shuffle(Random);
 
 		var orderedCandidates = preCandidates
 			.OrderBy(x => x.Cost) // Less cost is better.
@@ -307,8 +310,8 @@ public class AmountDecomposer
 
 		// We want to make sure our random selection is not between similar decompositions.
 		// Different largest elements result in very different decompositions.
-		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement();
-		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement().Decomp;
+		var largestAmount = finalCandidates.Select(x => x.Decomp.First()).ToHashSet().RandomElement(Random);
+		var finalCandidate = finalCandidates.Where(x => x.Decomp.First() == largestAmount).RandomElement(Random).Decomp;
 
 		finalCandidate = finalCandidate.Select(x => x - OutputFee);
 
@@ -317,6 +320,7 @@ public class AmountDecomposer
 		{
 			throw new InvalidOperationException("The decomposer is creating money. Aborting.");
 		}
+
 		if (totalOutputAmount + MinAllowedOutputAmountPlusFee < myInputSum)
 		{
 			throw new InvalidOperationException("The decomposer is losing money. Aborting.");
@@ -327,6 +331,7 @@ public class AmountDecomposer
 		{
 			throw new InvalidOperationException("The decomposer created more outputs than it can. Aborting.");
 		}
+
 		return finalCandidate;
 	}
 

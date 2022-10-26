@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.UnitTests;
 
@@ -42,6 +43,7 @@ public static class BitcoinFactory
 			tx.Inputs.Add(sc.Outpoint);
 			walletInputs.Add(sc);
 		}
+
 		foreach (var output in othersOutputs)
 		{
 			tx.Outputs.Add(output);
@@ -62,10 +64,12 @@ public static class BitcoinFactory
 		{
 			stx.TryAddWalletInput(sc);
 		}
+
 		foreach (var sc in walletOutputs)
 		{
 			stx.TryAddWalletOutput(sc);
 		}
+
 		return stx;
 	}
 
@@ -78,25 +82,25 @@ public static class BitcoinFactory
 	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
 		=> CreateSmartCoin(Transaction.Create(Network.Main), pubKey, amount, confirmed, anonymitySet);
 
-	public static SmartCoin CreateSmartCoin(Transaction tx, HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
+	public static SmartCoin CreateSmartCoin(Transaction tx, HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1, WasabiRandom? rnd = null)
 	{
-		var height = confirmed ? new Height(CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
+		var height = confirmed ? new Height(rnd?.GetInt(0, 200) ?? CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 		pubKey.SetKeyState(KeyState.Used);
 		tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
-		tx.Inputs.Add(CreateOutPoint());
+		tx.Inputs.Add(CreateOutPoint(rnd));
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
 		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
 	}
 
-	public static OutPoint CreateOutPoint()
-		=> new(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+	public static OutPoint CreateOutPoint(WasabiRandom? rnd = null)
+		=> new(CreateUint256(rnd), (uint)(rnd?.GetInt(0, 200) ?? CryptoHelpers.RandomInt(0, 200)));
 
-	public static uint256 CreateUint256()
+	public static uint256 CreateUint256(WasabiRandom? rnd = null)
 	{
-		var rand = new UnsecureRandom();
+		rnd ??= InsecureRandom.Instance;
 		var bytes = new byte[32];
-		rand.GetBytes(bytes);
+		rnd.GetBytes(bytes);
 		return new uint256(bytes);
 	}
 

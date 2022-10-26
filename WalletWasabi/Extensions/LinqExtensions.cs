@@ -38,18 +38,20 @@ public static class LinqExtensions
 		}
 	}
 
-	public static T? RandomElement<T>(this IEnumerable<T> source)
+	public static T? RandomElement<T>(this IEnumerable<T> source, WasabiRandom? rnd = null)
 	{
+		rnd ??= InsecureRandom.Instance;
 		T? current = default;
 		int count = 0;
 		foreach (T element in source)
 		{
 			count++;
-			if (Random.Shared.Next(count) == 0)
+			if (rnd.GetInt(0, count) == 0)
 			{
 				current = element;
 			}
 		}
+
 		return current;
 	}
 
@@ -57,11 +59,11 @@ public static class LinqExtensions
 	/// Selects a random element based on order bias.
 	/// </summary>
 	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
-	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent)
+	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent, WasabiRandom rnd)
 	{
 		foreach (T element in source)
 		{
-			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
+			if (rnd.GetInt(1, 101) <= biasPercent)
 			{
 				return element;
 			}
@@ -70,23 +72,25 @@ public static class LinqExtensions
 		return source.Any() ? source.First() : default;
 	}
 
-	public static IList<T> Shuffle<T>(this IList<T> list)
+	public static IList<T> Shuffle<T>(this IList<T> list, WasabiRandom? rnd = null)
 	{
+		rnd ??= InsecureRandom.Instance;
 		int n = list.Count;
 		while (n > 1)
 		{
 			n--;
-			int k = Random.Shared.Next(n + 1);
+			int k = rnd.GetInt(0, n + 1);
 			T value = list[k];
 			list[k] = list[n];
 			list[n] = value;
 		}
+
 		return list;
 	}
 
-	public static IList<T> ToShuffled<T>(this IEnumerable<T> list)
+	public static IList<T> ToShuffled<T>(this IEnumerable<T> list, WasabiRandom? rnd = null)
 	{
-		return list.ToList().Shuffle();
+		return list.ToList().Shuffle(rnd);
 	}
 
 	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
@@ -99,15 +103,15 @@ public static class LinqExtensions
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
-	=> ofLength switch
-	{
-		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
-		1 => items.Select(item => new[] { item }),
-		_ => items.SelectMany((item, i) => items
+		=> ofLength switch
+		{
+			<= 0 => Enumerable.Empty<IEnumerable<T>>(),
+			1 => items.Select(item => new[] { item }),
+			_ => items.SelectMany((item, i) => items
 				.Skip(i + 1)
 				.CombinationsWithoutRepetition(ofLength - 1)
 				.Select(result => new T[] { item }.Concat(result)))
-	};
+		};
 
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
@@ -178,6 +182,7 @@ public static class LinqExtensions
 		{
 			throw new InvalidOperationException($"{nameof(source)} and {nameof(otherCollection)} collections must have the same number of elements. {nameof(source)}:{source.Count()}, {nameof(otherCollection)}:{otherCollection.Count()}.");
 		}
+
 		return source.Zip(otherCollection);
 	}
 
