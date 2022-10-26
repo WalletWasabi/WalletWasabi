@@ -66,14 +66,14 @@ public class MempoolMirrorTests
 		// Mirrored mempool with tx1 & a non-existent prevOut.
 		{
 			OutPoint madeUpPrevOut = new(hashIn: new uint256(0x77777), nIn: 0);
-			IEnumerable<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { madeUpPrevOut });
+			IReadOnlySet<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { madeUpPrevOut });
 
 			Assert.Empty(transactions);
 		}
 
 		// Mirrored mempool with tx1 & existing tx1prevOut1.
 		{
-			IEnumerable<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { tx1prevOut1 });
+			IReadOnlySet<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { tx1prevOut1 });
 
 			Transaction actualTx = Assert.Single(transactions);
 			Assert.Equal(tx1, actualTx);
@@ -81,7 +81,7 @@ public class MempoolMirrorTests
 
 		// Mirrored mempool with tx1 & existing tx1prevOut2.
 		{
-			IEnumerable<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { tx1prevOut2 });
+			IReadOnlySet<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { tx1prevOut2 });
 
 			Transaction actualTx = Assert.Single(transactions);
 			Assert.Equal(tx1, actualTx);
@@ -89,7 +89,7 @@ public class MempoolMirrorTests
 
 		// Mirrored mempool with tx1 & existing tx1prevOut1 and tx1prevOut2.
 		{
-			IEnumerable<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { tx1prevOut1, tx1prevOut2 });
+			IReadOnlySet<Transaction> transactions = mempoolMirror.GetSpenderTransactions(new[] { tx1prevOut1, tx1prevOut2 });
 
 			Transaction actualTx = Assert.Single(transactions);
 			Assert.Equal(tx1, actualTx);

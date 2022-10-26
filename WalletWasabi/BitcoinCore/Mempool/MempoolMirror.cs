@@ -116,7 +116,7 @@ public class MempoolMirror : PeriodicRunner
 		return added;
 	}
 
-	public IEnumerable<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
+	public IReadOnlySet<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
 	{
 		lock (MempoolLock)
 		{
@@ -126,7 +126,8 @@ public class MempoolMirror : PeriodicRunner
 			return mempoolTxs.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
 				.Where(x => txOutsSet.Contains(x.PrevOut))
 				.Select(x => x.tx)
-				.Distinct();
+				.Distinct()
+				.ToHashSet();
 		}
 	}
 
