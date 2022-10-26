@@ -5,12 +5,9 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
