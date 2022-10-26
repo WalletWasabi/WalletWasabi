@@ -41,7 +41,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isEmptyWallet;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
@@ -79,7 +79,7 @@ public partial class WalletViewModel : WalletViewModelBase
 		}
 
 		this.WhenAnyValue(x => x.History.IsTransactionHistoryEmpty)
-			.Subscribe(x => IsEmptyWallet = x);
+			.Subscribe(x => IsTransactionHistoryEmpty = x);
 
 		_smallLayoutHeightBreakpoint = double.MaxValue;
 		_wideLayoutWidthBreakpoint = double.MaxValue;
