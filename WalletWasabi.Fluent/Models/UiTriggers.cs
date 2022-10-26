@@ -32,12 +32,12 @@ public class UiTriggers
 	/// <summary>
 	/// Triggers on subscription and when the USD exchange rate changed.
 	/// </summary>
-	public IObservable<Unit> UsdExchangeRateChanged => _wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).ToSignal();
+	public IObservable<Unit> UsdExchangeRateChanged => _wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).ObserveOn(RxApp.MainThreadScheduler).ToSignal();
 
 	/// <summary>
 	/// Triggers on subscription and when the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal();
+	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ObserveOn(RxApp.MainThreadScheduler).ToSignal();
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the USD exchange rate changed.
