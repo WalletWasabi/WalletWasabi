@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using NBitcoin;
@@ -27,7 +28,11 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		_walletVm = walletVm;
 		_showPrivacyBar = showPrivacyBar;
 
-		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
+		var showDetailsCanExecute =
+			walletVm.WhenAnyValue(x => x.IsWalletBalanceZero)
+					.Select(x => !x);
+
+		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, showDetailsCanExecute);
 
 		if (showPrivacyBar)
 		{
