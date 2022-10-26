@@ -1,6 +1,7 @@
 using Avalonia;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,7 +112,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		}
 		else
 		{
-			result = CreatePocketSegments(pockets);
+			result = CreateSegmentsByPrivacyLevel();
 		}
 
 		foreach (var item in result)
@@ -160,21 +161,24 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		}
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
+	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByPrivacyLevel()
 	{
-		var total = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
+		var total = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)));
 		var start = 0.0m;
 
-		var usablePockets =
-				pockets.Where(x => x.Coins.Any())
-					   .OrderByDescending(x => x.Coins.First().HdPubKey.AnonymitySet)
-					   .ToList();
+		var groupsByPrivacy =
+			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+										 .OrderBy(x => (int)x.Key)
+										 .ToList();
 
-		foreach (var pocket in usablePockets)
+		foreach (var group in groupsByPrivacy)
 		{
-			var end = start + (Math.Abs(pocket.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC)) / total);
+			var groupAmount =
+				group.Sum(x => x.Amount.ToDecimal(NBitcoin.MoneyUnit.BTC));
 
-			var item = new PrivacyRingItemViewModel(this, pocket, (double)start, (double)end);
+			var end = start + (Math.Abs(groupAmount) / total);
+
+			var item = new PrivacyRingItemViewModel(this, group.Key, new Money(groupAmount, MoneyUnit.BTC), (double)start, (double)end);
 
 			yield return item;
 

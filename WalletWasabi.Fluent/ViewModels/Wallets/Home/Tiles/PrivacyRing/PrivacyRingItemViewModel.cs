@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using NBitcoin;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -36,16 +37,16 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		}
 	}
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, Pocket pocket, double start, double end)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, PrivacyLevel privacyLevel, Money amount, double start, double end)
 	{
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.AnonScoreTarget));
-		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
+		IsPrivate = privacyLevel == PrivacyLevel.Private;
+		IsSemiPrivate = privacyLevel == PrivacyLevel.SemiPrivate;
+		IsNonPrivate = privacyLevel == PrivacyLevel.NonPrivate;
+		AmountText = $"{amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
 
 		Reference = GetPrivacyLevelDescription();
