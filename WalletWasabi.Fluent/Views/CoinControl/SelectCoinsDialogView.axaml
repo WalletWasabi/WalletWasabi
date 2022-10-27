@@ -93,7 +93,7 @@
     </controls:ContentArea.Styles>
 
     <controls:ContentArea.Title>
-      <TextBox Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
+      <TextBox IsVisible="False" Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
         <TextBox.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
@@ -111,7 +111,7 @@
                    Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
       </Panel>
 
-      <TreeDataGrid Source="{Binding LabelBasedSelection.Source}" CanUserSortColumns="True" />
+      <TreeDataGrid Source="{Binding Source}" CanUserSortColumns="True" />
 
     </DockPanel>
 

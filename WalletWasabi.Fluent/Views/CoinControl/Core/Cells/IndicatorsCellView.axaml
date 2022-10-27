@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:cells="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core.Cells"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="cells:IndicatorsCellViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.IndicatorsCellView">
+
+  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="5 0">
+
+    <Panel>
+      <!-- Confirmed -->
+      <PathIcon IsVisible="{Binding IsConfirmed}"
+                Data="{StaticResource checkmark_filled}"
+                Foreground="{DynamicResource TextControlForeground}"
+                Opacity="0.6"
+                Height="11"
+                ToolTip.Tip="{Binding ConfirmationStatus}" />
+      <!-- Pending -->
+      <PathIcon IsVisible="{Binding !IsConfirmed}"
+                Data="{StaticResource clock_regular}"
+                Height="14"
+                Opacity="0.3"
+                ToolTip.Tip="Pending" />
+    </Panel>
+
+    <Panel IsVisible="{Binding !IsBanned}">
+      <!-- CJ active -->
+      <PathIcon IsVisible="{Binding IsCoinjoining}"
+                Data="{StaticResource wallet_action_coinjoin}"
+                Foreground="{DynamicResource SystemAccentColor}"
+                Height="15"
+                ToolTip.Tip="Coinjoining" />
+      <!-- CJ inactive -->
+      <PathIcon IsVisible="{Binding !IsCoinjoining}"
+                Data="{StaticResource wallet_action_coinjoin}"
+                Height="15"
+                Opacity="0.3"
+                ToolTip.Tip="Not coinjoining" />
+    </Panel>
+
+    <!-- Banned -->
+    <PathIcon IsVisible="{Binding IsBanned}"
+              Data="{StaticResource warning_filled}"
+              Foreground="{StaticResource SystemControlErrorTextForegroundBrush}"
+              Height="14"
+              ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
+
+  </StackPanel>
+</UserControl>
