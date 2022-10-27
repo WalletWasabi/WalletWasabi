@@ -602,10 +602,10 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= Constants.SemiPrivateThreshold)
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < 2)
+			.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold)
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
