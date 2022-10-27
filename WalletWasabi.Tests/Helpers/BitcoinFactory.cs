@@ -76,11 +76,11 @@ public static class BitcoinFactory
 	public static HdPubKey CreateHdPubKey(KeyManager km)
 		=> km.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 
-	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, bool confirmed = true, int anonymitySet = 1)
-		=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), confirmed, anonymitySet);
+	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, decimal amountBtc, bool confirmed = true, int anonymitySet = 1, WasabiRandom? rnd = null)
+		=> CreateSmartCoin(pubKey, Money.Coins(amountBtc), confirmed, anonymitySet, rnd);
 
-	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
-		=> CreateSmartCoin(Transaction.Create(Network.Main), pubKey, amount, confirmed, anonymitySet);
+	public static SmartCoin CreateSmartCoin(HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1, WasabiRandom? rnd = null)
+		=> CreateSmartCoin(Transaction.Create(Network.Main), pubKey, amount, confirmed, anonymitySet, rnd);
 
 	public static SmartCoin CreateSmartCoin(Transaction tx, HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1, WasabiRandom? rnd = null)
 	{

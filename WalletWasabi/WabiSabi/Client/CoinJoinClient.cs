@@ -622,7 +622,7 @@ public class CoinJoinClient
 		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
 		if (redCoinIsolation)
 		{
-			var red = redCoins.RandomElement();
+			var red = redCoins.RandomElement(rnd);
 			if (red is not null)
 			{
 				allowedNonPrivateCoins.Add(red);
@@ -670,53 +670,13 @@ public class CoinJoinClient
 		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Select a group of coins those are close to each other by anonymity score.
-		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
-
-		// Create a bunch of combinations.
-		var sw1 = Stopwatch.StartNew();
+		List<IEnumerable<SmartCoin>> groups = new();
 		foreach (var coin in largestNonPrivateCoins)
 		{
-			// Create a base combination just in case.
-			var baseGroup = orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin });
-			TryAddGroup(parameters, groups, baseGroup);
-
-			var sw2 = Stopwatch.StartNew();
-			foreach (var group in orderedAllowedCoins
-				         .Except(new[] { coin })
-				         .CombinationsWithoutRepetition(inputCount - 1)
-				         .Select(x => x.Concat(new[] { coin })))
-			{
-				TryAddGroup(parameters, groups, group);
-
-				if (sw2.Elapsed > TimeSpan.FromSeconds(1))
-				{
-					break;
-				}
-			}
-
-			sw2.Reset();
-
-			if (sw1.Elapsed > TimeSpan.FromSeconds(10))
-			{
-				break;
-			}
+			groups.Add(orderedAllowedCoins.Except(new[] { coin }).Take(inputCount - 1).Concat(new[] { coin }));
 		}
 
-		if (!groups.Any())
-		{
-			Logger.LogDebug($"Couldn't create any combinations, ending.");
-			return ImmutableList<SmartCoin>.Empty;
-		}
-
-		Logger.LogDebug($"Created {groups.Count} combinations within {(int)sw1.Elapsed.TotalSeconds} seconds.");
-
-		// Select the group where the less coins coming from the same tx.
-		var bestRep = groups.Values.Select(x => GetReps(x)).Min(x => x);
-		var bestRepGroups = groups.Values.Where(x => GetReps(x) == bestRep);
-		Logger.LogDebug($"{nameof(bestRep)}: {bestRep}.");
-		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
-
-		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => bestRepGroups.Any(y => y.Contains(x)));
+		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => groups.Any(y => y.Contains(x)));
 		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
@@ -738,7 +698,7 @@ public class CoinJoinClient
 
 		Logger.LogDebug($"Randomly selected large non-private coin: {selectedNonPrivateCoin.Amount.ToString(false, true)}.");
 
-		var finalCandidate = bestRepGroups
+		var finalCandidate = groups
 			.Where(x => x.Contains(selectedNonPrivateCoin))
 			.RandomElement(rnd);
 		if (finalCandidate is null)
