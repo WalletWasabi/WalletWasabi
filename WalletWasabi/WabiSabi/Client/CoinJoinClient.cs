@@ -636,9 +636,14 @@ public class CoinJoinClient
 
 		Logger.LogDebug($"{nameof(allowedNonPrivateCoins)}: {allowedNonPrivateCoins.Count} coins, valued at {Money.Satoshis(allowedNonPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
+		// How many inputs do we want to provide to the mix?
+		var utxoCount = allowedNonPrivateCoins.Count + privateCoins.Length;
+		var minUtxoCountTarget = (int)((allowedNonPrivateCoins.Sum(x => x.Amount) + privateCoins.Sum(x => x.Amount)) / liquidityClue.Satoshi);
+		Logger.LogDebug($"Derived {nameof(minUtxoCountTarget)} from balance and expected liquidity: {minUtxoCountTarget}.");
+
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(rnd));
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(utxoCount, minUtxoCountTarget, rnd));
 		if (consolidationMode)
 		{
 			Logger.LogDebug($"Consolidation mode is on.");
@@ -745,9 +750,7 @@ public class CoinJoinClient
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
 		var winner = new List<SmartCoin>();
-		winner.Add(selectedNonPrivateCoin);
 		foreach (var coin in finalCandidate
-			         .Except(new[] { selectedNonPrivateCoin })
 			         .OrderBy(x => x.HdPubKey.AnonymitySet)
 			         .ThenByDescending(x => x.Amount))
 		{
@@ -764,30 +767,6 @@ public class CoinJoinClient
 			{
 				winner.Add(coin);
 			}
-		}
-
-		double winnerCost = 0;
-		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerCost / winner.Sum(x => x.Amount) < 3))
-		{
-			List<SmartCoin> bestReducedWinner = winner;
-			var minimumAnonScore = bestReducedWinner.Min(x => x.HdPubKey.AnonymitySet);
-			var minCost = bestReducedWinner.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi);
-
-			foreach (SmartCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
-			{
-				var reducedWinner = winner.Except(new[] { coin });
-				minimumAnonScore = reducedWinner.Min(x => x.HdPubKey.AnonymitySet);
-				var cost = reducedWinner.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi);
-
-				if (cost < minCost)
-				{
-					minCost = cost;
-					bestReducedWinner = reducedWinner.ToList();
-				}
-			}
-
-			winner = bestReducedWinner;
-			winnerCost = minCost;
 		}
 
 		if (winner.Count != finalCandidate.Count())
@@ -892,11 +871,15 @@ public class CoinJoinClient
 	/// Calculates how many inputs are desirable to be registered.
 	/// Note: random biasing is applied.
 	/// </summary>
+	/// <param name="minUtxoCountTarget">We want to target to have in our wallet minimum this number of UTXOs.</param>
 	/// <returns>Desired input count.</returns>
-	private static int GetInputTarget(WasabiRandom rnd)
+	private static int GetInputTarget(int utxoCount, int minUtxoCountTarget, WasabiRandom rnd)
 	{
+		// Let's target to have a only 1 UTXO in our wallet, unless it's specified otherwise.
+		var utxoCountTarget = Math.Max(1, minUtxoCountTarget);
+
 		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
-		int targetInputCount = MaxInputsRegistrableByWallet;
+		int targetInputCount = utxoCount < utxoCountTarget ? 1 : MaxInputsRegistrableByWallet;
 
 		var distance = new Dictionary<int, int>();
 		for (int i = 1; i <= MaxInputsRegistrableByWallet; i++)
