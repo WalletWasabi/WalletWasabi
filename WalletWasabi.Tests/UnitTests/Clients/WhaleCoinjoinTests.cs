@@ -17,13 +17,13 @@ using DynamicData;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using Xunit.Abstractions;
 using System.IO;
+using System.Threading;
 
 namespace WalletWasabi.Tests.UnitTests.Clients;
 
 public class WhaleCoinjoinTests
 {
 	private ITestOutputHelper TestOutputHelper { get; }
-	private string OutputFilePath { get; }
 	private string OutputFilePath { get; }
 
 	public WhaleCoinjoinTests(ITestOutputHelper testOutputHelper)
@@ -138,8 +138,6 @@ public class WhaleCoinjoinTests
 			return _seededInstance.NextDouble();
 		}
 	}
-
-
 
 	private void WriteLine(string content)
 	{
