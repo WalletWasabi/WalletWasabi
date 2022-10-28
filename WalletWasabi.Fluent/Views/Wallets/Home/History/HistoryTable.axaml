@@ -90,7 +90,6 @@
         </MenuItem.Icon>
       </MenuItem>
     </ContextMenu>
-
   </UserControl.Resources>
 
   <Panel>
@@ -267,21 +266,12 @@
             </ControlTemplate>
           </Setter>
         </Style>
-
       </TreeDataGrid.Styles>
     </TreeDataGrid>
     <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
       <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                  RowHeight="{StaticResource HistoryTableRowHeight}" />
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.75" />
-      <Grid RowDefinitions="26,1*,1.5*"
-            IsVisible="{Binding IsTransactionHistoryLoaded}"
-            Margin="{StaticResource HistoryTablePlaceholderPanelMargin}">
-        <c:InfoMessage VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       Grid.Row="1"
-                       Content="Transaction history is empty" />
-      </Grid>
+      <Panel Background="{DynamicResource RegionColor}" Opacity="0.90" />
     </Panel>
   </Panel>
 </UserControl>
