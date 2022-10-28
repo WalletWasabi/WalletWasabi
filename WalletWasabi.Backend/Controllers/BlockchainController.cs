@@ -93,7 +93,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(200)]
 	[ProducesResponseType(400)]
 	[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
-	public async Task<IActionResult> GetMempoolHashesAsync(CancellationToken cancellationToken, [FromQuery] int compactness = 64)
+	public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64, CancellationToken cancellationToken = default)
 	{
 		if (compactness is < 1 or > 64)
 		{

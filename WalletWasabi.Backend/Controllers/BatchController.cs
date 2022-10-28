@@ -40,9 +40,9 @@ public class BatchController : ControllerBase
 	public async Task<IActionResult> GetSynchronizeAsync(
 		[FromQuery, Required] string bestKnownBlockHash,
 		[FromQuery, Required] int maxNumberOfFilters,
-		CancellationToken cancellationToken,
 		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
-		[FromQuery] string? indexType = null)
+		[FromQuery] string? indexType = null,
+		CancellationToken cancellationToken = default)
 	{
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
