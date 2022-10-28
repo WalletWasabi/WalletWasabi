@@ -1,5 +1,6 @@
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -14,7 +15,7 @@ public static class CoinHelpers
 	public static bool IsSemiPrivate(this SmartCoin coin, int privateThreshold)
 	{
 		var anonymitySet = coin.HdPubKey.AnonymitySet;
-		return anonymitySet >= 2 && anonymitySet < privateThreshold;
+		return anonymitySet >= Constants.SemiPrivateThreshold && anonymitySet < privateThreshold;
 	}
 
 	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold)
