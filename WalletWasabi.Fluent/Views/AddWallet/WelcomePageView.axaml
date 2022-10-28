@@ -141,7 +141,7 @@
         <Grid ColumnDefinitions="Auto,*">
           <DockPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock Classes="text"
-                       Text="Satoshi brought scarcity, while Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out.&#10;Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory.&#10;&#10;Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
+                       Text="Satoshi brought scarcity, Wasabi is bringing fungibility. As inflation is running rampant, vigilant individuals are opting out.&#10;Bitcoin is rapidly becoming the world's reserve currency, but its fungibility - a property of good money - is still unsatisfactory.&#10;&#10;Wasabi Wallet is a bastion of hope in the quest to qualitatively improve the money of the future." />
             <TextBlock Text="Welcome to Wasabi"
                        Classes="title" />
           </DockPanel>
