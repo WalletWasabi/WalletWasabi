@@ -178,7 +178,7 @@ public class KeyManager
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
 	/// <summary>
-	/// Won't coinjoin automatically if there are less than this much non-private coins in the wallet.
+	/// Won't coinjoin automatically if the wallet balance is less than this.
 	/// </summary>
 	[JsonProperty(PropertyName = "PlebStopThreshold")]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]

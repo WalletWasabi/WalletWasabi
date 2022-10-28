@@ -1,4 +1,3 @@
-using NBitcoin;
 using Nito.AsyncEx;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -25,6 +24,8 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
 	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
 	[AutoNotify] private bool _isOpen;
+	[AutoNotify] private bool _isVisible;
+	[AutoNotify] private bool _isBusy;
 
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 
@@ -45,7 +46,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	public ObservableCollection<SuggestionViewModel> Suggestions { get; }
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BitcoinAddress destination, BuildTransactionResult transaction, bool isFixedAmount, CancellationToken cancellationToken)
+	public async Task BuildPrivacySuggestionsAsync(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource singleRunCts = new();
 
@@ -65,12 +66,12 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 				Suggestions.Clear();
 				SelectedSuggestion = null;
 
-				var loadingRing = new LoadingSuggestionViewModel();
-				Suggestions.Add(loadingRing);
+				IsVisible = true;
+				IsBusy = true;
 
-				var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destination.ScriptPubKey);
+				var hasChange = transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
 
-				if (hasChange && !isFixedAmount && !info.IsPayJoin)
+				if (hasChange && !info.IsFixedAmount && !info.IsPayJoin)
 				{
 					// Exchange rate can change substantially during computation itself.
 					// Reporting up-to-date exchange rates would just confuse users.
@@ -85,15 +86,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 					IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
-						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, destination, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
+						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
 
 					await foreach (var suggestion in suggestions)
 					{
-						Suggestions.Insert(Suggestions.Count - 1, suggestion);
+						Suggestions.Add(suggestion);
 					}
 				}
-
-				Suggestions.Remove(loadingRing);
 			}
 			catch (OperationCanceledException)
 			{
@@ -104,6 +103,13 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 				lock (_lock)
 				{
 					_suggestionCancellationTokenSource = null;
+				}
+
+				IsBusy = false;
+				IsVisible = Suggestions.Any();
+				if (!IsVisible)
+				{
+					IsOpen = false;
 				}
 			}
 		}

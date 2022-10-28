@@ -68,7 +68,7 @@ public class P2pBasedTests
 			}
 
 			// Wait until the mempool service receives all the sent transactions.
-			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(2));
+			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(4));
 
 			// Check that all the received transaction hashes are in the set of sent transaction hashes.
 			foreach (SmartTransaction tx in mempoolSmartTxs)

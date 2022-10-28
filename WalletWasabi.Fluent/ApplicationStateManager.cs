@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
@@ -158,9 +160,51 @@ public class ApplicationStateManager : IMainWindowService
 
 		_lifetime.MainWindow = result;
 
+		if (result.WindowState != WindowState.Maximized)
+		{
+			SetWindowSize(result);
+		}
+
+		ObserveWindowSize(result, _compositeDisposable);
+
 		result.Show();
 
 		ApplicationViewModel.IsMainWindowShown = true;
+	}
+
+	private void SetWindowSize(Window window)
+	{
+		var configWidth = Services.UiConfig.WindowWidth;
+		var configHeight = Services.UiConfig.WindowHeight;
+		var currentScreen = window.Screens.ScreenFromPoint(window.Position);
+
+		if (configWidth is null || configHeight is null || currentScreen is null)
+		{
+			return;
+		}
+
+		var isValidWidth = configWidth <= currentScreen.WorkingArea.Width && configWidth >= window.MinWidth;
+		var isValidHeight = configHeight <= currentScreen.WorkingArea.Height && configHeight >= window.MinHeight;
+
+		if (isValidWidth && isValidHeight)
+		{
+			window.Width = configWidth.Value;
+			window.Height = configHeight.Value;
+		}
+	}
+
+	private void ObserveWindowSize(Window window, CompositeDisposable disposables)
+	{
+		window
+			.WhenAnyValue(x => x.Bounds)
+			.Skip(1)
+			.Where(b => !b.IsEmpty && window.WindowState == WindowState.Normal)
+			.Subscribe(b =>
+			{
+				Services.UiConfig.WindowWidth = b.Width;
+				Services.UiConfig.WindowHeight = b.Height;
+			})
+			.DisposeWith(disposables);
 	}
 
 	void IMainWindowService.Show()

@@ -27,9 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
-	private readonly bool _isFixedAmount;
 	private readonly Wallet _wallet;
-	private readonly BitcoinAddress _destination;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
@@ -39,19 +37,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
+	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
-		_destination = destination;
-		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
 		{
@@ -100,7 +96,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, transaction, _isFixedAmount, _cancellationTokenSource.Token))
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _cancellationTokenSource.Token))
 			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
@@ -228,6 +224,19 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> InitialiseTransactionAsync()
 	{
+		if (_info.FeeRate == FeeRate.Zero)
+		{
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
+			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
+			{
+				_info.FeeRate = newFeeRate;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
@@ -238,19 +247,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_info.Coins = coins;
 			}
 			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
-			}
-		}
-
-		if (_info.FeeRate == FeeRate.Zero)
-		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
-			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
-			{
-				_info.FeeRate = newFeeRate;
-			}
-			else
 			{
 				return false;
 			}
@@ -270,7 +266,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination, tryToSign: false));
+			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
 		}
 		catch (NotEnoughFundsException ex)
 		{
@@ -339,7 +335,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				? feeRate
 				: FeeRate.Zero;
 
-		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
+		if (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold ||
 			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
@@ -354,7 +350,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (totalBalanceUsed)
 		{
-			if (selectedAmount == _info.Amount && !(_isFixedAmount || _info.IsPayJoin))
+			if (selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
 			{
 				_info.SubtractFee = true;
 				return true;
@@ -439,7 +435,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnConfirmAsync()
 	{
-		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
+		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 		if (authResult)
@@ -492,7 +488,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			try
 			{
 				var payJoinTransaction = await Task.Run(() =>
-					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, _destination, isPayJoin: true));
+					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
 				return payJoinTransaction.Transaction;
 			}
 			catch (Exception ex)
@@ -523,10 +519,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
-		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
-		var labelSelection = new LabelSelectionViewModel(amount);
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info);
 		labelSelection.Reset(pockets);
 
-		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
 }

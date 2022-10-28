@@ -29,8 +29,7 @@
         </StackPanel>
       </StackPanel>
 
-      <tilesView:PrivacyBar DockPanel.Dock="Bottom" Margin="0 0 0 8"
-                            IsVisible="{Binding ShowPrivacyBar}" />
+      <tilesView:PrivacyBar DockPanel.Dock="Bottom" />
 
       <StackPanel VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 3">
 

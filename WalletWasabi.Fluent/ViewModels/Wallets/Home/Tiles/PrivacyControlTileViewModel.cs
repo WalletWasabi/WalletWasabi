@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using NBitcoin;
@@ -14,7 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPreviewItem
 {
 	private readonly WalletViewModel _walletVm;
-	private readonly IObservable<Unit> _balanceChanged;
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _fullyMixed;
 	[AutoNotify] private string _percentText = "";
@@ -22,18 +22,21 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	[AutoNotify] private bool _hasPrivateBalance;
 	[AutoNotify] private bool _showPrivacyBar;
 
-	public PrivacyControlTileViewModel(WalletViewModel walletVm, IObservable<Unit> balanceChanged, bool showPrivacyBar = true)
+	public PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
 	{
 		_wallet = walletVm.Wallet;
 		_walletVm = walletVm;
-		_balanceChanged = balanceChanged;
 		_showPrivacyBar = showPrivacyBar;
 
-		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails);
+		var showDetailsCanExecute =
+			walletVm.WhenAnyValue(x => x.IsWalletBalanceZero)
+					.Select(x => !x);
 
-		if (_showPrivacyBar)
+		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, showDetailsCanExecute);
+
+		if (showPrivacyBar)
 		{
-			PrivacyBar = new PrivacyBarViewModel(_walletVm, _balanceChanged);
+			PrivacyBar = new PrivacyBarViewModel(_walletVm);
 		}
 	}
 
@@ -45,19 +48,21 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 	{
 		base.OnActivated(disposables);
 
-		_balanceChanged
+		_walletVm.UiTriggers.PrivacyProgressUpdateTrigger
 			.Subscribe(_ => Update())
 			.DisposeWith(disposables);
+
+		PrivacyBar?.Activate(disposables);
 	}
 
 	private void ShowDetails()
 	{
-		NavigationState.Instance.DialogScreenNavigation.To(new PrivacyRingViewModel(_walletVm, _balanceChanged));
+		NavigationState.Instance.DialogScreenNavigation.To(new PrivacyRingViewModel(_walletVm));
 	}
 
 	private void Update()
 	{
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
+		var privateThreshold = _wallet.AnonScoreTarget;
 
 		var currentPrivacyScore = _wallet.Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, privateThreshold - 1));
 		var maxPrivacyScore = _wallet.Coins.TotalAmount().Satoshi * (privateThreshold - 1);
