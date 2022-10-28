@@ -19,7 +19,7 @@ public static class CoinHelpers
 
 	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold)
 	{
-		if (coin.IsPrivate(privateThreshold) || coin.IsSemiPrivate())
+		if (coin.IsPrivate(privateThreshold) || coin.IsSemiPrivate(privateThreshold))
 		{
 			return SmartLabel.Empty;
 		}
