@@ -270,12 +270,12 @@ public class TransactionFactory
 			}
 		}
 
+		Logger.LogDebug($"Transaction is successfully built: {tx.GetHash()}.");
+
 		if (feePercentage > 1)
 		{
 			Logger.LogDebug($"Total: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%.");
 		}
-
-		Logger.LogDebug($"Transaction is successfully built: {tx.GetHash()}.");
 
 		var sign = !KeyManager.IsWatchOnly;
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
