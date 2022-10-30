@@ -21,9 +21,9 @@ public class CoinbaseExchangeRateProvider : IExchangeRateProvider
 		var wrapper = await content.ReadAsJsonAsync<DataWrapper>().ConfigureAwait(false);
 
 		var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate { Rate = wrapper.Data.Rates.USD, Ticker = "USD" }
-				};
+		{
+			new ExchangeRate { Rate = wrapper.Data.Rates.USD, Ticker = "USD" }
+		};
 
 		return exchangeRates;
 	}

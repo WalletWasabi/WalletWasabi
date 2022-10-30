@@ -21,9 +21,9 @@ public class GeminiExchangeRateProvider : IExchangeRateProvider
 		var data = await content.ReadAsJsonAsync<GeminiExchangeRateInfo>().ConfigureAwait(false);
 
 		var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate { Rate = data.Bid, Ticker = "USD" }
-				};
+		{
+			new ExchangeRate { Rate = data.Bid, Ticker = "USD" }
+		};
 
 		return exchangeRates;
 	}

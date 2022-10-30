@@ -18,13 +18,13 @@ public class ExchangeRateProvider : IExchangeRateProvider
 {
 	private readonly IExchangeRateProvider[] _exchangeRateProviders =
 	{
-			new BlockchainInfoExchangeRateProvider(),
-			new BitstampExchangeRateProvider(),
-			new CoinGeckoExchangeRateProvider(),
-			new CoinbaseExchangeRateProvider(),
-			new GeminiExchangeRateProvider(),
-			new ItBitExchangeRateProvider()
-		};
+		new BlockchainInfoExchangeRateProvider(),
+		new BitstampExchangeRateProvider(),
+		new CoinGeckoExchangeRateProvider(),
+		new CoinbaseExchangeRateProvider(),
+		new GeminiExchangeRateProvider(),
+		new ItBitExchangeRateProvider()
+	};
 
 	public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync(CancellationToken cancellationToken)
 	{

@@ -21,9 +21,9 @@ public class ItBitExchangeRateProvider : IExchangeRateProvider
 		var data = await content.ReadAsJsonAsync<ItBitExchangeRateInfo>().ConfigureAwait(false);
 
 		var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate { Rate = data.Bid, Ticker = "USD" }
-				};
+		{
+			new ExchangeRate { Rate = data.Bid, Ticker = "USD" }
+		};
 
 		return exchangeRates;
 	}
