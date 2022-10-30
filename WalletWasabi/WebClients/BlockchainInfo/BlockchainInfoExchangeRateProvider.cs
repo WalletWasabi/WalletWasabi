@@ -21,9 +21,9 @@ public class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
 		var rates = await content.ReadAsJsonAsync<BlockchainInfoExchangeRates>().ConfigureAwait(false);
 
 		var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate { Rate = rates.USD.Sell, Ticker = "USD" }
-				};
+		{
+			new ExchangeRate { Rate = rates.USD.Sell, Ticker = "USD" }
+		};
 
 		return exchangeRates;
 	}
