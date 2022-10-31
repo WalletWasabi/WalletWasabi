@@ -115,6 +115,20 @@ public partial class WalletViewModel : WalletViewModelBase
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
+		this.WhenAnyValue(x => x.IsWalletBalanceZero)
+			.Do(empty =>
+			{
+				if (wallet.KeyManager.IsWatchOnly)
+				{
+					return;
+				}
+
+				Tiles = empty ? TileHelper.GetWatchOnlyWalletTiles(this)
+					: TileHelper.GetNormalWalletTiles(this);
+			})
+			.Subscribe()
+			.DisposeWith(Disposables);
+
 		IsMusicBoxVisible =
 			this.WhenAnyValue(x => x.IsSelected, x => x.IsWalletBalanceZero, x => x.CoinJoinStateViewModel.AreAllCoinsPrivate, x => x.IsPointerOver)
 				.Throttle(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
