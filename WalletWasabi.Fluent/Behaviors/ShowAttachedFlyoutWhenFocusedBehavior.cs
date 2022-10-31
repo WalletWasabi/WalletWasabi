@@ -55,7 +55,6 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
 		if (IsFlyoutOpen)
 		{
-			controller.SetIsForcedOpen(false);
 			IsFlyoutOpen = false;
 		}
 	}
