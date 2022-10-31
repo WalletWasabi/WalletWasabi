@@ -88,15 +88,11 @@ public partial class WalletViewModel : WalletViewModelBase
 		_normalLayoutIndex = 1;
 		_wideLayoutIndex = 2;
 
-		Layouts = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletLayout()
-			: TileHelper.GetNormalWalletLayout();
+		Layouts = TileHelper.GetWalletLayout(wallet.KeyManager.IsWatchOnly, false);
 
 		LayoutIndex = _normalLayoutIndex;
 
-		_tiles = wallet.KeyManager.IsWatchOnly
-			? TileHelper.GetWatchOnlyWalletTiles(this)
-			: TileHelper.GetNormalWalletTiles(this);
+		Tiles = TileHelper.GetWalletTiles(this, wallet.KeyManager.IsWatchOnly, false);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
 			.Subscribe(x =>
@@ -116,15 +112,12 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Do(empty =>
+			.Do(hasBalance =>
 			{
-				if (wallet.KeyManager.IsWatchOnly)
-				{
-					return;
-				}
-
-				Tiles = empty ? TileHelper.GetWatchOnlyWalletTiles(this)
-					: TileHelper.GetNormalWalletTiles(this);
+				Tiles = TileHelper.GetWalletTiles(this, wallet.KeyManager.IsWatchOnly, hasBalance);
+				Layouts = TileHelper.GetWalletLayout(wallet.KeyManager.IsWatchOnly, hasBalance);
+				NotifyLayoutChanged();
+				UpdateTiles();
 			})
 			.Subscribe()
 			.DisposeWith(Disposables);
