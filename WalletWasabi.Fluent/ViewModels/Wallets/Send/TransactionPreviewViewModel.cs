@@ -409,7 +409,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			if (!_info.IsAutomaticSelectionEnabled)
 			{
-				var coinSelectionDialogResult = await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, _info, Transaction?.SpentCoins));
+				var coinSelectionDialogResult = await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel));
 
 				if (coinSelectionDialogResult.Kind == DialogResultKind.Normal && coinSelectionDialogResult.Result is { })
 				{
@@ -554,6 +554,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		return _info.IsAutomaticSelectionEnabled
 			? new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: false)
-			: new SelectCoinsDialogViewModel(_walletViewModel, _info, Transaction?.SpentCoins);
+			: new SelectCoinsDialogViewModel(_walletViewModel);
 	}
 }

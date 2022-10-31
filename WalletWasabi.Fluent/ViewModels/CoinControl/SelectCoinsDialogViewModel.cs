@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.ViewModels.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using ICoin = WalletWasabi.Fluent.ViewModels.CoinControl.Core.ICoin;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
@@ -27,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, TransactionInfo info, IEnumerable<SmartCoin> transactionSpentCoins)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 
