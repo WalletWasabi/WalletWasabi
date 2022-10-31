@@ -25,6 +25,7 @@ public partial class WalletBalanceTileViewModel : TileViewModel
 	{
 		_wallet = walletVm.Wallet;
 		_balanceChanged = walletVm.UiTriggers.BalanceUpdateTrigger;
+		UpdateBalance();
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)
