@@ -37,7 +37,7 @@ public partial class TransactionInfo
 
 	public BitcoinAddress Destination { get; init; }
 
-	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
+	public SmartLabel Recipient { get; set; } = SmartLabel.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -81,7 +81,7 @@ public partial class TransactionInfo
 			MinimumRequiredAmount = MinimumRequiredAmount,
 			Amount = Amount,
 			Destination = Destination,
-			UserLabels = UserLabels,
+			Recipient = Recipient,
 			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
 			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			ChangelessCoins = ChangelessCoins,

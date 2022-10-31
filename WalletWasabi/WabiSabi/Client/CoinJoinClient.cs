@@ -287,7 +287,7 @@ public class CoinJoinClient
 	{
 		int eventInvokedAlready = 0;
 
-		UnexpectedRoundPhaseException? lastAbortedNotEnoughAlicesException = null;
+		UnexpectedRoundPhaseException? lastUnexpectedRoundPhaseException = null;
 
 		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
@@ -305,6 +305,8 @@ public class CoinJoinClient
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
 			PersonCircuit? personCircuit = null;
+			bool disposeCircuit = true;
+
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
@@ -326,6 +328,8 @@ public class CoinJoinClient
 					CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
 				}
 
+				// Do not dispose the circuit, it will be used later.
+				disposeCircuit = false;
 				return (aliceClient, personCircuit);
 			}
 			catch (WabiSabiProtocolException wpe)
@@ -358,9 +362,6 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
-
-				personCircuit?.Dispose();
-				return (null, null);
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -380,23 +381,26 @@ public class CoinJoinClient
 				{
 					Logger.LogDebug(ex);
 				}
-
-				personCircuit?.Dispose();
-				return (null, null);
 			}
-			catch (UnexpectedRoundPhaseException ex) when (ex.RoundState.EndRoundState is EndRoundState.AbortedNotEnoughAlices)
+			catch (UnexpectedRoundPhaseException ex)
 			{
-				lastAbortedNotEnoughAlicesException = ex;
+				lastUnexpectedRoundPhaseException = ex;
 				Logger.LogTrace(ex);
-				personCircuit?.Dispose();
-				return (null, null);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
-				personCircuit?.Dispose();
-				return (null, null);
 			}
+			finally
+			{
+				if (disposeCircuit)
+				{
+					personCircuit?.Dispose();
+				}
+			}
+
+			// In case of any exception.
+			return (null, null);
 		}
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
@@ -430,10 +434,10 @@ public class CoinJoinClient
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
 
-		if (!successfulAlices.Any() && lastAbortedNotEnoughAlicesException is { })
+		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
 		{
 			// In this case the coordinator aborted the round - throw only one exception and log outside.
-			throw lastAbortedNotEnoughAlicesException;
+			throw lastUnexpectedRoundPhaseException;
 		}
 
 		return successfulAlices;
@@ -484,7 +488,6 @@ public class CoinJoinClient
 				{
 					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
-
 			})
 			.ToImmutableArray();
 
@@ -599,10 +602,10 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= Constants.SemiPrivateThreshold)
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < 2)
+			.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold)
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)

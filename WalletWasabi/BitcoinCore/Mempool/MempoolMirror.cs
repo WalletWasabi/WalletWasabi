@@ -21,8 +21,8 @@ public class MempoolMirror : PeriodicRunner
 		Node = node;
 	}
 
-	public IRPCClient Rpc { get; }
-	public P2pNode Node { get; }
+	private IRPCClient Rpc { get; }
+	private P2pNode Node { get; }
 	private Dictionary<uint256, Transaction> Mempool { get; } = new();
 	private object MempoolLock { get; } = new();
 
@@ -57,7 +57,7 @@ public class MempoolMirror : PeriodicRunner
 		AddTransactions(stx.Transaction);
 	}
 
-	private int AddTransactions(params Transaction[] txs) => AddTransactions(txs as IEnumerable<Transaction>);
+	internal int AddTransactions(params Transaction[] txs) => AddTransactions(txs as IEnumerable<Transaction>);
 
 	private int AddTransactions(IEnumerable<Transaction> txs)
 	{
@@ -66,7 +66,7 @@ public class MempoolMirror : PeriodicRunner
 		{
 			foreach (var tx in txs.Where(x => !Mempool.ContainsKey(x.GetHash())))
 			{
-				// Evict double spents.
+				// Evict double spends.
 				EvictSpendersNoLock(tx.Inputs.Select(x => x.PrevOut));
 
 				Mempool.Add(tx.GetHash(), tx);
@@ -116,24 +116,18 @@ public class MempoolMirror : PeriodicRunner
 		return added;
 	}
 
-	public IEnumerable<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
+	public IReadOnlySet<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
 	{
-		Dictionary<uint256, Transaction> spenders = new();
 		lock (MempoolLock)
 		{
-			foreach (var input in txOuts)
-			{
-				foreach (var mempoolTx in Mempool)
-				{
-					if (mempoolTx.Value.Inputs.Select(x => x.PrevOut).Contains(input))
-					{
-						spenders.Add(mempoolTx.Key, mempoolTx.Value);
-					}
-				}
-			}
-		}
+			var mempoolTxs = Mempool.Values;
+			var txOutsSet = txOuts.ToHashSet();
 
-		return spenders.Values;
+			return mempoolTxs.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
+				.Where(x => txOutsSet.Contains(x.PrevOut))
+				.Select(x => x.tx)
+				.ToHashSet();
+		}
 	}
 
 	public ISet<uint256> GetMempoolHashes()
