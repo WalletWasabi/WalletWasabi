@@ -29,9 +29,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 {
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, TransactionInfo info, IEnumerable<SmartCoin> transactionSpentCoins)
 	{
-		var pocket = walletViewModel.Wallet.GetPockets();
+		var pockets = walletViewModel.Wallet.GetPockets();
 
-		var nodes = ToNodes(pocket);
+		var nodes = ToTreeNodes(pockets);
 
 		Source = new HierarchicalTreeDataGridSource<TreeNode>(nodes)
 		{
@@ -151,8 +151,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 0;
 	}
 
-	private static IEnumerable<TreeNode> ToNodes(IEnumerable<Pocket> pockets)
+	private static IEnumerable<TreeNode> ToTreeNodes(IEnumerable<Pocket> pockets)
 	{
-		return pockets.Select(p => new TreeNode(new PocketCoinAdapter(p), p.Coins.OrderByDescending(x => x.Amount).Select(coin => new TreeNode(new SmartCoinAdapter(coin)))));
+		return pockets.Select(
+			pocket => new TreeNode(
+				new PocketCoinAdapter(pocket),
+				pocket.Coins
+					.OrderByDescending(x => x.Amount)
+					.Select(coin => new TreeNode(new SmartCoinAdapter(coin)))));
 	}
 }
