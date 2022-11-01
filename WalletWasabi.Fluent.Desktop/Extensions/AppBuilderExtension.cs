@@ -13,6 +13,7 @@ public static class AppBuilderExtension
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
+			UriSchemeExtension.RegisterUriSchemeWindows();
 			appBuilder
 				.UseWin32()
 				.UseSkia();

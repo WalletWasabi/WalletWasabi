@@ -67,7 +67,8 @@ public class Program
 
 		try
 		{
-			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+			singleInstanceChecker.BitcoinUrlActivated += OnBitcoinUrlActivated;
+			singleInstanceChecker.EnsureSingleOrThrowAsync(UriSchemeExtension.GetUrlFromArgs(args)).GetAwaiter().GetResult();
 		}
 		catch (OperationCanceledException)
 		{
@@ -121,6 +122,9 @@ public class Program
 						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 					})
 					.StartWithClassicDesktopLifetime(args);
+
+
+
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -151,6 +155,10 @@ public class Program
 		Logger.LogSoftwareStopped("Wasabi");
 
 		return exceptionToReport is { } ? 1 : 0;
+	}
+
+	private static void OnBitcoinUrlActivated(object? sender, string e)
+	{
 	}
 
 	/// <summary>

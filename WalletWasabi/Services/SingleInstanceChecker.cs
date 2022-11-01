@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.IO;
 using System.Net;
+using System.Net.Mime;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -43,15 +44,17 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	private TaskCompletionSource? TaskStartTcpListener { get; set; }
 
 	public event EventHandler? OtherInstanceStarted;
+	public event EventHandler<string>? BitcoinUrlActivated;
 
 	/// <summary>
 	/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
 	/// we try to signal the first instance before throwing the exception.
 	/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 	/// </summary>
+	/// <param name="getUrlFromArgs"></param>
 	/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
 	/// <exception cref="OperationCanceledException">Wasabi is already running and signaled.</exception>
-	public async Task EnsureSingleOrThrowAsync()
+	public async Task EnsureSingleOrThrowAsync(string? getUrlFromArgs = null)
 	{
 		if (DisposeCts.IsCancellationRequested)
 		{
@@ -98,6 +101,12 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
 			await writer.WriteAsync(WasabiMagicString.AsMemory(), cts.Token).ConfigureAwait(false);
+
+			if (getUrlFromArgs is { })
+			{
+				await writer.WriteAsync(getUrlFromArgs.AsMemory(), cts.Token).ConfigureAwait(false);
+			}
+
 			await writer.FlushAsync().ConfigureAwait(false);
 			await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
 			// I was able to signal to the other instance successfully so just continue.
@@ -159,11 +168,20 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
 
 					// The read operation cancellation will happen on reader disposal.
-					string answer = await reader.ReadToEndAsync().WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
-					if (answer == WasabiMagicString)
+					var answer = await reader.ReadToEndAsync().WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
+					
+					if (answer.StartsWith(WasabiMagicString))
 					{
 						Logger.LogInfo($"Detected another Wasabi instance.");
 						OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
+					}
+
+					var bitcoinUrl = answer.Remove(0, WasabiMagicString.Length);
+					
+					if (bitcoinUrl.StartsWith("bitcoin"))
+					{
+						Logger.LogInfo($@"Detected Bitcoin Payments URL: ""{bitcoinUrl}"".");
+						BitcoinUrlActivated?.Invoke(this, bitcoinUrl);
 					}
 				}
 				catch (Exception ex)
