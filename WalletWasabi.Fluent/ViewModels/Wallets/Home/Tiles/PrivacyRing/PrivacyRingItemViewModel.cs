@@ -50,6 +50,8 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
 
+		PrivacyLevelText = GetPrivacyLevelDescription();
+
 		Reference = GetPrivacyLevelDescription();
 		Reference += " coins";
 	}
