@@ -9,8 +9,11 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TileHelper
 {
-	public static List<TileViewModel> GetWalletTiles(WalletViewModel walletVm, bool isWatchOnly, bool hasBalance)
+	public static List<TileViewModel> GetWalletTiles(WalletViewModel walletVm)
 	{
+		var isWatchOnly = walletVm.Wallet.KeyManager.IsWatchOnly;
+		var hasBalance = walletVm.IsWalletBalanceZero;
+
 		var priceTileColumn = 1;
 
 		var tiles = new List<TileViewModel>
@@ -57,8 +60,11 @@ public static class TileHelper
 		return tiles;
 	}
 
-	public static IList<TileLayoutViewModel> GetWalletLayout(bool isWatchOnly, bool hasBalance)
+	public static IList<TileLayoutViewModel> GetWalletLayout(WalletViewModel walletVm)
 	{
+		var isWatchOnly = walletVm.Wallet.KeyManager.IsWatchOnly;
+		var hasBalance = walletVm.IsWalletBalanceZero;
+
 		var columns = isWatchOnly || hasBalance ? "316,316" : "316,316,316";
 		return new ObservableCollection<TileLayoutViewModel>()
 		{

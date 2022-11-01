@@ -88,11 +88,11 @@ public partial class WalletViewModel : WalletViewModelBase
 		_normalLayoutIndex = 1;
 		_wideLayoutIndex = 2;
 
-		Layouts = TileHelper.GetWalletLayout(wallet.KeyManager.IsWatchOnly, false);
+		Layouts = TileHelper.GetWalletLayout(this);
 
 		LayoutIndex = _normalLayoutIndex;
 
-		Tiles = TileHelper.GetWalletTiles(this, wallet.KeyManager.IsWatchOnly, false);
+		Tiles = TileHelper.GetWalletTiles(this);
 
 		this.WhenAnyValue(x => x.LayoutIndex)
 			.Subscribe(x =>
@@ -112,10 +112,10 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!wallet.KeyManager.IsWatchOnly || wallet.KeyManager.IsHardwareWallet));
 
 		this.WhenAnyValue(x => x.IsWalletBalanceZero)
-			.Do(hasBalance =>
+			.Do(_ =>
 			{
-				Tiles = TileHelper.GetWalletTiles(this, wallet.KeyManager.IsWatchOnly, hasBalance);
-				Layouts = TileHelper.GetWalletLayout(wallet.KeyManager.IsWatchOnly, hasBalance);
+				Tiles = TileHelper.GetWalletTiles(this);
+				Layouts = TileHelper.GetWalletLayout(this);
 				NotifyLayoutChanged();
 				UpdateTiles();
 			})
