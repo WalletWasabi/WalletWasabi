@@ -26,6 +26,7 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
+	private const int MaxWeightedAnonLoss = 3;
 	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(1);
 
@@ -793,7 +794,7 @@ public class CoinJoinClient
 		var winner = new List<SmartCoin>();
 		winner.Add(selectedNonPrivateCoin);
 		foreach (var coin in finalCandidate
-			.Except(new [] {selectedNonPrivateCoin})
+			.Except(new[] { selectedNonPrivateCoin })
 			.OrderBy(x => x.HdPubKey.AnonymitySet)
 			.ThenByDescending(x => x.Amount))
 		{
@@ -812,28 +813,26 @@ public class CoinJoinClient
 			}
 		}
 
-		double winnerCost = 0;
-		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerCost/winner.Sum(x => x.Amount) < 3))
+		double winnerAnonLoss = GetAnonLoss(winner);
+		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerAnonLoss > MaxWeightedAnonLoss))
 		{
 			List<SmartCoin> bestReducedWinner = winner;
-			var minimumAnonScore = bestReducedWinner.Min(x => x.HdPubKey.AnonymitySet);
-			var minCost = bestReducedWinner.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi);
+			var bestAnonLoss = winnerAnonLoss;
 
-			foreach (SmartCoin coin in winner.Except(new [] {selectedNonPrivateCoin}))
+			foreach (SmartCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
 			{
-				var reducedWinner = winner.Except(new [] { coin });
-				minimumAnonScore = reducedWinner.Min(x => x.HdPubKey.AnonymitySet);
-				var cost = reducedWinner.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi);
+				var reducedWinner = winner.Except(new[] { coin });
+				var anonLoss = GetAnonLoss(reducedWinner);
 
-				if (cost < minCost)
+				if (anonLoss <= bestAnonLoss)
 				{
-					minCost = cost;
+					bestAnonLoss = anonLoss;
 					bestReducedWinner = reducedWinner.ToList();
 				}
 			}
 
 			winner = bestReducedWinner;
-			winnerCost = minCost;
+			winnerAnonLoss = bestAnonLoss;
 		}
 
 		if (winner.Count != finalCandidate.Count())
@@ -844,6 +843,12 @@ public class CoinJoinClient
 		}
 
 		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static double GetAnonLoss(IEnumerable<SmartCoin> coins)
+	{
+		double minimumAnonScore = coins.Min(x => x.HdPubKey.AnonymitySet);
+		return coins.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
 	}
 
 	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
