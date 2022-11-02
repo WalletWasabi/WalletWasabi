@@ -27,7 +27,7 @@
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
-      <Separator />
+      <Separator IsVisible="{Binding !IsNonPrivate}"/>
       <StackPanel Opacity="0.8" HorizontalAlignment="Center" IsVisible="{Binding !IsNonPrivate}" Classes="privacyLevel" x:Name="PrivacyLevel">
         <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
                 BorderBrush="{StaticResource ButtonForeground}">
