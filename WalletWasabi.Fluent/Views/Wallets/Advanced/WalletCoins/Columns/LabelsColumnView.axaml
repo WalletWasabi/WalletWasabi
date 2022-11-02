@@ -8,7 +8,15 @@
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.LabelsColumnView">
-  <c:PrivacyContentControl NumberOfPrivacyChars="15" VerticalAlignment="Center" Margin="0 0 7 0">
+  <c:PrivacyContentControl NumberOfPrivacyChars="15"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           Margin="0 0 7 0">
+    <c:PrivacyContentControl.Styles>
+      <Style Selector="c|PrivacyContentControl /template/ Panel#PART_PrivacyReplacement">
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+    </c:PrivacyContentControl.Styles>
     <c:LabelsItemsPresenter Items="{Binding SmartLabel}" />
   </c:PrivacyContentControl>
 </UserControl>
