@@ -40,13 +40,17 @@ public static class CoinHelpers
 	public static PrivacyLevel GetPrivacyLevel(this SmartCoin coin, Wallet wallet)
 	{
 		var anonScoreTarget = wallet.AnonScoreTarget;
+		return coin.GetPrivacyLevel(anonScoreTarget);
+	}
 
-		if (coin.IsPrivate(anonScoreTarget))
+	public static PrivacyLevel GetPrivacyLevel(this SmartCoin coin, int privateThreshold)
+	{
+		if (coin.IsPrivate(privateThreshold))
 		{
 			return PrivacyLevel.Private;
 		}
 
-		if (coin.IsSemiPrivate())
+		if (coin.IsSemiPrivate(privateThreshold))
 		{
 			return PrivacyLevel.SemiPrivate;
 		}
