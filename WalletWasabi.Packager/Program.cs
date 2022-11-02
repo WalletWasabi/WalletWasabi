@@ -335,17 +335,17 @@ public static class Program
 				await IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).ConfigureAwait(false);
 				Console.WriteLine($"# Deleted {currentBinDistDirectory}");
 
+				string drive = Tools.GetSingleUsbDrive();
+				string targetFilePath = Path.Combine(drive, zipFileName);
+
 				try
 				{
-					var drive = Tools.GetSingleUsbDrive();
-					var targetFilePath = Path.Combine(drive, zipFileName);
-
-					Console.WriteLine($"# Trying to move unsigned zip file to removable ('{targetFilePath}').");
 					File.Move(zipFilePath, targetFilePath, overwrite: true);
+					Console.WriteLine($"# Moved '{zipFilePath}' unsigned zip file to the USB disk drive ('{targetFilePath}').");
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"# There was an error during copying the file to removable: '{ex.Message}'");
+					Console.WriteLine($"# There was an error during moving '{zipFilePath}' file to the USB disk drive ('{targetFilePath}'): '{ex.Message}'. Ignoring.");
 				}
 			}
 			else if (target.StartsWith("linux"))
@@ -366,6 +366,8 @@ public static class Program
 
 				var newFolderName = $"Wasabi-{VersionPrefix}";
 				var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
+
+				Console.WriteLine($"# Move '{publishedFolder}' to '{newFolderPath}'.");
 				Directory.Move(publishedFolder, newFolderPath);
 				publishedFolder = newFolderPath;
 				string chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {} \\;";
@@ -429,6 +431,7 @@ public static class Program
 					$"Architecture: amd64\n" +
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +
+					$"Recommends: policykit-1\n" +
 					$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
 					$"  Built-in Tor, coinjoin, payjoin and coin control features.\n";
 
@@ -538,7 +541,7 @@ public static class Program
 		{
 			// Use Bash on other platforms.
 			string arguments = string.Join(" && ", commands);
-			StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c '{arguments}'");
+			StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c \"{arguments}\"");
 		}
 	}
 

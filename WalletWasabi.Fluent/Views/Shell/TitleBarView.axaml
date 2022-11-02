@@ -54,7 +54,7 @@
                            Margin="5" />
     </DataTemplate>
 
-    <DataTemplate x:Key="WindowsAndLinuxLayout">
+    <DataTemplate x:Key="WindowsLayout">
       <Grid DataContext="{Binding $parent.DataContext}">
 
         <Grid.ColumnDefinitions>
@@ -64,6 +64,30 @@
           <ColumnDefinition Width="3*" MaxWidth="400" />
           <ColumnDefinition Width="1*" />
           <ColumnDefinition Width="140" />
+        </Grid.ColumnDefinitions>
+
+        <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
+
+        <ContentControl Grid.Column="1" Grid.ColumnSpan="2" Margin="16,8,8,2.5"
+                        VerticalAlignment="Center"
+                        ContentTemplate="{StaticResource Title}" />
+
+        <ContentControl Grid.Column="3" ContentTemplate="{StaticResource SearchBar}" />
+
+        <shell:NetworkBadgeView VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 8 0" Grid.Column="4" />
+
+      </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="LinuxLayout">
+      <Grid DataContext="{Binding $parent.DataContext}">
+
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="70" />
+          <ColumnDefinition Width="70" />
+          <ColumnDefinition Width="1*" />
+          <ColumnDefinition Width="3*" MaxWidth="400" />
+          <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
 
         <ContentControl ContentTemplate="{StaticResource WasabiLogo}" />
@@ -106,5 +130,5 @@
     </DataTemplate>
   </UserControl.Resources>
 
-  <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsAndLinuxLayout}, Osx={StaticResource MacOSLayout}}" />
+  <ContentControl ContentTemplate="{ext:Platform {StaticResource WindowsLayout}, Linux={StaticResource LinuxLayout}, Osx={StaticResource MacOSLayout}}" />
 </UserControl>

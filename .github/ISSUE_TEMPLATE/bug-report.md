@@ -27,9 +27,9 @@ Example: Ubuntu 16.04
 ### Logs
 
 Please consider your privacy, before completing this section.  
-You can find the log file by opening it from the main menu: `File/Open/Logs` File or `File/Open/TorLogs` File.
+You can find the `Logs` file in the dropdown menu of the search bar or inside your Wasabi data folder.
 
 ### Wasabi Version
 
 Which wasabi release are you using? Where did you download it from?  
-You can figure out which version you are using from the main menu: `Help/About` or with command line: `wassabee --version`.
+You can figure out which version you are using by choosing `About Wasabi` from the dropdown menu in the search bar.

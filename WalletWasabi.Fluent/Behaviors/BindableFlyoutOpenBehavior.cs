@@ -41,6 +41,7 @@ public class BindableFlyoutOpenBehavior : DisposingBehavior<Control>
 				{
 					FlyoutBase.GetAttachedFlyout(AssociatedObject)?.Hide();
 				}
-			});
+			})
+			.DisposeWith(disposable);
 	}
 }

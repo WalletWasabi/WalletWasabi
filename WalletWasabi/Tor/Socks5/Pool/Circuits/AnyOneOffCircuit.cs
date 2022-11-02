@@ -12,15 +12,6 @@ public class AnyOneOffCircuit : ICircuit
 	}
 
 	/// <inheritdoc/>
-	public string Name { get; } = nameof(AnyOneOffCircuit);
-
-	/// <inheritdoc/>
-	public bool IsActive => true;
-
-	/// <inheritdoc/>
-	public string? Purpose { get; }
-
-	/// <inheritdoc/>
 	public override string ToString()
 	{
 		return $"[{nameof(AnyOneOffCircuit)}]";

@@ -339,7 +339,7 @@ public class SendTests
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
-				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1));
+				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1));
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Empty(res.OuterWalletOutputs);
@@ -359,7 +359,7 @@ public class SendTests
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
-				allowedInputs: new[] { res.SpentCoins.Select(x => x.OutPoint).First() });
+				allowedInputs: new[] { res.SpentCoins.Select(x => x.Outpoint).First() });
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Empty(res.OuterWalletOutputs);
@@ -424,7 +424,7 @@ public class SendTests
 
 			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed", out _).P2wpkhScript;
 
-			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1);
+			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1);
 			PaymentIntent toSend = new(receive, MoneyRequest.CreateAllRemaining(), "fizz");
 
 			// covers:

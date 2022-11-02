@@ -179,13 +179,9 @@ public class TorTcpConnectionFactoryTests
 			}
 
 			int plenByte = stream.ReadByte();
-			Assert.Equal(21, plenByte);
-
-			// Read "Passwd".
-			for (int j = 0; j < 21; j++)
-			{
-				_ = stream.ReadByte();
-			}
+			Assert.Equal(1, plenByte);
+			int passwordByte = stream.ReadByte();
+			Assert.Equal('0', passwordByte); // Isolation ID is equal to "0" (zero character string).
 
 			// Write response (UsernamePasswordResponse): version + method selected.
 			stream.WriteByte((byte)AuthVerField.Version1.Value);

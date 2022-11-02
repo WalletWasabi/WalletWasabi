@@ -28,8 +28,23 @@ public class RoundStateUpdater : PeriodicRunner
 
 	public bool AnyRound => RoundStates.Any();
 
+	public bool SlowRequestsMode { get; set; } = true;
+
+	private DateTimeOffset LastSuccessfulRequestTime { get; set; }
+
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		if (SlowRequestsMode)
+		{
+			lock (AwaitersLock)
+			{
+				if (Awaiters.Count == 0 && DateTimeOffset.UtcNow - LastSuccessfulRequestTime < TimeSpan.FromMinutes(5))
+				{
+					return;
+				}
+			}
+		}
+
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
@@ -67,6 +82,8 @@ public class RoundStateUpdater : PeriodicRunner
 				break;
 			}
 		}
+
+		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
 	}
 
 	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
@@ -105,6 +122,9 @@ public class RoundStateUpdater : PeriodicRunner
 		return CreateRoundAwaiter(null, phase, null, cancellationToken);
 	}
 
+	/// <summary>
+	/// This might not contain up-to-date states. Make sure it is updated.
+	/// </summary>
 	public bool TryGetRoundState(uint256 roundId, [NotNullWhen(true)] out RoundState? roundState)
 	{
 		return RoundStates.TryGetValue(roundId, out roundState);

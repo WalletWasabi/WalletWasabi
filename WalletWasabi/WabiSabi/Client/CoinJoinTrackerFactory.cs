@@ -23,24 +23,18 @@ public class CoinJoinTrackerFactory
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
 		CancellationToken = cancellationToken;
+		LiquidityClueProvider = new LiquidityClueProvider();
 	}
 
 	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	private CancellationToken CancellationToken { get; }
 	private string CoordinatorIdentifier { get; }
+	private LiquidityClueProvider LiquidityClueProvider { get; }
 
 	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IEnumerable<SmartCoin> coinCandidates, bool restartAutomatically, bool overridePlebStop)
 	{
-		Money? liquidityClue = null;
-		if (CoinJoinClient.GetLiquidityClue() is null)
-		{
-			var lastCoinjoin = (await wallet.GetTransactionsAsync().ConfigureAwait(false)).OrderByBlockchain().LastOrDefault(x => x.IsOwnCoinjoin());
-			if (lastCoinjoin is not null)
-			{
-				liquidityClue = CoinJoinClient.TryCalculateLiquidityClue(lastCoinjoin.Transaction, lastCoinjoin.WalletOutputs.Select(x => x.TxOut));
-			}
-		}
+		await LiquidityClueProvider.InitLiquidityClueAsync(wallet, CancellationToken).ConfigureAwait(false);
 
 		if (wallet.KeyChain is null)
 		{
@@ -53,12 +47,12 @@ public class CoinJoinTrackerFactory
 			wallet.DestinationProvider,
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
+			LiquidityClueProvider,
 			wallet.AnonScoreTarget,
 			consolidationMode: wallet.ConsolidationMode,
 			redCoinIsolation: wallet.RedCoinIsolation,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
-			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
-			liquidityClue: liquidityClue);
+			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, restartAutomatically, overridePlebStop, CancellationToken);
 	}

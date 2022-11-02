@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -16,9 +14,8 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	public TransactionHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
-		WalletViewModel walletViewModel,
-		Money balance,
-		IObservable<Unit> updateTrigger)
+		WalletViewModel walletVm,
+		Money balance)
 		: base(orderIndex, transactionSummary)
 	{
 		Label = transactionSummary.Label;
@@ -41,7 +38,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new TransactionDetailsViewModel(transactionSummary, walletViewModel.Wallet, updateTrigger)));
+				new TransactionDetailsViewModel(transactionSummary, walletVm)));
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
 			.Select(x => !x)

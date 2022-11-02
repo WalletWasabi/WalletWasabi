@@ -49,16 +49,6 @@ public static class TextHelpers
 		return result;
 	}
 
-	public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode, string format = "N2")
-	{
-		return GenerateFiatText(amountBtc * exchangeRate, fiatCode, format);
-	}
-
-	public static string GenerateFiatText(this decimal amountFiat, string fiatCode, string format = "N2")
-	{
-		return $"(≈{(amountFiat).FormattedFiat(format)} {fiatCode}) ";
-	}
-
 	public static string ToFormattedString(this Money money)
 	{
 		const int WholeGroupSize = 3;

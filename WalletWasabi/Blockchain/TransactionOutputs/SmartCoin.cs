@@ -12,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// An UTXO that knows more.
 /// </summary>
 [DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
-public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination
+public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ICoinable
 {
 	private Height _height;
 	private SmartTransaction? _spenderTransaction;
@@ -39,9 +39,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 		_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
 		_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
-		_coin = new Lazy<Coin>(() => new Coin(OutPoint, TxOut), true);
+		_coin = new Lazy<Coin>(() => new Coin(Outpoint, TxOut), true);
 
-		_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+		_hashCode = new Lazy<int>(() => Outpoint.GetHashCode(), true);
 
 		_height = transaction.Height;
 		_confirmed = _height.Type == HeightType.Chain;
@@ -55,7 +55,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public uint Index { get; }
 	public uint256 TransactionId => _transactionId.Value;
 
-	public OutPoint OutPoint => _outPoint.Value;
+	public OutPoint Outpoint => _outPoint.Value;
 	public TxOut TxOut => _txOut.Value;
 	public Coin Coin => _coin.Value;
 

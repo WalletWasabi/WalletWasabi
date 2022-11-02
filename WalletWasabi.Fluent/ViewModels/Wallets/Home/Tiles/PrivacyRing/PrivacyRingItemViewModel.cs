@@ -21,12 +21,19 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = coin.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget);
+		IsPrivate = coin.IsPrivate(parent.Wallet.AnonScoreTarget);
 		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
 		Unconfirmed = !coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
+
+		Reference = GetPrivacyLevelDescription();
+		Reference += " coin";
+		if (Unconfirmed)
+		{
+			Reference += " (unconfirmed)";
+		}
 	}
 
 	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, Pocket pocket, double start, double end)
@@ -35,11 +42,14 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.KeyManager.AnonScoreTarget));
+		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.AnonScoreTarget));
 		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
+
+		Reference = GetPrivacyLevelDescription();
+		Reference += " coins";
 	}
 
 	public WalletCoinViewModel? Coin { get; }
@@ -54,6 +64,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 	public string AmountText { get; }
 	public bool Unconfirmed { get; }
 	public int Confirmations { get; }
+	public string Reference { get; }
 
 	private PathGeometry CreateGeometry(double start, double end, double outerRadius)
 	{
@@ -110,6 +121,18 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		var x = r * Math.Cos(angle);
 		var y = r * Math.Sin(angle);
 		return new Point(x, y);
+	}
+
+	private string GetPrivacyLevelDescription()
+	{
+		return
+			this switch
+			{
+				{ IsPrivate: true } => "Private",
+				{ IsSemiPrivate: true } => "Semi-private",
+				{ IsNonPrivate: true } => "Non-private",
+				_ => "[Unknown]"
+			};
 	}
 
 	public void Dispose()

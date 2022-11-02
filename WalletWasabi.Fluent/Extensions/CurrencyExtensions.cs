@@ -3,11 +3,11 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 
-namespace WalletWasabi.Fluent.Helpers;
+namespace WalletWasabi.Fluent.Extensions;
 
-public static class CurrencyUtils
+public static class CurrencyExtensions
 {
-	private static NumberFormatInfo FormatInfo = new()
+	private static readonly NumberFormatInfo FormatInfo = new()
 	{
 		CurrencyGroupSeparator = " ",
 		NumberGroupSeparator = " ",
@@ -32,11 +32,6 @@ public static class CurrencyUtils
 		}
 	}
 
-	public static string FormattedBtc(this Money amount)
-	{
-		return amount.ToDecimal(MoneyUnit.BTC).FormattedBtc();
-	}
-
 	public static string FormattedBtc(this decimal amount)
 	{
 		return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
@@ -45,5 +40,21 @@ public static class CurrencyUtils
 	public static string FormattedFiat(this decimal amount, string format = "N2")
 	{
 		return amount.ToString(format, FormatInfo).Trim();
+	}
+
+	public static decimal BtcToUsd(this Money money, decimal exchangeRate) => money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
+
+	public static string ToUsdAproxBetweenParens(this decimal n) => $"(≈{ToUsd(n)})";
+
+	public static string ToUsd(this decimal n)
+	{
+		var amountPart = n switch
+		{
+			>= 10 => Math.Ceiling(n).ToString("N0", FormatInfo),
+			>= 1 => n.ToString("N1", FormatInfo),
+			_ => n.ToString("N2", FormatInfo)
+		};
+
+		return amountPart + " USD";
 	}
 }

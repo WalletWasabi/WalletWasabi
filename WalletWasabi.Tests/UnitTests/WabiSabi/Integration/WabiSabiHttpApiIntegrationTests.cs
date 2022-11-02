@@ -429,7 +429,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var node = await TestNodeBuilder.CreateForHeavyConcurrencyAsync();
 		try
 		{
-			var rpc = new TesteableRpcClient(node.RpcClient as RpcClientBase);
+			var rpc = new TesteableRpcClient((RpcClientBase)node.RpcClient);
 
 			TaskCompletionSource<Transaction> coinJoinBoadcasted = new();
 			rpc.AfterSendRawTransaction = (tx) =>

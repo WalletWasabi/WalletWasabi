@@ -1301,7 +1301,7 @@ public class TransactionProcessorTests
 		{
 			cjtx.Outputs.Add(Money.Coins(0.1m), new Key());
 		}
-		cjtx.Inputs.Add(receivedCoin.OutPoint, Script.Empty, WitScript.Empty);
+		cjtx.Inputs.Add(receivedCoin.Outpoint, Script.Empty, WitScript.Empty);
 		cjtx.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("").P2wpkhScript);
 		cjtx.Outputs.Add(Money.Coins(0.9m), transactionProcessor.NewKey("").P2wpkhScript);
 		var tx1 = new SmartTransaction(cjtx, Height.Mempool);
