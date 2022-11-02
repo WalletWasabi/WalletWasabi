@@ -259,12 +259,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
-			var outputScripts = Rounds
+			var isOutputReused = Rounds
 				.Where(r => r.Id != round.Id && r.Phase != Phase.Ended)
-				.SelectMany(r => r.Bobs)
-				.Select(x => x.Script)
-				.ToHashSet();
-			if (outputScripts.Contains(request.Script))
+				.SelectMany(r => r.CoinjoinState.Outputs)
+				.Select(x => x.ScriptPubKey)
+				.Any(x => x == request.Script);
+			if (isOutputReused)
 			{
 				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
