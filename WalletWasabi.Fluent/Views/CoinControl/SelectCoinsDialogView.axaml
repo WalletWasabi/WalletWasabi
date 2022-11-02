@@ -8,7 +8,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
              x:DataType="coinControl:SelectCoinsDialogViewModel"
-             x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView">
+             x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
+             x:CompileBindings="True">
 
   <controls:ContentArea
     EnableBack="{Binding EnableBack}"
@@ -40,7 +41,7 @@
           <Setter.Value>
             <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
               <Binding Path="." />
-              <Binding Path="Rows" RelativeSource="{RelativeSource Mode=TemplatedParent}" />
+              <Binding Path="$parent[TreeDataGridCellsPresenter].Rows" />
             </MultiBinding>
           </Setter.Value>
         </Setter>
@@ -65,7 +66,7 @@
     </controls:ContentArea.Styles>
 
     <controls:ContentArea.Title>
-      <TextBox IsVisible="False" Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
+      <TextBox x:CompileBindings="False" IsVisible="False" Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
         <TextBox.Styles>
           <Style Selector="TextBox /template/ DataValidationErrors">
             <Setter Property="IsVisible" Value="False" />
@@ -76,7 +77,7 @@
 
     <DockPanel>
 
-      <Panel DockPanel.Dock="Bottom" Margin="0 12 0 0" TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}">
+      <Panel x:CompileBindings="False" DockPanel.Dock="Bottom" Margin="0 12 0 0" TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}">
         <ProgressBar Height="25" Maximum="{Binding RequiredAmount^.Satoshi}" Value="{Binding SelectedAmount^.Satoshi, Mode=OneWay}" />
         <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
         <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !EnoughSelected^}"
