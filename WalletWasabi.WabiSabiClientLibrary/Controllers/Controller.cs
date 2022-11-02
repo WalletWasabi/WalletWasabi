@@ -21,6 +21,12 @@ public class Controller : ControllerBase, IDisposable
 		_global = global;
 	}
 
+	[HttpPost("get-version")]
+	public GetVersionResponse GetVersionAsync()
+	{
+		return new GetVersionResponse(_global.Version, _global.CommitHash, _global.Debug);
+	}
+
 	[HttpPost("get-anonymity-scores")]
 	public GetAnonymityScoresResponse GetAnonymityScores(GetAnonymityScoresRequest request)
 	{
