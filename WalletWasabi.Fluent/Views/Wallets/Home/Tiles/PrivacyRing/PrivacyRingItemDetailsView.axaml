@@ -18,34 +18,37 @@
       <Setter Property="Spacing" Value="5" />
     </Style>
   </UserControl.Styles>
-  <DockPanel VerticalAlignment="Center">
-    <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
-    <StackPanel DockPanel.Dock="Bottom" Spacing="8">
+  <StackPanel VerticalAlignment="Center">
+    <Viewbox Height="27" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <TextBlock
+        VerticalAlignment="Center" HorizontalAlignment="Center"
+        TextAlignment="Center"
+        Text="{Binding AmountText}" Classes="h3" />
+    </Viewbox>
+
+    <StackPanel Spacing="8">
       <i:Interaction.Behaviors>
         <ir:AdaptiveBehavior>
           <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="190" MaxWidthOperator="LessThanOrEqual" ClassName="small" TargetControl="{Binding #PrivacyLevel}" />
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
-      <Separator IsVisible="{Binding !IsNonPrivate}"/>
-      <StackPanel Opacity="0.8" HorizontalAlignment="Center" IsVisible="{Binding !IsNonPrivate}" Classes="privacyLevel" x:Name="PrivacyLevel">
-        <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
-                BorderBrush="{StaticResource ButtonForeground}">
-          <TextBlock
-            Text="{Binding PrivacyLevelText, Converter={x:Static conv:StringConverters.ToUpperCase}}" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
-        </Border>
-        <TextBlock Text="{Binding Coin.AnonymitySet, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+      <StackPanel IsVisible="{Binding !IsNonPrivate}">
+        <Separator Margin="0 3 0 9" />
+        <StackPanel Opacity="0.8" IsVisible="{Binding !IsNonPrivate}" Classes="privacyLevel" x:Name="PrivacyLevel" HorizontalAlignment="Center">
+          <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                  BorderBrush="{StaticResource ButtonForeground}">
+            <TextBlock
+              Text="{Binding PrivacyLevelText, Converter={x:Static conv:StringConverters.ToUpperCase}}" Classes="bold" Margin="4 2 " VerticalAlignment="Center" HorizontalAlignment="Center" />
+          </Border>
+          <TextBlock Text="{Binding Coin.AnonymitySet, StringFormat='Anonymity Score: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding IsNonPrivate}">
+        <Separator IsVisible="{Binding !Coin.SmartLabel.IsEmpty}" Margin="0 3 0 9" />
+        <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
       </StackPanel>
     </StackPanel>
-
-    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0 3">
-      <Viewbox MaxHeight="27">
-        <TextBlock
-          VerticalAlignment="Center" HorizontalAlignment="Center"
-          TextAlignment="Center"
-          Text="{Binding AmountText}" Classes="h3" />
-      </Viewbox>
-      <TextBlock Text="{Binding Coin.Confirmations, StringFormat='Confirmations: {0}'}" Classes="h8" VerticalAlignment="Center" HorizontalAlignment="Center" />
-    </StackPanel>
-  </DockPanel>
+  </StackPanel>
 </UserControl>
