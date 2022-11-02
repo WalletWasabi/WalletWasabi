@@ -11,33 +11,23 @@ public class LabelsCellViewModel : ViewModelBase
 
 		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
 		{
-			PrivacyLevel = Privacy.Private;
+			IsPrivate = true;
 		}
 		else if (coin.Labels == CoinPocketHelper.SemiPrivateFundsText)
 		{
-			PrivacyLevel = Privacy.SemiPrivate;
+			IsSemiPrivate = true;
 		}
 		else
 		{
-			PrivacyLevel = Privacy.NonPrivate;
+			IsNonPrivate = true;
 		}
 	}
 
-	private enum Privacy
-	{
-		Invalid = 0,
-		SemiPrivate,
-		Private,
-		NonPrivate
-	}
+	public bool IsPrivate { get; }
 
-	public bool IsPrivate => PrivacyLevel == Privacy.Private;
+	public bool IsSemiPrivate { get; }
 
-	public bool IsSemiPrivate => PrivacyLevel == Privacy.SemiPrivate;
-
-	public bool IsNonPrivate => PrivacyLevel == Privacy.NonPrivate;
+	public bool IsNonPrivate { get; }
 
 	public IEnumerable<string> Labels { get; }
-
-	private Privacy PrivacyLevel { get; }
 }
