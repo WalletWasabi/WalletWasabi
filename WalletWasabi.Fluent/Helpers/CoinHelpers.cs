@@ -12,14 +12,15 @@ public static class CoinHelpers
 		return coin.HdPubKey.AnonymitySet >= privateThreshold;
 	}
 
-	public static bool IsSemiPrivate(this SmartCoin coin)
+	public static bool IsSemiPrivate(this SmartCoin coin, int privateThreshold)
 	{
-		return coin.HdPubKey.AnonymitySet >= Constants.SemiPrivateThreshold;
+		var anonymitySet = coin.HdPubKey.AnonymitySet;
+		return anonymitySet >= Constants.SemiPrivateThreshold && anonymitySet < privateThreshold;
 	}
 
 	public static SmartLabel GetLabels(this SmartCoin coin, int privateThreshold)
 	{
-		if (coin.IsPrivate(privateThreshold) || coin.IsSemiPrivate())
+		if (coin.IsPrivate(privateThreshold) || coin.IsSemiPrivate(privateThreshold))
 		{
 			return SmartLabel.Empty;
 		}
