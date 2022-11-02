@@ -22,8 +22,9 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = coin.IsPrivate(parent.Wallet.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
+		var anonScore = parent.Wallet.AnonScoreTarget;
+		IsPrivate = coin.IsPrivate(anonScore);
+		IsSemiPrivate = coin.IsSemiPrivate(anonScore);
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
 		Unconfirmed = !coin.Confirmed;
