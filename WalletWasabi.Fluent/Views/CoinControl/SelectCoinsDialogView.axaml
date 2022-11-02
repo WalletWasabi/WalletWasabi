@@ -19,12 +19,13 @@
     ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <controls:ContentArea.Styles>
+
       <Style Selector="TreeDataGridRow">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Height" Value="37.5" />
       </Style>
 
-      <Style Selector="TreeDataGridRow" x:CompileBindings="False">
+      <Style Selector="TreeDataGridCellsPresenter">
         <Style.Resources>
           <converters:IndentToColorConverter x:Key="IndentToBrushConverter">
             <converters:IndentToColorConverter.Brushes>
@@ -35,47 +36,18 @@
             </converters:IndentToColorConverter.Brushes>
           </converters:IndentToColorConverter>
         </Style.Resources>
-        <Setter Property="Template">
-          <ControlTemplate TargetType="TreeDataGridRow">
-            <Border x:Name="RowBorder"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{TemplateBinding CornerRadius}"
-                    Padding="0">
-              <Border.Background>
-                <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
-                  <Binding Path="." />
-                  <Binding Path="Rows" RelativeSource="{RelativeSource Mode=TemplatedParent}" />
-                </MultiBinding>
-              </Border.Background>
-              <TreeDataGridCellsPresenter x:Name="PART_CellsPresenter"
-                                          ElementFactory="{TemplateBinding ElementFactory}"
-                                          Items="{TemplateBinding Columns}"
-                                          Rows="{TemplateBinding Rows}" />
-            </Border>
-          </ControlTemplate>
+        <Setter Property="Background">
+          <Setter.Value>
+            <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
+              <Binding Path="." />
+              <Binding Path="Rows" RelativeSource="{RelativeSource Mode=TemplatedParent}" />
+            </MultiBinding>
+          </Setter.Value>
         </Setter>
       </Style>
 
-      <Style Selector="TreeDataGridExpanderCell">
-        <Setter Property="Template">
-          <ControlTemplate>
-            <Border Background="{TemplateBinding Background}">
-              <DockPanel>
-                <Border DockPanel.Dock="Left"
-                        Margin="4 0"
-                        Width="12" Height="12">
-                  <ToggleButton Classes="ExpandCollapseChevron"
-                                Focusable="False"
-                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
-                                IsVisible="{TemplateBinding ShowExpander}"
-                                Cursor="Hand" />
-                </Border>
-                <Decorator Name="PART_Content" />
-              </DockPanel>
-            </Border>
-          </ControlTemplate>
-        </Setter>
+      <Style Selector="TreeDataGridCellsPresenter:pointerover">
+        <Setter Property="Background" Value="{DynamicResource DataGridRowSelectedBackgroundColor}" />
       </Style>
 
       <Style Selector="TreeDataGridRow ContentPresenter">

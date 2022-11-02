@@ -45,6 +45,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		};
 
 		Source.SortBy(Source.Columns[4], ListSortDirection.Descending);
+		Source.RowSelection!.SingleSelect = true;
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
@@ -153,10 +154,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private static IEnumerable<TreeNode> ToTreeNodes(IEnumerable<Pocket> pockets)
 	{
 		return pockets.Select(
-			pocket => new TreeNode(
-				new PocketCoinAdapter(pocket),
-				pocket.Coins
-					.OrderByDescending(x => x.Amount)
-					.Select(coin => new TreeNode(new SmartCoinAdapter(coin)))));
+				pocket => new TreeNode(
+					new PocketCoinAdapter(pocket),
+					pocket.Coins
+						.OrderByDescending(x => x.Amount)
+						.Select(coin => new TreeNode(new SmartCoinAdapter(coin))).ToList()))
+			.ToList();
 	}
 }
