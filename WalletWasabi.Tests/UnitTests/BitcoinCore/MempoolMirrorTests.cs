@@ -9,7 +9,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests;
+namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 
 /// <summary>
 /// Tests for <see cref="MempoolMirror"/>.
