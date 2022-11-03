@@ -141,9 +141,9 @@ public static class WabiSabiFactory
 		return CreateAlice(key, Money.Coins(1), round);
 	}
 
-	public static ArenaClient CreateArenaClient(Arena arena)
+	public static ArenaClient CreateArenaClient(Arena arena, Round? round = null)
 	{
-		var roundState = RoundState.FromRound(arena.Rounds.First());
+		var roundState = RoundState.FromRound(round ?? arena.Rounds.First());
 		var random = new InsecureRandom();
 		return new ArenaClient(
 			roundState.CreateAmountCredentialClient(random),

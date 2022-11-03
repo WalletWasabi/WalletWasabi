@@ -258,16 +258,16 @@ public class StepOutputRegistrationTests
 
 		// Get the round.
 		await arena.TriggerAndWaitRoundAsync(token);
-		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var round1 = Assert.Single(arena.Rounds);
+		var arenaClient1 = WabiSabiFactory.CreateArenaClient(arena);
 
 		// Refresh the Arena States because of vsize manipulation.
 		await arena.TriggerAndWaitRoundAsync(token);
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
 		await roundStateUpdater.StartAsync(token);
-		var task1a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient, coin1a, keyChain1, roundStateUpdater, token, token, token);
-		var task1b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient, coin1b, keyChain1, roundStateUpdater, token, token, token);
+		var task1a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient1, coin1a, keyChain1, roundStateUpdater, token, token, token);
+		var task1b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient1, coin1b, keyChain1, roundStateUpdater, token, token, token);
 
 		while (Phase.ConnectionConfirmation != round1.Phase)
 		{
@@ -283,9 +283,10 @@ public class StepOutputRegistrationTests
 		var round2 = arena.Rounds.Single(r => r.Id != round1.Id);
 
 		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs();
+		var arenaClient2 = WabiSabiFactory.CreateArenaClient(arena, round2);
 
-		var task2a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient, coin2a, keyChain2, roundStateUpdater, token, token, token);
-		var task2b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient, coin2b, keyChain2, roundStateUpdater, token, token, token);
+		var task2a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2a, keyChain2, roundStateUpdater, token, token, token);
+		var task2b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2b, keyChain2, roundStateUpdater, token, token, token);
 
 		var aliceClient2a = await task2a;
 		var aliceClient2b = await task2b;
