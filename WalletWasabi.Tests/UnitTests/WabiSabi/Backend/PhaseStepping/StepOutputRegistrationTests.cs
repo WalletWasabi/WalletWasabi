@@ -169,7 +169,7 @@ public class StepOutputRegistrationTests
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
-		
+
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
@@ -237,5 +237,70 @@ public class StepOutputRegistrationTests
 						aliceClient1,
 						aliceClient2
 				});
+	}
+
+	[Fact]
+	public async Task SomeBobsReusingAddressAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			CoordinationFeeRate = CoordinationFeeRate.Zero
+		};
+		var (keyChain1, coin1a, coin1b) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1a.Coin, coin1b.Coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+
+		// Get the round.
+		await arena.TriggerAndWaitRoundAsync(token);
+		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
+		var round1 = Assert.Single(arena.Rounds);
+
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(token);
+
+		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
+		await roundStateUpdater.StartAsync(token);
+		var task1a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient, coin1a, keyChain1, roundStateUpdater, token, token, token);
+		var task1b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient, coin1b, keyChain1, roundStateUpdater, token, token, token);
+
+		while (Phase.ConnectionConfirmation != round1.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		var aliceClient1a = await task1a;
+		var aliceClient1b = await task1b;
+
+		// Arena will create another round - to have at least one in input reg.
+		await arena.TriggerAndWaitRoundAsync(token);
+
+		var round2 = arena.Rounds.Single(r => r.Id != round1.Id);
+
+		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var task2a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient, coin2a, keyChain2, roundStateUpdater, token, token, token);
+		var task2b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient, coin2b, keyChain2, roundStateUpdater, token, token, token);
+
+		var aliceClient2a = await task2a;
+		var aliceClient2b = await task2b;
+
+		while (Phase.ConnectionConfirmation != round2.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.OutputRegistration, round1.Phase);
+		Assert.Equal(Phase.OutputRegistration, round2.Phase);
+
+		await roundStateUpdater.StopAsync(token);
+
+		await arena.StopAsync(token);
 	}
 }
