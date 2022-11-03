@@ -55,7 +55,7 @@ public class MempoolTests
 		// Tests that no exception is thrown.
 		mempool.AddTransaction(tx1);
 		Assert.True(mempool.ContainsTransaction(tx1.GetHash()));
-		Assert.Equal(new HashSet<uint256>() { tx1.GetHash() } , mempool.GetMempoolTxids());
+		Assert.Equal(new HashSet<uint256>() { tx1.GetHash() }, mempool.GetMempoolTxids());
 
 		// Now we expect that tx1 will be removed from the mempool because it spends
 		// the same transaction output as tx2.
