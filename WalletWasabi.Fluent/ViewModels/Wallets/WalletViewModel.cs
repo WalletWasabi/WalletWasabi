@@ -225,10 +225,10 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		Dispatcher.UIThread.Post(() =>
 		{
+			MainViewModel.Instance!.PendingBtcUrl = null;
 			SendCommand?.Execute(btcUrl);
 		}, DispatcherPriority.Background);
 
-		MainViewModel.Instance!.PendingBtcUrl = null;
 	}
 
 	private void NotifyLayoutChanged()
