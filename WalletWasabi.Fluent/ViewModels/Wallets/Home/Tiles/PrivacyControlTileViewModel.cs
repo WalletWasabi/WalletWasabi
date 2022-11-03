@@ -38,6 +38,8 @@ public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPr
 		{
 			PrivacyBar = new PrivacyBarViewModel(_walletVm);
 		}
+
+		Update();
 	}
 
 	public ICommand ShowDetailsCommand { get; }
