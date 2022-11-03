@@ -159,6 +159,7 @@ public class Program
 
 	private static void OnBitcoinUrlActivated(object? sender, string e)
 	{
+		MainViewModel.Instance!.PendingBtcUrl = e;
 	}
 
 	/// <summary>

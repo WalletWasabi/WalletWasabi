@@ -51,8 +51,13 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 
-	public SendViewModel(WalletViewModel walletVm)
+	public SendViewModel(WalletViewModel walletVm, string? btcUrl)
 	{
+		if (btcUrl is { })
+		{
+			ParseToField(btcUrl);
+		}
+
 		_to = "";
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();

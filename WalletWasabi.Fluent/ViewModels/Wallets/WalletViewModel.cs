@@ -7,6 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
@@ -124,7 +125,7 @@ public partial class WalletViewModel : WalletViewModelBase
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
+		SendCommand = ReactiveCommand.Create<string>((e) => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this, e)));
 
 		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
@@ -153,6 +154,10 @@ public partial class WalletViewModel : WalletViewModelBase
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
+
+		MainViewModel.Instance.WhenAnyValue(x => x.PendingBtcUrl)
+			.Do(CheckBtcUrl)
+			.Subscribe();
 	}
 
 	public UiTriggers UiTriggers { get; }
@@ -209,6 +214,21 @@ public partial class WalletViewModel : WalletViewModelBase
 				LayoutIndex = _wideLayoutIndex;
 			}
 		}
+	}
+
+	private void CheckBtcUrl(string? btcUrl)
+	{
+		if (btcUrl is null || !IsSelected)
+		{
+			return;
+		}
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			SendCommand?.Execute(btcUrl);
+		}, DispatcherPriority.Background);
+
+		MainViewModel.Instance!.PendingBtcUrl = null;
 	}
 
 	private void NotifyLayoutChanged()
