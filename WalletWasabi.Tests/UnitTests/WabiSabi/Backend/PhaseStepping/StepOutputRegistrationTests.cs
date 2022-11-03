@@ -252,14 +252,18 @@ public class StepOutputRegistrationTests
 			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
 		var (keyChain1, coin1a, coin1b) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs();
 
-		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1a.Coin, coin1b.Coin);
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1a.Coin, coin1b.Coin, coin2a.Coin, coin2b.Coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
 
 		// Get the round.
 		await arena.TriggerAndWaitRoundAsync(token);
 		var round1 = Assert.Single(arena.Rounds);
 		var arenaClient1 = WabiSabiFactory.CreateArenaClient(arena);
+		var round2 = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(cfg));
+
+		arena.Rounds.Add(round2);
 
 		// Refresh the Arena States because of vsize manipulation.
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -280,9 +284,6 @@ public class StepOutputRegistrationTests
 		// Arena will create another round - to have at least one in input reg.
 		await arena.TriggerAndWaitRoundAsync(token);
 
-		var round2 = arena.Rounds.Single(r => r.Id != round1.Id);
-
-		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs();
 		var arenaClient2 = WabiSabiFactory.CreateArenaClient(arena, round2);
 
 		var task2a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2a, keyChain2, roundStateUpdater, token, token, token);
