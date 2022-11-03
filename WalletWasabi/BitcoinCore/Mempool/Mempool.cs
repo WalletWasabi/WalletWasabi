@@ -27,6 +27,7 @@ public class Mempool
 	/// in the mempool, we remove the mempool transaction(s).
 	/// </summary>
 	/// <exception cref="ArgumentException">If the transaction is already in the mempool.</exception>
+	/// <exception cref="InvalidOperationException">If there is an internal issue.</exception>
 	public void AddTransaction(Transaction tx)
 	{
 		// Evict double spends.
@@ -36,7 +37,10 @@ public class Mempool
 			if (PrevOutsIndex.TryGetValue(txInput.PrevOut, out Transaction? mempoolTx))
 			{
 				// Remove the old transaction from our mempool snapshot.
-				RemoveTransaction(mempoolTx.GetHash());
+				if (!TryRemoveTransaction(mempoolTx.GetHash()))
+				{
+					throw new InvalidOperationException($"Failed to remove '{mempoolTx.GetHash()}' transaction.");
+				}
 			}
 		}
 
@@ -68,7 +72,7 @@ public class Mempool
 	/// <summary>
 	/// Removes the transaction with the given transaction hash from the mempool.
 	/// </summary>
-	public void RemoveTransaction(uint256 txHash)
+	public bool TryRemoveTransaction(uint256 txHash)
 	{
 		if (TransactionIndex.Remove(txHash, out Transaction? transaction))
 		{
@@ -77,7 +81,11 @@ public class Mempool
 			{
 				_ = PrevOutsIndex.Remove(txInput.PrevOut);
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/// <summary>

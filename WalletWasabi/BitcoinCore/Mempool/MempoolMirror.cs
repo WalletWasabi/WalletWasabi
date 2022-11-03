@@ -87,7 +87,10 @@ public class MempoolMirror : PeriodicRunner
 			// Remove those transactions that are not present in the new mempool snapshot.
 			foreach (uint256 txid in oldTxids.Except(newTxids).ToHashSet())
 			{
-				newMempool.RemoveTransaction(txid);
+				if (!newMempool.TryRemoveTransaction(txid))
+				{
+					throw new InvalidOperationException("Should not happen.");
+				}
 			}
 		}
 
