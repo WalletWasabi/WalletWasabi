@@ -17,7 +17,9 @@
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
 
-          <Panel Name="PART_PrivacyReplacement" IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+          <Panel Name="PART_PrivacyReplacement" IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
@@ -49,7 +51,7 @@
     <Setter Property="IsVisible" Value="True" />
   </Style>
 
-  <!-- Text privacy mode --> 
+  <!-- Text privacy mode -->
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
     <Setter Property="IsVisible" Value="True" />
   </Style>
