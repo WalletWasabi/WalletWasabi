@@ -74,7 +74,7 @@ public class MempoolMirror : PeriodicRunner
 		lock (MempoolLock)
 		{
 			// Loop through the newly received transactions expect those that are already present in our mempool snapshot.
-			foreach (Transaction tx in txs.Where(x => !Mempool.ContainsKey(x.GetHash())))
+			foreach (Transaction tx in txs.Where(x => !Mempool.ContainsKey(x.GetHash())).ToArray())
 			{
 				// Evict double spends.
 				foreach (TxIn txInput in tx.Inputs)
