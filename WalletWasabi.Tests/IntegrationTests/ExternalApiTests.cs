@@ -41,7 +41,8 @@ public class ExternalApiTests
 
 	private async Task AssertProviderAsync(IExchangeRateProvider provider)
 	{
-		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(CancellationToken.None);
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
+		IEnumerable<ExchangeRate> rates = await provider.GetExchangeRateAsync(timeoutCts.Token);
 
 		var usdRate = Assert.Single(rates, x => x.Ticker == "USD");
 		Assert.NotEqual(0.0m, usdRate.Rate);
