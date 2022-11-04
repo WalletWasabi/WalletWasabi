@@ -53,7 +53,7 @@ public class OffchainController : ControllerBase
 
 		if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
 		{
-			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync(cancellationToken);
+			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync(cancellationToken).ConfigureAwait(false);
 
 			if (exchangeRates.Any())
 			{
