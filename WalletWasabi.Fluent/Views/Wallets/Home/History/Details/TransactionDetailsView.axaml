@@ -26,8 +26,8 @@
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Amount"
                      TextValue="{Binding Amount}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="9" MinHeight="18">
-          <TextBlock Text="{Binding Amount, StringFormat={}{0} BTC, Mode=OneWay}" Classes="monoSpaced" VerticalAlignment="Center" />
+        <c:PrivacyContentControl NumberOfPrivacyChars="{Binding AmountText.Length}" MinHeight="18">
+          <TextBlock Text="{Binding AmountText}" Classes="monoSpaced" VerticalAlignment="Center" />
         </c:PrivacyContentControl>
       </c:PreviewItem>
 
