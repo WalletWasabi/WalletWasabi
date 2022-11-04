@@ -14,12 +14,20 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
 public class StepOutputRegistrationTests
 {
 	private TimeSpan TestTimeout { get; } = TimeSpan.FromMinutes(3);
+
+	private ITestOutputHelper Output { get; }
+
+	public StepOutputRegistrationTests(ITestOutputHelper output)
+	{
+		Output = output;
+	}
 
 	[Fact]
 	public async Task AllBobsRegisteredAsync()
@@ -325,24 +333,51 @@ public class StepOutputRegistrationTests
 		var out2a = keyManager2.GetNextReceiveKey("o2a", out _);
 		var out2b = keyManager2.GetNextReceiveKey("o2b", out _);
 
-		await bobClient1.RegisterOutputAsync(
+		var bob1a = bobClient1.RegisterOutputAsync(
 			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1a.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1a.Take(ProtocolConstants.CredentialNumber),
 			token);
 
-		await bobClient1.RegisterOutputAsync(
+		var bob1b = bobClient1.RegisterOutputAsync(
 			out1b.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 			amountCredentials1b.Take(ProtocolConstants.CredentialNumber),
 			vsizeCredentials1b.Take(ProtocolConstants.CredentialNumber),
 			token);
 
-		// Trying to registed the same script while the other round is in outreg.
-		await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await bobClient2.RegisterOutputAsync(
-			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
-			amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
-			vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
-			token));
+		await bob1a;
+
+		using var bob2aCts = new CancellationTokenSource();
+		long cnt = 0;
+		var bob2a = Task.Run(async () =>
+		{
+			using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(token, bob2aCts.Token);
+			do
+			{
+				try
+				{
+					cnt++;
+					// Trying to registed the same script.
+					await bobClient2.RegisterOutputAsync(
+						out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+						amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
+						vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
+						combinedCts.Token);
+					throw new InvalidOperationException("This output shoud never be able to register.");
+				}
+				catch (WabiSabiProtocolException)
+				{
+				}
+				catch (OperationCanceledException)
+				{
+				}
+			}
+			while (!combinedCts.Token.IsCancellationRequested);
+		});
+
+		await bob1b;
+
+		await Task.Delay(1000);
 
 		await aliceClient1a.ReadyToSignAsync(token);
 		await aliceClient1b.ReadyToSignAsync(token);
@@ -352,12 +387,12 @@ public class StepOutputRegistrationTests
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		// Trying to registed the same script while the other round is in txsign.
-		await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await bobClient2.RegisterOutputAsync(
-			out1b.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
-			amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
-			vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
-			token));
+		await Task.Delay(1000);
+
+		bob2aCts.Cancel();
+		await bob2a;
+
+		Output.WriteLine($"number:{cnt}");
 
 		await roundStateUpdater.StopAsync(token);
 
