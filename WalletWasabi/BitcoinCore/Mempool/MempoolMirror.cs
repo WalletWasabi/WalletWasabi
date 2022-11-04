@@ -143,8 +143,8 @@ public class MempoolMirror : PeriodicRunner
 
 		lock (MempoolLock)
 		{
-			return PrevOutsIndex.Where(x => txOutsSet.Contains(x.Key))
-				.Select(x => x.Value)
+			return txOutsSet.Where(prevOut => PrevOutsIndex.ContainsKey(prevOut))
+				.Select(prevOut => PrevOutsIndex[prevOut])
 				.ToHashSet();
 		}
 	}
