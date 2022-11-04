@@ -81,13 +81,13 @@ public class LiquidityClueProvider
 			.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Satoshi)) // We only care about denom outputs as those can be considered reasonably mixed.
 			.Distinct()
 			.ToList();
-	
+
 		var take = (int)Math.Ceiling(denoms.Count * 0.1); // Take top 10% of denominations.
 		var topDenoms = denoms
 			.OrderByDescending(x => x)
 			.Take(take);
-		
-			value = (ulong)topDenoms.DefaultIfEmpty(Money.Zero).Average(x => x.Satoshi);
-			return value > 0;
+
+		value = Money.Satoshis((ulong)topDenoms.DefaultIfEmpty(Money.Zero).Average(x => x.Satoshi));
+		return value > Money.Zero;
 	}
 }
