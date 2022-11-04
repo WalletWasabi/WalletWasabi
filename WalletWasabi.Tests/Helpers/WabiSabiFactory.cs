@@ -141,9 +141,9 @@ public static class WabiSabiFactory
 		return CreateAlice(key, Money.Coins(1), round);
 	}
 
-	public static ArenaClient CreateArenaClient(Arena arena)
+	public static ArenaClient CreateArenaClient(Arena arena, Round? round = null)
 	{
-		var roundState = RoundState.FromRound(arena.Rounds.First());
+		var roundState = RoundState.FromRound(round ?? arena.Rounds.First());
 		var random = new InsecureRandom();
 		return new ArenaClient(
 			roundState.CreateAmountCredentialClient(random),
@@ -279,9 +279,9 @@ public static class WabiSabiFactory
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
 		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
 
-	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
-		var km = ServiceFactory.CreateKeyManager("");
+		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
 		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
