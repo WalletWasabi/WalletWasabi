@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
 [NavigationMetaData(
 	Title = "Broadcaster",
-	Caption = "Broadcast your transactions here",
+	Caption = "Broadcast your transaction here",
 	IconName = "live_regular",
 	Order = 5,
 	Category = "General",

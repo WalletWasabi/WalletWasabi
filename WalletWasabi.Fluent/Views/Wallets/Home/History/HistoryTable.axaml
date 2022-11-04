@@ -95,7 +95,8 @@
   <Panel>
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
-                  Margin="0 0 0 0">
+                  Margin="0 0 0 0"
+                  IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
       <i:Interaction.Behaviors>
         <behaviors:ScrollToSelectedItemBehavior />
       </i:Interaction.Behaviors>
@@ -268,10 +269,9 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
-      <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.90" />
-    </Panel>
+    <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+                               RowHeight="{StaticResource HistoryTableRowHeight}"
+                               IsVisible="{Binding IsTransactionHistoryEmpty}"
+                               Opacity="0.1" />
   </Panel>
 </UserControl>
