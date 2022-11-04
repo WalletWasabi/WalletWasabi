@@ -25,6 +25,7 @@ public class WhaleCoinjoinTests
 {
 	private ITestOutputHelper TestOutputHelper { get; }
 	private string OutputFilePath { get; }
+	private LiquidityClueProvider LiquidityClueProvider { get; }
 
 	public WhaleCoinjoinTests(ITestOutputHelper testOutputHelper)
 	{
@@ -32,6 +33,7 @@ public class WhaleCoinjoinTests
 		var outputFolder = Directory.CreateDirectory(Common.GetWorkDir(nameof(WhaleCoinjoinTests), "Output"));
 		var date = DateTime.Now.ToString("Md_HHmmss");
 		OutputFilePath = Path.Combine(outputFolder.FullName, $"Outputs{date}.txt");
+		LiquidityClueProvider = new();
 	}
 
 	[Theory]
@@ -49,7 +51,8 @@ public class WhaleCoinjoinTests
 		var otherNbInputsPerClient = 5;
 		var mockSecureRandom = new TestRandomSeed(randomSeed);
 
-		Money liquidityClue = new Money(10000000L); //0.1
+		Money maxSuggestedAmount = new(1343.75m, MoneyUnit.BTC);
+
 		var anonScoreTarget = 100;
 		var maxTestRounds = 1000;
 		var displayProgressEachNRounds = int.MaxValue;
@@ -83,6 +86,8 @@ public class WhaleCoinjoinTests
 			var whaleGlobalAnonScoreBefore = whaleSmartCoins.Sum(x => (x.HdPubKey.AnonymitySet * x.Amount.Satoshi) / whaleTotalSatoshiBefore) / anonScoreTarget;
 			// Same as cost variable in pr #8938
 			var whaleCostCoinsBefore = whaleSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
+
+			Money liquidityClue = LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount);
 
 			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
 			if (!whaleSelectedSmartCoins.Select(sm => sm.Coin).Any())
@@ -121,6 +126,8 @@ public class WhaleCoinjoinTests
 			// Same as cost variable in pr #8938
 			var whaleCostCoinsAfter = whaleSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
 
+			LiquidityClueProvider.UpdateLiquidityClue(maxSuggestedAmount, tx.Transaction, tx.WalletOutputs.Select(output => output.TxOut));
+
 			if (whaleGlobalAnonScoreAfter > whaleMaxGlobalAnonScore)
 			{
 				whaleMaxGlobalAnonScore = whaleGlobalAnonScoreAfter;
@@ -147,7 +154,7 @@ public class WhaleCoinjoinTests
 			}
 		}
 
-		WriteLine($"master: {master}, whaleAmountBtc: {whaleAmountBtc}, liquidityClue: {liquidityClue}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
+		WriteLine($"master: {master}, whaleAmountBtc: {whaleAmountBtc}, liquidityClue: {LiquidityClueProvider.GetLiquidityClue(maxSuggestedAmount)}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
 		WriteLine(counter >= maxTestRounds
 			? $"FAILED whaleMaxGlobalAnonScore only reached {Math.Round(whaleMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
 			: $"PASSED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
