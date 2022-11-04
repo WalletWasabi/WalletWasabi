@@ -12,6 +12,7 @@
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            VerticalContentAlignment="Center"
+                           HorizontalContentAlignment="Left"
                            Margin="0 0 7 0">
     <c:LabelsItemsPresenter Items="{Binding SmartLabel}" />
   </c:PrivacyContentControl>
