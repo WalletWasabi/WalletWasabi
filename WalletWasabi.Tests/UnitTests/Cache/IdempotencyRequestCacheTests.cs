@@ -162,6 +162,45 @@ public class IdempotencyRequestCacheTests
 		}
 	}
 
+	/// <summary>
+	/// Simulates: First cache request is being processed. Second is waiting for the first one to finish.
+	/// But then the first cache request is cancelled (suppose that the first request is a long running RPC request).
+	/// </summary>
+	[Fact]
+	public async Task CancelledFirstRequestAsync()
+	{
+		// To cancel cache request processing.
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
+
+		using MemoryCache memoryCache = new(new MemoryCacheOptions());
+		IdempotencyRequestCache cache = new(memoryCache);
+
+		// To know that the first request is being computed already.
+		TaskCompletionSource tcsInFactory = new();
+
+		// To throw an exception when the first request is being computed.
+		TaskCompletionSource tcsFactoryResult = new();
+
+		Task<int> request1Task = cache.GetCachedResponseAsync("some-operation", action: ReturnNewAsync, testDeadlineCts.Token);
+		Task<int> request2Task = cache.GetCachedResponseAsync("some-operation", action: ReturnNewAsync, testDeadlineCts.Token);
+
+		// Wait until the first request is being computed and the second is waiting for the first one to finish.
+		await tcsInFactory.Task;
+
+		// The first request ends up throwing an exception. Should stop processing of the second request.
+		tcsFactoryResult.SetException(new ArgumentOutOfRangeException());
+
+		await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => request1Task);
+		await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => request2Task);
+
+		async Task<int> ReturnNewAsync(string request, CancellationToken cancellationToken)
+		{
+			tcsInFactory.TrySetResult();
+			await tcsFactoryResult.Task.ConfigureAwait(false);
+			throw new NotSupportedException("Function never returns anything.");
+		}
+	}
+
 	private record SimpleRequestType();
 	private record SimpleResponseType();
 
