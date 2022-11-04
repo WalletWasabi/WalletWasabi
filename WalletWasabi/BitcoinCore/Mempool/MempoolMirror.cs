@@ -83,18 +83,18 @@ public class MempoolMirror : PeriodicRunner
 					if (PrevOutsIndex.TryGetValue(txInput.PrevOut, out Transaction? mempoolTx))
 					{
 						// Remove the old transaction from our mempool snapshot.
-						RemoveTransactionLocked(mempoolTx.GetHash());
+						RemoveTransactionNoLock(mempoolTx.GetHash());
 					}
 				}
 
-				AddTransactionLocked(tx);
+				AddTransactionNoLock(tx);
 				added++;
 			}
 		}
 		return added;
 	}
 
-	private void AddTransactionLocked(Transaction tx)
+	private void AddTransactionNoLock(Transaction tx)
 	{
 		Mempool.Add(tx.GetHash(), tx);
 
@@ -104,7 +104,7 @@ public class MempoolMirror : PeriodicRunner
 		}
 	}
 
-	private void RemoveTransactionLocked(uint256 txHash)
+	private void RemoveTransactionNoLock(uint256 txHash)
 	{
 		if (Mempool.Remove(txHash, out Transaction? transaction))
 		{
@@ -123,12 +123,12 @@ public class MempoolMirror : PeriodicRunner
 		IEnumerable<uint256> missingHashes;
 		lock (MempoolLock)
 		{
-			var mempoolKeys = Mempool.Keys.ToImmutableArray();
+			var mempoolKeys = Mempool.Keys.ToArray();
 			missingHashes = mempoolHashes.Except(mempoolKeys);
 
-			foreach (var txid in mempoolKeys.Except(mempoolHashes).ToHashSet())
+			foreach (var txid in mempoolKeys.Except(mempoolHashes).ToArray())
 			{
-				RemoveTransactionLocked(txid);
+				RemoveTransactionNoLock(txid);
 			}
 		}
 
