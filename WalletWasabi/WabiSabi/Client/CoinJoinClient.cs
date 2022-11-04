@@ -759,27 +759,12 @@ public class CoinJoinClient
 
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
-		var winner = new List<SmartCoin>();
-		var enumerator = Enumerable.Empty<SmartCoin?>();
-		if (master)
-		{
-			// Fix selectedNonPrivateCoin on master as its a clear issue unrelated with #8938
-			winner.Add(selectedNonPrivateCoin);
-			enumerator = finalCandidate
-				.Except(new[] { selectedNonPrivateCoin })
-				.OrderBy(x => x.HdPubKey.AnonymitySet)
-				.ThenByDescending(x => x.Amount);
-		}
-		else
-		{
-			winner.Add(selectedNonPrivateCoin);
-			enumerator = finalCandidate
-				.Except(new[] { selectedNonPrivateCoin })
-				.OrderBy(x => x.HdPubKey.AnonymitySet)
-				.ThenByDescending(x => x.Amount);
-		}
-
-		foreach (var coin in enumerator)
+		// Fix selectedNonPrivateCoin on master as its a clear issue unrelated with #8938
+		var winner = new List<SmartCoin> { selectedNonPrivateCoin };
+		foreach (var coin in finalCandidate
+			.Except(new[] { selectedNonPrivateCoin })
+			.OrderBy(x => x.HdPubKey.AnonymitySet)
+			.ThenByDescending(x => x.Amount))
 		{
 			// If the coin is coming from same tx, then check our allowance.
 			if (winner.Any(x => x.TransactionId == coin.TransactionId))
