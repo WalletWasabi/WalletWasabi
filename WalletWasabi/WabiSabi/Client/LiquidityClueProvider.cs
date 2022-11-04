@@ -54,22 +54,6 @@ public class LiquidityClueProvider
 		}
 	}
 
-	private void UpdateLiquidityClue(Money maxSuggestedAmount, IEnumerable<Money> foreignOutputsValues)
-	{
-		// Dismiss pleb round.
-		// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
-		lock (LiquidityClueLock)
-		{
-			if (TryCalculateLiquidityClue(foreignOutputsValues, out var liquidityClue) && (maxSuggestedAmount / 2) > liquidityClue)
-			{
-				LiquidityClue = liquidityClue;
-			}
-		}
-	}
-
-	public void UpdateLiquidityClue(Money maxSuggestedAmount, Transaction unsignedCoinJoin, IEnumerable<TxOut> walletTxOuts) =>
-		UpdateLiquidityClue(maxSuggestedAmount, GetForeignOutputsValues(unsignedCoinJoin, walletTxOuts));
-
 	public IEnumerable<Money> GetForeignOutputsValues(Transaction transaction, IEnumerable<TxOut> walletTxOuts) =>
 		 transaction.Outputs
 			.Except(walletTxOuts, TxOutEqualityComparer.Default)
@@ -81,13 +65,13 @@ public class LiquidityClueProvider
 			.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Satoshi)) // We only care about denom outputs as those can be considered reasonably mixed.
 			.Distinct()
 			.ToList();
-	
+
 		var take = (int)Math.Ceiling(denoms.Count * 0.1); // Take top 10% of denominations.
 		var topDenoms = denoms
 			.OrderByDescending(x => x)
 			.Take(take);
-		
-			value = (ulong)topDenoms.DefaultIfEmpty(Money.Zero).Average(x => x.Satoshi);
-			return value > 0;
+
+		value = (ulong)topDenoms.DefaultIfEmpty(Money.Zero).Average(x => x.Satoshi);
+		return value > 0;
 	}
 }
