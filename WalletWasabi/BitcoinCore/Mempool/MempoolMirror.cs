@@ -139,14 +139,12 @@ public class MempoolMirror : PeriodicRunner
 
 	public IReadOnlySet<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
 	{
+		HashSet<OutPoint> txOutsSet = txOuts.ToHashSet();
+
 		lock (MempoolLock)
 		{
-			var mempoolTxs = Mempool.Values;
-			var txOutsSet = txOuts.ToHashSet();
-
-			return mempoolTxs.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
-				.Where(x => txOutsSet.Contains(x.PrevOut))
-				.Select(x => x.tx)
+			return PrevOutsIndex.Where(x => txOutsSet.Contains(x.Key))
+				.Select(x => x.Value)
 				.ToHashSet();
 		}
 	}
