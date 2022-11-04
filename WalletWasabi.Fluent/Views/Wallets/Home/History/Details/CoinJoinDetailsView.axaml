@@ -27,8 +27,8 @@
       <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Label="Transaction ID">
         <c:PreviewItem DataContext="{Binding TransactionId}" TextValue="{Binding }">
-          <c:PrivacyContentControl NumberOfPrivacyChars="48">
-            <TextBlock Text="{Binding }" Classes="monoSpaced" />
+          <c:PrivacyContentControl NumberOfPrivacyChars="61" MinHeight="18">
+            <TextBlock Text="{Binding }" Classes="monoSpaced" VerticalAlignment="Center" />
           </c:PrivacyContentControl>
         </c:PreviewItem>
       </c:PreviewItem>
