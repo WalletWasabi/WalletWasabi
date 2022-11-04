@@ -35,21 +35,24 @@ public class WhaleCoinjoinTests
 	}
 
 	[Theory]
-	[InlineData(1, 0.0005, 0.05, 1234)]
-	[InlineData(1, 0.0005, 0.05, 6789)]
-	[InlineData(1, 0.001, 0.1, 1234)]
-	[InlineData(1, 0.0005, 0.2, 1234)]
-	[InlineData(1, 0.0005, 0.04, 1234)]
-	public void ScoreForWhales(double whaleAmountBtc, double otherClientsAmountMin, double otherClientsAmountMax, int randomSeed)
+	[InlineData(true, 1, 0.0005, 0.05, 1234)]
+	[InlineData(true, 1, 0.0005, 0.05, 6789)]
+	[InlineData(true, 1, 0.001, 0.1, 1234)]
+	[InlineData(true, 1, 0.0005, 0.2, 1234)]
+	[InlineData(false, 1, 0.0005, 0.05, 1234)]
+	[InlineData(false, 1, 0.0005, 0.05, 6789)]
+	[InlineData(false, 1, 0.001, 0.1, 1234)]
+	[InlineData(false, 1, 0.0005, 0.2, 1234)]
+	public void ScoreForWhales(bool master, double whaleAmountBtc, double otherClientsAmountMin, double otherClientsAmountMax, int randomSeed)
 	{
 		var nbOtherClients = 30;
 		var otherNbInputsPerClient = 5;
 		var mockSecureRandom = new TestRandomSeed(randomSeed);
 
+		Money liquidityClue = new Money(10000000L); //0.1
 		var anonScoreTarget = 100;
 		var maxTestRounds = 1000;
 		var displayProgressEachNRounds = int.MaxValue;
-		var displayWhaleCoinsOnFinish = true;
 
 		var analyser = new BlockchainAnalyzer();
 
@@ -81,7 +84,7 @@ public class WhaleCoinjoinTests
 			// Same as cost variable in pr #8938
 			var whaleCostCoinsBefore = whaleSmartCoins.Select(x => (x.HdPubKey.AnonymitySet - whaleMinInputAnonSet) * x.Amount.Satoshi);
 
-			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins, anonScoreTarget, roundParams, mockSecureRandom);
+			var whaleSelectedSmartCoins = SelectCoinsForRound(whaleSmartCoins, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
 			if (!whaleSelectedSmartCoins.Select(sm => sm.Coin).Any())
 			{
 				break;
@@ -95,7 +98,7 @@ public class WhaleCoinjoinTests
 
 			foreach (var other in otherSmartCoins)
 			{
-				var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom);
+				var tmpSelectedSmartCoins = SelectCoinsForRound(other, anonScoreTarget, roundParams, mockSecureRandom, master, liquidityClue);
 				otherSelectedSmartCoins.Add((tmpSelectedSmartCoins.ToList()));
 			}
 
@@ -138,20 +141,17 @@ public class WhaleCoinjoinTests
 
 			if (counter % displayProgressEachNRounds == 0)
 			{
-				DisplayProgress(counter, totalVSizeWhale, whaleSmartCoins, whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
-			}
-			else
-			{
+				WriteLine($"Round N° {counter} - Total vSize: {totalVSizeWhale}");
 				DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
+				DisplayCoins(whaleSmartCoins);
 			}
 		}
 
-		DisplayProgress(counter, totalVSizeWhale, whaleSmartCoins, whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
-
-		WriteLine($"whaleAmountBtc: {whaleAmountBtc}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
+		WriteLine($"master: {master}, whaleAmountBtc: {whaleAmountBtc}, liquidityClue: {liquidityClue}, otherClientsAmountMin: {otherClientsAmountMin}, otherClientsAmountMax: {otherClientsAmountMax}, randomSeed: {randomSeed}");
 		WriteLine(counter >= maxTestRounds
 			? $"FAILED whaleMaxGlobalAnonScore only reached {Math.Round(whaleMaxGlobalAnonScore * 100, 2)} after {counter} rounds"
 			: $"PASSED after {counter} rounds -> Total vSize Whale: {totalVSizeWhale}");
+		DisplayAnonScore(whaleGlobalAnonScoreAfter, whaleMaxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 	}
 
 	public class TestRandomSeed : SecureRandom
@@ -183,13 +183,11 @@ public class WhaleCoinjoinTests
 
 	private void DisplayAnonScore(double currentAnonScore, double maxGlobalAnonScore, double maxDeltaGlobalAnonScore, double minDeltaGlobalAnonScore)
 	{
-		WriteLine($"AnonScore: Current: {Math.Round(currentAnonScore * 100, 2)} Max: {Math.Round(maxGlobalAnonScore * 100, 2)} - Delta: Max: +{Math.Round(maxDeltaGlobalAnonScore * 100, 2)}% / Min: {Math.Round(minDeltaGlobalAnonScore * 100, 2)}%");
+		WriteLine($"AnonScore: Current: {Math.Round(currentAnonScore * 100, 2)}% Max: {Math.Round(maxGlobalAnonScore * 100, 2)}% - Delta: Max: +{Math.Round(maxDeltaGlobalAnonScore * 100, 2)}% / Min: {Math.Round(minDeltaGlobalAnonScore * 100, 2)}%");
 	}
 
-	private void DisplayProgress(int counter, int totalVSizeWhale, IEnumerable<SmartCoin> whaleSmartCoins, double currentAnonScore, double maxGlobalAnonScore, double maxDeltaGlobalAnonScore, double minDeltaGlobalAnonScore)
+	private void DisplayCoins(IEnumerable<SmartCoin> whaleSmartCoins)
 	{
-		WriteLine($"Round N° {counter} - Total vSize: {totalVSizeWhale}");
-		DisplayAnonScore(currentAnonScore, maxGlobalAnonScore, maxDeltaGlobalAnonScore, minDeltaGlobalAnonScore);
 		WriteLine($"Amount       AnonSet       ");
 		var whaleSmartCoinsOrdered = whaleSmartCoins.OrderByDescending(x => (int)Math.Round(x.HdPubKey.AnonymitySet));
 		foreach (var whaleSC in whaleSmartCoinsOrdered)
@@ -221,7 +219,7 @@ public class WhaleCoinjoinTests
 		return otherSmartCoins;
 	}
 
-	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom)
+	private static ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> sc, int anonScoreTarget, RoundParameters roundParams, TestRandomSeed mockSecureRandom, bool master, Money liquidityClue)
 	{
 		return CoinJoinClient.SelectCoinsForRound(
 			coins: sc,
@@ -229,8 +227,9 @@ public class WhaleCoinjoinTests
 			consolidationMode: false,
 			anonScoreTarget: anonScoreTarget,
 			redCoinIsolation: false,
-			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney,
-			rnd: mockSecureRandom
+			liquidityClue: liquidityClue,
+			rnd: mockSecureRandom,
+			master: master
 		);
 	}
 
