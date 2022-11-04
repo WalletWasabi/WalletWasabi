@@ -7,6 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -251,8 +252,12 @@ public class StepOutputRegistrationTests
 			MinInputCountByRoundMultiplier = 0.5,
 			CoordinationFeeRate = CoordinationFeeRate.Zero
 		};
-		var (keyChain1, coin1a, coin1b) = WabiSabiFactory.CreateCoinKeyPairs();
-		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var keyManager1 = ServiceFactory.CreateKeyManager("");
+		var keyManager2 = ServiceFactory.CreateKeyManager("");
+
+		var (keyChain1, coin1a, coin1b) = WabiSabiFactory.CreateCoinKeyPairs(keyManager1);
+		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs(keyManager2);
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1a.Coin, coin1b.Coin, coin2a.Coin, coin2b.Coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
@@ -289,17 +294,70 @@ public class StepOutputRegistrationTests
 		var task2a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2a, keyChain2, roundStateUpdater, token, token, token);
 		var task2b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2b, keyChain2, roundStateUpdater, token, token, token);
 
-		var aliceClient2a = await task2a;
-		var aliceClient2b = await task2b;
-
 		while (Phase.ConnectionConfirmation != round2.Phase)
 		{
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		await arena.TriggerAndWaitRoundAsync(token);
+		var aliceClient2a = await task2a;
+		var aliceClient2b = await task2b;
+
+		while (Phase.OutputRegistration != round1.Phase || Phase.OutputRegistration != round2.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
 		Assert.Equal(Phase.OutputRegistration, round1.Phase);
 		Assert.Equal(Phase.OutputRegistration, round2.Phase);
+
+		var (amountCredentials1a, vsizeCredentials1a) = (aliceClient1a.IssuedAmountCredentials, aliceClient1a.IssuedVsizeCredentials);
+		var (amountCredentials1b, vsizeCredentials1b) = (aliceClient1b.IssuedAmountCredentials, aliceClient1b.IssuedVsizeCredentials);
+
+		var (amountCredentials2a, vsizeCredentials2a) = (aliceClient2a.IssuedAmountCredentials, aliceClient2a.IssuedVsizeCredentials);
+		var (amountCredentials2b, vsizeCredentials2b) = (aliceClient2b.IssuedAmountCredentials, aliceClient2b.IssuedVsizeCredentials);
+
+		// Register outputs.
+		var bobClient1 = new BobClient(round1.Id, arenaClient1);
+		var bobClient2 = new BobClient(round2.Id, arenaClient2);
+
+		var out1a = keyManager1.GetNextReceiveKey("o1a", out _);
+		var out1b = keyManager1.GetNextReceiveKey("o1b", out _);
+		var out2a = keyManager2.GetNextReceiveKey("o2a", out _);
+		var out2b = keyManager2.GetNextReceiveKey("o2b", out _);
+
+		await bobClient1.RegisterOutputAsync(
+			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials1a.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials1a.Take(ProtocolConstants.CredentialNumber),
+			token);
+
+		await bobClient1.RegisterOutputAsync(
+			out1b.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials1b.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials1b.Take(ProtocolConstants.CredentialNumber),
+			token);
+
+		// Trying to registed the same script while the other round is in outreg.
+		await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await bobClient2.RegisterOutputAsync(
+			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
+			token));
+
+		await aliceClient1a.ReadyToSignAsync(token);
+		await aliceClient1b.ReadyToSignAsync(token);
+
+		while (Phase.TransactionSigning != round1.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		// Trying to registed the same script while the other round is in txsign.
+		await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await bobClient2.RegisterOutputAsync(
+			out1b.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
+			token));
 
 		await roundStateUpdater.StopAsync(token);
 
