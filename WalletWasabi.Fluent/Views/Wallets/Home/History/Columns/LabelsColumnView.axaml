@@ -11,6 +11,7 @@
   <c:PrivacyContentControl PrivacyReplacementMode="Text" NumberOfPrivacyChars="15" FontSize="15"
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
+                           HorizontalContentAlignment="Left"
                            Classes="monoSpacedPrivacyReplacement">
     <c:LabelsItemsPresenter Items="{Binding Label}" />
   </c:PrivacyContentControl>
