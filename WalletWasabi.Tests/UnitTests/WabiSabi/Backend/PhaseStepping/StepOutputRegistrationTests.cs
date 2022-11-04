@@ -22,13 +22,6 @@ public class StepOutputRegistrationTests
 {
 	private TimeSpan TestTimeout { get; } = TimeSpan.FromMinutes(3);
 
-	private ITestOutputHelper Output { get; }
-
-	public StepOutputRegistrationTests(ITestOutputHelper output)
-	{
-		Output = output;
-	}
-
 	[Fact]
 	public async Task AllBobsRegisteredAsync()
 	{
@@ -348,7 +341,6 @@ public class StepOutputRegistrationTests
 		await bob1a;
 
 		using var bob2aCts = new CancellationTokenSource();
-		long cnt = 0;
 		var bob2a = Task.Run(async () =>
 		{
 			using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(token, bob2aCts.Token);
@@ -356,8 +348,7 @@ public class StepOutputRegistrationTests
 			{
 				try
 				{
-					cnt++;
-					// Trying to registed the same script.
+					// Trying to registed the same script again and again.
 					await bobClient2.RegisterOutputAsync(
 						out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 						amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
@@ -377,7 +368,7 @@ public class StepOutputRegistrationTests
 
 		await bob1b;
 
-		await Task.Delay(1000);
+		await Task.Delay(100);
 
 		await aliceClient1a.ReadyToSignAsync(token);
 		await aliceClient1b.ReadyToSignAsync(token);
@@ -387,12 +378,12 @@ public class StepOutputRegistrationTests
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		await Task.Delay(1000);
+		await Task.Delay(100);
 
 		bob2aCts.Cancel();
-		await bob2a;
 
-		Output.WriteLine($"number:{cnt}");
+		// We should never get an exception here. Otherwise it would indicate that output was registered twice.
+		await bob2a;
 
 		await roundStateUpdater.StopAsync(token);
 
