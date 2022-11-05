@@ -21,6 +21,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _walletName = "";
 	private readonly string? _importFilePath;
+	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 
 	public WalletNamePageViewModel(WalletCreationOption creationOption, string? importFilePath = null)
 	{
@@ -52,7 +53,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (creationOption)
 		{
 			case WalletCreationOption.AddNewWallet:
-				Navigate().To(new RecoveryWordsViewModel(new Mnemonic(Wordlist.English, WordCount.Twelve), walletName));
+				Navigate().To(new RecoveryWordsViewModel(_mnemonic.Value, walletName));
 				break;
 
 			case WalletCreationOption.ConnectToHardwareWallet:

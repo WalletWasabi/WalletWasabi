@@ -33,6 +33,7 @@
   <Style Selector="c|LabelsItemsPresenter">
     <Setter Property="Margin" Value="0" />
     <Setter Property="VirtualizationMode" Value="Simple" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="MaxLabelWidth" Value="120" />
@@ -51,7 +52,7 @@
     </Setter>
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
+        <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
               <Border Classes="label" BorderBrush="{Binding $parent[c:LabelsItemsPresenter].BorderBrush}">
@@ -74,5 +75,4 @@
       </ItemsPanelTemplate>
     </Setter>
   </Style>
-
 </Styles>

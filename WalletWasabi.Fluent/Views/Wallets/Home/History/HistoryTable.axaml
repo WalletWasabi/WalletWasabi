@@ -90,13 +90,13 @@
         </MenuItem.Icon>
       </MenuItem>
     </ContextMenu>
-
   </UserControl.Resources>
 
   <Panel>
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
-                  Margin="0 0 0 0">
+                  Margin="0 0 0 0"
+                  IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
       <i:Interaction.Behaviors>
         <behaviors:ScrollToSelectedItemBehavior />
       </i:Interaction.Behaviors>
@@ -267,21 +267,11 @@
             </ControlTemplate>
           </Setter>
         </Style>
-
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
-      <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.75" />
-      <Grid RowDefinitions="26,1*,1.5*"
-            IsVisible="{Binding IsTransactionHistoryLoaded}"
-            Margin="{StaticResource HistoryTablePlaceholderPanelMargin}">
-        <c:InfoMessage VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       Grid.Row="1"
-                       Content="Transaction history is empty" />
-      </Grid>
-    </Panel>
+    <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+                               RowHeight="{StaticResource HistoryTableRowHeight}"
+                               IsVisible="{Binding IsTransactionHistoryEmpty}"
+                               Opacity="0.1" />
   </Panel>
 </UserControl>
