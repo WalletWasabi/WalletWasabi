@@ -37,7 +37,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
+	public TransactionPreviewViewModel(Wallet wallet, WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = wallet;
@@ -46,8 +46,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(this, walletViewModel, _wallet, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(this, walletViewModel, _wallet, _info, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
 		{
@@ -132,6 +132,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		});
 
 		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
+
+		EnableCoinControlCommand = ReactiveCommand.Create(() => CurrentTransactionSummary.IsCoinControlVisible = true);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -149,6 +151,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand ChangePocketCommand { get; }
 
 	public ICommand UndoCommand { get; }
+	public ICommand EnableCoinControlCommand { get; }
 
 	private async Task OnExportPsbtAsync()
 	{
@@ -369,14 +372,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.MinimumRequiredAmount = minimumRequiredAmount;
 
 			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, doSilentPocketSelection));
 
 			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 			{
 				_info.Coins = selectPocketsDialog.Result;
 				return true;
 			}
-			else if (selectPocketsDialog.Kind != DialogResultKind.Normal)
+
+			if (selectPocketsDialog.Kind != DialogResultKind.Normal)
 			{
 				return false;
 			}
