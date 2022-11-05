@@ -1,16 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.CoinControl;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -29,9 +22,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
-	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, WalletViewModel walletViewModel, Wallet wallet, TransactionInfo info, bool isPreview = false)
+	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{
 		Parent = parent;
 		_wallet = wallet;
@@ -43,38 +35,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		AddressText = info.Destination.ToString();
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
-
-		var selectCoinsInteraction = SelectCoinsInteraction(walletViewModel);
-
-		SelectCoinsCommand = ReactiveCommand.CreateFromObservable(() => selectCoinsInteraction.Handle(info));
-		SelectCoinsCommand.Do(
-			list =>
-			{
-				info.Coins = list;
-
-				// UpdateTransactionSummary here, but how??
-			}).Subscribe();
 	}
-
-	private static Interaction<TransactionInfo, List<SmartCoin>> SelectCoinsInteraction(WalletViewModel walletViewModel)
-	{
-		var selectCoinsInteraction = new Interaction<TransactionInfo, List<SmartCoin>>();
-		selectCoinsInteraction.RegisterHandler(
-			async context =>
-			{
-				var navigateDialog = await MainViewModel.Instance.DialogScreen.NavigateDialogAsync(new SelectCoinsDialogViewModel(walletViewModel));
-
-				if (navigateDialog.Kind == DialogResultKind.Normal)
-				{
-					context.SetOutput(navigateDialog.Result!.ToList());
-				}
-
-				context.SetOutput(new List<SmartCoin>());
-			});
-		return selectCoinsInteraction;
-	}
-
-	public ReactiveCommand<Unit, List<SmartCoin>> SelectCoinsCommand { get; }
 
 	public TransactionPreviewViewModel Parent { get; }
 

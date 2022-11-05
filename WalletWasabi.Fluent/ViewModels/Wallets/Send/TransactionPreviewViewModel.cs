@@ -16,6 +16,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.CoinControl;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -28,6 +29,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
 	private readonly Wallet _wallet;
+	private readonly WalletViewModel _walletViewModel;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
@@ -36,18 +38,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
+	[AutoNotify] private bool _isCoinControlVisible;
 
 	public TransactionPreviewViewModel(Wallet wallet, WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = wallet;
+		_walletViewModel = walletViewModel;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-		CurrentTransactionSummary = new TransactionSummaryViewModel(this, walletViewModel, _wallet, _info);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(this, walletViewModel, _wallet, _info, true);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
 		{
@@ -132,8 +136,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		});
 
 		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
+		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
 
-		EnableCoinControlCommand = ReactiveCommand.Create(() => CurrentTransactionSummary.IsCoinControlVisible = true);
+		EnableCoinControlCommand = ReactiveCommand.Create(() => IsCoinControlVisible = true);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -149,6 +154,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand AdjustFeeCommand { get; }
 
 	public ICommand ChangePocketCommand { get; }
+
+	public ICommand ChangeCoinsCommand { get; }
 
 	public ICommand UndoCommand { get; }
 	public ICommand EnableCoinControlCommand { get; }
@@ -222,6 +229,19 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.Coins = selectPocketsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
 			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged);
+		}
+	}
+
+	private async Task OnChangeCoinsAsync()
+	{
+		var selectCoinsDialog =
+			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel));
+
+		if (selectCoinsDialog.Kind == DialogResultKind.Normal && selectCoinsDialog.Result is { })
+		{
+			_info.Coins = selectCoinsDialog.Result;
+			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new coins.
+			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged); // TODO: check if PocketChanged reason is good for this case too (maybe rename)
 		}
 	}
 

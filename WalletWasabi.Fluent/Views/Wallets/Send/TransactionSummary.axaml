@@ -13,10 +13,7 @@
     <!-- Amount -->
     <c:PreviewItem Icon="{StaticResource btc_logo}"
                    Label="a total of" HorizontalContentAlignment="Stretch">
-      <StackPanel Orientation="Horizontal">
         <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
-        <Button IsVisible="{Binding IsCoinControlVisible}" Command="{Binding SelectCoinsCommand}" Content="Review coins" Margin="10 0" VerticalAlignment="Center" />
-      </StackPanel>
     </c:PreviewItem>
     <Separator />
 
