@@ -21,12 +21,15 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = coin.IsPrivate(parent.Wallet.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
+		var anonScore = parent.Wallet.AnonScoreTarget;
+		IsPrivate = coin.IsPrivate(anonScore);
+		IsSemiPrivate = coin.IsSemiPrivate(anonScore);
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
 		Unconfirmed = !coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
+
+		PrivacyLevelText = GetPrivacyLevelDescription();
 
 		Reference = GetPrivacyLevelDescription();
 		Reference += " coin";
@@ -42,11 +45,14 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.AnonScoreTarget));
-		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
+		var anonScore = parent.Wallet.AnonScoreTarget;
+		IsPrivate = pocket.Coins.All(x => x.IsPrivate(anonScore));
+		IsSemiPrivate = pocket.Coins.All(x => x.IsSemiPrivate(anonScore));
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
+
+		PrivacyLevelText = GetPrivacyLevelDescription();
 
 		Reference = GetPrivacyLevelDescription();
 		Reference += " coins";
@@ -62,6 +68,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
 	public string AmountText { get; }
+	public string PrivacyLevelText { get; }
 	public bool Unconfirmed { get; }
 	public int Confirmations { get; }
 	public string Reference { get; }

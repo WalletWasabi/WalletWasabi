@@ -55,15 +55,20 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 		var destinationAmount = _transaction.CalculateDestinationAmount();
-		var btcAmountText = $"{destinationAmount.ToFormattedString()} BTC";
-		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
-		var fiatAmountText = destinationAmount.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
-		AmountText = $"{btcAmountText} {fiatAmountText}";
+		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 
 		var fee = _transaction.Fee;
-		var feeText = fee.ToFeeDisplayUnitString();
-		var fiatFeeText = fee.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
-		FeeText = $"{feeText} {fiatFeeText}";
+		FeeText = fee.ToFeeDisplayUnitString();
+
+		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		if (exchangeRate != 0)
+		{
+			var fiatAmountText = destinationAmount.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
+			AmountText += $" {fiatAmountText}";
+
+			var fiatFeeText = fee.BtcToUsd(exchangeRate).ToUsdAproxBetweenParens();
+			FeeText += $" {fiatFeeText}";
+		}
 
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != info.Destination.ScriptPubKey);
