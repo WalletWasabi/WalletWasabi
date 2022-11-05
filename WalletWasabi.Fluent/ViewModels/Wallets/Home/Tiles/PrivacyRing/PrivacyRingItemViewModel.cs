@@ -29,6 +29,8 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		Unconfirmed = !coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
 
+		PrivacyLevelText = GetPrivacyLevelDescription();
+
 		Reference = GetPrivacyLevelDescription();
 		Reference += " coin";
 		if (Unconfirmed)
@@ -50,6 +52,8 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
 
+		PrivacyLevelText = GetPrivacyLevelDescription();
+
 		Reference = GetPrivacyLevelDescription();
 		Reference += " coins";
 	}
@@ -64,6 +68,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
 	public string AmountText { get; }
+	public string PrivacyLevelText { get; }
 	public bool Unconfirmed { get; }
 	public int Confirmations { get; }
 	public string Reference { get; }
