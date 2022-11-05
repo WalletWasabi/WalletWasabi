@@ -1,4 +1,5 @@
 using System.Linq;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -19,7 +20,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _maxPrivacy;
 	[AutoNotify] private bool _isCustomFeeUsed;
-	[AutoNotify] private bool _isEditCoinsEnabled;
+	[AutoNotify] private bool _isOtherPocketSelectionPossible;
 	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
 	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
 
@@ -73,8 +74,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Recipient = info.Recipient;
 
 		IsCustomFeeUsed = info.IsCustomFeeUsed;
-		IsEditCoinsEnabled = info.IsAutomaticSelectionEnabled
-			? info.IsOtherPocketSelectionPossible
-			: _transaction.SpentCoins.Sum(x => x.Amount) != _wallet.Coins.TotalAmount();
+		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 	}
 }

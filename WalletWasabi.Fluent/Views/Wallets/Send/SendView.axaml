@@ -114,18 +114,6 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
         </DockPanel>
       </DockPanel>
-
-      <!-- Coin control -->
-      <StackPanel IsVisible="{Binding IsCoinControlEnabled}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 -30 0 0" DockPanel.Dock="Top" Opacity="0.6" Spacing="6">
-        <PathIcon Data="{StaticResource info_regular}" Width="14" VerticalAlignment="Center" xml:space="preserve" ToolTip.Tip="Automatic: Wasabi Wallet will choose the coins for you.&#x0d;&#x0a;Manual: You'll be able to select which coins to use." />
-        <Button Focusable="False" Classes="plainHyperlink h8" Command="{Binding ToggleCoinControlCommand}">
-          <Panel>
-            <TextBlock Text="Coin control: Automatic" IsVisible="{Binding IsAutomaticSelectionEnabled}" />
-            <TextBlock Text="Coin control: Manual" IsVisible="{Binding !IsAutomaticSelectionEnabled}" />
-          </Panel>
-        </Button>
-      </StackPanel>
-
     </DockPanel>
   </c:ContentArea>
 </UserControl>
