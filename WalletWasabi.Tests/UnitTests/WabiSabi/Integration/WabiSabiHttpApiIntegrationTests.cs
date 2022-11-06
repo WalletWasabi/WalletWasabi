@@ -148,7 +148,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create the coinjoin client
 		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new HttpClientWrapper(httpClient);
+		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
 
@@ -229,7 +229,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create the coinjoin client
 		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new HttpClientWrapper(httpClient);
+		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
 
@@ -350,7 +350,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Create the coinjoin client
 		using PersonCircuit personCircuit = new();
-		IHttpClient httpClientWrapper = new HttpClientWrapper(httpClient);
+		IHttpClient httpClientWrapper = new ClearnetHttpClient(httpClient);
 
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
 		var mockHttpClientFactory = new Mock<IWasabiHttpClientFactory>(MockBehavior.Strict);
@@ -374,7 +374,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
-		var nonSigningHttpClientMock = new Mock<HttpClientWrapper>(MockBehavior.Strict, httpClient);
+		var nonSigningHttpClientMock = new Mock<ClearnetHttpClient>(MockBehavior.Strict, httpClient);
 		nonSigningHttpClientMock
 			.Setup(httpClient => httpClient.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 			.CallBase();
@@ -461,7 +461,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			using PersonCircuit personCircuit = new();
 			IHttpClient httpClientWrapper = new MonkeyHttpClient(
-				new HttpClientWrapper(app.CreateClient()),
+				new ClearnetHttpClient(app.CreateClient()),
 				() => // This monkey injects `HttpRequestException` randomly to simulate errors in the communication.
 				{
 					if (Random.Shared.NextDouble() < faultInjectorMonkeyAggressiveness)
