@@ -1,0 +1,23 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <HeaderedContentControl Header="Header">
+        <TextBlock>Content</TextBlock>
+      </HeaderedContentControl>
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="HeaderedContentControl">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+          <ContentPresenter DockPanel.Dock="Top" Content="{TemplateBinding Header}"
+                            Classes="h8 bold"
+                            ContentTemplate="{TemplateBinding HeaderTemplate}" />
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

@@ -2,31 +2,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="140"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
-  <controls:TileControl TileSize="{Binding CurrentTileSize}">
 
+  <UserControl.Styles>
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/Tiles/CommonStyles.axaml" />
+  </UserControl.Styles>
+
+  <HeaderedContentControl Header="BALANCE">
     <DockPanel>
-      <TextBlock Text="BALANCE" DockPanel.Dock="Top" Classes="h8 bold" />
-      <StackPanel DockPanel.Dock="Bottom" Height="25" Spacing="8" IsVisible="{Binding HasBalance}">
+      <StackPanel DockPanel.Dock="Bottom" Spacing="8" IsVisible="{Binding HasBalance^}">
         <Separator />
         <controls:PrivacyContentControl Classes="bold monoSpaced" NumberOfPrivacyChars="9" Margin="4"
                                         VerticalAlignment="Center"
                                         HorizontalAlignment="Center"
                                         Opacity="0.8"
-                                        Content="{Binding BalanceFiat, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
+                                        Content="{Binding BalanceFiat^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
       </StackPanel>
 
       <Viewbox Margin="0 3" VerticalAlignment="Center" MaxHeight="40">
         <controls:PrivacyContentControl NumberOfPrivacyChars="16"
                                         Classes="h2 monoSpaced"
-                                        HorizontalContentAlignment="Center" 
-                                        Content="{Binding BalanceBtc}" />
+                                        HorizontalContentAlignment="Center"
+                                        Content="{Binding BalanceBtc^}" />
       </Viewbox>
     </DockPanel>
-  </controls:TileControl>
+  </HeaderedContentControl>
 </UserControl>
