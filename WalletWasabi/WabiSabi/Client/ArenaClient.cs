@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
@@ -223,7 +224,8 @@ public class ArenaClient
 		await RequestHandler.ReadyToSignAsync(
 			new ReadyToSignRequestRequest(
 				roundId,
-				aliceId),
+				aliceId,
+				AffiliationFlag.Default),
 			cancellationToken).ConfigureAwait(false);
 	}
 }
