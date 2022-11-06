@@ -156,14 +156,6 @@
         </StackPanel>
       </DockPanel>
     </c:ContentArea.Title>
-    <DockPanel>
-      <Button IsVisible="{Binding IsCoinControlVisible}"
-              Command="{Binding ChangeCoinsCommand}"
-              Content="Review coins"
-              Margin="10 0"
-              VerticalAlignment="Center"
-              DockPanel.Dock="Bottom" />
-
     <Carousel Items="{Binding TransactionSummaries}" IsVirtualized="False"
               SelectedItem="{Binding DisplayedTransactionSummary}">
       <Carousel.PageTransition>
@@ -175,6 +167,5 @@
         </DataTemplate>
       </Carousel.ItemTemplate>
     </Carousel>
-    </DockPanel>
   </c:ContentArea>
 </UserControl>
