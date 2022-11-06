@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
@@ -17,15 +18,15 @@ public class ReadyToSignRequestRequestTests
 		Guid guid = Guid.NewGuid();
 
 		// Request #1.
-		ReadyToSignRequestRequest request1 = new(RoundId: roundId, AliceId: guid);
+		ReadyToSignRequestRequest request1 = new(RoundId: roundId, AliceId: guid, AffiliationFlag.Default);
 
 		// Request #2.
-		ReadyToSignRequestRequest request2 = new(RoundId: roundId, AliceId: guid);
+		ReadyToSignRequestRequest request2 = new(RoundId: roundId, AliceId: guid, AffiliationFlag.Default);
 
 		Assert.Equal(request1, request2);
 
 		// Request #3.
-		ReadyToSignRequestRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceId: guid);
+		ReadyToSignRequestRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceId: guid, AffiliationFlag.Default);
 
 		Assert.NotEqual(request1, request3);
 	}
