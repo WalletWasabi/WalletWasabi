@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Control;
 
 namespace WalletWasabi.Services;
 
@@ -69,14 +70,13 @@ public static class WasabiSignerTools
 		return false;
 	}
 
-	public static async Task<(string content, Dictionary<string, uint256> installerDictionary, string base64Signature)> ReadShaSumsContentAsync(string shaSumsFilePath, PubKey pubKey)
+	private static async Task<string> ReadShaSumsContentAsync(string shaSumsFilePath, PubKey publicKey)
 	{
-		Dictionary<string, uint256> installerDictionary = new();
-		string base64Signature = "";
 		StringBuilder contentBuilder = new();
+		string base64Signature = "";
 
-		string rawcontent = await File.ReadAllTextAsync(shaSumsFilePath).ConfigureAwait(false);
-		string content = rawcontent.Replace("\r\n", "\n");
+		string rawContent = await File.ReadAllTextAsync(shaSumsFilePath).ConfigureAwait(false);
+		string content = rawContent.Replace("\r\n", "\n");
 		string[] sumsFileLines = content.Split("\n");
 
 		string? headline = sumsFileLines.FirstOrDefault();
@@ -87,19 +87,10 @@ public static class WasabiSignerTools
 		{
 			throw new ArgumentException($"{ShaSumsFileName}'s content was invalid.");
 		}
-		int installerFilesEndIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {PGPSignatureHeadline}-----");
-		for (int i = 0; i < installerFilesEndIndex; i++)
-		{
-			string line = sumsFileLines[i].Trim();
-			contentBuilder.AppendLine(line);
 
-			string[] splitLine = line.Split(" ");
-			bool isHashValid = uint256.TryParse(splitLine[0], out uint256 installerHash);
-			if (isHashValid)
-			{
-				string installerName = splitLine[1];
-				installerDictionary.Add(installerName, installerHash);
-			}
+		for (int i = 0; i <= contentEndIndex; i++)
+		{
+			contentBuilder.AppendLine(sumsFileLines[i]);
 		}
 
 		int signatureBeginIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {WasabiSignatureHeadline}-----");
@@ -108,16 +99,36 @@ public static class WasabiSignerTools
 			base64Signature = sumsFileLines[signatureBeginIndex + 1].Trim();
 		}
 
-		for (int i = installerFilesEndIndex; i < signatureBeginIndex; i++)
-		{
-			contentBuilder.AppendLine(sumsFileLines[i]);
-		}
-		bool isSignatureValid = VerifyShaSumsFile(contentBuilder.ToString().Replace("\r\n", "\n"), base64Signature, pubKey);
+		bool isSignatureValid = VerifyShaSumsFile(contentBuilder.ToString().Replace("\r\n", "\n"), base64Signature, publicKey);
 		if (!isSignatureValid)
 		{
 			throw new ArgumentException($"Couldn't verify Wasabi's signature in {ShaSumsFileName}.");
 		}
-		return (content, installerDictionary, base64Signature);
+		return content;
+	}
+
+	public static async Task<uint256> GetAndVerifyInstallerFromShaSumsFileAsync(string shaSumsFilePath, string installerName, PubKey publicKey)
+	{
+		string shaSumsContent = await ReadShaSumsContentAsync(shaSumsFilePath, publicKey).ConfigureAwait(false);
+		string[] sumsFileLines = shaSumsContent.Split("\n");
+
+		int installerFilesEndIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {PGPSignatureHeadline}-----");
+		for (int i = 1; i < installerFilesEndIndex; i++)
+		{
+			string line = sumsFileLines[i].Trim();
+			if (string.IsNullOrEmpty(line))
+			{
+				continue;
+			}
+			string[] splitLine = line.Split(" ");
+			string? filename = splitLine[1];
+			if (filename == installerName)
+			{
+				return uint256.TryParse(splitLine[0], out uint256 installerHash) ?
+					installerHash : throw new ArgumentNullException($"{filename}'s hash was invalid");
+			}
+		}
+		throw new ArgumentException($"{installerName} can't be found.");
 	}
 
 	public static async Task<uint256> GenerateHashFromFileAsync(string filePath)

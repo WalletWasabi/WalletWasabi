@@ -1,9 +1,5 @@
 using NBitcoin;
-using NBitcoin.Crypto;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
@@ -59,46 +55,15 @@ public class WasabiSignerToolsTests
 	[Fact]
 	public async void WritingAndVerifyingShaSumsTestAsync()
 	{
-		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		await WasabiSignerTools.SignAndSaveSHASumsFileAsync(await ShaSumsFilePath, destinationPath, PrivateKey).ConfigureAwait(false);
-		Assert.True(File.Exists(destinationPath));
+		string signedShaSumsFilePath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
+		string filePath = await ShaSumsFilePath;
+		await WasabiSignerTools.SignAndSaveSHASumsFileAsync(filePath, signedShaSumsFilePath, PrivateKey).ConfigureAwait(false);
+		Assert.True(File.Exists(signedShaSumsFilePath));
 
 		PubKey publicKey = PrivateKey.PubKey;
-		(string content, Dictionary<string, uint256> installerFiles, string signature) = await WasabiSignerTools.ReadShaSumsContentAsync(destinationPath, publicKey).ConfigureAwait(false);
-		Assert.NotEmpty(installerFiles);
-		Assert.NotNull(content);
-		Assert.NotNull(signature);
-	}
+		uint256 installerHash = await WasabiSignerTools.GetAndVerifyInstallerFromShaSumsFileAsync(signedShaSumsFilePath, "Wasabi.msi", publicKey);
 
-	[Fact]
-	public async void VerifyingShaSumsFileWithInvalidArgumentsFailsTestAsync()
-	{
-		string destinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		await WasabiSignerTools.SignAndSaveSHASumsFileAsync(await ShaSumsFilePath, destinationPath, PrivateKey).ConfigureAwait(false);
-		Assert.True(File.Exists(destinationPath));
-	}
-
-	[Fact]
-	public async void CanGenerateAndReadHashFromFileTestAsync()
-	{
-		string[] filepaths = InstallerFolder.GetFiles().Select(file => file.FullName).ToArray();
-		PubKey publicKey = PrivateKey.PubKey;
-
-		uint256 firstInstallerHash = await WasabiSignerTools.GenerateHashFromFileAsync(filepaths[0]).ConfigureAwait(false);
-		uint256 secondInstallerHash = await WasabiSignerTools.GenerateHashFromFileAsync(filepaths[1]).ConfigureAwait(false);
-
-		string shaSumsDestinationPath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
-		await WasabiSignerTools.SignAndSaveSHASumsFileAsync(await ShaSumsFilePath, shaSumsDestinationPath, PrivateKey).ConfigureAwait(false);
-		Assert.True(File.Exists(shaSumsDestinationPath));
-
-		string firstInstallerFileName = filepaths[0].Split("\\").Last();
-		string secondInstallerFileName = filepaths[1].Split("\\").Last();
-		(string _, Dictionary<string, uint256> fileDictionary, string _) = await WasabiSignerTools.ReadShaSumsContentAsync(shaSumsDestinationPath, publicKey).ConfigureAwait(false);
-
-		uint256 firstInstallerHashFromFile = fileDictionary[firstInstallerFileName];
-		uint256 secondInstallerHashFromFile = fileDictionary[secondInstallerFileName];
-		Assert.Equal(firstInstallerHash, firstInstallerHashFromFile);
-		Assert.Equal(secondInstallerHash, secondInstallerHashFromFile);
+		Assert.NotNull(installerHash);
 	}
 
 	[Fact]
