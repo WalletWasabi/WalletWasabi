@@ -48,7 +48,7 @@ public class WasabiSignerToolsTests
 		fileContent.AppendLine("iHUEARYIAB0WIQSzezSaXyNsjjmXathSPF4ghfWtAQUCYz7rVAAKCRBSPF4ghfWt\r\nAUjNAP0da7wUClzLL/MEAJ7UDfRJ9vSVuJ11KNqZj4yStWBzlAD+P+ZEUd3gCW3J\r\nR8y3yqiZplCIdDzmtToIr/48peW5SgM=\r\n=VsaF");
 		fileContent.AppendLine($"-----END PGP SIGNATURE-----");
 		string shaSumsFilePath = Path.Combine(installerFolder.Parent!.FullName, "SHASUMS.asc");
-		await File.WriteAllTextAsync(shaSumsFilePath, fileContent.ToString()).ConfigureAwait(false);
+		await File.WriteAllTextAsync(shaSumsFilePath, fileContent.ToString().ReplaceLineEndings("\n")).ConfigureAwait(false);
 		return shaSumsFilePath;
 	}
 
@@ -57,7 +57,7 @@ public class WasabiSignerToolsTests
 	{
 		string signedShaSumsFilePath = Path.Combine(InstallerFolder.Parent!.FullName, WasabiSignerTools.ShaSumsFileName);
 		string filePath = await ShaSumsFilePath;
-		await WasabiSignerTools.SignAndSaveSHASumsFileAsync(filePath, signedShaSumsFilePath, PrivateKey).ConfigureAwait(false);
+		await WasabiSignerTools.SignAndSaveShaSumsFileAsync(filePath, signedShaSumsFilePath, PrivateKey).ConfigureAwait(false);
 		Assert.True(File.Exists(signedShaSumsFilePath));
 
 		PubKey publicKey = PrivateKey.PubKey;

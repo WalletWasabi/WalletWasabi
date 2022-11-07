@@ -70,14 +70,12 @@ public static class WasabiSignerTools
 		return false;
 	}
 
-	private static async Task<string> ReadShaSumsContentAsync(string shaSumsFilePath, PubKey publicKey)
+	private static async Task<string[]> ReadShaSumsFileLinesAsync(string shaSumsFilePath, PubKey publicKey)
 	{
 		StringBuilder contentBuilder = new();
 		string base64Signature = "";
 
-		string rawContent = await File.ReadAllTextAsync(shaSumsFilePath).ConfigureAwait(false);
-		string content = rawContent.Replace("\r\n", "\n");
-		string[] sumsFileLines = content.Split("\n");
+		var sumsFileLines = await File.ReadAllLinesAsync(shaSumsFilePath).ConfigureAwait(false);
 
 		string? headline = sumsFileLines.FirstOrDefault();
 		int contentEndIndex = Array.IndexOf(sumsFileLines, $"-----END {PGPSignatureHeadline}-----");
@@ -99,18 +97,17 @@ public static class WasabiSignerTools
 			base64Signature = sumsFileLines[signatureBeginIndex + 1].Trim();
 		}
 
-		bool isSignatureValid = VerifyShaSumsFile(contentBuilder.ToString().Replace("\r\n", "\n"), base64Signature, publicKey);
+		bool isSignatureValid = VerifyShaSumsFile(contentBuilder.ToString().ReplaceLineEndings("\n"), base64Signature, publicKey);
 		if (!isSignatureValid)
 		{
 			throw new ArgumentException($"Couldn't verify Wasabi's signature in {ShaSumsFileName}.");
 		}
-		return content;
+		return sumsFileLines;
 	}
 
 	public static async Task<uint256> GetAndVerifyInstallerFromShaSumsFileAsync(string shaSumsFilePath, string installerName, PubKey publicKey)
 	{
-		string shaSumsContent = await ReadShaSumsContentAsync(shaSumsFilePath, publicKey).ConfigureAwait(false);
-		string[] sumsFileLines = shaSumsContent.Split("\n");
+		string[] sumsFileLines = await ReadShaSumsFileLinesAsync(shaSumsFilePath, publicKey).ConfigureAwait(false);
 
 		int installerFilesEndIndex = Array.IndexOf(sumsFileLines, $"-----BEGIN {PGPSignatureHeadline}-----");
 		for (int i = 1; i < installerFilesEndIndex; i++)
@@ -154,10 +151,10 @@ public static class WasabiSignerTools
 		return new(computedHash);
 	}
 
-	public static async Task SignAndSaveSHASumsFileAsync(string signatureFilePath, string destinationPath, Key key)
+	public static async Task SignAndSaveShaSumsFileAsync(string signatureFilePath, string destinationPath, Key key)
 	{
 		string content = await File.ReadAllTextAsync(signatureFilePath).ConfigureAwait(false);
-		uint256 contentHash = GenerateHashFromString(content.Replace("\r\n", "\n"));
+		uint256 contentHash = GenerateHashFromString(content);
 
 		ECDSASignature signature = key.Sign(contentHash);
 		string base64Signature = Convert.ToBase64String(signature.ToDER());
