@@ -53,12 +53,12 @@ public class UpdateManager : IDisposable
 				}
 				catch (OperationCanceledException ex)
 				{
-					Logger.LogTrace($"Geting new update was canceled.", ex);
+					Logger.LogTrace($"Getting new update was canceled.", ex);
 					break;
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Geting new update failed with error.", ex);
+					Logger.LogError($"Getting new update failed with error.", ex);
 				}
 			} while (tries < MaxTries);
 		}
@@ -120,7 +120,7 @@ public class UpdateManager : IDisposable
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
 		{
-			throw new InvalidDataException("Target version from backend does not match with the latest github release. This should be impossible.");
+			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
 		}
 
 		// Get all asset names and download urls to find the correct one.
