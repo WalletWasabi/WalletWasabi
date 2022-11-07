@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
@@ -40,7 +41,8 @@ public class BatchController : ControllerBase
 		[FromQuery, Required] string bestKnownBlockHash,
 		[FromQuery, Required] int maxNumberOfFilters,
 		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
-		[FromQuery] string? indexType = null)
+		[FromQuery] string? indexType = null,
+		CancellationToken cancellationToken = default)
 	{
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
@@ -86,7 +88,7 @@ public class BatchController : ControllerBase
 		{
 			try
 			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode, cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -94,7 +96,7 @@ public class BatchController : ControllerBase
 			}
 		}
 
-		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
+		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
 
 		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
 

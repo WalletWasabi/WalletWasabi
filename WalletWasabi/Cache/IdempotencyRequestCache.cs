@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.Cache;
 

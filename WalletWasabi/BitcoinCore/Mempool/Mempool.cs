@@ -101,12 +101,10 @@ public class Mempool
 	/// </summary>
 	public IReadOnlySet<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
 	{
-		IEnumerable<Transaction> transactions = TransactionIndex.Values;
 		HashSet<OutPoint> txOutsSet = txOuts.ToHashSet();
 
-		return transactions.SelectMany(tx => tx.Inputs.Select(i => (tx, i.PrevOut)))
-			.Where(x => txOutsSet.Contains(x.PrevOut))
-			.Select(x => x.tx)
+		return txOutsSet.Where(prevOut => PrevOutsIndex.ContainsKey(prevOut))
+			.Select(prevOut => PrevOutsIndex[prevOut])
 			.ToHashSet();
 	}
 
