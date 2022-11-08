@@ -18,7 +18,7 @@ using ICoin = WalletWasabi.Fluent.ViewModels.CoinControl.Core.ICoin;
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 [NavigationMetaData(
-	Title = "Select Coins",
+	Title = "Coin Selection",
 	Caption = "",
 	IconName = "wallet_action_send",
 	NavBarPosition = NavBarPosition.None,
