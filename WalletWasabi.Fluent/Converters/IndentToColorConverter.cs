@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
+using Avalonia;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
@@ -8,22 +8,25 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Converters;
 
-internal class IndentToColorConverter : IMultiValueConverter
+internal class IndentToBrushConverter : IMultiValueConverter
 {
-	public static IndentToColorConverter Instance { get; } = new();
-
 	public List<IBrush>? Brushes { get; set; }
 
 	public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
 	{
-		var obj = values.Skip(0).First();
-
-		if (obj is null || values.Skip(1).First() is not IRows rows)
+		if (values.Count != 2)
 		{
-			return BindingOperations.DoNothing;
+			return AvaloniaProperty.UnsetValue;
 		}
 
-		var rowIndex = FindIndex(rows, el => el.Model == obj);
+		var model = values[0];
+
+		if (values[1] is not IRows rows)
+		{
+			return AvaloniaProperty.UnsetValue;
+		}
+
+		var rowIndex = FindIndex(rows, el => el.Model == model);
 		var modelIndex = rows.RowIndexToModelIndex(rowIndex);
 		return GetBrush(modelIndex.Count - 1) ?? BindingOperations.DoNothing;
 	}
