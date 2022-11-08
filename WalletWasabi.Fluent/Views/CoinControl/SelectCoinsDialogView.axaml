@@ -12,6 +12,7 @@
              x:CompileBindings="True">
 
   <controls:ContentArea
+    Title="{Binding Title}"
     EnableBack="{Binding EnableBack}"
     EnableNext="True"
     NextContent="Continue"
@@ -60,16 +61,6 @@
       </Style>
 
     </controls:ContentArea.Styles>
-
-    <controls:ContentArea.Title>
-      <TextBox x:CompileBindings="False" IsVisible="False" Text="{Binding SearchFilter, Mode=TwoWay}" Watermark="Search label">
-        <TextBox.Styles>
-          <Style Selector="TextBox /template/ DataValidationErrors">
-            <Setter Property="IsVisible" Value="False" />
-          </Style>
-        </TextBox.Styles>
-      </TextBox>
-    </controls:ContentArea.Title>
 
     <DockPanel>
 
