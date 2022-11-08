@@ -2,7 +2,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using Avalonia;
 
-namespace WalletWasabi.Fluent.Behaviors;
+namespace WalletWasabi.Fluent.Helpers;
 
 public static class ApplicationUtils
 {

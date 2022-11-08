@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors;
