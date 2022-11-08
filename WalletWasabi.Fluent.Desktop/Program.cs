@@ -175,7 +175,7 @@ public class Program
 			}
 		}
 
-		Logger.Initialize(Path.Combine(dataDir, "Logs.txt"), minimumLogLevel);
+		Logger.Initialize(isEnabled: true, Path.Combine(dataDir, "Logs.txt"), minimumLogLevel);
 	}
 
 	private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)

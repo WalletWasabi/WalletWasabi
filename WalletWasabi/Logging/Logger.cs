@@ -1,26 +1,16 @@
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Logging;
 
 /// <summary>
 /// Logging class.
-///
-/// <list type="bullet">
-/// <item>Logger is enabled by default but no <see cref="Modes"/> are set by default, so the logger does not log by default.</item>
-/// <item>Only <see cref="LogLevel.Critical"/> messages are logged unless set otherwise.</item>
-/// <item>The logger is thread-safe.</item>
-/// </list>
 /// </summary>
+/// <remarks>The logger is thread-safe.</remarks>
 public static class Logger
 {
 	private const string StandardExceptionMessage = "Exception occurred.";
-	public static string EntrySeparator { get; } = Environment.NewLine;
 
 #if RELEASE
 	private static readonly LogLevel DefaultMinimumLogLevel = LogLevel.Info;
@@ -30,17 +20,7 @@ public static class Logger
 	private static readonly LogMode[] DefaultModes = new[] { LogMode.Debug, LogMode.Console, LogMode.File };
 #endif
 
-	private static readonly object Lock = new();
-
-	private static long On = 0;
-
-	private static int LoggingFailedCount = 0;
-
-	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
-
-	private static HashSet<LogMode> Modes { get; } = new();
-
-	public static string FilePath { get; private set; } = "Log.txt";
+	private static Lazy<LoggerImpl> Implementation { get; set; } = new(() => Initialize(isEnabled: true, filePath: "File.logs"));
 
 	/// <summary>
 	/// Gets the GUID instance.
@@ -49,212 +29,36 @@ public static class Logger
 	/// </summary>
 	private static Guid InstanceGuid { get; } = Guid.NewGuid();
 
-	/// <summary>Gets or sets the maximum log file size in KB.</summary>
-	/// <remarks>Default value is approximately 10 MB. If set to <c>0</c>, then there is no maximum log file size.</remarks>
-	private static long MaximumLogFileSize { get; set; } = 10_000;
+	public static string FilePath => Implementation.Value.FilePath;
 
 	/// <summary>
 	/// Initializes the logger.
 	/// </summary>
 	/// <remarks>Defaults are <see cref="DefaultMinimumLogLevel"/> and <see cref="DefaultModes"/>.</remarks>
-	public static void Initialize(string filePath, LogLevel? minimumLogLevel = null, params LogMode[] modes)
+	public static LoggerImpl Initialize(bool isEnabled, string filePath, LogLevel? minimumLogLevel = null, params LogMode[] modes)
 	{
-		TurnOn();
-		FilePath = filePath;
+		minimumLogLevel ??= DefaultMinimumLogLevel;
 
-		MinimumLevel = minimumLogLevel ?? DefaultMinimumLogLevel;
-
+		HashSet<LogMode> allowedModes = new();
 
 		foreach (var mode in modes.Length > 0 ? modes : DefaultModes)
 		{
-			Modes.Add(mode);
+			allowedModes.Add(mode);
 		}
 
-		MaximumLogFileSize = MinimumLevel == LogLevel.Trace ? 0 : 10_000;
+		long maximumLogFileSize = minimumLogLevel.Value == LogLevel.Trace ? 0 : 10_000;
+
+		LoggerImpl impl = new(isEnabled, filePath, minimumLogLevel.Value, allowedModes, maximumLogFileSize);
+		Implementation = new Lazy<LoggerImpl>(impl);
+
+		return impl;
 	}
-
-	#region Methods
-
-	public static void TurnOff() => Interlocked.Exchange(ref On, 0);
-
-	public static void TurnOn() => Interlocked.Exchange(ref On, 1);
-
-	public static bool IsOn() => Interlocked.Read(ref On) == 1;
-
-	#endregion Methods
-
-	#region LoggingMethods
-
-	#region GeneralLoggingMethods
-
-	public static void Log(LogLevel level, string message, Exception? ex = null, int additionalEntrySeparators = 0, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		if (!IsEnabledOnLevel(level))
-		{
-			return;
-		}
-
-		LogCore(level, message, ex, additionalEntrySeparators, callerFilePath, callerMemberName, callerLineNumber);
-	}
-
-	public static void Log(LogLevel level, DefaultInterpolatedStringHandler builder, Exception? ex = null, int additionalEntrySeparators = 0, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		if (!IsEnabledOnLevel(level))
-		{
-			return;
-		}
-
-		LogCore(level, builder.ToStringAndClear(), ex, additionalEntrySeparators, callerFilePath, callerMemberName, callerLineNumber);
-	}
-
-	private static bool IsEnabledOnLevel(LogLevel level)
-	{
-		if (Modes.Count == 0 || !IsOn())
-		{
-			return false;
-		}
-
-		if (level < MinimumLevel)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	private static void LogCore(LogLevel level, string message, Exception? exception = null, int additionalEntrySeparators = 0, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		try
-		{
-			string category = string.IsNullOrWhiteSpace(callerFilePath)
-				? ""
-				: $"{EnvironmentHelpers.ExtractFileName(callerFilePath)}.{callerMemberName} ({callerLineNumber})";
-
-			var messageBuilder = new StringBuilder();
-			messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
-
-			if (message.Length == 0)
-			{
-				if (category.Length == 0) // If both empty. It probably never happens though.
-				{
-					messageBuilder.Append(EntrySeparator);
-				}
-				else // If only the message is empty.
-				{
-					messageBuilder.Append($"{category}{EntrySeparator}");
-				}
-			}
-			else
-			{
-				if (category.Length == 0) // If only the category is empty.
-				{
-					if (exception is not null)
-					{
-						messageBuilder.Append($"{message} Exception: {exception}{EntrySeparator}");
-					}
-					else
-					{
-						messageBuilder.Append($"{message}{EntrySeparator}");
-					}
-				}
-				else // If none of them empty.
-				{
-					messageBuilder.Append($"{category}\t{message}{EntrySeparator}");
-				}
-			}
-
-			var finalMessage = messageBuilder.ToString();
-
-			for (int i = 0; i < additionalEntrySeparators; i++)
-			{
-				messageBuilder.Insert(0, EntrySeparator);
-			}
-
-			var finalFileMessage = messageBuilder.ToString();
-
-			lock (Lock)
-			{
-				if (Modes.Contains(LogMode.Console))
-				{
-					lock (Console.Out)
-					{
-						var color = Console.ForegroundColor;
-						switch (level)
-						{
-							case LogLevel.Warning:
-								color = ConsoleColor.Yellow;
-								break;
-
-							case LogLevel.Error:
-							case LogLevel.Critical:
-								color = ConsoleColor.Red;
-								break;
-
-							default:
-								break; // Keep original color.
-						}
-
-						Console.ForegroundColor = color;
-						Console.Write(finalMessage);
-						Console.ResetColor();
-					}
-				}
-
-				if (Modes.Contains(LogMode.Debug))
-				{
-					Debug.Write(finalMessage);
-				}
-
-				if (!Modes.Contains(LogMode.File))
-				{
-					return;
-				}
-
-				IoHelpers.EnsureContainingDirectoryExists(FilePath);
-
-				if (MaximumLogFileSize > 0)
-				{
-					if (File.Exists(FilePath))
-					{
-						var sizeInBytes = new FileInfo(FilePath).Length;
-						if (sizeInBytes > 1000 * MaximumLogFileSize)
-						{
-							File.Delete(FilePath);
-						}
-					}
-				}
-
-				File.AppendAllText(FilePath, finalFileMessage);
-			}
-		}
-		catch (Exception ex)
-		{
-			if (Interlocked.Increment(ref LoggingFailedCount) == 1) // If it only failed the first time, try log the failure.
-			{
-				LogDebug($"Logging failed: {ex}");
-			}
-
-			// If logging the failure is successful then clear the failure counter.
-			// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
-			Interlocked.Exchange(ref LoggingFailedCount, 0);
-		}
-	}
-
-	#endregion GeneralLoggingMethods
-
-	#region ExceptionLoggingMethods
 
 	/// <summary>
-	/// Logs exception string without any user message.
+	/// Logs a string message at the predefined level.
 	/// </summary>
-	private static void Log(LogLevel level, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(level, message: StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-	}
-
-	#endregion ExceptionLoggingMethods
-
-	#region TraceLoggingMethods
+	public static void Log(LogLevel level, string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+		=> Implementation.Value.Log(level, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs a string message at <see cref="LogLevel.Trace"/> level.
@@ -264,11 +68,11 @@ public static class Logger
 	/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
 	/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
 	public static void LogTrace(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Trace, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Trace, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <seealso cref="LogTrace(string, string, string, int)"/>
 	public static void LogTrace(DefaultInterpolatedStringHandler message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Trace, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Trace, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Trace"/> level.
@@ -278,19 +82,15 @@ public static class Logger
 	/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
 	/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
 	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Trace, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Trace, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <inheritdoc cref="LogTrace(string, string, string, int)"/>
 	public static void LogTrace(DefaultInterpolatedStringHandler message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Trace, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	#endregion TraceLoggingMethods
-
-	#region DebugLoggingMethods
+		=> Implementation.Value.Log(LogLevel.Trace, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 
 	public static void LogDebug(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Debug, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Debug, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs a string message at <see cref="LogLevel.Debug"/> level.
@@ -300,7 +100,7 @@ public static class Logger
 	/// <remarks>You typically would not enable <see cref="LogLevel.Debug"/> level in production unless you are troubleshooting, due to the high volume of generated logs.</remarks>
 	/// <example>For example: <c>Entering method Configure with flag set to true.</c></example>
 	public static void LogDebug(DefaultInterpolatedStringHandler message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Debug, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Debug, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Debug"/> level.
@@ -310,7 +110,7 @@ public static class Logger
 	/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
 	/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
 	public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Debug, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Debug, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Debug"/> level.
@@ -319,29 +119,25 @@ public static class Logger
 	/// </summary>
 	/// <remarks>You typically would not enable <see cref="LogLevel.Debug"/> level in production unless you are troubleshooting, due to the high volume of generated logs.</remarks>
 	public static void LogDebug(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Debug, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Debug, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <inheritdoc cref="LogDebug(string, Exception, string, string, int)"/>
 	public static void LogDebug(DefaultInterpolatedStringHandler message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Debug, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	#endregion DebugLoggingMethods
-
-	#region InfoLoggingMethods
+		=> Implementation.Value.Log(LogLevel.Debug, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs special event: Software has started. Add also <see cref="InstanceGuid"/> identifier and insert three newlines to increase log readability.
 	/// </summary>
 	/// <param name="appName">Name of the application.</param>
 	public static void LogSoftwareStarted(string appName, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Info, $"{appName} started ({InstanceGuid}).", additionalEntrySeparators: 3, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Info, $"{appName} started ({InstanceGuid}).", additionalEntrySeparators: 3, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs special event: Software has stopped. Add also <see cref="InstanceGuid"/> identifier.
 	/// </summary>
 	/// <param name="appName">Name of the application.</param>
 	public static void LogSoftwareStopped(string appName, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Info, $"{appName} stopped gracefully ({InstanceGuid}).", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Info, $"{appName} stopped gracefully ({InstanceGuid}).", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs a string message at <see cref="LogLevel.Info"/> level.
@@ -350,8 +146,8 @@ public static class Logger
 	/// <remarks>These logs typically have some long-term value.</remarks>
 	/// <example>"Request received for path /api/my-controller"</example>
 	/// </summary>
-	public static void LogInfo(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Info, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogInfo(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+		=> Implementation.Value.Log(LogLevel.Info, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Info"/> level.
@@ -361,15 +157,11 @@ public static class Logger
 	/// Example: "Request received for path /api/my-controller"
 	/// </summary>
 	public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Info, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Info, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <inheritdoc cref="LogInfo(string, string, string, int)"/>
 	public static void LogInfo(DefaultInterpolatedStringHandler message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Info, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	#endregion InfoLoggingMethods
-
-	#region WarningLoggingMethods
+		=> Implementation.Value.Log(LogLevel.Info, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs a string message at <see cref="LogLevel.Warning"/> level.
@@ -382,11 +174,11 @@ public static class Logger
 	/// <example>"FileNotFoundException for file quotes.txt."</example>
 	/// </summary>
 	public static void LogWarning(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Warning, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Warning, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <inheritdoc cref="LogWarning(string, string, string, int)"/>
 	public static void LogWarning(DefaultInterpolatedStringHandler message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Warning, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Warning, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Warning"/> level.
@@ -399,11 +191,7 @@ public static class Logger
 	/// </remarks>
 	/// <example>For example: <c>FileNotFoundException for file quotes.txt.</c></example>
 	public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Warning, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	#endregion WarningLoggingMethods
-
-	#region ErrorLoggingMethods
+		=> Implementation.Value.Log(LogLevel.Warning, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs a string message at <see cref="LogLevel.Error"/> level.
@@ -413,14 +201,14 @@ public static class Logger
 	/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
 	/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
 	public static void LogError(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <inheritdoc cref="LogError(string, string, string, int)"/>
 	public static void LogError(DefaultInterpolatedStringHandler message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	public static void LogError(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Error, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Error, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Error"/> level.
@@ -430,7 +218,7 @@ public static class Logger
 	/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
 	/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
 	public static void LogError(DefaultInterpolatedStringHandler message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Error, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Error, message, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Error"/> level.
@@ -440,11 +228,7 @@ public static class Logger
 	/// <remarks>These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.</remarks>
 	/// <example>Log message such as: "Cannot insert record due to duplicate key violation."</example>
 	public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Error, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	#endregion ErrorLoggingMethods
-
-	#region CriticalLoggingMethods
+		=> Implementation.Value.Log(LogLevel.Error, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs a string message at <see cref="LogLevel.Critical"/> level.
@@ -453,7 +237,7 @@ public static class Logger
 	/// </summary>
 	/// <example>Data loss scenarios, out of disk space.</example>
 	public static void LogCritical(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Critical, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		=> Implementation.Value.Log(LogLevel.Critical, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
 	/// <summary>
 	/// Logs the <paramref name="exception"/> using <see cref="Exception.ToString()"/> at <see cref="LogLevel.Critical"/> level.
@@ -462,9 +246,5 @@ public static class Logger
 	/// </summary>
 	/// <example>Examples: Data loss scenarios, out of disk space, etc.</example>
 	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Critical, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	#endregion CriticalLoggingMethods
-
-	#endregion LoggingMethods
+		=> Implementation.Value.Log(LogLevel.Critical, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 }

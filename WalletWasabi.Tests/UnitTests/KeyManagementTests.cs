@@ -39,9 +39,7 @@ public class KeyManagementTests
 
 		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState(Network.Main));
 		var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
-		Logger.TurnOff();
 		Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));
-		Logger.TurnOn();
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
@@ -106,9 +104,7 @@ public class KeyManagementTests
 		var filePath = Path.Combine(Common.GetWorkDir(), "Wallet.json");
 		DeleteFileAndDirectoryIfExists(filePath);
 
-		Logger.TurnOff();
 		Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
-		Logger.TurnOn();
 
 		var manager = KeyManager.CreateNew(out _, password, Network.Main, filePath);
 		KeyManager.FromFile(filePath);
