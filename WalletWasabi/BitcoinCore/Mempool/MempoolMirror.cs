@@ -70,32 +70,28 @@ public class MempoolMirror : PeriodicRunner
 		uint256[]? newTxids = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
 
 		Mempool newMempool;
-
-		// TXIDs in the new mempool, but not in the old mempool (what we currently have).
-		IEnumerable<uint256> missingTxids;
+		ISet<uint256> oldTxids;
 
 		lock (MempoolLock)
 		{
 			newMempool = Mempool.Clone();
+			oldTxids = Mempool.GetMempoolTxids();
+		}
 
-			ISet<uint256> oldTxids = Mempool.GetMempoolTxids();
+		// Those TXIDs that are in the new mempool snapshot but not in the old one, are the ones
+		// for which we want to download the corresponding transactions via RPC.
+		IEnumerable<uint256> missingTxids = newTxids.Except(oldTxids);
 
-			// Those TXIDs that are in the new mempool snapshot but not in the old one, are the ones
-			// for which we want to download the corresponding transactions via RPC.
-			missingTxids = newTxids.Except(oldTxids);
-
-			// Remove those transactions that are not present in the new mempool snapshot.
-			foreach (uint256 txid in oldTxids.Except(newTxids).ToHashSet())
+		// Remove those transactions that are not present in the new mempool snapshot.
+		foreach (uint256 txid in oldTxids.Except(newTxids).ToHashSet())
+		{
+			if (!newMempool.TryRemoveTransaction(txid))
 			{
-				if (!newMempool.TryRemoveTransaction(txid))
-				{
-					throw new InvalidOperationException("Should not happen.");
-				}
+				throw new InvalidOperationException("Should not happen.");
 			}
 		}
 
 		IEnumerable<Transaction> missingTxs = await Rpc.GetRawTransactionsAsync(missingTxids, cancel).ConfigureAwait(false);
-
 		int added = newMempool.AddMissingTransactions(missingTxs);
 
 		lock (MempoolLock)

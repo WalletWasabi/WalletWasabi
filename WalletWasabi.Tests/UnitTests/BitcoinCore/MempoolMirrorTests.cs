@@ -1,10 +1,7 @@
-using Moq;
 using NBitcoin;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Mempool;
-using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
