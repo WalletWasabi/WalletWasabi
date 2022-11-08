@@ -26,7 +26,7 @@
         <Setter Property="Height" Value="37.5" />
       </Style>
 
-      <Style Selector="TreeDataGridCellsPresenter">
+      <!--<Style Selector="TreeDataGridCellsPresenter">
         <Style.Resources>
           <converters:IndentToColorConverter x:Key="IndentToBrushConverter">
             <converters:IndentToColorConverter.Brushes>
@@ -41,14 +41,31 @@
           <Setter.Value>
             <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
               <Binding Path="." />
-              <Binding Path="$parent[TreeDataGridCellsPresenter].Rows" />
+              <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=TreeDataGridCellsPresenter}" Path="Rows" />
             </MultiBinding>
           </Setter.Value>
         </Setter>
-      </Style>
+      </Style>-->
 
-      <Style Selector="TreeDataGridCellsPresenter:pointerover">
-        <Setter Property="Background" Value="{DynamicResource DataGridRowSelectedBackgroundColor}" />
+      <Style Selector="TreeDataGridRow /template/ Rectangle">
+        <Style.Resources>
+          <converters:IndentToColorConverter x:Key="IndentToBrushConverter">
+            <converters:IndentToColorConverter.Brushes>
+              <generic:List x:TypeArguments="IBrush">
+                <SolidColorBrush>Transparent</SolidColorBrush>
+                <SolidColorBrush Color="{DynamicResource SystemListLowColor}" />
+              </generic:List>
+            </converters:IndentToColorConverter.Brushes>
+          </converters:IndentToColorConverter>
+        </Style.Resources>
+        <Setter Property="Fill">
+          <Setter.Value>
+            <MultiBinding Converter="{StaticResource IndentToBrushConverter}">
+              <Binding Path="." />
+              <Binding Path="$parent[TreeDataGridRow].Rows" />
+            </MultiBinding>
+          </Setter.Value>
+        </Setter>
       </Style>
 
       <Style Selector="TreeDataGridRow ContentPresenter">
