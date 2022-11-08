@@ -12,9 +12,7 @@ public static class Common
 {
 	static Common()
 	{
-		Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
-		Logger.SetMinimumLevel(LogLevel.Info);
-		Logger.SetModes(LogMode.Debug, LogMode.File);
+		Logger.Initialize(filePath: Path.Combine(DataDir, "Logs.txt"), minimumLogLevel: LogLevel.Info, LogMode.Debug, LogMode.File);
 	}
 
 	public static EndPoint TorSocks5Endpoint => new IPEndPoint(IPAddress.Loopback, 37150);

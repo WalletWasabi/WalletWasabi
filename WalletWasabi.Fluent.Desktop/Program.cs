@@ -159,7 +159,7 @@ public class Program
 	/// <example>Start Wasabi Wallet with <c>./wassabee --LogLevel=trace</c> to set <see cref="LogLevel.Trace"/>.</example>
 	private static void SetupLogger(string dataDir, string[] args)
 	{
-		LogLevel? logLevel = null;
+		LogLevel? minimumLogLevel = null;
 
 		foreach (string arg in args)
 		{
@@ -169,13 +169,13 @@ public class Program
 
 				if (Enum.TryParse(value, ignoreCase: true, out LogLevel parsedLevel))
 				{
-					logLevel = parsedLevel;
+					minimumLogLevel = parsedLevel;
 					break;
 				}
 			}
 		}
 
-		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
+		Logger.Initialize(Path.Combine(dataDir, "Logs.txt"), minimumLogLevel);
 	}
 
 	private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)

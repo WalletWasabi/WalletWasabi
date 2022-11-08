@@ -17,7 +17,7 @@ public class InitConfigStartupTask : IStartupTask
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+		Logger.Initialize(Path.Combine(Global.DataDir, "Logs.txt"));
 		Logger.LogSoftwareStarted("Wasabi Backend");
 
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
