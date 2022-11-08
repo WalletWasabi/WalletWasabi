@@ -56,6 +56,11 @@ public class UpdateManager : IDisposable
 					Logger.LogTrace($"Getting new update was canceled.", ex);
 					break;
 				}
+				catch (InvalidOperationException ex)
+				{
+					Logger.LogInfo("Getting new update failed with error.", ex);
+					break;
+				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Getting new update failed with error.", ex);
