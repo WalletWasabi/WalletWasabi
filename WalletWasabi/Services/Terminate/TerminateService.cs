@@ -132,5 +132,6 @@ public class TerminateService
 		Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
 
 		Logger.LogSoftwareStopped("Wasabi");
+		Logger.FlushAndClose();
 	}
 }

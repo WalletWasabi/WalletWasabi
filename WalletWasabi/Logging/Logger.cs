@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -247,4 +246,7 @@ public static class Logger
 	/// <example>Examples: Data loss scenarios, out of disk space, etc.</example>
 	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 		=> Implementation.Value.Log(LogLevel.Critical, StandardExceptionMessage, exception, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+
+	public static void FlushAndClose()
+		=> Implementation.Value.FlushAndClose();
 }

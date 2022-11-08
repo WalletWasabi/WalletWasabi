@@ -20,15 +20,29 @@ public class LoggerImpl
 		MinimumLevel = minimumLevel;
 		Modes = ImmutableHashSet.Create(modes.ToArray());
 		MaximumLogFileSize = maximumLogFileSize;
+
+		Writer = new(filePath, append: true);
+
+		FileSize = (File.Exists(FilePath))
+			? new FileInfo(FilePath).Length
+			: 0;
 	}
 
 	private object Lock { get; } = new();
 	public bool IsEnabled { get; }
 	public string FilePath { get; init; }
+
 	public long MaximumLogFileSize { get; }
 	public LogLevel MinimumLevel { get; init; }
 
 	public IImmutableSet<LogMode> Modes { get; init; }
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private StreamWriter? Writer { get; set; }
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private long FileSize { get; set; }
+
 	private bool IsEnabledOnLevel(LogLevel level)
 		=> IsEnabled && Modes.Count > 0 && level >= MinimumLevel;
 
@@ -142,24 +156,47 @@ public class LoggerImpl
 
 				IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
-				if (MaximumLogFileSize > 0)
+				if (MaximumLogFileSize > 0 && FileSize > 1000 * MaximumLogFileSize)
 				{
-					if (File.Exists(FilePath))
-					{
-						var sizeInBytes = new FileInfo(FilePath).Length;
-						if (sizeInBytes > 1000 * MaximumLogFileSize)
-						{
-							File.Delete(FilePath);
-						}
-					}
+					FlushAndCloseNoLock();
+					File.Delete(FilePath);
+
+					Writer = new(FilePath, append: true);
+					FileSize = finalFileMessage.Length;
+				}
+				else
+				{
+					FileSize += finalFileMessage.Length;
 				}
 
-				File.AppendAllText(FilePath, finalFileMessage);
+				if (Writer is { } writer)
+				{
+					writer.Write(finalFileMessage);
+				}
 			}
 		}
 		catch
 		{
 			// Ignore.
+		}
+	}
+
+	public void FlushAndClose()
+	{
+		lock (Lock)
+		{
+			FlushAndCloseNoLock();
+		}
+	}
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	private void FlushAndCloseNoLock()
+	{
+		if (Writer is { } writer)
+		{
+			writer.Flush();
+			writer.Dispose();
+			Writer = null;
 		}
 	}
 }

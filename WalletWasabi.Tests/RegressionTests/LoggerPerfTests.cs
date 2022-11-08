@@ -50,6 +50,7 @@ public class LoggerPerfTests
 			Logger.LogDebug(message: "Test message");
 		}
 
+		Logger.FlushAndClose();
 		sw1.Stop();
 
 		// 2s without optimizations.
