@@ -70,13 +70,13 @@ public class MempoolMirror : PeriodicRunner
 		uint256[]? newTxids = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
 
 		Mempool newMempool;
-		ISet<uint256> oldTxids;
 
 		lock (MempoolLock)
 		{
 			newMempool = Mempool.Clone();
-			oldTxids = Mempool.GetMempoolTxids();
 		}
+
+		ISet<uint256> oldTxids = newMempool.GetMempoolTxids();
 
 		// Those TXIDs that are in the new mempool snapshot but not in the old one, are the ones
 		// for which we want to download the corresponding transactions via RPC.
