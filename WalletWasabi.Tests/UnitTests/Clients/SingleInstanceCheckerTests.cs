@@ -39,17 +39,17 @@ public class SingleInstanceCheckerTests
 		await using SingleInstanceChecker sicMainNet = new(mainNetPort, TimeoutMultiplier);
 		await sicMainNet.EnsureSingleOrThrowAsync();
 		await using SingleInstanceChecker sicMainNet2 = new(mainNetPort, TimeoutMultiplier);
-		await Assert.ThrowsAsync<OperationCanceledException>(() => sicMainNet2.EnsureSingleOrThrowAsync());
+		await Assert.ThrowsAsync<OperationCanceledException>(sicMainNet2.EnsureSingleOrThrowAsync);
 
 		await using SingleInstanceChecker sicTestNet = new(testNetPort, TimeoutMultiplier);
 		await sicTestNet.EnsureSingleOrThrowAsync();
 		await using SingleInstanceChecker sicTestNet2 = new(testNetPort, TimeoutMultiplier);
-		await Assert.ThrowsAsync<OperationCanceledException>(() => sicTestNet2.EnsureSingleOrThrowAsync());
+		await Assert.ThrowsAsync<OperationCanceledException>(sicTestNet2.EnsureSingleOrThrowAsync);
 
 		await using SingleInstanceChecker sicRegTest = new(regTestPort, TimeoutMultiplier);
 		await sicRegTest.EnsureSingleOrThrowAsync();
 		await using SingleInstanceChecker sicRegTest2 = new(regTestPort, TimeoutMultiplier);
-		await Assert.ThrowsAsync<OperationCanceledException>(() => sicRegTest2.EnsureSingleOrThrowAsync());
+		await Assert.ThrowsAsync<OperationCanceledException>(sicRegTest2.EnsureSingleOrThrowAsync);
 	}
 
 	[Fact]
@@ -73,7 +73,7 @@ public class SingleInstanceCheckerTests
 			for (int i = 0; i < 2; i++)
 			{
 				// I am the second one.
-				await Assert.ThrowsAsync<OperationCanceledException>(() => secondInstance.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(secondInstance.EnsureSingleOrThrowAsync);
 			}
 
 			// Overall Timeout.
@@ -124,7 +124,7 @@ public class SingleInstanceCheckerTests
 			}
 
 			// One more to check if the first instance was able to recover from the port scan operation.
-			await Assert.ThrowsAsync<OperationCanceledException>(() => secondInstance.EnsureSingleOrThrowAsync());
+			await Assert.ThrowsAsync<OperationCanceledException>(secondInstance.EnsureSingleOrThrowAsync);
 
 			while (Interlocked.Read(ref eventCalled) != 3)
 			{
