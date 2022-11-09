@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net6.0": {
+    "net7.0": {
       "Avalonia.Desktop": {
         "type": "Direct",
         "requested": "[0.10.18, )",
@@ -662,28 +662,28 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "6.0.8",
-          "Microsoft.Win32.SystemEvents": "6.0.1",
-          "NBitcoin": "7.0.14",
-          "NBitcoin.Secp256k1": "3.0.1"
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[6.0.8, )",
+          "Microsoft.Win32.SystemEvents": "[6.0.1, )",
+          "NBitcoin": "[7.0.14, )",
+          "NBitcoin.Secp256k1": "[3.0.1, )"
         }
       },
       "walletwasabi.fluent": {
         "type": "Project",
         "dependencies": {
-          "Avalonia": "0.10.18",
-          "Avalonia.Controls.TreeDataGrid": "0.10.18",
-          "Avalonia.Diagnostics": "0.10.18",
-          "Avalonia.ReactiveUI": "0.10.18",
-          "Avalonia.Skia": "0.10.18",
-          "Avalonia.Xaml.Behaviors": "0.10.18",
-          "System.Drawing.Common": "6.0.0",
-          "System.Runtime": "4.3.1",
-          "WalletWasabi": "1.0.0"
+          "Avalonia": "[0.10.18, )",
+          "Avalonia.Controls.TreeDataGrid": "[0.10.18, )",
+          "Avalonia.Diagnostics": "[0.10.18, )",
+          "Avalonia.ReactiveUI": "[0.10.18, )",
+          "Avalonia.Skia": "[0.10.18, )",
+          "Avalonia.Xaml.Behaviors": "[0.10.18, )",
+          "System.Drawing.Common": "[6.0.0, )",
+          "System.Runtime": "[4.3.1, )",
+          "WalletWasabi": "[1.0.0, )"
         }
       }
     },
-    "net6.0/linux-arm64": {
+    "net7.0/linux-arm64": {
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1101,7 +1101,7 @@
         }
       }
     },
-    "net6.0/linux-x64": {
+    "net7.0/linux-x64": {
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1519,7 +1519,7 @@
         }
       }
     },
-    "net6.0/osx-arm64": {
+    "net7.0/osx-arm64": {
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1937,7 +1937,7 @@
         }
       }
     },
-    "net6.0/osx-x64": {
+    "net7.0/osx-x64": {
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -2355,7 +2355,7 @@
         }
       }
     },
-    "net6.0/win7-x64": {
+    "net7.0/win7-x64": {
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",

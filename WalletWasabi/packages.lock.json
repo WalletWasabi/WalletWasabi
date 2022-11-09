@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net6.0": {
+    "net7.0": {
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "Direct",
         "requested": "[6.0.8, )",
@@ -275,7 +275,7 @@
         }
       }
     },
-    "net6.0/linux-arm64": {
+    "net7.0/linux-arm64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[6.0.1, )",
@@ -565,7 +565,7 @@
         }
       }
     },
-    "net6.0/linux-x64": {
+    "net7.0/linux-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[6.0.1, )",
@@ -855,7 +855,7 @@
         }
       }
     },
-    "net6.0/osx-arm64": {
+    "net7.0/osx-arm64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[6.0.1, )",
@@ -1145,7 +1145,7 @@
         }
       }
     },
-    "net6.0/osx-x64": {
+    "net7.0/osx-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[6.0.1, )",
@@ -1435,7 +1435,7 @@
         }
       }
     },
-    "net6.0/win7-x64": {
+    "net7.0/win7-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
         "requested": "[6.0.1, )",
