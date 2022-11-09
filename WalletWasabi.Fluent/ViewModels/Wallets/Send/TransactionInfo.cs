@@ -47,7 +47,7 @@ public partial class TransactionInfo
 
 	public bool IsCustomFeeUsed { get; set; }
 
-	public bool SubtractFee { get; set; }
+	public bool SubtractFee { get; init; }
 
 	public bool IsOtherPocketSelectionPossible { get; set; }
 

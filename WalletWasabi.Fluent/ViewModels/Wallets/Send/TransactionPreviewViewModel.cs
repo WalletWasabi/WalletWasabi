@@ -351,15 +351,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return true;
 		}
 
-		// The total balance is being sent, the user intention is to move the total balance,
-		// so subtract the transaction fee from the amount.
-		// Except: in the case of amount is fixed or PayJoin, the amount cannot be change.
-		if (allCoinsAreSelected && isTotalBalanceUsed && !(_info.IsFixedAmount || _info.IsPayJoin))
-		{
-			_info.SubtractFee = true;
-			return true;
-		}
-
 		var errorMessage = !foundMaximumPossibleFeeRate
 			? "There are not enough funds to cover the transaction fee."
 			: "The transaction cannot be sent at the moment.";
