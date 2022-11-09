@@ -98,11 +98,6 @@ public class ApplicationStateManager : IMainWindowService
 		{
 			_stateMachine.Fire(Trigger.Loaded);
 		}
-
-		MainViewModel.Instance.WhenAnyValue(x => x.PendingBtcUrl)
-			.Where(x => x is { })
-			.Do(_ => _stateMachine.Fire(Trigger.Show))
-			.Subscribe();
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }
@@ -173,6 +168,22 @@ public class ApplicationStateManager : IMainWindowService
 		ObserveWindowSize(result, _compositeDisposable);
 
 		result.Show();
+
+		MainViewModel.Instance.WhenAnyValue(x => x.PendingBtcUrl)
+			.Where(x=> x is { })
+			.Do(_ =>
+			{
+				if (_stateMachine.IsInState(State.Open))
+				{
+					result.Activate();
+				}
+				else
+				{
+					_stateMachine.Fire(Trigger.Show);
+				}
+			})
+			.Subscribe()
+			.DisposeWith(_compositeDisposable);
 
 		ApplicationViewModel.IsMainWindowShown = true;
 	}

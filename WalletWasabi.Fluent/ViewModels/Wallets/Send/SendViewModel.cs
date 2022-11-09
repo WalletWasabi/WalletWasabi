@@ -53,11 +53,6 @@ public partial class SendViewModel : RoutableViewModel
 
 	public SendViewModel(WalletViewModel walletVm, string? btcUrl)
 	{
-		if (btcUrl is { })
-		{
-			ParseToField(btcUrl);
-		}
-
 		_to = "";
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
@@ -131,6 +126,11 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+
+		if (btcUrl is { })
+		{
+			Dispatcher.UIThread.Post(() => To = btcUrl);
+		}
 	}
 
 	public bool IsQrButtonVisible { get; }
