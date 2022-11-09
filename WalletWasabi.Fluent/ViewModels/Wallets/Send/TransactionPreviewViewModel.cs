@@ -363,24 +363,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				return true;
 			}
 		}
-		else
-		{
-			var doSilentPocketSelection = reason == BuildTransactionReason.Initialization;
-			_info.MinimumRequiredAmount = minimumRequiredAmount;
-
-			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
-
-			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
-			{
-				_info.Coins = selectPocketsDialog.Result;
-				return true;
-			}
-			else if (selectPocketsDialog.Kind != DialogResultKind.Normal)
-			{
-				return false;
-			}
-		}
 
 		var errorMessage = maximumPossibleFeeRate == FeeRate.Zero
 			? "There are not enough funds to cover the transaction fee."
