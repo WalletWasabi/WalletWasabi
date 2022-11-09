@@ -338,10 +338,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		// - The maximum possible fee rate doesn't differ too much from the original one, so apply it.
 		// - The user increased the fee rate and not possible to use it, apply the maximum possible one.
 		// - All coins are selected, but not the total balance is being sent, with decreasing the fee rate the transaction can be sent.
-		var anyScenarioHappened = (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold) ||
-		                          (differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged) ||
-		                          (allCoinsAreSelected && !isTotalBalanceUsed && maximumPossibleFeeRate != FeeRate.Zero);
-		if (foundMaximumPossibleFeeRate && anyScenarioHappened)
+		var anyScenarioHappened = foundMaximumPossibleFeeRate &&
+		                          ((differenceOfFeePercentage < TransactionFeeHelper.FeePercentageThreshold) ||
+		                           (reason == BuildTransactionReason.FeeChanged) ||
+		                           (allCoinsAreSelected && !isTotalBalanceUsed));
+		if (anyScenarioHappened)
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 			_info.FeeRate = maximumPossibleFeeRate;
@@ -352,6 +353,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		// The total balance is being sent, the user intention is to move the total balance,
 		// so subtract the transaction fee from the amount.
+		// Except: in the case of amount is fixed or PayJoin, the amount cannot be change.
 		if (allCoinsAreSelected && isTotalBalanceUsed && !(_info.IsFixedAmount || _info.IsPayJoin))
 		{
 			_info.SubtractFee = true;
