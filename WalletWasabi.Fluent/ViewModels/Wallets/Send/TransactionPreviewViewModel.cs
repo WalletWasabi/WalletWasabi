@@ -330,13 +330,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, BuildTransactionReason reason)
 	{
+		var selectedAmount = _info.Coins.Sum(x => x.Amount);
+		var isTotalBalanceUsed = selectedAmount == _wallet.Coins.TotalAmount();
 		var maximumPossibleFeeRate =
 			TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate)
 				? feeRate
 				: FeeRate.Zero;
 
-		if (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold ||
-			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
+		 // Scenarios:
+		 // - The maximum possible fee rate doesn't differ too much from the original one, so apply it.
+		 // - The user increased the fee rate and not possible to use it, apply the maximum possible one.
+		 // - All coins are selected, but not the total balance is being sent, with decreasing the fee rate the transaction can be sent.
+		if ((differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold) ||
+			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged) ||
+			(isTotalBalanceUsed && selectedAmount != _info.Amount && maximumPossibleFeeRate != FeeRate.Zero))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 			_info.FeeRate = maximumPossibleFeeRate;
@@ -345,23 +352,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return true;
 		}
 
-		var selectedAmount = _info.Coins.Sum(x => x.Amount);
-		var totalBalanceUsed = selectedAmount == _wallet.Coins.TotalAmount();
-
-		if (totalBalanceUsed)
+		// The total balance is being sent, the user intention is to move the total balance,
+		// so subtract the transaction fee from the amount.
+		if (isTotalBalanceUsed && selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
 		{
-			if (selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
-			{
-				_info.SubtractFee = true;
-				return true;
-			}
-			else if (selectedAmount != _info.Amount && maximumPossibleFeeRate != FeeRate.Zero)
-			{
-				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-				_info.FeeRate = maximumPossibleFeeRate;
-				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
-				return true;
-			}
+			_info.SubtractFee = true;
+			return true;
 		}
 
 		var errorMessage = maximumPossibleFeeRate == FeeRate.Zero
