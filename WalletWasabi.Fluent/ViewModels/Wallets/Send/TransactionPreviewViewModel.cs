@@ -330,20 +330,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, BuildTransactionReason reason)
 	{
-		var selectedAmount = _info.Coins.Sum(x => x.Amount);
-		var isTotalBalanceUsed = selectedAmount == _wallet.Coins.TotalAmount();
-		var maximumPossibleFeeRate =
-			TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate)
-				? feeRate
-				: FeeRate.Zero;
+		var allCoinsAreSelected = _wallet.Coins.All(coin => _info.Coins.Contains(coin));
+		var isTotalBalanceUsed = _info.Amount == _wallet.Coins.TotalAmount();
+		var foundMaximumPossibleFeeRate = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
-		 // Scenarios:
-		 // - The maximum possible fee rate doesn't differ too much from the original one, so apply it.
-		 // - The user increased the fee rate and not possible to use it, apply the maximum possible one.
-		 // - All coins are selected, but not the total balance is being sent, with decreasing the fee rate the transaction can be sent.
-		if ((differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold) ||
-			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged) ||
-			(isTotalBalanceUsed && selectedAmount != _info.Amount && maximumPossibleFeeRate != FeeRate.Zero))
+		// Scenarios:
+		// - The maximum possible fee rate doesn't differ too much from the original one, so apply it.
+		// - The user increased the fee rate and not possible to use it, apply the maximum possible one.
+		// - All coins are selected, but not the total balance is being sent, with decreasing the fee rate the transaction can be sent.
+		var anyScenarioHappened = (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold) ||
+		                          (differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged) ||
+		                          (allCoinsAreSelected && !isTotalBalanceUsed && maximumPossibleFeeRate != FeeRate.Zero);
+		if (foundMaximumPossibleFeeRate && anyScenarioHappened)
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 			_info.FeeRate = maximumPossibleFeeRate;
@@ -354,18 +352,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		// The total balance is being sent, the user intention is to move the total balance,
 		// so subtract the transaction fee from the amount.
-		if (isTotalBalanceUsed && selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
+		if (allCoinsAreSelected && isTotalBalanceUsed && !(_info.IsFixedAmount || _info.IsPayJoin))
 		{
 			_info.SubtractFee = true;
 			return true;
 		}
 
-		var errorMessage = maximumPossibleFeeRate == FeeRate.Zero
+		var errorMessage = !foundMaximumPossibleFeeRate
 			? "There are not enough funds to cover the transaction fee."
 			: "The transaction cannot be sent at the moment.";
+		await ShowErrorAsync("Transaction Building", errorMessage, "Wasabi was unable to create your transaction.");
 
-		await ShowErrorAsync("Transaction Building", errorMessage,
-			"Wasabi was unable to create your transaction.");
 		return false;
 	}
 
