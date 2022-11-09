@@ -13,7 +13,17 @@ jobs:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v0.3.0
+    # workaround for missing secret in fork PRs 
+    # https://github.com/rectorphp/rector/commit/2243a814457690f61b38cfbb63421f7812a3b43c
+    -
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/add-to-project@v0.3.0
         with:
           project-url: https://github.com/orgs/zkSNACKs/projects/18
-          github-token: ${{ secrets.AUTO_ADD_TO_PROJECT_TOKEN || github.token }}
+          github-token: ${{ secrets.AUTO_ADD_TO_PROJECT_TOKEN }}
+    # in forks, the token is not available
+    -
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        uses: actions/add-to-project@v0.3.0
+        with:
+          project-url: https://github.com/orgs/zkSNACKs/projects/18
