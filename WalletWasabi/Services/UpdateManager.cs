@@ -32,11 +32,20 @@ public class UpdateManager : IDisposable
 		var tries = 0;
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
+
 		if (!updateAvailable)
 		{
 			Cleanup();
 			return;
 		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		{
+			Logger.LogInfo("For Linux, get the correct update manually.");
+			Cleanup();
+			return;
+		}
+
 		if (DownloadNewVersion)
 		{
 			do
@@ -54,11 +63,6 @@ public class UpdateManager : IDisposable
 				catch (OperationCanceledException ex)
 				{
 					Logger.LogTrace($"Getting new update was canceled.", ex);
-					break;
-				}
-				catch (InvalidOperationException ex)
-				{
-					Logger.LogInfo("Getting new update failed with error.", ex);
 					break;
 				}
 				catch (Exception ex)
