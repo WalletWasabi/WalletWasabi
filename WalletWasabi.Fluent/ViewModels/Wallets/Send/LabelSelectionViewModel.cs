@@ -199,7 +199,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			unlabelledViewModel.ToolTip = "There is no information about these people, only use it when necessary!";
 		}
 
-		OnSelectionChanged();
+		if (!_isSilent)
+		{
+			OnSelectionChanged();
+		}
 	}
 
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)
