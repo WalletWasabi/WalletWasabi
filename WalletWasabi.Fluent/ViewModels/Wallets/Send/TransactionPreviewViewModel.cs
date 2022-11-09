@@ -290,9 +290,24 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
 			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
 
-			var result = await TryHandleInsufficientBalanceCaseAsync(differenceOfFeePercentage, reason);
+			var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
-			return result ? await BuildTransactionAsync(reason) : null;
+			if (result)
+			{
+				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
+				_info.FeeRate = maximumPossibleFeeRate;
+				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
+				return await BuildTransactionAsync(reason);
+			}
+			else
+			{
+				await ShowErrorAsync(
+					"Transaction Building",
+					"There are not enough funds to cover the transaction fee.",
+					"Wasabi was unable to create your transaction.");
+			}
+
+			return null;
 		}
 		catch (Exception ex)
 		{
@@ -326,37 +341,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
 
 		return true;
-	}
-
-	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, BuildTransactionReason reason)
-	{
-		var allCoinsAreSelected = _wallet.Coins.All(coin => _info.Coins.Contains(coin));
-		var isTotalBalanceUsed = _info.Amount == _wallet.Coins.TotalAmount();
-		var foundMaximumPossibleFeeRate = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
-
-		// Scenarios:
-		// - The maximum possible fee rate doesn't differ too much from the original one, so apply it.
-		// - The user increased the fee rate and not possible to use it, apply the maximum possible one.
-		// - All coins are selected, but not the total balance is being sent, with decreasing the fee rate the transaction can be sent.
-		var anyScenarioHappened = foundMaximumPossibleFeeRate &&
-		                          ((differenceOfFeePercentage < TransactionFeeHelper.FeePercentageThreshold) ||
-		                           (reason == BuildTransactionReason.FeeChanged) ||
-		                           (allCoinsAreSelected && !isTotalBalanceUsed));
-		if (anyScenarioHappened)
-		{
-			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
-			_info.FeeRate = maximumPossibleFeeRate;
-			_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
-
-			return true;
-		}
-
-		var errorMessage = !foundMaximumPossibleFeeRate
-			? "There are not enough funds to cover the transaction fee."
-			: "The transaction cannot be sent at the moment.";
-		await ShowErrorAsync("Transaction Building", errorMessage, "Wasabi was unable to create your transaction.");
-
-		return false;
 	}
 
 	private async Task InitialiseViewModelAsync()
