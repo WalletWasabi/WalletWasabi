@@ -290,7 +290,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
 			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
 
-			var result = await TryHandleInsufficientBalanceCaseAsync(differenceOfFeePercentage, ex.Minimum, reason);
+			var result = await TryHandleInsufficientBalanceCaseAsync(differenceOfFeePercentage, reason);
 
 			return result ? await BuildTransactionAsync(reason) : null;
 		}
@@ -328,7 +328,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return true;
 	}
 
-	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, Money minimumRequiredAmount, BuildTransactionReason reason)
+	private async Task<bool> TryHandleInsufficientBalanceCaseAsync(decimal differenceOfFeePercentage, BuildTransactionReason reason)
 	{
 		var maximumPossibleFeeRate =
 			TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var feeRate)

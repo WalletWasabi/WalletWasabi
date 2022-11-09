@@ -32,7 +32,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		_keyManager = keyManager;
 		_password = password;
 		_info = info;
-		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
+		_targetAmount = _info.Amount;
 		_feeRate = _info.FeeRate;
 	}
 
