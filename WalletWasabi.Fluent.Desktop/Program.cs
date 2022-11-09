@@ -120,11 +120,14 @@ public class Program
 							: "Renderer: Avalonia Software");
 
 						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
+						var url = UriSchemeExtension.GetUrlFromArgs(args);
+						if (url is { })
+						{
+							OnBitcoinUrlActivated(null, url);
+						}
 					})
 					.StartWithClassicDesktopLifetime(args);
-
-
-
 		}
 		catch (OperationCanceledException ex)
 		{

@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
-using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
@@ -75,6 +74,7 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
+				MainViewModel.Instance.PendingBtcUrl = null;
 				_lifetime.MainWindow.Close();
 				_lifetime.MainWindow = null;
 				ApplicationViewModel.IsMainWindowShown = false;
@@ -98,6 +98,11 @@ public class ApplicationStateManager : IMainWindowService
 		{
 			_stateMachine.Fire(Trigger.Loaded);
 		}
+
+		MainViewModel.Instance.WhenAnyValue(x => x.PendingBtcUrl)
+			.Where(x => x is { })
+			.Do(_ => _stateMachine.Fire(Trigger.Show))
+			.Subscribe();
 	}
 
 	internal ApplicationViewModel ApplicationViewModel { get; }

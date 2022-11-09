@@ -218,13 +218,14 @@ public partial class WalletViewModel : WalletViewModelBase
 
 	private void CheckBtcUrl(string? btcUrl)
 	{
-		if (btcUrl is null || !IsSelected)
+		if (btcUrl is null)
 		{
 			return;
 		}
 
 		Dispatcher.UIThread.Post(() =>
 		{
+
 			MainViewModel.Instance!.PendingBtcUrl = null;
 			SendCommand?.Execute(btcUrl);
 		}, DispatcherPriority.Background);
