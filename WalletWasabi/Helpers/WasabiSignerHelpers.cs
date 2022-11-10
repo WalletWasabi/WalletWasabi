@@ -1,13 +1,8 @@
 using NBitcoin.Crypto;
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Security.Cryptography;
-using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Helpers;
 
@@ -46,9 +41,10 @@ public class WasabiSignerHelpers
 		await streamWriter.WriteLineAsync($"-----END {WasabiKeyHeadline}-----").ConfigureAwait(false);
 	}
 
-	public static Key GetPrivateKeyFromFile(string fileName)
+	public static async Task<Key> GetPrivateKeyFromFileAsync()
 	{
-		string[] keyFileContent = File.ReadAllLines(fileName);
+		string fileName = WasabiPrivateKeyFilePath;
+		string[] keyFileContent = await File.ReadAllLinesAsync(fileName).ConfigureAwait(false);
 		bool isHeadlineBeginValid = keyFileContent[0] == $"-----BEGIN {WasabiKeyHeadline}-----";
 		bool isHeadlineEndValid = keyFileContent[2] == $"-----END {WasabiKeyHeadline}-----";
 

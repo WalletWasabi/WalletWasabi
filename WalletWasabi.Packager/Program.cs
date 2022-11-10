@@ -175,6 +175,10 @@ public static class Program
 
 		StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --sign --digest-algo sha256 -a --clearsign --armor --output SHA256SUMS.asc SHA256SUMS && exit");
 
+		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync().ConfigureAwait(false);
+
+		await WasabiSignerHelpers.SignSha256SumsFileAsync(Path.Combine(BinDistDirectory, "SHA256SUMS.asc"), key).ConfigureAwait(false);
+
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
 
