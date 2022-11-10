@@ -656,8 +656,8 @@ public class KeyManager
 	private void ToFileNoLock(string filePath)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
-		// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-		int maturity = 101;
+		// Remove the last 12 blocks to ensure verification on the next run. This is needed of reorg.
+		int maturity = 13;
 		Height prevHeight = BlockchainState.Height;
 		int matureHeight = Math.Max(0, prevHeight.Value - maturity);
 
