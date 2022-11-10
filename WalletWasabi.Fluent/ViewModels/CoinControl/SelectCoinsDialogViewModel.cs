@@ -77,8 +77,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			GridLength.Auto,
 			new ColumnOptions<ItemBase>
 			{
-				CompareAscending = Sorting.SortAscending<ItemBase, int>(GetIndicatorPriority),
-				CompareDescending = Sorting.SortDescending<ItemBase, int>(GetIndicatorPriority)
+				CompareAscending = SortAscending<ItemBase, int>(GetIndicatorPriority),
+				CompareDescending = SortDescending<ItemBase, int>(GetIndicatorPriority)
 			});
 	}
 
@@ -90,8 +90,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			GridLength.Auto,
 			new TextColumnOptions<ItemBase>
 			{
-				CompareAscending = Sorting.SortAscending<ItemBase, int?>(b => b.AnonymityScore),
-				CompareDescending = Sorting.SortDescending<ItemBase, int?>(b => b.AnonymityScore)
+				CompareAscending = SortAscending<ItemBase, int?>(b => b.AnonymityScore),
+				CompareDescending = SortDescending<ItemBase, int?>(b => b.AnonymityScore)
 			});
 	}
 
@@ -103,8 +103,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			GridLength.Star,
 			new ColumnOptions<ItemBase>
 			{
-				CompareAscending = Sorting.SortAscending<ItemBase, int>(GetLabelPriority),
-				CompareDescending = Sorting.SortDescending<ItemBase, int>(GetLabelPriority)
+				CompareAscending = SortAscending<ItemBase, int>(GetLabelPriority),
+				CompareDescending = SortDescending<ItemBase, int>(GetLabelPriority)
 			});
 	}
 
@@ -148,5 +148,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return pockets
 			.Select(pocket => new PocketItem(pocket))
 			.ToList();
+	}
+
+	public static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	{
+		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
+	}
+
+	public static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty?> selector)
+	{
+		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
 	}
 }
