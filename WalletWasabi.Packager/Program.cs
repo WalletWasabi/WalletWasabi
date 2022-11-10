@@ -177,7 +177,10 @@ public static class Program
 
 		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync().ConfigureAwait(false);
 
-		await WasabiSignerHelpers.SignSha256SumsFileAsync(Path.Combine(BinDistDirectory, "SHA256SUMS.asc"), key).ConfigureAwait(false);
+		var sha256sumAscFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS.asc");
+		await WasabiSignerHelpers.SignSha256SumsFileAsync(sha256sumAscFilePath, key).ConfigureAwait(false);
+
+		await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256sumAscFilePath);
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
