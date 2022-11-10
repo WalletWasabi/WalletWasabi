@@ -7,6 +7,7 @@
              xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
+             xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              x:DataType="coinControl:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
@@ -54,6 +55,16 @@
 
       <Style Selector="TreeDataGridTemplateCell > ContentPresenter">
         <Setter Property="Margin" Value="5 0 10 0" />
+      </Style>
+
+      <Style Selector="TreeDataGridTextCell TextBlock">
+        <Setter Property="TextAlignment" Value="Center" />
+      </Style>
+
+      <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
+        <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="Margin" Value="10 0" />
       </Style>
 
       <Style Selector="ContentPresenter > TextBlock">

@@ -3,10 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:cells="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core.Cells"
+             xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.LabelsCellView"
-             x:DataType="cells:LabelsCellViewModel"
+             x:DataType="core:ItemBase"
              x:CompileBindings="True">
 
   <UserControl.Resources>
@@ -25,8 +25,8 @@
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
     <Style Selector="controls|LabelsItemsPresenter.Private">
-      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush }" />
-      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush }" />
+      <Setter Property="BorderBrush" Value="{DynamicResource PrivacyLevelStrongBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrivacyLevelStrongBrush}" />
       <Setter Property="MaxLabelWidth" Value="1000" />
     </Style>
   </UserControl.Styles>

@@ -3,17 +3,15 @@ using System.ComponentModel;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Layout;
-using NBitcoin;
+using Avalonia.Controls.Templates;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using ICoin = WalletWasabi.Fluent.ViewModels.CoinControl.Core.ICoin;
+using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
@@ -29,10 +27,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
+		var items = CreateItems(pockets);
 
-		var nodes = ToTreeNodes(pockets);
-
-		Source = new HierarchicalTreeDataGridSource<TreeNode>(nodes)
+		Source = new HierarchicalTreeDataGridSource<ItemBase>(items)
 		{
 			Columns =
 			{
@@ -51,72 +48,67 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		EnableBack = true;
 	}
 
-	public HierarchicalTreeDataGridSource<TreeNode> Source { get; }
+	public HierarchicalTreeDataGridSource<ItemBase> Source { get; }
 
-	private static HierarchicalExpanderColumn<TreeNode> ChildrenColumn(IColumn<TreeNode>? inner = null)
+	private static IColumn<ItemBase> ChildrenColumn(IColumn<ItemBase>? inner = null)
 	{
-		inner ??= new TextColumn<TreeNode, string>("", node => "");
+		inner ??= new TextColumn<ItemBase, string>("", node => "");
 
-		return new HierarchicalExpanderColumn<TreeNode>(
+		return new HierarchicalExpanderColumn<ItemBase>(
 			inner,
 			group => group.Children,
-			node => node.Children.Count() > 1,
+			node => node.Children.Count > 1,
 			node => node.IsExpanded);
 	}
 
-	private static TemplateColumn<TreeNode> AmountColumn()
+	private static IColumn<ItemBase> AmountColumn()
 	{
-		return new TemplateColumn<TreeNode>(
+		return new TextColumn<ItemBase, string>(
 			"Amount",
-			new ConstantTemplate<TreeNode>(group => ((ICoin) group.Value).Amount),
-			GridLength.Auto,
-			new ColumnOptions<TreeNode>
-			{
-				CompareAscending = TreeNodeSorting.SortAscending<ICoin, Money>(model => model.Amount),
-				CompareDescending = TreeNodeSorting.SortDescending<ICoin, Money>(model => model.Amount)
-			});
+			node => node.Amount.ToFormattedString(),
+			GridLength.Auto);
 	}
 
-	private static TemplateColumn<TreeNode> IndicatorsColumn()
+	private static IColumn<ItemBase> IndicatorsColumn()
 	{
-		return new TemplateColumn<TreeNode>(
+		return new TemplateColumn<ItemBase>(
 			"",
-			new ConstantTemplate<TreeNode>(group => new IndicatorsCellViewModel((ICoin) group.Value)),
+			new FuncDataTemplate<ItemBase>((_, _) => new IndicatorsCellView(), true),
 			GridLength.Auto,
-			new ColumnOptions<TreeNode>
+			new ColumnOptions<ItemBase>
 			{
-				CompareAscending = TreeNodeSorting.SortAscending<ICoin, int>(GetIndicatorPriority),
-				CompareDescending = TreeNodeSorting.SortDescending<ICoin, int>(GetIndicatorPriority)
+				CompareAscending = Sorting.SortAscending<ItemBase, int>(GetIndicatorPriority),
+				CompareDescending = Sorting.SortDescending<ItemBase, int>(GetIndicatorPriority)
 			});
 	}
 
-	private static TemplateColumn<TreeNode> PrivacyScore()
+	private static IColumn<ItemBase> PrivacyScore()
 	{
-		return new TemplateColumn<TreeNode>(
+		return new TextColumn<ItemBase, int?>(
 			new AnonymityScoreHeaderViewModel(),
-			new ConstantTemplate<TreeNode>(group => ((ICoin) group.Value).AnonymityScore),
+			node => node.AnonymityScore,
 			GridLength.Auto,
-			new ColumnOptions<TreeNode>
+			new TextColumnOptions<ItemBase>
 			{
-				CompareAscending = TreeNodeSorting.SortAscending<ICoin, Money>(model => model.Amount),
-				CompareDescending = TreeNodeSorting.SortDescending<ICoin, Money>(model => model.Amount)
+				CompareAscending = Sorting.SortAscending<ItemBase, int?>(b => b.AnonymityScore),
+				CompareDescending = Sorting.SortDescending<ItemBase, int?>(b => b.AnonymityScore)
 			});
 	}
 
-	private static TemplateColumn<TreeNode> PocketColumn()
+	private static IColumn<ItemBase> PocketColumn()
 	{
-		return new TemplateColumn<TreeNode>(
+		return new TemplateColumn<ItemBase>(
 			"Pocket",
-			new ConstantTemplate<TreeNode>(group => new LabelsCellViewModel((ICoin) group.Value), HorizontalAlignment.Left),
+			new FuncDataTemplate<ItemBase>((_, _) => new LabelsCellView(), true),
 			GridLength.Star,
-			new ColumnOptions<TreeNode>
+			new ColumnOptions<ItemBase>
 			{
-				CompareAscending = TreeNodeSorting.SortAscending<ICoin, int>(GetLabelPriority),
-				CompareDescending = TreeNodeSorting.SortDescending<ICoin, int>(GetLabelPriority)
+				CompareAscending = Sorting.SortAscending<ItemBase, int>(GetLabelPriority),
+				CompareDescending = Sorting.SortDescending<ItemBase, int>(GetLabelPriority)
 			});
 	}
 
-	private static int GetLabelPriority(ICoin coin)
+	private static int GetLabelPriority(ItemBase coin)
 	{
 		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
 		{
@@ -131,14 +123,14 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 1;
 	}
 
-	private static int GetIndicatorPriority(ICoin x)
+	private static int GetIndicatorPriority(ItemBase x)
 	{
 		if (x.IsCoinjoining)
 		{
 			return 1;
 		}
 
-		if (x.BannedUntil.HasValue)
+		if (x.BannedUntilUtc.HasValue)
 		{
 			return 2;
 		}
@@ -151,14 +143,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 0;
 	}
 
-	private static IEnumerable<TreeNode> ToTreeNodes(IEnumerable<Pocket> pockets)
+	private static IReadOnlyCollection<ItemBase> CreateItems(IEnumerable<Pocket> pockets)
 	{
-		return pockets.Select(
-				pocket => new TreeNode(
-					new PocketCoinAdapter(pocket),
-					pocket.Coins
-						.OrderByDescending(x => x.Amount)
-						.Select(coin => new TreeNode(new SmartCoinAdapter(coin))).ToList()))
+		return pockets
+			.Select(pocket => new PocketItem(pocket))
 			.ToList();
 	}
 }
