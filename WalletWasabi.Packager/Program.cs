@@ -63,6 +63,12 @@ public static class Program
 			return;
 		}
 
+		if (argsProcessor.IsGeneratePrivateKey())
+		{
+			await WasabiSignerHelpers.SavePrivateKeyToFileAsync().ConfigureAwait(false);
+			return;
+		}
+
 		// Only binaries mode is for deterministic builds.
 		OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
 
