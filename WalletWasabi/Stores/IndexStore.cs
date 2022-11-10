@@ -61,7 +61,7 @@ public class IndexStore : IAsyncDisposable
 
 	private FilterModel StartingFilter { get; }
 	private uint StartingHeight => StartingFilter.Header.Height;
-	private List<FilterModel> ImmatureFilters { get; } = new(150);
+	private List<FilterModel> ImmatureFilters { get; } = new(18);
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
@@ -255,8 +255,8 @@ public class IndexStore : IAsyncDisposable
 			if (File.Exists(oldIndexFilePath))
 			{
 				string[] allLines = await File.ReadAllLinesAsync(oldIndexFilePath).ConfigureAwait(false);
-				var matureLines = allLines.SkipLast(100);
-				var immatureLines = allLines.TakeLast(100);
+				var matureLines = allLines.SkipLast(12);
+				var immatureLines = allLines.TakeLast(12);
 
 				await MatureIndexFileManager.WriteAllLinesAsync(matureLines).ConfigureAwait(false);
 				await ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines).ConfigureAwait(false);
