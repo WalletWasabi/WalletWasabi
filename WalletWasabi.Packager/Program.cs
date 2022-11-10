@@ -183,6 +183,7 @@ public static class Program
 		var sha256sumAscFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS.asc");
 		await WasabiSignerHelpers.SignSha256SumsFileAsync(sha256sumAscFilePath, key).ConfigureAwait(false);
 
+		// Verify back the signature file.
 		await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256sumAscFilePath);
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
