@@ -101,7 +101,7 @@
         <behaviors:ScrollToSelectedItemBehavior />
       </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
-        <treeDataGrid:CustomElementFactory />
+        <treeDataGrid:PrivacyElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">

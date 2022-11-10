@@ -3,7 +3,7 @@ using Avalonia.Controls.Primitives;
 
 namespace WalletWasabi.Fluent.TreeDataGrid;
 
-internal class CustomElementFactory : TreeDataGridElementFactory
+internal class PrivacyElementFactory : TreeDataGridElementFactory
 {
 	protected override IControl CreateElement(object? data)
 	{
