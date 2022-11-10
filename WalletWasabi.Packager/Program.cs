@@ -27,6 +27,9 @@ public static class Program
 	public const string PfxPath = "C:\\digicert.pfx";
 	public const string ExecutableName = Constants.ExecutableName;
 
+	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
+	private const string WasabiPublicKeyFilePath = @"C:\wasabi\Wasabi.pubkey";
+
 	/// <remarks>Only 64-bit platforms are supported for now.</remarks>
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
@@ -65,7 +68,7 @@ public static class Program
 
 		if (argsProcessor.IsGeneratePrivateKey())
 		{
-			await WasabiSignerHelpers.GeneratePrivateAndPublicKeyToFileAsync().ConfigureAwait(false);
+			await WasabiSignerHelpers.GeneratePrivateAndPublicKeyToFileAsync(WasabiPrivateKeyFilePath, WasabiPublicKeyFilePath).ConfigureAwait(false);
 			return;
 		}
 
@@ -175,7 +178,7 @@ public static class Program
 
 		StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --sign --digest-algo sha256 -a --clearsign --armor --output SHA256SUMS.asc SHA256SUMS && exit");
 
-		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync().ConfigureAwait(false);
+		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync(WasabiPrivateKeyFilePath).ConfigureAwait(false);
 
 		var sha256sumAscFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS.asc");
 		await WasabiSignerHelpers.SignSha256SumsFileAsync(sha256sumAscFilePath, key).ConfigureAwait(false);

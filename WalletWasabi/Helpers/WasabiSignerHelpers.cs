@@ -8,9 +8,6 @@ namespace WalletWasabi.Helpers;
 
 public class WasabiSignerHelpers
 {
-	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
-	private const string WasabiPublicKeyFilePath = @"C:\wasabi\Wasabi.pubkey";
-
 	public static async Task SignSha256SumsFileAsync(string sha256SumsAscFilePath, Key wasabiPrivateKey)
 	{
 		var bytes = await File.ReadAllBytesAsync(sha256SumsAscFilePath).ConfigureAwait(false);
@@ -46,24 +43,23 @@ public class WasabiSignerHelpers
 		}
 	}
 
-	public static async Task GeneratePrivateAndPublicKeyToFileAsync()
+	public static async Task GeneratePrivateAndPublicKeyToFileAsync(string wasabiPrivateKeyFilePath, string wasabiPublicKeyFilePath)
 	{
 		using Key key = new();
-		if (File.Exists(WasabiPrivateKeyFilePath))
+		if (File.Exists(wasabiPrivateKeyFilePath))
 		{
 			throw new ArgumentException("Private key file already exists.");
 		}
 
-		IoHelpers.EnsureContainingDirectoryExists(WasabiPrivateKeyFilePath);
+		IoHelpers.EnsureContainingDirectoryExists(wasabiPrivateKeyFilePath);
 
-		await File.WriteAllTextAsync(WasabiPrivateKeyFilePath, key.ToString(Network.Main)).ConfigureAwait(false);
-		await File.WriteAllTextAsync(WasabiPublicKeyFilePath, key.PubKey.ToString()).ConfigureAwait(false);
+		await File.WriteAllTextAsync(wasabiPrivateKeyFilePath, key.ToString(Network.Main)).ConfigureAwait(false);
+		await File.WriteAllTextAsync(wasabiPublicKeyFilePath, key.PubKey.ToString()).ConfigureAwait(false);
 	}
 
-	public static async Task<Key> GetPrivateKeyFromFileAsync()
+	public static async Task<Key> GetPrivateKeyFromFileAsync(string wasabiPrivateKeyFilePath)
 	{
-		string fileName = WasabiPrivateKeyFilePath;
-		string keyFileContent = await File.ReadAllTextAsync(fileName).ConfigureAwait(false);
+		string keyFileContent = await File.ReadAllTextAsync(wasabiPrivateKeyFilePath).ConfigureAwait(false);
 		BitcoinSecret secret = new(keyFileContent, Network.Main);
 		return secret.PrivateKey;
 	}
