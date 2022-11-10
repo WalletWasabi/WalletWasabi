@@ -4,9 +4,11 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -50,12 +52,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	public HierarchicalTreeDataGridSource<ItemBase> Source { get; }
 
-	private static IColumn<ItemBase> ChildrenColumn(IColumn<ItemBase>? inner = null)
+	private static IColumn<ItemBase> ChildrenColumn()
 	{
-		inner ??= new TextColumn<ItemBase, string>("", node => "");
-
 		return new HierarchicalExpanderColumn<ItemBase>(
-			inner,
+			new PrivacyTextColumn<ItemBase>("", _ => "", GridLength.Auto, null),
 			group => group.Children,
 			node => node.Children.Count > 1,
 			node => node.IsExpanded);
@@ -63,10 +63,15 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static IColumn<ItemBase> AmountColumn()
 	{
-		return new TextColumn<ItemBase, string>(
+		return new PrivacyTextColumn<ItemBase>(
 			"Amount",
 			node => node.Amount.ToFormattedString(),
-			GridLength.Auto);
+			GridLength.Auto,
+			new ColumnOptions<ItemBase>
+			{
+				CompareAscending = SortAscending<ItemBase, Money>(x => x.Amount),
+				CompareDescending = SortDescending<ItemBase, Money>(x => x.Amount)
+			});
 	}
 
 	private static IColumn<ItemBase> IndicatorsColumn()
@@ -84,9 +89,9 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static IColumn<ItemBase> PrivacyScore()
 	{
-		return new TextColumn<ItemBase, int?>(
+		return new PrivacyTextColumn<ItemBase>(
 			new AnonymityScoreHeaderViewModel(),
-			node => node.AnonymityScore,
+			node => node.AnonymityScore.ToString(),
 			GridLength.Auto,
 			new TextColumnOptions<ItemBase>
 			{
