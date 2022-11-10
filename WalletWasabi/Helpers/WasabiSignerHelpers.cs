@@ -8,8 +8,8 @@ namespace WalletWasabi.Helpers;
 
 public class WasabiSignerHelpers
 {
-	private const string WasabiKeyHeadline = "WASABI PRIVATE KEY";
 	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
+	private const string WasabiPublicKeyFilePath = @"C:\wasabi\Wasabi.pubkey";
 
 	public static async Task SignSha256SumsFileAsync(string sha256sumsFilePath, Key wasabiPrivateKey)
 	{
@@ -25,37 +25,25 @@ public class WasabiSignerHelpers
 		await File.WriteAllTextAsync(wasabiSignatureFilePath, base64Signature).ConfigureAwait(false);
 	}
 
-	public static async Task SavePrivateKeyToFileAsync()
+	public static async Task GeneratePrivateAndPublicKeyToFileAsync()
 	{
 		using Key key = new();
-		var destinationFilePath = WasabiPrivateKeyFilePath;
-		if (File.Exists(destinationFilePath))
+		if (File.Exists(WasabiPrivateKeyFilePath))
 		{
 			throw new ArgumentException("Private key file already exists.");
 		}
 
-		IoHelpers.EnsureContainingDirectoryExists(destinationFilePath);
-		using StreamWriter streamWriter = new(destinationFilePath);
-		await streamWriter.WriteLineAsync($"-----BEGIN {WasabiKeyHeadline}-----").ConfigureAwait(false);
-		await streamWriter.WriteLineAsync(key.ToString(Network.Main)).ConfigureAwait(false);
-		await streamWriter.WriteLineAsync($"-----END {WasabiKeyHeadline}-----").ConfigureAwait(false);
+		IoHelpers.EnsureContainingDirectoryExists(WasabiPrivateKeyFilePath);
+
+		await File.WriteAllTextAsync(WasabiPrivateKeyFilePath, key.ToString()).ConfigureAwait(false);
+		await File.WriteAllTextAsync(WasabiPublicKeyFilePath, key.PubKey.ToString()).ConfigureAwait(false);
 	}
 
 	public static async Task<Key> GetPrivateKeyFromFileAsync()
 	{
 		string fileName = WasabiPrivateKeyFilePath;
-		string[] keyFileContent = await File.ReadAllLinesAsync(fileName).ConfigureAwait(false);
-		bool isHeadlineBeginValid = keyFileContent[0] == $"-----BEGIN {WasabiKeyHeadline}-----";
-		bool isHeadlineEndValid = keyFileContent[2] == $"-----END {WasabiKeyHeadline}-----";
-
-		if (!isHeadlineBeginValid || !isHeadlineEndValid)
-		{
-			throw new ArgumentException("Wasabi private key file's content was invalid.");
-		}
-
-		string wif = keyFileContent[1];
-		BitcoinSecret secret = new(wif, Network.Main);
-
+		string keyFileContent = await File.ReadAllTextAsync(fileName).ConfigureAwait(false);
+		BitcoinSecret secret = new(keyFileContent, Network.Main);
 		return secret.PrivateKey;
 	}
 }

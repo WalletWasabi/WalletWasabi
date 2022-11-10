@@ -65,7 +65,7 @@ public static class Program
 
 		if (argsProcessor.IsGeneratePrivateKey())
 		{
-			await WasabiSignerHelpers.SavePrivateKeyToFileAsync().ConfigureAwait(false);
+			await WasabiSignerHelpers.GeneratePrivateAndPublicKeyToFileAsync().ConfigureAwait(false);
 			return;
 		}
 
