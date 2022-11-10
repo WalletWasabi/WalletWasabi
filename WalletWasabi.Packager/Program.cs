@@ -138,6 +138,12 @@ public static class Program
 			else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
 			{
 				string dmgFileName = target.Contains("arm") ? $"Wasabi-{VersionPrefix}.dmg" : $"Wasabi-{VersionPrefix}-arm64.dmg";
+				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
+				if (File.Exists(destinationFilePath))
+				{
+					continue;
+				}
+
 				string dmgFilePath = Path.Combine(Tools.GetSingleUsbDrive(), dmgFileName);
 
 				if (!File.Exists(dmgFilePath))
@@ -145,7 +151,6 @@ public static class Program
 					throw new Exception(".dmg does not exist.");
 				}
 
-				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
 				File.Move(dmgFilePath, destinationFilePath);
 			}
 		}
@@ -158,7 +163,11 @@ public static class Program
 			StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
 
 			StartProcessAndWaitForExit("cmd", WixProjectDirectory, $"git checkout -- ComponentsGenerated.wxs && exit");
+
+			ExecuteBashCommands(new[] { $"sha256sum {Path.GetFileName(finalFile)} >> SHA256SUMS" });
 		}
+
+		StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --sign --digest-algo sha256 -a --clearsign --armor --output SHA256SUMS.asc SHA256SUMS && exit");
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
