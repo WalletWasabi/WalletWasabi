@@ -39,14 +39,7 @@ public class UpdateManager : IDisposable
 			return;
 		}
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-		{
-			Logger.LogInfo("For Linux, get the correct update manually.");
-			Cleanup();
-			return;
-		}
-
-		if (DownloadNewVersion)
+		if (DownloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			do
 			{
