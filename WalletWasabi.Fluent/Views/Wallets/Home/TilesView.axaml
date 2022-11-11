@@ -6,6 +6,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.TilesView">
 
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+
     <ItemsControl Items="{Binding}" DockPanel.Dock="Bottom">
       <ItemsControl.Styles>
         <Style Selector="ContentPresenter">
@@ -24,7 +25,6 @@
           </Setter>
         </Style>
       </ItemsControl.Styles>
-
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel ItemWidth="310" ItemHeight="140" />

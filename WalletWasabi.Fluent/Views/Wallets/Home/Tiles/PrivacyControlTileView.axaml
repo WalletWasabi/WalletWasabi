@@ -15,7 +15,6 @@
     <DockPanel VerticalAlignment="Bottom">
       <privacyBar:PrivacyBar Margin="0 10 0 0" DockPanel.Dock="Bottom" />
       <StackPanel Margin="0 10 0 0" Orientation="Horizontal" HorizontalAlignment="Center">
-
         <Button Command="{Binding ShowDetailsCommand}" Classes="plain"
                 ToolTip.Tip="Show Details" VerticalAlignment="Center" HorizontalAlignment="Center"
                 Height="36" Width="36">
