@@ -17,7 +17,7 @@
                   Background="{DynamicResource TileRegionColor}"
                   BorderBrush="{DynamicResource TileBorderColor}"
                   Margin="0 0 10 0">
-                  <ContentControl Padding="16" Content="{Binding}" />
+                  <ContentControl Padding="12" Content="{Binding}" />
                 </Border>
               </DataTemplate>
             </Setter.Value>
@@ -27,7 +27,7 @@
 
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel ItemWidth="320" ItemHeight="140" />
+          <WrapPanel ItemWidth="310" ItemHeight="140" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
     </ItemsControl>

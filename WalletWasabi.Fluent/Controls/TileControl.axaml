@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <c:TileControl Height="140" Width="310" Title="Tile">
+      <c:TileControl.BottomContent>
+        <Button VerticalAlignment="Stretch">Bye</Button>
+      </c:TileControl.BottomContent>
+      <Button VerticalAlignment="Bottom">hello</Button>
+    </c:TileControl>
+  </Design.PreviewWith>
+
+  <Style Selector="c|TileControl">
+    <Setter Property="SeparatorMargin" Value="0 6"></Setter>
+    <Setter Property="BottomPartHeight" Value="22"></Setter>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <HeaderedContentControl Classes="tile" Header="{TemplateBinding Title}">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Bottom" Name="PART_BottomContent" IsVisible="{TemplateBinding IsBottomContentVisible}">
+              <Separator DockPanel.Dock="Bottom" Margin="{TemplateBinding SeparatorMargin}" />
+              <Viewbox Height="{TemplateBinding BottomPartHeight}">
+                <ContentPresenter Content="{TemplateBinding BottomContent}" />
+              </Viewbox>
+            </StackPanel>
+            <ContentPresenter Name="PART_Content" Content="{TemplateBinding Content}" />
+          </DockPanel>
+        </HeaderedContentControl>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

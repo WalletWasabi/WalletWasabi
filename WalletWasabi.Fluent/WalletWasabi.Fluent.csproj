@@ -37,4 +37,10 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Controls\TileControl.axaml.cs">
+	    <DependentUpon>TileControl.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>
