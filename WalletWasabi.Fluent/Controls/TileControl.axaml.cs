@@ -5,15 +5,15 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class TileControl : ContentControl
 {
-	public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<TileControl, string>("Title");
+	public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<TileControl, string>(nameof(Title));
 
-	public static readonly StyledProperty<object> BottomContentProperty = AvaloniaProperty.Register<TileControl, object>("BottomContent");
+	public static readonly StyledProperty<object> BottomContentProperty = AvaloniaProperty.Register<TileControl, object>(nameof(BottomContent));
 
-	public static readonly StyledProperty<bool> IsBottomContentVisibleProperty = AvaloniaProperty.Register<TileControl, bool>("IsBottomContentVisible", true);
+	public static readonly StyledProperty<bool> IsBottomContentVisibleProperty = AvaloniaProperty.Register<TileControl, bool>(nameof(IsBottomContentVisible), true);
 
-	public static readonly StyledProperty<Thickness> SeparatorMarginProperty = AvaloniaProperty.Register<TileControl, Thickness>("SeparatorMargin");
+	public static readonly StyledProperty<Thickness> SeparatorMarginProperty = AvaloniaProperty.Register<TileControl, Thickness>(nameof(SeparatorMargin));
 
-	public static readonly StyledProperty<double> BottomPartHeightProperty = AvaloniaProperty.Register<TileControl, double>("BottomPartHeight");
+	public static readonly StyledProperty<double> BottomPartHeightProperty = AvaloniaProperty.Register<TileControl, double>(nameof(BottomPartHeight));
 
 	public string Title
 	{
