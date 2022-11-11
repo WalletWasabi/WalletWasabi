@@ -45,7 +45,6 @@ public class WasabiSignerHelpers
 
 	public static async Task GeneratePrivateAndPublicKeyToFileAsync(string wasabiPrivateKeyFilePath, string wasabiPublicKeyFilePath)
 	{
-		using Key key = new();
 		if (File.Exists(wasabiPrivateKeyFilePath))
 		{
 			throw new ArgumentException("Private key file already exists.");
@@ -53,6 +52,7 @@ public class WasabiSignerHelpers
 
 		IoHelpers.EnsureContainingDirectoryExists(wasabiPrivateKeyFilePath);
 
+		using Key key = new();
 		await File.WriteAllTextAsync(wasabiPrivateKeyFilePath, key.ToString(Network.Main)).ConfigureAwait(false);
 		await File.WriteAllTextAsync(wasabiPublicKeyFilePath, key.PubKey.ToString()).ConfigureAwait(false);
 	}
