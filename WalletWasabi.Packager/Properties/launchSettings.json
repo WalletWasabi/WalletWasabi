@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "WalletWasabi.Packager": {
-      "commandName": "Project",
-      "commandLineArgs": "generatekeys"
-    }
-  }
-}
