@@ -87,7 +87,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				x => x.IsExpanded),
 
 				// Date
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new PlainTextColumn<HistoryItemViewModelBase>(
 					"Date / Time",
 					x => x.DateString,
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -98,8 +98,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Date),
 						MinWidth = new GridLength(150, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 15),
+					width: new GridLength(0, GridUnitType.Auto)),
 
 				// Labels
 				new TemplateColumn<HistoryItemViewModelBase>(
@@ -116,7 +115,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 					width: new GridLength(1, GridUnitType.Star)),
 
 				// Incoming
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new PlainTextColumn<HistoryItemViewModelBase>(
 					"Incoming (BTC)",
 					x => x.IncomingAmount?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -128,11 +127,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(145, GridUnitType.Pixel),
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					width: new GridLength(0, GridUnitType.Auto)),
 
 				// Outgoing
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new PlainTextColumn<HistoryItemViewModelBase>(
 					"Outgoing (BTC)",
 					x => x.OutgoingAmount?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -144,11 +142,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(145, GridUnitType.Pixel),
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					width: new GridLength(0, GridUnitType.Auto)),
 
 				// Balance
-				new PrivacyTextColumn<HistoryItemViewModelBase>(
+				new PlainTextColumn<HistoryItemViewModelBase>(
 					"Balance (BTC)",
 					x => x.Balance?.ToFormattedString(),
 					options: new ColumnOptions<HistoryItemViewModelBase>
@@ -160,8 +157,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 						MinWidth = new GridLength(145, GridUnitType.Pixel),
 						MaxWidth = new GridLength(210, GridUnitType.Pixel)
 					},
-					width: new GridLength(0, GridUnitType.Auto),
-					numberOfPrivacyChars: 9),
+					width: new GridLength(0, GridUnitType.Auto)),
 			}
 		};
 
