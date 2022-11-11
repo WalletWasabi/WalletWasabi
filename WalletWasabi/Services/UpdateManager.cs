@@ -89,19 +89,26 @@ public class UpdateManager : IDisposable
 			Logger.LogInfo($"Trying to download new version: {newVersion}");
 			using HttpClient httpClient = new();
 
-			// Get file stream and copy it to downloads folder to access.
-			using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
-			Logger.LogInfo("Installer downloaded, copying...");
-			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
-			using (var file = File.OpenWrite(tmpFilePath))
+			try
 			{
-				await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
+				// Get file stream and copy it to downloads folder to access.
+				using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
+				Logger.LogInfo("Installer downloaded, copying...");
+				IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
+				using (var file = File.OpenWrite(tmpFilePath))
+				{
+					await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
 
-				// Closing the file to rename.
-				file.Close();
-			};
-
-			File.Move(tmpFilePath, newFilePath);
+					// Closing the file to rename.
+					file.Close();
+				};
+				File.Move(tmpFilePath, newFilePath);
+			}
+			catch (IOException)
+			{
+				CancellationToken.ThrowIfCancellationRequested();
+				throw;
+			}
 		}
 
 		return (newFilePath, newVersion);
