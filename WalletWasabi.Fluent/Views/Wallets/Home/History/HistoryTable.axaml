@@ -101,7 +101,7 @@
         <behaviors:ScrollToSelectedItemBehavior />
       </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
-        <treeDataGrid:PlainTextElementFactory />
+        <treeDataGrid:PrivacyElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
@@ -114,11 +114,6 @@
           </Setter>
         </Style>
         <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
-          <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-          <Setter Property="FontSize" Value="15" />
-          <Setter Property="Margin" Value="10 0" />
-        </Style>
-        <Style Selector="treeDataGrid|TreeDataGridPlainTextCell">
           <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
           <Setter Property="FontSize" Value="15" />
           <Setter Property="Margin" Value="10 0" />
