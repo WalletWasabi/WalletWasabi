@@ -32,12 +32,14 @@ public class UpdateManager : IDisposable
 		var tries = 0;
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
+
 		if (!updateAvailable)
 		{
 			Cleanup();
 			return;
 		}
-		if (DownloadNewVersion)
+
+		if (DownloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			do
 			{
