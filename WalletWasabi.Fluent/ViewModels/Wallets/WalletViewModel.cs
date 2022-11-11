@@ -29,9 +29,7 @@ public partial class WalletViewModel : WalletViewModelBase
 	[AutoNotify] private double _heightSource;
 	[AutoNotify] private bool _isPointerOver;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
-	private bool _isWalletBalanceZero;
-
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 
