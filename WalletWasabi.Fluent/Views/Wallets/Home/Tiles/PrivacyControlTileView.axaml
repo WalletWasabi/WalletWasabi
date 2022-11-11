@@ -9,11 +9,7 @@
              x:CompileBindings="True" x:DataType="tiles:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
 
-  <UserControl.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/Tiles/CommonStyles.axaml" />
-  </UserControl.Styles>
-
-  <HeaderedContentControl Header="PRIVACY PROGRESS">
+  <HeaderedContentControl Header="PRIVACY PROGRESS" Classes="tile">
     <DockPanel>
       <StackPanel DockPanel.Dock="Bottom" IsVisible="{Binding HasPrivateBalance}">
         <Separator />

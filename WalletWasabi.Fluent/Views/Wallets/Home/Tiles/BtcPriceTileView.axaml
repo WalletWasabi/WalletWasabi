@@ -8,11 +8,7 @@
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPriceTileView">
 
-  <UserControl.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/Tiles/CommonStyles.axaml" />
-  </UserControl.Styles>
-
-  <HeaderedContentControl Header="EXCHANGE RATE">
+  <HeaderedContentControl Header="EXCHANGE RATE" Classes="tile">
     <TextBlock Margin="0 3"
                Classes="h2 monoSpaced"
                VerticalAlignment="Center" HorizontalAlignment="Center"

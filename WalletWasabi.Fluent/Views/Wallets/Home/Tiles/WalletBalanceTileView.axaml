@@ -7,11 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="140"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
 
-  <UserControl.Styles>
-    <StyleInclude Source="avares://WalletWasabi.Fluent/Views/Wallets/Home/Tiles/CommonStyles.axaml" />
-  </UserControl.Styles>
-
-  <HeaderedContentControl Header="BALANCE">
+  <HeaderedContentControl Header="BALANCE" Classes="tile">
     <DockPanel>
       <StackPanel DockPanel.Dock="Bottom" Spacing="8" IsVisible="{Binding HasBalance^}">
         <Separator />

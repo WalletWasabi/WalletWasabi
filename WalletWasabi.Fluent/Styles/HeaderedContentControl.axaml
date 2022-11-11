@@ -2,13 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Design.PreviewWith>
     <Border Padding="20">
-      <HeaderedContentControl Header="Header">
+      <HeaderedContentControl Header="Header" Classes="tile">
         <TextBlock>Content</TextBlock>
       </HeaderedContentControl>
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="HeaderedContentControl">
+  <Style Selector="HeaderedContentControl.tile">
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel>
