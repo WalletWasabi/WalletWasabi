@@ -195,13 +195,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
 		{
 			_info.FeeRate = feeRate;
-			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
+			await BuildAndUpdateAsync();
 		}
 	}
 
-	private async Task BuildAndUpdateAsync(BuildTransactionReason reason)
+	private async Task BuildAndUpdateAsync()
 	{
-		var newTransaction = await BuildTransactionAsync(reason);
+		var newTransaction = await BuildTransactionAsync();
 
 		if (newTransaction is { })
 		{
@@ -218,7 +218,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_info.Coins = selectPocketsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
-			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged);
+			await BuildAndUpdateAsync();
 		}
 	}
 
@@ -255,7 +255,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return true;
 	}
 
-	private async Task<BuildTransactionResult?> BuildTransactionAsync(BuildTransactionReason reason)
+	private async Task<BuildTransactionResult?> BuildTransactionAsync()
 	{
 		if (!await InitialiseTransactionAsync())
 		{
@@ -276,13 +276,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			var result = await TryAdjustTransactionFeeAsync(percentage);
 
-			return result ? await BuildTransactionAsync(reason) : null;
+			return result ? await BuildTransactionAsync() : null;
 		}
 		catch (TransactionFeeOverpaymentException ex)
 		{
 			var result = await TryAdjustTransactionFeeAsync(ex.PercentageOfOverpayment);
 
-			return result ? await BuildTransactionAsync(reason) : null;
+			return result ? await BuildTransactionAsync() : null;
 		}
 		catch (InsufficientBalanceException ex)
 		{
@@ -297,7 +297,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 				_info.FeeRate = maximumPossibleFeeRate;
 				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
-				return await BuildTransactionAsync(reason);
+				return await BuildTransactionAsync();
 			}
 			else
 			{
@@ -345,7 +345,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task InitialiseViewModelAsync()
 	{
-		if (await BuildTransactionAsync(BuildTransactionReason.Initialization) is { } initialTransaction)
+		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 		}
