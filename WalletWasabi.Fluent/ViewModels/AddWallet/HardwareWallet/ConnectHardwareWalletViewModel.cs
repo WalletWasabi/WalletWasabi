@@ -142,7 +142,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		if (devices.Length == 0)
 		{
-			Message = "Connect the hardware wallet to the PC & enter the PIN on the device.";
+			Message = "Connect the hardware wallet to the PC / Enter the PIN on the device.";
 			return;
 		}
 
