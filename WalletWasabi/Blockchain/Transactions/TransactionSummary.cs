@@ -11,6 +11,7 @@ public class TransactionSummary
 	public Money Amount { get; set; }
 	public SmartLabel Label { get; set; }
 	public uint256 TransactionId { get; set; }
+	public uint256? BlockHash { get; set; }
 	public int BlockIndex { get; set; }
 	public bool IsOwnCoinjoin { get; set; }
 }

@@ -1,3 +1,4 @@
+using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Models;
 
-namespace NBitcoin;
+namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
@@ -429,7 +430,7 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Tries to equip the PSBT with previous transactions with best effort. Always <see cref="AddKeyPaths"/> first otherwise the prev tx won't be added.
 	/// </summary>
-	public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
+	public static void AddPrevTxs(this PSBT psbt, ITransactionStore transactionStore)
 	{
 		// Fill out previous transactions.
 		foreach (var psbtInput in psbt.Inputs)
@@ -440,7 +441,7 @@ public static class NBitcoinExtensions
 			}
 			else
 			{
-				Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+				Logger.LogDebug($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
 			}
 		}
 	}
@@ -460,10 +461,11 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
+		scriptPubKey.TryGetScriptType() switch
 		{
-			true => Constants.P2wpkhInputVirtualSize,
-			false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
+			ScriptType.Taproot => Constants.P2trInputVirtualSize,
+			_ => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
 		};
 
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
@@ -494,5 +496,32 @@ public static class NBitcoinExtensions
 		}
 
 		return instance;
+	}
+
+	/// <summary>
+	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
+	/// </summary>
+	public static byte[] ExtractKeyId(this Script scriptPubKey)
+	{
+		return scriptPubKey.TryGetScriptType() switch
+		{
+			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
+			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
+			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
+			_ => scriptPubKey.ToBytes()
+		};
+	}
+
+	public static ScriptType? TryGetScriptType(this Script script)
+	{
+		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.Taproot })
+		{
+			if (script.IsScriptType(scriptType))
+			{
+				return scriptType;
+			}
+		}
+
+		return null;
 	}
 }

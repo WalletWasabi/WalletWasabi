@@ -31,6 +31,9 @@ public enum HardwareWalletModels
 	[FriendlyName("Ledger Nano S")]
 	Ledger_Nano_S,
 
+	[FriendlyName("Ledger Nano S Plus")]
+	Ledger_Nano_S_Plus,
+
 	[FriendlyName("Ledger Nano X")]
 	Ledger_Nano_X,
 

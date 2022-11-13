@@ -49,7 +49,7 @@ public class SendTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
@@ -339,7 +339,7 @@ public class SendTests
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
-				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1));
+				allowedInputs: wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1));
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Empty(res.OuterWalletOutputs);
@@ -359,7 +359,7 @@ public class SendTests
 
 			res = wallet.BuildTransaction(password, new PaymentIntent(receive, MoneyRequest.CreateAllRemaining(), "foo"), FeeStrategy.SevenDaysConfirmationTargetStrategy,
 				allowUnconfirmed: true,
-				allowedInputs: new[] { res.SpentCoins.Select(x => x.OutPoint).First() });
+				allowedInputs: new[] { res.SpentCoins.Select(x => x.Outpoint).First() });
 
 			Assert.Single(res.InnerWalletOutputs);
 			Assert.Empty(res.OuterWalletOutputs);
@@ -424,7 +424,7 @@ public class SendTests
 
 			receive = keyManager.GetNextReceiveKey("AllowedInputsDisallowUnconfirmed", out _).P2wpkhScript;
 
-			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.OutPoint).Take(1);
+			var allowedInputs = wallet.Coins.Where(x => x.IsAvailable()).Select(x => x.Outpoint).Take(1);
 			PaymentIntent toSend = new(receive, MoneyRequest.CreateAllRemaining(), "fizz");
 
 			// covers:
@@ -527,7 +527,7 @@ public class SendTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 
@@ -588,7 +588,7 @@ public class SendTests
 			Assert.Equal(2, tx1Res.OuterWalletOutputs.Count());
 
 			// Spend the unconfirmed coin (send it to ourself)
-			operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m));
+			operations = new PaymentIntent(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(0.5m));
 			tx1Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 			eventAwaiter = new EventAwaiter<ProcessedResult>(
 				h => wallet.TransactionProcessor.WalletRelevantTransactionProcessed += h,
@@ -612,7 +612,7 @@ public class SendTests
 			Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 			// Spend the unconfirmed and unspent coin (send it to ourself)
-			operations = new PaymentIntent(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.6m), subtractFee: true);
+			operations = new PaymentIntent(key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(0.6m), subtractFee: true);
 			var tx2Res = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowUnconfirmed: true);
 
 			eventAwaiter = new EventAwaiter<ProcessedResult>(
@@ -701,7 +701,7 @@ public class SendTests
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 		HybridFeeProvider feeProvider = new(synchronizer, null);
 

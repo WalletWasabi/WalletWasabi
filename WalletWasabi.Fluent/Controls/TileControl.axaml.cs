@@ -60,6 +60,7 @@ public class TileControl : ContentControl
 					{
 						return WideSizeContent;
 					}
+
 					break;
 
 				case TileSize.Large:
@@ -67,8 +68,8 @@ public class TileControl : ContentControl
 					{
 						return LargeSizeContent;
 					}
-					break;
 
+					break;
 			}
 
 			currentSize--;

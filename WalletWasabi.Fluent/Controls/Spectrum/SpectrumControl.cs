@@ -5,7 +5,6 @@ using Avalonia.Media.Immutable;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using SkiaSharp;
 
@@ -14,20 +13,31 @@ namespace WalletWasabi.Fluent.Controls.Spectrum;
 
 public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 {
-	private const int NumBins = 250;
+	private const int NumBins = 64;
 
 	private readonly AuraSpectrumDataSource _auraSpectrumDataSource;
 	private readonly SplashEffectDataSource _splashEffectDataSource;
 
 	private readonly SpectrumDataSource[] _sources;
 
-	private ImmutablePen? _linePen;
 	private IBrush? _lineBrush;
 
 	private float[] _data;
 
 	private bool _isAuraActive;
 	private bool _isSplashActive;
+
+	private readonly SKPaint _blur = new()
+	{
+		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
+		FilterQuality = SKFilterQuality.Low
+	};
+
+	private SKColor _lineColor;
+	private SKSurface? _surface;
+	private readonly DispatcherTimer _invalidationTimer;
+	private const double TextureHeight = 32;
+	private const double TextureWidth = 32;
 
 	public static readonly StyledProperty<bool> IsActiveProperty =
 		AvaloniaProperty.Register<SpectrumControl, bool>(nameof(IsActive));
@@ -55,6 +65,13 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 				new GradientStop { Color = Color.Parse("#FF000D21"), Offset = 1 }
 			}
 		};
+
+		_invalidationTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(1000.0 / 15.0)
+		};
+
+		_invalidationTimer.Tick += (sender, args) => InvalidateVisual();
 	}
 
 	public bool IsActive
@@ -93,6 +110,11 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		if (IsActive)
 		{
 			_auraSpectrumDataSource.Start();
+			_invalidationTimer.Start();
+		}
+		else
+		{
+			_invalidationTimer.Stop();
 		}
 	}
 
@@ -106,7 +128,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 		else if (change.Property == IsDockEffectVisibleProperty)
 		{
-			if (change.NewValue.GetValueOrDefault<bool>())
+			if (change.NewValue.GetValueOrDefault<bool>() && !IsActive)
 			{
 				_splashEffectDataSource.Start();
 			}
@@ -114,14 +136,12 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		else if (change.Property == ForegroundProperty)
 		{
 			_lineBrush = Foreground ?? Brushes.Magenta;
-			InvalidateArrange();
-		}
-	}
 
-	protected override Size ArrangeOverride(Size finalSize)
-	{
-		_linePen = new Pen(_lineBrush, finalSize.Width / NumBins).ToImmutable();
-		return base.ArrangeOverride(finalSize);
+			if (_lineBrush is ImmutableSolidColorBrush brush)
+			{
+				_lineColor = brush.Color.ToSKColor();
+			}
+		}
 	}
 
 	public override void Render(DrawingContext context)
@@ -139,29 +159,42 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 
 		context.Custom(this);
-
-		Dispatcher.UIThread.Post(() => InvalidateVisual());
 	}
 
-	private void RenderBars(IDrawingContextImpl context)
+	private void RenderBars(SKCanvas context)
 	{
-		var thickness = Bounds.Width / NumBins;
-		var center = (Bounds.Width / 2);
+		context.Clear();
+		var width = TextureWidth;
+		var height = TextureHeight;
+		var thickness = width / NumBins;
+		var center = (width / 2);
 
 		double x = 0;
+
+		using var linePaint = new SKPaint()
+		{
+			Color = _lineColor,
+			IsAntialias = false,
+			Style = SKPaintStyle.Fill
+		};
+
+		using var path = new SKPath();
 
 		for (int i = 0; i < NumBins; i++)
 		{
 			var dCenter = Math.Abs(x - center);
 			var multiplier = 1 - (dCenter / center);
-
-			context.DrawLine(
-				_linePen,
-				new Point(x, Bounds.Height),
-				new Point(x, Bounds.Height - multiplier * _data[i] * (Bounds.Height * 0.8)));
+			var rect = new SKRect(
+				(float)x,
+				(float)height,
+				(float)(x + thickness),
+				(float)(height - multiplier * _data[i] * (height * 0.8)));
+			path.AddRect(rect);
 
 			x += thickness;
 		}
+
+		context.DrawPath(path, linePaint);
 	}
 
 	void IDisposable.Dispose()
@@ -180,12 +213,32 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 			return;
 		}
 
-		using var barsLayer = DrawingContextHelper.CreateDrawingContext(bounds.Size, new Vector(96, 96), skia.GrContext);
-		RenderBars(barsLayer);
+		if (_surface is null)
+		{
+			if (skia.GrContext is { })
+			{
+				_surface =
+					SKSurface.Create(skia.GrContext, false, new SKImageInfo((int)TextureWidth, (int)TextureHeight));
+			}
+			else
+			{
+				_surface = SKSurface.Create(
+					new SKImageInfo(
+						(int)Math.Ceiling(TextureWidth),
+						(int)Math.Ceiling(TextureHeight),
+						SKImageInfo.PlatformColorType,
+						SKAlphaType.Premul));
+			}
+		}
 
-		using var filter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp);
-		using var paint = new SKPaint { ImageFilter = filter };
-		barsLayer.DrawTo(skia, paint);
+		RenderBars(_surface.Canvas);
+
+		using var snapshot = _surface.Snapshot();
+
+		skia.SkCanvas.DrawImage(
+			snapshot,
+			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
+			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height), _blur);
 	}
 
 	bool IEquatable<ICustomDrawOperation>.Equals(ICustomDrawOperation? other) => false;

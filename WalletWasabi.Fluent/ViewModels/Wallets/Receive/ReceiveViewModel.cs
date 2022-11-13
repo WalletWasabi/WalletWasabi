@@ -31,7 +31,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(3);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
@@ -68,7 +68,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet, SuggestionLabels.Suggestions.ToHashSet()));
+		Navigate().To(new ReceiveAddressesViewModel(_wallet));
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)

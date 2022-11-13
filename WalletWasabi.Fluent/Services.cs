@@ -3,6 +3,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
+using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -34,12 +35,16 @@ public static class Services
 
 	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
 
+	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
+	public static UpdateManager UpdateManager { get; private set; } = null!;
+
 	public static bool IsInitialized { get; private set; }
 
 	/// <summary>
 	/// Initializes global services used by fluent project.
 	/// </summary>
 	/// <param name="global">The global instance.</param>
+	/// <param name="singleInstanceChecker">The singleInstanceChecker instance.</param>
 	public static void Initialize(Global global, SingleInstanceChecker singleInstanceChecker)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
@@ -52,6 +57,8 @@ public static class Services
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
 		Guard.NotNull(nameof(global.UiConfig), global.UiConfig);
+		Guard.NotNull(nameof(global.TorStatusChecker), global.TorStatusChecker);
+		Guard.NotNull(nameof(global.UpdateManager), global.UpdateManager);
 
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
@@ -65,6 +72,8 @@ public static class Services
 		HostedServices = global.HostedServices;
 		UiConfig = global.UiConfig;
 		SingleInstanceChecker = singleInstanceChecker;
+		TorStatusChecker = global.TorStatusChecker;
+		UpdateManager = global.UpdateManager;
 
 		IsInitialized = true;
 	}

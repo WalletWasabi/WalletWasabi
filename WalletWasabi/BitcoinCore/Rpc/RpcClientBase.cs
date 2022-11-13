@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Rpc;
@@ -15,12 +16,12 @@ public class RpcClientBase : IRPCClient
 {
 	public RpcClientBase(RPCClient rpc)
 	{
-		Rpc = Guard.NotNull(nameof(rpc), rpc);
+		Rpc = rpc;
 	}
 
 	public Network Network => Rpc.Network;
 
-	private RPCClient Rpc { get; }
+	protected internal RPCClient Rpc { get; }
 
 	public RPCCredentialString CredentialString => Rpc.CredentialString;
 
@@ -145,7 +146,7 @@ public class RpcClientBase : IRPCClient
 		return new RpcClientBase(Rpc.PrepareBatch());
 	}
 
-	public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	public virtual async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
 		var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3).ConfigureAwait(false);
 		return RpcParser.ParseVerboseBlockResponse(resp.ResultString);

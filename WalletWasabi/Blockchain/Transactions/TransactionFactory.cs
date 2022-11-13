@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Blockchain.Transactions;
 public class TransactionFactory
 {
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
-	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
+	public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, ITransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 	{
 		Network = network;
 		KeyManager = keyManager;
@@ -34,7 +35,7 @@ public class TransactionFactory
 	public ICoinsView Coins { get; }
 	public string Password { get; }
 	public bool AllowUnconfirmed { get; }
-	private AllTransactionStore TransactionStore { get; }
+	private ITransactionStore TransactionStore { get; }
 
 	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
 	public BuildTransactionResult BuildTransaction(
@@ -99,9 +100,6 @@ public class TransactionFactory
 			}
 		}
 
-		// Get and calculate fee
-		Logger.LogInfo("Calculating dynamic transaction fee...");
-
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
 		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
@@ -142,8 +140,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			KeyManager.AssertCleanKeysIndexed(isInternal: true);
-			KeyManager.AssertLockedInternalKeysIndexed(14);
+			KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: true);
 			changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
 
 			builder.SetChange(changeHdPubKey.P2wpkhScript);
@@ -155,7 +152,7 @@ public class TransactionFactory
 
 		var psbt = builder.BuildPSBT(false);
 
-		var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.OutPoint == txin.PrevOut)).ToArray();
+		var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.Outpoint == txin.PrevOut)).ToArray();
 
 		var realToSend = payments.Requests
 			.Select(t =>
@@ -168,10 +165,8 @@ public class TransactionFactory
 		{
 			throw new InvalidOperationException("Impossible to get the fees of the PSBT, this should never happen.");
 		}
-		Logger.LogInfo($"Fee: {fee.Satoshi} Satoshi.");
 
 		var vSize = builder.EstimateSize(psbt.GetOriginalTransaction(), true);
-		Logger.LogInfo($"Estimated tx size: {vSize} vBytes.");
 
 		// Do some checks
 		Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
@@ -193,22 +188,11 @@ public class TransactionFactory
 
 		// Cannot divide by zero, so use the closest number we have to zero.
 		decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
-		decimal feePc = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
+		decimal feePercentage = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
 
-		if (feePc > 1)
+		if (feePercentage > 100)
 		{
-			Logger.LogInfo($"The transaction fee is {feePc:0.#}% of the sent amount.{Environment.NewLine}"
-				+ $"Sending:\t {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC.{Environment.NewLine}"
-				+ $"Fee:\t\t {fee.Satoshi} Satoshi.");
-		}
-		if (feePc > 100)
-		{
-			throw new TransactionFeeOverpaymentException(feePc);
-		}
-
-		if (spentCoins.Any(u => !u.Confirmed))
-		{
-			Logger.LogInfo("Unconfirmed transaction is spent.");
+			throw new TransactionFeeOverpaymentException(feePercentage);
 		}
 
 		// Build the transaction
@@ -224,7 +208,6 @@ public class TransactionFactory
 		}
 		else
 		{
-			Logger.LogInfo("Signing transaction...");
 			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			builder.SignPSBT(psbt);
@@ -256,7 +239,7 @@ public class TransactionFactory
 		var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
 		foreach (var coin in spentCoins)
 		{
-			smartTransaction.WalletInputs.Add(coin);
+			smartTransaction.TryAddWalletInput(coin);
 		}
 		var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
 
@@ -267,7 +250,7 @@ public class TransactionFactory
 			{
 				var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 				label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
-				smartTransaction.WalletOutputs.Add(smartCoin);
+				smartTransaction.TryAddWalletOutput(smartCoin);
 			}
 		}
 
@@ -287,9 +270,10 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
+		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
+
 		var sign = !KeyManager.IsWatchOnly;
-		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc);
+		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
 	}
 
 	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)

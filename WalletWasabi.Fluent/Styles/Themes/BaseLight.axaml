@@ -109,4 +109,3 @@
   <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>
-

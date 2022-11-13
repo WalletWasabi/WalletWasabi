@@ -1,11 +1,11 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Style Selector="StackPanel.settingsLayout">
-    <Setter Property="Spacing" Value="20"/>
-    <Setter Property="MinWidth" Value="360"/>
-    <Setter Property="MaxWidth" Value="650"/>
-    <Setter Property="HorizontalAlignment" Value="Left"/>
-    <Setter Property="Orientation" Value="Vertical"/>
+    <Setter Property="Spacing" Value="15" />
+    <Setter Property="MinWidth" Value="360" />
+    <Setter Property="MaxWidth" Value="650" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Orientation" Value="Vertical" />
   </Style>
 
   <Style Selector="StackPanel.settingsLayout > DockPanel > ToggleSwitch">

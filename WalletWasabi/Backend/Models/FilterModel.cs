@@ -8,6 +8,8 @@ namespace WalletWasabi.Backend.Models;
 
 public class FilterModel
 {
+	private Lazy<GolombRiceFilter> _filter;
+
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
@@ -22,7 +24,6 @@ public class FilterModel
 
 	public SmartHeader Header { get; }
 
-	private Lazy<GolombRiceFilter> _filter;
 	public GolombRiceFilter Filter => _filter.Value;
 
 	// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
@@ -32,21 +33,28 @@ public class FilterModel
 
 	public static FilterModel FromLine(string line)
 	{
-		string[] parts = line.Split(':');
-
-		if (parts.Length < 5)
+		try
 		{
-			throw new ArgumentException(line, nameof(line));
+			string[] parts = line.Split(':');
+
+			if (parts.Length < 5)
+			{
+				throw new ArgumentException(line, nameof(line));
+			}
+
+			uint blockHeight = uint.Parse(parts[0]);
+			uint256 blockHash = uint256.Parse(parts[1]);
+			byte[] filterData = Encoders.Hex.DecodeData(parts[2]);
+			Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+			uint256 prevBlockHash = uint256.Parse(parts[3]);
+			long blockTime = long.Parse(parts[4]);
+
+			return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
 		}
-
-		uint blockHeight = uint.Parse(parts[0]);
-		uint256 blockHash = uint256.Parse(parts[1]);
-		byte[] filterData = Encoders.Hex.DecodeData(parts[2]);
-		Lazy<GolombRiceFilter> filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
-		uint256 prevBlockHash = uint256.Parse(parts[3]);
-		long blockTime = long.Parse(parts[4]);
-
-		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filter);
+		catch (FormatException ex)
+		{
+			throw new FormatException("An error occurred while parsing the block filters.", ex);
+		}
 	}
 
 	public string ToLine()

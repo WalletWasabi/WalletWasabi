@@ -175,7 +175,6 @@ public class StateMachineTests
 		Assert.Equal(3, count);
 	}
 
-
 	[Fact]
 	public void Firing_special_trigger_executes_correct_action()
 	{
@@ -208,8 +207,7 @@ public class StateMachineTests
 	[Fact]
 	public void Transition_direct_to_child_state_enters_via_parent()
 	{
-		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
-			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Playing);
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut = new(JukeBoxState.Playing);
 
 		sut.Configure(JukeBoxState.Playing)
 			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
@@ -249,8 +247,7 @@ public class StateMachineTests
 	[Fact]
 	public void Transition_direct_to_parent_state_exits_parents()
 	{
-		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
-			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Playing);
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut = new(JukeBoxState.Playing);
 
 		sut.Configure(JukeBoxState.Playing)
 			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
@@ -287,13 +284,15 @@ public class StateMachineTests
 		Assert.Equal(JukeBoxState.Playing, sut.State);
 		Assert.False(sut.IsInState(JukeBoxState.Paused));
 		Assert.False(sut.IsInState(JukeBoxState.PausedChild));
+		Assert.True(pausedExited);
+		Assert.True(pausedChildExited);
+		Assert.Equal(2, exitedPausedCount);
 	}
 
 	[Fact]
 	public void OnTriggers_Are_Handled_Before_Transitions()
 	{
-		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
-			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut = new(JukeBoxState.Paused);
 
 		sut.Configure(JukeBoxState.Playing)
 			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
@@ -302,7 +301,7 @@ public class StateMachineTests
 
 		sut.Configure(JukeBoxState.Paused)
 			.Permit(JukeBoxTrigger.Play, JukeBoxState.Playing)
-			.OnTrigger(JukeBoxTrigger.Play, () => { onTriggerCalled = true; });
+			.OnTrigger(JukeBoxTrigger.Play, () => onTriggerCalled = true);
 
 		sut.Start();
 
@@ -316,17 +315,13 @@ public class StateMachineTests
 	[Fact]
 	public void OnEntry_Isnt_Called_For_Parent_State_If_We_Enter_Another_Child()
 	{
-		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
-			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut = new(JukeBoxState.Paused);
 
 		int entryCallCount = 0;
 
 		sut.Configure(JukeBoxState.Paused)
 			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild)
-			.OnEntry(() =>
-			{
-				entryCallCount++;
-			});
+			.OnEntry(() => entryCallCount++);
 
 		sut.Start();
 
@@ -338,8 +333,7 @@ public class StateMachineTests
 	[Fact]
 	public void Is_In_State_Works_With_Child_Child_States()
 	{
-		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
-			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut = new(JukeBoxState.Paused);
 
 		int entryCallCount = 0;
 
@@ -371,17 +365,13 @@ public class StateMachineTests
 	[Fact]
 	public void Parent_Entry_Isnt_Called_Entering_Child_Child_States()
 	{
-		StateMachine<JukeBoxState, JukeBoxTrigger> sut =
-			new StateMachine<JukeBoxState, JukeBoxTrigger>(JukeBoxState.Paused);
+		StateMachine<JukeBoxState, JukeBoxTrigger> sut = new(JukeBoxState.Paused);
 
 		int entryCallCount = 0;
 		int pausedEntryCount = 0;
 
 		sut.Configure(JukeBoxState.Paused)
-			.OnEntry(() =>
-			{
-				pausedEntryCount++;
-			})
+			.OnEntry(() => pausedEntryCount++)
 			.Permit(JukeBoxTrigger.Pause, JukeBoxState.PausedChild);
 
 		sut.Configure(JukeBoxState.PausedChild)

@@ -3,8 +3,8 @@
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
   <Design.PreviewWith>
-    <Border Height="100" Width="400">
-      <c:PreviewItem Label="Transaction ID"
+    <Border Width="200">
+      <c:PreviewItem Label="Transaction ID" Icon="{DynamicResource tor_icon}"
                      TextValue="Text to copy" />
     </Border>
   </Design.PreviewWith>
@@ -16,9 +16,10 @@
           <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
                     Data="{TemplateBinding Icon}"
                     Opacity="0.5"
+                    Margin="0 0 20 0"
                     Foreground="{StaticResource SystemAccentColor}"
                     DockPanel.Dock="Left" IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
-          <DockPanel DockPanel.Dock="Right" Margin="20 0 0 0">
+          <DockPanel>
             <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
                        Opacity="0.6" />
             <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">

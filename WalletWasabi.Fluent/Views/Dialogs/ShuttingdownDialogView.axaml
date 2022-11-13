@@ -8,11 +8,20 @@
              x:DataType="dialog:ShuttingDownViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ShuttingDownView">
-  <c:ContentArea Title="{Binding Title}"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <c:ContentArea
+    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+    NextContent="Cancel" EnableNext="True">
+    <c:ContentArea.Title>
+      <TextBlock TextAlignment="Center" Text="{Binding Title}" />
+    </c:ContentArea.Title>
     <DockPanel VerticalAlignment="Center">
-      <TextBlock Text="This may take a few minutes."
-                 DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" Margin="20 0" />
+      <StackPanel DockPanel.Dock="Bottom" Margin="20 0" MaxWidth="500" Spacing="5">
+        <TextBlock Text="Wasabi is unable to close right now. Coinjoin in progress."
+                   TextAlignment="Center" TextWrapping="Wrap" />
+        <TextBlock Text="This may take a few minutes. Wasabi will close automatically when finished."
+                   TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" />
+      </StackPanel>
+
       <Viewbox MaxHeight="100" Margin="40">
         <c:ProgressRing IsIndeterminate="True" Height="100" Width="100" />
       </Viewbox>

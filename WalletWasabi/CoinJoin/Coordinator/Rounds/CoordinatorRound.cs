@@ -13,8 +13,10 @@ using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.MixingLevels;
 using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds;
@@ -25,7 +27,7 @@ public class CoordinatorRound
 	private RoundPhase _phase;
 	private CoordinatorRoundStatus _status;
 
-	public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut)
+	public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut, CoinVerifier? coinVerifier = null)
 	{
 		try
 		{
@@ -35,6 +37,7 @@ public class CoordinatorRound
 			UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 			RoundConfig = Guard.NotNull(nameof(config), config);
 
+			CoinVerifier = coinVerifier;
 			AdjustedConfirmationTarget = adjustedConfirmationTarget;
 			ConfiguredConfirmationTarget = configuredConfirmationTarget;
 			ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
@@ -217,7 +220,7 @@ public class CoordinatorRound
 
 	public UtxoReferee UtxoReferee { get; }
 	public CoordinatorRoundConfig RoundConfig { get; }
-
+	public CoinVerifier? CoinVerifier { get; }
 	public RoundNonceProvider NonceProvider { get; }
 
 	public static ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, RoundPhase phase), DateTimeOffset>();
@@ -379,7 +382,7 @@ public class CoordinatorRound
 
 									if (alicesToBan.Any())
 									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: false, toBan: alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray()).ConfigureAwait(false);
 									}
 
 									Abort($"{alicesToBan.Length} Alices did not sign.");
@@ -623,9 +626,47 @@ public class CoordinatorRound
 
 	private async Task MoveToConnectionConfirmationAsync()
 	{
-		await RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync().ConfigureAwait(false);
-
+		using (BenchmarkLogger.Measure(LogLevel.Info, nameof(RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync)))
+		{
+			await RemoveAlicesIfAnInputRefusedByMempoolNoLockAsync().ConfigureAwait(false);
+		}
+		using (BenchmarkLogger.Measure(LogLevel.Info, nameof(RemoveAliceIfCoinsAreNaughtyAsync)))
+		{
+			await RemoveAliceIfCoinsAreNaughtyAsync().ConfigureAwait(false);
+		}
 		Phase = RoundPhase.ConnectionConfirmation;
+	}
+
+	private async Task RemoveAliceIfCoinsAreNaughtyAsync()
+	{
+		if (CoinVerifier is null)
+		{
+			return;
+		}
+		List<OutPoint> inputsToBan = new();
+		try
+		{
+			var coinsToCheck = Alices.SelectMany(a => a.Inputs);
+			await foreach (var info in CoinVerifier.VerifyCoinsAsync(coinsToCheck, CancellationToken.None, RoundId.ToString()))
+			{
+				if (info.ShouldBan)
+				{
+					inputsToBan.Add(info.Coin.Outpoint);
+				}
+			}
+		}
+		catch (Exception exc)
+		{
+			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
+		}
+
+		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
+		Logger.LogInfo($"Alices({alicesToRemove.Length}) was force banned in round '{RoundId}'.");
+		foreach (var alice in alicesToRemove)
+		{
+			Alices.Remove(alice);
+		}
+		await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: true, inputsToBan.ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task MoveToInputRegistrationAsync()
@@ -661,7 +702,7 @@ public class CoordinatorRound
 
 		if (inputsToBan.Any())
 		{
-			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray()).ConfigureAwait(false);
+			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: false, toBan: inputsToBan.ToArray()).ConfigureAwait(false);
 
 			var alicesConnectionConfirmedAndSpentCount = alicesSpent.Select(x => x.UniqueId).Except(alicesNotConfirmConnectionIds).Distinct().Count();
 			if (alicesConnectionConfirmedAndSpentCount > 0)

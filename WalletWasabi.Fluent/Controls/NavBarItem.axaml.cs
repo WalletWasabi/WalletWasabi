@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Controls;
 /// <summary>
 /// Container for NavBarItems.
 /// </summary>
-[PseudoClasses(":horizontal", ":vertical")]
+[PseudoClasses(":horizontal", ":vertical", ":selectable")]
 public class NavBarItem : ListBoxItem
 {
 	public static readonly StyledProperty<IconElement> IconProperty =
@@ -17,9 +17,13 @@ public class NavBarItem : ListBoxItem
 	public static readonly StyledProperty<Orientation> IndicatorOrientationProperty =
 		AvaloniaProperty.Register<NavBarItem, Orientation>(nameof(IndicatorOrientation), Orientation.Vertical);
 
+	public static readonly StyledProperty<bool> IsSelectableProperty =
+		AvaloniaProperty.Register<NavBarItem, bool>(nameof(IsSelectable));
+
 	public NavBarItem()
 	{
-		UpdatePseudoClasses(IndicatorOrientation);
+		UpdateIndicatorOrientationPseudoClasses(IndicatorOrientation);
+		UpdateIsSelectablePseudoClasses(IsSelectable);
 	}
 
 	/// <summary>
@@ -40,19 +44,38 @@ public class NavBarItem : ListBoxItem
 		set => SetValue(IndicatorOrientationProperty, value);
 	}
 
+	/// <summary>
+	/// Gets or sets flag indicating whether item supports selected state.
+	/// </summary>
+	public bool IsSelectable
+	{
+		get => GetValue(IsSelectableProperty);
+		set => SetValue(IsSelectableProperty, value);
+	}
+
 	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IndicatorOrientationProperty)
 		{
-			UpdatePseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+		}
+
+		if (change.Property == IsSelectableProperty)
+		{
+			UpdateIsSelectablePseudoClasses(change.NewValue.GetValueOrDefault<bool>());
 		}
 	}
 
-	private void UpdatePseudoClasses(Orientation orientation)
+	private void UpdateIndicatorOrientationPseudoClasses(Orientation orientation)
 	{
 		PseudoClasses.Set(":horizontal", orientation == Orientation.Horizontal);
 		PseudoClasses.Set(":vertical", orientation == Orientation.Vertical);
+	}
+
+	private void UpdateIsSelectablePseudoClasses(bool isSelectable)
+	{
+		PseudoClasses.Set(":selectable", isSelectable);
 	}
 }

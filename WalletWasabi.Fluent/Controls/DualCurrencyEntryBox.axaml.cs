@@ -1,14 +1,12 @@
 using System.Globalization;
-using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -68,18 +66,19 @@ public class DualCurrencyEntryBox : UserControl
 	private CurrencyEntryBox? _rightEntryBox;
 	private decimal _amountBtc;
 	private bool _canUpdateDisplay = true;
+	private bool _canUpdateFiat = true;
 
 	public DualCurrencyEntryBox()
 	{
 		_customCultureInfo = new CultureInfo("")
 		{
 			NumberFormat =
-				{
-					CurrencyGroupSeparator = _groupSeparator.ToString(),
-					NumberGroupSeparator = _groupSeparator.ToString(),
-					CurrencyDecimalSeparator = _decimalSeparator.ToString(),
-					NumberDecimalSeparator = _decimalSeparator.ToString()
-				}
+			{
+				CurrencyGroupSeparator = _groupSeparator.ToString(),
+				NumberGroupSeparator = _groupSeparator.ToString(),
+				CurrencyDecimalSeparator = _decimalSeparator.ToString(),
+				NumberDecimalSeparator = _decimalSeparator.ToString()
+			}
 		};
 
 		this.GetObservable(TextProperty).Subscribe(InputText);
@@ -90,6 +89,8 @@ public class DualCurrencyEntryBox : UserControl
 		this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
 
 		UpdateDisplay(false);
+
+		PseudoClasses.Set(":noexchangerate", true);
 	}
 
 	public decimal AmountBtc
@@ -238,6 +239,11 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void InputFiatString(string value)
 	{
+		if (!_canUpdateFiat)
+		{
+			return;
+		}
+
 		if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
 		{
 			InputBtcValue(FiatToBitcoin(decimalValue));
@@ -248,6 +254,23 @@ public class DualCurrencyEntryBox : UserControl
 
 	private void UpdateDisplay(bool updateTextField)
 	{
+		Watermark = FullFormatBtc(0);
+
+		if (updateTextField)
+		{
+			_canUpdateDisplay = false;
+			Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
+
+			_canUpdateDisplay = true;
+		}
+
+		UpdateDisplayFiat(updateTextField);
+	}
+
+	private void UpdateDisplayFiat(bool updateTextField)
+	{
+		_canUpdateFiat = false;
+
 		if (ConversionRate == 0m)
 		{
 			return;
@@ -256,17 +279,14 @@ public class DualCurrencyEntryBox : UserControl
 		var conversion = BitcoinToFiat(AmountBtc);
 
 		IsConversionApproximate = AmountBtc > 0;
-
-		Watermark = FullFormatBtc(0);
 		ConversionWatermark = FullFormatFiat(0, ConversionCurrencyCode, true);
 
 		if (updateTextField)
 		{
-			_canUpdateDisplay = false;
-			Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
 			ConversionText = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
-			_canUpdateDisplay = true;
 		}
+
+		_canUpdateFiat = true;
 	}
 
 	private decimal FiatToBitcoin(decimal fiatValue)
@@ -290,8 +310,8 @@ public class DualCurrencyEntryBox : UserControl
 		var part2 = value.FormattedFiat();
 		var part3 =
 			!string.IsNullOrWhiteSpace(currencyCode)
-			? $" {currencyCode}"
-			: "";
+				? $" {currencyCode}"
+				: "";
 		return part1 + part2 + part3;
 	}
 
@@ -326,8 +346,8 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		var focusOn =
 			IsConversionReversed
-			? _rightEntryBox
-			: _leftEntryBox;
+				? _rightEntryBox
+				: _leftEntryBox;
 
 		focusOn?.Focus();
 	}

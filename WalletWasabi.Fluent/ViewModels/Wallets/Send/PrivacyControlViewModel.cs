@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -20,14 +19,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent, Money? targetAmount = null)
+	public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
 	{
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(targetAmount ?? _transactionInfo.Amount);
+		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Kitchen.SaltSoup(), _transactionInfo);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -39,14 +38,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void Complete(IEnumerable<Pocket> pockets)
 	{
-		var coins = pockets.SelectMany(x => x.Coins);
+		var coins = Pocket.Merge(pockets.ToArray()).Coins;
 
 		Close(DialogResultKind.Normal, coins);
 	}
 
 	private void InitializeLabels()
 	{
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
+		var privateThreshold = _wallet.AnonScoreTarget;
 
 		LabelSelection.Reset(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
 		LabelSelection.SetUsedLabel(_usedCoins, privateThreshold);
@@ -69,7 +68,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var autoSelectedPockets = LabelSelection.AutoSelectPockets(_transactionInfo.UserLabels);
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 
 			Complete(autoSelectedPockets);
 		}

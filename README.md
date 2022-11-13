@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://wasabiwallet.io">
-    <img src="https://user-images.githubusercontent.com/51679301/113864078-23c53900-97b3-11eb-9374-32577c58273d.png"/>
+    <img src="https://user-images.githubusercontent.com/51679301/169354261-c894bac0-27f2-4a29-8470-a7519963a4b5.jpg">
   </a>
 </p>
 
@@ -62,7 +62,7 @@
 
 <br>
 
-![](https://i.imgur.com/gI75EKu.png)
+![](https://raw.githubusercontent.com/zkSNACKs/WalletWasabi/master/WalletWasabi.Backend/wwwroot/img/screenshots/webpage_ui_compilation-02.png)
 
 # Build From Source Code
 
@@ -77,7 +77,7 @@
 Clone & Restore & Build
 
 ```sh
-git clone https://github.com/zkSNACKs/WalletWasabi.git
+git clone --depth=1 --single-branch --branch=master https://github.com/zkSNACKs/WalletWasabi.git
 cd WalletWasabi/WalletWasabi.Fluent.Desktop
 dotnet build
 ```

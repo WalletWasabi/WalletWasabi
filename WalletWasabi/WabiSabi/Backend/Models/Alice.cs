@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 

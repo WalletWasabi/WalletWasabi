@@ -1,4 +1,5 @@
 using System.Linq;
+using WalletWasabi.Extensions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -66,6 +67,12 @@ public class LinqExtensionsTests
 		Assert.Equal("0, 1, 3, 4", asString[i++]);
 		Assert.Equal("0, 2, 3, 4", asString[i++]);
 		Assert.Equal("1, 2, 3, 4", asString[i++]);
+	}
+
+	[Fact]
+	public void CombinationsWithoutRepetitionZeroLength()
+	{
+		AssertAsync.CompletesIn(5, () => Enumerable.Range(0, 32).CombinationsWithoutRepetition(ofLength: 0).ToArray());
 	}
 
 	[Fact]

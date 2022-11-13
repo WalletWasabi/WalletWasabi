@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -16,7 +17,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 	private readonly Wallet _wallet;
 
 	[AutoNotify] private double _percent;
-	[AutoNotify] private string? _statusText;
+	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
 
 	private Stopwatch? _stopwatch;
 	private volatile bool _isLoading;
@@ -27,7 +28,6 @@ public partial class LoadingViewModel : ActivatableViewModel
 	public LoadingViewModel(Wallet wallet)
 	{
 		_wallet = wallet;
-		_statusText = "";
 		_percent = 0;
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
@@ -57,7 +57,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 		base.OnActivated(disposables);
 
 		Percent = 0;
-		StatusText = "";
+		StatusText = " ";
 		_stopwatch ??= Stopwatch.StartNew();
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
@@ -100,7 +100,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
-		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.IsNewlyCreated)
+		while (isBackendAvailable && RemainingFiltersToDownload > 0 && !_wallet.KeyManager.SkipSynchronization)
 		{
 			await Task.Delay(1000).ConfigureAwait(false);
 		}
@@ -121,7 +121,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 			Services.BitcoinStore.SmartHeaderChain.TipHeight is { } clientTipHeight)
 		{
 			var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+			var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network, IndexType.SegwitTaproot).Height;
 			var bestHeight = (uint)_wallet.KeyManager.GetBestHeight().Value;
 			_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
 
@@ -153,7 +153,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 		if (remainingTimeSpan > TimeSpan.FromHours(1))
 		{
- 		  remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
+			remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
 		}
 
 		var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(remainingTimeSpan);

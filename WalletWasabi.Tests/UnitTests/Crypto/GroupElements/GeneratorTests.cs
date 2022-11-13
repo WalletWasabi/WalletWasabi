@@ -42,6 +42,7 @@ public class GeneratorTests
 	public void FriendlyNameNullCheck()
 	{
 		Assert.False(Generators.TryGetFriendlyGeneratorName(null, out var name));
+		Assert.NotNull(name);
 		Assert.Empty(name);
 	}
 }

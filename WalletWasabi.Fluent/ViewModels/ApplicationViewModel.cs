@@ -1,4 +1,3 @@
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
@@ -7,7 +6,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -21,13 +19,13 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		_mainWindowService = mainWindowService;
 
-		QuitCommand = ReactiveCommand.Create(ShutDown);
+		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
 
 		ShowHideCommand = ReactiveCommand.Create(() =>
 		{
 			if (IsMainWindowShown)
 			{
-				_mainWindowService.Close();
+				_mainWindowService.Hide();
 			}
 			else
 			{
@@ -53,12 +51,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public ICommand QuitCommand { get; }
 
-	public void ShutDown() => _mainWindowService.Shutdown();
+	public void Shutdown(bool restart) => _mainWindowService.Shutdown(restart);
 
-	public void OnShutdownPrevented()
+	public void OnShutdownPrevented(bool restartRequest)
 	{
-		RxApp.MainThreadScheduler.Schedule(async () =>
-			await MainViewModel.Instance.CompactDialogScreen.NavigateDialogAsync(new ShuttingDownViewModel(this)));
+		MainViewModel.Instance.ApplyUiConfigWindowSate(); // Will pop the window if it was minimized.
+		MainViewModel.Instance.CompactDialogScreen.To(new ShuttingDownViewModel(this, restartRequest));
 	}
 
 	public bool CanShutdown()

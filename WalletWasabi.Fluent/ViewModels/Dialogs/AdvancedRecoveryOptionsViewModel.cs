@@ -31,8 +31,8 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(Key
 				x => x.MinGapLimit,
 				delegate
 				{
-						// This will fire validations before return canExecute value.
-						this.RaisePropertyChanged(nameof(AccountKeyPath));
+					// This will fire validations before return canExecute value.
+					this.RaisePropertyChanged(nameof(AccountKeyPath));
 					this.RaisePropertyChanged(nameof(MinGapLimit));
 
 					return IsDialogOpen && !Validations.Any;

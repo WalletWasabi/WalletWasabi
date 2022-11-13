@@ -66,11 +66,11 @@
 
   <!-- Normal State -->
   <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot Border#Indicator_Backdrop">
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot Border#Indicator">
-    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
     <Setter Property="Opacity" Value="0" />
     <Setter Property="RenderTransformOrigin" Value="50%,0%" />
     <Setter Property="RenderTransform" Value="scaleY(0)" />
@@ -81,12 +81,12 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundPointerOver}" />
   </Style>
   <Style Selector="c|NavBarTreeItem /template/ Border#PART_LayoutRoot:pointerover Border#Indicator_Backdrop">
-    <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
   </Style>
 
   <!--  Pressed state  -->
   <Style Selector="c|NavBarTreeItem:pressed /template/ Border#Indicator">
-    <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight1}"/>
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight1}" />
   </Style>
   <Style Selector="c|NavBarTreeItem:pressed /template/ Border#PART_LayoutRoot:pointerover > ContentPresenter#PART_HeaderPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TreeViewItemForegroundPressed}" />

@@ -95,27 +95,27 @@ public abstract class P2pBehavior : NodeBehavior
 					continue; // Would be strange. It could be some kind of attack.
 				}
 
-					try
+				try
+				{
+					var txPayload = new TxPayload(entry.Transaction.Transaction);
+					if (!node.IsConnected)
 					{
-						var txPayload = new TxPayload(entry.Transaction.Transaction);
-						if (!node.IsConnected)
-						{
-							Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
-						}
-						else
-						{
-							await node.SendMessageAsync(txPayload).ConfigureAwait(false);
-							entry.MakeBroadcasted();
-							Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
-						}
+						Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 					}
-					catch (Exception ex)
+					else
 					{
-						Logger.LogInfo(ex);
+						await node.SendMessageAsync(txPayload).ConfigureAwait(false);
+						entry.MakeBroadcasted();
+						Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogInfo(ex);
 				}
 			}
 		}
+	}
 
 	protected virtual void ProcessTx(TxPayload payload)
 	{

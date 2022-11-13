@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace System;
@@ -16,4 +17,7 @@ public class EventAwaiter<TEventArgs> : EventsAwaiter<TEventArgs>
 
 	public new async Task<TEventArgs> WaitAsync(TimeSpan timeout)
 		=> await Task.WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
+
+	public new async Task<TEventArgs> WaitAsync(CancellationToken token)
+		=> await Task.WithAwaitCancellationAsync(token).ConfigureAwait(false);
 }

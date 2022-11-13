@@ -60,12 +60,10 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped<RoundParameterFactory>();
 			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
+			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 		});
-		builder.ConfigureLogging(o =>
-		{
-			o.SetMinimumLevel(LogLevel.Warning);
-		});
+		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
@@ -82,10 +80,11 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		var arenaClient = new ArenaClient(
 			round.CreateAmountCredentialClient(insecureRandom),
 			round.CreateVsizeCredentialClient(insecureRandom),
+			round.CoinjoinState.Parameters.CoordinationIdentifier,
 			wabiSabiHttpApiClient);
 		return arenaClient;
 	}
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
-		new(new HttpClientWrapper(httpClient));
+		new(new ClearnetHttpClient(httpClient));
 }

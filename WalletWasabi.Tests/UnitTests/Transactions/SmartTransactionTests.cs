@@ -3,9 +3,11 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -201,6 +203,108 @@ public class SmartTransactionTests
 				}
 			}
 		}
+	}
+
+	[Fact]
+	public void SmartTransactionVirtualMembersEquals()
+	{
+		SmartTransaction st = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
+
+		var originalSentBytes = st.WalletInputs.First().HdPubKey.PubKeyHash.ToBytes();
+		var virtualSentBytes = st.WalletVirtualInputs.First().Id;
+		var originalSentCoin = st.WalletInputs.First().Coin;
+		var virtualSentCoin = st.WalletVirtualInputs.First().Coins.First().Coin;
+		Assert.Equal(originalSentBytes, virtualSentBytes);
+		Assert.Equal(originalSentCoin, virtualSentCoin);
+
+		var outputBytes = st.WalletOutputs.First().HdPubKey.PubKeyHash.ToBytes();
+		var outputVirtualBytes = st.WalletVirtualOutputs.First().Id;
+		var originalOutputAmount = st.WalletOutputs.First().Coin.Amount;
+		var virtualOutputAmount = st.WalletVirtualOutputs.First().Amount;
+		Assert.Equal(outputBytes, outputVirtualBytes);
+		Assert.Equal(originalOutputAmount, virtualOutputAmount);
+
+		var foreingOutputsAmount = st.ForeignOutputs.First().ToCoin().Amount;
+		var foreingVirtualOutputsAmount = st.ForeignVirtualOutputs.First().Amount;
+		Assert.Equal(foreingOutputsAmount, foreingVirtualOutputsAmount);
+	}
+
+	[Fact]
+	public void SmartTransactionVirtualForeignOutputMerge()
+	{
+		var km = ServiceFactory.CreateKeyManager("");
+		var network = km.GetNetwork();
+		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
+
+		Script samePubScript1 = hdPubKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network).ScriptPubKey;
+		Script samePubScript2 = hdPubKey.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ScriptPubKey;
+
+		Transaction t = Transaction.Create(network);
+
+		TxOut txout = new(Money.Coins(1), samePubScript1);
+		TxOut txout2 = new(Money.Coins(1), samePubScript2);
+
+		t.Outputs.Add(txout);
+		t.Outputs.Add(txout2);
+		SmartTransaction st1 = new(t, 0);
+
+		Assert.Single(st1.ForeignVirtualOutputs);
+		Assert.Equal(2, st1.ForeignVirtualOutputs.First().OutPoints.Count);
+
+		Transaction t2 = Transaction.Create(network);
+
+		TxOut txout3 = new(Money.Coins(1), samePubScript1);
+		TxOut txout4 = new(Money.Coins(1), samePubScript1);
+
+		t2.Outputs.Add(txout3);
+		t2.Outputs.Add(txout4);
+		SmartTransaction st2 = new(t2, 0);
+
+		Assert.Equal(1, st2.ForeignVirtualOutputs.Count);
+		Assert.Equal(2, st2.ForeignVirtualOutputs.First().OutPoints.Count);
+	}
+
+	[Fact]
+	public void SmartTransactionVirtualWalletInputMerge()
+	{
+		var km = ServiceFactory.CreateKeyManager("");
+		var network = km.GetNetwork();
+		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
+
+		Transaction t = Transaction.Create(network);
+
+		SmartTransaction st1 = new(t, 0);
+
+		var sc = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(1));
+		var sc2 = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(2));
+
+		st1.TryAddWalletInput(sc);
+		st1.TryAddWalletInput(sc2);
+
+		Assert.Equal(1, st1.WalletVirtualInputs.Count);
+		Assert.Equal(2, st1.WalletVirtualInputs.First().Coins.Count);
+	}
+
+	[Fact]
+	public void SmartTransactionVirtualWalletOutputMerge()
+	{
+		var km = ServiceFactory.CreateKeyManager("");
+		var network = km.GetNetwork();
+		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
+
+		Transaction t = Transaction.Create(network);
+
+		var sc = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(1));
+		var sc2 = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(2));
+		Assert.NotEqual(sc, sc2);
+
+		var st1 = sc.Transaction;
+		st1.TryAddWalletOutput(sc);
+		st1.TryAddWalletOutput(sc2);
+
+		Assert.Equal(1, st1.WalletVirtualOutputs.Count);
+		Assert.Equal(Money.Coins(3), st1.WalletVirtualOutputs.First().Amount);
+		Assert.Equal(2, st1.WalletVirtualOutputs.First().Coins.Count);
 	}
 
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()

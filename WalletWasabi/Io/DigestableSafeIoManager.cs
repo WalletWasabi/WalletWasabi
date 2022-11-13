@@ -84,13 +84,12 @@ public class DigestableSafeIoManager : SafeIoManager
 		// 1. First copy.
 		File.Copy(GetSafestFilePath(), NewFilePath, overwrite: true);
 
-		// 2. Compute digest.				
+		// 2. Compute digest.
 		using (StreamReader sr = OpenText())
 		{
 			while (true)
 			{
 				string? line = sr.ReadLine();
-
 
 				// End of stream.
 				if (line is null)

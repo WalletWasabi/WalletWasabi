@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Behaviors;
@@ -44,7 +43,8 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 			.Select(_ => parent.Classes)
 			.Select(x => x.Contains(":selected")
 						 && !x.Contains(":pressed")
-						 && !x.Contains(":dragging"))
+						 && !x.Contains(":dragging")
+						 && x.Contains(":selectable"))
 			.DistinctUntilChanged()
 			.Where(x => x)
 			.ObserveOn(AvaloniaScheduler.Instance)

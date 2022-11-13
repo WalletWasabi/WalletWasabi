@@ -1,8 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Media.Imaging;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -21,16 +19,19 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		_addWalletPage = addWalletPage;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
-		
+
 		SelectedIndex = 0;
 		NextCommand = ReactiveCommand.Create(OnNext);
-		
+		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
+		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
+
 		this.WhenAnyValue(x => x.SelectedIndex)
-			.Subscribe(x =>
-			{
-				NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
-				EnableNextKey = x < NumberOfPages - 1;
-			});
+			.Subscribe(
+				x =>
+				{
+					NextLabel = x < NumberOfPages - 1 ? "Continue" : "Get Started";
+					EnableNextKey = x < NumberOfPages - 1;
+				});
 
 		this.WhenAnyValue(x => x.IsActive)
 			.Skip(1)
@@ -38,13 +39,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			.Subscribe(x => EnableNextKey = false);
 	}
 
-	public Bitmap WelcomeImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/welcome.png");
-
-	public Bitmap TrustlessImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/trustless.png");
-
-	public Bitmap OpensourceImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/opensource.png");
-
-	public Bitmap AnonymousImage { get; } = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/WelcomeScreen/{ThemeHelper.CurrentTheme}/anonymous.png");
+	public IObservable<bool> CanGoBack { get; }
 
 	private void OnNext()
 	{

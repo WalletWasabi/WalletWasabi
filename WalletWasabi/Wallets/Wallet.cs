@@ -6,25 +6,25 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets;
 
-public class Wallet : BackgroundService
+public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
 
@@ -41,13 +41,17 @@ public class Wallet : BackgroundService
 		RuntimeParams.SetDataDir(dataDir);
 		HandleFiltersLock = new AsyncLock();
 
-		KeyManager.AssertCleanKeysIndexed();
-		KeyManager.AssertLockedInternalKeysIndexed(14);
+		KeyManager.AssertCleanKeysIndexedAndPersist();
+
+		if (!KeyManager.IsWatchOnly)
+		{
+			KeyChain = new KeyChain(KeyManager, Kitchen);
+		}
+
+		DestinationProvider = new InternalDestinationProvider(KeyManager);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
-
-	public static event EventHandler<bool>? InitializingChanged;
 
 	public event EventHandler<FilterModel>? NewFilterProcessed;
 
@@ -81,6 +85,46 @@ public class Wallet : BackgroundService
 	/// </summary>
 	public ICoinsView Coins { get; private set; }
 
+	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+
+	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
+
+	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
+
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
+
+	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
+
+	public IEnumerable<SmartTransaction> GetTransactions()
+	{
+		var walletTransactions = new List<SmartTransaction>();
+		var allCoins = ((CoinsRegistry)Coins).AsAllCoinsView();
+		foreach (SmartCoin coin in allCoins)
+		{
+			walletTransactions.Add(coin.Transaction);
+			if (coin.SpenderTransaction is not null)
+			{
+				walletTransactions.Add(coin.SpenderTransaction);
+			}
+		}
+		return walletTransactions.OrderByBlockchain().ToList();
+	}
+
+	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
+
+	private double GetPrivacyPercentage(CoinsView coins, int privateThreshold)
+	{
+		var privateAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold).TotalAmount();
+		var normalAmount = coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold).TotalAmount();
+
+		var privateDecimalAmount = privateAmount.ToDecimal(MoneyUnit.BTC);
+		var normalDecimalAmount = normalAmount.ToDecimal(MoneyUnit.BTC);
+		var totalDecimalAmount = privateDecimalAmount + normalDecimalAmount;
+
+		var pcPrivate = totalDecimalAmount == 0M ? 1d : (double)(privateDecimalAmount / totalDecimalAmount);
+		return pcPrivate;
+	}
+
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
@@ -91,10 +135,7 @@ public class Wallet : BackgroundService
 
 	public bool IsLoggedIn { get; private set; }
 
-	public bool AllowManualCoinJoin { get; set; }
-
 	public Kitchen Kitchen { get; } = new();
-	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
@@ -111,6 +152,11 @@ public class Wallet : BackgroundService
 		{
 			IsLoggedIn = true;
 			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
+		}
+
+		if (IsLoggedIn && KeyChain is KeyChain keychain)
+		{
+			keychain.PreloadMasterKey();
 		}
 
 		return IsLoggedIn;
@@ -141,7 +187,7 @@ public class Wallet : BackgroundService
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 			FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, KeyManager.AnonScoreTarget);
+			TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold);
 			Coins = TransactionProcessor.Coins;
 
 			TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
@@ -171,7 +217,6 @@ public class Wallet : BackgroundService
 		try
 		{
 			State = WalletState.Starting;
-			InitializingChanged?.Invoke(this, true);
 
 			if (!Synchronizer.IsRunning)
 			{
@@ -197,10 +242,6 @@ public class Wallet : BackgroundService
 		{
 			State = WalletState.Initialized;
 			throw;
-		}
-		finally
-		{
-			InitializingChanged?.Invoke(this, false);
 		}
 	}
 
@@ -340,20 +381,18 @@ public class Wallet : BackgroundService
 
 			NewFilterProcessed?.Invoke(this, filterModel);
 
-			do
-			{
-				await Task.Delay(100).ConfigureAwait(false);
-				if (Synchronizer is null || BitcoinStore?.SmartHeaderChain is null)
-				{
-					return;
-				}
+			await Task.Delay(100).ConfigureAwait(false);
 
-				// Make sure fully synced and this filter is the latest filter.
-				if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModel.Header.BlockHash)
-				{
-					return;
-				}
-			} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
+			if (Synchronizer is null || BitcoinStore?.SmartHeaderChain is null)
+			{
+				return;
+			}
+
+			// Make sure fully synced and this filter is the latest filter.
+			if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModel.Header.BlockHash)
+			{
+				return;
+			}
 
 			var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
 
@@ -471,4 +510,16 @@ public class Wallet : BackgroundService
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 		return wallet;
 	}
+
+	public bool IsMixable =>
+		State == WalletState.Started // Only running wallets
+		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
+		&& Kitchen.HasIngredients;
+
+	public IKeyChain? KeyChain { get; }
+
+	public IDestinationProvider DestinationProvider { get; }
+	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
+	public bool ConsolidationMode => false;
+	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 }

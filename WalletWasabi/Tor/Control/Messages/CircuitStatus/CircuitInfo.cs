@@ -18,7 +18,7 @@ public record CircuitInfo
 		CircStatus = circStatus;
 	}
 
-	/// <summary>Unique circuit identifier</summary>
+	/// <summary>Unique circuit identifier.</summary>
 	/// <remarks>
 	/// Currently, Tor only uses digits, but this may change.
 	/// <para>String matches <c>^[a-zA-Z0-9]{1,16}$</c>.</para>

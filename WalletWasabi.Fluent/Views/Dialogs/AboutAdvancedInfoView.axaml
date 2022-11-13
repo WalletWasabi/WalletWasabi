@@ -8,40 +8,40 @@
              x:DataType="dialogs:AboutAdvancedInfoViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.AboutAdvancedInfoView">
-    <UserControl.Styles>
-        <Style Selector="TextBlock.Header">
-            <Setter Property="Margin" Value="0 4 0 0" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-        <Style Selector="TextBox.Content">
-            <Setter Property="Margin" Value="0 4 0 0" />
-        </Style>
-    </UserControl.Styles>
-    <controls:ContentArea Title="Advanced Information"
-                          EnableCancel="{Binding EnableCancel}"
-                          EnableBack="{Binding EnableBack}"
-                          EnableNext="True" NextContent="OK">
-        <StackPanel HorizontalAlignment="Center" Spacing="20">
-            <StackPanel>
-                <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
-                <TextBox Classes="Content selectableTextBlock" Text="{Binding BackendCompatibleVersions}" />
-            </StackPanel>
-            <StackPanel>
-                <TextBlock Classes="Header" Text="Current Coordinator Version" />
-                <TextBox Classes="Content selectableTextBlock" Text="{Binding CurrentBackendMajorVersion}" />
-            </StackPanel>
-            <StackPanel>
-                <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Version" />
-                <TextBox Classes="Content selectableTextBlock"
-                         Text="{Binding BitcoinCoreVersion}" />
-            </StackPanel>
-            <StackPanel>
-                <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version" />
-                <TextBox Classes="Content selectableTextBlock"
-                         Text="{Binding HwiVersion}" />
-            </StackPanel>
-        </StackPanel>
-    </controls:ContentArea>
+  <UserControl.Styles>
+    <Style Selector="TextBlock.Header">
+      <Setter Property="Margin" Value="0 4 0 0" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBox.Content">
+      <Setter Property="Margin" Value="0 4 0 0" />
+    </Style>
+  </UserControl.Styles>
+  <controls:ContentArea Title="Advanced Information"
+                        EnableCancel="{Binding EnableCancel}"
+                        EnableBack="{Binding EnableBack}"
+                        EnableNext="True" NextContent="OK">
+    <StackPanel HorizontalAlignment="Center" Spacing="20">
+      <StackPanel>
+        <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
+        <TextBox Classes="Content selectableTextBlock" Text="{Binding BackendCompatibleVersions}" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="Header" Text="Current Coordinator Version" />
+        <TextBox Classes="Content selectableTextBlock" Text="{Binding CurrentBackendMajorVersion}" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Version" />
+        <TextBox Classes="Content selectableTextBlock"
+                 Text="{Binding BitcoinCoreVersion}" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version" />
+        <TextBox Classes="Content selectableTextBlock"
+                 Text="{Binding HwiVersion}" />
+      </StackPanel>
+    </StackPanel>
+  </controls:ContentArea>
 
 </UserControl>

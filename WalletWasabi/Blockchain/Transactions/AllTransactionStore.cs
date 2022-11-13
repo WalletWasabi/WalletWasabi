@@ -8,12 +8,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-public class AllTransactionStore : IAsyncDisposable
+public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 {
 	public AllTransactionStore(string workFolderPath, Network network)
 	{
@@ -205,6 +206,7 @@ public class AllTransactionStore : IAsyncDisposable
 		}
 	}
 
+	/// <returns>Transactions ordered by blockchain.</returns>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		lock (Lock)
@@ -260,6 +262,7 @@ public class AllTransactionStore : IAsyncDisposable
 		}
 	}
 
+	/// <returns>Labels ordered by blockchain.</returns>
 	public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
 
 	#endregion Accessors

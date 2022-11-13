@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -13,7 +14,7 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInOneOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 1);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
@@ -31,7 +32,7 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInManyOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 3);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
@@ -50,7 +51,7 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInOneOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 1);
 		var smallestAnonset = 3;
 
@@ -70,7 +71,7 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInManyOwnOut()
 	{
-		var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 3);
 		var smallestAnonset = 3;
 

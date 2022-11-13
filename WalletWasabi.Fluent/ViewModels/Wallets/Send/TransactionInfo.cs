@@ -10,14 +10,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class TransactionInfo
 {
-	private readonly int _privateCoinThreshold;
-
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo(int anonScoreTarget)
+	public TransactionInfo(BitcoinAddress destination, int anonScoreTarget)
 	{
-		_privateCoinThreshold = anonScoreTarget;
+		Destination = destination;
+		PrivateCoinThreshold = anonScoreTarget;
 
 		this.WhenAnyValue(x => x.FeeRate)
 			.Subscribe(_ => OnFeeChanged());
@@ -26,9 +25,19 @@ public partial class TransactionInfo
 			.Subscribe(_ => OnCoinsChanged());
 	}
 
-	public Money Amount { get; set; } = Money.Zero;
+	public int PrivateCoinThreshold { get; }
 
-	public SmartLabel UserLabels { get; set; } = SmartLabel.Empty;
+	/// <summary>
+	/// In the case when InsufficientBalanceException happens, this amount should be
+	/// taken into account when selecting pockets.
+	/// </summary>
+	public Money MinimumRequiredAmount { get; set; } = Money.Zero;
+
+	public Money Amount { get; init; } = Money.Zero;
+
+	public BitcoinAddress Destination { get; init; }
+
+	public SmartLabel Recipient { get; set; } = SmartLabel.Empty;
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -42,31 +51,20 @@ public partial class TransactionInfo
 
 	public bool IsOptimized => ChangelessCoins.Any();
 
-	public bool IsPrivate => Coins.All(x => x.HdPubKey.AnonymitySet >= _privateCoinThreshold);
-
 	public bool IsCustomFeeUsed { get; set; }
 
 	public bool SubtractFee { get; set; }
 
-	public void Reset()
-	{
-		Amount = Money.Zero;
-		UserLabels = SmartLabel.Empty;
-		MaximumPossibleFeeRate = null;
-		ConfirmationTimeSpan = TimeSpan.Zero;
-		Coins = Enumerable.Empty<SmartCoin>();
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
-		SubtractFee = default;
+	public bool IsOtherPocketSelectionPossible { get; set; }
 
-		if (!IsCustomFeeUsed)
-		{
-			FeeRate = FeeRate.Zero;
-		}
-	}
+	public bool IsSelectedCoinModificationEnabled { get; set; } = true;
+
+	public bool IsFixedAmount { get; init; }
 
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		MinimumRequiredAmount = Money.Zero;
 	}
 
 	private void OnCoinsChanged()
@@ -76,18 +74,23 @@ public partial class TransactionInfo
 
 	public TransactionInfo Clone()
 	{
-		return new TransactionInfo(_privateCoinThreshold)
+		return new TransactionInfo(Destination, PrivateCoinThreshold)
 		{
-			Amount = Amount,
-			ChangelessCoins = ChangelessCoins,
-			Coins = Coins,
-			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			FeeRate = FeeRate,
-			IsCustomFeeUsed = IsCustomFeeUsed,
+			Coins = Coins,
+			MinimumRequiredAmount = MinimumRequiredAmount,
+			Amount = Amount,
+			Destination = Destination,
+			Recipient = Recipient,
 			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
+			ConfirmationTimeSpan = ConfirmationTimeSpan,
+			ChangelessCoins = ChangelessCoins,
 			PayJoinClient = PayJoinClient,
+			IsCustomFeeUsed = IsCustomFeeUsed,
 			SubtractFee = SubtractFee,
-			UserLabels = UserLabels
+			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible,
+			IsSelectedCoinModificationEnabled = IsSelectedCoinModificationEnabled,
+			IsFixedAmount = IsFixedAmount
 		};
 	}
 }

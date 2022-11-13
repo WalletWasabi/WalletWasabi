@@ -12,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// An UTXO that knows more.
 /// </summary>
 [DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
-public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination
+public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ICoinable
 {
 	private Height _height;
 	private SmartTransaction? _spenderTransaction;
@@ -39,23 +39,23 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 		_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
 		_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
-		_coin = new Lazy<Coin>(() => new Coin(OutPoint, TxOut), true);
+		_coin = new Lazy<Coin>(() => new Coin(Outpoint, TxOut), true);
 
-		_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+		_hashCode = new Lazy<int>(() => Outpoint.GetHashCode(), true);
 
 		_height = transaction.Height;
 		_confirmed = _height.Type == HeightType.Chain;
 
 		HdPubKey = pubKey;
 
-		Transaction.WalletOutputs.Add(this);
+		Transaction.TryAddWalletOutput(this);
 	}
 
 	public SmartTransaction Transaction { get; }
 	public uint Index { get; }
 	public uint256 TransactionId => _transactionId.Value;
 
-	public OutPoint OutPoint => _outPoint.Value;
+	public OutPoint Outpoint => _outPoint.Value;
 	public TxOut TxOut => _txOut.Value;
 	public Coin Coin => _coin.Value;
 
@@ -77,11 +77,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public SmartTransaction? SpenderTransaction
 	{
 		get => _spenderTransaction;
-		set
-		{
-			value?.WalletInputs.Add(this);
-			RaiseAndSetIfChanged(ref _spenderTransaction, value);
-		}
+		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
 	}
 
 	public bool RegisterToHdPubKey()
@@ -101,10 +97,9 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _bannedUntilUtc;
 		set
 		{
-			// ToDo: IsBanned does not get notified when it gets unbanned.
 			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
 			{
-				SetIsBanned();
+				RefreshAndGetIsBanned();
 			}
 		}
 	}
@@ -136,9 +131,12 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		private set => RaiseAndSetIfChanged(ref _confirmed, value);
 	}
 
+	/// <summary>
+	/// If you want to have a notification about a coin is released, then you have to periodically read IsBanned.
+	/// </summary>
 	public bool IsBanned
 	{
-		get => _isBanned;
+		get => RefreshAndGetIsBanned();
 		private set => RaiseAndSetIfChanged(ref _isBanned, value);
 	}
 
@@ -147,9 +145,18 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
 	}
 
-	public void SetIsBanned()
+	public bool RefreshAndGetIsBanned()
 	{
-		IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
+		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
+		{
+			IsBanned = true;
+			return true;
+		}
+
+		IsBanned = false;
+		BannedUntilUtc = null;
+
+		return false;
 	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]

@@ -14,7 +14,7 @@ internal class PrivacyTextCell : ICell
 
 	public string? Value { get; }
 
-	public int NumberOfPrivacyChars { get;  }
+	public int NumberOfPrivacyChars { get; }
 
 	object? ICell.Value => Value;
 }

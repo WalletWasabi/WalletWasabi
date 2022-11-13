@@ -1,71 +1,57 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Crypto;
 using WalletWasabi.Wallets;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class KeyChain : IKeyChain
+public class KeyChain : BaseKeyChain
 {
-	public KeyChain(KeyManager keyManager, Kitchen kitchen)
+	public KeyChain(KeyManager keyManager, Kitchen kitchen) : base(kitchen)
 	{
 		if (keyManager.IsWatchOnly)
 		{
 			throw new ArgumentException("A watch-only keymanager cannot be used to initialize a keychain.");
 		}
 		KeyManager = keyManager;
-		Kitchen = kitchen;
 	}
 
-	public KeyManager KeyManager { get; }
-	private Kitchen Kitchen { get; }
+	private KeyManager KeyManager { get; }
+	private ExtKey? MasterKey { get; set; }
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
+	[MemberNotNull(nameof(MasterKey))]
+	public void PreloadMasterKey()
 	{
-		var secret = GetBitcoinSecret(destination.ScriptPubKey);
-
-		var masterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
-		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
-		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
-
-		var signingKey = secret.PrivateKey;
-		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
-				signingKey,
-				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
-				commitmentData);
-		return ownershipProof;
+		MasterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup());
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
+	protected override Key GetMasterKey()
 	{
-		transaction = transaction.Clone();
-		if (transaction.Inputs.Count == 0)
+		if (MasterKey is null)
 		{
-			throw new ArgumentException("No inputs to sign.", nameof(transaction));
+			PreloadMasterKey();
 		}
-
-		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
-
-		if (txInput is null)
-		{
-			throw new InvalidOperationException("Missing input.");
-		}
-
-		var secret = GetBitcoinSecret(coin.ScriptPubKey);
-
-		transaction.Sign(secret, coin);
-		return transaction;
+		return MasterKey.PrivateKey;
 	}
 
-	private BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
+	public override void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	{
+		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
+		{
+			hdPubKey.SetKeyState(state);
+		}
+	}
+
+	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
 		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
 		if (hdKey is null)
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
 		}
-		if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != scriptPubKey)
+		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
 		{
 			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 		}

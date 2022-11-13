@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;

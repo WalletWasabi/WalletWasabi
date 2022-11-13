@@ -4,7 +4,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
-[NavigationMetaData(Title = "Privacy Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
+[NavigationMetaData(Title = "Discreet Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
 public partial class PrivacyModeViewModel : NavBarItemViewModel
 {
 	[AutoNotify] private bool _privacyMode;
@@ -38,6 +38,6 @@ public partial class PrivacyModeViewModel : NavBarItemViewModel
 
 	private void ToggleTitle()
 	{
-		Title = $"Privacy Mode {(_privacyMode ? "(On)" : "(Off)")}";
+		Title = $"Discreet Mode {(_privacyMode ? "(On)" : "(Off)")}";
 	}
 }

@@ -129,7 +129,7 @@ public class HybridFeeProvider : IHostedService
 				var accuracy = fees.IsAccurate ? "Accurate" : "Inaccurate";
 				var from = fees.Estimations.First();
 				var to = fees.Estimations.Last();
-				Logger.LogInfo($"{accuracy} fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} at {from.Value} sat/b to target {to.Key} at {to.Value} sat/b.");
+				Logger.LogInfo($"{accuracy} fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} at {from.Value} sat/vByte to target {to.Key} at {to.Value} sat/vByte.");
 				AllFeeEstimateChanged?.Invoke(this, fees);
 			}
 		}

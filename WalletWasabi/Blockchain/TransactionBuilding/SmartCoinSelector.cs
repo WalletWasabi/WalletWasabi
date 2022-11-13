@@ -5,26 +5,46 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins)
 	{
-		UnspentCoins = unspentCoins.Distinct();
+		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private IEnumerable<SmartCoin> UnspentCoins { get; }
+	private List<SmartCoin> UnspentCoins { get; }
+	private int IterationCount { get; set; }
 
-	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
+	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
+	/// <param name="target">Only <see cref="Money"/> type is really supported by this implementation.</param>
+	/// <remarks>Do not call this method repeatedly on a single <see cref="SmartCoinSelector"/> instance.</remarks>
+	public IEnumerable<ICoin> Select(IEnumerable<ICoin> suggestion, IMoney target)
 	{
-		var targetMoney = target as Money;
+		var targetMoney = (Money)target;
 
 		long available = UnspentCoins.Sum(x => x.Amount);
 		if (available < targetMoney)
 		{
 			throw new InsufficientBalanceException(targetMoney, available);
+		}
+
+		if (IterationCount > 500)
+		{
+			throw new TimeoutException("Coin selection timed out.");
+		}
+
+		// The first iteration should never take suggested coins into account .
+		if (IterationCount > 0)
+		{
+			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
+			if (suggestedSum < targetMoney)
+			{
+				throw new TransactionSizeException(targetMoney, suggestedSum);
+			}
 		}
 
 		// Get unique clusters.
@@ -33,12 +53,14 @@ public class SmartCoinSelector : ICoinSelector
 			.Distinct();
 
 		// Build all the possible coin clusters, except when it's computationally too expensive.
-		List<IEnumerable<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
+		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 			? uniqueClusters
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster)))
+				.Select(clusterCombination => UnspentCoins
+					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
+					.ToList())
 				.ToList()
-			: new List<IEnumerable<SmartCoin>>();
+			: new List<List<SmartCoin>>();
 
 		coinClusters.Add(UnspentCoins);
 
@@ -80,6 +102,8 @@ public class SmartCoinSelector : ICoinSelector
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
 			.OrderBy(x => x.Coins.Count());
+
+		IterationCount++;
 
 		// Select the best solution.
 		return candidates.First().Coins.Select(x => x.Coin);

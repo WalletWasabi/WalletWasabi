@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -7,14 +9,17 @@ using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Fluent.AppServices.Tor;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
-public partial class StatusIconViewModel : IDisposable
+public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 {
 	[AutoNotify] private StatusIconState _currentState;
 	[AutoNotify] private TorStatus _torStatus;
@@ -23,17 +28,27 @@ public partial class StatusIconViewModel : IDisposable
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _updateAvailable;
 	[AutoNotify] private bool _criticalUpdateAvailable;
+	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private string? _versionText;
+	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
-	public StatusIconViewModel()
+	public StatusIconViewModel(TorStatusCheckerWrapper statusCheckerWrapper)
 	{
 		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
 
-		UpdateCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		UpdateCommand = ReactiveCommand.Create(() =>
+		{
+			Services.UpdateManager.DoUpdateOnClose = true;
+			AppLifetimeHelper.Shutdown();
+		});
+
 		AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
+
+		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
 
 		this.WhenAnyValue(
 				x => x.TorStatus,
@@ -54,9 +69,23 @@ public partial class StatusIconViewModel : IDisposable
 
 				SetStatusIconState();
 			});
+
+		var issues = statusCheckerWrapper.Issues
+			.Select(r => r.Where(issue => !issue.Resolved).ToList())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Publish();
+
+		_torIssues = issues
+			.ToProperty(this, m => m.TorIssues);
+
+		issues.Connect();
 	}
 
+	public ICollection<Issue> TorIssues => _torIssues.Value;
+	public ICommand OpenTorStatusSiteCommand { get; }
+
 	public ICommand UpdateCommand { get; }
+	public ICommand ManualUpdateCommand { get; }
 
 	public ICommand AskMeLaterCommand { get; }
 
@@ -107,6 +136,7 @@ public partial class StatusIconViewModel : IDisposable
 		var synchronizer = Services.Synchronizer;
 		var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
 		var updateChecker = Services.HostedServices.Get<UpdateChecker>();
+		var updateManager = Services.UpdateManager;
 
 		BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
 
@@ -124,7 +154,7 @@ public partial class StatusIconViewModel : IDisposable
 			.Subscribe(_ =>
 			{
 				if (BackendStatus == BackendStatus.Connected) // TODO: the event invoke must be refactored in Synchronizer
-					{
+				{
 					return;
 				}
 
@@ -149,7 +179,7 @@ public partial class StatusIconViewModel : IDisposable
 				.DisposeWith(Disposables);
 		}
 
-		Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
+		Observable.FromEventPattern<UpdateStatus>(updateManager, nameof(updateManager.UpdateAvailableToGet))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(e =>
 			{
@@ -157,10 +187,15 @@ public partial class StatusIconViewModel : IDisposable
 
 				UpdateAvailable = !updateStatus.ClientUpToDate;
 				CriticalUpdateAvailable = !updateStatus.BackendCompatible;
+				IsReadyToInstall = updateStatus.IsReadyToInstall;
 
 				if (CriticalUpdateAvailable)
 				{
 					VersionText = $"Critical update required";
+				}
+				else if (IsReadyToInstall)
+				{
+					VersionText = $"Version {updateStatus.ClientVersion} is now ready to install";
 				}
 				else if (UpdateAvailable)
 				{

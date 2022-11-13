@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization;
 
 public class MultipartyTransactionStateJsonConverter : GenericInterfaceJsonConverter<MultipartyTransactionState>
 {
-	public MultipartyTransactionStateJsonConverter() : base(new [] { typeof(ConstructionState), typeof(SigningState) })
+	public MultipartyTransactionStateJsonConverter() : base(new[] { typeof(ConstructionState), typeof(SigningState) })
 	{
 	}
 }

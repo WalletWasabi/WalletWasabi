@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class StoppedEventArgs : StatusChangedEventArgs
 {
-	public StoppedEventArgs(Wallet wallet, StopReason reason)
+	public StoppedEventArgs(IWallet wallet, StopReason reason)
 		: base(wallet)
 	{
 		Reason = reason;

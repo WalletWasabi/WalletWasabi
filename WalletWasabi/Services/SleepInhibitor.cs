@@ -56,6 +56,12 @@ public class SleepInhibitor : PeriodicRunner
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
+			// Windows 7 does not support the API we use.
+			if (Environment.OSVersion.Version.Major < 10)
+			{
+				return null;
+			}
+
 			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(WindowsPowerAvailabilityTask.Create(Reason));
 		}
 

@@ -1,6 +1,5 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="using:WalletWasabi.Fluent.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
@@ -13,9 +12,7 @@
         x:Name="MainWindow"
         x:CompileBindings="True"
         MinWidth="720" MinHeight="480"
-        Width="{Binding WindowWidth, Mode=TwoWay}"
-        Height="{Binding WindowHeight, Mode=TwoWay}"
-        WindowStartupLocation="Manual"
+        WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaTitleBarHeightHint="50"
@@ -23,6 +20,7 @@
         ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}"
+        Focusable="{Binding SearchBar.IsSearchListVisible}"
         Icon="/Assets/WasabiLogo.ico">
   <Window.Styles>
     <Style Selector="TitleBar">
@@ -32,7 +30,6 @@
   <i:Interaction.Behaviors>
     <behaviors:RegisterNotificationHostBehavior />
     <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Key1="LeftCtrl" Key2="D" Key3="C" />
-    <behaviors:MainWindowBindPositionBehavior />
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">

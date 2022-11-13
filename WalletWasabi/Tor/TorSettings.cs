@@ -12,7 +12,7 @@ namespace WalletWasabi.Tor;
 public class TorSettings
 {
 	/// <summary>Tor binary file name without extension.</summary>
-	public const string TorBinaryFileName = "tor";
+	private const string TorBinaryFileName = "tor";
 
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
@@ -57,10 +57,10 @@ public class TorSettings
 	public string CookieAuthFilePath { get; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
-	public IPEndPoint SocksEndpoint { get; } = new(IPAddress.Loopback, 37150);
+	public EndPoint SocksEndpoint { get; } = new IPEndPoint(IPAddress.Loopback, 37150);
 
 	/// <summary>Tor control endpoint.</summary>
-	public IPEndPoint ControlEndpoint { get; } = new(IPAddress.Loopback, 37151);
+	public EndPoint ControlEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 37151);
 
 	private string GeoIpPath { get; }
 	private string GeoIp6Path { get; }
@@ -74,15 +74,33 @@ public class TorSettings
 		return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
 	}
 
+	/// <returns>Tor binary file name for selected <paramref name="platform"/>.</returns>
+	public static string GetTorBinaryFileName(OSPlatform? platform = null)
+	{
+		platform ??= MicroserviceHelpers.GetCurrentPlatform();
+		return platform == OSPlatform.OSX ? $"{TorBinaryFileName}.real" : TorBinaryFileName;
+	}
+
+	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>
+	/// <seealso href="https://github.com/torproject/tor/blob/22cb4c23d0d23dfda2c91817bac74a01831f94af/doc/man/tor.1.txt#L1298-L1305">
+	/// Explains <c>MaxCircuitDirtiness</c> parameter which is affected by the <c>KeepAliveIsolateSOCKSAuth</c> flag.
+	/// </seealso>
 	public string GetCmdArguments()
 	{
+		if (!ControlEndpoint.TryGetPort(out int? port))
+		{
+			port = 9051; // Standard port for Tor control.
+		}
+
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = new()
 		{
 			$"--LogTimeGranularity 1",
-			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors\"",
+			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
+			$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
+			$"--SocksTimeout 30", // Default is 2 minutes.
 			$"--CookieAuthentication 1",
-			$"--ControlPort {ControlEndpoint.Port}",
+			$"--ControlPort {port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
 			$"--GeoIPFile \"{GeoIpPath}\"",

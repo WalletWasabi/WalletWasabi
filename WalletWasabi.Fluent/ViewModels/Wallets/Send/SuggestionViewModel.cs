@@ -1,5 +1,5 @@
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public abstract  class SuggestionViewModel : ViewModelBase
+public abstract class SuggestionViewModel : ViewModelBase
 {
 }

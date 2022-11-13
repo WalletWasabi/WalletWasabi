@@ -367,8 +367,8 @@ public class TagsBox : TemplatedControl
 		var typedFullText = autoCompleteBox.SearchText + e.Text;
 
 		if (!_isInputEnabled ||
-			(typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
-			string.IsNullOrEmpty(typedFullText.ParseLabel()))
+		    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
+		    string.IsNullOrEmpty(typedFullText.ParseLabel()))
 		{
 			e.Handled = true;
 			return;
@@ -377,11 +377,11 @@ public class TagsBox : TemplatedControl
 		var suggestions = Suggestions?.ToArray();
 
 		if (RestrictInputToSuggestions &&
-			suggestions is { } &&
-			!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
+		    suggestions is { } &&
+		    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 		{
 			if (!typedFullText.EndsWith(TagSeparator) ||
-				(typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
+			    (typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
 			{
 				e.Handled = true;
 				return;

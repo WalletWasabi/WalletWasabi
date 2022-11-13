@@ -15,7 +15,8 @@ public class SoftwareController : ControllerBase
 	{
 		ClientVersion = Constants.ClientVersion.ToString(3),
 		BackendMajorVersion = Constants.BackendMajorVersion,
-		LegalDocumentsVersion = Constants.LegalDocumentsVersion.ToString()
+		Ww1LegalDocumentsVersion = Constants.Ww1LegalDocumentsVersion.ToString(),
+		Ww2LegalDocumentsVersion = Constants.Ww2LegalDocumentsVersion.ToString()
 	};
 
 	/// <summary>

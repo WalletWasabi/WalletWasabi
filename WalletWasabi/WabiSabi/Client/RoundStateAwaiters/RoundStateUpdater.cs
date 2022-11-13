@@ -20,7 +20,7 @@ public class RoundStateUpdater : PeriodicRunner
 	}
 
 	private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-	private ImmutableDictionary<uint256, RoundState> RoundStates { get; set; } = ImmutableDictionary.Create<uint256, RoundState>();
+	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
 	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private List<RoundStateAwaiter> Awaiters { get; } = new();
@@ -28,17 +28,35 @@ public class RoundStateUpdater : PeriodicRunner
 
 	public bool AnyRound => RoundStates.Any();
 
+	public bool SlowRequestsMode { get; set; } = true;
+
+	private DateTimeOffset LastSuccessfulRequestTime { get; set; }
+
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		if (SlowRequestsMode)
+		{
+			lock (AwaitersLock)
+			{
+				if (Awaiters.Count == 0 && DateTimeOffset.UtcNow - LastSuccessfulRequestTime < TimeSpan.FromMinutes(5))
+				{
+					return;
+				}
+			}
+		}
+
 		var request = new RoundStateRequest(
 			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
-		var response = await ArenaRequestHandler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
-		RoundState[] statusResponse = response.RoundStates;
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(30));
+		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+		var response = await ArenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
+		RoundState[] roundStates = response.RoundStates;
 
 		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
 
-		var updatedRoundStates = statusResponse
+		var updatedRoundStates = roundStates
 			.Where(rs => RoundStates.ContainsKey(rs.Id))
 			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
 			.Select(
@@ -48,10 +66,12 @@ public class RoundStateUpdater : PeriodicRunner
 			})
 			.ToList();
 
-		var newRoundStates = statusResponse
+		var newRoundStates = roundStates
 			.Where(rs => !RoundStates.ContainsKey(rs.Id));
 
-		RoundStates = newRoundStates.Concat(updatedRoundStates).ToImmutableDictionary(x => x.Id, x => x);
+		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
+		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
+		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
 		lock (AwaitersLock)
 		{
@@ -62,6 +82,8 @@ public class RoundStateUpdater : PeriodicRunner
 				break;
 			}
 		}
+
+		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
 	}
 
 	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
@@ -100,6 +122,9 @@ public class RoundStateUpdater : PeriodicRunner
 		return CreateRoundAwaiter(null, phase, null, cancellationToken);
 	}
 
+	/// <summary>
+	/// This might not contain up-to-date states. Make sure it is updated.
+	/// </summary>
 	public bool TryGetRoundState(uint256 roundId, [NotNullWhen(true)] out RoundState? roundState)
 	{
 		return RoundStates.TryGetValue(roundId, out roundState);

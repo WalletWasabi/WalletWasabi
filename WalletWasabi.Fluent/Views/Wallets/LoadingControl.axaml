@@ -19,58 +19,63 @@
       </StackPanel>
     </controls:ContentArea.Title>
 
-    <DockPanel Margin="0 0 0 30">
-      <DockPanel.Styles>
-        <Style Selector="DockPanel.small > Panel#WorldMap">
-          <Setter Property="IsVisible" Value="False" />
-        </Style>
-      </DockPanel.Styles>
-
+    <Panel>
       <i:Interaction.Behaviors>
         <ir:AdaptiveBehavior>
-          <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="350" ClassName="small" />
+          <ir:AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
-      <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-        <TextBlock Text="Downloading and processing Bitcoin network data" TextAlignment="Center" FontSize="22"
-                   DockPanel.Dock="Bottom" />
-        <TextBlock
-          Text="Wasabi does this without any third party knowing about your balance and financial activity."
-          TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+      <DockPanel VerticalAlignment="Center">
+        <DockPanel.Styles>
+          <Style Selector="Panel#WorldMap.small">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
+        </DockPanel.Styles>
 
-        <TextBlock
-          Text="This process may take some time depending on the size of your wallet."
-          TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+        <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+          <TextBlock Text="Downloading and processing Bitcoin network data" TextAlignment="Center" FontSize="22"
+                     DockPanel.Dock="Bottom" />
+          <TextBlock
+            Text="Wasabi does this without any third party knowing about your balance and financial activity."
+            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
-        <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
-        <TextBlock Text="{Binding StatusText, StringFormat={}{0}⠀}" TextAlignment="Center" Opacity="0.6" />
-      </StackPanel>
+          <TextBlock
+            Text="This process may take some time depending on the size of your wallet."
+            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
-      <Panel Margin="80 40" x:Name="WorldMap">
-        <Viewbox>
-          <Viewbox.Styles>
-            <Style Selector=":is(Control).City">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="Transitions">
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
-                </Transitions>
-              </Setter>
-            </Style>
-          </Viewbox.Styles>
-          <Canvas Width="1042" Height="474" Name="WorldCanvas">
-            <i:Interaction.Behaviors>
-              <behaviors:RandomizedWorldPointsBehavior />
-            </i:Interaction.Behaviors>
-            <Image Source="{StaticResource loading_control_world_map}" />
-            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-            <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-          </Canvas>
-        </Viewbox>
-      </Panel>
-    </DockPanel>
+          <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
+          <TextBlock Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6" />
+        </StackPanel>
+
+        <Panel x:Name="WorldMap" Margin="20">
+          <Viewbox>
+            <Viewbox.Styles>
+              <Style Selector=":is(Control).City">
+                <Setter Property="Opacity" Value="0" />
+                <Setter Property="Transitions">
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
+                  </Transitions>
+                </Setter>
+              </Style>
+            </Viewbox.Styles>
+            <Canvas Width="1042" Height="474" Name="WorldCanvas">
+              <i:Interaction.Behaviors>
+                <behaviors:RandomizedWorldPointsBehavior />
+              </i:Interaction.Behaviors>
+              <Image Source="{StaticResource loading_control_world_map}" />
+              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
+            </Canvas>
+          </Viewbox>
+        </Panel>
+
+      </DockPanel>
+
+    </Panel>
+
   </controls:ContentArea>
 </UserControl>

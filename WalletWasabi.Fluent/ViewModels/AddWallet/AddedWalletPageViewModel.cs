@@ -5,7 +5,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -37,7 +36,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 
 		var navBar = NavigationManager.Get<NavBarViewModel>();
 
-		var wallet = navBar?.Items.OfType<WalletViewModelBase>().FirstOrDefault(x => x.WalletName == WalletName);
+		var wallet = navBar?.Wallets.FirstOrDefault(x => x.WalletName == WalletName);
 
 		if (wallet is { } && navBar is { })
 		{

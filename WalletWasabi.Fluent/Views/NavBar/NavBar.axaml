@@ -13,6 +13,7 @@
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False"
              Name="NavBarUserControl">
+
   <i:Interaction.Behaviors>
     <behaviors:NavBarSelectedIndicatorParentBehavior />
   </i:Interaction.Behaviors>
@@ -53,7 +54,7 @@
       <Setter Property="Fill" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Width" Value="8" />
       <Setter Property="Height" Value="8" />
-      <Setter Property="Margin" Value="6" />
+      <Setter Property="Margin" Value="0,-5,-5,0" />
       <Setter Property="VerticalAlignment" Value="Top" />
       <Setter Property="HorizontalAlignment" Value="Right" />
       <Setter Property="Opacity" Value="0" />
@@ -82,11 +83,14 @@
       <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
     </Style>
 
+    <Style Selector="c|NavBarItem" x:DataType="vm:NavBarItemViewModel">
+      <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
+    </Style>
 
     <Style Selector="c|NavBarItem :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(1)" />
-       <Setter Property="Opacity" Value="1" />
-      <Setter Property="Margin" Value="-8, 0" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Margin" Value="-9, 0" />
       <Setter Property="Transitions">
         <Transitions>
           <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:0.175" />
@@ -98,7 +102,7 @@
     <Style Selector=":is(Panel).NavBarItemPanel DockPanel TextBlock">
       <Setter Property="TextAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeH9}" />
-     </Style>
+    </Style>
 
     <Style Selector="c|NavBarItem:selected :is(Panel).NavBarItemPanel DockPanel LayoutTransformControl">
       <Setter Property="LayoutTransform" Value="scaleY(0)" />
@@ -112,8 +116,8 @@
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
-
   </UserControl.Styles>
+
   <DockPanel Margin="0 -5 0 5">
     <DockPanel Background="Transparent" DockPanel.Dock="Bottom">
       <c:NavBarListBox Items="{Binding BottomItems}"
@@ -128,7 +132,7 @@
         </c:NavBarListBox.ItemsPanel>
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel Classes="NavBarItemPanel utilities" ToolTip.Tip="{Binding Title}" ToolTip.Placement="Right"
+            <Panel Classes="NavBarItemPanel utilities"
                    Cursor="Hand">
               <DockPanel>
                 <LayoutTransformControl DockPanel.Dock="Bottom">
@@ -146,12 +150,14 @@
     <DockPanel Background="Transparent">
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       ReSelectSelectedItem="False"
                        Name="ItemsListBox"
-                       Classes="vertical draggable narrowItemPadding"
+                       Classes="vertical narrowItemPadding"
+                       VirtualizationMode="None"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}" Cursor="Hand">
+            <Panel Classes="NavBarItemPanel wallets" ToolTip.Tip="{Binding Title}" Cursor="Hand" ClipToBounds="False">
               <Ellipse Classes.isLoading="{Binding IsLoading}"
                        Classes.isLoggedIn="{Binding IsLoggedIn}"
                        Classes.isCoinjoining="{Binding IsCoinJoining}" />

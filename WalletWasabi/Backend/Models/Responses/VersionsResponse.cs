@@ -10,5 +10,8 @@ public class VersionsResponse
 	[JsonProperty(PropertyName = "BackenMajordVersion")]
 	public string BackendMajorVersion { get; set; }
 
-	public string LegalDocumentsVersion { get; set; }
+	[JsonProperty(PropertyName = "LegalDocumentsVersion")]
+	public string Ww1LegalDocumentsVersion { get; set; }
+
+	public string Ww2LegalDocumentsVersion { get; set; }
 }

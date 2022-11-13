@@ -14,11 +14,20 @@ internal class HorizontalScrollViewerBehavior : Behavior<ScrollViewer>
 		Page
 	}
 
+	public static readonly StyledProperty<bool> IsEnabledProperty =
+		AvaloniaProperty.Register<HorizontalScrollViewerBehavior, bool>(nameof(IsEnabled), true);
+
 	public static readonly StyledProperty<bool> RequireShiftKeyProperty =
 		AvaloniaProperty.Register<HorizontalScrollViewerBehavior, bool>(nameof(RequireShiftKey));
 
 	public static readonly StyledProperty<ChangeSize> ScrollChangeSizeProperty =
 		AvaloniaProperty.Register<HorizontalScrollViewerBehavior, ChangeSize>(nameof(ScrollChangeSize));
+
+	public bool IsEnabled
+	{
+		get => GetValue(IsEnabledProperty);
+		set => SetValue(IsEnabledProperty, value);
+	}
 
 	public bool RequireShiftKey
 	{
@@ -48,6 +57,12 @@ internal class HorizontalScrollViewerBehavior : Behavior<ScrollViewer>
 
 	private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
 	{
+		if (!IsEnabled)
+		{
+			e.Handled = true;
+			return;
+		}
+
 		if (RequireShiftKey && e.KeyModifiers == KeyModifiers.Shift || !RequireShiftKey)
 		{
 			if (e.Delta.Y < 0)

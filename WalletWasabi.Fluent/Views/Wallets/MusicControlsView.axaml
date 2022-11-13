@@ -3,8 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
-             x:DataType="wallets:MusicControlsViewModel"
+             Background="Transparent"
+             IsPointerOver="{Binding IsPointerOver, Mode=OneWayToSource}"
+             x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicControlsView">
@@ -31,16 +32,21 @@
     </Style>
   </UserControl.Styles>
   <Border Name="PART_MainBorder" Margin="3 3 3 0"
-          Classes.IsActive="{Binding IsActive, FallbackValue=false}"
+          Classes.IsActive="{Binding IsMusicBoxVisible^}"
           TextBlock.FontFamily="{StaticResource MonospacedFont}"
           CornerRadius="4 4 0 0">
     <Border ClipToBounds="True"
             CornerRadius="4 4 0 0"
             BorderBrush="{DynamicResource GlassEdgeColor}"
             BorderThickness="1,1,1,0">
-      <Panel DataContext="{Binding CurrentWallet.CoinJoinStateViewModel}">
+      <Panel DataContext="{Binding CoinJoinStateViewModel}">
         <Panel Background="{DynamicResource TileRegionColor}" Opacity="0.35" />
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
+          <StackPanel.Styles>
+            <Style Selector="Button:disabled PathIcon">
+              <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+            </Style>
+          </StackPanel.Styles>
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
           <StackPanel Spacing="5">
             <TransitioningContentControl MinWidth="350" MaxWidth="350" MinHeight="18" Content="{Binding CurrentStatus}">
@@ -63,18 +69,22 @@
               </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
 
-            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}" Foreground="White" />
+            <ProgressBar Minimum="0" Maximum="100" IsIndeterminate="{Binding IsCountDownDelayHappening}" Value="{Binding ProgressValue}">
+              <ProgressBar.Foreground>
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" />
+              </ProgressBar.Foreground>
+              <ProgressBar.Background>
+                <SolidColorBrush Color="{DynamicResource SystemBaseMediumColor}" Opacity="0.5" />
+              </ProgressBar.Background>
+            </ProgressBar>
 
-          <DockPanel LastChildFill="False">
-            <TextBlock Text="{Binding ElapsedTime}" />
-            <controls:PrivacyContentControl
-              Content="{Binding RemainingTime}"
-              DockPanel.Dock="Right"
-              ForceShow="{Binding !IsBalanceDisplayed}" />
-          </DockPanel>
-        </StackPanel>
+            <DockPanel LastChildFill="False">
+              <TextBlock Text="{Binding ElapsedTime}" />
+              <TextBlock Text="{Binding RemainingTime}" DockPanel.Dock="Right" />
+            </DockPanel>
+          </StackPanel>
 
-        <Separator Classes="vertical" />
+          <Separator Classes="vertical" />
 
           <Button Classes="plain"
                   IsVisible="{Binding PlayVisible}"
@@ -84,32 +94,32 @@
 
           <Button Classes="plain"
                   IsVisible="{Binding PauseVisible}"
-                  Command="{Binding PauseCommand}">
+                  Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
 
           <Button Classes="plain"
                   IsVisible="{Binding StopVisible}"
-                  Command="{Binding StopCommand}">
+                  Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource stop_regular}" />
           </Button>
 
           <Ellipse Height="12" Width="12"
-                   Classes.disabled="{Binding !IsAuto}"
+                   Classes.disabled="{Binding !AutoCoinJoinObservable^}"
                    Classes.waiting="{Binding IsAutoWaiting}">
             <Ellipse.Styles>
               <Style Selector="Ellipse">
                 <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-                <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Enabled" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin enabled" />
               </Style>
               <Style Selector="Ellipse.waiting">
                 <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
                 <Setter Property="ToolTip.Tip"
-                        Value="Automatic Coinjoin Enabled. Press Play to start immediately." />
+                        Value="Auto-start coinjoin enabled. Press Play to start immediately." />
               </Style>
               <Style Selector="Ellipse.disabled">
-                <Setter Property="Fill" Value="#7FFFFFFF" />
-                <Setter Property="ToolTip.Tip" Value="Automatic Coinjoin Disabled" />
+                <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin disabled" />
               </Style>
             </Ellipse.Styles>
           </Ellipse>

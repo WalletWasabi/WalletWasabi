@@ -34,10 +34,27 @@
       <TextBlock Text="Auto paste addresses" />
       <ToggleSwitch IsChecked="{Binding AutoPaste}" />
     </DockPanel>
-
+    <!-- Temporarily remove from settings view for release
+    TODO: Make Custom change address active/implement.
     <DockPanel>
       <TextBlock VerticalAlignment="Center" Text="Custom change address" />
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
+    </DockPanel>
+    -->
+
+    <DockPanel>
+      <TextBlock Text="Network anonymization (Tor)" />
+      <ToggleSwitch IsChecked="{Binding UseTor}" />
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding UseTor}">
+      <TextBlock Text="Terminate Tor when Wasabi shuts down" />
+      <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Auto download new version" />
+      <ToggleSwitch IsChecked="{Binding DownloadNewVersion}" />
     </DockPanel>
 
     <StackPanel Spacing="10">

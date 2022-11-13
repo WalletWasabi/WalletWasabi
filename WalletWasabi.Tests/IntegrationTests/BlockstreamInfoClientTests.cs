@@ -31,8 +31,8 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		ClearnetHttpClientFactory.Dispose();
-		TorHttpClientFactory.Dispose();
+		await ClearnetHttpClientFactory.DisposeAsync();
+		await TorHttpClientFactory.DisposeAsync();
 		await TorManager.DisposeAsync();
 	}
 

@@ -15,7 +15,7 @@ namespace WalletWasabi.Tor.Http.Extensions;
 
 public static class HttpResponseMessageExtensions
 {
-	public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken = default)
+	public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3
 		// The normal procedure for parsing an HTTP message is to read the
@@ -59,7 +59,19 @@ public static class HttpResponseMessageExtensions
 		return response;
 	}
 
-	public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
+	public static async Task ThrowUnwrapExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken)
+	{
+		try
+		{
+			await me.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception e) when (e.InnerException is { } innerException)
+		{
+			throw innerException;
+		}
+	}
+
+	public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken)
 	{
 		var errorMessage = "";
 

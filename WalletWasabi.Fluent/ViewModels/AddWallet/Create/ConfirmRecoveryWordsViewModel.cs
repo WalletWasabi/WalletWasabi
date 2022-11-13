@@ -10,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -21,11 +22,17 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 	[AutoNotify] private bool _isSkipEnable;
 
-	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager)
+	public ConfirmRecoveryWordsViewModel(
+		List<RecoveryWordViewModel> mnemonicWords,
+		Mnemonic mnemonic,
+		string walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+#if RELEASE
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
-
+#else
+		_isSkipEnable = true;
+#endif
 		var nextCommandCanExecute =
 			_confirmationWordsSourceList
 			.Connect()
@@ -35,7 +42,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(keyManager), nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(mnemonic, walletName), nextCommandCanExecute);
 
 		if (_isSkipEnable)
 		{
@@ -58,9 +65,30 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-	private async Task OnNextAsync(KeyManager keyManager)
+	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
 	{
-		await NavigateDialogAsync(new CoinJoinProfilesViewModel(keyManager, true), NavigationTarget.DialogScreen);
+		var dialogResult = await NavigateDialogAsync(
+			new CreatePasswordDialogViewModel("Add Password", "The password is needed to open and to recover your wallet. Store it safely because it cannot be changed.", enableEmpty: true),
+			NavigationTarget.CompactDialogScreen);
+
+		if (dialogResult.Result is { } password)
+		{
+			IsBusy = true;
+
+			var (km, mnemonic) = await Task.Run(
+				() =>
+				{
+					var walletGenerator = new WalletGenerator(
+						Services.WalletManager.WalletDirectories.WalletsDir,
+						Services.WalletManager.Network)
+					{
+						TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
+					};
+					return walletGenerator.GenerateWallet(walletName, password, mnemonics);
+				});
+			IsBusy = false;
+			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+		}
 	}
 
 	private void OnCancel()
