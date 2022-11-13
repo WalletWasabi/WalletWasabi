@@ -38,15 +38,15 @@ public static class WabiSabiFactory
 
 	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		key = key ?? new();
+		key ??= new();
 		var coin = WabiSabiFactory.CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
 		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
 	}
 
-	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
-		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, RoundId ?? uint256.One);
+	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? roundId = null)
+		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
