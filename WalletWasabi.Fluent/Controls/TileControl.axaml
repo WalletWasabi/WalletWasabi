@@ -10,6 +10,19 @@
     </c:TileControl>
   </Design.PreviewWith>
 
+  <Style Selector="HeaderedContentControl.tile">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+          <ContentPresenter DockPanel.Dock="Top" Content="{TemplateBinding Header}"
+                            Classes="h8 bold"
+                            ContentTemplate="{TemplateBinding HeaderTemplate}" />
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
   <Style Selector="c|TileControl">
     <Setter Property="SeparatorMargin" Value="0 6"></Setter>
     <Setter Property="BottomPartHeight" Value="22"></Setter>
