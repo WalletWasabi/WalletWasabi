@@ -1,13 +1,17 @@
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Backend.Controllers;
 
@@ -43,14 +47,36 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	}
 
 	[HttpPost("connection-confirmation")]
-	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
+	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(CancellationToken cancellationToken)
 	{
-		var before = DateTimeOffset.UtcNow;
-		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.ConfirmConnectionAsync(request, token), cancellationToken);
+		string jsonString = await GetRequestJsonAsync();
 
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("connection-confirmation", duration);
-		return ret;
+		// TODO: Validate JSON.
+
+		// First check if we have already cached JSON string.
+		ConnectionConfirmationResponse? result = await IdempotencyRequestCache.GetCachedResponseAsync(
+			jsonString,
+			action: async (json, token) =>
+			{
+				// Deserialize JSON.
+				ConnectionConfirmationRequest request = JsonConvert.DeserializeObject<ConnectionConfirmationRequest>(json, JsonSerializationOptions.Default.Settings)!;
+
+				DateTimeOffset before = DateTimeOffset.UtcNow;
+
+				// The second level of caching which caches ConnectionConfirmationRequest.
+				ConnectionConfirmationResponse? result2 = await IdempotencyRequestCache.GetCachedResponseAsync(
+					request,
+					action: (request, token) => Arena.ConfirmConnectionAsync(request, token),
+					cancellationToken);
+
+				TimeSpan duration = DateTimeOffset.UtcNow - before;
+				RequestTimeStatista.Instance.Add("connection-confirmation", duration);
+
+				return result2;
+			},
+			cancellationToken);
+
+		return result;
 	}
 
 	[HttpPost("input-registration")]
@@ -134,5 +160,14 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
 
 		return new HumanMonitorResponse(response.ToArray());
+	}
+
+	/// <summary>
+	/// Gets JSON string from the body of the incoming HTTP request.
+	/// </summary>
+	private async Task<string> GetRequestJsonAsync()
+	{
+		using StreamReader reader = new(Request.Body, Encoding.UTF8);
+		return await reader.ReadToEndAsync();
 	}
 }
