@@ -185,6 +185,7 @@ public static class Program
 
 		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync(WasabiPrivateKeyFilePath).ConfigureAwait(false);
 
+		// We will sign the whole file with the hashes and the pgp signature.
 		var sha256sumAscFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS.asc");
 		await WasabiSignerHelpers.SignSha256SumsFileAsync(sha256sumAscFilePath, key).ConfigureAwait(false);
 
