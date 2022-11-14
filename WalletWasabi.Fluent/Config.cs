@@ -21,7 +21,7 @@ public class Config : ConfigBase
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
 	private Uri? _backendUri = null;
-	private Uri? _fallbackBackendUri;
+	private Uri? _clearnetBackendUri;
 
 	/// <summary>
 	/// Constructor for config population using Newtonsoft.JSON.
@@ -50,11 +50,11 @@ public class Config : ConfigBase
 
 	[DefaultValue("https://wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetFallbackBackendUri { get; private set; } = "https://wasabiwallet.io/";
+	public string MainNetClearnetBackendUri { get; private set; } = "https://wasabiwallet.io/";
 
 	[DefaultValue("https://wasabiwallet.co/")]
 	[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetFallbackBackendUri { get; private set; } = "https://wasabiwallet.co/";
+	public string TestNetClearnetBackendUri { get; private set; } = "https://wasabiwallet.co/";
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -127,6 +127,7 @@ public class Config : ConfigBase
 
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
+	/// <remarks>Currently unused.</remarks>
 	public Uri GetCurrentBackendUri()
 	{
 		if (_backendUri is { })
@@ -154,31 +155,31 @@ public class Config : ConfigBase
 		return _backendUri;
 	}
 
-	public Uri GetFallbackBackendUri()
+	public Uri GetClearnetBackendUri()
 	{
-		if (_fallbackBackendUri is { })
+		if (_clearnetBackendUri is { })
 		{
-			return _fallbackBackendUri;
+			return _clearnetBackendUri;
 		}
 
 		if (Network == Network.Main)
 		{
-			_fallbackBackendUri = new Uri(MainNetFallbackBackendUri);
+			_clearnetBackendUri = new Uri(MainNetClearnetBackendUri);
 		}
 		else if (Network == Network.TestNet)
 		{
-			_fallbackBackendUri = new Uri(TestNetFallbackBackendUri);
+			_clearnetBackendUri = new Uri(TestNetClearnetBackendUri);
 		}
 		else if (Network == Network.RegTest)
 		{
-			_fallbackBackendUri = new Uri(RegTestBackendUriV3);
+			_clearnetBackendUri = new Uri(RegTestBackendUriV3);
 		}
 		else
 		{
 			throw new NotSupportedNetworkException(Network);
 		}
 
-		return _fallbackBackendUri;
+		return _clearnetBackendUri;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
