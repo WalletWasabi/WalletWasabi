@@ -5,11 +5,11 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract class ItemBase
+public abstract class CoinControlItemViewModelBase
 {
-	protected ItemBase() : this(new List<ItemBase>()) { }
+	protected CoinControlItemViewModelBase() : this(new List<CoinControlItemViewModelBase>()) { }
 
-	protected ItemBase(IReadOnlyCollection<ItemBase> children)
+	protected CoinControlItemViewModelBase(IReadOnlyCollection<CoinControlItemViewModelBase> children)
 	{
 		Children = children;
 	}
@@ -20,7 +20,7 @@ public abstract class ItemBase
 
 	public bool IsNonPrivate => !IsSemiPrivate && !IsPrivate;
 
-	public IReadOnlyCollection<ItemBase> Children { get; }
+	public IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; }
 
 	public abstract bool IsConfirmed { get; }
 

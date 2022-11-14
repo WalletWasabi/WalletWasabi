@@ -5,9 +5,9 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-internal class PocketItem : ItemBase
+internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 {
-	public PocketItem(Pocket pocket) : base(pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinItem(coin)).ToList())
+	public PocketCoinControlItemViewModel(Pocket pocket) : base(pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList())
 	{
 		Amount = pocket.Amount;
 		IsConfirmed = pocket.Coins.All(x => x.Confirmed);

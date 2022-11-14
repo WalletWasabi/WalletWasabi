@@ -31,7 +31,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var items = CreateItems(pockets);
 
-		Source = new HierarchicalTreeDataGridSource<ItemBase>(items)
+		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(items)
 		{
 			Columns =
 			{
@@ -50,70 +50,70 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		EnableBack = true;
 	}
 
-	public HierarchicalTreeDataGridSource<ItemBase> Source { get; }
+	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
 
-	private static IColumn<ItemBase> ChildrenColumn()
+	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
 	{
-		return new HierarchicalExpanderColumn<ItemBase>(
-			new PrivacyTextColumn<ItemBase>("", _ => "", GridLength.Auto, null),
+		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
+			new PrivacyTextColumn<CoinControlItemViewModelBase>("", _ => "", GridLength.Auto, null),
 			group => group.Children,
 			node => node.Children.Count > 1,
 			node => node.IsExpanded);
 	}
 
-	private static IColumn<ItemBase> AmountColumn()
+	private static IColumn<CoinControlItemViewModelBase> AmountColumn()
 	{
-		return new PrivacyTextColumn<ItemBase>(
+		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
 			"Amount",
 			node => node.Amount.ToFormattedString(),
 			GridLength.Auto,
-			new ColumnOptions<ItemBase>
+			new ColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<ItemBase, Money>(x => x.Amount),
-				CompareDescending = SortDescending<ItemBase, Money>(x => x.Amount)
+				CompareAscending = SortAscending<CoinControlItemViewModelBase, Money>(x => x.Amount),
+				CompareDescending = SortDescending<CoinControlItemViewModelBase, Money>(x => x.Amount)
 			});
 	}
 
-	private static IColumn<ItemBase> IndicatorsColumn()
+	private static IColumn<CoinControlItemViewModelBase> IndicatorsColumn()
 	{
-		return new TemplateColumn<ItemBase>(
+		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"",
-			new FuncDataTemplate<ItemBase>((_, _) => new IndicatorsCellView(), true),
+			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new IndicatorsCellView(), true),
 			GridLength.Auto,
-			new ColumnOptions<ItemBase>
+			new ColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<ItemBase, int>(GetIndicatorPriority),
-				CompareDescending = SortDescending<ItemBase, int>(GetIndicatorPriority)
+				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetIndicatorPriority),
+				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetIndicatorPriority)
 			});
 	}
 
-	private static IColumn<ItemBase> PrivacyScore()
+	private static IColumn<CoinControlItemViewModelBase> PrivacyScore()
 	{
-		return new PrivacyTextColumn<ItemBase>(
+		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderViewModel(),
 			node => node.AnonymityScore.ToString(),
 			GridLength.Auto,
-			new TextColumnOptions<ItemBase>
+			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<ItemBase, int?>(b => b.AnonymityScore),
-				CompareDescending = SortDescending<ItemBase, int?>(b => b.AnonymityScore)
+				CompareAscending = SortAscending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore),
+				CompareDescending = SortDescending<CoinControlItemViewModelBase, int?>(b => b.AnonymityScore)
 			});
 	}
 
-	private static IColumn<ItemBase> PocketColumn()
+	private static IColumn<CoinControlItemViewModelBase> PocketColumn()
 	{
-		return new TemplateColumn<ItemBase>(
+		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"Pocket",
-			new FuncDataTemplate<ItemBase>((_, _) => new LabelsCellView(), true),
+			new FuncDataTemplate<CoinControlItemViewModelBase>((_, _) => new LabelsCellView(), true),
 			GridLength.Star,
-			new ColumnOptions<ItemBase>
+			new ColumnOptions<CoinControlItemViewModelBase>
 			{
-				CompareAscending = SortAscending<ItemBase, int>(GetLabelPriority),
-				CompareDescending = SortDescending<ItemBase, int>(GetLabelPriority)
+				CompareAscending = SortAscending<CoinControlItemViewModelBase, int>(GetLabelPriority),
+				CompareDescending = SortDescending<CoinControlItemViewModelBase, int>(GetLabelPriority)
 			});
 	}
 
-	private static int GetLabelPriority(ItemBase coin)
+	private static int GetLabelPriority(CoinControlItemViewModelBase coin)
 	{
 		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
 		{
@@ -128,7 +128,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 1;
 	}
 
-	private static int GetIndicatorPriority(ItemBase x)
+	private static int GetIndicatorPriority(CoinControlItemViewModelBase x)
 	{
 		if (x.IsCoinjoining)
 		{
@@ -148,10 +148,10 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 0;
 	}
 
-	private static IReadOnlyCollection<ItemBase> CreateItems(IEnumerable<Pocket> pockets)
+	private static IReadOnlyCollection<CoinControlItemViewModelBase> CreateItems(IEnumerable<Pocket> pockets)
 	{
 		return pockets
-			.Select(pocket => new PocketItem(pocket))
+			.Select(pocket => new PocketCoinControlItemViewModel(pocket))
 			.ToList();
 	}
 

@@ -4,9 +4,9 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-internal class CoinItem : ItemBase
+internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
-	public CoinItem(SmartCoin smartCoin)
+	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
 	{
 		Amount = smartCoin.Amount;
 		IsConfirmed = smartCoin.Confirmed;
