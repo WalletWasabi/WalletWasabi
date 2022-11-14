@@ -81,7 +81,7 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 	private IDisposable AutoPaster(TemplatedControl dualCurrencyEntryBox, string target, Func<string, bool> isValidAmount)
 	{
 		return LeftButtonReleased(dualCurrencyEntryBox, target)
-			.SelectMany(textBox => ApplicationUtils.GetClipboard().Select(str => new { Text = str, TextBox = textBox }))
+			.SelectMany(textBox => ApplicationHelper.ClipBoardTextChanged().Select(str => new { Text = str, TextBox = textBox }))
 			.Where(x => isValidAmount(x.Text) && x.TextBox.Text.Trim() == "")
 			.Do(x => x.TextBox.Text = x.Text)
 			.Subscribe();
