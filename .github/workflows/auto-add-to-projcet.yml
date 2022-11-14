@@ -4,9 +4,6 @@ on:
   issues:
     types:
       - opened
-  discussion:
-    types:
-      - opened
 
 jobs:
   add-to-project:
