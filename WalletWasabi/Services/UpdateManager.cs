@@ -1,3 +1,4 @@
+using NBitcoin;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +20,8 @@ namespace WalletWasabi.Services;
 public class UpdateManager : IDisposable
 {
 	private string InstallerPath { get; set; } = "";
-	private const byte MaxTries = 3;
+	private string Sha256SumsFilePath { get; set; } = "";
+	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
 	private const string DownloadURL = "https://github.com/zkSNACKs/WalletWasabi/releases/download";
 
@@ -61,6 +63,11 @@ public class UpdateManager : IDisposable
 					Logger.LogTrace($"Getting new update was canceled.", ex);
 					break;
 				}
+				catch (InvalidOperationException ex)
+				{
+					Logger.LogError($"Getting new update failed with error.", ex);
+					break;
+				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Getting new update failed with error.", ex);
@@ -77,11 +84,11 @@ public class UpdateManager : IDisposable
 	/// <param name="targetVersion">This does not contains the revision number, because backend always sends zero.</param>
 	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(Version targetVersion)
 	{
-		(Version newVersion, string url, string fileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
+		(Version newVersion, string url, string installerFileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 
-		var filePath = Path.Combine(InstallerDir, fileName);
+		var filePath = Path.Combine(InstallerDir, installerFileName);
 
-		var installerDownloaded = TryGetDownloadedInstaller(fileName);
+		var installerDownloaded = TryGetDownloadedInstaller(installerFileName);
 		if (!installerDownloaded)
 		{
 			EnsureToRemoveCorruptedFiles();
@@ -98,6 +105,15 @@ public class UpdateManager : IDisposable
 				Logger.LogInfo("Installer downloaded, copying...");
 
 				await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
+				var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(filePath, CancellationToken).ConfigureAwait(false);
+				uint256 downloadedHash = new(bytes);
+
+				uint256 expectedHash = await GetHashFromSha256SumsFileAsync(installerFileName, newVersion).ConfigureAwait(false);
+				if (expectedHash != downloadedHash)
+				{
+					Cleanup();
+					throw new InvalidOperationException("Downloaded file hash doesn't match expected hash. Deleting invalid files.");
+				}
 			}
 			catch (IOException)
 			{
@@ -107,6 +123,18 @@ public class UpdateManager : IDisposable
 		}
 
 		return (filePath, newVersion);
+	}
+
+	private async Task<uint256> GetHashFromSha256SumsFileAsync(string installerFileName, Version newVersion)
+	{
+		string[] lines = await File.ReadAllLinesAsync(Sha256SumsFilePath).ConfigureAwait(false);
+		var installerLines = lines.Where(line => line.Contains($"Wasabi-{newVersion}")).ToList();
+		var correctLine = installerLines.FirstOrDefault(line => line.Contains(installerFileName));
+		if (correctLine == null)
+		{
+			throw new InvalidOperationException($"{installerFileName} was not found.");
+		}
+		return new uint256(correctLine.Split(" ")[0]);
 	}
 
 	private async Task CopyStreamContentToFileAsync(Stream stream, string filePath)
@@ -177,6 +205,7 @@ public class UpdateManager : IDisposable
 			var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false);
 			await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
 			stream.Close();
+			Sha256SumsFilePath = sha256SumsFilePath;
 
 			stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false);
 			await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
