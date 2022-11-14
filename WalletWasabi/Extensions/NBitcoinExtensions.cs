@@ -77,27 +77,9 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 	/// </summary>
-	public static bool SegWitInvolved(this Transaction me)
-	{
-		// We omit Guard, because it's performance critical in Wasabi.
-		// We start with the inputs, because, this check is faster.
-		// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
-		foreach (TxIn input in me.Inputs)
-		{
-			if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
-			{
-				return true;
-			}
-		}
-		foreach (TxOut output in me.Outputs)
-		{
-			if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) || output.ScriptPubKey.IsScriptType(ScriptType.Taproot))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+	public static bool SegWitInvolved(this Transaction me) =>
+		me.Inputs.Any(i => Script.IsNullOrEmpty(i.ScriptSig)) ||
+		me.Outputs.Any(o => o.ScriptPubKey.IsScriptType(ScriptType.Witness));
 
 	public static bool HasIndistinguishableOutputs(this Transaction me)
 	{
