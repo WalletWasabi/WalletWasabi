@@ -167,6 +167,8 @@ public static class Program
 		Console.WriteLine("Signing final files...");
 		var finalFiles = Directory.GetFiles(BinDistDirectory);
 
+		var sha256SumsFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS");
+
 		foreach (var finalFile in finalFiles)
 		{
 			StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
@@ -177,6 +179,9 @@ public static class Program
 		}
 
 		StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --sign --digest-algo sha256 -a --clearsign --armor --output SHA256SUMS.asc SHA256SUMS && exit");
+
+		// We do not need this file anymore SHA256SUMS.ASC contains the hashes and the signature as well.
+		File.Delete(sha256SumsFilePath);
 
 		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync(WasabiPrivateKeyFilePath).ConfigureAwait(false);
 
