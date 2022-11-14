@@ -12,7 +12,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		Amount = pocket.Amount;
 		IsConfirmed = pocket.Coins.All(x => x.Confirmed);
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
-		AnonymityScore = null;
+		AnonymityScore = (int?) pocket.Coins.Select(x => x.HdPubKey.AnonymitySet).DefaultIfEmpty().Max();
 		Labels = pocket.Labels;
 	}
 
