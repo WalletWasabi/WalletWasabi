@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;
@@ -19,6 +21,7 @@ public class UpdateManager : IDisposable
 	private string InstallerPath { get; set; } = "";
 	private const byte MaxTries = 3;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
+	private const string DownloadURL = "https://github.com/zkSNACKs/WalletWasabi/releases/download";
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
@@ -76,8 +79,7 @@ public class UpdateManager : IDisposable
 	{
 		(Version newVersion, string url, string fileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 
-		var tmpFilePath = Path.Combine(InstallerDir, $"{fileName}.tmp");
-		var newFilePath = Path.Combine(InstallerDir, fileName);
+		var filePath = Path.Combine(InstallerDir, fileName);
 
 		var installerDownloaded = TryGetDownloadedInstaller(fileName);
 		if (!installerDownloaded)
@@ -94,15 +96,8 @@ public class UpdateManager : IDisposable
 				// Get file stream and copy it to downloads folder to access.
 				using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 				Logger.LogInfo("Installer downloaded, copying...");
-				IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
-				using (var file = File.OpenWrite(tmpFilePath))
-				{
-					await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
 
-					// Closing the file to rename.
-					file.Close();
-				};
-				File.Move(tmpFilePath, newFilePath);
+				await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
 			}
 			catch (IOException)
 			{
@@ -111,7 +106,25 @@ public class UpdateManager : IDisposable
 			}
 		}
 
-		return (newFilePath, newVersion);
+		return (filePath, newVersion);
+	}
+
+	private async Task CopyStreamContentToFileAsync(Stream stream, string filePath)
+	{
+		if (File.Exists(filePath))
+		{
+			return;
+		}
+		var tmpFilePath = $"{filePath}.tmp";
+		IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
+		using (var file = File.OpenWrite(tmpFilePath))
+		{
+			await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
+
+			// Closing the file to rename.
+			file.Close();
+		};
+		File.Move(tmpFilePath, filePath);
 	}
 
 	private async Task<(Version Version, string DownloadUrl, string FileName)> GetLatestReleaseFromGithubAsync(Version targetVersion)
@@ -132,6 +145,11 @@ public class UpdateManager : IDisposable
 			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
 		}
 
+		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion).ConfigureAwait(false);
+		if (!isReleaseValid)
+		{
+			throw new InvalidOperationException($"Downloading new release was cancelled, Wasabi signature was invalid.");
+		}
 		// Get all asset names and download urls to find the correct one.
 		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
 		List<string> assetDownloadUrls = new();
@@ -143,6 +161,48 @@ public class UpdateManager : IDisposable
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
 		return (githubVersion, url, fileName);
+	}
+
+	private async Task<bool> ValidateWasabiSignatureAsync(string softwareVersion)
+	{
+		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
+		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
+
+		using HttpClient httpClient = new();
+		string sha256SumsUrl = $"{DownloadURL}/{softwareVersion}/SHA256SUMS.asc";
+		string wasabiSigUrl = $"{DownloadURL}/{softwareVersion}/SHA256SUMS.wasabisig";
+
+		try
+		{
+			var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false);
+			await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
+			stream.Close();
+
+			stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false);
+			await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
+			stream.Dispose();
+
+			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
+			return true;
+		}
+		catch (HttpRequestException exc)
+		{
+			string message = "";
+			if (exc.StatusCode is HttpStatusCode.NotFound)
+			{
+				message = "Wasabi signature files was not found under the API.";
+			}
+			else
+			{
+				message = "Something went wrong while geting Wasabi signature files.";
+			}
+			throw new InvalidOperationException(message, exc);
+		}
+		catch (IOException)
+		{
+			CancellationToken.ThrowIfCancellationRequested();
+			throw;
+		}
 	}
 
 	private bool TryGetDownloadedInstaller(string fileName)
