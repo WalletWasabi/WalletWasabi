@@ -91,7 +91,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	{
 		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderViewModel(),
-			node => node.AnonymityScore.ToString(),
+			node => node is CoinCoinControlItemViewModel coin ? coin.AnonymityScore.ToString() : "",
 			GridLength.Auto,
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{

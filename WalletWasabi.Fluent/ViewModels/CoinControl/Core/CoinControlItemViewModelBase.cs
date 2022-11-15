@@ -34,7 +34,7 @@ public abstract class CoinControlItemViewModelBase
 
 	public abstract string BannedUntilUtcToolTip { get; }
 
-	public abstract int? AnonymityScore { get; }
+	public abstract int AnonymityScore { get; }
 
 	public bool IsExpanded { get; set; } = true;
 

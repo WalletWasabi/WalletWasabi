@@ -12,7 +12,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		Amount = pocket.Amount;
 		IsConfirmed = pocket.Coins.All(x => x.Confirmed);
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
-		AnonymityScore = (int?) pocket.Coins.Select(x => x.HdPubKey.AnonymitySet).DefaultIfEmpty().Max();
+		AnonymityScore = (int) pocket.Coins.Max(x => x.HdPubKey.AnonymitySet);
 		Labels = pocket.Labels;
 	}
 
@@ -22,7 +22,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 	public override string ConfirmationStatus => "";
 	public override Money Amount { get; }
 	public override string BannedUntilUtcToolTip => "";
-	public override int? AnonymityScore { get; }
+	public override int AnonymityScore { get; }
 	public override SmartLabel Labels { get; }
 	public override DateTimeOffset? BannedUntilUtc => null;
 }

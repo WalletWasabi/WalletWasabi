@@ -27,6 +27,6 @@ internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 	public override string ConfirmationStatus { get; }
 	public override Money Amount { get; }
 	public override string BannedUntilUtcToolTip { get; }
-	public override int? AnonymityScore { get; }
+	public override int AnonymityScore { get; }
 	public override SmartLabel Labels { get; }
 }
