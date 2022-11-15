@@ -38,6 +38,24 @@ public class SmartCoinSelectorTests
 	}
 
 	[Fact]
+	public void DontSelectUnnecessaryInputs()
+	{
+		var target = Money.Coins(4m);
+
+		var availableCoins = GenerateSmartCoins(
+			Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))))
+			.ToList();
+
+		var selector = new SmartCoinSelector(availableCoins);
+		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target);
+
+		var coinsAmount = coinsToSpend.Cast<Coin>().Sum(x => x.Amount.ToUnit(MoneyUnit.BTC));
+
+		Assert.True(coinsAmount >= target.ToUnit(MoneyUnit.BTC));
+		Assert.Equal(5, coinsToSpend.Count());
+	}
+
+	[Fact]
 	public void PreferLessCoinsOverExactAmount()
 	{
 		var smartCoins = GenerateSmartCoins(
