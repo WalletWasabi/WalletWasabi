@@ -88,7 +88,7 @@ public class SmartCoinSelector : ICoinSelector
 		var coinsInBestClusterByScript = bestCoinCluster
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
-			.OrderBy(x => x.Coins.Sum(c => c.Amount))
+			.OrderByDescending(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
 		// {1} {2} ... {n} {1, 2} {1, 2, 3} {1, 2, 3, 4} ... {1, 2, 3, 4, 5 ... n}
@@ -101,7 +101,8 @@ public class SmartCoinSelector : ICoinSelector
 			.Select(x => x.SelectMany(y => y.Coins))
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
-			.OrderBy(x => x.Coins.Count());
+			.OrderBy(x => x.Total)              // the closer we are to the target the better
+			.OrderBy(x => x.Coins.Count());     // use as less coin as possible
 
 		IterationCount++;
 
