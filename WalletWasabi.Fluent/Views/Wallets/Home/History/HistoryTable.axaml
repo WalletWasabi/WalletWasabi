@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
@@ -109,6 +111,9 @@
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:PendingHistoryItemSeparatorBehavior />
+                <iac:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}" >
+                  <ia:InvokeCommandAction Command="{Binding ShowDetailsCommand}" x:DataType="historyItems:HistoryItemViewModelBase"/>
+                </iac:RoutedEventTriggerBehavior>
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
