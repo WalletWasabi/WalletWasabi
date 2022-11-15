@@ -105,10 +105,10 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
 		}
 
-		var minToleratedMiningFeeRate = new FeeRate(0.9994m * Parameters.MiningFeeRate.SatoshiPerByte);
+		var minToleratedMiningFeeRate = new FeeRate(0.999m * Parameters.MiningFeeRate.SatoshiPerByte);
 		if (EffectiveFeeRate < minToleratedMiningFeeRate)
 		{
-			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}.");
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees, $"Effective fee rate {EffectiveFeeRate} is less than required {minToleratedMiningFeeRate}.");
 		}
 
 		return new SigningState(Parameters, Events);
