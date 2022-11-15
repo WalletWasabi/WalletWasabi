@@ -127,13 +127,21 @@ public static class Program
 
 				Console.WriteLine("Move created .msi");
 				var msiPath = Path.Combine(WixProjectDirectory, "bin", "Release", "Wasabi.msi");
+				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
+				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
+
+				if (File.Exists(newMsiPath))
+				{
+					Console.WriteLine("MSI file was already there, skipping code signing phase.");
+					continue;
+				}
+
 				if (!File.Exists(msiPath))
 				{
 					throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
 				}
-				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
-				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-				File.Copy(msiPath, newMsiPath, overwrite: true);
+
+				File.Move(msiPath, newMsiPath);
 
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
