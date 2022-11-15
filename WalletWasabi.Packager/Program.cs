@@ -141,7 +141,8 @@ public static class Program
 					throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
 				}
 
-				File.Copy(msiPath, newMsiPath, overwrite: true);
+				File.Move(msiPath, newMsiPath);
+
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
 
