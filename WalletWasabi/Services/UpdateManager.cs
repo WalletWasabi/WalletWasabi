@@ -66,6 +66,7 @@ public class UpdateManager : IDisposable
 				catch (InvalidOperationException ex)
 				{
 					Logger.LogError($"Getting new update failed with error.", ex);
+					Cleanup();
 					break;
 				}
 				catch (Exception ex)
@@ -105,15 +106,7 @@ public class UpdateManager : IDisposable
 				Logger.LogInfo("Installer downloaded, copying...");
 
 				await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
-				var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(filePath, CancellationToken).ConfigureAwait(false);
-				uint256 downloadedHash = new(bytes);
-
-				uint256 expectedHash = await GetHashFromSha256SumsFileAsync(installerFileName, newVersion).ConfigureAwait(false);
-				if (expectedHash != downloadedHash)
-				{
-					Cleanup();
-					throw new InvalidOperationException("Downloaded file hash doesn't match expected hash. Deleting invalid files.");
-				}
+				VerifyInstallerHashAsync(installerFileName, filePath, newVersion);
 			}
 			catch (IOException)
 			{
@@ -125,7 +118,19 @@ public class UpdateManager : IDisposable
 		return (filePath, newVersion);
 	}
 
-	private async Task<uint256> GetHashFromSha256SumsFileAsync(string installerFileName, Version newVersion)
+	private async void VerifyInstallerHashAsync(string expectedFileName, string installerFilePath, Version version)
+	{
+		var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(installerFilePath, CancellationToken).ConfigureAwait(false);
+		string downloadedHash = Convert.ToHexString(bytes).ToLower();
+
+		string expectedHash = await GetHashFromSha256SumsFileAsync(expectedFileName, version).ConfigureAwait(false);
+		if (expectedHash != downloadedHash)
+		{
+			throw new InvalidOperationException("Downloaded file hash doesn't match expected hash. Deleting invalid files.");
+		}
+	}
+
+	private async Task<string> GetHashFromSha256SumsFileAsync(string installerFileName, Version newVersion)
 	{
 		string[] lines = await File.ReadAllLinesAsync(Sha256SumsFilePath).ConfigureAwait(false);
 		var installerLines = lines.Where(line => line.Contains($"Wasabi-{newVersion}")).ToList();
@@ -134,7 +139,7 @@ public class UpdateManager : IDisposable
 		{
 			throw new InvalidOperationException($"{installerFileName} was not found.");
 		}
-		return new uint256(correctLine.Split(" ")[0]);
+		return correctLine.Split(" ")[0];
 	}
 
 	private async Task CopyStreamContentToFileAsync(Stream stream, string filePath)
