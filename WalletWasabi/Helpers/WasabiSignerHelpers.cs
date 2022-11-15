@@ -63,7 +63,6 @@ public class WasabiSignerHelpers
 
 	/// <summary>
 	/// This function returns a SHA256 computed byte array of a file on the provided file path.
-	/// Used to generate uint256 hashes.
 	/// </summary>
 	/// <exception cref="FileNotFoundException"></exception>
 	public static async Task<byte[]> GetShaComputedBytesOfFileAsync(string filePath, CancellationToken cancellationToken = default)
