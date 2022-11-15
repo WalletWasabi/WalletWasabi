@@ -39,14 +39,6 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(NetworkJsonConverter))]
 	public Network Network { get; internal set; } = Network.Main;
 
-	[DefaultValue("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/")]
-	[JsonProperty(PropertyName = "MainNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string MainNetBackendUriV3 { get; private set; } = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
-
-	[DefaultValue("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/")]
-	[JsonProperty(PropertyName = "TestNetBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string TestNetBackendUriV3 { get; private set; } = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
-
 	[DefaultValue("https://wasabiwallet.io/")]
 	[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string MainNetClearnetBackendUri { get; private set; } = "https://wasabiwallet.io/";
