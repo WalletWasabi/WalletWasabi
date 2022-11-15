@@ -20,7 +20,6 @@ public class Config : ConfigBase
 	public const int DefaultJsonRpcServerPort = 37128;
 	public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 
-	private Uri? _backendUri = null;
 	private Uri? _clearnetBackendUri;
 
 	/// <summary>
@@ -58,7 +57,7 @@ public class Config : ConfigBase
 
 	[DefaultValue("http://localhost:37127/")]
 	[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string RegTestBackendUriV3 { get; private set; } = "http://localhost:37127/";
+	public string RegTestClearnetBackendUri { get; private set; } = "http://localhost:37127/";
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "UseTor", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -127,34 +126,6 @@ public class Config : ConfigBase
 
 	public ServiceConfiguration ServiceConfiguration { get; private set; }
 
-	/// <remarks>Currently unused.</remarks>
-	public Uri GetCurrentBackendUri()
-	{
-		if (_backendUri is { })
-		{
-			return _backendUri;
-		}
-
-		if (Network == Network.Main)
-		{
-			_backendUri = new Uri(MainNetBackendUriV3);
-		}
-		else if (Network == Network.TestNet)
-		{
-			_backendUri = new Uri(TestNetBackendUriV3);
-		}
-		else if (Network == Network.RegTest)
-		{
-			_backendUri = new Uri(RegTestBackendUriV3);
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-
-		return _backendUri;
-	}
-
 	public Uri GetClearnetBackendUri()
 	{
 		if (_clearnetBackendUri is { })
@@ -172,7 +143,7 @@ public class Config : ConfigBase
 		}
 		else if (Network == Network.RegTest)
 		{
-			_clearnetBackendUri = new Uri(RegTestBackendUriV3);
+			_clearnetBackendUri = new Uri(RegTestClearnetBackendUri);
 		}
 		else
 		{
@@ -228,9 +199,6 @@ public class Config : ConfigBase
 		base.LoadFile();
 
 		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
-
-		// Just debug convenience.
-		_backendUri = GetCurrentBackendUri();
 	}
 
 	protected override bool TryEnsureBackwardsCompatibility(string jsonString)
