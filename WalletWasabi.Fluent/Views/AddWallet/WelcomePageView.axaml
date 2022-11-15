@@ -151,7 +151,7 @@
             <Viewbox Grid.Column="0" VerticalAlignment="Center" StretchDirection="DownOnly">
               <StackPanel>
                 <TextBlock Classes="title2">
-                  A Bitcoin wallet
+                  Bitcoin wallet
                 </TextBlock>
                 <TextBlock Classes="text">
                   You can easily receive and send money with it, securely and privately.
