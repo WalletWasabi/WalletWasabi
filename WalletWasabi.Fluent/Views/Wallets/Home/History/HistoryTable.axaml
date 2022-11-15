@@ -111,9 +111,6 @@
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:PendingHistoryItemSeparatorBehavior />
-                <iac:RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}" >
-                  <ia:InvokeCommandAction Command="{Binding ShowDetailsCommand}" x:DataType="historyItems:HistoryItemViewModelBase"/>
-                </iac:RoutedEventTriggerBehavior>
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
@@ -246,6 +243,9 @@
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:HistoryItemTypeClassBehavior />
+                <iac:RoutedEventTriggerBehavior RoutingStrategies="Bubble, Tunnel" RoutedEvent="{x:Static InputElement.DoubleTappedEvent}" >
+                  <ia:InvokeCommandAction Command="{Binding ShowDetailsCommand}" x:DataType="historyItems:HistoryItemViewModelBase"/>
+                </iac:RoutedEventTriggerBehavior>
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
