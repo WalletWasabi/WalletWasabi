@@ -172,7 +172,7 @@
                   Open Source
                 </TextBlock>
                 <TextBlock Classes="text">
-                  You can verify exactly what’s going on under the hood and help us make it better.
+                  You can verify exactly what’s going on under the hood and help us improve.
                 </TextBlock>
               </StackPanel>
             </Viewbox>
