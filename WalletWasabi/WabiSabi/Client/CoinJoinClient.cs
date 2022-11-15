@@ -470,26 +470,28 @@ public class CoinJoinClient
 	{
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
-		var tasks = Enumerable.Zip(
-			aliceClients,
-			scheduledDates,
-			async (aliceClient, scheduledDate) =>
-			{
-				var delay = scheduledDate - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
+		List<Task> tasks = new();
+		foreach (var (aliceClient, scheduledDate) in Enumerable.Zip(aliceClients, scheduledDates).ToArray())
+		{
+			tasks.Add(Task.Factory
+			  .StartNew(
+				async () =>
 				{
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-				}
-				try
-				{
-					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-				}
-				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
-				{
-					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
-				}
-			})
-			.ToImmutableArray();
+					var delay = scheduledDate - DateTimeOffset.UtcNow;
+					if (delay > TimeSpan.Zero)
+					{
+						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+					}
+					try
+					{
+						await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+					}
+					catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
+					{
+						Logger.LogDebug("Signature was already sent - bypassing error.", ex);
+					}
+				}, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default));
+		}
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
