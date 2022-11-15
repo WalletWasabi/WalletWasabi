@@ -106,7 +106,7 @@ public class UpdateManager : IDisposable
 				Logger.LogInfo("Installer downloaded, copying...");
 
 				await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
-				VerifyInstallerHashAsync(installerFileName, filePath, newVersion);
+				await VerifyInstallerHashAsync(installerFileName, filePath, newVersion).ConfigureAwait(false);
 			}
 			catch (IOException)
 			{
@@ -118,7 +118,7 @@ public class UpdateManager : IDisposable
 		return (filePath, newVersion);
 	}
 
-	private async void VerifyInstallerHashAsync(string expectedFileName, string installerFilePath, Version version)
+	private async Task VerifyInstallerHashAsync(string expectedFileName, string installerFilePath, Version version)
 	{
 		var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(installerFilePath, CancellationToken).ConfigureAwait(false);
 		string downloadedHash = Convert.ToHexString(bytes).ToLower();
