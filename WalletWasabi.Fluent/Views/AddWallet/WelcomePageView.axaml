@@ -120,7 +120,7 @@
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="LineHeight" Value="22" />
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontSize" Value="18" />
           </Style>
 
           <Style Selector="TextBlock.title1">
@@ -128,7 +128,7 @@
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="FontSize" Value="31" />
-            <Setter Property="Margin" Value="0 10" />
+            <Setter Property="Margin" Value="0 15" />
           </Style>
 
           <Style Selector="Viewbox.icon">
@@ -150,8 +150,6 @@
           <Grid ColumnDefinitions="*,Auto">
             <Viewbox Grid.Column="0" VerticalAlignment="Center" StretchDirection="DownOnly">
               <StackPanel>
-                <TextBlock Text="Wasabi is..." FontSize="29"
-                           Classes="title1" />
                 <TextBlock Classes="title2">
                   A Bitcoin wallet
                 </TextBlock>
@@ -171,7 +169,7 @@
                   Nobody can find out how much money you have or where you spend it.
                 </TextBlock>
                 <TextBlock Classes="title2">
-                  Open-source
+                  Open Source
                 </TextBlock>
                 <TextBlock Classes="text">
                   You can verify exactly what’s going on under the hood and help us make it better.
