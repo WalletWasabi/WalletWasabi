@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public record RoundParameters
 {
-	public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create(ScriptType.P2WPKH);
+	public readonly static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create(ScriptType.P2WPKH);
 
 	public RoundParameters(
 		Network network,
