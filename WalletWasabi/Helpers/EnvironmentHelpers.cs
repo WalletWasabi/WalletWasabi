@@ -254,7 +254,7 @@ public static class EnvironmentHelpers
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
 			// Prevent macOS system from idle sleep and keep it for 1 second. This will reset the idle sleep timer.
-			string shellCommand = $"caffeinate -i -t 1";
+			string shellCommand = $"caffeinate -i -m -s -t 10";
 			await ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
 		}
 	}
