@@ -5,7 +5,7 @@
              xmlns:spectrum="clr-namespace:WalletWasabi.Fluent.Controls.Spectrum"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
-             x:Class="WalletWasabi.Fluent.Views.Shell.MainView"
+             x:Class="WalletWasabi.Fluent.Views.Shell.MainScreen"
              x:DataType="viewModels:MainViewModel"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
