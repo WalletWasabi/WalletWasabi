@@ -48,10 +48,6 @@ public abstract record MultipartyTransactionState
 
 	[JsonIgnore] protected int UnpaidSharedOverhead { get; init; } = MultipartyTransactionParameters.SharedOverhead;
 	
-	// With no coordinator fees we can't ensure that the shared overhead
-	// of the transaction also pays at the nominal feerate so this will have
-	// to do for now, but in the future EstimatedVsize should be used
-	// including the shared overhead
 	[JsonIgnore]
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize - UnpaidSharedOverhead);
 
