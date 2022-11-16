@@ -108,6 +108,7 @@ Todo:
 10. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
 11. Send 1 BTC to that address.
 12. Now in both instance go to CoinJoin tab and enqueue. CoinJoin should happen.
-13. If you see Waiting for confirmation in the Wasabi CoinList you can generate a block in Bitcoin Knots to continue coinjoining. You can do it with the command: `generatetoaddress 1 <replace_with_your_address_here>`
+13. If you see Waiting for confirmation in the Wasabi CoinList you can generate a block in Bitcoin Knots to continue coinjoining. 
+    - You can do it with the console command `generatetoaddress 1 <replace_with_your_address_here>`
 
 Happy CoinJoin!
