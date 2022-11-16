@@ -831,6 +831,11 @@ public class CoinJoinClient
 				}
 			}
 
+			if (winner == bestReducedWinner)
+			{
+				break;
+			}
+
 			winner = bestReducedWinner;
 			winnerAnonLoss = bestAnonLoss;
 		}
