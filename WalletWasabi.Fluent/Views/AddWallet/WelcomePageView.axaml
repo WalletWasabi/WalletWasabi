@@ -127,7 +127,7 @@
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="FontSize" Value="31" />
-            <Setter Property="Margin" Value="0 -20 0 20" />
+            <Setter Property="Margin" Value="0 0 0 20" />
           </Style>
 
           <Style Selector="Viewbox.icon">
