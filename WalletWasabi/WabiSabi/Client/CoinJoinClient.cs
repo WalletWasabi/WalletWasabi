@@ -27,7 +27,7 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private const int MaxWeightedAnonLoss = 3;
+	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
 	private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
 	private TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
@@ -786,6 +786,7 @@ public class CoinJoinClient
 		{
 			selectedNonPrivateCoin
 		};
+
 		foreach (var coin in finalCandidate
 			.Except(new[] { selectedNonPrivateCoin })
 			.OrderBy(x => x.HdPubKey.AnonymitySet)
@@ -807,6 +808,8 @@ public class CoinJoinClient
 		}
 
 		double winnerAnonLoss = GetAnonLoss(winner);
+
+		// Only stay in the while if we are above the liquidityClue (we are a whale) AND the weightedAnonLoss is not tolerable.
 		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerAnonLoss > MaxWeightedAnonLoss))
 		{
 			List<SmartCoin> bestReducedWinner = winner;
