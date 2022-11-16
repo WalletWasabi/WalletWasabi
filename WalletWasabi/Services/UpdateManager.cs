@@ -206,14 +206,16 @@ public class UpdateManager : IDisposable
 
 		try
 		{
-			var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false);
-			await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
-			stream.Close();
-			Sha256SumsFilePath = sha256SumsFilePath;
+			using (var stream = await httpClient.GetStreamAsync(sha256SumsUrl, CancellationToken).ConfigureAwait(false))
+			{
+				await CopyStreamContentToFileAsync(stream, sha256SumsFilePath).ConfigureAwait(false);
+				Sha256SumsFilePath = sha256SumsFilePath;
+			}
 
-			stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false);
-			await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
-			stream.Dispose();
+			using (var stream = await httpClient.GetStreamAsync(wasabiSigUrl, CancellationToken).ConfigureAwait(false))
+			{
+				await CopyStreamContentToFileAsync(stream, wasabiSigFilePath).ConfigureAwait(false);
+			}
 
 			await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256SumsFilePath).ConfigureAwait(false);
 			return true;
@@ -227,7 +229,7 @@ public class UpdateManager : IDisposable
 			}
 			else
 			{
-				message = "Something went wrong while geting Wasabi signature files.";
+				message = "Something went wrong while getting Wasabi signature files.";
 			}
 			throw new InvalidOperationException(message, exc);
 		}
