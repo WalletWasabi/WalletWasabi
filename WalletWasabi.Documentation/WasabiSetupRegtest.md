@@ -18,7 +18,7 @@ Windows: "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest
 macOS: "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest
 Linux:
 ```
-3. Go to Bitcoin Core data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
+3. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
 ```
 Windows: %APPDATA%\Bitcoin\
 macOS: $HOME/Library/Application Support/Bitcoin/
@@ -36,7 +36,7 @@ regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
 regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 ```
 5. Save it.
-6. Start Bitcoin Core with: bitcoin-qt.exe -regtest.
+6. Start Bitcoin Knots with: bitcoin-qt.exe -regtest.
 7. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
 8. Go to menu *File / Create* wallet and create a wallet with the name you prefer. Use the default options.
 9. Go to menu *Window / Console*.
@@ -100,14 +100,14 @@ Todo:
 4. Close Wasabi and restart it with:
 `dotnet run --no-build`
 5. Generate a wallet in Wasabi named: R1.
-6. Generate a receive address in Wasabi, now go to Bitcoin Core gui to the Send tab.
+6. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
 7. Send 1 BTC to that address.
 8. Open another Wasabi instance from another command line:
 `dotnet run --no-build`
 9. Generate a wallet in Wasabi named: R2.
-10. Generate a receive address in Wasabi, now go to Bitcoin Core gui to the Send tab.
+10. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
 11. Send 1 BTC to that address.
 12. Now in both instance go to CoinJoin tab and enqueue. CoinJoin should happen.
-13. If you see Waiting for confirmation in the Wasabi CoinList you can generate a block in Bitcoin Core to continue coinjoining.
+13. If you see Waiting for confirmation in the Wasabi CoinList you can generate a block in Bitcoin Knots to continue coinjoining. You can do it with the command: `generatetoaddress 1 <replace_with_your_address_here>`
 
 Happy CoinJoin!
