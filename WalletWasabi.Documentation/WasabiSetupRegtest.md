@@ -24,7 +24,7 @@ Windows: %APPDATA%\Bitcoin\
 macOS: $HOME/Library/Application Support/Bitcoin/
 Linux: $HOME/.bitcoin/
 ```
-4. Edit bitcoin.conf file and add these lines there:
+4. Add a file called **bitcoin.conf** and add these lines:
 ```C#
 regtest.server = 1
 regtest.listen = 1
@@ -35,14 +35,15 @@ regtest.rpcport = 18443
 regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
 regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 ```
-5. Start Bitcoin Core with: bitcoin-qt.exe -regtest.
-6. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
-7. Go to MainMenu / Window / Console.
-8. Generate a new address with:
+5. Save it.
+6. Start Bitcoin Core with: bitcoin-qt.exe -regtest.
+7. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
+8. Go to MainMenu / Window / Console.
+9. Generate a new address with:
 `getnewaddress`
-9. Generate the first 101 blocks with:
+10. Generate the first 101 blocks with:
 `generatetoaddress 101 <replace_new_address_here>`
-10. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
+11. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
 `generatetoaddress 1 <replace_new_address_here>`
 
 You can force rebuilding the txindex with the `-reindex` command line argument.
