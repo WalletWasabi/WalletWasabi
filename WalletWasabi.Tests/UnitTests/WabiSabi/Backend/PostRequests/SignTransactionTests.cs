@@ -36,6 +36,27 @@ public class SignTransactionTests
 	}
 
 	[Fact]
+	public async Task TaprootSuccessAsync()
+	{
+		WabiSabiConfig cfg = new() { AllowP2trInputs = true, AllowP2trOutputs = true };
+		var round = WabiSabiFactory.CreateRound(cfg);
+		using Key key = new();
+		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
+		round.Alices.Add(alice);
+		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id)).Finalize();
+		round.SetPhase(Phase.TransactionSigning);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
+
+		var aliceSignedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransaction();
+		aliceSignedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coin);
+
+		var req = new TransactionSignaturesRequest(round.Id, 0, aliceSignedCoinJoin.Inputs[0].WitScript);
+		await arena.SignTransactionAsync(req, CancellationToken.None);
+		Assert.True(round.Assert<SigningState>().IsFullySigned);
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
 		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();

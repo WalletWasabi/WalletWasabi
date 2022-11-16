@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -6,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Diagnostics;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -57,7 +55,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		// If you don't close it, the Flyout will show in an incorrect position. Maybe bug in Avalonia?
 		if (IsFlyoutOpen)
 		{
-			controller.SetIsForcedOpen(false);
+			IsFlyoutOpen = false;
 		}
 	}
 
@@ -68,7 +66,10 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Subscribe();
 	}
 
-	private static IDisposable ActivateOpener(IInputElement associatedObject, Control visualRoot, FlyoutShowController controller)
+	private static IDisposable ActivateOpener(
+		IInputElement associatedObject,
+		Control visualRoot,
+		FlyoutShowController controller)
 	{
 		return Observable.FromEventPattern(visualRoot, nameof(Window.Activated))
 			.Where(_ => associatedObject.IsFocused)
@@ -76,36 +77,41 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Subscribe();
 	}
 
-	private IDisposable IsOpenPropertySynchronizer(FlyoutShowController controller)
-	{
-		return this.WhenAnyValue(x => x.IsFlyoutOpen)
-			.Do(controller.SetIsForcedOpen)
-			.Subscribe();
-	}
-
-	private IDisposable FocusBasedFlyoutOpener(
-		IInteractive associatedObject,
-		FlyoutBase flyoutBase)
+	private static IObservable<bool> GetPopupIsFocused(FlyoutBase flyoutBase)
 	{
 		var currentPopupHost = Observable
 			.FromEventPattern(flyoutBase, nameof(flyoutBase.Opened))
 			.Select(_ => ((IPopupHostProvider) flyoutBase).PopupHost?.Presenter)
 			.WhereNotNull();
 
-		var associatedGotFocus = associatedObject.OnEvent(InputElement.GotFocusEvent).ToSignal();
-		var associatedLostFocus = associatedObject.OnEvent(InputElement.LostFocusEvent).ToSignal();
 		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();
 		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
+		var flyoutGotFocus = popupGotFocus.Select(_ => true).Merge(popupLostFocus.Select(_ => false));
+		return flyoutGotFocus;
+	}
 
-		var isFocused = associatedGotFocus
-			.Merge(popupGotFocus).Select(_ => true)
-			.Merge(associatedLostFocus.Merge(popupLostFocus).Select(_ => false));
+	private IDisposable IsOpenPropertySynchronizer(FlyoutShowController controller)
+	{
+		return this
+			.WhenAnyValue(x => x.IsFlyoutOpen)
+			.Do(controller.SetIsForcedOpen)
+			.Subscribe();
+	}
 
-		return isFocused
-			.Buffer(TimeSpan.FromSeconds(0.1))
-			.Where(focusedList => focusedList.Any())
-			.Select(focusedList => focusedList.Any(focused => focused))
-			.DistinctUntilChanged()
+	private IDisposable FocusBasedFlyoutOpener(
+		IAvaloniaObject associatedObject,
+		FlyoutBase flyoutBase)
+	{
+		var isPopupFocused = GetPopupIsFocused(flyoutBase);
+		var isAssociatedObjectFocused = associatedObject.GetObservable(InputElement.IsFocusedProperty);
+
+		var mergedFocused = isAssociatedObjectFocused.Merge(isPopupFocused);
+
+		var weAreFocused = mergedFocused
+			.Throttle(TimeSpan.FromSeconds(0.1))
+			.DistinctUntilChanged();
+
+		return weAreFocused
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(isOpen => IsFlyoutOpen = isOpen)
 			.Subscribe();

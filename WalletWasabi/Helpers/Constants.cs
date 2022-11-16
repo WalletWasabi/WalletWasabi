@@ -17,10 +17,15 @@ public static class Constants
 
 	public const uint ProtocolVersionWitnessVersion = 70012;
 
+	public const int InputBaseSizeInBytes = 41;
+
 	public const int P2wpkhInputSizeInBytes = 41;
 	public const int P2wpkhInputVirtualSize = 69;
 	public const int P2pkhInputSizeInBytes = 145;
 	public const int P2wpkhOutputVirtualSize = 31;
+
+	public const int P2trInputVirtualSize = 58;
+	public const int P2trOutputVirtualSize = 43;
 
 	/// <summary>
 	/// OBSOLATED, USE SPECIFIC TYPE
@@ -32,6 +37,8 @@ public static class Constants
 	public const long MaximumNumberOfSatoshis = 2099999997690000;
 
 	public const decimal MaximumNumberOfBitcoins = 20999999.9769m;
+
+	public const int SemiPrivateThreshold = 2;
 
 	public const int FastestConfirmationTarget = 1;
 	public const int TwentyMinutesConfirmationTarget = 2;
@@ -59,7 +66,7 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 0, 1, 3);
+	public static readonly Version ClientVersion = new(2, 0, 2, 0);
 
 	public static readonly Version HwiVersion = new("2.1.1");
 	public static readonly Version BitcoinCoreVersion = new("21.2");
@@ -85,6 +92,7 @@ public static class Constants
 
 	public static readonly ExtPubKey FallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6BgAZqHhxw6pgEi2F38w5RBqctqCEoVWqcMdrn1epQZceKHtn8f8zHBduM3fwYQEKEGUf4efD6qRPc9wvDF4neoc6JjDbHNiaHbs3we5qL3");
 	public static readonly ExtPubKey WabiSabiFallBackCoordinatorExtPubKey = NBitcoinHelpers.BetterParseExtPubKey("xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC");
+	public static readonly PubKey WasabiPubKey = new("02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608");
 
 	public static readonly string[] UserAgents = new[]
 	{

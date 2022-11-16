@@ -29,7 +29,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 		P2pkScript = PubKey.ScriptPubKey;
 		P2pkhScript = PubKey.Hash.ScriptPubKey;
-		P2wpkhScript = PubKey.WitHash.ScriptPubKey;
+		P2wpkhScript = PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		P2shOverP2wpkhScript = P2wpkhScript.Hash.ScriptPubKey;
 
 		PubKeyHash = PubKey.Hash;

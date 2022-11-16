@@ -80,7 +80,7 @@ public class KeyManagementTests
 		Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
 		differentManager.AssertCleanKeysIndexed();
-		var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
+		var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true);
 		Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 		Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
 	}
@@ -122,7 +122,7 @@ public class KeyManagementTests
 			var isInternal = Random.Shared.Next(2) == 0;
 			var label = RandomString.AlphaNumeric(21);
 			var keyState = (KeyState)Random.Shared.Next(3);
-			manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
+			manager.GenerateNewKey(label, keyState, isInternal);
 		}
 		manager.ToFile();
 

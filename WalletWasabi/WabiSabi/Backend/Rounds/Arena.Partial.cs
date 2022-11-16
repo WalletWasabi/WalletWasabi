@@ -3,7 +3,6 @@ using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -13,7 +12,6 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
-using System;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -257,15 +255,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (CoinJoinScriptStore?.Contains(request.Script) is true)
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in previous coinjoins.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
-			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			var outputScripts = Rounds
+				.Where(r => r.Id != round.Id && r.Phase != Phase.Ended)
+				.SelectMany(r => r.Bobs)
+				.Select(x => x.Script)
+				.ToHashSet();
+			if (outputScripts.Contains(request.Script))
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (output side).");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
+			}
+
+			var inputScripts = Rounds.SelectMany(r => round.Alices).Select(a => a.Coin.ScriptPubKey).ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (input side).");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script some round.");
 			}
 
 			Bob bob = new(request.Script, credentialAmount);

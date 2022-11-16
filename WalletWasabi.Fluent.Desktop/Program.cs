@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using System.IO;
 using System.Reactive;
@@ -223,9 +221,14 @@ public class Program
 	{
 		ReadOnlyCollection<Exception> innerExceptions = e.Exception.Flatten().InnerExceptions;
 
-		// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
 		if (innerExceptions.Count == 1 && innerExceptions[0] is SocketException socketException && socketException.SocketErrorCode == SocketError.OperationAborted)
 		{
+			// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
+			Logger.LogTrace(e.Exception);
+		}
+		else if (innerExceptions.Count == 1 && innerExceptions[0] is OperationCanceledException ex && ex.Message == "The peer has been disconnected")
+		{
+			// Source of this exception is NBitcoin library.
 			Logger.LogTrace(e.Exception);
 		}
 		else

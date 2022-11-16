@@ -39,7 +39,7 @@ public static class BitcoinFactory
 		foreach (var (value, anonset, hdpk) in ownInputs)
 		{
 			var sc = CreateSmartCoin(hdpk, value, anonymitySet: anonset);
-			tx.Inputs.Add(sc.OutPoint);
+			tx.Inputs.Add(sc.Outpoint);
 			walletInputs.Add(sc);
 		}
 		foreach (var output in othersOutputs)
@@ -105,11 +105,11 @@ public static class BitcoinFactory
 		if (key is null)
 		{
 			using Key k = new();
-			return k.PubKey.WitHash.ScriptPubKey;
+			return k.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		}
 		else
 		{
-			return key.PubKey.WitHash.ScriptPubKey;
+			return key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		}
 	}
 

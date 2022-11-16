@@ -71,7 +71,7 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			try
 			{
-				Logger.LogDebug($"Attempt #{i} to start Tor.");
+				Logger.LogDebug($"Attempt #{i + 1} to start Tor.");
 				return await WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
@@ -89,7 +89,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
 	/// <returns>Cancellation token which is canceled once Tor process terminates or once <paramref name="cancellationToken"/> is canceled.</returns>
 	/// <remarks>This is useful to set up Tor control monitors that need to be restarted once Tor process is started again.</remarks>
-	public Task<(CancellationToken, TorControlClient)> WaitForNextAttemptAsync(CancellationToken cancellationToken = default)
+	public Task<(CancellationToken, TorControlClient)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
 	{
 		return _tcs.Task.WithAwaitCancellationAsync(cancellationToken);
 	}
@@ -295,7 +295,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
+	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)
 	{
 		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
 		if (!File.Exists(Settings.CookieAuthFilePath))
@@ -361,7 +361,7 @@ public class TorProcessManager : IAsyncDisposable
 			// > SHUTDOWN" and wait for the Tor process to close.)
 			if (Settings.TerminateOnExit)
 			{
-				await torControlClient.SignalShutdownAsync().ConfigureAwait(false);
+				await torControlClient.SignalShutdownAsync(CancellationToken.None).ConfigureAwait(false);
 			}
 
 			// Leads to Tor termination because we sent TAKEOWNERSHIP command.

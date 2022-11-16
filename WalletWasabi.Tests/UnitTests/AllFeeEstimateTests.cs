@@ -11,6 +11,7 @@ using WalletWasabi.Tests.Helpers;
 using Xunit;
 using Moq;
 using System.Threading;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -190,7 +191,7 @@ public class AllFeeEstimateTests
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(5, 89m));
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(6, 75m));
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(8, 70m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
+		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
 		var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 		Assert.Equal(2, allFee.Estimations.Count);
@@ -214,7 +215,7 @@ public class AllFeeEstimateTests
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(13, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(13, 30m));
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(15, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(15, 30m));
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(1008, 31m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
+		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
 		var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 		Assert.True(allFee.IsAccurate);
@@ -250,7 +251,7 @@ public class AllFeeEstimateTests
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(18, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(18, 5m));
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(36, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(36, 5m));
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(1008, 1m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
+		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2, 3, 5, 6, 8, 11, 13, 15, 1008), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
 		var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 		Assert.Equal(3_500, allFee.Estimations[2]);
@@ -265,7 +266,7 @@ public class AllFeeEstimateTests
 		var any = EstimateSmartFeeMode.Conservative;
 
 		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any, It.IsAny<CancellationToken>())).ReturnsAsync(FeeRateResponse(2, 120m));
-		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
+		mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn(2), any, It.IsAny<CancellationToken>())).ThrowsAsync(new NoEstimationException(0));
 
 		// Do not throw exception
 		await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);

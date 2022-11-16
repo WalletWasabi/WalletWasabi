@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
@@ -305,7 +304,7 @@ public class SmartTransactionTests
 
 		Assert.Equal(1, st1.WalletVirtualOutputs.Count);
 		Assert.Equal(Money.Coins(3), st1.WalletVirtualOutputs.First().Amount);
-		Assert.Equal(2, st1.WalletVirtualOutputs.First().OutPoints.Count);
+		Assert.Equal(2, st1.WalletVirtualOutputs.First().Coins.Count);
 	}
 
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()

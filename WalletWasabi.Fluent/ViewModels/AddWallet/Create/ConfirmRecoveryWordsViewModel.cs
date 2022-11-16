@@ -28,8 +28,11 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		string walletName)
 	{
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+#if RELEASE
 		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
-
+#else
+		_isSkipEnable = true;
+#endif
 		var nextCommandCanExecute =
 			_confirmationWordsSourceList
 			.Connect()
@@ -65,7 +68,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", enableEmpty: true),
+			new CreatePasswordDialogViewModel("Add Password", "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.", enableEmpty: true),
 			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)

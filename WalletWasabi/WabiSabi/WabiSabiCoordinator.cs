@@ -17,13 +17,14 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, CoinVerifier? coinVerifier = null)
 	{
 		Parameters = parameters;
 
 		Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
+		CoinVerifier = coinVerifier;
 		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
@@ -42,7 +43,8 @@ public class WabiSabiCoordinator : BackgroundService
 			coinJoinIdStore,
 			roundParameterFactory,
 			transactionArchiver,
-			coinJoinScriptStore);
+			coinJoinScriptStore,
+			coinVerifier);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
@@ -50,6 +52,7 @@ public class WabiSabiCoordinator : BackgroundService
 
 	public ConfigWatcher ConfigWatcher { get; }
 	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
+	public CoinVerifier? CoinVerifier { get; private set; }
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }

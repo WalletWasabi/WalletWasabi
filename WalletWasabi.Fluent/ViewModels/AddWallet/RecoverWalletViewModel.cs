@@ -81,7 +81,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 							MinGapLimit);
 
 						result.AutoCoinJoin = true;
-						result.SetNetwork(Services.WalletManager.Network);
 
 						// Set the filepath but we will only write the file later when the Ui workflow is done.
 						result.SetFilePath(walletFilePath);

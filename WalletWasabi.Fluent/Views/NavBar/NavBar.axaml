@@ -116,7 +116,6 @@
     <Style Selector="c|NavBarItem:selected PathIcon" x:CompileBindings="False">
       <Setter Property="Data" Value="{Binding IconNameFocused, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
     </Style>
-
   </UserControl.Styles>
 
   <DockPanel Margin="0 -5 0 5">
@@ -153,7 +152,8 @@
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        ReSelectSelectedItem="False"
                        Name="ItemsListBox"
-                       Classes="vertical draggable narrowItemPadding"
+                       Classes="vertical narrowItemPadding"
+                       VirtualizationMode="None"
                        VerticalAlignment="Stretch">
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">

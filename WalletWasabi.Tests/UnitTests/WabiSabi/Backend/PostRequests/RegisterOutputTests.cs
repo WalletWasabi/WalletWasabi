@@ -1,7 +1,7 @@
 using NBitcoin;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -25,6 +25,40 @@ public class RegisterOutputTests
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
 		await arena.RegisterOutputAsync(req, CancellationToken.None);
 		Assert.NotEmpty(round.Bobs);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
+	public async Task TaprootSuccessAsync()
+	{
+		WabiSabiConfig cfg = new() { AllowP2trOutputs = true };
+		var round = WabiSabiFactory.CreateRound(cfg);
+		round.SetPhase(Phase.OutputRegistration);
+		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
+
+		using Key privKey = new();
+		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, privKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), Constants.P2trOutputVirtualSize);
+		await arena.RegisterOutputAsync(req, CancellationToken.None);
+		Assert.NotEmpty(round.Bobs);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
+	public async Task TaprootNotAllowedAsync()
+	{
+		WabiSabiConfig cfg = new() { AllowP2trOutputs = false };
+		var round = WabiSabiFactory.CreateRound(cfg);
+		round.SetPhase(Phase.OutputRegistration);
+		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
+
+		using Key privKey = new();
+		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, privKey.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), Constants.P2trOutputVirtualSize);
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
+		Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
 
 		await arena.StopAsync(CancellationToken.None);
 	}

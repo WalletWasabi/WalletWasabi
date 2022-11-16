@@ -72,7 +72,7 @@ public class LinqExtensionsTests
 	[Fact]
 	public void CombinationsWithoutRepetitionZeroLength()
 	{
-		AssertAsync.CompletesIn(1, () => Enumerable.Range(0, 32).CombinationsWithoutRepetition(ofLength: 0).ToArray());
+		AssertAsync.CompletesIn(5, () => Enumerable.Range(0, 32).CombinationsWithoutRepetition(ofLength: 0).ToArray());
 	}
 
 	[Fact]

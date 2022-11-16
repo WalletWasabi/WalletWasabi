@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using ZXing.Common;
@@ -22,11 +21,11 @@ using ZXing.QrCode.Internal;
 
 namespace ZXing.QrCode
 {
-	/// <summary>
-	/// This implementation can detect and decode QR Codes in an image.
-	/// <author>Sean Owen</author>
-	/// </summary>
-	public class QRCodeReader : Reader
+    /// <summary>
+    /// This implementation can detect and decode QR Codes in an image.
+    /// <author>Sean Owen</author>
+    /// </summary>
+    public class QRCodeReader : Reader
 	{
 		private static readonly ResultPoint[] NO_POINTS = new ResultPoint[0];
 

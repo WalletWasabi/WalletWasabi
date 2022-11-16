@@ -2,7 +2,6 @@ using Moq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -27,7 +26,7 @@ public static class ServiceFactory
 		var toGenerate = coinArray.Length - generated;
 		for (int i = 0; i < toGenerate; i++)
 		{
-			keyManager.GenerateNewKey("", KeyState.Clean, false, false);
+			keyManager.GenerateNewKey("", KeyState.Clean, false);
 		}
 
 		var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();

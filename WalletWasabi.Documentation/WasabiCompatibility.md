@@ -17,6 +17,7 @@ This document lists all the officially supported software and devices by Wasabi 
 - ColdCard MK3
 - ColdCard MK4
 - Ledger Nano S
+- Ledger Nano S Plus
 - Ledger Nano X
 - Trezor Model T
 
@@ -29,16 +30,17 @@ This document lists all the officially supported software and devices by Wasabi 
 ## What are the bottlenecks of officially supporting Operating Systems?
 
 Wasabi dependencies are:
-- .NET Core [reqs](https://github.com/dotnet/core/blob/master/release-notes/3.1/3.1-supported-os.md).
+- .NET 6.0 [reqs](https://github.com/dotnet/core/blob/main/release-notes/6.0/supported-os.md).
 - Avalonia [reqs](https://github.com/AvaloniaUI/Avalonia/wiki/Runtime-Requirements).
-- NBitcoin dependencies and requirements are the same as .NET Core.
+- NBitcoin dependencies and requirements are the same as .NET 6.0.
 - Bitcoin Knots (same requirements as Bitcoin Core) [reqs](https://bitcoin.org/en/bitcoin-core/features/requirements#system-requirements).
 
 ## What are the bottlenecks of officially supporting Hardware Wallets?
 
 Wasabi dependencies are:
-- [HWI](https://github.com/bitcoin-core/HWI), check the [device support](https://github.com/bitcoin-core/HWI#device-support) list there. Some hardware wallets supported by HWI are still not compatible with the Wallet because they implemented custom workflows.
+- [HWI](https://github.com/bitcoin-core/HWI), check the [device support](https://github.com/bitcoin-core/HWI#device-support) list there. Some hardware wallets supported by HWI are still not compatible with Wasabi Wallet because they implemented custom workflows.
 
-## What about Whonix and Tails?
+## What about Tails and Whonix?
 
-Whonix and Tails are privacy-oriented OSs, so it makes sense to use them with Wasabi Wallet. At the moment, Wasabi is working properly on these platforms, but our dependencies do not officially support them, so we cannot make promises regarding future stability.
+It is currently not possible to use Wasabi on Tails or Whonix.
+That is because Wasabi uses the Tor control port, which is not exposed in these operating systems.

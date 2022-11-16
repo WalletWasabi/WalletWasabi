@@ -63,10 +63,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
 		});
-		builder.ConfigureLogging(o =>
-		{
-			o.SetMinimumLevel(LogLevel.Warning);
-		});
+		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
 	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
@@ -89,5 +86,5 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	}
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
-		new(new HttpClientWrapper(httpClient));
+		new(new ClearnetHttpClient(httpClient));
 }

@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
@@ -29,8 +30,9 @@ public class IndexBuilderService
 
 	private long _workerCount;
 
-	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
+	public IndexBuilderService(IndexType indexType, IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
+		IndexType = indexType;
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
@@ -38,7 +40,9 @@ public class IndexBuilderService
 		Index = new List<FilterModel>();
 		IndexLock = new AsyncLock();
 
-		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
+		PubKeyTypes = IndexTypeConverter.ToRpcPubKeyTypes(IndexType);
+
+		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network, IndexType).Height;
 
 		_serviceStatus = NotStarted;
 
@@ -79,6 +83,9 @@ public class IndexBuilderService
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
+	public IndexType IndexType { get; }
+
+	public RpcPubkeyType[] PubKeyTypes { get; }
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -184,7 +191,7 @@ public class IndexBuilderService
 								continue;
 							}
 
-							var filter = BuildFilterForBlock(block);
+							var filter = BuildFilterForBlock(block, PubKeyTypes);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
@@ -199,11 +206,11 @@ public class IndexBuilderService
 							// If not close to the tip, just log debug.
 							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 							{
-								Logger.LogInfo($"Created filter for block: {nextHeight}.");
+								Logger.LogInfo($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
 							}
 							else
 							{
-								Logger.LogDebug($"Created filter for block: {nextHeight}.");
+								Logger.LogDebug($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
 							}
 							LastFilterBuildTime = DateTimeOffset.UtcNow;
 						}
@@ -229,9 +236,9 @@ public class IndexBuilderService
 		});
 	}
 
-	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
+	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
 	{
-		var scripts = FetchScripts(block);
+		var scripts = FetchScripts(block, pubKeyTypes);
 
 		if (scripts.Any())
 		{
@@ -250,7 +257,7 @@ public class IndexBuilderService
 		}
 	}
 
-	private static List<Script> FetchScripts(VerboseBlockInfo block)
+	private static List<Script> FetchScripts(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
 	{
 		var scripts = new List<Script>();
 
@@ -258,15 +265,16 @@ public class IndexBuilderService
 		{
 			foreach (var input in tx.Inputs)
 			{
-				if (input.PrevOutput is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
+				var prevOut = input.PrevOutput;
+				if (prevOut is not null && pubKeyTypes.Contains(prevOut.PubkeyType))
 				{
-					scripts.Add(input.PrevOutput.ScriptPubKey);
+					scripts.Add(prevOut.ScriptPubKey);
 				}
 			}
 
 			foreach (var output in tx.Outputs)
 			{
-				if (output is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
+				if (pubKeyTypes.Contains(output.PubkeyType))
 				{
 					scripts.Add(output.ScriptPubKey);
 				}

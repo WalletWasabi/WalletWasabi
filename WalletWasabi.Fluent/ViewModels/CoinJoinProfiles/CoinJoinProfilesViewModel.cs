@@ -15,14 +15,11 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
-	[AutoNotify] private bool _autoCoinJoin;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
 		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
-
-		AutoCoinJoin = keyManager.AutoCoinJoin;
 
 		Profiles = DefaultProfiles.ToList();
 
@@ -61,7 +58,7 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	private async Task OnManualSetupAsync()
 	{
 		var current = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
-		var dialog = new ManualCoinJoinProfileDialogViewModel(current, AutoCoinJoin);
+		var dialog = new ManualCoinJoinProfileDialogViewModel(current);
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
@@ -69,7 +66,6 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 		{
 			SelectedProfile = null;
 			SelectedManualProfile = result.Profile;
-			AutoCoinJoin = result.AutoCoinJoin;
 		}
 	}
 
@@ -77,7 +73,6 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 	{
 		var selected = SelectedProfile ?? SelectedManualProfile ?? Profiles.First();
 
-		keyManager.AutoCoinJoin = AutoCoinJoin;
 		keyManager.RedCoinIsolation = selected.RedCoinIsolation;
 		keyManager.SetAnonScoreTarget(selected.AnonScoreTarget, toFile: false);
 		keyManager.SetFeeRateMedianTimeFrame(selected.FeeRateMedianTimeFrameHours, toFile: false);

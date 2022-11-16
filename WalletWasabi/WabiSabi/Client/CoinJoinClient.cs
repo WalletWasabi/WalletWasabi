@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis;
@@ -26,9 +27,10 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-	private const int MaxWeightedAnonLoss = 3;
-	private static readonly Money MinimumOutputAmountSanity = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
-	private static readonly TimeSpan ExtraPhaseTimeoutMargin = TimeSpan.FromMinutes(1);
+    private const int MaxWeightedAnonLoss = 3;
+    private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
+	private TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
+	private TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
 
 	// Maximum delay when spreading the requests in time, except input registration requests which
 	// timings only depends on the input-reg timeout.
@@ -43,12 +45,12 @@ public class CoinJoinClient
 		IDestinationProvider destinationProvider,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
+		LiquidityClueProvider liquidityClueProvider,
 		int anonScoreTarget = int.MaxValue,
 		bool consolidationMode = false,
 		bool redCoinIsolation = false,
 		TimeSpan feeRateMedianTimeFrame = default,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
-		Money? liquidityClue = null)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -56,15 +58,12 @@ public class CoinJoinClient
 		RoundStatusUpdater = roundStatusUpdater;
 		AnonScoreTarget = anonScoreTarget;
 		CoordinatorIdentifier = coordinatorIdentifier;
+		LiquidityClueProvider = liquidityClueProvider;
 		ConsolidationMode = consolidationMode;
 		RedCoinIsolation = redCoinIsolation;
 		FeeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		SecureRandom = new SecureRandom();
 		DoNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
-		lock (LiquidityClueLock)
-		{
-			LiquidityClue ??= liquidityClue;
-		}
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -75,22 +74,13 @@ public class CoinJoinClient
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
+	public LiquidityClueProvider LiquidityClueProvider { get; }
 	public int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
 	public bool ConsolidationMode { get; private set; }
 	public bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
-	private static Money? LiquidityClue { get; set; }
-	private static object LiquidityClueLock { get; } = new object();
-
-	public static Money? GetLiquidityClue()
-	{
-		lock (LiquidityClueLock)
-		{
-			return LiquidityClue;
-		}
-	}
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
@@ -151,16 +141,16 @@ public class CoinJoinClient
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameteers = currentRoundState.CoinjoinState.Parameters;
 
-			Money liquidityClue = roundParameteers.MaxSuggestedAmount;
-			lock (LiquidityClueLock)
-			{
-				if (LiquidityClue is not null)
-				{
-					liquidityClue = Math.Min(LiquidityClue, liquidityClue);
-				}
-			}
-
+			var liquidityClue = LiquidityClueProvider.GetLiquidityClue(roundParameteers.MaxSuggestedAmount);
 			coins = SelectCoinsForRound(coinCandidates, roundParameteers, ConsolidationMode, AnonScoreTarget, RedCoinIsolation, liquidityClue, SecureRandom);
+
+			if (!roundParameteers.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameteers.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
+			{
+				excludeRound = currentRoundState.Id;
+				currentRoundState.LogInfo($"Skipping the round since it doesn't support P2WPKH inputs and outputs.");
+
+				continue;
+			}
 
 			if (roundParameteers.MaxSuggestedAmount != default && coins.Any(c => c.Amount > roundParameteers.MaxSuggestedAmount))
 			{
@@ -182,7 +172,15 @@ public class CoinJoinClient
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
 		while (true)
 		{
-			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false);
+			using CancellationTokenSource coinJoinRoundTimeoutCts = new(
+				currentRoundState.InputRegistrationTimeout +
+				currentRoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout +
+				currentRoundState.CoinjoinState.Parameters.OutputRegistrationTimeout +
+				currentRoundState.CoinjoinState.Parameters.TransactionSigningTimeout +
+				ExtraRoundTimeoutMargin);
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
+
+			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
 			if (!result.GoForBlameRound)
 			{
 				return result;
@@ -261,18 +259,7 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
-			lock (LiquidityClueLock)
-			{
-				Money? liquidityClue = TryCalculateLiquidityClue(unsignedCoinJoin, outputTxOuts);
-
-				// Dismiss pleb round.
-				// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
-				if (liquidityClue is not null
-					&& (roundState.CoinjoinState.Parameters.MaxSuggestedAmount / 2) > liquidityClue)
-				{
-					LiquidityClue = liquidityClue;
-				}
-			}
+			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
 
 			return new CoinJoinResult(
 				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
@@ -297,30 +284,11 @@ public class CoinJoinClient
 		}
 	}
 
-	public static Money? TryCalculateLiquidityClue(Transaction coinjoin, IEnumerable<TxOut>? ownTxOuts = null)
-	{
-		var denoms = coinjoin.Outputs
-				.Where(x =>
-					BlockchainAnalyzer.StdDenoms.Contains(x.Value.Satoshi) // We only care about denom outputs as those can be considered reasonably mixed.
-					&& !ownTxOuts?.Any(y => y.ScriptPubKey == x.ScriptPubKey && y.Value == x.Value) is true) // We only care about outputs those aren't ours.
-				.Select(x => x.Value)
-				.OrderByDescending(x => x)
-				.Distinct()
-				.ToArray();
-		var topDenoms = denoms.Take((int)Math.Ceiling(denoms.Length * 10 / 100d)); // Take top 10% of denominations.
-		if (topDenoms.Any())
-		{
-			return Money.Coins(topDenoms.Average(x => x.ToDecimal(MoneyUnit.BTC)));
-		}
-		else
-		{
-			return null;
-		}
-	}
-
 	private async Task<ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
 	{
 		int eventInvokedAlready = 0;
+
+		UnexpectedRoundPhaseException? lastUnexpectedRoundPhaseException = null;
 
 		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
@@ -338,21 +306,20 @@ public class CoinJoinClient
 		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin)
 		{
 			PersonCircuit? personCircuit = null;
+			bool disposeCircuit = true;
+
 			try
 			{
 				personCircuit = HttpClientFactory.NewHttpClientWithPersonCircuit(out Tor.Http.IHttpClient httpClient);
-				Tor.Http.IHttpClient httpClientReadyAndSigning = HttpClientFactory.NewHttpClientWithCircuitPerRequest();
 
 				// Alice client requests are inherently linkable to each other, so the circuit can be reused
 				var arenaRequestHandler = new WabiSabiHttpApiClient(httpClient);
-				var arenaRequestHandlerReadyAndSigning = new WabiSabiHttpApiClient(httpClientReadyAndSigning);
 
 				var aliceArenaClient = new ArenaClient(
 					roundState.CreateAmountCredentialClient(SecureRandom),
 					roundState.CreateVsizeCredentialClient(SecureRandom),
 					CoordinatorIdentifier,
-					arenaRequestHandler,
-					arenaRequestHandlerReadyAndSigning);
+					arenaRequestHandler);
 
 				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
@@ -362,6 +329,8 @@ public class CoinJoinClient
 					CoinJoinClientProgress.SafeInvoke(this, new EnteringCriticalPhase());
 				}
 
+				// Do not dispose the circuit, it will be used later.
+				disposeCircuit = false;
 				return (aliceClient, personCircuit);
 			}
 			catch (WabiSabiProtocolException wpe)
@@ -394,9 +363,6 @@ public class CoinJoinClient
 							$"Unexpected condition. {nameof(WrongPhaseException)} doesn't contain a {nameof(WrongPhaseExceptionData)} data field.");
 					}
 				}
-
-				personCircuit?.Dispose();
-				return (null, null);
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -416,16 +382,26 @@ public class CoinJoinClient
 				{
 					Logger.LogDebug(ex);
 				}
-
-				personCircuit?.Dispose();
-				return (null, null);
+			}
+			catch (UnexpectedRoundPhaseException ex)
+			{
+				lastUnexpectedRoundPhaseException = ex;
+				Logger.LogTrace(ex);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
-				personCircuit?.Dispose();
-				return (null, null);
 			}
+			finally
+			{
+				if (disposeCircuit)
+				{
+					personCircuit?.Dispose();
+				}
+			}
+
+			// In case of any exception.
+			return (null, null);
 		}
 
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
@@ -453,11 +429,19 @@ public class CoinJoinClient
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 
-		return aliceClients
+		var successfulAlices = aliceClients
 			.Select(x => x.Result)
 			.Where(r => r.AliceClient is not null && r.PersonCircuit is not null)
 			.Select(r => (r.AliceClient!, r.PersonCircuit!))
 			.ToImmutableArray();
+
+		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
+		{
+			// In this case the coordinator aborted the round - throw only one exception and log outside.
+			throw lastUnexpectedRoundPhaseException;
+		}
+
+		return successfulAlices;
 	}
 
 	private BobClient CreateBobClient(RoundState roundState)
@@ -497,7 +481,14 @@ public class CoinJoinClient
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				try
+				{
+					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				}
+				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
+				{
+					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
+				}
 			})
 			.ToImmutableArray();
 
@@ -612,10 +603,10 @@ public class CoinJoinClient
 			.Where(x => x.HdPubKey.AnonymitySet >= anonScoreTarget)
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= 2)
+			.Where(x => x.HdPubKey.AnonymitySet < anonScoreTarget && x.HdPubKey.AnonymitySet >= Constants.SemiPrivateThreshold)
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.HdPubKey.AnonymitySet < 2)
+			.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold)
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
@@ -678,7 +669,7 @@ public class CoinJoinClient
 			.OrderByDescending(x => x.Amount)
 			.Take(3)
 			.ToArray();
-		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Select a group of coins those are close to each other by anonymity score.
 		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
@@ -727,7 +718,7 @@ public class CoinJoinClient
 		Logger.LogDebug($"Filtered combinations down to {nameof(bestRepGroups)}: {bestRepGroups.Count()}.");
 
 		var remainingLargestNonPrivateCoins = largestNonPrivateCoins.Where(x => bestRepGroups.Any(y => y.Contains(x)));
-		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Remaining largest non-private coins: {string.Join(", ", remainingLargestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Bias selection towards larger numbers.
 		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(); // Select randomly at first just to have a starting value.
@@ -754,7 +745,7 @@ public class CoinJoinClient
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
 			return ImmutableList<SmartCoin>.Empty;
 		}
-		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Let's remove some coins coming from the same tx in the final candidate:
 		// The smaller our balance is the more privacy we gain and the more the user cares about the costs, so more interconnectedness allowance makes sense.
@@ -844,7 +835,7 @@ public class CoinJoinClient
 		{
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
 			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
-			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} bitcoins.");
+			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
 		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
@@ -1030,8 +1021,11 @@ public class CoinJoinClient
 		return outputTxOuts;
 	}
 
-	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)>
-		ProceedWithSigningStateAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> outputTxOuts, CancellationToken cancellationToken)
+	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
+		uint256 roundId,
+		ImmutableArray<AliceClient> registeredAliceClients,
+		IEnumerable<TxOut> outputTxOuts,
+		CancellationToken cancellationToken)
 	{
 		// Signing.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -1083,9 +1077,12 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
 		}
 
-		// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
-		var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
-		CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
+		if (!result.IsDefaultOrEmpty)
+		{
+			// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+			var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
+		}
 
 		return result;
 	}

@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -26,31 +27,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
-	private readonly bool _isFixedAmount;
 	private readonly Wallet _wallet;
-	private readonly BitcoinAddress _destination;
-	private BuildTransactionResult? _transaction;
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
-	private CancellationTokenSource _cancellationTokenSource;
+	private CancellationTokenSource? _cancellationTokenSource;
+	[AutoNotify] private BuildTransactionResult? _transaction;
 	[AutoNotify] private string _nextButtonText;
 	[AutoNotify] private bool _adjustFeeAvailable;
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 
-	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BitcoinAddress destination, bool isFixedAmount)
+	public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info)
 	{
 		_undoHistory = new();
 		_wallet = wallet;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
-		_destination = destination;
-		_isFixedAmount = isFixedAmount;
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		PrivacySuggestions = new PrivacySuggestionsFlyoutViewModel();
-		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination);
-		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, destination, true);
+		CurrentTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info);
+		PreviewTransactionSummary = new TransactionSummaryViewModel(this, _wallet, _info, true);
 
 		TransactionSummaries = new List<TransactionSummaryViewModel>
 		{
@@ -74,7 +71,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			});
 
 		PrivacySuggestions.WhenAnyValue(x => x.SelectedSuggestion)
-			.SubscribeAsync(async x =>
+			.Subscribe(x =>
 			{
 				PrivacySuggestions.IsOpen = false;
 				PrivacySuggestions.SelectedSuggestion = null;
@@ -83,8 +80,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				{
 					_info.ChangelessCoins = ca.TransactionResult.SpentCoins;
 					UpdateTransaction(CurrentTransactionSummary, ca.TransactionResult);
-
-					await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, ca.TransactionResult, _isFixedAmount, _cancellationTokenSource.Token);
 				}
 			});
 
@@ -96,6 +91,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					DisplayedTransactionSummary = CurrentTransactionSummary;
 				}
 			});
+
+		this.WhenAnyValue(x => x.Transaction)
+			.WhereNotNull()
+			.Throttle(TimeSpan.FromMilliseconds(100))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _cancellationTokenSource.Token))
+			.Subscribe();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -117,26 +119,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_nextButtonText = "Confirm";
 		}
 
-		AdjustFeeCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			if (_info.IsCustomFeeUsed)
-			{
-				await ShowAdvancedDialogAsync();
-			}
-			else
-			{
-				await OnAdjustFeeAsync();
-			}
-		});
+		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.CreateFromTask(async () =>
+		UndoCommand = ReactiveCommand.Create(() =>
 		{
 			if (_undoHistory.TryPop(out var previous))
 			{
 				_info = previous.Item2;
 				UpdateTransaction(CurrentTransactionSummary, previous.Item1, false);
 				CanUndo = _undoHistory.Any();
-				await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, previous.Item1, _isFixedAmount, _cancellationTokenSource.Token);
 			}
 		});
 
@@ -159,21 +150,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	public ICommand UndoCommand { get; }
 
-	private async Task ShowAdvancedDialogAsync()
-	{
-		var result = await NavigateDialogAsync(new AdvancedSendOptionsViewModel(_info), NavigationTarget.CompactDialogScreen);
-
-		if (result.Kind == DialogResultKind.Normal)
-		{
-			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
-		}
-	}
-
 	private async Task OnExportPsbtAsync()
 	{
-		if (_transaction is { })
+		if (Transaction is { })
 		{
-			var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(_transaction);
+			var saved = await TransactionHelpers.ExportTransactionToBinaryAsync(Transaction);
 
 			if (saved)
 			{
@@ -191,8 +172,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				AddToUndoHistory();
 			}
 
-			_transaction = transaction;
-			CheckChangePocketAvailable(_transaction);
+			Transaction = transaction;
+			CheckChangePocketAvailable(Transaction);
 			_currentTransactionInfo = _info.Clone();
 		}
 
@@ -203,13 +184,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnAdjustFeeAsync()
 	{
-		var feeRateDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, false));
+		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
+			? new CustomFeeRateDialogViewModel(_info)
+			: new SendFeeViewModel(_wallet, _info, false);
 
-		if (feeRateDialogResult.Kind == DialogResultKind.Normal && feeRateDialogResult.Result is { } newFeeRate &&
-			newFeeRate != _info.FeeRate)
+		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
+
+		if (feeDialogResult.Kind == DialogResultKind.Normal &&
+			feeDialogResult.Result is { } feeRate &&
+			feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
 		{
-			_info.FeeRate = feeRateDialogResult.Result;
-
+			_info.FeeRate = feeRate;
 			await BuildAndUpdateAsync(BuildTransactionReason.FeeChanged);
 		}
 	}
@@ -221,15 +206,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (newTransaction is { })
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
-
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, newTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 	}
 
 	private async Task OnChangePocketsAsync()
 	{
 		var selectPocketsDialog =
-			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, false));
+			await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, false));
 
 		if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 		{
@@ -241,21 +224,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<bool> InitialiseTransactionAsync()
 	{
-		if (!_info.Coins.Any())
-		{
-			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, _transaction?.SpentCoins, isSilent: true));
-			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
-				privacyControlDialogResult.Result is { } coins)
-			{
-				_info.Coins = coins;
-			}
-			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
-			{
-				return false;
-			}
-		}
-
 		if (_info.FeeRate == FeeRate.Zero)
 		{
 			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(_wallet, _info, true));
@@ -264,6 +232,21 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_info.FeeRate = newFeeRate;
 			}
 			else
+			{
+				return false;
+			}
+		}
+
+		if (!_info.Coins.Any())
+		{
+			var privacyControlDialogResult =
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, Transaction?.SpentCoins, isSilent: true));
+			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
+				privacyControlDialogResult.Result is { } coins)
+			{
+				_info.Coins = coins;
+			}
+			else if (privacyControlDialogResult.Kind != DialogResultKind.Normal)
 			{
 				return false;
 			}
@@ -283,7 +266,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination, tryToSign: false));
+			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
 		}
 		catch (NotEnoughFundsException ex)
 		{
@@ -352,7 +335,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				? feeRate
 				: FeeRate.Zero;
 
-		if (differenceOfFeePercentage is > 0 and TransactionFeeHelper.FeePercentageThreshold ||
+		if (differenceOfFeePercentage is > 0 and < TransactionFeeHelper.FeePercentageThreshold ||
 			(differenceOfFeePercentage > 0 && reason == BuildTransactionReason.FeeChanged))
 		{
 			_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
@@ -367,7 +350,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (totalBalanceUsed)
 		{
-			if (selectedAmount == _info.Amount && !(_isFixedAmount || _info.IsPayJoin))
+			if (selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
 			{
 				_info.SubtractFee = true;
 				return true;
@@ -386,7 +369,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			_info.MinimumRequiredAmount = minimumRequiredAmount;
 
 			var selectPocketsDialog =
-				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: _transaction?.SpentCoins, isSilent: doSilentPocketSelection));
+				await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: doSilentPocketSelection));
 
 			if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 			{
@@ -413,8 +396,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (await BuildTransactionAsync(BuildTransactionReason.Initialization) is { } initialTransaction)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
-
-			await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, _destination, initialTransaction, _isFixedAmount, _cancellationTokenSource.Token);
 		}
 		else
 		{
@@ -441,8 +422,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (!isInHistory)
 		{
-			_cancellationTokenSource.Cancel();
-			_cancellationTokenSource.Dispose();
+			_cancellationTokenSource?.Cancel();
+			_cancellationTokenSource?.Dispose();
+			_cancellationTokenSource = null;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on cancel, so the user can undo the optimization.
 		}
 
@@ -453,7 +435,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnConfirmAsync()
 	{
-		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, _destination));
+		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 		var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 		if (authResult)
@@ -465,7 +447,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				var finalTransaction =
 					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 				await SendTransactionAsync(finalTransaction);
-				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource?.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
 			catch (Exception ex)
@@ -506,7 +488,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			try
 			{
 				var payJoinTransaction = await Task.Run(() =>
-					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, _destination, isPayJoin: true));
+					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
 				return payJoinTransaction.Transaction;
 			}
 			catch (Exception ex)
@@ -520,9 +502,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private void AddToUndoHistory()
 	{
-		if (_transaction is { })
+		if (Transaction is { })
 		{
-			_undoHistory.Push((_transaction, _currentTransactionInfo));
+			_undoHistory.Push((Transaction, _currentTransactionInfo));
 			CanUndo = true;
 		}
 	}
@@ -537,10 +519,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _wallet.GetPockets().ToArray();
-		var amount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
-		var labelSelection = new LabelSelectionViewModel(amount);
+		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
 		labelSelection.Reset(pockets);
 
-		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.UserLabels);
+		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
 }

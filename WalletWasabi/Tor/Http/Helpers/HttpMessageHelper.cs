@@ -18,7 +18,7 @@ namespace WalletWasabi.Tor.Http.Helpers;
 
 public static class HttpMessageHelper
 {
-	public static async Task<string> ReadStartLineAsync(Stream stream, CancellationToken ctsToken = default)
+	public static async Task<string> ReadStartLineAsync(Stream stream, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3
 		// A recipient MUST parse an HTTP message as a sequence of octets in an
@@ -34,7 +34,7 @@ public static class HttpMessageHelper
 		int read = 0;
 		while (read >= 0)
 		{
-			read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+			read = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
 
 			// End of stream has been reached.
 			if (read == -1)
@@ -59,7 +59,7 @@ public static class HttpMessageHelper
 		return startLine;
 	}
 
-	public static async Task<string> ReadHeadersAsync(Stream stream, CancellationToken ctsToken = default)
+	public static async Task<string> ReadHeadersAsync(Stream stream, CancellationToken cancellationToken)
 	{
 		var headers = "";
 		var firstRead = true;
@@ -67,7 +67,7 @@ public static class HttpMessageHelper
 		builder.Append(headers);
 		while (true)
 		{
-			var header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
+			var header = await ReadCRLFLineAsync(stream, Encoding.ASCII, cancellationToken).ConfigureAwait(false);
 
 			if (header.Length == 0)
 			{
@@ -103,12 +103,12 @@ public static class HttpMessageHelper
 		return headers;
 	}
 
-	private static async Task<string> ReadCRLFLineAsync(Stream stream, Encoding encoding, CancellationToken ctsToken = default)
+	private static async Task<string> ReadCRLFLineAsync(Stream stream, Encoding encoding, CancellationToken cancellationToken)
 	{
 		var bab = new ByteArrayBuilder();
 		while (true)
 		{
-			int ch = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+			int ch = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
 			if (ch == -1)
 			{
 				break;
@@ -116,7 +116,7 @@ public static class HttpMessageHelper
 
 			if (ch == '\r')
 			{
-				var ch2 = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+				var ch2 = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
 				if (ch2 == '\n')
 				{
 					return bab.ToString(encoding);
@@ -158,7 +158,7 @@ public static class HttpMessageHelper
 		return decodedBodyArray;
 	}
 
-	public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken ctsToken = default)
+	public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken cancellationToken)
 	{
 		// https://tools.ietf.org/html/rfc7230#section-3.3.3
 		// The length of a message body is determined by one of the following
@@ -200,7 +200,7 @@ public static class HttpMessageHelper
 			// All transfer-coding names are case-insensitive
 			if ("chunked".Equals(headerStruct.ResponseHeaders.TransferEncoding.Last().Value, StringComparison.OrdinalIgnoreCase))
 			{
-				return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken).ConfigureAwait(false);
+				return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, cancellationToken).ConfigureAwait(false);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// If a Transfer-Encoding header field is present in a response and
@@ -211,7 +211,7 @@ public static class HttpMessageHelper
 			// the final encoding, the message body length cannot be determined
 			// reliably; the server MUST respond with the 400(Bad Request)
 			// status code and then close the connection.
-			return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
+			return await GetBytesTillEndAsync(stream, cancellationToken).ConfigureAwait(false);
 		}
 		// https://tools.ietf.org/html/rfc7230#section-3.3.3
 		// 5.If a valid Content-Length header field is present without
@@ -222,7 +222,7 @@ public static class HttpMessageHelper
 		// incomplete and close the connection.
 		if (headerStruct?.ContentHeaders?.Contains("Content-Length") is true && headerStruct.ContentHeaders.ContentLength is { } contentLength)
 		{
-			return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken).ConfigureAwait(false);
+			return await ReadBytesTillLengthAsync(stream, contentLength, cancellationToken).ConfigureAwait(false);
 		}
 
 		// https://tools.ietf.org/html/rfc7230#section-3.3.3
@@ -232,15 +232,15 @@ public static class HttpMessageHelper
 		// body length, so the message body length is determined by the
 		// number of octets received prior to the server closing the
 		// connection.
-		return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
+		return await GetBytesTillEndAsync(stream, cancellationToken).ConfigureAwait(false);
 	}
 
-	private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken ctsToken = default)
+	private static Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken cancellationToken)
 	{
-		return await GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, ctsToken).ConfigureAwait(false);
+		return GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, cancellationToken);
 	}
 
-	private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders? requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
+	private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders? requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken cancellationToken)
 	{
 		if (responseHeaders is null && requestHeaders is null)
 		{
@@ -275,7 +275,7 @@ public static class HttpMessageHelper
 		// Remove "chunked" from Transfer-Encoding
 		// Remove Trailer from existing header fields
 		long length = 0;
-		var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken).ConfigureAwait(false);
+		var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, cancellationToken: cancellationToken).ConfigureAwait(false);
 		ParseFirstChunkLine(firstChunkLine, out long chunkSize, out _);
 		// We will not do anything with the chunk extensions, because:
 		// https://tools.ietf.org/html/rfc7230#section-4.1.1
@@ -288,8 +288,8 @@ public static class HttpMessageHelper
 		// by a trailer, and finally terminated by an empty line.
 		while (chunkSize > 0)
 		{
-			var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken).ConfigureAwait(false);
-			string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
+			var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, cancellationToken).ConfigureAwait(false);
+			string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, cancellationToken).ConfigureAwait(false);
 
 			// If more than a CRLF was read, then it's not an empty string.
 			if (crlfLine.Length != 0)
@@ -301,7 +301,7 @@ public static class HttpMessageHelper
 
 			length += chunkSize;
 
-			firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken).ConfigureAwait(false);
+			firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, cancellationToken: cancellationToken).ConfigureAwait(false);
 			ParseFirstChunkLine(firstChunkLine, out long cs, out _);
 			chunkSize = cs;
 		}
@@ -310,7 +310,7 @@ public static class HttpMessageHelper
 		// A trailer allows the sender to include additional fields at the end
 		// of a chunked message in order to supply metadata that might be
 		// dynamically generated while the message body is sent
-		string trailerHeaders = await ReadHeadersAsync(stream, ctsToken).ConfigureAwait(false);
+		string trailerHeaders = await ReadHeadersAsync(stream, cancellationToken).ConfigureAwait(false);
 		var trailerHeaderSection = await HeaderSection.CreateNewAsync(trailerHeaders).ConfigureAwait(false);
 		RemoveInvalidTrailers(trailerHeaderSection);
 		if (responseHeaders is { })
@@ -413,12 +413,12 @@ public static class HttpMessageHelper
 		chunkExtensions = length > 1 ? parts.Skip(1) : Enumerable.Empty<string>();
 	}
 
-	private static async Task<byte[]> GetBytesTillEndAsync(Stream stream, CancellationToken ctsToken)
+	private static async Task<byte[]> GetBytesTillEndAsync(Stream stream, CancellationToken cancellationToken)
 	{
 		var bab = new ByteArrayBuilder();
 		while (true)
 		{
-			int read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+			int read = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
 			if (read == -1)
 			{
 				return bab.ToArray();
@@ -432,7 +432,7 @@ public static class HttpMessageHelper
 
 	/// <seealso href="https://tools.ietf.org/html/rfc7230#section-3.3.3">See point 5.</seealso>
 	/// <seealso href="https://tools.ietf.org/html/rfc7230#section-3.4"/>
-	private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long contentLength, CancellationToken ctsToken)
+	private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long contentLength, CancellationToken cancellationToken)
 	{
 		if (contentLength < int.MinValue || contentLength > int.MaxValue)
 		{
@@ -442,7 +442,7 @@ public static class HttpMessageHelper
 		int length = (int)contentLength;
 		byte[] allData = new byte[length];
 
-		int num = await stream.ReadBlockAsync(allData, length, ctsToken).ConfigureAwait(false);
+		int num = await stream.ReadBlockAsync(allData, length, cancellationToken).ConfigureAwait(false);
 		if (num < length)
 		{
 			throw new TorConnectionReadException($"Incomplete message. A Tor circuit probably died. Expected length: {length}. Actual: {num}.");

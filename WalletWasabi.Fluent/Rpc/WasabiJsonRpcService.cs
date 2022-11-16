@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.BitcoinP2p;
@@ -12,6 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.Services.Terminate;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Rpc;
@@ -114,7 +116,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		var hdkey = activeWallet.KeyManager
-			.GenerateNewKey(new SmartLabel(label), KeyState.Clean, isInternal: false);
+			.GenerateNewPersistentKey(new SmartLabel(label), KeyState.Clean, isInternal: false);
 		return new
 		{
 			address = hdkey.GetP2wpkhAddress(Global.Network).ToString(),
@@ -247,6 +249,28 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}).ToArray();
 	}
 
+	[JsonRpcMethod("startcoinjoin")]
+	public void StartCoinJoining(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
+		coinJoinManager.StartAsync(activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+	}
+
+	[JsonRpcMethod("stopcoinjoin")]
+	public void StopCoinJoining()
+	{
+		var coinJoinManager = Global.HostedServices.Get<CoinJoinManager>();
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+
+		coinJoinManager.StopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
+	}
+
 	[JsonRpcMethod("selectwallet")]
 	public void SelectWallet(string walletName)
 	{
@@ -279,6 +303,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		if (ActiveWallet is null || ActiveWallet.State != WalletState.Started)
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
+		}
+	}
+
+	private void AssertWalletIsLoggedIn(Wallet activeWallet, string password)
+	{
+		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
+		{
+			throw new Exception($"'{activeWallet.WalletName}' wallet requires the password to start coinjoining.");
 		}
 	}
 }

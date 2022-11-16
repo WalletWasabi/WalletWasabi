@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
@@ -105,8 +106,7 @@ public partial class MainViewModel : ViewModelBase
 			}
 		});
 
-		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
-		SearchBar = new SearchBarViewModel(source.Changes);
+		SearchBar = CreateSearchBar();
 
 		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
 	}
@@ -192,5 +192,26 @@ public partial class MainViewModel : ViewModelBase
 	public void ApplyUiConfigWindowSate()
 	{
 		WindowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
+	}
+
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Same lifecycle as the application. Won't be disposed separately.")]
+	private SearchBarViewModel CreateSearchBar()
+	{
+		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
+		var filterChanged = new Subject<string>();
+
+		var source = new CompositeSearchSource(
+			new ActionsSearchSource(filterChanged),
+			new SettingsSearchSource(_settingsPage, filterChanged),
+			new TransactionsSearchSource(filterChanged));
+
+		var searchBar = new SearchBarViewModel(source.Changes);
+
+		searchBar
+			.WhenAnyValue(a => a.SearchText)
+			.WhereNotNull()
+			.Subscribe(filterChanged);
+
+		return searchBar;
 	}
 }

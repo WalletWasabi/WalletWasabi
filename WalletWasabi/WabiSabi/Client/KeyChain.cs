@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -18,10 +19,21 @@ public class KeyChain : BaseKeyChain
 	}
 
 	private KeyManager KeyManager { get; }
+	private ExtKey? MasterKey { get; set; }
+
+	[MemberNotNull(nameof(MasterKey))]
+	public void PreloadMasterKey()
+	{
+		MasterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup());
+	}
 
 	protected override Key GetMasterKey()
 	{
-		return KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
+		if (MasterKey is null)
+		{
+			PreloadMasterKey();
+		}
+		return MasterKey.PrivateKey;
 	}
 
 	public override void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
@@ -39,7 +51,7 @@ public class KeyChain : BaseKeyChain
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
 		}
-		if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != scriptPubKey)
+		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
 		{
 			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 		}

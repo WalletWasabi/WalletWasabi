@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using WalletWasabi.Fluent.Screenshot;
 
 namespace WalletWasabi.Fluent.Views;
 
@@ -16,6 +17,7 @@ public class MainWindow : Window
 		AvaloniaXamlLoader.Load(this);
 #if DEBUG
 		this.AttachDevTools();
+		this.AttachCapture();
 #endif
 	}
 }
