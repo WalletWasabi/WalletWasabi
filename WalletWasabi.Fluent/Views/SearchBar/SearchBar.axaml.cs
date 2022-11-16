@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.StatusIcon;
+namespace WalletWasabi.Fluent.Views.SearchBar;
 
-public class StatusIconView : UserControl
+public class SearchBar : UserControl
 {
-	public StatusIconView()
+	public SearchBar()
 	{
 		InitializeComponent();
 	}

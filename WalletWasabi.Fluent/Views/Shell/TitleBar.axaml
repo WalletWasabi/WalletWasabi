@@ -49,7 +49,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="SearchBar">
-      <searchBar:SearchBarView DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
+      <searchBar:SearchBar DataContext="{Binding #UserControl.DataContext.SearchBar}" VerticalAlignment="Stretch"
                            HorizontalAlignment="Stretch"
                            Margin="5" />
     </DataTemplate>
