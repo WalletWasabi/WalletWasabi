@@ -38,12 +38,13 @@ regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
 5. Save it.
 6. Start Bitcoin Core with: bitcoin-qt.exe -regtest.
 7. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
-8. Go to MainMenu / Window / Console.
-9. Generate a new address with:
+8. Go to menu *File / Create* wallet and create a wallet with the name you prefer. Use the default options.
+9. Go to menu *Window / Console*.
+10. Generate a new address with:
 `getnewaddress`
-10. Generate the first 101 blocks with:
+11. Generate the first 101 blocks with:
 `generatetoaddress 101 <replace_new_address_here>`
-11. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
+12. Now you have your own Bitcoin blockchain and you are a God there - try to resist the insurmountable temptation to start your own shit coin, remember there is only one true coin. You can create transactions with the Send button and confirm with:
 `generatetoaddress 1 <replace_new_address_here>`
 
 You can force rebuilding the txindex with the `-reindex` command line argument.
