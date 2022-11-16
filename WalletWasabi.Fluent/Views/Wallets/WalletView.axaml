@@ -80,7 +80,7 @@
       </StackPanel>
     </c:ContentArea.Title>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-      <home:TilesView DataContext="{Binding Tiles}" Margin="0 10 0 20" DockPanel.Dock="Top" />
+      <home:WalletTiles DataContext="{Binding Tiles}" Margin="0 10 0 20" DockPanel.Dock="Top" />
       <history:HistoryTable Name="HistoryTable"
                             DataContext="{Binding History}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />

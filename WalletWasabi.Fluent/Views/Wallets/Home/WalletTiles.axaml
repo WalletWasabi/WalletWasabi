@@ -5,7 +5,7 @@
              xmlns:viewModels1="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="800"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.TilesView"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletTiles"
              x:CompileBindings="True"
              x:DataType="collections:IEnumerable">
 

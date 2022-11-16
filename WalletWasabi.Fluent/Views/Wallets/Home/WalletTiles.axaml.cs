@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home;
 
-public class TilesView : UserControl
+public class WalletTiles : UserControl
 {
-	public TilesView()
+	public WalletTiles()
 	{
 		InitializeComponent();
 	}
