@@ -225,7 +225,7 @@ public class UpdateManager : IDisposable
 			string message = "";
 			if (exc.StatusCode is HttpStatusCode.NotFound)
 			{
-				message = "Wasabi signature files was not found under the API.";
+				message = "Wasabi signature files were not found under the API.";
 			}
 			else
 			{
