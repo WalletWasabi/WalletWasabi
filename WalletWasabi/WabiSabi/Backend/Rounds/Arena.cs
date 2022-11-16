@@ -553,9 +553,9 @@ public partial class Arena : PeriodicRunner
 
 	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
-		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate));
+		long inputsum = coinjoin.Inputs.Sum(input => input.EffectiveValue(round.Parameters.MiningFeeRate, CoordinationFeeRate.Zero));
 		long outputsum = coinjoin.Outputs.Sum(output => output.EffectiveCost(round.Parameters.MiningFeeRate));
-		var diff = aliceSum - outputsum;
+		var diff = inputsum - outputsum;
 
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
