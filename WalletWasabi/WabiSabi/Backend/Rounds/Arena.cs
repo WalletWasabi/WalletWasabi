@@ -552,13 +552,9 @@ public partial class Arena : PeriodicRunner
 
 	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
-		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate));
-		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-		var diff = aliceSum - bobSum;
-
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var diffMoney = Money.Satoshis(diff) - round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize());
+		var diffMoney = coinjoin.Balance - round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize());
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
