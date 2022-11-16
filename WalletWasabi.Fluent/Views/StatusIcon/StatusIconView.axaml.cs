@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Shell;
+namespace WalletWasabi.Fluent.Views.StatusIcon;
 
-public class ShellView : UserControl
+public class StatusIconView : UserControl
 {
-	public ShellView()
+	public StatusIconView()
 	{
 		InitializeComponent();
 	}

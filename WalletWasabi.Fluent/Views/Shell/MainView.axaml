@@ -14,7 +14,7 @@
              x:CompileBindings="True">
 
   <DockPanel IsEnabled="{Binding IsMainContentEnabled^}">
-    <shell:TitleBarView DockPanel.Dock="Top" />
+    <shell:TitleBar DockPanel.Dock="Top" />
     <DockPanel>
       <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
       <Border x:Name="ContentPart" BorderBrush="{DynamicResource TileBorderColor}" BorderThickness="1 1 0 0"
@@ -58,7 +58,7 @@
           </DockPanel>
           <Border CornerRadius="10 0 0 0" BoxShadow="inset 0 0 5 0 #000000" ClipToBounds="True"
                   IsHitTestVisible="False" Margin="0 0 -5 -5" />
-          <statusIcon:StatusIcon Margin="10" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+          <statusIcon:StatusIconView Margin="10" Foreground="{DynamicResource AcrylicTrimForeground}" DataContext="{Binding StatusIcon}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
         </Panel>
       </Border>
     </DockPanel>

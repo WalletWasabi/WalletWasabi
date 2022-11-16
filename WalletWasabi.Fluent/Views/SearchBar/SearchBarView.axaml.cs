@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.SearchBar;
 
-public class SearchBar : UserControl
+public class SearchBarView : UserControl
 {
-	public SearchBar()
+	public SearchBarView()
 	{
 		InitializeComponent();
 	}
