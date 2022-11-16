@@ -73,18 +73,7 @@
 
     </controls:ContentArea.Styles>
 
-    <DockPanel>
-
-      <Panel x:CompileBindings="False" DockPanel.Dock="Bottom" Margin="0 12 0 0" TextBlock.Foreground="{DynamicResource AcrylicTrimForeground}">
-        <ProgressBar Height="25" Maximum="{Binding RequiredAmount^.Satoshi}" Value="{Binding SelectedAmount^.Satoshi, Mode=OneWay}" />
-        <TextBlock Classes="h8" Margin="10 0" VerticalAlignment="Center" Text="{Binding SelectedAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC selected'}" />
-        <TextBlock Classes="h8" Margin="10 0" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !EnoughSelected^}"
-                   Text="{Binding RemainingAmount^, Converter={x:Static converters:MoneyConverters.ToFormattedString}, StringFormat='{}{0} BTC remaining'}" />
-      </Panel>
-
-      <TreeDataGrid Source="{Binding Source}" CanUserSortColumns="True" />
-
-    </DockPanel>
+    <TreeDataGrid Source="{Binding Source}" CanUserSortColumns="True" />
 
   </controls:ContentArea>
 </UserControl>
