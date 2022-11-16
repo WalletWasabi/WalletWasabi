@@ -97,6 +97,7 @@
 
       <!-- Pages -->
       <Carousel SelectedIndex="{Binding SelectedIndex}"
+                ClipToBounds="False"
                 DockPanel.Dock="Top"
                 Margin="0 10">
         <i:Interaction.Behaviors>
@@ -109,18 +110,16 @@
           <Style Selector="TextBlock.text">
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Opacity" Value="0.5" />
-            <Setter Property="LineHeight" Value="22" />
             <Setter Property="FontWeight" Value="Light" />
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="Margin" Value="0 0 0 6"></Setter>
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0 0 0 6" />
           </Style>
 
           <Style Selector="TextBlock.title2">
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="LineHeight" Value="22" />
-            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontSize" Value="16" />
           </Style>
 
           <Style Selector="TextBlock.title1">
@@ -128,7 +127,7 @@
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="FontSize" Value="31" />
-            <Setter Property="Margin" Value="0 15" />
+            <Setter Property="Margin" Value="0 -20 0 20" />
           </Style>
 
           <Style Selector="Viewbox.icon">
@@ -147,36 +146,9 @@
           <TextBlock Classes="title1" FontWeight="Bold" DockPanel.Dock="Top" HorizontalAlignment="Center">
             Welcome to Wasabi Wallet!
           </TextBlock>
-          <Grid ColumnDefinitions="*,Auto">
-            <Viewbox Grid.Column="0" VerticalAlignment="Center" StretchDirection="DownOnly">
-              <StackPanel>
-                <TextBlock Classes="title2">
-                  Bitcoin wallet
-                </TextBlock>
-                <TextBlock Classes="text">
-                  Receive and send money, privately and securely.
-                </TextBlock>
-                <TextBlock Classes="title2">
-                  Non-custodial
-                </TextBlock>
-                <TextBlock Classes="text">
-                  You are in full control, nobody can steal from you.
-                </TextBlock>
-                <TextBlock Classes="title2">
-                  Private by default
-                </TextBlock>
-                <TextBlock Classes="text">
-                  Nobody can find out how much money you have or where you spend it.
-                </TextBlock>
-                <TextBlock Classes="title2">
-                  Open Source
-                </TextBlock>
-                <TextBlock Classes="text">
-                  You can verify exactly what’s going on under the hood and help us improve.
-                </TextBlock>
-              </StackPanel>
-            </Viewbox>
-            <Panel MaxWidth="230" Grid.Column="1"
+          <DockPanel LastChildFill="True">
+            <Panel DockPanel.Dock="Right"
+                   MaxWidth="230"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Right">
               <ExperimentalAcrylicBorder Margin="2">
@@ -199,7 +171,34 @@
                 </Panel>
               </Viewbox>
             </Panel>
-          </Grid>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Classes="title2">
+                Bitcoin wallet
+              </TextBlock>
+              <TextBlock Classes="text">
+                Receive and send money, securely and privately.
+              </TextBlock>
+              <TextBlock Classes="title2">
+                Non-custodial
+              </TextBlock>
+              <TextBlock Classes="text">
+                You are in full control, nobody can steal from you.
+              </TextBlock>
+              <TextBlock Classes="title2">
+                Private by default
+              </TextBlock>
+              <TextBlock Classes="text">
+                Nobody can find out how much money you have or where you spend it.
+              </TextBlock>
+              <TextBlock Classes="title2">
+                Open Source
+              </TextBlock>
+              <TextBlock Classes="text">
+                You can verify exactly what’s going on under the hood and help us improve.
+              </TextBlock>
+            </StackPanel>
+
+          </DockPanel>
 
         </DockPanel>
         <!-- Get started -->
