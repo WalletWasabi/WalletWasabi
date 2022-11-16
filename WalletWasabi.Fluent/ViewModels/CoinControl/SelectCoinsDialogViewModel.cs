@@ -10,10 +10,10 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core.Headers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
+using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
@@ -90,7 +90,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private static IColumn<CoinControlItemViewModelBase> PrivacyScore()
 	{
 		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
-			new AnonymityScoreHeaderViewModel(),
+			new AnonymityScoreHeaderView(),
 			node => node is CoinCoinControlItemViewModel coin ? coin.AnonymityScore.ToString() : "",
 			GridLength.Auto,
 			new TextColumnOptions<CoinControlItemViewModelBase>
