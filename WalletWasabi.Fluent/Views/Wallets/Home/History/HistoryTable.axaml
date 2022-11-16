@@ -148,14 +148,18 @@
           <Setter Property="Height" Value="37.5" />
           <Setter Property="Template">
             <ControlTemplate>
-              <DockPanel LastChildFill="True">
+              <DockPanel LastChildFill="True"
+                         Background="Transparent"
+                         x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
+                <i:Interaction.Behaviors>
+                  <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand, Mode=OneWay}"/>
+                </i:Interaction.Behaviors>
                 <Border Name="PART_SelectionIndicator"
                         BorderThickness="2 0 0 0"
                         DockPanel.Dock="Left"
                         VerticalAlignment="Stretch" />
                 <Panel>
                   <Rectangle Name="BackgroundRectangle"
-                             x:CompileBindings="False"
                              Classes.selectAnimation="{Binding IsFlashing}" />
                   <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                               ElementFactory="{TemplateBinding ElementFactory}"
@@ -241,7 +245,8 @@
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:HistoryItemTypeClassBehavior />
-                <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand}"/>
+                <!-- TODO: The Command binding doesn't work in Avalonia 0.10.x -->
+                <!-- <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand, Mode=OneWay}"/> -->
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
