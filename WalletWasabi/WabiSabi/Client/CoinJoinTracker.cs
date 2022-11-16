@@ -27,11 +27,15 @@ public class CoinJoinTracker : IDisposable
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		CoinJoinTask = Task.Factory.StartNew<CoinJoinResult>(
-			async () => await coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token).ConfigureAwait(false),
-			CancellationTokenSource.Token,
-			TaskCreationOptions.LongRunning,
-			TaskScheduler.Default);
+
+		CoinJoinTask = Task.Factory.StartNew(async () =>
+		{
+			CoinJoinResult result = await coinJoinClient.StartCoinJoinAsync(coinCandidates, CancellationTokenSource.Token).ConfigureAwait(false);
+			return result;
+		},
+		CancellationTokenSource.Token,
+		TaskCreationOptions.LongRunning,
+		TaskScheduler.Default).Unwrap();
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? WalletCoinJoinProgressChanged;
