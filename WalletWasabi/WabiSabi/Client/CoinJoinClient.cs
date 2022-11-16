@@ -27,8 +27,8 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
-    private const int MaxWeightedAnonLoss = 3;
-    private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
+	private const int MaxWeightedAnonLoss = 3;
+	private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
 	private TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
 
@@ -782,8 +782,10 @@ public class CoinJoinClient
 
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
-		var winner = new List<SmartCoin>();
-		winner.Add(selectedNonPrivateCoin);
+		List<SmartCoin> winner = new()
+		{
+			selectedNonPrivateCoin
+		};
 		foreach (var coin in finalCandidate
 			.Except(new[] { selectedNonPrivateCoin })
 			.OrderBy(x => x.HdPubKey.AnonymitySet)
