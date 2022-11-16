@@ -604,7 +604,7 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + MultipartyTransactionParameters.SharedOverhead);
+			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 
 			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 			{
