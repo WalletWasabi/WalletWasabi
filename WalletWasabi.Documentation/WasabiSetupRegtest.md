@@ -81,7 +81,7 @@ Linux: "/home/{your username}/.walletwasabi/backend"
 ```
 "AnonymitySet": 2,
 ```
-7. Start Bitcoin Core in RegTest.
+7. Start Bitcoin Knots in RegTest (command to run is explained above).
 8. Go to WalletWasabi folder
 9. Open the command line and enter. This will build all the projects under this directory. 
 `dotnet build`
