@@ -102,13 +102,11 @@ Todo:
 5. Generate a wallet in Wasabi named: R1.
 6. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
 7. Send 1 BTC to that address.
-8. Open another Wasabi instance from another command line:
-`dotnet run --no-build`
-9. Generate a wallet in Wasabi named: R2.
-10. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
-11. Send 1 BTC to that address.
-12. Now let the coinjoin happen automatically in both instances.
-13. If you see `Waiting for confirmed funds` in the music box you can generate a block in Bitcoin Knots to continue coinjoining.
+8. Generate a wallet in Wasabi named: R2.
+9. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
+10. Send 1 BTC to that address.
+11. Now let the coinjoin happen automatically in both instances.
+12. If you see `Waiting for confirmed funds` in the music box you can generate a block in Bitcoin Knots to continue coinjoining.
     - You can do it with the console command `generatetoaddress 1 <replace_with_your_address_here>`
 
 Happy CoinJoin!
