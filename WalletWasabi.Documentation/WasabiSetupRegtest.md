@@ -96,7 +96,7 @@ Todo:
 1. Go to `WalletWasabi\WalletWasabi.Fluent.Desktop` folder.
 2. Open the command line and run the Wasabi Client with:
 `dotnet run --no-build`
-3. Go to Tools/Settings and set the network to RegTest
+3. Go to Settings/Bitcoin and set the network to RegTest
 4. Close Wasabi and restart it with:
 `dotnet run --no-build`
 5. Generate a wallet in Wasabi named: R1.
@@ -107,8 +107,8 @@ Todo:
 9. Generate a wallet in Wasabi named: R2.
 10. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
 11. Send 1 BTC to that address.
-12. Now in both instance go to CoinJoin tab and enqueue. CoinJoin should happen.
-13. If you see Waiting for confirmation in the Wasabi CoinList you can generate a block in Bitcoin Knots to continue coinjoining. 
+12. Now let the coinjoin happen automatically in both instances.
+13. If you see `Waiting for confirmed funds` in the music box you can generate a block in Bitcoin Knots to continue coinjoining.
     - You can do it with the console command `generatetoaddress 1 <replace_with_your_address_here>`
 
 Happy CoinJoin!
