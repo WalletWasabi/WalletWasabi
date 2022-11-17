@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace System;
 
 public static unsafe class ByteHelpers
 {
+	private static readonly uint[] Lookup32Unsafe = CreateLookup32Unsafe();
+	private static readonly uint* Lookup32UnsafeP = (uint*)GCHandle.Alloc(Lookup32Unsafe, GCHandleType.Pinned).AddrOfPinnedObject();
+
 	// https://stackoverflow.com/questions/415291/best-way-to-combine-two-or-more-byte-arrays-in-c-sharp
 	/// <summary>
 	/// Fastest byte array concatenation in C#
@@ -87,7 +91,21 @@ public static unsafe class ByteHelpers
 		}
 	}
 
-	/// <seealso cref="Convert.ToHexString(byte[])"/>
+	private static uint[] CreateLookup32Unsafe()
+	{
+		var result = new uint[256];
+		for (int i = 0; i < 256; i++)
+		{
+			string s = i.ToString("X2");
+			result[i] = BitConverter.IsLittleEndian ? s[0] + ((uint)s[1] << 16) : s[1] + ((uint)s[0] << 16);
+		}
+		return result;
+	}
+
+	// https://stackoverflow.com/a/24343727/2061103
+	/// <summary>
+	/// Fastest byte array to hex implementation in C#
+	/// </summary>
 	public static string ToHex(params byte[] bytes)
 	{
 		if (bytes.Length == 0)
@@ -95,7 +113,18 @@ public static unsafe class ByteHelpers
 			return "";
 		}
 
-		return Convert.ToHexString(bytes);
+		var lookupP = Lookup32UnsafeP;
+		var result = new string((char)0, bytes.Length * 2);
+		fixed (byte* bytesP = bytes)
+		fixed (char* resultP = result)
+		{
+			uint* resultP2 = (uint*)resultP;
+			for (int i = 0; i < bytes.Length; i++)
+			{
+				resultP2[i] = lookupP[bytesP[i]];
+			}
+		}
+		return result;
 	}
 
 	/// <seealso cref="Convert.FromHexString(string)"/>
