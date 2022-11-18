@@ -27,18 +27,22 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		Mnemonic mnemonic,
 		string walletName)
 	{
+		_isSkipEnable = GetIsSkipEnabled();
+
 		_confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
-#if RELEASE
-		_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
-#else
-		_isSkipEnable = true;
-#endif
+
 		var nextCommandCanExecute =
 			_confirmationWordsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.WhenValueChanged(x => x.IsConfirmed)
 			.Select(_ => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+
+		_confirmationWordsSourceList
+			.Connect()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Subscribe(x => OnWordSelected(x.Sender, x.Value));
 
 		EnableBack = true;
 
@@ -54,16 +58,47 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		_confirmationWordsSourceList
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.OnItemAdded(x => x.Reset())
 			.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
+			.OnItemAdded(x => x.Reset())
 			.Bind(out _confirmationWords)
 			.Subscribe();
 
-		// Select random words to confirm.
-		_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => Random.Shared.NextDouble()).Take(3));
+		_confirmationWordsSourceList.AddRange(mnemonicWords);
+
+		AvailableWords = mnemonicWords.OrderBy(_ => Random.Shared.Next()).ToList();
 	}
 
 	public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
+
+	public List<RecoveryWordViewModel> AvailableWords { get; }
+
+	private void OnWordSelected(RecoveryWordViewModel selectedWord, bool isSelected)
+	{
+		if (isSelected)
+		{
+			var empty = ConfirmationWords.FirstOrDefault(x => x.SelectedWord is null);
+
+			if (empty is { })
+			{
+				empty.SelectedWord = selectedWord.Word;
+			}
+		}
+		else
+		{
+			var toRemove = ConfirmationWords.FirstOrDefault(x => x.SelectedWord == selectedWord.Word);
+
+			if (toRemove is { })
+			{
+				for (int i = ConfirmationWords.IndexOf(toRemove); i < ConfirmationWords.Count; i++)
+				{
+					ConfirmationWords[i].SelectedWord =
+						i < ConfirmationWords.Count - 1
+						? ConfirmationWords[i + 1].SelectedWord
+						: null;
+				}
+			}
+		}
+	}
 
 	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
 	{
@@ -111,5 +146,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		{
 			_confirmationWordsSourceList.Dispose();
 		}
+	}
+
+	private bool GetIsSkipEnabled()
+	{
+#if RELEASE
+		return Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
+#else
+		return true;
+#endif
 	}
 }

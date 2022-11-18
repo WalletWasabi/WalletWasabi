@@ -1,3 +1,4 @@
+using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 
@@ -5,15 +6,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
 public partial class RecoveryWordViewModel : ViewModelBase
 {
-	[AutoNotify] private string? _input;
+	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private string? _selectedWord;
 
 	public RecoveryWordViewModel(int index, string word)
 	{
 		Index = index;
 		Word = word;
 
-		this.ValidateProperty(x => x.Input, ValidateWord);
+		this.WhenAnyValue(x => x.SelectedWord)
+			.Subscribe(_ => ValidateWord());
 	}
 
 	public int Index { get; }
@@ -21,24 +24,16 @@ public partial class RecoveryWordViewModel : ViewModelBase
 
 	public void Reset()
 	{
-		Input = "";
+		SelectedWord = null;
+		IsSelected = false;
 		IsConfirmed = false;
 	}
 
-	private void ValidateWord(IValidationErrors errors)
+	private void ValidateWord()
 	{
-		if (string.IsNullOrWhiteSpace(Input))
-		{
-			return;
-		}
-
-		if (Input.Equals(Word, StringComparison.InvariantCultureIgnoreCase))
-		{
-			IsConfirmed = true;
-			return;
-		}
-
-		errors.Add(ErrorSeverity.Error, $"The input does not match recovery word {Index}.");
+		IsConfirmed =
+			SelectedWord is { } &&
+			SelectedWord.Equals(Word, StringComparison.InvariantCultureIgnoreCase);
 	}
 
 	public override string ToString()
