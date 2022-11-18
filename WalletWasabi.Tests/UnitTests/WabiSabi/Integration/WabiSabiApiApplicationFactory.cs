@@ -86,5 +86,5 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	}
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
-		new(new HttpClientWrapper(httpClient));
+		new(new ClearnetHttpClient(httpClient));
 }

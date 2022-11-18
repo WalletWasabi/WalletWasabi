@@ -34,6 +34,7 @@
   <Style Selector="c|LabelsItemsPresenter">
     <Setter Property="Margin" Value="0" />
     <Setter Property="VirtualizationMode" Value="Simple" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
@@ -48,7 +49,7 @@
     </Setter>
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Left">
+        <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
               <Border Classes="label">
@@ -70,5 +71,4 @@
       </ItemsPanelTemplate>
     </Setter>
   </Style>
-
 </Styles>

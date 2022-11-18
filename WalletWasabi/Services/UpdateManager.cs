@@ -32,12 +32,14 @@ public class UpdateManager : IDisposable
 		var tries = 0;
 		bool updateAvailable = !updateStatus.ClientUpToDate || !updateStatus.BackendCompatible;
 		Version targetVersion = updateStatus.ClientVersion;
+
 		if (!updateAvailable)
 		{
 			Cleanup();
 			return;
 		}
-		if (DownloadNewVersion)
+
+		if (DownloadNewVersion && !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
 			do
 			{
@@ -53,12 +55,12 @@ public class UpdateManager : IDisposable
 				}
 				catch (OperationCanceledException ex)
 				{
-					Logger.LogTrace($"Geting new update was canceled.", ex);
+					Logger.LogTrace($"Getting new update was canceled.", ex);
 					break;
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Geting new update failed with error.", ex);
+					Logger.LogError($"Getting new update failed with error.", ex);
 				}
 			} while (tries < MaxTries);
 		}
@@ -87,19 +89,26 @@ public class UpdateManager : IDisposable
 			Logger.LogInfo($"Trying to download new version: {newVersion}");
 			using HttpClient httpClient = new();
 
-			// Get file stream and copy it to downloads folder to access.
-			using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
-			Logger.LogInfo("Installer downloaded, copying...");
-			IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
-			using (var file = File.OpenWrite(tmpFilePath))
+			try
 			{
-				await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
+				// Get file stream and copy it to downloads folder to access.
+				using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
+				Logger.LogInfo("Installer downloaded, copying...");
+				IoHelpers.EnsureContainingDirectoryExists(tmpFilePath);
+				using (var file = File.OpenWrite(tmpFilePath))
+				{
+					await stream.CopyToAsync(file, CancellationToken).ConfigureAwait(false);
 
-				// Closing the file to rename.
-				file.Close();
-			};
-
-			File.Move(tmpFilePath, newFilePath);
+					// Closing the file to rename.
+					file.Close();
+				};
+				File.Move(tmpFilePath, newFilePath);
+			}
+			catch (IOException)
+			{
+				CancellationToken.ThrowIfCancellationRequested();
+				throw;
+			}
 		}
 
 		return (newFilePath, newVersion);
@@ -120,7 +129,7 @@ public class UpdateManager : IDisposable
 		Version shortGithubVersion = new(githubVersion.Major, githubVersion.Minor, githubVersion.Build);
 		if (targetVersion != shortGithubVersion)
 		{
-			throw new InvalidDataException("Target version from backend does not match with the latest github release. This should be impossible.");
+			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
 		}
 
 		// Get all asset names and download urls to find the correct one.
