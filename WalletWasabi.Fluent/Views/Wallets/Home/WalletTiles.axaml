@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels1="clr-namespace:WalletWasabi.Fluent.ViewModels"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletTiles"
@@ -10,25 +9,7 @@
              x:DataType="collections:IEnumerable">
 
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-
-    <ItemsControl Items="{Binding}" DockPanel.Dock="Bottom">
-      <ItemsControl.Styles>
-        <Style Selector="ContentPresenter">
-          <Setter Property="ContentTemplate">
-            <Setter.Value>
-              <DataTemplate DataType="viewModels1:ActivatableViewModel">
-                <Border
-                  CornerRadius="2" BorderThickness="1"
-                  Background="{DynamicResource TileRegionColor}"
-                  BorderBrush="{DynamicResource TileBorderColor}"
-                  Margin="0 0 10 0">
-                  <ContentControl Padding="12" Content="{Binding}" />
-                </Border>
-              </DataTemplate>
-            </Setter.Value>
-          </Setter>
-        </Style>
-      </ItemsControl.Styles>
+    <ItemsControl Items="{Binding}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel ItemWidth="310" ItemHeight="140" />
