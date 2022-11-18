@@ -28,7 +28,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
     <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
     <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
-    <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+    <Setter Property="MinHeight" Value="71" />
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
     <Setter Property="Cursor" Value="IBeam" />
@@ -266,6 +266,4 @@
       </ContextMenu>
     </Setter>
   </Style>
-
-
 </Styles>
