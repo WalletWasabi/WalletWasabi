@@ -38,15 +38,15 @@ public static class WabiSabiFactory
 
 	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
-		key = key ?? new();
+		key ??= new();
 		var coin = WabiSabiFactory.CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
 		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
 	}
 
-	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? RoundId = null)
-		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, RoundId ?? uint256.One);
+	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? roundId = null)
+		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
@@ -141,9 +141,9 @@ public static class WabiSabiFactory
 		return CreateAlice(key, Money.Coins(1), round);
 	}
 
-	public static ArenaClient CreateArenaClient(Arena arena)
+	public static ArenaClient CreateArenaClient(Arena arena, Round? round = null)
 	{
-		var roundState = RoundState.FromRound(arena.Rounds.First());
+		var roundState = RoundState.FromRound(round ?? arena.Rounds.First());
 		var random = new InsecureRandom();
 		return new ArenaClient(
 			roundState.CreateAmountCredentialClient(random),
@@ -279,9 +279,9 @@ public static class WabiSabiFactory
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
 		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
 
-	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
-		var km = ServiceFactory.CreateKeyManager("");
+		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
 		var keyChain = new KeyChain(km, new Kitchen(""));
 
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));

@@ -255,7 +255,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (CoinJoinScriptStore?.Contains(request.Script) is true)
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in previous coinjoins.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
@@ -266,14 +266,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				.ToHashSet();
 			if (outputScripts.Contains(request.Script))
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (output side).");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
 			}
 
 			var inputScripts = Rounds.SelectMany(r => round.Alices).Select(a => a.Coin.ScriptPubKey).ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (input side).");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script some round.");
 			}
 

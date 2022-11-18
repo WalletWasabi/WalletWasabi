@@ -7,12 +7,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
@@ -169,7 +171,7 @@ public class StepOutputRegistrationTests
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
-		
+
 		WabiSabiConfig cfg = new()
 		{
 			MaxInputCountByRound = 2,
@@ -237,5 +239,154 @@ public class StepOutputRegistrationTests
 						aliceClient1,
 						aliceClient2
 				});
+	}
+
+	[Fact]
+	public async Task SomeBobsReusingAddressAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			CoordinationFeeRate = CoordinationFeeRate.Zero
+		};
+
+		var keyManager1 = ServiceFactory.CreateKeyManager("");
+		var keyManager2 = ServiceFactory.CreateKeyManager("");
+
+		var (keyChain1, coin1a, coin1b) = WabiSabiFactory.CreateCoinKeyPairs(keyManager1);
+		var (keyChain2, coin2a, coin2b) = WabiSabiFactory.CreateCoinKeyPairs(keyManager2);
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1a.Coin, coin1b.Coin, coin2a.Coin, coin2b.Coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+
+		// Get the round.
+		await arena.TriggerAndWaitRoundAsync(token);
+		var round1 = Assert.Single(arena.Rounds);
+		var arenaClient1 = WabiSabiFactory.CreateArenaClient(arena);
+		var round2 = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(cfg));
+
+		arena.Rounds.Add(round2);
+
+		// Refresh the Arena States because of vsize manipulation.
+		await arena.TriggerAndWaitRoundAsync(token);
+
+		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
+		await roundStateUpdater.StartAsync(token);
+		var task1a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient1, coin1a, keyChain1, roundStateUpdater, token, token, token);
+		var task1b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient1, coin1b, keyChain1, roundStateUpdater, token, token, token);
+
+		while (Phase.ConnectionConfirmation != round1.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		var aliceClient1a = await task1a;
+		var aliceClient1b = await task1b;
+
+		// Arena will create another round - to have at least one in input reg.
+		await arena.TriggerAndWaitRoundAsync(token);
+
+		var arenaClient2 = WabiSabiFactory.CreateArenaClient(arena, round2);
+
+		var task2a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2a, keyChain2, roundStateUpdater, token, token, token);
+		var task2b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round2), arenaClient2, coin2b, keyChain2, roundStateUpdater, token, token, token);
+
+		while (Phase.ConnectionConfirmation != round2.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		var aliceClient2a = await task2a;
+		var aliceClient2b = await task2b;
+
+		while (Phase.OutputRegistration != round1.Phase || Phase.OutputRegistration != round2.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		Assert.Equal(Phase.OutputRegistration, round1.Phase);
+		Assert.Equal(Phase.OutputRegistration, round2.Phase);
+
+		var (amountCredentials1a, vsizeCredentials1a) = (aliceClient1a.IssuedAmountCredentials, aliceClient1a.IssuedVsizeCredentials);
+		var (amountCredentials1b, vsizeCredentials1b) = (aliceClient1b.IssuedAmountCredentials, aliceClient1b.IssuedVsizeCredentials);
+
+		var (amountCredentials2a, vsizeCredentials2a) = (aliceClient2a.IssuedAmountCredentials, aliceClient2a.IssuedVsizeCredentials);
+		var (amountCredentials2b, vsizeCredentials2b) = (aliceClient2b.IssuedAmountCredentials, aliceClient2b.IssuedVsizeCredentials);
+
+		// Register outputs.
+		var bobClient1 = new BobClient(round1.Id, arenaClient1);
+		var bobClient2 = new BobClient(round2.Id, arenaClient2);
+
+		var out1a = keyManager1.GetNextReceiveKey("o1a", out _);
+		var out1b = keyManager1.GetNextReceiveKey("o1b", out _);
+		var out2a = keyManager2.GetNextReceiveKey("o2a", out _);
+		var out2b = keyManager2.GetNextReceiveKey("o2b", out _);
+
+		var bob1a = bobClient1.RegisterOutputAsync(
+			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials1a.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials1a.Take(ProtocolConstants.CredentialNumber),
+			token);
+
+		var bob1b = bobClient1.RegisterOutputAsync(
+			out1b.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials1b.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials1b.Take(ProtocolConstants.CredentialNumber),
+			token);
+
+		await bob1a;
+
+		using var bob2aCts = new CancellationTokenSource();
+		var bob2a = Task.Run(async () =>
+		{
+			using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(token, bob2aCts.Token);
+			do
+			{
+				try
+				{
+					// Trying to registed the same script again and again.
+					await bobClient2.RegisterOutputAsync(
+						out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+						amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
+						vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
+						combinedCts.Token);
+					throw new InvalidOperationException("This output shoud never be able to register.");
+				}
+				catch (WabiSabiProtocolException)
+				{
+				}
+				catch (OperationCanceledException)
+				{
+				}
+			}
+			while (!combinedCts.Token.IsCancellationRequested);
+		});
+
+		await bob1b;
+
+		await Task.Delay(100);
+
+		await aliceClient1a.ReadyToSignAsync(token);
+		await aliceClient1b.ReadyToSignAsync(token);
+
+		while (Phase.TransactionSigning != round1.Phase)
+		{
+			await arena.TriggerAndWaitRoundAsync(token);
+		}
+
+		await Task.Delay(100);
+
+		bob2aCts.Cancel();
+
+		// We should never get an exception here. Otherwise it would indicate that output was registered twice.
+		await bob2a;
+
+		await roundStateUpdater.StopAsync(token);
+
+		await arena.StopAsync(token);
 	}
 }

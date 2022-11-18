@@ -61,7 +61,7 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="False"
-                 EnableBack="True"
+                 EnableBack="False"
                  Caption="Hover over the ring segments to see coin details"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">

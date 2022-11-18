@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
@@ -66,11 +67,13 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var sizeTrigger =
 			this.WhenAnyValue(x => x.Width, x => x.Height)
 				.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
-				.Throttle(TimeSpan.FromMilliseconds(100));
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ToSignal()
+				.Do(_ => itemsSourceList.Clear());
 
 		_walletViewModel.UiTriggers
 						.PrivacyProgressUpdateTrigger
-						.CombineLatest(sizeTrigger)
+						.Merge(sizeTrigger)
 						.ObserveOn(RxApp.MainThreadScheduler)
 						.Subscribe(_ => RenderRing(itemsSourceList))
 						.DisposeWith(disposables);
@@ -78,12 +81,17 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 
 	private void RenderRing(SourceList<PrivacyRingItemViewModel> list)
 	{
+		if (Width == 0d)
+		{
+			return;
+		}
+
 		SetMargins();
 
-		Items.Clear();
+		//Items.Clear();
 		list.Edit(list => CreateSegments(list));
 
-		PreviewItems.RemoveRange(1, PreviewItems.Count - 1);
+		PreviewItems.RemoveMany(PreviewItems.OfType<PrivacyRingItemViewModel>());
 		PreviewItems.AddRange(list.Items);
 
 		SetReferences(list);
@@ -92,11 +100,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list)
 	{
 		list.Clear();
-
-		if (Width == 0d)
-		{
-			return;
-		}
 
 		var coinCount = _walletViewModel.Wallet.Coins.Count();
 
@@ -167,7 +170,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	private void SetMargins()
 	{
 		Margin = new Thickness(Width / 2, Height / 2, 0, 0);
-		NegativeMargin = new Thickness(Margin.Left * -1, Margin.Top * -1, 0, 0);
+		NegativeMargin = Margin * -1;
 	}
 
 	private void SetReferences(SourceList<PrivacyRingItemViewModel> list)

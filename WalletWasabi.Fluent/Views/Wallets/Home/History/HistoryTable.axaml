@@ -95,12 +95,13 @@
   <Panel>
     <TreeDataGrid Source="{Binding Source}"
                   CanUserResizeColumns="False"
-                  Margin="0 0 0 0">
+                  Margin="0 0 0 0"
+                  IsHitTestVisible="{Binding !IsTransactionHistoryEmpty}">
       <i:Interaction.Behaviors>
         <behaviors:ScrollToSelectedItemBehavior />
       </i:Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
-        <treeDataGrid:CustomElementFactory />
+        <treeDataGrid:PrivacyElementFactory />
       </TreeDataGrid.ElementFactory>
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGrid /template/ TreeDataGridRowsPresenter">
@@ -147,14 +148,18 @@
           <Setter Property="Height" Value="37.5" />
           <Setter Property="Template">
             <ControlTemplate>
-              <DockPanel LastChildFill="True">
+              <DockPanel LastChildFill="True"
+                         Background="Transparent"
+                         x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
+                <i:Interaction.Behaviors>
+                  <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand, Mode=OneWay}"/>
+                </i:Interaction.Behaviors>
                 <Border Name="PART_SelectionIndicator"
                         BorderThickness="2 0 0 0"
                         DockPanel.Dock="Left"
                         VerticalAlignment="Stretch" />
                 <Panel>
                   <Rectangle Name="BackgroundRectangle"
-                             x:CompileBindings="False"
                              Classes.selectAnimation="{Binding IsFlashing}" />
                   <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                               ElementFactory="{TemplateBinding ElementFactory}"
@@ -235,11 +240,13 @@
           <Setter Property="IsVisible" Value="False" />
         </Style>
 
-        <Style Selector="TreeDataGridRow">
+        <Style Selector="TreeDataGridRow" x:CompileBindings="True" x:DataType="historyItems:HistoryItemViewModelBase">
           <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
               <i:BehaviorCollection>
                 <behaviors:HistoryItemTypeClassBehavior />
+                <!-- TODO: The Command binding doesn't work in Avalonia 0.10.x -->
+                <!-- <behaviors:ExecuteCommandOnDoubleTapped Command="{Binding ShowDetailsCommand, Mode=OneWay}"/> -->
               </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
           </Setter>
@@ -268,10 +275,9 @@
         </Style>
       </TreeDataGrid.Styles>
     </TreeDataGrid>
-    <Panel IsVisible="{Binding IsTransactionHistoryEmpty}">
-      <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
-                                 RowHeight="{StaticResource HistoryTableRowHeight}" />
-      <Panel Background="{DynamicResource RegionColor}" Opacity="0.90" />
-    </Panel>
+    <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
+                               RowHeight="{StaticResource HistoryTableRowHeight}"
+                               IsVisible="{Binding IsTransactionHistoryEmpty}"
+                               Opacity="0.1" />
   </Panel>
 </UserControl>
