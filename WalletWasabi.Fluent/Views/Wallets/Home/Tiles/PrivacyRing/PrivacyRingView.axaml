@@ -51,7 +51,7 @@
     </Style>
 
     <Style Selector="Carousel#Carousel">
-      <Setter Property="Width" Value="230" />
+      <Setter Property="Width" Value="250" />
     </Style>
 
     <Style Selector="Carousel#Carousel.small">
