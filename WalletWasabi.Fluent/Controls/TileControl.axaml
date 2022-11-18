@@ -19,9 +19,7 @@
           <TextBlock Text="{TemplateBinding Title}" DockPanel.Dock="Top" Classes="h8 bold" />
           <StackPanel DockPanel.Dock="Bottom" Name="PART_BottomContent" IsVisible="{TemplateBinding IsBottomContentVisible}">
             <Separator DockPanel.Dock="Bottom" Margin="{TemplateBinding SeparatorMargin}" />
-            <Viewbox Height="{TemplateBinding BottomPartHeight}">
-              <ContentPresenter Content="{TemplateBinding BottomContent}" />
-            </Viewbox>
+            <ContentPresenter Content="{TemplateBinding BottomContent}" />
           </StackPanel>
           <ContentPresenter Name="PART_Content" Content="{TemplateBinding Content}" />
         </DockPanel>
