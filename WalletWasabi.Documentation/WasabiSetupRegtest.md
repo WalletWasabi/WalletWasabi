@@ -105,7 +105,7 @@ Todo:
 8. Generate a wallet in Wasabi named: R2.
 9. Generate a receive address in Wasabi, now go to Bitcoin Knots to the Send tab.
 10. Send 1 BTC to that address.
-11. Now let the coinjoin happen automatically in both instances.
+11. Now let the coinjoin happen automatically in both wallets.
 12. If you see `Waiting for confirmed funds` in the music box you can generate a block in Bitcoin Knots to continue coinjoining.
     - You can do it with the console command `generatetoaddress 1 <replace_with_your_address_here>`
 
