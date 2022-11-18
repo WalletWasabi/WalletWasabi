@@ -30,7 +30,7 @@ public class PocketSelectionTests
 			Recipient = recipient
 		};
 
-		return new LabelSelectionViewModel(km, pw, info);
+		return new LabelSelectionViewModel(km, pw, info, isSilent: false);
 	}
 
 	[Fact]

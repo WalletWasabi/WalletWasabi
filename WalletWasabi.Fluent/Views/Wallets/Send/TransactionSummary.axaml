@@ -40,8 +40,13 @@
               Command="{Binding Parent.ChangePocketCommand}"
               ToolTip.Tip="Control your privacy"
               DockPanel.Dock="Right"
-              Margin="10 0"
-              IsVisible="{Binding IsOtherPocketSelectionPossible}">
+              Margin="10 0">
+        <Button.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsOtherPocketSelectionPossible" />
+            <Binding Path="!IsPreview" />
+          </MultiBinding>
+        </Button.IsVisible>
         <Viewbox Height="20">
           <PathIcon Data="{StaticResource entities_edit_regular}" Foreground="{DynamicResource SystemAccentColor}" />
         </Viewbox>

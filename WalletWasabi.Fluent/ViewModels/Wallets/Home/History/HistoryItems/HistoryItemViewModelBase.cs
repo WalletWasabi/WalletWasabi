@@ -46,6 +46,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public bool IsCoinJoin { get; protected set; }
 
+	public bool IsCoinJoinGroup { get; protected set; }
+
 	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
 
 	public Money? Balance { get; protected set; }

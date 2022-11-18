@@ -68,7 +68,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private async Task OnNextAsync(Mnemonic mnemonics, string walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
-			new CreatePasswordDialogViewModel("Add Password", "The password is needed to open and to recover your wallet. Store it safely because it cannot be changed.", enableEmpty: true),
+			new CreatePasswordDialogViewModel("Add Password", "This is needed to open and to recover your wallet. Store it safely, it cannot be changed.", enableEmpty: true),
 			NavigationTarget.CompactDialogScreen);
 
 		if (dialogResult.Result is { } password)
