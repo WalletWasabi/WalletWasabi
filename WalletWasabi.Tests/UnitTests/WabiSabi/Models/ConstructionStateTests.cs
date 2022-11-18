@@ -28,10 +28,10 @@ public class ConstructionStateTests
 		var state = round.Assert<ConstructionState>();
 
 		var (coin, ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(
-			amount: roundParameters.AllowedInputAmounts.Min + miningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize),
+			amount: roundParameters.AllowedInputAmounts.Min + miningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize) + state.RemainingUnpaidSharedOverheadCost,
 			roundId: round.Id);
 		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
-		state = state.AddOutput(new TxOut(roundParameters.AllowedInputAmounts.Min, new Script("0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210") ));
+		state = state.AddOutput(new TxOut(roundParameters.AllowedInputAmounts.Min, new Script("0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210"))).AsPayingForSharedOverhead();
 
 		var signingState = state.Finalize();
 		Assert.Equal(miningFeeRate, signingState.EffectiveFeeRate);

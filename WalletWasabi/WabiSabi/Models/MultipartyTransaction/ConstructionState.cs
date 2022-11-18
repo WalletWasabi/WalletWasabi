@@ -111,10 +111,10 @@ public record ConstructionState : MultipartyTransactionState
 
 		return new SigningState(Parameters, Events);
 	}
-	
+
 	public ConstructionState AsPayingForSharedOverhead() =>
 		this with
 		{
-			UnpaidSharedOverhead = 0
+			RemainingUnpaidSharedOverheadVsize = 0
 		};
 }

@@ -18,6 +18,7 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner
@@ -554,7 +555,7 @@ public partial class Arena : PeriodicRunner
 	{
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead); 
+		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize());
 		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
@@ -582,7 +583,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 				}
 				else
-				{ 
+				{
 					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 				}
 			}
@@ -604,7 +605,7 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
+			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize()) - coinjoin.RemainingUnpaidSharedOverheadCost;
 
 			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 			{

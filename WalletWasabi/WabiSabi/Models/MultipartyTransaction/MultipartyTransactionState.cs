@@ -34,7 +34,7 @@ public abstract record MultipartyTransactionState
 	public IEnumerable<TxOut> Outputs => Events.OfType<OutputAdded>().Select(x => x.Output);
 
 	[JsonIgnore]
-	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
+	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value) - RemainingUnpaidSharedOverheadCost;
 	[JsonIgnore]
 	public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
 	[JsonIgnore]
@@ -44,13 +44,16 @@ public abstract record MultipartyTransactionState
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
 
 	[JsonIgnore]
-	public Money EstimatedCost => Parameters.MiningFeeRate.GetFee(EstimatedVsize - UnpaidSharedOverhead);
+	public Money EstimatedCost => Parameters.MiningFeeRate.GetFee(EstimatedVsize);
 
-	[JsonIgnore] 
-	public int UnpaidSharedOverhead { get; init; } = MultipartyTransactionParameters.SharedOverhead;
-	
 	[JsonIgnore]
-	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize - UnpaidSharedOverhead);
+	public int RemainingUnpaidSharedOverheadVsize { get; init; } = MultipartyTransactionParameters.SharedOverhead;
+
+	[JsonIgnore]
+	public Money RemainingUnpaidSharedOverheadCost => Parameters.MiningFeeRate.GetFee(RemainingUnpaidSharedOverheadVsize);
+
+	[JsonIgnore]
+	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize);
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 
