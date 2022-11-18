@@ -20,21 +20,18 @@ public class ExecuteCommandOnDoubleTapped : DisposingBehavior<Control>
 
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
-		if (AssociatedObject is { })
-		{
-			Gestures.DoubleTappedEvent.AddClassHandler<InputElement>(
-					(x, _) =>
+		Gestures.DoubleTappedEvent.AddClassHandler<InputElement>(
+				(x, _) =>
+				{
+					if (Equals(x, AssociatedObject))
 					{
-						if (Equals(x, AssociatedObject))
+						if (Command is { } cmd && cmd.CanExecute(default))
 						{
-							if (Command is { } cmd && cmd.CanExecute(default))
-							{
-								cmd.Execute(default);
-							}
+							cmd.Execute(default);
 						}
-					},
-					RoutingStrategies.Tunnel | RoutingStrategies.Bubble)
-				.DisposeWith(disposables);
-		}
+					}
+				},
+				RoutingStrategies.Tunnel | RoutingStrategies.Bubble)
+			.DisposeWith(disposables);
 	}
 }
