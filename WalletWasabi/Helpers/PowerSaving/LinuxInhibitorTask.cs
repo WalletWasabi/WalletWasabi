@@ -11,8 +11,7 @@ namespace WalletWasabi.Helpers.PowerSaving;
 /// <seealso href="https://www.freedesktop.org/wiki/Software/systemd/inhibit/"/>
 public class LinuxInhibitorTask : BaseInhibitorTask
 {
-	/// <remarks>Use the constructor only in tests.</remarks>
-	internal LinuxInhibitorTask(InhibitWhat what, TimeSpan period, string reason, ProcessAsync process)
+	private LinuxInhibitorTask(InhibitWhat what, TimeSpan period, string reason, ProcessAsync process)
 		: base(period, reason, process)
 	{
 		What = what;

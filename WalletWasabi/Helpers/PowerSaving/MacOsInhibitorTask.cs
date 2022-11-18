@@ -9,8 +9,7 @@ namespace WalletWasabi.Helpers.PowerSaving;
 /// </summary>
 public class MacOsInhibitorTask : BaseInhibitorTask
 {
-	/// <remarks>Use the constructor only in tests.</remarks>
-	internal MacOsInhibitorTask(TimeSpan period, string reason, ProcessAsync process)
+	private MacOsInhibitorTask(TimeSpan period, string reason, ProcessAsync process)
 		: base(period, reason, process)
 	{
 	}
