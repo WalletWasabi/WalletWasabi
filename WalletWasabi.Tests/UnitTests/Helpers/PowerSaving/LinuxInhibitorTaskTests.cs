@@ -8,7 +8,7 @@ namespace WalletWasabi.Tests.UnitTests.Helpers.PowerSaving;
 /// <summary>
 /// Tests for <see cref="LinuxInhibitorTask"/> class.
 /// </summary>
-public class LinuxInhibitorTests
+public class LinuxInhibitorTaskTests
 {
 	[Fact]
 	public async Task TestAvailabilityAsync()
