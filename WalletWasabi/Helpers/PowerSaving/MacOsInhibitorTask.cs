@@ -17,7 +17,6 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
-		// TODO: Make sure that the caffeinate is terminated once the parent process (WW) finishes.
 		string command = $"caffeinate";
 		string arguments = $"-i";
 
