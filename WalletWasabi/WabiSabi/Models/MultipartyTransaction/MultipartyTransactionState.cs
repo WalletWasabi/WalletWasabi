@@ -34,7 +34,7 @@ public abstract record MultipartyTransactionState
 	public IEnumerable<TxOut> Outputs => Events.OfType<OutputAdded>().Select(x => x.Output);
 
 	[JsonIgnore]
-	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value) - RemainingUnpaidSharedOverheadCost;
+	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
 	[JsonIgnore]
 	public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
 	[JsonIgnore]
@@ -50,7 +50,7 @@ public abstract record MultipartyTransactionState
 	public int RemainingUnpaidSharedOverheadVsize { get; init; } = MultipartyTransactionParameters.SharedOverhead;
 
 	[JsonIgnore]
-	public Money RemainingUnpaidSharedOverheadCost => Parameters.MiningFeeRate.GetFee(RemainingUnpaidSharedOverheadVsize);
+	public Money RemainingUnpaidSharedOverheadCost => RemainingUnpaidSharedOverheadVsize == 0 ? Money.Zero : Parameters.MiningFeeRate.GetFee(RemainingUnpaidSharedOverheadVsize);
 
 	[JsonIgnore]
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize);
