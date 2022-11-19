@@ -40,10 +40,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
 
-	public TransactionPreviewViewModel(Wallet wallet, WalletViewModel walletViewModel, TransactionInfo info)
+	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
 	{
 		_undoHistory = new();
-		_wallet = wallet;
+		_wallet = walletViewModel.Wallet;
 		_walletViewModel = walletViewModel;
 		_info = info;
 		_currentTransactionInfo = info.Clone();
