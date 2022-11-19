@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -18,6 +18,8 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
+	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
+
 	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
@@ -45,8 +47,11 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("connection-confirmation")]
 	public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource timeoutCts = new(RequestTimeout);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
 		var before = DateTimeOffset.UtcNow;
-		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, cancellationToken);
+		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ConfirmConnectionAsync, linkedCts.Token);
 
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("connection-confirmation", duration);
@@ -56,8 +61,11 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("input-registration")]
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource timeoutCts = new(RequestTimeout);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
 		var before = DateTimeOffset.UtcNow;
-		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterInputAsync, cancellationToken);
+		InputRegistrationResponse ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, Arena.RegisterInputAsync, linkedCts.Token);
 
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("input-registration", duration);
@@ -67,8 +75,11 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("output-registration")]
 	public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource timeoutCts = new(RequestTimeout);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
 		var before = DateTimeOffset.UtcNow;
-		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, cancellationToken);
+		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.RegisterOutputCoreAsync, linkedCts.Token);
 
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("output-registration", duration);
@@ -77,8 +88,11 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("credential-issuance")]
 	public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 	{
+		using CancellationTokenSource timeoutCts = new(RequestTimeout);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
 		var before = DateTimeOffset.UtcNow;
-		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, cancellationToken);
+		var ret = await IdempotencyRequestCache.GetCachedResponseAsync(request, action: Arena.ReissuanceAsync, linkedCts.Token);
 
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("credential-issuance", duration);
