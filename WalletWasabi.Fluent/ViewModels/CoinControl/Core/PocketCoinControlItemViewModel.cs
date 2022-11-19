@@ -9,8 +9,12 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 {
 	public PocketCoinControlItemViewModel(Pocket pocket) : base(pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList())
 	{
+		var confirmationCount = pocket.Coins.Count();
+		var unconfirmedCount = pocket.Coins.Count(x => !x.Confirmed);
+		var allConfirmed = confirmationCount == unconfirmedCount;
+		ConfirmationStatus = allConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
 		Amount = pocket.Amount;
-		IsConfirmed = pocket.Coins.All(x => x.Confirmed);
+		IsConfirmed = allConfirmed;
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
 		AnonymityScore = (int) pocket.Coins.Max(x => x.HdPubKey.AnonymitySet);
 		Labels = pocket.Labels;
@@ -19,7 +23,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 	public override bool IsConfirmed { get; }
 	public override bool IsCoinjoining { get; }
 	public override bool IsBanned => false;
-	public override string ConfirmationStatus => "";
+	public override string ConfirmationStatus { get; }
 	public override Money Amount { get; }
 	public override string BannedUntilUtcToolTip => "";
 	public override int AnonymityScore { get; }

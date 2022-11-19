@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
@@ -28,7 +27,7 @@ internal class IndentToBrushConverter : IMultiValueConverter
 
 		var rowIndex = FindIndex(rows, el => el.Model == model);
 		var modelIndex = rows.RowIndexToModelIndex(rowIndex);
-		return GetBrush(modelIndex.Count - 1) ?? BindingOperations.DoNothing;
+		return GetBrush(modelIndex.Count - 1) ?? AvaloniaProperty.UnsetValue;
 	}
 
 	public static int FindIndex<T>(IEnumerable<T> source, Func<T, bool> predicate)
