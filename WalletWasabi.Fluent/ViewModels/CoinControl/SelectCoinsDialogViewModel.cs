@@ -31,6 +31,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var items = CreateItems(pockets);
 
+		var pocketColumn = PocketColumn();
 		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(items)
 		{
 			Columns =
@@ -39,11 +40,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 				IndicatorsColumn(),
 				AmountColumn(),
 				PrivacyScore(),
-				PocketColumn()
+				pocketColumn
 			}
 		};
-
-		Source.SortBy(Source.Columns[4], ListSortDirection.Descending);
+		Source.SortBy(pocketColumn, ListSortDirection.Descending);
+		Source.RowSelection!.SingleSelect = true;
 		Source.RowSelection!.SingleSelect = true;
 
 		SetupCancel(false, true, false);
