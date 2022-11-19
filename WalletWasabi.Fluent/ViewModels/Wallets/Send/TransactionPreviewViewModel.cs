@@ -137,8 +137,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
-
-		EnableCoinControlCommand = ReactiveCommand.Create(() => IsCoinControlVisible = true);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -158,7 +156,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand ChangeCoinsCommand { get; }
 
 	public ICommand UndoCommand { get; }
-	public ICommand EnableCoinControlCommand { get; }
 
 	private async Task OnExportPsbtAsync()
 	{

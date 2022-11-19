@@ -21,7 +21,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
 
     <i:Interaction.Behaviors>
-      <behaviors:ExecuteCommandOnKeyDownBehavior Key="LeftAlt" Command="{Binding EnableCoinControlCommand}" />
+      <behaviors:HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
     </i:Interaction.Behaviors>
 
     <c:ContentArea.Title>
