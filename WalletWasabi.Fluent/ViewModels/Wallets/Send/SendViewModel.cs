@@ -100,8 +100,7 @@ public partial class SendViewModel : RoutableViewModel
 					return allFilled && !hasError;
 				});
 
-		NextCommand = ReactiveCommand.CreateFromTask(
-			async () =>
+		NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
