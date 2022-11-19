@@ -7,7 +7,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="False"
-             x:Class="WalletWasabi.Fluent.Views.Shell.DialogsView">
+             x:Class="WalletWasabi.Fluent.Views.Shell.Dialogs">
   <Panel>
     <ExperimentalAcrylicBorder x:Name="OobeBackground" IsHitTestVisible="False" IsVisible="{Binding IsOobeBackgroundVisible, FallbackValue=False}">
       <ExperimentalAcrylicBorder.Material>
