@@ -92,13 +92,11 @@ public class Global
 		HttpClientFactory = new HttpClientFactory(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter: () => Config.GetBackendUri());
-			
-			
-			CoordinatorHttpClientFactory = new HttpClientFactory(
+
+		CoordinatorHttpClientFactory = new HttpClientFactory(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
 			backendUriGetter: () => Config.GetCoordinatorUri());
-
-
+		
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
@@ -382,7 +380,7 @@ public class Global
 				}
 				if (CoordinatorHttpClientFactory is { } coordinatorHttpClientFactory)
 				{
-					coordinatorHttpClientFactory.Dispose();
+					await coordinatorHttpClientFactory.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(CoordinatorHttpClientFactory)} is disposed.");
 				}
 
