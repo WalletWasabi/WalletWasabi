@@ -149,6 +149,7 @@ public class P2pBasedTests
 		CoreNode coreNode = await TestNodeBuilder.CreateAsync();
 
 		using var node = await coreNode.CreateNewP2pNodeAsync();
+
 		try
 		{
 			string dir = Common.GetWorkDir();
@@ -194,13 +195,23 @@ public class P2pBasedTests
 
 			uint256[] txHashes = await Task.WhenAll(txHashesTasks);
 
-			// Wait until the mempool service receives all the sent transactions.
-			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(4));
-
-			// Check that all the received transaction hashes are in the set of sent transaction hashes.
-			foreach (SmartTransaction tx in mempoolSmartTxs)
+			try
 			{
-				Assert.Contains(tx.GetHash(), txHashes);
+				// Wait until the mempool service receives all the sent transactions.
+				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(4));
+
+				// Check that all the received transaction hashes are in the set of sent transaction hashes.
+				foreach (SmartTransaction tx in mempoolSmartTxs)
+				{
+					Assert.Contains(tx.GetHash(), txHashes);
+				}
+			}
+			catch
+			{
+				string hashes = string.Join(',', txHashes.Select(x => x.ToString()));
+				string tasks = string.Join(',', txHashesTasks.Select(x => x.Status).ToArray());
+
+				throw new Exception($"Hashes: {hashes}, Tasks: {tasks}");
 			}
 		}
 		finally
