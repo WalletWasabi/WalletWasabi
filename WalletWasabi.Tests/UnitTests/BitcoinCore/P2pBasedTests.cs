@@ -56,8 +56,8 @@ public class P2pBasedTests
 			const int TransactionsCount = 3;
 
 			EventsAwaiter<SmartTransaction> eventAwaiter = new(
-				subscribe: h => mempoolService.TransactionReceived += h,
-				unsubscribe: h => mempoolService.TransactionReceived -= h,
+				subscriptionAction: h => mempoolService.TransactionReceived += h,
+				unsubscriptionAction: h => mempoolService.TransactionReceived -= h,
 				count: TransactionsCount);
 
 			Task<uint256>[] txHashesTasks = new Task<uint256>[TransactionsCount];
@@ -72,7 +72,7 @@ public class P2pBasedTests
 			uint256[] txHashes = await Task.WhenAll(txHashesTasks);
 
 			// Wait until the mempool service receives all the sent transactions.
-			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(8));
+			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(4));
 
 			// Check that all the received transaction hashes are in the set of sent transaction hashes.
 			foreach (SmartTransaction tx in mempoolSmartTxs)
