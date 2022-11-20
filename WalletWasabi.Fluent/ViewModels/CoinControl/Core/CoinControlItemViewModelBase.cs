@@ -7,20 +7,13 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 public abstract class CoinControlItemViewModelBase
 {
-	protected CoinControlItemViewModelBase() : this(new List<CoinControlItemViewModelBase>()) { }
-
-	protected CoinControlItemViewModelBase(IReadOnlyCollection<CoinControlItemViewModelBase> children)
-	{
-		Children = children;
-	}
-
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
 
 	public bool IsSemiPrivate => Labels == CoinPocketHelper.SemiPrivateFundsText;
 
 	public bool IsNonPrivate => !IsSemiPrivate && !IsPrivate;
 
-	public IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; }
+	public abstract IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; }
 
 	public abstract bool IsConfirmed { get; }
 

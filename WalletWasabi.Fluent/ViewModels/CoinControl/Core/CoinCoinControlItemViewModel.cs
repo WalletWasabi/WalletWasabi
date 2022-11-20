@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -17,9 +19,11 @@ internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
+		Children = ImmutableList<CoinControlItemViewModelBase>.Empty;
 	}
 
 	public override DateTimeOffset? BannedUntilUtc { get; }
+	public override IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; }
 	public override bool IsConfirmed { get; }
 	public override bool IsCoinjoining { get; }
 	public override bool IsBanned { get; }

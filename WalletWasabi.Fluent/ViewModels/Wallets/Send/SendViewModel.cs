@@ -117,7 +117,7 @@ public partial class SendViewModel : RoutableViewModel
 					IsFixedAmount = _isFixedAmount
 				};
 
-				Navigate().To(new TransactionPreviewViewModel(_wallet, walletVm, transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
 			},
 			nextCommandCanExecute);
 
