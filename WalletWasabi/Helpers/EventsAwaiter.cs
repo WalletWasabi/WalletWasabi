@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -36,16 +37,18 @@ public class EventsAwaiter<TEventArgs>
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	protected IReadOnlyList<TaskCompletionSource<TEventArgs>> EventTcsList { get; }
+
+	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	protected IReadOnlyList<Task<TEventArgs>> Tasks { get; }
 
 	private Action<EventHandler<TEventArgs>> UnsubscriptionAction { get; }
 
-	private EventHandler<TEventArgs> SubscriptionEventHandler => (s, e) =>
+	private void SubscriptionEventHandler(object? sender, TEventArgs args)
 	{
 		lock (Lock)
 		{
 			TaskCompletionSource<TEventArgs>? firstUnfinished = EventTcsList.FirstOrDefault(x => !x.Task.IsCompleted);
-			firstUnfinished?.TrySetResult(e);
+			firstUnfinished?.TrySetResult(args);
 
 			// Unsubscription action can be called just once.
 			if (!_isUnsubscribed && Tasks.All(x => x.IsCompleted))
@@ -54,7 +57,7 @@ public class EventsAwaiter<TEventArgs>
 				UnsubscriptionAction(SubscriptionEventHandler);
 			}
 		}
-	};
+	}
 
 	public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
 		=> await Task.WhenAll(Tasks).WithAwaitCancellationAsync(timeout).ConfigureAwait(false);

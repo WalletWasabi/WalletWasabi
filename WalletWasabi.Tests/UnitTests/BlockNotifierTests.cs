@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
