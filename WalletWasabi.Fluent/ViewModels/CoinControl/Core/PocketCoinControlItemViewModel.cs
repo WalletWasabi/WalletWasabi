@@ -14,6 +14,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		var unconfirmedCount = pocket.Coins.Count(x => !x.Confirmed);
 		var allConfirmed = confirmationCount == unconfirmedCount;
 		ConfirmationStatus = allConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
+		BannedUntilUtcToolTip = pocket.Coins.Any(x => x.IsBanned) ? "Some coins can't participate in coinjoin" : "";
 		Amount = pocket.Amount;
 		IsConfirmed = allConfirmed;
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
@@ -29,7 +30,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 	public override bool IsBanned { get; }
 	public override string ConfirmationStatus { get; }
 	public override Money Amount { get; }
-	public override string BannedUntilUtcToolTip => "";
+	public override string BannedUntilUtcToolTip { get; }
 	public override int AnonymityScore { get; }
 	public override SmartLabel Labels { get; }
 	public override DateTimeOffset? BannedUntilUtc => null;
