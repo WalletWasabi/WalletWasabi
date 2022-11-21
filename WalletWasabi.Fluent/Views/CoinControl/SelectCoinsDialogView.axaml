@@ -75,7 +75,7 @@
 
     <TreeDataGrid Source="{Binding Source}" CanUserSortColumns="True">
       <TreeDataGrid.ElementFactory> 
-        <treeDataGrid:CustomElementFactory /> 
+        <treeDataGrid:PlainTextElementFactory /> 
       </TreeDataGrid.ElementFactory> 
     </TreeDataGrid>
 

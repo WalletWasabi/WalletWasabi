@@ -55,7 +55,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
 	{
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
-			new PrivacyTextColumn<CoinControlItemViewModelBase>("", _ => "", GridLength.Auto, null),
+			new PlainTextColumn<CoinControlItemViewModelBase>("", _ => "", GridLength.Auto, null),
 			group => group.Children,
 			node => node.Children.Count > 1,
 			node => node.IsExpanded);
@@ -63,7 +63,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static IColumn<CoinControlItemViewModelBase> AmountColumn()
 	{
-		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
+		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			"Amount",
 			node => node.Amount.ToFormattedString(),
 			GridLength.Auto,
@@ -89,7 +89,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static IColumn<CoinControlItemViewModelBase> AnonymityScoreColumn()
 	{
-		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
+		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
 			node => node is CoinCoinControlItemViewModel coin ? coin.AnonymityScore.ToString() : "",
 			GridLength.Auto,
