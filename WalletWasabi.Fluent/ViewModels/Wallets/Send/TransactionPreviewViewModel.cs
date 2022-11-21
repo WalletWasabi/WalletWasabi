@@ -238,7 +238,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			_info.Coins = selectCoinsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new coins.
-			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged); // TODO: check if PocketChanged reason is good for this case too (maybe rename)
+			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged);
 		}
 	}
 
