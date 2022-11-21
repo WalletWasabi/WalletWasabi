@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,50 +10,45 @@ namespace WalletWasabi.Helpers;
 /// </summary>
 public class EventsAwaiter<TEventArgs>
 {
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	private bool _isUnsubscribed;
-
-	public EventsAwaiter(Action<EventHandler<TEventArgs>> subscriptionAction, Action<EventHandler<TEventArgs>> unsubscriptionAction, int count)
+	public EventsAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe, int count)
 	{
 		Guard.MinimumAndNotNull(nameof(count), count, smallest: 0);
 
-		List<TaskCompletionSource<TEventArgs>> eventTcsList = new(count);
+		var eventsArrived = new List<TaskCompletionSource<TEventArgs>>(count);
 
 		for (int i = 0; i < count; i++)
 		{
-			eventTcsList.Add(new TaskCompletionSource<TEventArgs>());
+			eventsArrived.Add(new TaskCompletionSource<TEventArgs>());
 		}
 
-		EventTcsList = eventTcsList;
-		Tasks = EventTcsList.Select(x => x.Task).ToArray();
-		UnsubscriptionAction = unsubscriptionAction;
+		EventsArrived = eventsArrived;
+		Tasks = EventsArrived.Select(x => x.Task).ToArray();
+		Unsubscribe = unsubscribe;
 
-		subscriptionAction(SubscriptionEventHandler);
+		subscribe(SubscriptionEventHandler);
 	}
 
-	/// <remarks>Guards access to <see cref="_isUnsubscribed"/> and <see cref="EventTcsList"/>.</remarks>
+	/// <remarks>Guards <see cref="EventsArrived"/>.</remarks>
 	private object Lock { get; } = new();
 
 	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
-	protected IReadOnlyList<TaskCompletionSource<TEventArgs>> EventTcsList { get; }
+	protected IReadOnlyList<TaskCompletionSource<TEventArgs>> EventsArrived { get; }
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
 	protected IReadOnlyList<Task<TEventArgs>> Tasks { get; }
 
-	private Action<EventHandler<TEventArgs>> UnsubscriptionAction { get; }
+	private Action<EventHandler<TEventArgs>> Unsubscribe { get; }
 
-	private void SubscriptionEventHandler(object? sender, TEventArgs args)
+	private void SubscriptionEventHandler(object? sender, TEventArgs e)
 	{
 		lock (Lock)
 		{
-			TaskCompletionSource<TEventArgs>? firstUnfinished = EventTcsList.FirstOrDefault(x => !x.Task.IsCompleted);
-			firstUnfinished?.TrySetResult(args);
+			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
+			firstUnfinished?.TrySetResult(e);
 
-			// Unsubscription action can be called just once.
-			if (!_isUnsubscribed && Tasks.All(x => x.IsCompleted))
+			// This is guaranteed to happen only once.
+			if (Tasks.All(x => x.IsCompleted))
 			{
-				_isUnsubscribed = true;
-				UnsubscriptionAction(SubscriptionEventHandler);
+				Unsubscribe(SubscriptionEventHandler);
 			}
 		}
 	}

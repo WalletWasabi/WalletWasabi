@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,8 +8,7 @@ namespace WalletWasabi.Helpers;
 /// </summary>
 public class EventAwaiter<TEventArgs> : EventsAwaiter<TEventArgs>
 {
-	public EventAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe)
-		: base(subscribe, unsubscribe, count: 1)
+	public EventAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe) : base(subscribe, unsubscribe, count: 1)
 	{
 		Task = Tasks[0];
 	}

@@ -57,8 +57,8 @@ public class P2pBasedTests
 			const int TransactionsCount = 3;
 
 			EventsAwaiter<SmartTransaction> eventAwaiter = new(
-				subscriptionAction: h => mempoolService.TransactionReceived += h,
-				unsubscriptionAction: h => mempoolService.TransactionReceived -= h,
+				subscribe: h => mempoolService.TransactionReceived += h,
+				unsubscribe: h => mempoolService.TransactionReceived -= h,
 				count: TransactionsCount);
 
 			Task<uint256>[] txHashesTasks = new Task<uint256>[TransactionsCount];
