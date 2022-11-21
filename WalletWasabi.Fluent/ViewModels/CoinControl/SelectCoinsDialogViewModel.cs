@@ -39,7 +39,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 				ChildrenColumn(),
 				IndicatorsColumn(),
 				AmountColumn(),
-				PrivacyScore(),
+				AnonymityScoreColumn(),
 				pocketColumn
 			}
 		};
@@ -87,7 +87,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			});
 	}
 
-	private static IColumn<CoinControlItemViewModelBase> PrivacyScore()
+	private static IColumn<CoinControlItemViewModelBase> AnonymityScoreColumn()
 	{
 		return new PrivacyTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
