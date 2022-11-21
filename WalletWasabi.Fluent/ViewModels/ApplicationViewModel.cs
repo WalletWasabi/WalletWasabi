@@ -61,6 +61,26 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown()
 	{
+		if (!MainViewCanShutdown())
+		{
+			return false;
+		}
+
+		return CoinJoinCanShutdown();
+	}
+
+	public bool MainViewCanShutdown()
+	{
+		if (MainViewModel.Instance.IsDialogOpen())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	public bool CoinJoinCanShutdown()
+	{
 		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
 		if (cjManager is { })
