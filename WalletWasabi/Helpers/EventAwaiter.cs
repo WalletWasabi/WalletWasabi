@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System;
+namespace WalletWasabi.Helpers;
 
 /// <summary>
 /// Source: https://stackoverflow.com/a/42117130/2061103
