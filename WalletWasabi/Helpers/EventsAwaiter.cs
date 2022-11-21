@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 
-namespace System;
+namespace WalletWasabi.Helpers;
 
 /// <summary>
 /// Source: https://stackoverflow.com/a/42117130/2061103
@@ -14,12 +13,13 @@ public class EventsAwaiter<TEventArgs>
 	public EventsAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe, int count)
 	{
 		Guard.MinimumAndNotNull(nameof(count), count, 0);
-		Lock = new object();
+
 		var eventsArrived = new List<TaskCompletionSource<TEventArgs>>(count);
 		for (int i = 0; i < count; i++)
 		{
 			eventsArrived.Add(new TaskCompletionSource<TEventArgs>());
 		}
+
 		EventsArrived = eventsArrived;
 		subscribe(Subscription);
 		Unsubscribe = unsubscribe;
@@ -28,7 +28,7 @@ public class EventsAwaiter<TEventArgs>
 	protected IEnumerable<TaskCompletionSource<TEventArgs>> EventsArrived { get; }
 
 	private Action<EventHandler<TEventArgs>> Unsubscribe { get; }
-	private object Lock { get; }
+	private object Lock { get; } = new();
 
 	protected IEnumerable<Task<TEventArgs>> Tasks => EventsArrived.Select(x => x.Task);
 

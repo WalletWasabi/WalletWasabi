@@ -814,6 +814,7 @@ public class CoinJoinClient
 		{
 			List<SmartCoin> bestReducedWinner = winner;
 			var bestAnonLoss = winnerAnonLoss;
+			bool winnerchanged = false;
 
 			// We always want to keep the non-private coins.
 			foreach (SmartCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
@@ -825,10 +826,11 @@ public class CoinJoinClient
 				{
 					bestAnonLoss = anonLoss;
 					bestReducedWinner = reducedWinner.ToList();
+					winnerchanged = true;
 				}
 			}
 
-			if (winner == bestReducedWinner)
+			if (!winnerchanged)
 			{
 				break;
 			}
