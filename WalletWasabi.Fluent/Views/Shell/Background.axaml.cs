@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Shell;
 
-public partial class NetworkBadgeView : UserControl
+public class Background : UserControl
 {
-	public NetworkBadgeView()
+	public Background()
 	{
 		InitializeComponent();
 	}

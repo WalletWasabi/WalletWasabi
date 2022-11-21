@@ -33,6 +33,6 @@
   </i:Interaction.Behaviors>
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
-    <shell:ShellView />
+    <shell:Shell />
   </Panel>
 </Window>

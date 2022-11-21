@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Shell;
+namespace WalletWasabi.Fluent.Views.StatusIcon;
 
-public class DialogsView : UserControl
+public class TorIssues : UserControl
 {
-	public DialogsView()
+	public TorIssues()
 	{
 		InitializeComponent();
 	}
