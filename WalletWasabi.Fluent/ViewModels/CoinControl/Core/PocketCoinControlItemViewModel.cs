@@ -17,6 +17,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		Amount = pocket.Amount;
 		IsConfirmed = allConfirmed;
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
+		IsBanned = pocket.Coins.Any(x => x.IsBanned);
 		AnonymityScore = (int) pocket.Coins.Max(x => x.HdPubKey.AnonymitySet);
 		Labels = pocket.Labels;
 		Children = pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
@@ -25,7 +26,7 @@ internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 	public override IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; }
 	public override bool IsConfirmed { get; }
 	public override bool IsCoinjoining { get; }
-	public override bool IsBanned => false;
+	public override bool IsBanned { get; }
 	public override string ConfirmationStatus { get; }
 	public override Money Amount { get; }
 	public override string BannedUntilUtcToolTip => "";
