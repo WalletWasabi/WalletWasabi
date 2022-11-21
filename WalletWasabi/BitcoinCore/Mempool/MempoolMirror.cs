@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -23,16 +22,7 @@ public class MempoolMirror : PeriodicRunner
 
 	private IRPCClient Rpc { get; }
 	private P2pNode Node { get; }
-
-	/// <summary>Mapping of transaction hashes to transactions.</summary>
-	/// <remarks>Guarded by <see cref="MempoolLock"/>.</remarks>
-	private Dictionary<uint256, Transaction> Mempool { get; } = new();
-
-	/// <summary>Mapping of UTXOs to the corresponding spending transactions.</summary>
-	/// <remarks>Guarded by <see cref="MempoolLock"/>.</remarks>
-	private Dictionary<OutPoint, Transaction> PrevOutsIndex { get; } = new();
-
-	/// <summary>Guards <see cref="Mempool"/> and <see cref="PrevOutsIndex"/>.</summary>
+	private Mempool Mempool { get; set; } = new();
 	private object MempoolLock { get; } = new();
 
 	public override Task StartAsync(CancellationToken cancellationToken)
@@ -66,94 +56,65 @@ public class MempoolMirror : PeriodicRunner
 		AddTransactions(stx.Transaction);
 	}
 
-	internal int AddTransactions(params Transaction[] txs) => AddTransactions(txs as IEnumerable<Transaction>);
-
-	private int AddTransactions(IEnumerable<Transaction> txs)
+	internal int AddTransactions(params Transaction[] txs)
 	{
-		var added = 0;
 		lock (MempoolLock)
 		{
-			// Loop through the newly received transactions expect those that are already present in our mempool snapshot.
-			foreach (Transaction tx in txs.Where(x => !Mempool.ContainsKey(x.GetHash())).ToArray())
-			{
-				// Evict double spends.
-				foreach (TxIn txInput in tx.Inputs)
-				{
-					// tx spends a UTXO which some *other* transaction in the mempool *already* spends.
-					if (PrevOutsIndex.TryGetValue(txInput.PrevOut, out Transaction? mempoolTx))
-					{
-						// Remove the old transaction from our mempool snapshot.
-						RemoveTransactionNoLock(mempoolTx.GetHash());
-					}
-				}
-
-				AddTransactionNoLock(tx);
-				added++;
-			}
-		}
-		return added;
-	}
-
-	private void AddTransactionNoLock(Transaction tx)
-	{
-		Mempool.Add(tx.GetHash(), tx);
-
-		foreach (TxIn txInput in tx.Inputs)
-		{
-			PrevOutsIndex.Add(txInput.PrevOut, tx);
-		}
-	}
-
-	private void RemoveTransactionNoLock(uint256 txHash)
-	{
-		if (Mempool.Remove(txHash, out Transaction? transaction))
-		{
-			// Remove all UTXOs of the removed transaction from our helper index.
-			foreach (TxIn txInput in transaction.Inputs)
-			{
-				_ = PrevOutsIndex.Remove(txInput.PrevOut);
-			}
+			return Mempool.AddMissingTransactions(txs);
 		}
 	}
 
 	private async Task<int> MirrorMempoolAsync(CancellationToken cancel)
 	{
-		var mempoolHashes = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
+		// Get all TXIDs in the up-to-date mempool.
+		uint256[]? newTxids = await Rpc.GetRawMempoolAsync(cancel).ConfigureAwait(false);
 
-		IEnumerable<uint256> missingHashes;
+		Mempool newMempool;
+
 		lock (MempoolLock)
 		{
-			var mempoolKeys = Mempool.Keys.ToArray();
-			missingHashes = mempoolHashes.Except(mempoolKeys);
+			newMempool = Mempool.Clone();
+		}
 
-			foreach (var txid in mempoolKeys.Except(mempoolHashes).ToArray())
+		ISet<uint256> oldTxids = newMempool.GetMempoolTxids();
+
+		// Those TXIDs that are in the new mempool snapshot but not in the old one, are the ones
+		// for which we want to download the corresponding transactions via RPC.
+		IEnumerable<uint256> missingTxids = newTxids.Except(oldTxids);
+
+		// Remove those transactions that are not present in the new mempool snapshot.
+		foreach (uint256 txid in oldTxids.Except(newTxids).ToHashSet())
+		{
+			if (!newMempool.TryRemoveTransaction(txid))
 			{
-				RemoveTransactionNoLock(txid);
+				Logger.LogError($"Failed to remove transaction '{txid}'.");
 			}
 		}
 
-		IEnumerable<Transaction> missingTxs = await Rpc.GetRawTransactionsAsync(missingHashes, cancel).ConfigureAwait(false);
-		var added = AddTransactions(missingTxs);
+		IEnumerable<Transaction> missingTxs = await Rpc.GetRawTransactionsAsync(missingTxids, cancel).ConfigureAwait(false);
+		int added = newMempool.AddMissingTransactions(missingTxs);
+
+		lock (MempoolLock)
+		{
+			Mempool = newMempool;
+		}
+
 		return added;
 	}
 
 	public IReadOnlySet<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
 	{
-		HashSet<OutPoint> txOutsSet = txOuts.ToHashSet();
-
 		lock (MempoolLock)
 		{
-			return txOutsSet.Where(prevOut => PrevOutsIndex.ContainsKey(prevOut))
-				.Select(prevOut => PrevOutsIndex[prevOut])
-				.ToHashSet();
+			return Mempool.GetSpenderTransactions(txOuts);
 		}
 	}
 
-	public ISet<uint256> GetMempoolHashes()
+	internal ISet<uint256> GetMempoolHashes()
 	{
 		lock (MempoolLock)
 		{
-			return Mempool.Keys.ToHashSet();
+			return Mempool.GetMempoolTxids();
 		}
 	}
 }
