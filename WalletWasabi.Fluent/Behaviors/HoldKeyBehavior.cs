@@ -39,20 +39,15 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 		var ups = ie.OnEvent(InputElement.KeyDownEvent);
 		var downs = ie.OnEvent(InputElement.KeyUpEvent);
 
-		var pressedKeys = ups
+		var keyEvents = ups
 			.Select(x => new { x.EventArgs.Key, IsPressed = true })
 			.Merge(downs.Select(x => new { x.EventArgs.Key, IsPressed = false }));
 
 		var targetKeys = this.WhenAnyValue(x => x.Key);
 
-		pressedKeys
-			.WithLatestFrom(
-				targetKeys,
-				(pressedKey, targetKey) =>
-					new
-					{
-						pressedKey.IsPressed, TargetKey = pressedKey.Key, PressedKey = targetKey
-					})
+		keyEvents
+			.WithLatestFrom(targetKeys)
+			.Select(x => (PressedKey: x.First.Key, x.First.IsPressed, TargetKey: x.Second))
 			.Where(x => x.PressedKey == x.TargetKey)
 			.Select(x => x.IsPressed)
 			.StartWith(false)
