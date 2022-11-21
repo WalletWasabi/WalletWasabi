@@ -13,25 +13,25 @@ public abstract class CoinControlItemViewModelBase
 
 	public bool IsNonPrivate => !IsSemiPrivate && !IsPrivate;
 
-	public abstract IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; }
+	public IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; protected set; }
 
-	public abstract bool IsConfirmed { get; }
+	public bool IsConfirmed { get; protected set; }
 
-	public abstract bool IsCoinjoining { get; }
+	public bool IsCoinjoining { get; protected set; }
 
-	public abstract bool IsBanned { get; }
+	public bool IsBanned { get; protected set; }
 
-	public abstract string ConfirmationStatus { get; }
+	public string ConfirmationStatus { get; protected set; }
 
-	public abstract Money Amount { get; }
+	public Money Amount { get; protected set; }
 
-	public abstract string BannedUntilUtcToolTip { get; }
+	public string BannedUntilUtcToolTip { get; protected set; }
 
-	public abstract int AnonymityScore { get; }
+	public int AnonymityScore { get; protected set; }
+
+	public SmartLabel Labels { get; protected set; }
+
+	public DateTimeOffset? BannedUntilUtc { get; protected set; }
 
 	public bool IsExpanded { get; set; } = true;
-
-	public abstract SmartLabel Labels { get; }
-
-	public abstract DateTimeOffset? BannedUntilUtc { get; }
 }
