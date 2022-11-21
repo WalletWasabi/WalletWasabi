@@ -87,7 +87,7 @@ public class MempoolMirror : PeriodicRunner
 		{
 			if (!newMempool.TryRemoveTransaction(txid))
 			{
-				throw new InvalidOperationException("Should not happen.");
+				Logger.LogError($"Failed to remove transaction '{txid}'.");
 			}
 		}
 
