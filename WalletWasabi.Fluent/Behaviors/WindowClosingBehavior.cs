@@ -34,6 +34,7 @@ public class WindowClosingBehavior : DisposingBehavior<Window>
 				if (CancelWindowClosing)
 				{
 					e.Cancel = true;
+
 					// TODO: Show notification that window closing was canceled?
 				}
 			})
