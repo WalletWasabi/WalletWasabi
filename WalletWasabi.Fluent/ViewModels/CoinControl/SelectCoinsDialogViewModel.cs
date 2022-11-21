@@ -45,7 +45,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		};
 		Source.SortBy(pocketColumn, ListSortDirection.Descending);
 		Source.RowSelection!.SingleSelect = true;
-		Source.RowSelection!.SingleSelect = true;
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
