@@ -65,12 +65,10 @@ public class ExecuteCommandOnKeyDownBehavior : AttachedToVisualTreeBehavior<Cont
 
 		if (control.GetVisualRoot() is IInputElement inputRoot)
 		{
-			inputRoot.AddDisposableHandler(Event, RootDefaultKeyDown, EventRoutingStrategy)
+			inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, RootDefaultKeyDown, EventRoutingStrategy)
 				.DisposeWith(disposable);
 		}
 	}
-
-	private static RoutedEvent<KeyEventArgs> Event => InputElement.KeyDownEvent;
 
 	private void RootDefaultKeyDown(object? sender, KeyEventArgs e)
 	{
