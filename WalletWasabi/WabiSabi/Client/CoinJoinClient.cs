@@ -27,6 +27,7 @@ namespace WalletWasabi.WabiSabi.Client;
 public class CoinJoinClient
 {
 	private const int MaxInputsRegistrableByWallet = 10; // how many
+	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
 	private Money MinimumOutputAmountSanity { get; } = Money.Coins(0.0001m); // ignore rounds with too big minimum denominations
 	private TimeSpan ExtraPhaseTimeoutMargin { get; } = TimeSpan.FromMinutes(2);
 	private TimeSpan ExtraRoundTimeoutMargin { get; } = TimeSpan.FromMinutes(10);
@@ -638,14 +639,9 @@ public class CoinJoinClient
 
 		Logger.LogDebug($"{nameof(allowedNonPrivateCoins)}: {allowedNonPrivateCoins.Count} coins, valued at {Money.Satoshis(allowedNonPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
-		// How many inputs do we want to provide to the mix?
-		var utxoCount = allowedNonPrivateCoins.Count + privateCoins.Length;
-		var minUtxoCountTarget = (int)((allowedNonPrivateCoins.Sum(x => x.Amount) + privateCoins.Sum(x => x.Amount)) / liquidityClue.Satoshi);
-		Logger.LogDebug($"Derived {nameof(minUtxoCountTarget)} from balance and expected liquidity: {minUtxoCountTarget}.");
-
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(utxoCount, minUtxoCountTarget, rnd));
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(rnd));
 		if (consolidationMode)
 		{
 			Logger.LogDebug($"Consolidation mode is on.");
@@ -786,8 +782,13 @@ public class CoinJoinClient
 
 		int sameTxAllowance = GetRandomBiasedSameTxAllowance(rnd, percent);
 
-		var winner = new List<SmartCoin>();
+		List<SmartCoin> winner = new()
+		{
+			selectedNonPrivateCoin
+		};
+
 		foreach (var coin in finalCandidate
+			.Except(new[] { selectedNonPrivateCoin })
 			.OrderBy(x => x.HdPubKey.AnonymitySet)
 			.ThenByDescending(x => x.Amount))
 		{
@@ -806,6 +807,38 @@ public class CoinJoinClient
 			}
 		}
 
+		double winnerAnonLoss = GetAnonLoss(winner);
+
+		// Only stay in the while if we are above the liquidityClue (we are a whale) AND the weightedAnonLoss is not tolerable.
+		while ((winner.Sum(x => x.Amount) > liquidityClue) && (winnerAnonLoss > MaxWeightedAnonLoss))
+		{
+			List<SmartCoin> bestReducedWinner = winner;
+			var bestAnonLoss = winnerAnonLoss;
+			bool winnerchanged = false;
+
+			// We always want to keep the non-private coins.
+			foreach (SmartCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
+			{
+				var reducedWinner = winner.Except(new[] { coin });
+				var anonLoss = GetAnonLoss(reducedWinner);
+
+				if (anonLoss <= bestAnonLoss)
+				{
+					bestAnonLoss = anonLoss;
+					bestReducedWinner = reducedWinner.ToList();
+					winnerchanged = true;
+				}
+			}
+
+			if (!winnerchanged)
+			{
+				break;
+			}
+
+			winner = bestReducedWinner;
+			winnerAnonLoss = bestAnonLoss;
+		}
+
 		if (winner.Count != finalCandidate.Count())
 		{
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
@@ -814,6 +847,12 @@ public class CoinJoinClient
 		}
 
 		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+	}
+
+	private static double GetAnonLoss(IEnumerable<SmartCoin> coins)
+	{
+		double minimumAnonScore = coins.Min(x => x.HdPubKey.AnonymitySet);
+		return coins.Sum(x => (x.HdPubKey.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
 	}
 
 	private static int GetRandomBiasedSameTxAllowance(WasabiRandom rnd, int percent)
@@ -900,15 +939,11 @@ public class CoinJoinClient
 	/// Calculates how many inputs are desirable to be registered.
 	/// Note: random biasing is applied.
 	/// </summary>
-	/// <param name="minUtxoCountTarget">We want to target to have in our wallet minimum this number of UTXOs.</param>
 	/// <returns>Desired input count.</returns>
-	private static int GetInputTarget(int utxoCount, int minUtxoCountTarget, WasabiRandom rnd)
+	private static int GetInputTarget(WasabiRandom rnd)
 	{
-		// Let's target to have a only 1 UTXO in our wallet, unless it's specified otherwise.
-		var utxoCountTarget = Math.Max(1, minUtxoCountTarget);
-
 		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
-		int targetInputCount = utxoCount < utxoCountTarget ? 1 : MaxInputsRegistrableByWallet;
+		int targetInputCount = MaxInputsRegistrableByWallet;
 
 		var distance = new Dictionary<int, int>();
 		for (int i = 1; i <= MaxInputsRegistrableByWallet; i++)

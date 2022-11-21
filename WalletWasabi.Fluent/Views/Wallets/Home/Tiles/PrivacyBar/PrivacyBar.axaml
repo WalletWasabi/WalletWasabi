@@ -16,7 +16,6 @@
     </i:Interaction.Behaviors>
 
     <Button Classes="plain" Command="{Binding ShowDetailsCommand}"
-            Margin="0 0 0 6"
             ToolTip.Tip="Show Details"
             IsVisible="{Binding !!PrivacyBar.Items.Count}">
       <ItemsControl Items="{Binding PrivacyBar.Items}" Height="8">

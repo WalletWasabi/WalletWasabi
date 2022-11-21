@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Aggregation;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -19,6 +20,7 @@ public partial class SearchBarViewModel : ReactiveObject
 		itemsObservable
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
+			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.Bind(out _groups)
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
