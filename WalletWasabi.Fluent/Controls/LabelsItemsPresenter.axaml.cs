@@ -11,11 +11,14 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class LabelsItemsPresenter : ItemsPresenter, IStyleable
 {
-	public static readonly StyledProperty<IBrush> ForegroundProperty = AvaloniaProperty.Register<LabelsItemsPresenter, IBrush>("Foreground");
+	public static readonly StyledProperty<IBrush> ForegroundProperty =
+		AvaloniaProperty.Register<LabelsItemsPresenter, IBrush>("Foreground");
 
-	public static readonly StyledProperty<IBrush> BorderBrushProperty = AvaloniaProperty.Register<LabelsItemsPresenter, IBrush>("BorderBrush");
+	public static readonly StyledProperty<IBrush> BorderBrushProperty =
+		AvaloniaProperty.Register<LabelsItemsPresenter, IBrush>("BorderBrush");
 
-	public static readonly StyledProperty<double> MaxLabelWidthProperty = AvaloniaProperty.Register<LabelsItemsPresenter, double>("MaxLabelWidth");
+	public static readonly StyledProperty<double> MaxLabelWidthProperty =
+		AvaloniaProperty.Register<LabelsItemsPresenter, double>("MaxLabelWidth");
 
 	public double MaxLabelWidth
 	{

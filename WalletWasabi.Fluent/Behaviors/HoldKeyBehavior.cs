@@ -14,7 +14,8 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 	public static readonly StyledProperty<Key?> KeyProperty =
 		AvaloniaProperty.Register<HoldKeyBehavior, Key?>(nameof(Key));
 
-	public static readonly StyledProperty<bool> IsKeyPressedProperty = AvaloniaProperty.Register<HoldKeyBehavior, bool>(nameof(IsKeyPressed), defaultBindingMode: BindingMode.TwoWay);
+	public static readonly StyledProperty<bool> IsKeyPressedProperty =
+		AvaloniaProperty.Register<HoldKeyBehavior, bool>(nameof(IsKeyPressed), defaultBindingMode: BindingMode.TwoWay);
 
 	public Key? Key
 	{
@@ -45,7 +46,13 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 		var targetKeys = this.WhenAnyValue(x => x.Key);
 
 		pressedKeys
-			.WithLatestFrom(targetKeys, (pressedKey, targetKey) => new { pressedKey.IsPressed, TargetKey = pressedKey.Key, PressedKey = targetKey })
+			.WithLatestFrom(
+				targetKeys,
+				(pressedKey, targetKey) =>
+					new
+					{
+						pressedKey.IsPressed, TargetKey = pressedKey.Key, PressedKey = targetKey
+					})
 			.Where(x => x.PressedKey == x.TargetKey)
 			.Select(x => x.IsPressed)
 			.StartWith(false)
