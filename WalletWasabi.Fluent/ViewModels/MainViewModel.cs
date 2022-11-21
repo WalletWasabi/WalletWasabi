@@ -129,6 +129,13 @@ public partial class MainViewModel : ViewModelBase
 		FullScreen.CurrentPage is { IsBusy: true } ||
 		CompactDialogScreen.CurrentPage is { IsBusy: true };
 
+	public bool IsDialogOpen()
+	{
+		return DialogScreen.IsDialogOpen
+		       || FullScreen.IsDialogOpen
+		       || CompactDialogScreen.IsDialogOpen;
+	}
+
 	public void ClearStacks()
 	{
 		MainScreen.Clear();
