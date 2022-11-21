@@ -67,9 +67,9 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		var sizeTrigger =
 			this.WhenAnyValue(x => x.Width, x => x.Height)
 				.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
+				.Do(_ => itemsSourceList.Clear())
 				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ToSignal()
-				.Do(_ => itemsSourceList.Clear());
+				.ToSignal();
 
 		_walletViewModel.UiTriggers
 						.PrivacyProgressUpdateTrigger
