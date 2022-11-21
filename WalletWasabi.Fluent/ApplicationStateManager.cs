@@ -128,7 +128,7 @@ public class ApplicationStateManager : IMainWindowService
 		_compositeDisposable = new();
 
 		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown()))
+			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(), !ApplicationViewModel.MainViewCanShutdown()))
 			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
 			.Subscribe(tup =>
 			{
@@ -140,11 +140,15 @@ public class ApplicationStateManager : IMainWindowService
 					return;
 				}
 
-				var (e, preventShutdown) = tup;
+				var (e, preventShutdown, mainViewCanClose) = tup;
 
 				_isShuttingDown = !preventShutdown;
 				e.Cancel = preventShutdown;
-				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+
+				if (mainViewCanClose)
+				{
+					_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+				}
 			})
 			.DisposeWith(_compositeDisposable);
 
