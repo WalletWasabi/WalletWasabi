@@ -31,7 +31,11 @@ public class WindowClosingBehavior : DisposingBehavior<Window>
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(e =>
 			{
-				// TODO: Prevent window closing when dialog is open.
+				if (CancelWindowClosing)
+				{
+					e.Cancel = true;
+					// TODO: Show notification that window closing was canceled?
+				}
 			})
 			.DisposeWith(disposables);
 	}
