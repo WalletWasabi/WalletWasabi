@@ -224,10 +224,25 @@ public class CoinJoinClient
 
 		try
 		{
-			using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+			try
+			{
+				using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
 
-			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, linkedCts.Token).ConfigureAwait(false);
+				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, linkedCts.Token).ConfigureAwait(false);
+			}
+			catch (UnexpectedRoundPhaseException ex)
+			{
+				roundState = ex.RoundState;
+				var message = ex.RoundState.EndRoundState switch
+				{
+					EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
+					_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
+				};
+
+				roundState.LogInfo(message);
+				return new CoinJoinResult(false);
+			}
 
 			if (!registeredAliceClientAndCircuits.Any())
 			{
@@ -279,18 +294,6 @@ public class CoinJoinClient
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
 				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
-		}
-		catch (UnexpectedRoundPhaseException ex)
-		{
-			roundState = ex.RoundState;
-			var message = ex.RoundState.EndRoundState switch
-			{
-				EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
-				_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
-			};
-
-			roundState.LogInfo(message);
-			return new CoinJoinResult(false);
 		}
 		finally
 		{
