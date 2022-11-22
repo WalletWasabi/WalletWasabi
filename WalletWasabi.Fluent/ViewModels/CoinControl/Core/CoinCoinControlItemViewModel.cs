@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
