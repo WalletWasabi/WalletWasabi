@@ -11,7 +11,7 @@ internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		IsConfirmed = smartCoin.Confirmed;
 		IsBanned = smartCoin.IsBanned;
 		IsCoinjoining = smartCoin.CoinJoinInProgress;
-		ConfirmationStatus = smartCoin.Confirmed ? "Confirmed" : "Pending confirmation";
+		ConfirmationStatus = $"{smartCoin.Height} confirmation{TextHelpers.AddSIfPlural(smartCoin.Height)}";
 		BannedUntilUtcToolTip = smartCoin.BannedUntilUtc.HasValue ? $"Can't participate in coinjoin until: {smartCoin.BannedUntilUtc:g}" : "";
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
