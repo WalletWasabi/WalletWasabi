@@ -54,6 +54,10 @@ public class SleepInhibitor : PeriodicRunner
 
 			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(LinuxInhibitorTask.Create(InhibitWhat.Idle, Timeout, Reason, gui));
 		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			taskFactory = () => Task.FromResult<IPowerSavingInhibitorTask>(MacOsInhibitorTask.Create(Timeout, Reason));
+		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			// Windows 7 does not support the API we use.
