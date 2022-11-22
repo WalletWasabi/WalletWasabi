@@ -12,7 +12,7 @@ internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		IsBanned = smartCoin.IsBanned;
 		IsCoinjoining = smartCoin.CoinJoinInProgress;
 		ConfirmationStatus = $"{smartCoin.Height} confirmation{TextHelpers.AddSIfPlural(smartCoin.Height)}";
-		BannedUntilUtcToolTip = smartCoin.BannedUntilUtc.HasValue ? $"Can't participate in coinjoin until: {smartCoin.BannedUntilUtc:g}" : "";
+		BannedUntilUtcToolTip = smartCoin.BannedUntilUtc.HasValue ? $"Can't participate in coinjoin until: {smartCoin.BannedUntilUtc:g}" : null;
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
