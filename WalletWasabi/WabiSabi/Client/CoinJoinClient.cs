@@ -86,7 +86,7 @@ public class CoinJoinClient
 	{
 		CoinJoinClientProgress.SafeInvoke(this, new WaitingForRound());
 		return await RoundStatusUpdater
-			.CreateRoundAwaiter(
+			.CreateRoundAwaiterAsync(
 				roundState =>
 					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > DoNotRegisterInLastMinuteTimeLimit
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
@@ -107,7 +107,7 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitForBlameRoundCts.Token, token);
 
 		var roundState = await RoundStatusUpdater
-				.CreateRoundAwaiter(
+				.CreateRoundAwaiterAsync(
 					roundState => roundState.BlameOf == blameRoundId,
 					linkedCts.Token)
 				.ConfigureAwait(false);
@@ -240,7 +240,7 @@ public class CoinJoinClient
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
-			roundState = await RoundStatusUpdater.CreateRoundAwaiter(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
 			var msg = roundState.EndRoundState switch
 			{
@@ -965,7 +965,7 @@ public class CoinJoinClient
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
-		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+		var roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 		var roundParameters = roundState.CoinjoinState.Parameters;
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
 		var now = DateTimeOffset.UtcNow;
@@ -1036,7 +1036,7 @@ public class CoinJoinClient
 		CancellationToken cancellationToken)
 	{
 		// Signing.
-		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+		var roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundId, Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 		var remainingTime = roundState.CoinjoinState.Parameters.TransactionSigningTimeout - RoundStatusUpdater.Period;
 		var signingStateEndTime = DateTimeOffset.UtcNow + remainingTime;
 
