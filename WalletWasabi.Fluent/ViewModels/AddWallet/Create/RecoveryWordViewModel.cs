@@ -31,9 +31,7 @@ public partial class RecoveryWordViewModel : ViewModelBase
 
 	private void ValidateWord()
 	{
-		IsConfirmed =
-			SelectedWord is { } &&
-			SelectedWord.Equals(Word, StringComparison.InvariantCultureIgnoreCase);
+		IsConfirmed = Word.Equals(SelectedWord, StringComparison.InvariantCultureIgnoreCase);
 	}
 
 	public override string ToString()
