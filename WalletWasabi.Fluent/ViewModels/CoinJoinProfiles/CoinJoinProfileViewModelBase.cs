@@ -6,7 +6,7 @@ public abstract class CoinJoinProfileViewModelBase : ViewModelBase
 
 	public abstract string Description { get; }
 
-	public virtual int AnonScoreTarget { get; } = 5;
+	public virtual int AnonScoreTarget { get; set; } = 5;
 
 	public virtual bool RedCoinIsolation { get; } = false;
 
