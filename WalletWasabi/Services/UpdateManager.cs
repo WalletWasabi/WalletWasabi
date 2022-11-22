@@ -125,7 +125,7 @@ public class UpdateManager : IDisposable
 		string expectedHash = await GetHashFromSha256SumsFileAsync(expectedFileName, version).ConfigureAwait(false);
 		if (expectedHash != downloadedHash)
 		{
-			throw new InvalidOperationException("Downloaded file hash doesn't match expected hash. Deleting invalid files.");
+			throw new InvalidOperationException("Downloaded file hash doesn't match expected hash.");
 		}
 	}
 
@@ -180,7 +180,7 @@ public class UpdateManager : IDisposable
 		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion).ConfigureAwait(false);
 		if (!isReleaseValid)
 		{
-			throw new InvalidOperationException($"Downloading new release was cancelled, Wasabi signature was invalid.");
+			throw new InvalidOperationException($"Downloading new release was aborted, Wasabi signature was invalid.");
 		}
 		// Get all asset names and download urls to find the correct one.
 		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
@@ -235,6 +235,7 @@ public class UpdateManager : IDisposable
 		}
 		catch (IOException)
 		{
+			// There's a chance to get IOException when closing Wasabi during stream copying. Throw OperationCancelledException instead.
 			CancellationToken.ThrowIfCancellationRequested();
 			throw;
 		}
