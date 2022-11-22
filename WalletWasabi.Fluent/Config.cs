@@ -40,15 +40,15 @@ public class Config : ConfigBase
 	public Network Network { get; internal set; } = Network.Main;
 
 	[DefaultValue("https://wasabiwallet.io/")]
-	[JsonProperty(PropertyName = "MainNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(PropertyName = "MainNetClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string MainNetClearnetBackendUri { get; private set; } = "https://wasabiwallet.io/";
 
 	[DefaultValue("https://wasabiwallet.co/")]
-	[JsonProperty(PropertyName = "TestNetFallbackBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(PropertyName = "TestNetClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string TestNetClearnetBackendUri { get; private set; } = "https://wasabiwallet.co/";
 
 	[DefaultValue("http://localhost:37127/")]
-	[JsonProperty(PropertyName = "RegTestBackendUriV3", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonProperty(PropertyName = "RegTestClearnetBackendUri", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string RegTestClearnetBackendUri { get; private set; } = "http://localhost:37127/";
 
 	[DefaultValue(true)]
