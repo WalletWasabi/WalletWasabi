@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 
@@ -17,6 +16,5 @@ internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
-		Children = ImmutableList<CoinControlItemViewModelBase>.Empty;
 	}
 }
