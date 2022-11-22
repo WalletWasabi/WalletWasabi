@@ -22,7 +22,6 @@ public class UpdateManager : IDisposable
 	private string Sha256SumsFilePath { get; set; } = "";
 	private const byte MaxTries = 2;
 	private const string ReleaseURL = "https://api.github.com/repos/zkSNACKs/WalletWasabi/releases/latest";
-	private const string DownloadURL = "https://github.com/zkSNACKs/WalletWasabi/releases/download";
 
 	public UpdateManager(string dataDir, bool downloadNewVersion, IHttpClient httpClient)
 	{
@@ -177,11 +176,6 @@ public class UpdateManager : IDisposable
 			throw new InvalidDataException("Target version from backend does not match with the latest GitHub release. This should be impossible.");
 		}
 
-		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion).ConfigureAwait(false);
-		if (!isReleaseValid)
-		{
-			throw new InvalidOperationException($"Downloading new release was aborted, Wasabi signature was invalid.");
-		}
 		// Get all asset names and download urls to find the correct one.
 		List<JToken> assetsInfos = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
 		List<string> assetDownloadUrls = new();
@@ -190,19 +184,24 @@ public class UpdateManager : IDisposable
 			assetDownloadUrls.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
+		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion, assetDownloadUrls).ConfigureAwait(false);
+		if (!isReleaseValid)
+		{
+			throw new InvalidOperationException($"Downloading new release was aborted, Wasabi signature was invalid.");
+		}
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
 		return (githubVersion, url, fileName);
 	}
 
-	private async Task<bool> ValidateWasabiSignatureAsync(string softwareVersion)
+	private async Task<bool> ValidateWasabiSignatureAsync(string softwareVersion, List<string> assetDownloadUrls)
 	{
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
 
 		using HttpClient httpClient = new();
-		string sha256SumsUrl = $"{DownloadURL}/{softwareVersion}/SHA256SUMS.asc";
-		string wasabiSigUrl = $"{DownloadURL}/{softwareVersion}/SHA256SUMS.wasabisig";
+		string sha256SumsUrl = assetDownloadUrls.Where(url => url.Contains("SHA256SUMS.asc")).First();
+		string wasabiSigUrl = assetDownloadUrls.Where(url => url.Contains("SHA256SUMS.wasabisig")).First();
 
 		try
 		{
