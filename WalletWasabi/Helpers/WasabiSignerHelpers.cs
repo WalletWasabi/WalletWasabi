@@ -67,16 +67,9 @@ public class WasabiSignerHelpers
 	/// <exception cref="FileNotFoundException"></exception>
 	public static async Task<byte[]> GetShaComputedBytesOfFileAsync(string filePath, CancellationToken cancellationToken = default)
 	{
-		if (File.Exists(filePath))
-		{
-			byte[] bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
-			using SHA256 sha = SHA256.Create();
-			byte[] computedHash = sha.ComputeHash(bytes);
-			return computedHash;
-		}
-		else
-		{
-			throw new FileNotFoundException($"Couldn't find file at {filePath}");
-		}
+		byte[] bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
+		using SHA256 sha = SHA256.Create();
+		byte[] computedHash = sha.ComputeHash(bytes);
+		return computedHash;
 	}
 }
