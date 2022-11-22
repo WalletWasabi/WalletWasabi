@@ -846,7 +846,7 @@ public class CoinJoinClient
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
-		return winner.ToShuffled()?.ToImmutableList() ?? ImmutableList<SmartCoin>.Empty;
+		return winner.ToShuffled().ToImmutableList();
 	}
 
 	private static double GetAnonLoss(IEnumerable<SmartCoin> coins)

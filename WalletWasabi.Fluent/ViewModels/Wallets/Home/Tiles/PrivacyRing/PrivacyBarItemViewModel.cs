@@ -28,12 +28,11 @@ public class PrivacyBarItemViewModel : ViewModelBase, IDisposable
 		};
 	}
 
-	public PrivacyBarItemViewModel(Pocket pocket, Wallet wallet, double start, double width)
+	public PrivacyBarItemViewModel(PrivacyLevel privacyLevel, double start, double width)
 	{
-		var anonScore = wallet.AnonScoreTarget;
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(anonScore));
-		IsSemiPrivate = pocket.Coins.All(x => x.IsSemiPrivate(anonScore));
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
+		IsPrivate = privacyLevel == PrivacyLevel.Private;
+		IsSemiPrivate = privacyLevel == PrivacyLevel.SemiPrivate;
+		IsNonPrivate = privacyLevel == PrivacyLevel.NonPrivate;
 
 		Data = new RectangleGeometry
 		{

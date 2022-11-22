@@ -56,8 +56,8 @@ public class P2pBlockProvider : IBlockProvider
 	private int NodeTimeouts { get; set; }
 
 	/// <summary>
-	/// Gets a bitcoin block from bitcoin nodes using the p2p bitcoin protocol.
-	/// If a bitcoin node is available it fetches the blocks using the rpc interface.
+	/// Gets a bitcoin block from bitcoin nodes using the P2P bitcoin protocol.
+	/// If a bitcoin node is available it fetches the blocks using the RPC interface.
 	/// </summary>
 	/// <param name="hash">The block's hash that identifies the requested block.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>

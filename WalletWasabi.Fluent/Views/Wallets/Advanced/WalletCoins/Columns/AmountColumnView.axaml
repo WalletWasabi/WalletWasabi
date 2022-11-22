@@ -12,5 +12,6 @@
                            NumberOfPrivacyChars="9"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Margin="5 0 10 0" />
+                           Margin="5 0 10 0"
+                           UseOpacity="False" />
 </UserControl>
