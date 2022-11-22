@@ -3,16 +3,16 @@ using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-internal class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
+public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 {
 	public PocketCoinControlItemViewModel(Pocket pocket)
 	{
 		var confirmationCount = pocket.Coins.Count();
 		var unconfirmedCount = pocket.Coins.Count(x => !x.Confirmed);
 		var allConfirmed = confirmationCount == unconfirmedCount;
-		IsBanned = pocket.Coins.Any(x => x.IsBanned);
 		ConfirmationStatus = allConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
-		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : "";
+		IsBanned = pocket.Coins.Any(x => x.IsBanned);
+		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
 		Amount = pocket.Amount;
 		IsConfirmed = allConfirmed;
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
