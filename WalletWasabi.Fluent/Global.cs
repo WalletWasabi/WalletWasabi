@@ -90,8 +90,7 @@ public class Global
 
 		HttpClientFactory = new HttpClientFactory(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter: () =>
-			Config.GetFallbackBackendUri());
+			backendUriGetter: () => Config.GetClearnetBackendUri());
 
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
@@ -234,7 +233,7 @@ public class Global
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 			}
 
-			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
+			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), torProcessManager: TorManager, httpClientFactory: HttpClientFactory), nameof(TorMonitor));
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}

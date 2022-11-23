@@ -9,12 +9,12 @@
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Write down the following recovery words in the correct order and store them in a safe place. They are needed to recover this wallet."
+                 Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <DockPanel>
       <c:InfoMessage Opacity="0.5"
                      HorizontalAlignment="Center"
@@ -32,7 +32,7 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="252" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
@@ -45,11 +45,13 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Panel HorizontalAlignment="Center" VerticalAlignment="Center"
-               Width="{Binding #ItemsControl.Bounds.Width}"
-               Height="{Binding #ItemsControl.Bounds.Height}">
-          <Separator Classes="vertical" Margin="0 0 0 20" />
-        </Panel>
+        <Grid ColumnDefinitions="*,1,*,1,*"
+              HorizontalAlignment="Center" VerticalAlignment="Center"
+              Width="{Binding #ItemsControl.Bounds.Width}"
+              Height="{Binding #ItemsControl.Bounds.Height}">
+          <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="1" />
+          <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="3" />
+        </Grid>
       </Panel>
     </DockPanel>
   </c:ContentArea>

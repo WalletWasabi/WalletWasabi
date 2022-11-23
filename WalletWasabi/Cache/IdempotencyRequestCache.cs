@@ -95,6 +95,7 @@ public class IdempotencyRequestCache
 	/// <para>Note that if there is a simultaneous request for the cache key, it is not stopped and its result is discarded.</para>
 	/// </remarks>
 	internal void Remove<TRequest>(TRequest cacheKey)
+		where TRequest : notnull
 	{
 		lock (ResponseCacheLock)
 		{

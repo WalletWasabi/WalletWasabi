@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewModels="clr-namespace:WalletWasabi.Fluent.ViewModels"
              x:DataType="viewModels:MainViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Shell.NetworkBadgeView"
+             x:Class="WalletWasabi.Fluent.Views.Shell.NetworkBadge"
              x:CompileBindings="True">
 
   <UserControl.Styles>
