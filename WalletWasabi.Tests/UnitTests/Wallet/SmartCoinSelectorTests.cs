@@ -51,6 +51,7 @@ public class SmartCoinSelectorTests
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target);
 
 		Assert.Equal(5, coinsToSpend.Count());
+		Assert.True(coinsToSpend.Cast<Coin>().Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)) == target.ToUnit(MoneyUnit.BTC));
 	}
 
 	[Fact]
@@ -70,7 +71,7 @@ public class SmartCoinSelectorTests
 		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target);
 
 		Assert.Equal(5, coinsToSpend.Count());
-		Assert.True(coinsToSpend.Cast<Coin>().Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)) >= target.ToUnit(MoneyUnit.BTC));
+		Assert.True(coinsToSpend.Cast<Coin>().Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)) == target.ToUnit(MoneyUnit.BTC));
 	}
 
 	[Fact]
