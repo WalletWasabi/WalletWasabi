@@ -11,10 +11,25 @@
   <StackPanel Spacing="15">
 
     <!-- Amount -->
-    <c:PreviewItem Icon="{StaticResource btc_logo}"
-                   Label="a total of">
-      <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
-    </c:PreviewItem>
+    <DockPanel>
+      <Button Classes="activeHyperLink"
+              Command="{Binding Parent.ChangeCoinsCommand}"
+              Content="Review coins"
+              Margin="10 0"
+              VerticalAlignment="Center"
+              DockPanel.Dock="Right">
+        <Button.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="Parent.IsCoinControlVisible" />
+            <Binding Path="!IsPreview" />
+          </MultiBinding>
+        </Button.IsVisible>
+      </Button>
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Label="a total of" HorizontalContentAlignment="Stretch">
+        <TextBlock Classes="monoSpaced" Text="{Binding AmountText, FallbackValue=_ BTC (≈_ USD)}" />
+      </c:PreviewItem>
+    </DockPanel>
     <Separator />
 
     <!-- Recipient -->

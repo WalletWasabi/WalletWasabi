@@ -101,24 +101,25 @@ public partial class SendViewModel : RoutableViewModel
 				});
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
-			var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
-			if (result.Result is not { } label)
 			{
-				return;
-			}
+				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
+				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
+				if (result.Result is not { } label)
+				{
+					return;
+				}
 
-			var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
-			{
-				Amount = new Money(AmountBtc, MoneyUnit.BTC),
-				Recipient = label,
-				PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
-				IsFixedAmount = _isFixedAmount
-			};
+				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
+				{
+					Amount = new Money(AmountBtc, MoneyUnit.BTC),
+					Recipient = label,
+					PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
+					IsFixedAmount = _isFixedAmount
+				};
 
-			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo));
-		}, nextCommandCanExecute);
+				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
+			},
+			nextCommandCanExecute);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
