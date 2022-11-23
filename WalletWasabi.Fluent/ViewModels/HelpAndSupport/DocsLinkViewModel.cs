@@ -6,12 +6,12 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "User Guide/Docs",
-	Caption = "Opens a website in the default browser",
+	Caption = "Go to the online documentation website",
 	Order = 2,
 	Category = "Help & Support",
 	Keywords = new[]
 	{
-			"User", "Support", "Website", "Docs", "Documentation", "Guide"
+		"User", "Support", "Website", "Docs", "Documentation", "Guide"
 	},
 	IconName = "book_question_mark_regular")]
 public partial class DocsLinkViewModel : TriggerCommandViewModel
