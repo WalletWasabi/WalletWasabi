@@ -19,7 +19,7 @@
       <c:InfoMessage Opacity="0.5"
                      HorizontalAlignment="Center"
                      DockPanel.Dock="Bottom">
-        <TextBlock Text="You will not be able to see these words again." />
+        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
       </c:InfoMessage>
 
       <Panel>
