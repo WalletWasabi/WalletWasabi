@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "User Support",
-	Caption = "Go to the user support website",
+	Caption = "Go to the User Support website",
 	Order = 0,
 	Category = "Help & Support",
 	Keywords = new[]
