@@ -20,7 +20,7 @@ public class UiTriggers
 	}
 
 	/// <summary>
-	/// Triggers on subscription and when a transaction to the wallet is processed.
+	/// Triggers on subscription and when a transaction to the wallet is processed or a new filter is processed.
 	/// </summary>
 	public IObservable<Unit> TransactionsUpdateTrigger =>
 		Observable
