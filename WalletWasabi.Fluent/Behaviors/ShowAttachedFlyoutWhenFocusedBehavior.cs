@@ -30,7 +30,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject?.GetVisualRoot() is not Control visualRoot)
+		if (AssociatedObject?.GetVisualRoot() is not Window visualRoot)
 		{
 			return;
 		}
@@ -108,7 +108,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 		var mergedFocused = isAssociatedObjectFocused.Merge(isPopupFocused);
 
 		var weAreFocused = mergedFocused
-			.Throttle(TimeSpan.FromSeconds(0.1))
+			.Throttle(TimeSpan.FromSeconds(0.1), RxApp.MainThreadScheduler)
 			.DistinctUntilChanged();
 
 		return weAreFocused
