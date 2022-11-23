@@ -41,7 +41,7 @@ public record Bip322Signature : IBitcoinSerializable
 		NBitcoinExtensions.FromBytes<Bip322Signature>(bip322SignatureBytes);
 
 	public bool Verify(uint256 hash, Script scriptPubKey) =>
-		scriptPubKey.TryGetScriptType() switch
+		scriptPubKey.GetScriptType() switch
 		{
 			ScriptType.P2WPKH => VerifyP2wpkh(hash, scriptPubKey),
 			ScriptType.Taproot => VerifyP2tr(hash, scriptPubKey),
