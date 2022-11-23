@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
+public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
 	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
 	{
@@ -11,7 +11,8 @@ internal class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		IsConfirmed = smartCoin.Confirmed;
 		IsBanned = smartCoin.IsBanned;
 		IsCoinjoining = smartCoin.CoinJoinInProgress;
-		ConfirmationStatus = $"{smartCoin.Height} confirmation{TextHelpers.AddSIfPlural(smartCoin.Height)}";
+		var confirmationCount = smartCoin.GetConfirmations();
+		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
 		BannedUntilUtcToolTip = smartCoin.BannedUntilUtc.HasValue ? $"Can't participate in coinjoin until: {smartCoin.BannedUntilUtc:g}" : null;
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
