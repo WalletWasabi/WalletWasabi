@@ -37,7 +37,7 @@ public class ArenaBuilder
 		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
+		Arena arena = new(period, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
 
 		foreach (var round in rounds)
 		{
