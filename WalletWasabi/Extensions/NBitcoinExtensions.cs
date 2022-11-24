@@ -461,7 +461,7 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.GetScriptType().EstimateInputVsize();
+		scriptPubKey.TryGetScriptType()?.EstimateInputVsize() ?? throw new NotImplementedException($"Size estimation isn't implemented for provided script type.");
 
 	public static int EstimateInputVsize(this ScriptType scriptType) =>
 		scriptType switch
@@ -475,7 +475,7 @@ public static class NBitcoinExtensions
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
 	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.TxOut.Value, coin.TxOut.ScriptPubKey.GetScriptType(), feeRate, coordinationFeeRate);
+		=> EffectiveValue(coin.TxOut.Value, coin.TxOut.ScriptPubKey.TryGetScriptType() ?? throw new NotImplementedException("Couldn't recognize script type."), feeRate, coordinationFeeRate);
 
 	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
 		=> EffectiveValue(coin.Amount, coin.ScriptType, feeRate, coordinationFeeRate);
@@ -515,7 +515,7 @@ public static class NBitcoinExtensions
 	/// </summary>
 	public static byte[] ExtractKeyId(this Script scriptPubKey)
 	{
-		return scriptPubKey.GetScriptType() switch
+		return scriptPubKey.TryGetScriptType() switch
 		{
 			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
@@ -524,7 +524,7 @@ public static class NBitcoinExtensions
 		};
 	}
 
-	public static ScriptType GetScriptType(this Script script)
+	public static ScriptType? TryGetScriptType(this Script script)
 	{
 		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.Taproot })
 		{
@@ -534,6 +534,6 @@ public static class NBitcoinExtensions
 			}
 		}
 
-		throw new NotImplementedException($"Unsupported script type.");
+		return null;
 	}
 }

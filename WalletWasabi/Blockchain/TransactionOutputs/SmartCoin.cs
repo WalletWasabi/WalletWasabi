@@ -61,7 +61,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public Coin Coin => _coin.Value;
 
 	public Script ScriptPubKey => TxOut.ScriptPubKey;
-	public ScriptType ScriptType => ScriptPubKey.GetScriptType();
+	public ScriptType ScriptType => ScriptPubKey.TryGetScriptType() ?? throw new NotImplementedException("Couldn't recognize script type.");
 	public Money Amount => TxOut.Value;
 	public double AnonymitySet => HdPubKey.AnonymitySet;
 
