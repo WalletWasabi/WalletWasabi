@@ -75,6 +75,18 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
+	protected virtual void SetAmount(Money amount)
+	{
+		if (amount < Money.Zero)
+		{
+			OutgoingAmount = amount * -1;
+		}
+		else
+		{
+			IncomingAmount = amount;
+		}
+	}
+
 	public virtual bool HasChildren() => false;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
