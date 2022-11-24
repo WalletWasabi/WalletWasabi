@@ -511,11 +511,11 @@ public static class NBitcoinExtensions
 	}
 
 	/// <summary>
-	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
+	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptPubKey byte array.
 	/// </summary>
 	public static byte[] ExtractKeyId(this Script scriptPubKey)
 	{
-		return scriptPubKey.GetScriptType() switch
+		return scriptPubKey.TryGetScriptType() switch
 		{
 			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
@@ -526,7 +526,12 @@ public static class NBitcoinExtensions
 
 	public static ScriptType GetScriptType(this Script script)
 	{
-		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.Witness, ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.P2SH, ScriptType.Taproot })
+		return TryGetScriptType(script) ?? throw new NotImplementedException($"Unsupported script type.");
+	}
+
+	public static ScriptType? TryGetScriptType(this Script script)
+	{
+		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.Taproot })
 		{
 			if (script.IsScriptType(scriptType))
 			{
@@ -534,6 +539,6 @@ public static class NBitcoinExtensions
 			}
 		}
 
-		throw new NotImplementedException($"Unsupported script type.");
+		return null;
 	}
 }
