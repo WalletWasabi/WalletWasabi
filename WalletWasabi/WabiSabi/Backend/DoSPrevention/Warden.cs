@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 /// <summary>
 /// Serializes and releases the prison population periodically.
