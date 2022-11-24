@@ -253,7 +253,12 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			var (goForBlameRound, outputTxOuts) = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+			// Detects if our own inputs are registered by someone else.
+			var shouldRegisterOutputs = ShouldRegisterOutputs(registeredAliceClients, roundState);
+			
+			var outputTxOuts = shouldRegisterOutputs 
+				? await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false)
+				: Enumerable.Empty<TxOut>();
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
@@ -290,7 +295,7 @@ public class CoinJoinClient
 			}
 
 			return new CoinJoinResult(
-				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign && goForBlameRound,
+				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign && shouldRegisterOutputs,
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
 				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
@@ -969,14 +974,11 @@ public class CoinJoinClient
 		return targetInputCount;
 	}
 
-	private async Task<(bool, IEnumerable<TxOut>)> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await RoundStatusUpdater.CreateRoundAwaiter(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 		var roundParameters = roundState.CoinjoinState.Parameters;
-
-		// Detects if our own inputs are registered by someone else.
-		var shouldRegisterOutputs = ShouldRegisterOutputs(registeredAliceClients, roundState);
 
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStatusUpdater.Period;
 		var now = DateTimeOffset.UtcNow;
@@ -992,15 +994,13 @@ public class CoinJoinClient
 			CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
-		ImmutableArray<TxOut> outputTxOuts = shouldRegisterOutputs 
-			? await RegisterOutputsCoreAsync(registeredAliceClients, roundState, outputRegistrationPhaseEndTime, roundParameters, combinedToken, outputRegistrationEndTime).ConfigureAwait(false)
-			: ImmutableArray<TxOut>.Empty;
+		ImmutableArray<TxOut> outputTxOuts = await RegisterOutputsCoreAsync(registeredAliceClients, roundState, outputRegistrationPhaseEndTime, roundParameters, combinedToken, outputRegistrationEndTime).ConfigureAwait(false);
 		
 		// ReadyToSign.
 		roundState.LogDebug($"ReadyToSign phase started - it will end in: {readyToSignEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.");
 		await ReadyToSignAsync(registeredAliceClients, readyToSignEndTime, combinedToken).ConfigureAwait(false);
 		roundState.LogDebug($"Alices({registeredAliceClients.Length}) are ready to sign.");
-		return (shouldRegisterOutputs, outputTxOuts);
+		return outputTxOuts;
 	}
 
 	private bool ShouldRegisterOutputs(ImmutableArray<AliceClient> registeredAliceClients, RoundState roundState)
