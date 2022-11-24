@@ -87,6 +87,14 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
 		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
 		OutgoingAmount = CoinJoinTransactions.Sum(x => x.Amount) * -1;
+
+		// OutgoingAmount/IncomingAmount should never be negative. In case of negative OutgoingAmount we gained money, for example: coordinator wallet in CJs.
+		if (OutgoingAmount < Money.Zero)
+		{
+			IncomingAmount = CoinJoinTransactions.Sum(x => x.Amount);
+			OutgoingAmount = null;
+		}
+
 		UpdateDateString();
 	}
 
