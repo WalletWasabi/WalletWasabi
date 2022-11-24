@@ -41,37 +41,34 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void DontSelectUnnecessaryInputs()
 	{
-		var target = Money.Coins(4m);
+		Money target = Money.Coins(4m);
 
-		var availableCoins = GenerateSmartCoins(
-			Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))))
-			.ToList();
+		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1)))).ToList();
 
-		var selector = new SmartCoinSelector(availableCoins);
-		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target);
+		SmartCoinSelector selector = new(availableCoins);
 
-		Assert.Equal(5, coinsToSpend.Count());
-		Assert.True(coinsToSpend.Cast<Coin>().Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)) == target.ToUnit(MoneyUnit.BTC));
+		List<Coin> coinsToSpend = selector.Select(suggestion: Enumerable.Empty<Coin>(), target).Cast<Coin>().ToList();
+
+		Assert.Equal(5, coinsToSpend.Count);
+		Assert.Equal(target, Money.Satoshis(coinsToSpend.Sum(x => x.Amount)));
 	}
 
 	[Fact]
 	public void PreferLessCoinsOnSameAmount()
 	{
-		var target = Money.Coins(1m);
+		Money target = Money.Coins(1m);
 
-		var availableCoins = GenerateSmartCoins(
-			Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m)))
-			.ToList();
+		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m))).ToList();
 
 		availableCoins.Add(GenerateSmartCoins(
 			Enumerable.Range(0, 5).Select(i => ("Beto", 0.2m)))
 			.ToList());
 
-		var selector = new SmartCoinSelector(availableCoins);
-		var coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target);
+		SmartCoinSelector selector = new(availableCoins);
+		List<Coin> coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target).Cast<Coin>().ToList();
 
-		Assert.Equal(5, coinsToSpend.Count());
-		Assert.True(coinsToSpend.Cast<Coin>().Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)) == target.ToUnit(MoneyUnit.BTC));
+		Assert.Equal(5, coinsToSpend.Count);
+		Assert.Equal(target, Money.Satoshis(coinsToSpend.Sum(x => x.Amount)));
 	}
 
 	[Fact]
