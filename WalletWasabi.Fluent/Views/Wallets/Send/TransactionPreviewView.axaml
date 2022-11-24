@@ -19,6 +19,11 @@
                  EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Send Now"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+    <i:Interaction.Behaviors>
+      <behaviors:HoldKeyBehavior Key="LeftAlt" IsKeyPressed="{Binding IsCoinControlVisible}" />
+    </i:Interaction.Behaviors>
+
     <c:ContentArea.Title>
       <DockPanel>
         <TextBlock Text="Preview Transaction" />
