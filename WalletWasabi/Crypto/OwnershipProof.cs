@@ -47,7 +47,7 @@ public record OwnershipProof : IBitcoinSerializable
 			Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.GetScriptPubKey(scriptPubKeyType), commitmentData), scriptPubKeyType));
 
 	public bool VerifyOwnership(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation) =>
-		scriptPubKey.GetScriptType() switch
+		scriptPubKey.TryGetScriptType() switch
 		{
 			ScriptType.P2WPKH or ScriptType.Taproot => VerifyOwnershipProof(scriptPubKey, commitmentData, requireUserConfirmation),
 			_ => throw new NotImplementedException("Only P2WPKH and P2TR scripts are supported."),
