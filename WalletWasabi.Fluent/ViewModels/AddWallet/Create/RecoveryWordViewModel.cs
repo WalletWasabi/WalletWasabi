@@ -1,6 +1,4 @@
 using ReactiveUI;
-using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 

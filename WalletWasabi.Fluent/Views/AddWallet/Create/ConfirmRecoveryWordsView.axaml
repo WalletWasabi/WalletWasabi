@@ -12,38 +12,36 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Click the recovery words in the correct order."
+                 Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}'}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
-                 EnableSkip="{Binding IsSkipEnable}"
+                 EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel>
-      <ItemsControl Items="{Binding AvailableWords}" DockPanel.Dock="Top" Margin="30 10 30 0">
-        <ItemsControl.ItemsPanel>
+      <ListBox Items="{Binding AvailableWords}" DockPanel.Dock="Top" Margin="30 10 30 0"
+               SelectedItem="{Binding SelectedWord}"
+               Background="Transparent" HorizontalAlignment="Center">
+        <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel />
+            <UniformGrid Columns="4" />
           </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <CheckBox IsChecked="{Binding IsSelected}">
-              <CheckBox.Styles>
-                <Style Selector="CheckBox[IsChecked=True] /template/ c|TagControl">
-                  <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
-                  <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
-                </Style>
-              </CheckBox.Styles>
-              <CheckBox.Template>
-                <ControlTemplate>
-                  <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" x:Name="Tag" />
-                </ControlTemplate>
-              </CheckBox.Template>
-            </CheckBox>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+        </ListBox.ItemsPanel>
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Template">
+              <ControlTemplate TargetType="ListBoxItem">
+                <c:TagControl Content="{Binding .}" HorizontalContentAlignment="Center" />
+              </ControlTemplate>
+            </Setter>
+          </Style>
+          <Style Selector="ListBoxItem[IsPointerOver=True] /template/ c|TagControl">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+            <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+          </Style>
+        </ListBox.Styles>
+      </ListBox>
 
       <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <Panel>
@@ -56,25 +54,26 @@
             </ItemsControl.Styles>
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <WrapPanel MaxHeight="252" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+                <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
                   <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
-                  <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0" IsVisible="{Binding IsConfirmed}" />
-                  <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0" Foreground="IndianRed" IsVisible="{Binding !IsConfirmed}" />
+                  <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0" />
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-          <Panel HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Width="{Binding #ItemsControl.Bounds.Width}"
-                 Height="{Binding #ItemsControl.Bounds.Height}">
-            <Separator Classes="vertical" Margin="0 0 0 20" />
-          </Panel>
+          <Grid ColumnDefinitions="*,1,*,1,*"
+              HorizontalAlignment="Center" VerticalAlignment="Center"
+              Width="{Binding #ItemsControl.Bounds.Width}"
+              Height="{Binding #ItemsControl.Bounds.Height}">
+            <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="1" />
+            <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="3" />
+          </Grid>
         </Panel>
       </ScrollViewer>
     </DockPanel>
