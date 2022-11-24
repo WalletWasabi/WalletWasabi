@@ -606,11 +606,12 @@ public class CoinJoinClient
 		var privateCoins = filteredCoins
 			.Where(x => x.AnonymitySet >= anonScoreTarget)
 			.ToArray();
+		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= Constants.SemiPrivateThreshold)
+			.Where(x => x.AnonymitySet < anonScoreTarget && x.AnonymitySet >= semiPrivateThreshold)
 			.ToArray();
 		var redCoins = filteredCoins
-			.Where(x => x.AnonymitySet < Constants.SemiPrivateThreshold)
+			.Where(x => x.AnonymitySet < semiPrivateThreshold)
 			.ToArray();
 
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
@@ -625,20 +626,13 @@ public class CoinJoinClient
 		Logger.LogDebug($"{nameof(semiPrivateCoins)}: {semiPrivateCoins.Length} coins, valued at {Money.Satoshis(semiPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 		Logger.LogDebug($"{nameof(redCoins)}: {redCoins.Length} coins, valued at {Money.Satoshis(redCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
-		// If we want to isolate red coins from each other, then only let a single red coin get into our selection candidates.
+		// We want to isolate red coins from each other. We only let a single red coin get into our selection candidates.
 		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
-		if (redCoinIsolation)
+		var red = redCoins.RandomElement();
+		if (red is not null)
 		{
-			var red = redCoins.RandomElement();
-			if (red is not null)
-			{
-				allowedNonPrivateCoins.Add(red);
-				Logger.LogDebug($"One red coin got selected: {red.Amount.ToString(false, true)} BTC. Isolating the rest.");
-			}
-		}
-		else
-		{
-			allowedNonPrivateCoins.AddRange(redCoins);
+			allowedNonPrivateCoins.Add(red);
+			Logger.LogDebug($"One red coin got selected: {red.Amount.ToString(false, true)} BTC. Isolating the rest.");
 		}
 
 		Logger.LogDebug($"{nameof(allowedNonPrivateCoins)}: {allowedNonPrivateCoins.Count} coins, valued at {Money.Satoshis(allowedNonPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
