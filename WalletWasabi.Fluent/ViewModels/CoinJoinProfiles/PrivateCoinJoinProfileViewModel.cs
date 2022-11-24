@@ -21,7 +21,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override string Description => "Choice of the paranoid. Optimizes for privacy at all costs.";
 
-	public override int AnonScoreTarget { get; set; }
+	public override int AnonScoreTarget { get; }
 	public override bool RedCoinIsolation { get; } = true;
 
 	public override int FeeRateMedianTimeFrameHours => 0;

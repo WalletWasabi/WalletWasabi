@@ -19,7 +19,7 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override string Description => "";
 
-	public override int AnonScoreTarget { get; set; }
+	public override int AnonScoreTarget { get; }
 
 	public override int FeeRateMedianTimeFrameHours { get; }
 	public override bool RedCoinIsolation { get; }
