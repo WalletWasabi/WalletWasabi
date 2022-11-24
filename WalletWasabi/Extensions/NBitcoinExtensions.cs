@@ -475,14 +475,14 @@ public static class NBitcoinExtensions
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
 	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.TxOut.Value, coin.TxOut.ScriptPubKey.GetScriptType(), feeRate, coordinationFeeRate);
+		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate, coordinationFeeRate);
 
 	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.Amount, coin.ScriptType, feeRate, coordinationFeeRate);
+		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate, coordinationFeeRate);
 
-	private static Money EffectiveValue(Money amount, ScriptType scriptType, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
 	{
-		var netFee = feeRate.GetFee(scriptType.EstimateInputVsize());
+		var netFee = feeRate.GetFee(virtualSize);
 		var coordFee = coordinationFeeRate.GetFee(amount);
 
 		return amount - netFee - coordFee;
