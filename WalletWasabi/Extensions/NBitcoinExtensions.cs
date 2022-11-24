@@ -526,7 +526,7 @@ public static class NBitcoinExtensions
 
 	public static ScriptType GetScriptType(this Script script)
 	{
-		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.Taproot })
+		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.Witness, ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.P2SH, ScriptType.Taproot })
 		{
 			if (script.IsScriptType(scriptType))
 			{
