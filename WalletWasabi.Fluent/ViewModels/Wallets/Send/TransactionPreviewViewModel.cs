@@ -310,22 +310,32 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
 			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
 
-			var result = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
+			var canSelectMoreCoins = _wallet.Coins.Any(coin => !_info.Coins.Contains(coin));
+			var isMaxFeeRateFound = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
-			if (result)
+			if (canSelectMoreCoins)
+			{
+				var selectPocketsDialog =
+					await NavigateDialogAsync(new PrivacyControlViewModel(_wallet, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
+
+				if (selectPocketsDialog.Result is { } newCoins)
+				{
+					_info.Coins = newCoins;
+					return await BuildTransactionAsync();
+				}
+			}
+			else if (isMaxFeeRateFound)
 			{
 				_info.MaximumPossibleFeeRate = maximumPossibleFeeRate;
 				_info.FeeRate = maximumPossibleFeeRate;
 				_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(maximumPossibleFeeRate, _wallet);
 				return await BuildTransactionAsync();
 			}
-			else
-			{
-				await ShowErrorAsync(
-					"Transaction Building",
-					"There are not enough funds to cover the transaction fee.",
-					"Wasabi was unable to create your transaction.");
-			}
+
+			await ShowErrorAsync(
+				"Transaction Building",
+				"There are not enough funds to cover the transaction fee.",
+				"Wasabi was unable to create your transaction.");
 
 			return null;
 		}
@@ -362,7 +372,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		return true;
 	}
-	
+
 	private async Task InitialiseViewModelAsync()
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
