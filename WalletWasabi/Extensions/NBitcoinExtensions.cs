@@ -475,14 +475,14 @@ public static class NBitcoinExtensions
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
 	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.TxOut.Value, coin.TxOut.ScriptPubKey.GetScriptType(), feeRate, coordinationFeeRate);
+		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate, coordinationFeeRate);
 
 	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-		=> EffectiveValue(coin.Amount, coin.ScriptType, feeRate, coordinationFeeRate);
+		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate, coordinationFeeRate);
 
-	private static Money EffectiveValue(Money amount, ScriptType scriptType, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
 	{
-		var netFee = feeRate.GetFee(scriptType.EstimateInputVsize());
+		var netFee = feeRate.GetFee(virtualSize);
 		var coordFee = coordinationFeeRate.GetFee(amount);
 
 		return amount - netFee - coordFee;
@@ -511,11 +511,11 @@ public static class NBitcoinExtensions
 	}
 
 	/// <summary>
-	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
+	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptPubKey byte array.
 	/// </summary>
 	public static byte[] ExtractKeyId(this Script scriptPubKey)
 	{
-		return scriptPubKey.GetScriptType() switch
+		return scriptPubKey.TryGetScriptType() switch
 		{
 			ScriptType.P2WPKH => PayToWitPubKeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			ScriptType.P2PKH => PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
@@ -526,6 +526,11 @@ public static class NBitcoinExtensions
 
 	public static ScriptType GetScriptType(this Script script)
 	{
+		return TryGetScriptType(script) ?? throw new NotImplementedException($"Unsupported script type.");
+	}
+
+	public static ScriptType? TryGetScriptType(this Script script)
+	{
 		foreach (ScriptType scriptType in new ScriptType[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.Taproot })
 		{
 			if (script.IsScriptType(scriptType))
@@ -534,6 +539,6 @@ public static class NBitcoinExtensions
 			}
 		}
 
-		throw new NotImplementedException($"Unsupported script type.");
+		return null;
 	}
 }
