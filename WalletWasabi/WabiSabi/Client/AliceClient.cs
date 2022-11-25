@@ -163,7 +163,7 @@ public class AliceClient
 			try
 			{
 				await roundStatusUpdater
-					.CreateRoundAwaiter(
+					.CreateRoundAwaiterAsync(
 						RoundId,
 						Phase.ConnectionConfirmation,
 						cts.Token)
