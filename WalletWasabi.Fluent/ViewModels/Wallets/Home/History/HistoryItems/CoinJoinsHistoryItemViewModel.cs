@@ -86,7 +86,8 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		IsConfirmed = CoinJoinTransactions.All(x => x.IsConfirmed());
 		Date = CoinJoinTransactions.Select(tx => tx.DateTime).Max().ToLocalTime();
-		OutgoingAmount = CoinJoinTransactions.Sum(x => x.Amount) * -1;
+		SetAmount(CoinJoinTransactions.Sum(x => x.Amount));
+
 		UpdateDateString();
 	}
 
