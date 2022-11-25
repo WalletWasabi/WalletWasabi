@@ -69,17 +69,17 @@ public class CoinJoinClient
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
 	private SecureRandom SecureRandom { get; }
-	public IWasabiHttpClientFactory HttpClientFactory { get; }
+	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	public string CoordinatorIdentifier { get; }
-	public LiquidityClueProvider LiquidityClueProvider { get; }
+	private string CoordinatorIdentifier { get; }
+	private LiquidityClueProvider LiquidityClueProvider { get; }
 	public int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
-	public bool ConsolidationMode { get; private set; }
-	public bool RedCoinIsolation { get; }
+	private bool ConsolidationMode { get; set; }
+	private bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
