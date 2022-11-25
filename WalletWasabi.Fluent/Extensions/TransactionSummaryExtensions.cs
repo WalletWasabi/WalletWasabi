@@ -25,8 +25,13 @@ public static class TransactionSummaryExtensions
 			_ => throw new InvalidOperationException($"Invalid Fee Display Unit value: {feeDisplayUnit}")
 		};
 
-	public static string ToFeeDisplayUnitString(this Money fee)
+	public static string ToFeeDisplayUnitString(this Money? fee)
 	{
+		if (fee is null)
+		{
+			return "Unknown";
+		}
+
 		var displayUnit = Services.UiConfig.FeeDisplayUnit.GetEnumValueOrDefault(FeeDisplayUnit.BTC);
 		var moneyUnit = displayUnit.ToMoneyUnit();
 
