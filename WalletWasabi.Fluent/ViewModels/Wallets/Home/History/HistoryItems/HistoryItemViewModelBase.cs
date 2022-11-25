@@ -75,7 +75,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		throw new NotSupportedException();
 	}
 
-	protected virtual void SetAmount(Money amount)
+	protected void SetAmount(Money amount)
 	{
 		if (amount < Money.Zero)
 		{
