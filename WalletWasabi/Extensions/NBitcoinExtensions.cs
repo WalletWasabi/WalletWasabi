@@ -77,27 +77,9 @@ public static class NBitcoinExtensions
 	/// <summary>
 	/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 	/// </summary>
-	public static bool PossiblyP2WPKHInvolved(this Transaction me)
-	{
-		// We omit Guard, because it's performance critical in Wasabi.
-		// We start with the inputs, because, this check is faster.
-		// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
-		foreach (TxIn input in me.Inputs)
-		{
-			if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
-			{
-				return true;
-			}
-		}
-		foreach (TxOut output in me.Outputs)
-		{
-			if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+	public static bool SegWitInvolved(this Transaction me) =>
+		me.Inputs.Any(i => Script.IsNullOrEmpty(i.ScriptSig)) ||
+		me.Outputs.Any(o => o.ScriptPubKey.IsScriptType(ScriptType.Witness));
 
 	public static bool HasIndistinguishableOutputs(this Transaction me)
 	{
@@ -461,7 +443,10 @@ public static class NBitcoinExtensions
 		new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 	public static int EstimateInputVsize(this Script scriptPubKey) =>
-		scriptPubKey.TryGetScriptType() switch
+		scriptPubKey.GetScriptType().EstimateInputVsize();
+
+	public static int EstimateInputVsize(this ScriptType scriptType) =>
+		scriptType switch
 		{
 			ScriptType.P2WPKH => Constants.P2wpkhInputVirtualSize,
 			ScriptType.Taproot => Constants.P2trInputVirtualSize,
@@ -471,12 +456,18 @@ public static class NBitcoinExtensions
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
-	public static Money EffectiveValue(this Coin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
-	{
-		var netFee = feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
-		var coordFee = coordinationFeeRate.GetFee(coin.Amount);
+	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate, coordinationFeeRate);
 
-		return coin.Amount - netFee - coordFee;
+	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate, coordinationFeeRate);
+
+	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+	{
+		var netFee = feeRate.GetFee(virtualSize);
+		var coordFee = coordinationFeeRate.GetFee(amount);
+
+		return amount - netFee - coordFee;
 	}
 
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
@@ -484,6 +475,9 @@ public static class NBitcoinExtensions
 
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
 		EffectiveValue(coin.Coin, feeRate, CoordinationFeeRate.Zero);
+
+	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate) =>
+		EffectiveValue(coin, feeRate, CoordinationFeeRate.Zero);
 
 	public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 	{
@@ -499,7 +493,7 @@ public static class NBitcoinExtensions
 	}
 
 	/// <summary>
-	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptpubkey byte array.
+	/// Extracts a unique public key identifier. If it can't do that, then it returns the scriptPubKey byte array.
 	/// </summary>
 	public static byte[] ExtractKeyId(this Script scriptPubKey)
 	{
@@ -510,6 +504,11 @@ public static class NBitcoinExtensions
 			ScriptType.P2PK => PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(scriptPubKey)!.ToBytes(),
 			_ => scriptPubKey.ToBytes()
 		};
+	}
+
+	public static ScriptType GetScriptType(this Script script)
+	{
+		return TryGetScriptType(script) ?? throw new NotImplementedException($"Unsupported script type.");
 	}
 
 	public static ScriptType? TryGetScriptType(this Script script)

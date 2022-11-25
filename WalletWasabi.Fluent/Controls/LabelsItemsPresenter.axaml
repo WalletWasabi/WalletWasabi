@@ -26,7 +26,6 @@
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="MinWidth" Value="38" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
     <Setter Property="CornerRadius" Value="2" />
   </Style>
@@ -35,24 +34,29 @@
     <Setter Property="Margin" Value="0" />
     <Setter Property="VirtualizationMode" Value="Simple" />
     <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxBorderBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    <Setter Property="MaxLabelWidth" Value="120" />
     <Setter Property="ItemTemplate">
       <DataTemplate>
         <Panel Margin="0 0 4 0">
-          <Border Classes="label" ToolTip.Tip="{Binding}">
+          <Border Classes="label" ToolTip.Tip="{Binding}" BorderBrush="{Binding $parent[c:LabelsItemsPresenter].BorderBrush}">
             <TextBlock Text="{Binding}"
                        TextTrimming="CharacterEllipsis"
                        TextWrapping="NoWrap"
-                       MaxWidth="120" />
+                       Foreground="{Binding $parent[c:LabelsItemsPresenter].Foreground}"
+                       MaxWidth="{Binding $parent[c:LabelsItemsPresenter].MaxLabelWidth}" />
           </Border>
         </Panel>
       </DataTemplate>
     </Setter>
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:LabelsPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+        <c:LabelsPanel Orientation="Horizontal" Spacing="2"
+                       HorizontalAlignment="{Binding $parent[c:LabelsItemsPresenter].HorizontalAlignment}">
           <c:LabelsPanel.EllipsisControl>
             <Panel Margin="0 0 0 0">
-              <Border Classes="label">
+              <Border Classes="label" BorderBrush="{Binding $parent[c:LabelsItemsPresenter].BorderBrush}">
                 <ToolTip.Tip>
                   <Panel>
                     <c:TagsBox IsReadOnly="True"
@@ -63,6 +67,7 @@
                 <TextBlock Text="..."
                            TextTrimming="CharacterEllipsis"
                            TextWrapping="NoWrap"
+                           Foreground="{Binding $parent[c:LabelsItemsPresenter].Foreground}"
                            MaxWidth="120" />
               </Border>
             </Panel>

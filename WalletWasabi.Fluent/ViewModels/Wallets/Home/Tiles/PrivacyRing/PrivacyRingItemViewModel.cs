@@ -33,10 +33,9 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		PrivacyLevelText = GetPrivacyLevelDescription();
 
 		Reference = GetPrivacyLevelDescription();
-		Reference += " coin";
 		if (Unconfirmed)
 		{
-			Reference += " (unconfirmed)";
+			Reference += " (pending)";
 		}
 	}
 
@@ -55,7 +54,6 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		PrivacyLevelText = GetPrivacyLevelDescription();
 
 		Reference = GetPrivacyLevelDescription();
-		Reference += " coins";
 	}
 
 	public WalletCoinViewModel? Coin { get; }
