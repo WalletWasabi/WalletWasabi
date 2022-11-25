@@ -36,6 +36,7 @@
         </Border>
         <controls:PrivacyContentControl Classes="bold" NumberOfPrivacyChars="9"
                                         VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                                         Content="{Binding BalancePrivateBtc}" />
       </StackPanel>
     </StackPanel>
