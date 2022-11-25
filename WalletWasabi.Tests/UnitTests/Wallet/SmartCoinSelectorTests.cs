@@ -18,7 +18,7 @@ public class SmartCoinSelectorTests
 			new Mnemonic("all all all all all all all all all all all all"),
 			"",
 			Network.Main,
-			KeyManager.GetAccountKeyPath(Network.Main));
+			KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit));
 	}
 
 	private KeyManager KeyManager { get; }

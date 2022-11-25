@@ -47,7 +47,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
@@ -86,7 +86,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
@@ -129,7 +129,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
@@ -175,7 +175,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
@@ -221,7 +221,7 @@ public class StepTransactionSigningTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await arena.TriggerAndWaitRoundAsync(token);
