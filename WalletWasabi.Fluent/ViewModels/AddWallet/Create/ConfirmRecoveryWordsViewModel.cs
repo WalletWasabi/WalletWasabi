@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -172,7 +171,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		if (IsSkipEnabled)
 		{
-			SkipCommand = ReactiveCommand.Create(() => NextCommand!.Execute(null));
+			SkipCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 		}
 	}
 }
