@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Styling;
 using System.Reactive.Disposables;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -24,6 +25,8 @@ public class FadeInBehavior : AttachedToVisualTreeBehavior<Visual>
 		get => GetValue(DurationProperty);
 		set => SetValue(DurationProperty, value);
 	}
+
+	private CancellationTokenSource? _animationCts;
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
@@ -65,6 +68,17 @@ public class FadeInBehavior : AttachedToVisualTreeBehavior<Visual>
 				}
 			}
 		};
-		animation.RunAsync(AssociatedObject, null);
+
+		_animationCts = new CancellationTokenSource();
+		animation.RunAsync(AssociatedObject, null, _animationCts.Token);
+	}
+
+	protected override void OnDetachedFromVisualTree()
+	{
+		base.OnDetachedFromVisualTree();
+
+		_animationCts?.Cancel();
+		_animationCts?.Dispose();
+		_animationCts = null;
 	}
 }
