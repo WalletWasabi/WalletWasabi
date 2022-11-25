@@ -58,7 +58,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		Date = _coinJoin.DateString;
 		Status = _coinJoin.IsConfirmed ? "Confirmed" : "Pending";
 		CoinJoinFee = _coinJoin.OutgoingAmount;
-		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
+		CoinJoinFeeString = CoinJoinFee is null ? "Unknown" : CoinJoinFee.ToFeeDisplayUnitString();
 
 		TransactionId = _coinJoin.CoinJoinTransaction.TransactionId;
 	}

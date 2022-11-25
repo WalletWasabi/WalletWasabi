@@ -1,4 +1,5 @@
 using System.Linq;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -56,7 +57,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 
-		var fee = _transaction.Fee;
+		Money fee = _transaction.Fee;
 		FeeText = fee.ToFeeDisplayUnitString();
 
 		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
