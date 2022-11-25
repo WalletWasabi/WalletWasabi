@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:validation="clr-namespace:WalletWasabi.Fluent.Validation"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="create:ConfirmRecoveryWordsTryAgainViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsTryAgainView">
+  <c:ContentArea Title="{Binding Title}"
+                EnableCancel="{Binding EnableCancel}"
+                EnableBack="{Binding EnableBack}"
+                EnableNext="True" NextContent="Continue">
+    <StackPanel VerticalAlignment="Center" Spacing="10">
+      <TextBlock Text="Your selection is incorrect." TextAlignment="Center" Classes="h3" />
+      <TextBlock Text="Make sure you write down the recovery words and try again." TextAlignment="Center" Opacity=".6" />
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>

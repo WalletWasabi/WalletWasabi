@@ -9,6 +9,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -44,8 +45,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
-		var nextCommandCanExecute =
-			confirmationWordsSourceList
+		confirmationWordsSourceList
 			.DisposeWith(disposables)
 			.Connect()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -53,11 +53,13 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Bind(ConfirmationWords)
 			.OnItemAdded(x => x.Reset())
 			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed))
+			.Where(x => x)
+			.DoAsync(_ => OnNextAsync())
+			.Subscribe()
+			.DisposeWith(disposables);
 
 		EnableBack = true;
-
-		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 
@@ -69,7 +71,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.SelectedWord)
 			.Skip(1)
-			.Subscribe(_ => OnWordSelected())
+			.DoAsync(_ => OnWordSelectedAsync())
+			.Subscribe()
 			.DisposeWith(disposables);
 
 		var enableCancel = Services.WalletManager.HasWallet();
@@ -103,7 +106,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		}
 	}
 
-	private void OnWordSelected()
+	private async Task OnWordSelectedAsync()
 	{
 		if (CurrentWord is null)
 		{
@@ -112,7 +115,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		CurrentWord.SelectedWord = SelectedWord;
 
-		SetNextWord();
+		if (CurrentWord.IsConfirmed)
+		{
+			SetNextWord();
+		}
+		else
+		{
+			await NavigateDialogAsync(new ConfirmRecoveryWordsTryAgainViewModel(), NavigationTarget.CompactDialogScreen);
+
+			Navigate().Back();
+		}
 	}
 
 	private async Task OnNextAsync()
@@ -138,6 +150,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 				});
 			IsBusy = false;
 			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
+		}
+		else
+		{
+			Navigate().Back();
 		}
 	}
 
