@@ -9,9 +9,9 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public class CoinjoinAnalyzer
 {
-	public static int MaxRecursionDepth = 3;
-	public static AggregationFunction Min = x => x.Any() ? x.Min(x => x.anonymity) : 0;
-	public static AggregationFunction WeightedAverage = x => x.Any() ? x.WeightedAverage(x => x.anonymity, x => x.amount.Satoshi) : 0;
+	public static readonly int MaxRecursionDepth = 3;
+	public static readonly AggregationFunction Min = x => x.Any() ? x.Min(x => x.Anonymity) : 0;
+	public static readonly AggregationFunction WeightedAverage = x => x.Any() ? x.WeightedAverage(x => x.Anonymity, x => x.Amount.Satoshi) : 0;
 
 	public CoinjoinAnalyzer(SmartTransaction transaction)
 	{
@@ -80,12 +80,12 @@ public class CoinjoinAnalyzer
 		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Where(o => o.Amount == amount).Count();
 		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(o => o.Amount == amount).Where(IsRelevantVirtualOutput).Count();
 
-		// The anonymity set should increase by the number of equal-valued foreign ouputs.
+		// The anonymity set should increase by the number of equal-valued foreign outputs.
 		// If we have multiple equal-valued wallet outputs, then we divide the increase evenly between them.
 		// The rationale behind this is that picking randomly an output would make our anonset:
 		// total/ours = 1 + foreign/ours, so the increase in anonymity is foreign/ours.
 		return (double)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
 
-	public record AmountWithAnonymity(double anonymity, Money amount);
+	public record AmountWithAnonymity(double Anonymity, Money Amount);
 }
