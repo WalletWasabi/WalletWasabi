@@ -56,7 +56,7 @@
           <ItemsRepeater.ItemTemplate>
             <DataTemplate>
               <c:PreviewItem TextValue="{Binding }">
-                <c:PrivacyContentControl NumberOfPrivacyChars="48">
+                <c:PrivacyContentControl>
                   <TextBlock Text="{Binding }" Classes="monoSpaced" />
                 </c:PrivacyContentControl>
               </c:PreviewItem>
