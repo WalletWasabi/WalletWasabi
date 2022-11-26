@@ -27,7 +27,7 @@ public class TorControlClientFactory
 
 	public TorControlClientFactory(IRandom? random = null)
 	{
-		Random = random ?? new InsecureRandom();
+		Random = random ?? InsecureRandom.Instance;
 	}
 
 	/// <summary>Helps generate nonces for AUTH challenges.</summary>
