@@ -20,12 +20,12 @@
 
           <Panel Name="PART_PrivacyReplacement" IsVisible="{Binding !IsContentRevealed^, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                 HorizontalAlignment="Stretch"
                  Background="Transparent">
             <Viewbox Name="PART_Icon">
               <PathIcon Data="{StaticResource incognito_pathicon}" />
             </Viewbox>
-            <TextBlock Name="PART_PrivacyText" Text="{Binding PrivacyText^, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+            <controls:PrivacyTextPresenter Name="PART_PrivacyText" />
           </Panel>
         </Panel>
       </ControlTemplate>
@@ -44,12 +44,12 @@
   <Style Selector="controls|PrivacyContentControl.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
-  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ TextBlock#PART_PrivacyText">
+  <Style Selector="controls|PrivacyContentControl.monoSpacedPrivacyReplacement /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 
   <!-- Icon privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ TextBlock#PART_PrivacyText">
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
     <Setter Property="IsVisible" Value="False" />
   </Style>
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Icon] /template/ Viewbox#PART_Icon">
@@ -57,7 +57,7 @@
   </Style>
 
   <!-- Text privacy mode -->
-  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ TextBlock#PART_PrivacyText">
+  <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ controls|PrivacyTextPresenter#PART_PrivacyText">
     <Setter Property="IsVisible" Value="True" />
   </Style>
   <Style Selector="controls|PrivacyContentControl[PrivacyReplacementMode=Text] /template/ Viewbox#PART_Icon">
