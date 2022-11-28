@@ -18,8 +18,6 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
-
 	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
@@ -27,6 +25,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 		CoinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 	}
 
+	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
