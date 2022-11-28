@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "Report a Bug",
-	Caption = "Open Wasabi's GitHub issues page",
+	Caption = "Open Wasabi's GitHub Issues website",
 	Order = 1,
 	Category = "Help & Support",
 	Keywords = new[]
