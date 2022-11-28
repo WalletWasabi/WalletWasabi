@@ -16,6 +16,6 @@
                            UseOpacity="False"
                            MinWidth="140"
                            Margin="0 0 7 0">
-    <c:LabelsItemsPresenter Items="{Binding Label}" />
+    <c:LabelsItemsPresenter Items="{Binding Label}" Margin="0 -4 0 0" />
   </c:PrivacyContentControl>
 </UserControl>
