@@ -85,10 +85,9 @@ public class UpdateManager : IDisposable
 	{
 		(Version newVersion, string url, string installerFileName) = await GetLatestReleaseFromGithubAsync(targetVersion).ConfigureAwait(false);
 
-		var filePath = Path.Combine(InstallerDir, installerFileName);
+		var installerFilePath = Path.Combine(InstallerDir, installerFileName);
 
-		var installerDownloaded = TryGetDownloadedInstaller(installerFileName);
-		if (!installerDownloaded)
+		if (!File.Exists(installerFilePath))
 		{
 			EnsureToRemoveCorruptedFiles();
 
@@ -103,8 +102,8 @@ public class UpdateManager : IDisposable
 				using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 				Logger.LogInfo("Installer downloaded, copying...");
 
-				await CopyStreamContentToFileAsync(stream, filePath).ConfigureAwait(false);
-				await VerifyInstallerHashAsync(installerFileName, filePath, newVersion).ConfigureAwait(false);
+				await CopyStreamContentToFileAsync(stream, installerFilePath).ConfigureAwait(false);
+				await VerifyInstallerHashAsync(installerFileName, installerFilePath, newVersion).ConfigureAwait(false);
 			}
 			catch (IOException)
 			{
@@ -113,7 +112,7 @@ public class UpdateManager : IDisposable
 			}
 		}
 
-		return (filePath, newVersion);
+		return (installerFilePath, newVersion);
 	}
 
 	private async Task VerifyInstallerHashAsync(string expectedFileName, string installerFilePath, Version version)
@@ -238,22 +237,6 @@ public class UpdateManager : IDisposable
 			CancellationToken.ThrowIfCancellationRequested();
 			throw;
 		}
-	}
-
-	private bool TryGetDownloadedInstaller(string fileName)
-	{
-		if (Directory.Exists(InstallerDir))
-		{
-			DirectoryInfo folder = new(InstallerDir);
-
-			FileSystemInfo? installer = folder.GetFileSystemInfos().FirstOrDefault(file => file.Name == fileName);
-			if (installer != null)
-			{
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	private (string url, string fileName) GetAssetToDownload(List<string> urls)
