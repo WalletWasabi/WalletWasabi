@@ -54,6 +54,63 @@ public class SmartCoinSelectorTests
 	}
 
 	[Fact]
+	public void PreferSameClusterOverExactAmount()
+	{
+		Money target = Money.Coins(0.3m);
+
+		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 2).Select(i => ("Besos", 0.2m))).ToList();
+
+		availableCoins.Add(GenerateSmartCoins(
+			Enumerable.Range(0, 2).Select(i => ("Juan", 0.1m)))
+			.ToList());
+
+		SmartCoinSelector selector = new(availableCoins);
+		List<Coin> coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target).Cast<Coin>().ToList();
+
+		Assert.Equal(Money.Coins(0.4m), Money.Satoshis(coinsToSpend.Sum(x => x.Amount)));       // [0.2, 0.2] should be chosen, so we don't mix the clusters.
+	}
+
+	[Fact]
+	public void PreferExactAmountWhenClustersAreDifferent()
+	{
+		Money target = Money.Coins(0.3m);
+
+		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 1).Select(i => ("Besos", 0.2m))).ToList();
+
+		availableCoins.Add(GenerateSmartCoins(
+			Enumerable.Range(0, 1).Select(i => ("Juan", 0.1m)))
+			.ToList());
+
+		availableCoins.Add(GenerateSmartCoins(
+			Enumerable.Range(0, 1).Select(i => ("Adam", 0.2m)))
+			.ToList());
+
+		availableCoins.Add(GenerateSmartCoins(
+			Enumerable.Range(0, 1).Select(i => ("Eve", 0.1m)))
+			.ToList());
+
+		SmartCoinSelector selector = new(availableCoins);
+		List<Coin> coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target).Cast<Coin>().ToList();
+
+		Assert.Equal(2, coinsToSpend.Count);
+		Assert.Equal(Money.Coins(0.3m), Money.Satoshis(coinsToSpend.Sum(x => x.Amount)));       // Cluster-privacy is indifferent, so aim for exact amount.
+	}
+
+	[Fact]
+	public void DontUseTheWholeClusterIfNotNecessary()
+	{
+		Money target = Money.Coins(0.3m);
+
+		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m))).ToList();
+
+		SmartCoinSelector selector = new(availableCoins);
+		List<Coin> coinsToSpend = selector.Select(Enumerable.Empty<Coin>(), target).Cast<Coin>().ToList();
+
+		Assert.Equal(3, coinsToSpend.Count);
+		Assert.Equal(target, Money.Satoshis(coinsToSpend.Sum(x => x.Amount)));
+	}
+
+	[Fact]
 	public void PreferLessCoinsOnSameAmount()
 	{
 		Money target = Money.Coins(1m);
