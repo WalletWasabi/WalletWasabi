@@ -149,7 +149,7 @@
           </Carousel.PageTransition>
           <Carousel.DataTemplates>
             <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
-              <ringView:PrivacyRingDetailsView IsEnabled="False" VerticalAlignment="Center">
+              <ringView:PrivacyRingDetailsView VerticalAlignment="Center">
                 <i:Interaction.Behaviors>
                   <behaviors:FadeInBehavior InitialDelay="0:0:1" />
                 </i:Interaction.Behaviors>
