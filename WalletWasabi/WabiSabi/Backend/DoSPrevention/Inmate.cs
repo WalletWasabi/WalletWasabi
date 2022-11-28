@@ -1,6 +1,6 @@
 using NBitcoin;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 /// <summary>
 /// A UTXO that's living inside the prison.

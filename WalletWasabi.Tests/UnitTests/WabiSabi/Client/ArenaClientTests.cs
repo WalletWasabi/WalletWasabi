@@ -184,11 +184,10 @@ public class ArenaClientTests
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
-		var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(insecureRandom),
-			roundState.CreateVsizeCredentialClient(insecureRandom),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
@@ -239,8 +238,8 @@ public class ArenaClientTests
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 		var bobArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(insecureRandom),
-			roundState.CreateVsizeCredentialClient(insecureRandom),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 
