@@ -181,8 +181,6 @@ public class TransactionFactoryTests
 		var password = "foo";
 		var keyManager = ServiceFactory.CreateKeyManager(password);
 
-		keyManager.AssertCleanKeysIndexed();
-
 		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
 		var scoins = new[]
 		{

@@ -20,13 +20,13 @@ public class UiTriggers
 	}
 
 	/// <summary>
-	/// Triggers on subscription and when a transaction to the wallet is processed.
+	/// Triggers on subscription and when a transaction to the wallet is processed or a new filter is processed.
 	/// </summary>
 	public IObservable<Unit> TransactionsUpdateTrigger =>
 		Observable
-			.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed))
+			.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal()
+			.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).ToSignal())
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToSignal()
 			.StartWith(Unit.Default);
 
 	/// <summary>

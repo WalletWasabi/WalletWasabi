@@ -11,6 +11,7 @@
   <DockPanel LastChildFill="True" Margin="10 0">
     <c:PrivacyContentControl Content="{Binding Address}" VerticalAlignment="Center"
                              Classes="monoSpaced"
-                             NumberOfPrivacyChars="38" />
+                             NumberOfPrivacyChars="38"
+                             UseOpacity="False" />
   </DockPanel>
 </UserControl>

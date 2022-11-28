@@ -447,7 +447,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				foreach (var hdPubKey in w.KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 				{
-					hdPubKey.SetKeyState(state);
+					w.KeyManager.SetKeyState(state, hdPubKey);
 				}
 			}
 			else

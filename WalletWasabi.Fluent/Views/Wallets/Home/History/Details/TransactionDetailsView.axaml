@@ -80,7 +80,7 @@
       <c:PreviewItem Icon="{StaticResource entities_regular}"
                      Label="Labels"
                      TextValue="{Binding Labels}">
-        <c:PrivacyContentControl NumberOfPrivacyChars="20">
+        <c:PrivacyContentControl NumberOfPrivacyChars="20" VerticalContentAlignment="Center">
           <c:LabelsItemsPresenter Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </c:PreviewItem>

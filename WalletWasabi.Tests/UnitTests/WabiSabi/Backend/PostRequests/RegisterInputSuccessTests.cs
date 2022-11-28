@@ -62,10 +62,9 @@ public class RegisterInputSuccessTests
 		var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 
 		var roundState = RoundState.FromRound(arena.Rounds.First());
-		var random = new InsecureRandom();
 		var arenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(random),
-			roundState.CreateVsizeCredentialClient(random),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			"test",
 			arena);
 		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", round.Id), ScriptPubKeyType.Segwit);
