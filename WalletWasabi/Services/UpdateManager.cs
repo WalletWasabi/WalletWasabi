@@ -183,7 +183,7 @@ public class UpdateManager : IDisposable
 			assetDownloadUrls.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
-		bool isReleaseValid = await ValidateWasabiSignatureAsync(softwareVersion, assetDownloadUrls).ConfigureAwait(false);
+		bool isReleaseValid = await ValidateWasabiSignatureAsync(assetDownloadUrls).ConfigureAwait(false);
 		if (!isReleaseValid)
 		{
 			throw new InvalidOperationException($"Downloading new release was aborted, Wasabi signature was invalid.");
@@ -193,7 +193,7 @@ public class UpdateManager : IDisposable
 		return (githubVersion, url, fileName);
 	}
 
-	private async Task<bool> ValidateWasabiSignatureAsync(string softwareVersion, List<string> assetDownloadUrls)
+	private async Task<bool> ValidateWasabiSignatureAsync(List<string> assetDownloadUrls)
 	{
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 		var wasabiSigFilePath = Path.Combine(InstallerDir, "SHA256SUMS.wasabisig");
