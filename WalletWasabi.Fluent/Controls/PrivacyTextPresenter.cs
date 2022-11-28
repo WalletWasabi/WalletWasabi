@@ -1,11 +1,9 @@
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Utilities;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -13,13 +11,6 @@ namespace WalletWasabi.Fluent.Controls;
 public class PrivacyTextPresenter : UserControl
 {
 	private GlyphRun? _glyphRun;
-
-	public PrivacyTextPresenter()
-	{
-		//this.WhenAnyValue(x => x.Bounds, x => x.FontSize, x => x.FontFamily)
-		//	.Where(t => t.Item1.Width > 0)
-		//	.Subscribe(_ => CreateGlyphRun());
-	}
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
@@ -41,20 +32,12 @@ public class PrivacyTextPresenter : UserControl
 			return;
 		}
 
-		//var foreground = TextBlock.GetForeground(this);
-		var foreground = this.Foreground;
-
 		var privacyChar = UIConstants.PrivacyChar;
-		//var fontFamily = TextBlock.GetFontFamily(this);
-		//var fontSize = TextBlock.GetFontSize(this);
 
-		var fontFamily = FontFamily;
-		var fontSize = FontSize;
-
-		var glyphTypeface = new Typeface(fontFamily).GlyphTypeface;
+		var glyphTypeface = new Typeface((FontFamily?)FontFamily).GlyphTypeface;
 		var glyph = glyphTypeface.GetGlyph(privacyChar);
 
-		var scale = fontSize / glyphTypeface.DesignEmHeight;
+		var scale = FontSize / glyphTypeface.DesignEmHeight;
 		var advance = glyphTypeface.GetGlyphAdvance(glyph) * scale;
 
 		var count = (int)(Bounds.Width / advance);
@@ -63,8 +46,8 @@ public class PrivacyTextPresenter : UserControl
 		var characters = new ReadOnlySlice<char>(new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray()));
 		var glyphs = new ReadOnlySlice<ushort>(new ReadOnlyMemory<ushort>(Enumerable.Repeat(glyph, count).ToArray()));
 
-		_glyphRun = new GlyphRun(glyphTypeface, fontSize, glyphs, advances, characters: characters);
+		_glyphRun = new GlyphRun(glyphTypeface, FontSize, glyphs, advances, characters: characters);
 
-		context.DrawGlyphRun(foreground, _glyphRun);
+		context.DrawGlyphRun(Foreground, _glyphRun);
 	}
 }
