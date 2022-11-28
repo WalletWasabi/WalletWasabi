@@ -81,7 +81,7 @@ public class SmartCoinSelector : ICoinSelector
 			.OrderBy(group => group.Unconfirmed)
 			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
 			.ThenByDescending(group => group.ClusterPrivacy)   // Select lesser-known coins.
-			.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
+			.ThenBy(group => group.Amount)           // Once we order them by cluster-privacy, we want to be as close to the target as we can.
 			.First()
 			.Coins;
 
