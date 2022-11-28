@@ -3,8 +3,11 @@ using System.ComponentModel;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
+using Avalonia.Data;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -26,10 +29,11 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IList<SmartCoin> selectedCoins)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var items = CreateItems(pockets);
+		SetSelectionState(items, selectedCoins);
 
 		var pocketColumn = PocketColumn();
 		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(items)
@@ -48,6 +52,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, selectedCoins));
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
@@ -55,11 +60,63 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
 	{
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
-			new PlainTextColumn<CoinControlItemViewModelBase>("", _ => "", GridLength.Auto, null),
+			SelectionColumn(),
 			group => group.Children,
 			node => node.Children.Count > 1,
 			node => node.IsExpanded);
 	}
+
+	private static TemplateColumn<CoinControlItemViewModelBase> SelectionColumn()
+	{
+		var checkBox = new CheckBox
+		{
+			IsEnabled = false,
+			[!ToggleButton.IsCheckedProperty] = new Binding(nameof(CoinControlItemViewModelBase.IsSelected))
+		};
+
+		return new TemplateColumn<CoinControlItemViewModelBase>(
+			"",
+			new FuncDataTemplate<CoinControlItemViewModelBase>(
+				(_, _) => checkBox,
+				true),
+			GridLength.Auto);
+	}
+
+	private static void SetSelectionState(IEnumerable<CoinControlItemViewModelBase> items, IEnumerable<SmartCoin> selectedCoins)
+	{
+		var flatten = Flatten(items).ToList();
+		var coins = flatten.OfType<CoinCoinControlItemViewModel>();
+		var coinsToSelect = coins.Select(c => new { c, IsSelected = selectedCoins.Any(other => other.Outpoint == c.Outpoint) });
+
+		foreach (var tuple in coinsToSelect)
+		{
+			tuple.c.IsSelected = tuple.IsSelected;
+		}
+
+		var pockets = flatten.OfType<PocketCoinControlItemViewModel>();
+
+		foreach (var pocket in pockets)
+		{
+			pocket.IsSelected = GetSelectionState(pocket.Children.Select(x => x.IsSelected).ToList());
+		}
+	}
+
+	private static bool? GetSelectionState(IList<bool?> childState)
+	{
+		if (childState.All(x => x == true))
+		{
+			return true;
+		}
+
+		if (childState.Any(x => x == true))
+		{
+			return null;
+		}
+
+		return false;
+	}
+
+	private static IEnumerable<CoinControlItemViewModelBase> Flatten(IEnumerable<CoinControlItemViewModelBase> r) => r.SelectMany(x => new[] { x }.Concat(Flatten(x.Children)));
 
 	private static IColumn<CoinControlItemViewModelBase> AmountColumn()
 	{

@@ -1,3 +1,4 @@
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 
@@ -17,5 +18,8 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
+		Outpoint = smartCoin.Outpoint;
 	}
+
+	public OutPoint Outpoint { get; }
 }
