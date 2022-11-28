@@ -34,7 +34,7 @@
             <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
           </c:PrivacyContentControl>
         </DockPanel>
-        <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalContentAlignment="Center">
+        <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
           <c:LabelsItemsPresenter Items="{Binding Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>
