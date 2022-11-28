@@ -1068,7 +1068,7 @@ hr {
         margin: 20px 0;
     }
     .p-100 {
-        padding: 0;
+        padding: 40px;
     }
     .p-200 {
         padding: 40px 0;
@@ -1128,6 +1128,13 @@ hr {
     }
     .epic-text {
         font-size: 20px;
+    }
+    .timeline li:before {
+        font-size: 50px;
+    }
+    .timeline li:nth-child(even):before,
+    .timeline li:nth-child(odd):before {
+        right: calc(15% - 4px);
     }
 }
 @media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {

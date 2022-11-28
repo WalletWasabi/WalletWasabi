@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
@@ -69,17 +67,17 @@ public class CoinJoinClient
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
 	private SecureRandom SecureRandom { get; }
-	public IWasabiHttpClientFactory HttpClientFactory { get; }
+	private IWasabiHttpClientFactory HttpClientFactory { get; }
 	private IKeyChain KeyChain { get; }
 	private IDestinationProvider DestinationProvider { get; }
 	private RoundStateUpdater RoundStatusUpdater { get; }
-	public string CoordinatorIdentifier { get; }
-	public LiquidityClueProvider LiquidityClueProvider { get; }
-	public int AnonScoreTarget { get; }
+	private string CoordinatorIdentifier { get; }
+	private LiquidityClueProvider LiquidityClueProvider { get; }
+	private int AnonScoreTarget { get; }
 	private TimeSpan DoNotRegisterInLastMinuteTimeLimit { get; }
 
-	public bool ConsolidationMode { get; private set; }
-	public bool RedCoinIsolation { get; }
+	private bool ConsolidationMode { get; set; }
+	private bool RedCoinIsolation { get; }
 	private TimeSpan FeeRateMedianTimeFrame { get; }
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
