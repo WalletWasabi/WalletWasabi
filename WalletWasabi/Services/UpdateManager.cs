@@ -186,7 +186,7 @@ public class UpdateManager : IDisposable
 		bool isReleaseValid = await ValidateWasabiSignatureAsync(assetDownloadUrls, sha256SumsFilePath).ConfigureAwait(false);
 		if (!isReleaseValid)
 		{
-			throw new InvalidOperationException($"Downloading new release was aborted, Wasabi signature was invalid.");
+			throw new InvalidOperationException($"Installing the new release was aborted, signature was invalid.");
 		}
 		(string url, string fileName) = GetAssetToDownload(assetDownloadUrls);
 
