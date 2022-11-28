@@ -40,6 +40,12 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
+		if (isInHistory)
+		{
+			Navigate().Back();
+			return;
+		}
+
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
