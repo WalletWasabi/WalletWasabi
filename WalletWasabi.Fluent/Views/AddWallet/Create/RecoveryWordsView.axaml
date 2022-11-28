@@ -23,7 +23,7 @@
       </c:InfoMessage>
 
       <Panel>
-        <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl" Margin="0 10 0 0">
+        <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl" Margin="0 20 0 0">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
@@ -49,8 +49,8 @@
               HorizontalAlignment="Center" VerticalAlignment="Center"
               Width="{Binding #ItemsControl.Bounds.Width}"
               Height="{Binding #ItemsControl.Bounds.Height}">
-          <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="1" />
-          <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="3" />
+          <Separator Classes="vertical" Grid.Column="1" />
+          <Separator Classes="vertical" Grid.Column="3" />
         </Grid>
       </Panel>
     </DockPanel>

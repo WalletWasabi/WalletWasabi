@@ -15,7 +15,7 @@
                  Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}'}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue"
+                 EnableNext="False"
                  EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
@@ -32,7 +32,7 @@
           <Style Selector="ListBoxItem">
             <Setter Property="Template">
               <ControlTemplate TargetType="ListBoxItem">
-                <c:TagControl Content="{Binding .}" HorizontalContentAlignment="Center" />
+                <c:TagControl Content="{Binding .}" HorizontalContentAlignment="Center" Margin="10 0 10 0" />
               </ControlTemplate>
             </Setter>
           </Style>
@@ -43,9 +43,13 @@
         </ListBox.Styles>
       </ListBox>
 
-      <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <ScrollViewer HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Disabled"
+                    Margin="0 -50 0 0">
         <Panel>
-          <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl" Margin="0 10 0 0">
+          <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
             <ItemsControl.Styles>
               <Style Selector="TextBlock">
                 <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
@@ -71,8 +75,8 @@
               HorizontalAlignment="Center" VerticalAlignment="Center"
               Width="{Binding #ItemsControl.Bounds.Width}"
               Height="{Binding #ItemsControl.Bounds.Height}">
-            <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="1" />
-            <Separator Classes="vertical" Margin="0 0 0 20" Grid.Column="3" />
+            <Separator Classes="vertical" Grid.Column="1" />
+            <Separator Classes="vertical" Grid.Column="3" />
           </Grid>
         </Panel>
       </ScrollViewer>
