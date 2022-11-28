@@ -1,16 +1,19 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -30,7 +33,7 @@ public static class TransactionHelpers
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			coins.Select(coin => coin.OutPoint),
+			coins.Select(coin => coin.Outpoint),
 			tryToSign: tryToSign);
 
 		return txRes;
@@ -54,21 +57,21 @@ public static class TransactionHelpers
 			payments: intent,
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			allowedInputs: coins.Select(coin => coin.OutPoint),
+			allowedInputs: coins.Select(coin => coin.Outpoint),
 			payjoinClient: payJoinClient,
 			tryToSign: tryToSign);
 
 		return txRes;
 	}
 
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, BitcoinAddress destination, bool isPayJoin = false, bool tryToSign = true)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
 		if (transactionInfo.IsOptimized)
 		{
 			return BuildChangelessTransaction(
 				wallet,
-				destination,
-				transactionInfo.UserLabels,
+				transactionInfo.Destination,
+				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
 				transactionInfo.ChangelessCoins,
 				tryToSign: tryToSign);
@@ -81,14 +84,57 @@ public static class TransactionHelpers
 
 		return BuildTransaction(
 			wallet,
-			destination,
+			transactionInfo.Destination,
 			transactionInfo.Amount,
-			transactionInfo.UserLabels,
+			transactionInfo.Recipient,
 			transactionInfo.FeeRate,
 			transactionInfo.Coins,
 			transactionInfo.SubtractFee,
 			isPayJoin ? transactionInfo.PayJoinClient : null,
 			tryToSign: tryToSign);
+	}
+
+	public static bool TryBuildTransactionWithoutPrevTx(
+		KeyManager keyManager,
+		TransactionInfo transactionInfo,
+		ICoinsView allCoins,
+		IEnumerable<SmartCoin> allowedCoins,
+		string password,
+		out Money minimumAmount)
+	{
+		minimumAmount = transactionInfo.Amount;
+
+		try
+		{
+			var intent = new PaymentIntent(
+				destination: transactionInfo.Destination,
+				amount: transactionInfo.Amount,
+				subtractFee: transactionInfo.SubtractFee,
+				label: transactionInfo.Recipient);
+
+			var network = keyManager.GetNetwork();
+			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password, true);
+
+			builder.BuildTransaction(
+				intent,
+				feeRateFetcher: () => transactionInfo.FeeRate,
+				allowedCoins.Select(x => x.Outpoint),
+				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
+				transactionInfo.PayJoinClient,
+				tryToSign: false);
+
+			return true;
+		}
+		catch (InsufficientBalanceException ex)
+		{
+			minimumAmount = ex.Minimum;
+		}
+		catch (Exception)
+		{
+			// Ignore.
+		}
+
+		return false;
 	}
 
 	public static async Task<SmartTransaction> ParseTransactionAsync(string path, Network network)

@@ -1,8 +1,11 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using WalletWasabi.Fluent.Behaviors;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
@@ -38,6 +41,7 @@ public class ApplicationStateManager : IMainWindowService
 	private CompositeDisposable? _compositeDisposable;
 	private bool _hideRequest;
 	private bool _isShuttingDown;
+	private bool _restartRequest;
 
 	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, bool startInBg)
 	{
@@ -52,8 +56,20 @@ public class ApplicationStateManager : IMainWindowService
 
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)
-			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())
-			.OnTrigger(Trigger.ShutdownPrevented, () => ApplicationViewModel.OnShutdownPrevented());
+			.OnTrigger(Trigger.ShutdownRequested, () =>
+			{
+				if (_restartRequest)
+				{
+					AppLifetimeHelper.StartAppWithArgs();
+				}
+
+				lifetime.Shutdown();
+			})
+			.OnTrigger(Trigger.ShutdownPrevented, () =>
+			{
+				ApplicationViewModel.OnShutdownPrevented(_restartRequest);
+				_restartRequest = false; // reset the value.
+			});
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)
@@ -144,9 +160,51 @@ public class ApplicationStateManager : IMainWindowService
 
 		_lifetime.MainWindow = result;
 
+		if (result.WindowState != WindowState.Maximized)
+		{
+			SetWindowSize(result);
+		}
+
+		ObserveWindowSize(result, _compositeDisposable);
+
 		result.Show();
 
 		ApplicationViewModel.IsMainWindowShown = true;
+	}
+
+	private void SetWindowSize(Window window)
+	{
+		var configWidth = Services.UiConfig.WindowWidth;
+		var configHeight = Services.UiConfig.WindowHeight;
+		var currentScreen = window.Screens.ScreenFromPoint(window.Position);
+
+		if (configWidth is null || configHeight is null || currentScreen is null)
+		{
+			return;
+		}
+
+		var isValidWidth = configWidth <= currentScreen.WorkingArea.Width && configWidth >= window.MinWidth;
+		var isValidHeight = configHeight <= currentScreen.WorkingArea.Height && configHeight >= window.MinHeight;
+
+		if (isValidWidth && isValidHeight)
+		{
+			window.Width = configWidth.Value;
+			window.Height = configHeight.Value;
+		}
+	}
+
+	private void ObserveWindowSize(Window window, CompositeDisposable disposables)
+	{
+		window
+			.WhenAnyValue(x => x.Bounds)
+			.Skip(1)
+			.Where(b => !b.IsEmpty && window.WindowState == WindowState.Normal)
+			.Subscribe(b =>
+			{
+				Services.UiConfig.WindowWidth = b.Width;
+				Services.UiConfig.WindowHeight = b.Height;
+			})
+			.DisposeWith(disposables);
 	}
 
 	void IMainWindowService.Show()
@@ -160,8 +218,9 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine.Fire(Trigger.Hide);
 	}
 
-	void IMainWindowService.Shutdown()
+	void IMainWindowService.Shutdown(bool restart)
 	{
+		_restartRequest = restart;
 		_stateMachine.Fire(ApplicationViewModel.CanShutdown() ? Trigger.ShutdownRequested : Trigger.ShutdownPrevented);
 	}
 }

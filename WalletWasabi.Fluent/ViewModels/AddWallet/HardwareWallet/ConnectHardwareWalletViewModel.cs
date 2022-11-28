@@ -64,7 +64,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public WalletType Trezor => WalletType.Trezor;
 
-	public WalletType Generic => WalletType.Unknown;
+	public WalletType Generic => WalletType.Hardware;
 
 	private void OnNext()
 	{
@@ -142,7 +142,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		if (devices.Length == 0)
 		{
-			Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
+			Message = "Connect the hardware wallet to the PC / Enter the PIN on the device.";
 			return;
 		}
 

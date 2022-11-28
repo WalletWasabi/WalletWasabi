@@ -1,5 +1,3 @@
-using WalletWasabi.Blockchain.Keys;
-
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
 public abstract class CoinJoinProfileViewModelBase : ViewModelBase

@@ -4,7 +4,6 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
@@ -83,7 +82,7 @@ public class Round
 
 	public void SetPhase(Phase phase)
 	{
-		if (!Enum.IsDefined<Phase>(phase))
+		if (!Enum.IsDefined(phase))
 		{
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}

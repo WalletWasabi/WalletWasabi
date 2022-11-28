@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Models;

@@ -14,8 +14,6 @@
 * limitations under the License.
 */
 
-using System;
-
 namespace ZXing.QrCode.Internal
 {
     /// <summary> <p>Encapsulates an alignment pattern, which are the smaller square patterns found in

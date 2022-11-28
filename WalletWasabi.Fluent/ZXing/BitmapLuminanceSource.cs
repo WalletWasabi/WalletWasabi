@@ -14,17 +14,16 @@
 * limitations under the License.
 */
 
-using System;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace ZXing
 {
-	/// <summary>
-	/// class which represents the luminance values for a bitmap object
-	/// </summary>
-	public partial class BitmapLuminanceSource : BaseLuminanceSource
+    /// <summary>
+    /// class which represents the luminance values for a bitmap object
+    /// </summary>
+    public partial class BitmapLuminanceSource : BaseLuminanceSource
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BitmapLuminanceSource"/> class.

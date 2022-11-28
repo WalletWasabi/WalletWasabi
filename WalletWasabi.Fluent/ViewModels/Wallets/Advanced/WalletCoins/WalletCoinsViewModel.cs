@@ -10,6 +10,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -22,26 +23,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 [NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
-	private readonly IObservable<Unit> _balanceChanged;
-	private readonly WalletViewModel _walletViewModel;
+	private readonly WalletViewModel _walletVm;
 	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
 
 	[AutoNotify]
 	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
-	public WalletCoinsViewModel(WalletViewModel walletViewModel, IObservable<Unit> balanceChanged)
+	public WalletCoinsViewModel(WalletViewModel walletVm)
 	{
-		_walletViewModel = walletViewModel;
-		_balanceChanged = balanceChanged;
+		_walletVm = walletVm;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoins);
+		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		var coins = CreateCoinsObservable(_balanceChanged);
+		var coins = CreateCoinsObservable(_walletVm.UiTriggers.TransactionsUpdateTrigger);
 
 		var coinChanges = coins
 			.ToObservableChangeSet(c => c.HdPubKey.GetHashCode())
@@ -93,7 +92,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 	private IObservable<ICoinsView> CreateCoinsObservable(IObservable<Unit> balanceChanged)
 	{
 		var initial = Observable.Return(GetCoins());
-		var coinJoinChanged = _walletViewModel.WhenAnyValue(model => model.IsCoinJoining);
+		var coinJoinChanged = _walletVm.WhenAnyValue(model => model.IsCoinJoining);
 		var coinsChanged = balanceChanged.ToSignal().Merge(coinJoinChanged.ToSignal());
 
 		var coins = coinsChanged
@@ -103,33 +102,36 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return concat;
 	}
 
-	private async Task OnSendCoins()
+	private async Task OnSendCoinsAsync()
 	{
-		var wallet = _walletViewModel.Wallet;
+		var wallet = _walletVm.Wallet;
 		var selectedSmartCoins = Source.Items.Where(x => x.IsSelected).Select(x => x.Coin).ToImmutableArray();
-		var info = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 
-		var addressDialog = new AddressEntryDialogViewModel(wallet.Network, info);
+		var addressDialog = new AddressEntryDialogViewModel(wallet.Network);
 		var addressResult = await NavigateDialogAsync(addressDialog, NavigationTarget.CompactDialogScreen);
-		if (addressResult.Result is not { } address)
+		if (addressResult.Result is not { } address || address.Address is null)
 		{
 			return;
 		}
 
-		var labelDialog = new LabelEntryDialogViewModel(wallet, info);
+		var labelDialog = new LabelEntryDialogViewModel(wallet, address.Label ?? SmartLabel.Empty);
 		var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
 		if (result.Result is not { } label)
 		{
 			return;
 		}
 
-		info.Coins = selectedSmartCoins;
-		info.Amount = selectedSmartCoins.Sum(x => x.Amount);
-		info.SubtractFee = true;
-		info.UserLabels = label;
-		info.IsSelectedCoinModificationEnabled = false;
+		var info = new TransactionInfo(address.Address, wallet.AnonScoreTarget)
+		{
+			Coins = selectedSmartCoins,
+			Amount = selectedSmartCoins.Sum(x => x.Amount),
+			SubtractFee = true,
+			Recipient = label,
+			IsSelectedCoinModificationEnabled = false,
+			IsFixedAmount = true,
+		};
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info, address, true));
+		Navigate().To(new TransactionPreviewViewModel(_walletVm, info));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)
@@ -216,6 +218,6 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	private ICoinsView GetCoins()
 	{
-		return _walletViewModel.Wallet.Coins;
+		return _walletVm.Wallet.Coins;
 	}
 }

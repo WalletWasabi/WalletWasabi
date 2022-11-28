@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
@@ -10,13 +11,8 @@ namespace WalletWasabi.WebClients.Wasabi;
 /// <summary>
 /// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 /// </summary>
-public class HttpClientFactory : IWasabiHttpClientFactory, IDisposable
+public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 {
-	/// <summary>
-	/// To detect redundant calls.
-	/// </summary>
-	private bool _disposed = false;
-
 	/// <summary>
 	/// Creates a new instance of the object.
 	/// </summary>
@@ -111,36 +107,20 @@ public class HttpClientFactory : IWasabiHttpClientFactory, IDisposable
 		return NewHttpClient(BackendUriGetter, mode, circuit);
 	}
 
-	// Protected implementation of Dispose pattern.
-	protected virtual void Dispose(bool disposing)
+	public async ValueTask DisposeAsync()
 	{
-		if (_disposed)
+		// Dispose managed state (managed objects).
+		if (BackendHttpClient is IDisposable httpClient)
 		{
-			return;
+			httpClient.Dispose();
 		}
 
-		if (disposing)
+		HttpClient.Dispose();
+		SocketHandler.Dispose();
+
+		if (TorHttpPool is not null)
 		{
-			// Dispose managed state (managed objects).
-			if (BackendHttpClient is IDisposable httpClient)
-			{
-				httpClient.Dispose();
-			}
-
-			HttpClient.Dispose();
-			SocketHandler.Dispose();
-			TorHttpPool?.Dispose();
+			await TorHttpPool.DisposeAsync().ConfigureAwait(false);
 		}
-
-		_disposed = true;
-	}
-
-	public void Dispose()
-	{
-		// Dispose of unmanaged resources.
-		Dispose(true);
-
-		// Suppress finalization.
-		GC.SuppressFinalize(this);
 	}
 }

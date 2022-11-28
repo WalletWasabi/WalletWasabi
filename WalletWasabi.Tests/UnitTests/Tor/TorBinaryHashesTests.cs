@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -17,9 +18,9 @@ public class TorBinaryHashesTests
 
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "95a6e3df881724a1242c69b745f644dae47b934398a90392355e491837f2b725" },
-			{ OSPlatform.Linux, "5f288d5c930ca022c1893c4934d93cd5071d08e33b82489bae67fb62fa522769" },
-			{ OSPlatform.OSX, "f12cf9d88d7cfab920f1e6716ea94aa81db70ce00af404a4fedb4480e5f24a26" },
+			{ OSPlatform.Windows, "50e4a19d350a6c893932cc1aaca50fa9651f9f9a84b27aacb877c92a0d372daa" },
+			{ OSPlatform.Linux, "6809d856cec215f4bad75973d91a4d7169810832f5fb0a22f6328a8eac058a79" },
+			{ OSPlatform.OSX, "81c543e6fcdfcdd9463da04819a1967f42a3b14dc08a02671a24f0ea68572efd" },
 		};
 
 		using SHA256 sha256 = SHA256.Create();

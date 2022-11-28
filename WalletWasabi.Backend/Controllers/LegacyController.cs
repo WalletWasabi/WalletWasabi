@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Backend.Controllers;
@@ -21,10 +22,10 @@ public class LegacyController : ControllerBase
 
 	[HttpGet("api/v3/btc/Blockchain/all-fees")]
 	[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-	public async Task<IActionResult> GetAllFeesV3Async([FromQuery, Required] string estimateSmartFeeMode)
-		=> await BlockchainController.GetAllFeesAsync(estimateSmartFeeMode);
+	public async Task<IActionResult> GetAllFeesV3Async([FromQuery, Required] string estimateSmartFeeMode, CancellationToken cancellationToken)
+		=> await BlockchainController.GetAllFeesAsync(estimateSmartFeeMode, cancellationToken);
 
 	[HttpGet("api/v3/btc/Offchain/exchange-rates")]
-	public async Task<IActionResult> GetExchangeRatesV3Async()
-		=> await OffchainController.GetExchangeRatesAsync();
+	public async Task<IActionResult> GetExchangeRatesV3Async(CancellationToken cancellationToken)
+		=> await OffchainController.GetExchangeRatesAsync(cancellationToken);
 }

@@ -97,7 +97,6 @@ public record ConstructionState : MultipartyTransactionState
 
 		return this with { Events = Events.Add(new OutputAdded(output)) };
 	}
-
 	public SigningState Finalize()
 	{
 		if (EstimatedVsize > Parameters.MaxTransactionSize)
@@ -112,4 +111,10 @@ public record ConstructionState : MultipartyTransactionState
 
 		return new SigningState(Parameters, Events);
 	}
+	
+	public ConstructionState AsPayingForSharedOverhead() =>
+		this with
+		{
+			UnpaidSharedOverhead = 0
+		};
 }

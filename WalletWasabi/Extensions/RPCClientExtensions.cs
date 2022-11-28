@@ -1,3 +1,5 @@
+using NBitcoin;
+using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -5,11 +7,10 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace NBitcoin.RPC;
+namespace WalletWasabi.Extensions;
 
 public static class RPCClientExtensions
 {

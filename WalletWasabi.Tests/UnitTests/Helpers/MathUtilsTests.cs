@@ -1,4 +1,3 @@
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using Xunit;
 

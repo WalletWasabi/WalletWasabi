@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Exceptions;
 
 public class TransactionFeeOverpaymentException : Exception

@@ -7,7 +7,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -315,7 +315,8 @@ public class RegisterInputFailureTests
 		await arena.StopAsync(CancellationToken.None);
 	}
 
-	public async Task TaprootNotAllowed()
+	[Fact]
+	public async Task TaprootNotAllowedAsync()
 	{
 		WabiSabiConfig cfg = new() { AllowP2trInputs = false };
 		var round = WabiSabiFactory.CreateRound(cfg);
@@ -339,19 +340,19 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task WrongScriptPubKeyInOwnershipProofAsync()
 	{
-		await TestOwnershipProof((key, roundId) => WabiSabiFactory.CreateOwnershipProof(new Key(), roundId));
+		await TestOwnershipProofAsync((key, roundId) => WabiSabiFactory.CreateOwnershipProof(new Key(), roundId));
 	}
 
 	[Fact]
 	public async Task WrongRoundIdInOwnershipProofAsync()
 	{
-		await TestOwnershipProof((key, roundId) => WabiSabiFactory.CreateOwnershipProof(key, uint256.One));
+		await TestOwnershipProofAsync((key, roundId) => WabiSabiFactory.CreateOwnershipProof(key, uint256.One));
 	}
 
 	[Fact]
 	public async Task WrongCoordinatorIdentifierInOwnershipProofAsync()
 	{
-		await TestOwnershipProof((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId), ScriptPubKeyType.Segwit));
+		await TestOwnershipProofAsync((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId), ScriptPubKeyType.Segwit));
 	}
 
 	[Fact]
@@ -464,7 +465,7 @@ public class RegisterInputFailureTests
 		await arena.StopAsync(CancellationToken.None);
 	}
 
-	private async Task TestOwnershipProof(Func<Key, uint256, OwnershipProof> ownershipProofFunc)
+	private async Task TestOwnershipProofAsync(Func<Key, uint256, OwnershipProof> ownershipProofFunc)
 	{
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);

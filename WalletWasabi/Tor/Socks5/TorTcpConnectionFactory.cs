@@ -2,7 +2,6 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,14 +47,14 @@ public class TorTcpConnectionFactory
 	/// <summary>
 	/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 	/// </summary>
-	/// <inheritdoc cref="ConnectAsync(string, int, bool, ICircuit, CancellationToken)"/>
-	public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, ICircuit circuit, CancellationToken token = default)
+	/// <inheritdoc cref="ConnectAsync(string, int, bool, INamedCircuit, CancellationToken)"/>
+	public virtual async Task<TorTcpConnection> ConnectAsync(Uri requestUri, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
 		string host = requestUri.DnsSafeHost;
 		int port = requestUri.Port;
 
-		return await ConnectAsync(host, port, useSsl, circuit, token).ConfigureAwait(false);
+		return await ConnectAsync(host, port, useSsl, circuit, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -68,7 +67,7 @@ public class TorTcpConnectionFactory
 	/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 	/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
 	/// <exception cref="TorConnectionException">When <see cref="TcpClientSocks5Connector.ConnectAsync"/> fails.</exception>
-	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, ICircuit circuit, CancellationToken cancellationToken = default)
+	public async Task<TorTcpConnection> ConnectAsync(string host, int port, bool useSsl, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		TcpClient? tcpClient = null;
 		Stream? transportStream = null;
@@ -91,6 +90,7 @@ public class TorTcpConnectionFactory
 
 			transportStream = null;
 			tcpClient = null;
+
 			return result;
 		}
 		finally
@@ -127,9 +127,10 @@ public class TorTcpConnectionFactory
 	/// <seealso href="https://www.torproject.org/docs/tor-manual.html.en"/>
 	/// <seealso href="https://linux.die.net/man/1/tor">For <c>IsolateSOCKSAuth</c> option explanation.</seealso>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
+	/// <seealso href="https://github.com/torproject/torspec/blob/79da008392caed38736c73d839df7aa80628b645/socks-extensions.txt#L49-L51">Explains why we pass username and password even for <see cref="MethodField.NoAuthenticationRequired"/>.</seealso>
 	/// <exception cref="NotSupportedException">When authentication fails due to unsupported authentication method.</exception>
 	/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
-	private async Task HandshakeAsync(TcpClient tcpClient, ICircuit circuit, CancellationToken cancellationToken = default)
+	private async Task HandshakeAsync(TcpClient tcpClient, INamedCircuit circuit, CancellationToken cancellationToken)
 	{
 		VersionMethodRequest versionMethodRequest = circuit switch
 		{
@@ -152,15 +153,15 @@ public class TorTcpConnectionFactory
 			// client are acceptable, and the client MUST close the connection.
 			throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 		}
-		else if (methodSelection.Method == MethodField.UsernamePassword)
+		else if (methodSelection.Method == MethodField.UsernamePassword || methodSelection.Method == MethodField.NoAuthenticationRequired)
 		{
-			// https://tools.ietf.org/html/rfc1929#section-2
-			// Once the SOCKS V5 server has started, and the client has selected the
-			// Username / Password Authentication protocol, the Username / Password
-			// sub-negotiation begins. This begins with the client producing a
-			// Username / Password request:
+			// Regarding NoAuthenticationRequired: Tor spec explicitly mentions that username & password can be passed even if no authentication is required.
+			// Tor does that to allow broken clients to work. However, for us, it is important to mark Tor streams somehow so that we know when the streams are
+			// closed. Unfortunately, using a non-standard Tor SOCKS5 feature is the easiest way to do it. Otherwise, the implementation would get much more hairy.
+			// That is probably the reason why Tor control protocol is not intended to be a part of Tor (rust) implementation.
+
 			UNameField uName = new(uName: circuit.Name);
-			PasswdField passwd = new(password: circuit.Name);
+			PasswdField passwd = new(password: $"{circuit.IsolationId}");
 			UsernamePasswordRequest usernamePasswordRequest = new(uName, passwd);
 
 			receiveBuffer = await SendRequestAsync(tcpClient, usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
@@ -208,7 +209,7 @@ public class TorTcpConnectionFactory
 	/// <exception cref="TorConnectCommandFailedException">When response to <see cref="CmdField.Connect"/> request is NOT <see cref="RepField.Succeeded"/>.</exception>
 	/// <exception cref="TorException">When sending of the HTTP(s) request fails for any reason.</exception>
 	/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
-	private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken = default)
+	private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken)
 	{
 		Logger.LogTrace($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
@@ -230,7 +231,11 @@ public class TorTcpConnectionFactory
 				// SOCKS server MUST terminate the TCP connection shortly after sending
 				// the reply. This must be no more than 10 seconds after detecting the
 				// condition that caused a failure.
-				Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
+
+				string msg = $"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.";
+				LogLevel level = connectionResponse.Rep == RepField.TtlExpired ? LogLevel.Trace : LogLevel.Warning;
+				Logger.Log(level, msg);
+
 				throw new TorConnectCommandFailedException(connectionResponse.Rep);
 			}
 
@@ -270,7 +275,7 @@ public class TorTcpConnectionFactory
 	/// <returns>Reply</returns>
 	/// <exception cref="ArgumentException">When <paramref name="request"/> is not supported.</exception>
 	/// <exception cref="TorConnectionException">When we receive no response from Tor or the response is invalid.</exception>
-	private async Task<byte[]> SendRequestAsync(TcpClient tcpClient, ByteArraySerializableBase request, CancellationToken cancellationToken = default)
+	private async Task<byte[]> SendRequestAsync(TcpClient tcpClient, ByteArraySerializableBase request, CancellationToken cancellationToken)
 	{
 		try
 		{

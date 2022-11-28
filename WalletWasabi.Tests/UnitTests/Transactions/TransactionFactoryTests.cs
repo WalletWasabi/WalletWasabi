@@ -1,6 +1,5 @@
 using Moq;
 using NBitcoin;
-using NBitcoin.Policy;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -182,9 +181,7 @@ public class TransactionFactoryTests
 		var password = "foo";
 		var keyManager = ServiceFactory.CreateKeyManager(password);
 
-		keyManager.AssertCleanKeysIndexed();
-
-		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true, false);
+		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
 		var scoins = new[]
 		{
 				BitcoinFactory.CreateSmartCoin(NewKey("Pablo"), 0.9m),
@@ -438,7 +435,7 @@ public class TransactionFactoryTests
 				coins.Single(x => x.HdPubKey.Label == "Maria"),
 				coins.Single(x => x.HdPubKey.Label == "Suyin")
 			}.ToArray();
-		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.OutPoint));
+		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
 
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.12m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -469,7 +466,7 @@ public class TransactionFactoryTests
 				coins.Single(x => x.HdPubKey.Label == "Maria"),
 				coins.Single(x => x.HdPubKey.Label == "Suyin")
 			}.ToArray();
-		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.OutPoint));
+		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedCoins.Select(x => x.Outpoint));
 
 		Assert.True(result.Signed);
 		Assert.Equal(Money.Coins(0.13m), result.SpentCoins.Select(x => x.Amount).Sum());
@@ -503,7 +500,7 @@ public class TransactionFactoryTests
 		var payment = new PaymentIntent(key, amount);
 
 		var ex = Assert.Throws<InsufficientBalanceException>(() =>
-			transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint)));
+			transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.Outpoint)));
 
 		Assert.Equal(ex.Minimum, amount);
 		Assert.Equal(ex.Actual, allowedCoins[0].Amount);
@@ -530,8 +527,8 @@ public class TransactionFactoryTests
 		// one unselected coins. That unselected coin has to be spent too.
 		var allowedInputs = new[]
 		{
-				coins.Single(x => x.Amount == Money.Coins(0.08m)).OutPoint,
-				coins.Single(x => x.Amount == Money.Coins(0.02m)).OutPoint
+				coins.Single(x => x.Amount == Money.Coins(0.08m)).Outpoint,
+				coins.Single(x => x.Amount == Money.Coins(0.02m)).Outpoint
 			}.ToArray();
 		var result = transactionFactory.BuildTransaction(payment, feeRate, allowedInputs);
 

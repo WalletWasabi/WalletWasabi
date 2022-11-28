@@ -14,6 +14,7 @@ using WalletWasabi.BitcoinCore.Configuration.Whitening;
 using WalletWasabi.BitcoinCore.Processes;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
@@ -78,7 +79,7 @@ public class UtxoReferee
 
 	public string FolderPath { get; }
 
-	public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, bool forceNoted, long bannedForRound, params OutPoint[] toBan)
+	public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, bool forceNoted, long bannedForRound, bool forceBan, params OutPoint[] toBan)
 	{
 		if (RoundConfig.DosSeverity == 0)
 		{
@@ -115,6 +116,10 @@ public class UtxoReferee
 					isNoted = false;
 				}
 			}
+			if (forceBan)
+			{
+				isNoted = false;
+			}
 
 			var newElem = new BannedUtxo(utxo, severity, timeOfBan, isNoted, bannedForRound);
 			if (BannedUtxos.TryAdd(newElem.Utxo, newElem))
@@ -137,11 +142,11 @@ public class UtxoReferee
 		if (updated) // If at any time we set updated then we must update the whole thing.
 		{
 			var allLines = BannedUtxos.Select(x => x.Value.ToString());
-			await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines).ConfigureAwait(false);
+			await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines, CancellationToken.None).ConfigureAwait(false);
 		}
 		else if (lines.Count != 0) // If we do not have to update the whole thing, we must check if we added a line and so only append.
 		{
-			await File.AppendAllLinesAsync(BannedUtxosFilePath, lines).ConfigureAwait(false);
+			await File.AppendAllLinesAsync(BannedUtxosFilePath, lines, CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 

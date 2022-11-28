@@ -95,7 +95,7 @@
                 Margin="{TemplateBinding Padding}">
                 <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
                   <StackPanel Orientation="Horizontal"
-                              Grid.Column="{TemplateBinding LeftColumn}">
+                              Grid.Column="{TemplateBinding LeftColumn}" Margin="0 6 0 0">
                     <TextPresenter Name="PART_LeftTextPresenter"
                                    Text="{TemplateBinding Text, Mode=TwoWay}"
                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -108,11 +108,11 @@
                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                   </StackPanel>
 
-                  <TextBlock Text="(" Grid.Column="2" Margin="5 0 0 0"
+                  <TextBlock Text="(" Grid.Column="2" Margin="5 6 0 0"
                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
 
                   <StackPanel Orientation="Horizontal"
-                              Grid.Column="{TemplateBinding RightColumn}">
+                              Grid.Column="{TemplateBinding RightColumn}" Margin="0 6 0 0">
                     <TextBlock Margin="0 0 5 0"
                                Text="≈"
                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -130,7 +130,7 @@
                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                   </StackPanel>
 
-                  <TextBlock Text=")" Grid.Column="4"
+                  <TextBlock Text=")" Grid.Column="4" Margin="0 6 0 0"
                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                 </Grid>
               </Panel>

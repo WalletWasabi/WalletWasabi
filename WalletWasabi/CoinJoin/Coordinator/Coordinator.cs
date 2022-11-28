@@ -17,6 +17,7 @@ using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 
 namespace WalletWasabi.CoinJoin.Coordinator;
 
@@ -24,14 +25,14 @@ public class Coordinator : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
+	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig, CoinVerifier? coinVerifier = null)
 	{
 		Network = Guard.NotNull(nameof(network), network);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-
+		CoinVerifier = coinVerifier;
 		Rounds = ImmutableList<CoordinatorRound>.Empty;
 
 		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
@@ -144,7 +145,7 @@ public class Coordinator : IDisposable
 	public IRPCClient RpcClient { get; }
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
-
+	public CoinVerifier? CoinVerifier { get; }
 	public Network Network { get; }
 
 	public BlockNotifier BlockNotifier { get; }
@@ -207,7 +208,7 @@ public class Coordinator : IDisposable
 					if (RoundConfig.DosSeverity >= newSeverity)
 					{
 						var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-						await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, txCoins.ToArray()).ConfigureAwait(false);
+						await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.TimeOfBan, forceNoted: foundElem.IsNoted, foundElem.BannedForRound, forceBan: false, toBan: txCoins.ToArray()).ConfigureAwait(false);
 					}
 				}
 			}
@@ -219,7 +220,7 @@ public class Coordinator : IDisposable
 		if (!Rounds.Any(x => x.Status == CoordinatorRoundStatus.Running && x.Phase == RoundPhase.InputRegistration))
 		{
 			int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
-			var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
+			var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout), CoinVerifier);
 			round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 			round.StatusChanged += Round_StatusChangedAsync;
 			await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
@@ -361,7 +362,7 @@ public class Coordinator : IDisposable
 				{
 					// If it is from any coinjoin, then do not ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
-					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, utxosToBan.ToArray()).ConfigureAwait(false);
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, forceBan: false, toBan: utxosToBan.ToArray()).ConfigureAwait(false);
 				}
 			}
 

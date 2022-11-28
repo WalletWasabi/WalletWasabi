@@ -33,7 +33,7 @@
 
       <!-- TX Count  -->
       <c:PreviewItem Icon="{StaticResource info_regular}"
-                     Label="Number of Transactions"
+                     Label="Number of transactions"
                      TextValue="{Binding TxCount}">
         <TextBlock Text="{Binding TxCount, Mode=OneWay}" />
       </c:PreviewItem>

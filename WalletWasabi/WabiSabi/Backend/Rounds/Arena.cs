@@ -18,6 +18,7 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -25,16 +26,15 @@ public partial class Arena : PeriodicRunner
 {
 	public Arena(
 		TimeSpan period,
-		Network network,
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
 		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
 		CoinJoinTransactionArchiver? archiver = null,
-		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
+		CoinJoinScriptStore? coinJoinScriptStore = null,
+		CoinVerifier? coinVerifier = null) : base(period)
 	{
-		Network = network;
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
@@ -42,6 +42,7 @@ public partial class Arena : PeriodicRunner
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
+		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
 	}
 
@@ -50,12 +51,12 @@ public partial class Arena : PeriodicRunner
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
-	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
 	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
+	public CoinVerifier? CoinVerifier { get; private set; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
@@ -98,29 +99,6 @@ public partial class Arena : PeriodicRunner
 						.ThenBy(x => x.InputCount)
 						.ToList();
 
-		var standardRegistrableRounds = rounds
-			.Where(x =>
-				x.Phase == Phase.InputRegistration
-				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
-			.ToArray();
-
-		// Let's make sure that newer clients prefer rounds that WW2.0.0 clients don't.
-		// In WW2.0.0 on client side we accidentally order rounds by calling .ToImmutableDictionary(x => x.Id, x => x)
-		// therefore whichever round ToImmutableDictionary would make to be the first round, we send it to the back of our list.
-		// With this we can make sure that WW2.0.0 and newer clients prefer different rounds in parallel round configuration.
-		if (standardRegistrableRounds.Any())
-		{
-			var firstRegistrableRoundAccordingToWW200 = standardRegistrableRounds
-				.ToImmutableDictionary(x => x.Id, x => x)
-				.First()
-				.Value;
-
-			// Remove from whatever WW2.0.0's most preferred round is, then add it back to the end of our list.
-			rounds.Remove(firstRegistrableRoundAccordingToWW200);
-			rounds.Add(firstRegistrableRoundAccordingToWW200);
-		}
-
 		RoundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0));
 	}
 
@@ -138,6 +116,31 @@ public partial class Arena : PeriodicRunner
 					if (offendingAlices.Any())
 					{
 						round.Alices.RemoveAll(x => offendingAlices.Contains(x));
+					}
+				}
+
+				if (round is not BlameRound && CoinVerifier is not null)
+				{
+					try
+					{
+						int banCounter = 0;
+						var aliceDictionary = round.Alices.Where(x => !x.IsPayingZeroCoordinationFee).ToDictionary(a => a.Coin, a => a);
+						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
+						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
+						{
+							if (coinVerifyInfo.ShouldBan)
+							{
+								banCounter++;
+								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
+								Prison.Ban(aliceToPunish, round.Id, isLongBan: true);
+								round.Alices.Remove(aliceToPunish);
+							}
+						}
+						Logger.LogInfo($"{banCounter} utxos were banned from round {round.Id}.");
+					}
+					catch (Exception exc)
+					{
+						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
 					}
 				}
 
@@ -548,13 +551,10 @@ public partial class Arena : PeriodicRunner
 
 	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
-		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate));
-		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-		var diff = aliceSum - bobSum;
-
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var diffMoney = Money.Satoshis(diff) - round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize());
+		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead); 
+		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
@@ -563,7 +563,7 @@ public partial class Arena : PeriodicRunner
 			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
 			if (coinjoin.EffectiveFeeRate > highestFeeRate)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript));
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
 
 				if (allReady)
 				{
@@ -576,12 +576,19 @@ public partial class Arena : PeriodicRunner
 			}
 			else
 			{
-				round.LogWarning($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				if (allReady)
+				{
+					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				}
+				else
+				{ 
+					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
+				}
 			}
 		}
 		else if (!allReady)
 		{
-			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
+			round.LogWarning($"Could not add blame script, because the amount was too small: {diffMoney}.");
 		}
 
 		return coinjoin;
@@ -596,11 +603,11 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 
 			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey));
+				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey)).AsPayingForSharedOverhead();
 			}
 			else
 			{
