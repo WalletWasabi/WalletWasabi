@@ -7,9 +7,10 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 {
 	public PocketCoinControlItemViewModel(Pocket pocket)
 	{
-		var confirmedCount = pocket.Coins.Count();
+		var coinCount = pocket.Coins.Count();
 		var unconfirmedCount = pocket.Coins.Count(x => !x.Confirmed);
-		var allConfirmed = confirmedCount == unconfirmedCount;
+		var confirmedCount = coinCount - unconfirmedCount;
+		var allConfirmed = coinCount == confirmedCount;
 		ConfirmationStatus = allConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
 		IsBanned = pocket.Coins.Any(x => x.IsBanned);
 		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
