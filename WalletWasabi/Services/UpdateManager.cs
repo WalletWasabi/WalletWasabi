@@ -87,29 +87,29 @@ public class UpdateManager : IDisposable
 
 		var installerFilePath = Path.Combine(InstallerDir, installerFileName);
 
-		if (!File.Exists(installerFilePath))
+		try
 		{
-			EnsureToRemoveCorruptedFiles();
-
-			// This should also be done using Tor.
-			// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
-			Logger.LogInfo($"Trying to download new version: {newVersion}");
-			using HttpClient httpClient = new();
-
-			try
+			if (!File.Exists(installerFilePath))
 			{
+				EnsureToRemoveCorruptedFiles();
+
+				// This should also be done using Tor.
+				// TODO: https://github.com/zkSNACKs/WalletWasabi/issues/8800
+				Logger.LogInfo($"Trying to download new version: {newVersion}");
+				using HttpClient httpClient = new();
+
 				// Get file stream and copy it to downloads folder to access.
 				using var stream = await httpClient.GetStreamAsync(url, CancellationToken).ConfigureAwait(false);
 				Logger.LogInfo("Installer downloaded, copying...");
 
 				await CopyStreamContentToFileAsync(stream, installerFilePath).ConfigureAwait(false);
-				await VerifyInstallerHashAsync(installerFileName, installerFilePath, newVersion).ConfigureAwait(false);
 			}
-			catch (IOException)
-			{
-				CancellationToken.ThrowIfCancellationRequested();
-				throw;
-			}
+			await VerifyInstallerHashAsync(installerFileName, installerFilePath, newVersion).ConfigureAwait(false);
+		}
+		catch (IOException)
+		{
+			CancellationToken.ThrowIfCancellationRequested();
+			throw;
 		}
 
 		return (installerFilePath, newVersion);
