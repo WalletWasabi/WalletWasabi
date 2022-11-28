@@ -19,6 +19,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _confirmed;
 	[AutoNotify] private bool _coinJoinInProgress;
 	[AutoNotify] private bool _isSelected;
+	[AutoNotify] private bool _isAllowedToSend;
 	[AutoNotify] private bool _isBanned;
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
 	[AutoNotify] private string? _confirmedToolTip;
@@ -34,6 +35,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.AnonymitySet).Subscribe(x => AnonymitySet = (int)x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => CoinJoinInProgress = x).DisposeWith(_disposables);
+		Coin.WhenAnyValue(c => c.CoinJoinInProgress).Subscribe(x => IsAllowedToSend = !x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").DisposeWith(_disposables);
