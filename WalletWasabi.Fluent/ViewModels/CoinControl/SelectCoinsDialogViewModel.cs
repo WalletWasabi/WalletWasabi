@@ -68,16 +68,14 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static TemplateColumn<CoinControlItemViewModelBase> SelectionColumn()
 	{
-		var checkBox = new CheckBox
-		{
-			IsEnabled = false,
-			[!ToggleButton.IsCheckedProperty] = new Binding(nameof(CoinControlItemViewModelBase.IsSelected))
-		};
-
 		return new TemplateColumn<CoinControlItemViewModelBase>(
 			"",
 			new FuncDataTemplate<CoinControlItemViewModelBase>(
-				(_, _) => checkBox,
+				(_, _) => new CheckBox
+				{
+					IsEnabled = false,
+					[!ToggleButton.IsCheckedProperty] = new Binding(nameof(CoinControlItemViewModelBase.IsSelected))
+				},
 				true),
 			GridLength.Auto);
 	}
