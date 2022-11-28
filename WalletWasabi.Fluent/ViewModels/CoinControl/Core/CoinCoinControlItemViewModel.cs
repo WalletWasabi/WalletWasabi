@@ -1,3 +1,4 @@
+using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 
@@ -5,8 +6,9 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
-	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
+	public CoinCoinControlItemViewModel(SmartCoin smartCoin) : base(Enumerable.Empty<IHierarchicallySelectable>())
 	{
+		SmartCoin = smartCoin;
 		Amount = smartCoin.Amount;
 		IsConfirmed = smartCoin.Confirmed;
 		IsBanned = smartCoin.IsBanned;
@@ -17,5 +19,8 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
+		IsSelected = false;
 	}
+
+	public SmartCoin SmartCoin { get; }
 }

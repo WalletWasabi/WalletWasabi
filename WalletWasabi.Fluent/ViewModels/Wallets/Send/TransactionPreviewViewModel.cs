@@ -231,11 +231,18 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task OnChangeCoinsAsync()
 	{
+		var selectedCoins = (Transaction?.SpentCoins ?? new List<SmartCoin>()).ToList();
+
 		var selectCoinsDialog =
-			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel));
+			await NavigateDialogAsync(new SelectCoinsDialogViewModel(_walletViewModel, selectedCoins));
 
 		if (selectCoinsDialog.Kind == DialogResultKind.Normal && selectCoinsDialog.Result is { })
 		{
+			if (selectedCoins.SequenceEqual(selectCoinsDialog.Result))
+			{
+				return;
+			}
+
 			_info.Coins = selectCoinsDialog.Result;
 			_info.ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new coins.
 			await BuildAndUpdateAsync(BuildTransactionReason.PocketChanged);
