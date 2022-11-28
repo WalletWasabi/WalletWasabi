@@ -1,7 +1,6 @@
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -12,7 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
-public partial class PrivacyControlTileViewModel : TileViewModel, IPrivacyRingPreviewItem
+public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivacyRingPreviewItem
 {
 	private readonly WalletViewModel _walletVm;
 	private readonly Wallet _wallet;

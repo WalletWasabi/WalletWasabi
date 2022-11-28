@@ -7,7 +7,7 @@
     <Border Width="200">
       <c:StatusItem Title="Title" StatusText="Item text">
         <c:StatusItem.Icon>
-          <statusIcon:TorIssuesControl />
+          <statusIcon:TorIssues />
         </c:StatusItem.Icon>
       </c:StatusItem>
     </Border>

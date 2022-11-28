@@ -24,6 +24,9 @@ public class PrivacyContentControl : ContentControl
 	public static readonly StyledProperty<bool> ForceShowProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(ForceShow));
 
+	public static readonly StyledProperty<bool> UseOpacityProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(UseOpacity), defaultValue: true);
+
 	public PrivacyContentControl()
 	{
 		if (Design.IsDesignMode)
@@ -40,7 +43,7 @@ public class PrivacyContentControl : ContentControl
 			.ReplayLastActive();
 
 		PrivacyText = this.WhenAnyValue(x => x.NumberOfPrivacyChars)
-			.Select(n => TextHelpers.GetPrivacyMask((int) n))
+			.Select(n => TextHelpers.GetPrivacyMask((int)n))
 			.ReplayLastActive();
 	}
 
@@ -64,5 +67,11 @@ public class PrivacyContentControl : ContentControl
 	{
 		get => GetValue(ForceShowProperty);
 		set => SetValue(ForceShowProperty, value);
+	}
+
+	public bool UseOpacity
+	{
+		get => GetValue(UseOpacityProperty);
+		set => SetValue(UseOpacityProperty, value);
 	}
 }

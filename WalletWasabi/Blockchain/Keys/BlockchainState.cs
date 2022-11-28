@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
@@ -30,6 +31,6 @@ public class BlockchainState
 	public Network Network { get; set; }
 
 	[JsonProperty]
-	[JsonConverter(typeof(HeightJsonConverter))]
+	[JsonConverter(typeof(WalletHeightJsonConverter))]
 	public Height Height { get; set; }
 }
