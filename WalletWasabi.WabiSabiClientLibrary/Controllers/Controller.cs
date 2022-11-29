@@ -71,6 +71,24 @@ public class Controller : ControllerBase, IDisposable
 		return CredentialHelper.GetCredentials(request, _random);
 	}
 
+	[HttpPost("init-liquidity-clue")]
+	public InitLiquidityClueResponse InitLiquidityClue(InitLiquidityClueRequest request)
+	{
+		return LiquidityClueHelper.InitLiquidityClue(request);
+	}
+
+	[HttpPost("update-liquidity-clue")]
+	public UpdateLiquidityClueResponse UpdateLiquidityClue(UpdateLiquidityClueRequest request)
+	{
+		return LiquidityClueHelper.UpdateLiquidityClue(request);
+	}
+
+	[HttpPost("get-liquidity-clue")]
+	public GetLiquidityClueResponse GetLiquidityClue(GetLiquidityClueRequest request)
+	{
+		return LiquidityClueHelper.GetLiquidityClue(request);
+	}
+
 	public void Dispose()
 	{
 	}

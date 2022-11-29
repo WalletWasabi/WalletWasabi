@@ -18,7 +18,7 @@ public class LiquidityClueProvider
 		LiquidityClueLock = new object();
 	}
 
-	private Money? LiquidityClue { get; set; }
+	public Money? LiquidityClue { get; set; }
 	private object LiquidityClueLock { get; }
 
 	public void InitLiquidityClue(IEnumerable<Money> foreignOutputsValues)
@@ -54,7 +54,7 @@ public class LiquidityClueProvider
 		}
 	}
 
-	private void UpdateLiquidityClue(Money maxSuggestedAmount, IEnumerable<Money> foreignOutputsValues)
+	public void UpdateLiquidityClue(Money maxSuggestedAmount, IEnumerable<Money> foreignOutputsValues)
 	{
 		// Dismiss pleb round.
 		// If it's close to the max suggested amount then we shouldn't set it as the round is likely a pleb round.
