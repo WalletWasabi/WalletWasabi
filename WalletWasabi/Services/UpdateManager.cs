@@ -87,7 +87,7 @@ public class UpdateManager : IDisposable
 		var sha256SumsFilePath = Path.Combine(InstallerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, result.WasabiSigUrl, result.Sha256SumsUrl).ConfigureAwait(false);
+		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, result.Sha256SumsUrl, result.WasabiSigUrl).ConfigureAwait(false);
 
 		var installerFilePath = Path.Combine(InstallerDir, result.InstallerFileName);
 
