@@ -38,6 +38,7 @@ public class UpdateManager : IDisposable
 
 		if (!updateAvailable)
 		{
+			// After updating Wasabi, remove old installer file.
 			Cleanup();
 			return;
 		}
