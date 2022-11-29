@@ -57,7 +57,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 
-		Money fee = _transaction.Fee;
+		var fee = _transaction.Fee;
 		FeeText = fee.ToFeeDisplayUnitString();
 
 		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
