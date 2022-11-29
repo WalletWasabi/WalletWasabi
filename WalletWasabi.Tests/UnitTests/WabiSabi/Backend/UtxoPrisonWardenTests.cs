@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;

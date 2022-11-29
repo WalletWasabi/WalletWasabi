@@ -12,7 +12,8 @@
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            HorizontalContentAlignment="Left"
-                           Classes="monoSpacedPrivacyReplacement">
+                           Classes="monoSpacedPrivacyReplacement"
+                           UseOpacity="False">
     <c:LabelsItemsPresenter Items="{Binding Label}" />
   </c:PrivacyContentControl>
 </UserControl>

@@ -18,13 +18,14 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner
 {
 	public Arena(
 		TimeSpan period,
-		Network network,
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
@@ -34,7 +35,6 @@ public partial class Arena : PeriodicRunner
 		CoinJoinScriptStore? coinJoinScriptStore = null,
 		CoinVerifier? coinVerifier = null) : base(period)
 	{
-		Network = network;
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
@@ -51,7 +51,6 @@ public partial class Arena : PeriodicRunner
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
-	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
@@ -552,13 +551,10 @@ public partial class Arena : PeriodicRunner
 
 	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
-		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate));
-		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-		var diff = aliceSum - bobSum;
-
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var diffMoney = Money.Satoshis(diff) - round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize());
+		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead); 
+		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
 			// If diff is smaller than max fee rate of a tx, then add it as fee.
@@ -567,7 +563,7 @@ public partial class Arena : PeriodicRunner
 			// ToDo: This condition could be more sophisticated by always trying to max out the miner fees to target 2 and only deal with the remaining diffMoney.
 			if (coinjoin.EffectiveFeeRate > highestFeeRate)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript));
+				coinjoin = coinjoin.AddOutput(new TxOut(diffMoney, blameScript)).AsPayingForSharedOverhead();
 
 				if (allReady)
 				{
@@ -607,11 +603,11 @@ public partial class Arena : PeriodicRunner
 		}
 		else
 		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 
 			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
 			{
-				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey));
+				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey)).AsPayingForSharedOverhead();
 			}
 			else
 			{

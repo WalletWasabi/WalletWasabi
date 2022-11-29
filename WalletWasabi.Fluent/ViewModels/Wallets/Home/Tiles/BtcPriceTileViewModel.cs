@@ -4,7 +4,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
-public class BtcPriceTileViewModel : TileViewModel
+public class BtcPriceTileViewModel : ActivatableViewModel
 {
 	public BtcPriceTileViewModel(Wallet wallet)
 	{
