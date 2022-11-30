@@ -70,8 +70,11 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		if (dialogResult.Result is ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult result)
 		{
-			SelectedProfile = null;
-			SelectedManualProfile = result.Profile;
+			if (result.Profile != current)
+			{
+				SelectedProfile = null;
+				SelectedManualProfile = result.Profile;
+			}
 		}
 	}
 
