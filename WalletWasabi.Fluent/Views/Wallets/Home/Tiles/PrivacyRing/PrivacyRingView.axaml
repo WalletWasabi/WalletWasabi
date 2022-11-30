@@ -99,7 +99,7 @@
                                             Width="{Binding Width, Mode=TwoWay}"
                                             Height="{Binding Height, Mode=TwoWay}" />
           <ir:AdaptiveBehavior>
-            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="260" ClassName="small" TargetControl="{Binding #Carousel}" />
+            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #Carousel}" />
           </ir:AdaptiveBehavior>
         </i:Interaction.Behaviors>
 
