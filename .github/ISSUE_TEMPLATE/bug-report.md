@@ -26,6 +26,10 @@ Example: Ubuntu 16.04
 
 ### Logs
 
+```
+Insert Your Logs Here
+```
+
 Please consider your privacy, before completing this section.  
 You can find the `Logs` file in the dropdown menu of the search bar or inside your Wasabi data folder.
 
