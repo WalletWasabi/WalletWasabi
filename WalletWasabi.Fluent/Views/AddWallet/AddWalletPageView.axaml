@@ -19,7 +19,7 @@
     <Panel>
       <i:Interaction.Behaviors>
         <ir:AdaptiveBehavior>
-          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="600" MaxWidthOperator="LessThanOrEqual" ClassName="small" />
+          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="650" MaxWidthOperator="LessThanOrEqual" ClassName="small" />
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
