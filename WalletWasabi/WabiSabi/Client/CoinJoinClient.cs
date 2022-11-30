@@ -1012,14 +1012,14 @@ public class CoinJoinClient
 		var myRegisteredScriptPubKeys = KeyChain.FilterMine(allRegisteredScriptPubKeys).ToArray();
 		if (myRegisteredScriptPubKeys.Except(alicesRegisteredScriptPubkeys).Any())
 		{
-			roundState.LogInfo("Some of the my coins are registered by someone else.");
+			roundState.LogInfo("Some of my coins are registered by someone else.");
 			registerOutputs = false;
 			CoinJoinClientProgress.SafeInvoke(this, new OwnCoinsRegisteredBySomeoneElse());
 		}
 
 		if (alicesRegisteredScriptPubkeys.Except(myRegisteredScriptPubKeys).Any())
 		{
-			roundState.LogInfo("Some of the my coins are not registered. This should never happen.");
+			roundState.LogInfo("Some of my coins are not registered. This should never happen.");
 			registerOutputs = false;
 			CoinJoinClientProgress.SafeInvoke(this, new MissingCoinsInRound());
 		}
