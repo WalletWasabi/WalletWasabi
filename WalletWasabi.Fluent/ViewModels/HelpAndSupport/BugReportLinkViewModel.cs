@@ -6,12 +6,12 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "Report a Bug",
-	Caption = "Opens a website in the default browser",
+	Caption = "Open Wasabi's GitHub issues website",
 	Order = 1,
 	Category = "Help & Support",
 	Keywords = new[]
 	{
-			"Support", "Website", "Bug", "Report"
+		"Support", "Website", "Bug", "Report"
 	},
 	IconName = "bug_regular")]
 public partial class BugReportLinkViewModel : TriggerCommandViewModel
