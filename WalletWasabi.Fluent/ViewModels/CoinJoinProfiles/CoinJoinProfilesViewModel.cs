@@ -68,13 +68,10 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 		var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
 
-		if (dialogResult.Result is ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult result)
+		if (dialogResult.Result is ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult result && result.Profile != current)
 		{
-			if (result.Profile != current)
-			{
-				SelectedProfile = null;
-				SelectedManualProfile = result.Profile;
-			}
+			SelectedProfile = null;
+			SelectedManualProfile = result.Profile;
 		}
 	}
 
