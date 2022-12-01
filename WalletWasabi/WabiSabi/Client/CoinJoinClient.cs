@@ -35,7 +35,6 @@ public class CoinJoinClient
 	// This is a maximum cap the delay can be smaller if the remaining time is less.
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
-
 	/// <param name="anonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
@@ -179,9 +178,19 @@ public class CoinJoinClient
 				currentRoundState.CoinjoinState.Parameters.OutputRegistrationTimeout +
 				currentRoundState.CoinjoinState.Parameters.TransactionSigningTimeout +
 				ExtraRoundTimeoutMargin);
+
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
 
-			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
+			CoinJoinResult result;
+			try
+			{
+				result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
+			}
+			finally
+			{
+				cancelRoundEndedTaskCts.Cancel();
+			}
+
 			if (!result.GoForBlameRound)
 			{
 				return result;
@@ -206,14 +215,37 @@ public class CoinJoinClient
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
 		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
+		// Cancel the operations immediately if round is ended.
+		using CancellationTokenSource roundIsEndedCts = new();
+		using CancellationTokenSource cancellationTokenSourceWithRoundEnded = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, roundIsEndedCts.Token);
+
+		// For being able to cancel the task itself.
+		using CancellationTokenSource cancelRoundEndedTaskCts = new();
+		var roundEndedWatcherTask = Task.Run(async () =>
+		{
+			try
+			{
+				var state = await RoundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.Ended, cancelRoundEndedTaskCts.Token).ConfigureAwait(false);
+
+				// Sanity check.
+				if (state.Phase == Phase.Ended)
+				{
+					roundIsEndedCts.Cancel();
+				}
+			}
+			catch
+			{
+			}
+		}, cancellationToken: cancellationToken);
+
 		try
 		{
 			try
 			{
 				using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSourceWithRoundEnded.Token, timeUntilOutputRegCts.Token);
 
-				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, linkedCts.Token).ConfigureAwait(false);
+				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationTokenSourceWithRoundEnded.Token).ConfigureAwait(false);
 			}
 			catch (UnexpectedRoundPhaseException ex)
 			{
@@ -237,9 +269,9 @@ public class CoinJoinClient
 
 			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
 
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationTokenSourceWithRoundEnded.Token).ConfigureAwait(false);
 
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationTokenSourceWithRoundEnded.Token).ConfigureAwait(false);
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -268,8 +300,22 @@ public class CoinJoinClient
 				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
 		}
+		catch (OperationCanceledException ex)
+		{
+			if (!roundIsEndedCts.IsCancellationRequested)
+			{
+				// Throw the original exception. The round was cancelled for some reason.
+				throw;
+			}
+
+			// Otherwise the round ended in a phase where it should not.
+			throw new RoundEndedPrematurelyException(roundId, ex);
+		}
 		finally
 		{
+			cancelRoundEndedTaskCts.Cancel();
+			await roundEndedWatcherTask.ConfigureAwait(false);
+
 			foreach (var coins in smartCoins)
 			{
 				coins.CoinJoinInProgress = false;
@@ -997,12 +1043,12 @@ public class CoinJoinClient
 		var constructionState = roundState.Assert<ConstructionState>();
 
 		// Get the output's size and its of the input that will spend it in the future.
-		// Here we assume all the outputs share the same scriptpubkey type.  
+		// Here we assume all the outputs share the same scriptpubkey type.
 		var preferTaprootOutputs = false;
-		var (inputVirtualSize, outputVirtualSize)= DestinationProvider.Peek(preferTaprootOutputs).IsScriptType(ScriptType.Taproot)
+		var (inputVirtualSize, outputVirtualSize) = DestinationProvider.Peek(preferTaprootOutputs).IsScriptType(ScriptType.Taproot)
 			? (Constants.P2trInputVirtualSize, Constants.P2trOutputVirtualSize)
 			: (Constants.P2wpkhInputVirtualSize, Constants.P2wpkhOutputVirtualSize);
-		
+
 		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, outputVirtualSize, inputVirtualSize, (int)availableVsize);
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);

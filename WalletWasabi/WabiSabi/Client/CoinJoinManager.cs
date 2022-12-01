@@ -391,6 +391,10 @@ public class CoinJoinManager : BackgroundService
 			NotifyCoinJoinStartError(wallet, CoinjoinError.NoCoinsToMix);
 			Logger.LogDebug(x);
 		}
+		catch (RoundEndedPrematurelyException e)
+		{
+			wallet.LogInfo($"{nameof(CoinJoinClient)} round: '{e}' ended prematurely - most likely the coordinator aborted it.");
+		}
 		catch (InvalidOperationException ioe)
 		{
 			Logger.LogWarning(ioe);
