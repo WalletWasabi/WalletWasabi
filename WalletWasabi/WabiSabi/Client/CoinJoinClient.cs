@@ -235,8 +235,6 @@ public class CoinJoinClient
 			try
 			{
 				using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSourceWithRoundEnded.Token, timeUntilOutputRegCts.Token);
-
 				registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationTokenSourceWithRoundEnded.Token).ConfigureAwait(false);
 			}
 			catch (UnexpectedRoundPhaseException ex)
