@@ -18,12 +18,14 @@ public class MultipartyTransactionTests
 	private static readonly MoneyRange DefaultAllowedAmounts = new(Money.Zero, Money.Coins(1));
 
 	private static readonly RoundParameters DefaultParameters = WabiSabiFactory.CreateRoundParameters(new()
-	{
-		MinRegistrableAmount = DefaultAllowedAmounts.Min,
-		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
-		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
-	}) with
-	{ MiningFeeRate = new FeeRate(0m) };
+		{
+			MinRegistrableAmount = DefaultAllowedAmounts.Min,
+			MaxRegistrableAmount = DefaultAllowedAmounts.Max,
+			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
+		}) with
+		{
+			MiningFeeRate = new FeeRate(0m)
+		};
 
 	private static CoinJoinInputCommitmentData commitmentData = WabiSabiFactory.CreateCommitmentData();
 
@@ -44,7 +46,7 @@ public class MultipartyTransactionTests
 		Assert.Empty(state.Inputs);
 		Assert.Empty(state.Outputs);
 
-		var oneInput = state.AddInput(alice1Coin, alice1OwnershipProof, commitmentData);
+		var oneInput = state.AddInput(alice1Coin, alice1OwnershipProof, commitmentData, Phase.ConnectionConfirmation);
 
 		Assert.Single(oneInput.Inputs);
 		Assert.Empty(oneInput.Outputs);
@@ -53,14 +55,14 @@ public class MultipartyTransactionTests
 		Assert.Empty(state.Inputs);
 		Assert.Empty(state.Outputs);
 
-		var differentInput = state.AddInput(alice2Coin, alice2OwnershipProof, commitmentData);
+		var differentInput = state.AddInput(alice2Coin, alice2OwnershipProof, commitmentData, Phase.ConnectionConfirmation);
 
 		Assert.Single(differentInput.Inputs);
 		Assert.Empty(differentInput.Outputs);
 		Assert.NotEqual(oneInput.Inputs, differentInput.Inputs);
 		Assert.Equal(oneInput.Outputs, differentInput.Outputs);
 
-		var twoInputs = oneInput.AddInput(alice2Coin, alice2OwnershipProof, commitmentData);
+		var twoInputs = oneInput.AddInput(alice2Coin, alice2OwnershipProof, commitmentData, Phase.ConnectionConfirmation);
 
 		Assert.Equal(2, twoInputs.Inputs.Count());
 		Assert.Empty(twoInputs.Outputs);
@@ -114,7 +116,7 @@ public class MultipartyTransactionTests
 	{
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof();
 
-		var state = new ConstructionState(DefaultParameters).AddInput(coin, ownershipProof, commitmentData);
+		var state = new ConstructionState(DefaultParameters).AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation);
 
 		var script = BitcoinFactory.CreateScript();
 		var bob = new TxOut(coin.Amount / 2, script);
@@ -136,7 +138,7 @@ public class MultipartyTransactionTests
 		(var alice1Coin, var alice1OwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key1);
 		(var alice2Coin, var alice2OwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key2);
 
-		var state = new ConstructionState(DefaultParameters).AddInput(alice1Coin, alice1OwnershipProof, commitmentData).AddInput(alice2Coin, alice2OwnershipProof, commitmentData);
+		var state = new ConstructionState(DefaultParameters).AddInput(alice1Coin, alice1OwnershipProof, commitmentData, Phase.ConnectionConfirmation).AddInput(alice2Coin, alice2OwnershipProof, commitmentData, Phase.ConnectionConfirmation);
 
 		// address reuse bad
 		var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
@@ -191,8 +193,8 @@ public class MultipartyTransactionTests
 		(var alice2Coin, var alice2OwnershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(key2);
 
 		var state = new ConstructionState(DefaultParameters with { MiningFeeRate = feeRate })
-			.AddInput(alice1Coin, alice1OwnershipProof, commitmentData)
-			.AddInput(alice2Coin, alice2OwnershipProof, commitmentData);
+			.AddInput(alice1Coin, alice1OwnershipProof, commitmentData, Phase.ConnectionConfirmation)
+			.AddInput(alice2Coin, alice2OwnershipProof, commitmentData, Phase.ConnectionConfirmation);
 
 		var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
 		var withOutput = state.AddOutput(bob1);
@@ -244,8 +246,8 @@ public class MultipartyTransactionTests
 	public void NoDuplicateInputs()
 	{
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof();
-		var state = new ConstructionState(DefaultParameters).AddInput(coin, ownershipProof, commitmentData);
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs, () => state.AddInput(coin, ownershipProof, commitmentData));
+		var state = new ConstructionState(DefaultParameters).AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation);
+		ThrowsProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs, () => state.AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation));
 		Assert.Single(state.Inputs);
 	}
 
@@ -256,7 +258,7 @@ public class MultipartyTransactionTests
 	{
 		var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputTypes = ImmutableSortedSet.Create(ScriptType.P2PKH) });
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof();
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(coin, ownershipProof, commitmentData));
+		ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation));
 	}
 
 	[Fact]
@@ -268,11 +270,11 @@ public class MultipartyTransactionTests
 		var above = new ConstructionState(DefaultParameters with { AllowedInputAmounts = new MoneyRange(2 * coin.Amount, 3 * coin.Amount) });
 		var below = new ConstructionState(DefaultParameters with { AllowedInputAmounts = new MoneyRange(coin.Amount - Money.Coins(0.001m), coin.Amount - Money.Coins(0.0001m)) });
 
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds, () => above.AddInput(coin, ownershipProof, commitmentData));
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds, () => below.AddInput(coin, ownershipProof, commitmentData));
+		ThrowsProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds, () => above.AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation));
+		ThrowsProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds, () => below.AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation));
 
 		// Allowed range is inclusive:
-		Assert.Equal(coin.Amount, Assert.Single(exact.AddInput(coin, ownershipProof, commitmentData).Inputs).Amount);
+		Assert.Equal(coin.Amount, Assert.Single(exact.AddInput(coin, ownershipProof, commitmentData, Phase.ConnectionConfirmation).Inputs).Amount);
 	}
 
 	[Fact]
@@ -288,9 +290,9 @@ public class MultipartyTransactionTests
 
 		var state = new ConstructionState(DefaultParameters with { MiningFeeRate = feeRate });
 
-		ThrowsProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput, () => state.AddInput(alice1Coin, alice1OwnershipProof, commitmentData));
+		ThrowsProtocolException(WabiSabiProtocolErrorCode.UneconomicalInput, () => state.AddInput(alice1Coin, alice1OwnershipProof, commitmentData, Phase.ConnectionConfirmation));
 
-		Assert.Equal(alice2Coin.Amount, Assert.Single(state.AddInput(alice2Coin, alice2OwnershipProof, commitmentData).Inputs).Amount);
+		Assert.Equal(alice2Coin.Amount, Assert.Single(state.AddInput(alice2Coin, alice2OwnershipProof, commitmentData, Phase.ConnectionConfirmation).Inputs).Amount);
 	}
 
 	[Fact]

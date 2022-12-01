@@ -25,9 +25,9 @@ public class MultipartyTransactionStateTests
 
 		// Three events / three states
 		var state0 = round.Assert<ConstructionState>();
-		var state1 = state0.AddInput(coin1, ownershipProof1, commitmentData);
-		var state2 = state1.AddInput(coin2, ownershipProof2, commitmentData);
-		var state3 = state2.AddInput(coin3, ownershipProof3, commitmentData);
+		var state1 = state0.AddInput(coin1, ownershipProof1, commitmentData, Phase.ConnectionConfirmation);
+		var state2 = state1.AddInput(coin2, ownershipProof2, commitmentData, Phase.ConnectionConfirmation);
+		var state3 = state2.AddInput(coin3, ownershipProof3, commitmentData, Phase.ConnectionConfirmation);
 
 		// Unknown state. Assumes full state is required
 		var diffd30 = state3.GetStateFrom(-1);

@@ -217,7 +217,7 @@ public class StepTransactionSigningTests
 		var alice3 = WabiSabiFactory.CreateAlice(round);
 		alice3.ConfirmedConnection = true;
 		round.Alices.Add(alice3);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin, alice3.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin, alice3.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id), Phase.ConnectionConfirmation);
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
@@ -244,7 +244,7 @@ public class StepTransactionSigningTests
 	}
 
 	private async Task<(Round Round, AliceClient AliceClient1, AliceClient AliceClient2)>
-			CreateRoundWithOutputsReadyToSignAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
+		CreateRoundWithOutputsReadyToSignAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;

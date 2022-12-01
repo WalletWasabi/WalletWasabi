@@ -9,6 +9,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
@@ -28,11 +29,11 @@ public class SerializationTests
 	public void InputRegistrationRequestMessageSerialization()
 	{
 		var message = new InputRegistrationRequest(
-				BitcoinFactory.CreateUint256(),
-				BitcoinFactory.CreateOutPoint(),
-				new OwnershipProof(),
-				CreateZeroCredentialsRequest(),
-				CreateZeroCredentialsRequest());
+			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateOutPoint(),
+			new OwnershipProof(),
+			CreateZeroCredentialsRequest(),
+			CreateZeroCredentialsRequest());
 
 		AssertSerialization(message);
 	}
@@ -140,7 +141,7 @@ public class SerializationTests
 
 		var state = round.Assert<ConstructionState>();
 		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
-		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id), Phase.ConnectionConfirmation);
 		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));
 	}

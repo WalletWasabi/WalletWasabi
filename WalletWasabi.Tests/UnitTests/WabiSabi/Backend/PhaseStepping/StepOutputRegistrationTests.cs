@@ -154,7 +154,7 @@ public class StepOutputRegistrationTests
 		var txParams = round.Parameters;
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L), round);
 		round.Alices.Add(extraAlice);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id), Phase.ConnectionConfirmation);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -201,7 +201,7 @@ public class StepOutputRegistrationTests
 	}
 
 	private async Task<(Round Round, ArenaClient ArenaClient, AliceClient[] alices)>
-			CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
+		CreateRoundWithTwoConfirmedConnectionsAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
@@ -223,6 +223,7 @@ public class StepOutputRegistrationTests
 		{
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
+
 		await Task.WhenAll(task1, task2);
 		var aliceClient1 = await task1;
 		var aliceClient2 = await task2;
@@ -233,12 +234,12 @@ public class StepOutputRegistrationTests
 		await roundStateUpdater.StopAsync(token);
 
 		return (round,
-				arenaClient,
-				new[]
-				{
-						aliceClient1,
-						aliceClient2
-				});
+			arenaClient,
+			new[]
+			{
+				aliceClient1,
+				aliceClient2
+			});
 	}
 
 	[Fact]
@@ -362,8 +363,7 @@ public class StepOutputRegistrationTests
 				catch (OperationCanceledException)
 				{
 				}
-			}
-			while (!combinedCts.Token.IsCancellationRequested);
+			} while (!combinedCts.Token.IsCancellationRequested);
 		});
 
 		await bob1b;
