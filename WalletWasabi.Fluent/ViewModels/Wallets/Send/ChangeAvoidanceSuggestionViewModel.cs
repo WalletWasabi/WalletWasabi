@@ -77,7 +77,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 					transaction = TransactionHelpers.BuildChangelessTransaction(
 						wallet,
 						transactionInfo.Destination,
-						transactionInfo.UserLabels,
+						transactionInfo.Recipient,
 						transactionInfo.FeeRate,
 						selection,
 						tryToSign: false);

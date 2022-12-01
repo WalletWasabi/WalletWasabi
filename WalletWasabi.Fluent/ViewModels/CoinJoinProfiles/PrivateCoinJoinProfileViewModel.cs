@@ -43,7 +43,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 			return false;
 		}
 
-		return profile.AnonScoreTarget < MaxAnonScore && profile.AnonScoreTarget > MinAnonScore && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
+		return profile.AnonScoreTarget < MaxAnonScore && profile.AnonScoreTarget >= MinAnonScore && profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours && profile.RedCoinIsolation == RedCoinIsolation;
 	}
 
 	public override int GetHashCode()

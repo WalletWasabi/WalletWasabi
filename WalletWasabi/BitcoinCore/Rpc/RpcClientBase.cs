@@ -16,7 +16,7 @@ public class RpcClientBase : IRPCClient
 {
 	public RpcClientBase(RPCClient rpc)
 	{
-		Rpc = Guard.NotNull(nameof(rpc), rpc);
+		Rpc = rpc;
 	}
 
 	public Network Network => Rpc.Network;

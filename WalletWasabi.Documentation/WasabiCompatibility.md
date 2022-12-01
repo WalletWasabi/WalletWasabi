@@ -4,7 +4,7 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # Officially Supported Operating Systems
 
-- Windows 10 1607+ (except 1703)
+- Windows 10 1607+
 - macOs 10.15+
 - Ubuntu 16.04, 18.04, 20.04+
 - Fedora 33+
@@ -42,5 +42,5 @@ Wasabi dependencies are:
 
 ## What about Tails and Whonix?
 
-It is currently not possible to install Wasabi on Tails or Whonix. 
+It is currently not possible to use Wasabi on Tails or Whonix.
 That is because Wasabi uses the Tor control port, which is not exposed in these operating systems.

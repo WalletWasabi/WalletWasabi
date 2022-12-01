@@ -81,8 +81,8 @@ public class RandomTests
 
 		var randoms = new List<WasabiRandom>
 			{
-				new SecureRandom(),
-				new InsecureRandom()
+				SecureRandom.Instance,
+				InsecureRandom.Instance
 			};
 
 		foreach (var random in randoms)

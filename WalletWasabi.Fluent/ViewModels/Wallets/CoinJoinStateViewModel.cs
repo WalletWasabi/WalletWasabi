@@ -75,6 +75,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Do(ProcessStatusChange)
 			.Subscribe();
 
+		WalletVm.UiTriggers.PrivacyProgressUpdateTrigger
+			.Select(_ => WalletVm.Wallet.IsWalletPrivate())
+			.BindTo(this, x => x.AreAllCoinsPrivate);
+
 		var initialState = walletVm.CoinJoinSettings.AutoCoinJoin
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
@@ -285,8 +289,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private void ProcessStatusChange(StatusChangedEventArgs e)
 	{
-		AreAllCoinsPrivate = WalletVm.Wallet.IsWalletPrivate();
-
 		switch (e)
 		{
 			case WalletStartedCoinJoinEventArgs:

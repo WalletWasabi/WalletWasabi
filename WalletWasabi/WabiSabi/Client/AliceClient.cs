@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using System.Linq;
 using WalletWasabi.Extensions;
 using System.Net.Http;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -163,7 +164,7 @@ public class AliceClient
 			try
 			{
 				await roundStatusUpdater
-					.CreateRoundAwaiter(
+					.CreateRoundAwaiterAsync(
 						RoundId,
 						Phase.ConnectionConfirmation,
 						cts.Token)
@@ -246,7 +247,7 @@ public class AliceClient
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 	}
 
-	public async Task SignTransactionAsync(Transaction unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
+	public async Task SignTransactionAsync(TransactionWithPrecomputedData unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
 		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 

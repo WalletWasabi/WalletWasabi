@@ -18,16 +18,16 @@ public class KeyChainTests
 		var destinationProvider = new InternalDestinationProvider(keyManager);
 		var keyChain = new KeyChain(keyManager, new Kitchen(""));
 
-		var coinDestination = destinationProvider.GetNextDestinations(1).First();
+		var coinDestination = destinationProvider.GetNextDestinations(1, false).First();
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
 		var ownershipProof = keyChain.GetOwnershipProof(coinDestination, new CoinJoinInputCommitmentData("test", uint256.One));
 
 		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.
 
-		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, ownershipProof));
+		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData()));
 
 		transaction.Inputs.Add(coin.Outpoint);
-		var signedTx = keyChain.Sign(transaction, coin, ownershipProof);
+		var signedTx = keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData(new[] { coin }));
 		Assert.True(signedTx.HasWitness);
 	}
 }

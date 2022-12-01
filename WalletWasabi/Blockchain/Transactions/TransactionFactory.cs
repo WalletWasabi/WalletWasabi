@@ -140,10 +140,9 @@ public class TransactionFactory
 		}
 		else
 		{
-			KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: true);
 			changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
 
-			builder.SetChange(changeHdPubKey.P2wpkhScript);
+			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
 
 		builder.OptInRBF = true;
@@ -270,7 +269,7 @@ public class TransactionFactory
 			}
 		}
 
-		Logger.LogDebug($"Sending: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
+		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 
 		var sign = !KeyManager.IsWatchOnly;
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage);
@@ -284,8 +283,8 @@ public class TransactionFactory
 
 			psbt = payjoinClient.RequestPayjoin(
 				psbt,
-				KeyManager.ExtPubKey,
-				new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.AccountKeyPath),
+				KeyManager.SegwitExtPubKey,
+				new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.SegwitAccountKeyPath),
 				changeHdPubKey,
 				CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 			builder.SignPSBT(psbt);

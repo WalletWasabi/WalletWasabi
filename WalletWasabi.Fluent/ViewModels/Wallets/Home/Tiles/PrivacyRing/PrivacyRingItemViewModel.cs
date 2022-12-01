@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using NBitcoin;
 using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -21,25 +22,38 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = coin.IsPrivate(parent.Wallet.AnonScoreTarget);
-		IsSemiPrivate = !IsPrivate && coin.IsSemiPrivate();
+		var anonScore = parent.Wallet.AnonScoreTarget;
+		IsPrivate = coin.IsPrivate(anonScore);
+		IsSemiPrivate = coin.IsSemiPrivate(anonScore);
 		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
 		AmountText = $"{Coin.Amount.ToFormattedString()} BTC";
 		Unconfirmed = !coin.Confirmed;
 		Confirmations = coin.GetConfirmations();
+
+		PrivacyLevelText = GetPrivacyLevelDescription();
+
+		Reference = GetPrivacyLevelDescription();
+		if (Unconfirmed)
+		{
+			Reference += " (pending)";
+		}
 	}
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, Pocket pocket, double start, double end)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, PrivacyLevel privacyLevel, Money amount, double start, double end)
 	{
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
 		Data = CreateGeometry(start, end, OuterRadius);
 
-		IsPrivate = pocket.Coins.All(x => x.IsPrivate(parent.Wallet.AnonScoreTarget));
-		IsSemiPrivate = !IsPrivate && pocket.Coins.All(x => x.IsSemiPrivate());
-		IsNonPrivate = !IsPrivate && !IsSemiPrivate;
-		AmountText = $"{pocket.Amount.ToFormattedString()} BTC";
+		IsPrivate = privacyLevel == PrivacyLevel.Private;
+		IsSemiPrivate = privacyLevel == PrivacyLevel.SemiPrivate;
+		IsNonPrivate = privacyLevel == PrivacyLevel.NonPrivate;
+		AmountText = $"{amount.ToFormattedString()} BTC";
 		Unconfirmed = false;
+
+		PrivacyLevelText = GetPrivacyLevelDescription();
+
+		Reference = GetPrivacyLevelDescription();
 	}
 
 	public WalletCoinViewModel? Coin { get; }
@@ -52,8 +66,10 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 	public bool IsSemiPrivate { get; }
 	public bool IsNonPrivate { get; }
 	public string AmountText { get; }
+	public string PrivacyLevelText { get; }
 	public bool Unconfirmed { get; }
 	public int Confirmations { get; }
+	public string Reference { get; }
 
 	private PathGeometry CreateGeometry(double start, double end, double outerRadius)
 	{
@@ -110,6 +126,18 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem, IDisposable
 		var x = r * Math.Cos(angle);
 		var y = r * Math.Sin(angle);
 		return new Point(x, y);
+	}
+
+	private string GetPrivacyLevelDescription()
+	{
+		return
+			this switch
+			{
+				{ IsPrivate: true } => "Private",
+				{ IsSemiPrivate: true } => "Semi-private",
+				{ IsNonPrivate: true } => "Non-private",
+				_ => "[Unknown]"
+			};
 	}
 
 	public void Dispose()

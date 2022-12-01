@@ -27,6 +27,9 @@ public static class Program
 	public const string PfxPath = "C:\\digicert.pfx";
 	public const string ExecutableName = Constants.ExecutableName;
 
+	private const string WasabiPrivateKeyFilePath = @"C:\wasabi\Wasabi.privkey";
+	private const string WasabiPublicKeyFilePath = @"C:\wasabi\Wasabi.pubkey";
+
 	/// <remarks>Only 64-bit platforms are supported for now.</remarks>
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
@@ -60,6 +63,12 @@ public static class Program
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
 			MacSignTools.Sign(argsProcessor);
+			return;
+		}
+
+		if (argsProcessor.IsGeneratePrivateKey())
+		{
+			await WasabiSignerHelpers.GeneratePrivateAndPublicKeyToFileAsync(WasabiPrivateKeyFilePath, WasabiPublicKeyFilePath).ConfigureAwait(false);
 			return;
 		}
 
@@ -118,13 +127,21 @@ public static class Program
 
 				Console.WriteLine("Move created .msi");
 				var msiPath = Path.Combine(WixProjectDirectory, "bin", "Release", "Wasabi.msi");
+				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
+				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
+
+				if (File.Exists(newMsiPath))
+				{
+					Console.WriteLine("MSI file was already there, skipping code signing phase.");
+					continue;
+				}
+
 				if (!File.Exists(msiPath))
 				{
 					throw new Exception(".msi does not exist. Expected path: Wasabi.msi.");
 				}
-				var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
-				var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-				File.Copy(msiPath, newMsiPath, overwrite: true);
+
+				File.Move(msiPath, newMsiPath);
 
 				Console.Write("Enter Code Signing Certificate Password: ");
 				string pfxPassword = PasswordConsole.ReadPassword();
@@ -138,6 +155,12 @@ public static class Program
 			else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
 			{
 				string dmgFileName = target.Contains("arm") ? $"Wasabi-{VersionPrefix}.dmg" : $"Wasabi-{VersionPrefix}-arm64.dmg";
+				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
+				if (File.Exists(destinationFilePath))
+				{
+					continue;
+				}
+
 				string dmgFilePath = Path.Combine(Tools.GetSingleUsbDrive(), dmgFileName);
 
 				if (!File.Exists(dmgFilePath))
@@ -145,7 +168,6 @@ public static class Program
 					throw new Exception(".dmg does not exist.");
 				}
 
-				string destinationFilePath = Path.Combine(BinDistDirectory, dmgFileName);
 				File.Move(dmgFilePath, destinationFilePath);
 			}
 		}
@@ -153,12 +175,30 @@ public static class Program
 		Console.WriteLine("Signing final files...");
 		var finalFiles = Directory.GetFiles(BinDistDirectory);
 
+		var sha256SumsFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS");
+
 		foreach (var finalFile in finalFiles)
 		{
 			StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
 
 			StartProcessAndWaitForExit("cmd", WixProjectDirectory, $"git checkout -- ComponentsGenerated.wxs && exit");
+
+			ExecuteBashCommands(new[] { $"sha256sum {Path.GetFileName(finalFile)} >> SHA256SUMS" });
 		}
+
+		StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --sign --digest-algo sha256 -a --clearsign --armor --output SHA256SUMS.asc SHA256SUMS && exit");
+
+		// We do not need this file anymore SHA256SUMS.ASC contains the hashes and the signature as well.
+		File.Delete(sha256SumsFilePath);
+
+		using var key = await WasabiSignerHelpers.GetPrivateKeyFromFileAsync(WasabiPrivateKeyFilePath).ConfigureAwait(false);
+
+		// We will sign the whole file with the hashes and the pgp signature.
+		var sha256sumAscFilePath = Path.Combine(BinDistDirectory, "SHA256SUMS.asc");
+		await WasabiSignerHelpers.SignSha256SumsFileAsync(sha256sumAscFilePath, key).ConfigureAwait(false);
+
+		// Verify back the signature file.
+		await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256sumAscFilePath);
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
@@ -431,6 +471,7 @@ public static class Program
 					$"Architecture: amd64\n" +
 					$"License: Open Source (MIT)\n" +
 					$"Installed-Size: {installedSizeKb}\n" +
+					$"Recommends: policykit-1\n" +
 					$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
 					$"  Built-in Tor, coinjoin, payjoin and coin control features.\n";
 

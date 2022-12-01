@@ -118,7 +118,7 @@ public class TransactionProcessor
 		var result = new ProcessedResult(tx);
 
 		// We do not care about non-witness transactions for other than mempool cleanup.
-		if (!tx.Transaction.PossiblyP2WPKHInvolved())
+		if (!tx.Transaction.SegWitInvolved())
 		{
 			return result;
 		}
@@ -219,7 +219,7 @@ public class TransactionProcessor
 					tx.Label = SmartLabel.Merge(tx.Label, foundKey.Label);
 				}
 
-				foundKey.SetKeyState(KeyState.Used, KeyManager);
+				KeyManager.SetKeyState(KeyState.Used, foundKey);
 				var areWeSending = myInputs.Any();
 				if (output.Value <= DustThreshold && !areWeSending)
 				{
@@ -235,9 +235,6 @@ public class TransactionProcessor
 				if (Coins.TryAdd(newCoin))
 				{
 					result.NewlyReceivedCoins.Add(newCoin);
-
-					// Make sure there's always 21 clean keys generated and indexed.
-					KeyManager.AssertCleanKeysIndexedAndPersist(isInternal: foundKey.IsInternal);
 				}
 				else // If we had this coin already.
 				{
