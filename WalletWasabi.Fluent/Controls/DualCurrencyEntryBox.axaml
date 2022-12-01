@@ -77,13 +77,6 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
-    <Setter Property="(i:Interaction.Behaviors)">
-      <i:BehaviorCollectionTemplate>
-        <BehaviorCollection>
-          <b:AutoPasteAmountBehavior />
-        </BehaviorCollection>
-      </i:BehaviorCollectionTemplate>
-    </Setter>
   </Style>
 
   <!-- Readonly Template -->

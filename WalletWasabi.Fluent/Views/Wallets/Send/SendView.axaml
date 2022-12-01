@@ -28,7 +28,7 @@
               <TextBlock DataContext="{Binding Balance}" Opacity="0.6">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^"  />
+                    <Binding Path="BalanceBtc^" Converter="{x:Static converters:MoneyConverters.ToFormattedBtc}" />
                     <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
@@ -111,7 +111,11 @@
                                   ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
+            <i:Interaction.Behaviors>
+              <behaviors:AutoPasteAmountBehavior MaxAmountBtc="{Binding Balance.BalanceBtc^}" ExchangeRate="{Binding ExchangeRate}" />
+            </i:Interaction.Behaviors>
+          </c:DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
     </DockPanel>

@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -14,19 +15,22 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 		var balance = walletVm.UiTriggers.BalanceUpdateTrigger
 			.Select(_ => wallet.Coins.TotalAmount());
 
-		BalanceBtc = balance
-			.Select(money => $"{money.ToFormattedString()} BTC");
+		ExchangeRate = wallet.Synchronizer.UsdExchangeRate;
+
+		BalanceBtc = balance;
 
 		BalanceFiat = balance
-			.Select(money => money.BtcToUsd(wallet.Synchronizer.UsdExchangeRate));
+			.Select(money => money.BtcToUsd(ExchangeRate));
 
 		HasBalance = balance
 			.Select(money => money > Money.Zero);
 	}
 
+	public decimal ExchangeRate { get; }
+
 	public IObservable<bool> HasBalance { get; }
 
 	public IObservable<decimal> BalanceFiat { get; }
 
-	public IObservable<string> BalanceBtc { get; }
+	public IObservable<Money> BalanceBtc { get; }
 }
