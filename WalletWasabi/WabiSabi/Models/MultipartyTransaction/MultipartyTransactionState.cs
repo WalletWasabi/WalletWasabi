@@ -13,6 +13,8 @@ public interface IEvent
 { };
 
 public record RoundCreated(RoundParameters RoundParameters) : IEvent;
+public record InputRegistered(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
+public record InputRemoved(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
 public record InputAdded(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
 public record OutputAdded(TxOut Output) : IEvent;
 

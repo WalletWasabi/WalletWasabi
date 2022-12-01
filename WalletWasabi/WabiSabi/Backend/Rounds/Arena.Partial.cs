@@ -38,10 +38,14 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 
-			var registeredCoins = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
+			// Coins that are currently registered to any ongoing round
+			var registeredCoinsOngoingRounds = Rounds.Where(x => !(x.Phase == Phase.Ended && x.EndRoundState != EndRoundState.TransactionBroadcasted))
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
 
-			if (registeredCoins.Any(x => x.Outpoint == coin.Outpoint))
+			// Coins that registered to the requested round even if they were unregistered
+			var allRegisteredCoinsRequestedRound = round.CoinjoinState.Events.OfType<InputRegistered>().Select(x => x.Coin);
+
+			if (registeredCoinsOngoingRounds.Any(x => x.Outpoint.Hash == coin.Outpoint.Hash) || allRegisteredCoinsRequestedRound.Any(x => x.Outpoint.Hash == coin.Outpoint.Hash))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
@@ -56,10 +60,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
-			// Compute but don't commit updated coinjoin to round state, it will
-			// be re-calculated on input confirmation. This is computed in here
-			// for validation purposes.
-			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
+			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData, Phase.InputRegistration);
 
 			// Generate a new GUID with the secure random source, to be sure
 			// that it is not guessable (Guid.NewGuid() documentation does
@@ -91,6 +92,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
+
 			if (alice.TotalInputAmount > round.Parameters.MaxAmountCredentialValue)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
@@ -138,7 +140,11 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.InputRegistration);
 
-			round.Alices.RemoveAll(x => x.Id == request.AliceId);
+			foreach (var input in round.Alices.Where(x => x.Id == request.AliceId).ToList())
+			{
+				round.CoinjoinState = round.Assert<ConstructionState>().RemoveInput(input.Coin, input.OwnershipProof);
+				round.Alices.Remove(input);
+			}
 		}
 	}
 
@@ -228,7 +234,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 							await vsizeRealCredentialTask.ConfigureAwait(false));
 
 						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
+						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData, Phase.ConnectionConfirmation);
 						alice.ConfirmedConnection = true;
 
 						return response;
@@ -380,10 +386,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		}
+
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 		}
+
 		if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
