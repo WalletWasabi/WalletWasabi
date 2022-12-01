@@ -45,7 +45,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Coins that registered to the requested round even if they were unregistered
 			var allRegisteredCoinsRequestedRound = round.CoinjoinState.Events.OfType<InputRegistered>().Select(x => x.Coin);
 
-			if (registeredCoinsOngoingRounds.Any(x => x.Outpoint.Hash == coin.Outpoint.Hash) || allRegisteredCoinsRequestedRound.Any(x => x.Outpoint.Hash == coin.Outpoint.Hash))
+			if (registeredCoinsOngoingRounds.Any(x => x.Outpoint == coin.Outpoint) || allRegisteredCoinsRequestedRound.Any(x => x.Outpoint == coin.Outpoint))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
@@ -212,33 +212,33 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			switch (round.Phase)
 			{
 				case Phase.InputRegistration:
-					{
-						var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
-						var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
-						alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
-						return new(
-							commitAmountZeroCredentialResponse,
-							commitVsizeZeroCredentialResponse);
-					}
+				{
+					var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
+					var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
+					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
+					return new(
+						commitAmountZeroCredentialResponse,
+						commitVsizeZeroCredentialResponse);
+				}
 
 				case Phase.ConnectionConfirmation:
-					{
-						// If the phase was InputRegistration before then we did not pre-calculate real credentials.
-						amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
-						vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
+				{
+					// If the phase was InputRegistration before then we did not pre-calculate real credentials.
+					amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
+					vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 
-						ConnectionConfirmationResponse response = new(
-							await amountZeroCredentialTask.ConfigureAwait(false),
-							await vsizeZeroCredentialTask.ConfigureAwait(false),
-							await amountRealCredentialTask.ConfigureAwait(false),
-							await vsizeRealCredentialTask.ConfigureAwait(false));
+					ConnectionConfirmationResponse response = new(
+						await amountZeroCredentialTask.ConfigureAwait(false),
+						await vsizeZeroCredentialTask.ConfigureAwait(false),
+						await amountRealCredentialTask.ConfigureAwait(false),
+						await vsizeRealCredentialTask.ConfigureAwait(false));
 
-						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData, Phase.ConnectionConfirmation);
-						alice.ConfirmedConnection = true;
+					// Update the coinjoin state, adding the confirmed input.
+					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData, Phase.ConnectionConfirmation);
+					alice.ConfirmedConnection = true;
 
-						return response;
-					}
+					return response;
+				}
 
 				default:
 					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);
@@ -422,8 +422,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private Round InPhase(Round round, Phase[] phases) =>
 		phases.Contains(round.Phase)
-		? round
-		: throw new WrongPhaseException(round, phases);
+			? round
+			: throw new WrongPhaseException(round, phases);
 
 	private Round GetRound(uint256 roundId, params Phase[] phases) =>
 		InPhase(GetRound(roundId), phases);
