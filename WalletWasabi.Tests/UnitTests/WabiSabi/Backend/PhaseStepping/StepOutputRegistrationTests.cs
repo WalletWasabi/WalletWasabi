@@ -363,7 +363,8 @@ public class StepOutputRegistrationTests
 				catch (OperationCanceledException)
 				{
 				}
-			} while (!combinedCts.Token.IsCancellationRequested);
+			}
+			while (!combinedCts.Token.IsCancellationRequested);
 		});
 
 		await bob1b;
