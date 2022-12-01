@@ -393,7 +393,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (RoundEndedPrematurelyException e)
 		{
-			wallet.LogInfo($"{nameof(CoinJoinClient)} round: '{e}' ended prematurely - most likely the coordinator aborted it.");
+			wallet.LogInfo($"{nameof(CoinJoinClient)} round: '{e.RoundId}' ended prematurely - most likely the coordinator aborted it.");
 		}
 		catch (InvalidOperationException ioe)
 		{
