@@ -181,15 +181,7 @@ public class CoinJoinClient
 
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
 
-			CoinJoinResult result;
-			try
-			{
-				result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
-			}
-			finally
-			{
-				cancelRoundEndedTaskCts.Cancel();
-			}
+			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
 
 			if (!result.GoForBlameRound)
 			{
