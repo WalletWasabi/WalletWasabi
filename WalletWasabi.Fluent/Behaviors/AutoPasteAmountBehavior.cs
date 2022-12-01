@@ -2,10 +2,12 @@ using System.Globalization;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using NBitcoin;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -15,6 +17,22 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrencyEntryBox>
 {
+	public static readonly StyledProperty<Money> MaxAmountBtcProperty = AvaloniaProperty.Register<AutoPasteAmountBehavior, Money>("MaxAmountBtc");
+
+	public static readonly StyledProperty<decimal> ExchangeRateProperty = AvaloniaProperty.Register<AutoPasteAmountBehavior, decimal>("ExchangeRate");
+
+	public Money MaxAmountBtc
+	{
+		get => GetValue(MaxAmountBtcProperty);
+		set => SetValue(MaxAmountBtcProperty, value);
+	}
+
+	public decimal ExchangeRate
+	{
+		get => GetValue(ExchangeRateProperty);
+		set => SetValue(ExchangeRateProperty, value);
+	}
+
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		if (AssociatedObject is null)
@@ -34,7 +52,7 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 			.DisposeWith(disposable);
 	}
 
-	private static bool IsValidUsd(string s)
+	private bool IsValidUsd(string s)
 	{
 		if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
 		{
@@ -43,11 +61,12 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 
 		var hasValidDecimalPlaces = CountDecimalPlaces(d) <= 2;
 		var isGreaterThanZero = d > 0;
+		var withinBalance = d <= MaxAmountBtc.ToDecimal(MoneyUnit.BTC) * ExchangeRate;
 
-		return hasValidDecimalPlaces && isGreaterThanZero;
+		return hasValidDecimalPlaces && isGreaterThanZero && withinBalance;
 	}
 
-	private static bool IsValidBtc(string s)
+	private bool IsValidBtc(string s)
 	{
 		if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
 		{
@@ -57,8 +76,9 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 		var lessThanMaximum = d < Constants.MaximumNumberOfBitcoins;
 		var hasValidDecimalPlaces = CountDecimalPlaces(d) <= 8;
 		var isGreaterThanZero = d > 0;
+		var withinBalance = d <= MaxAmountBtc.ToDecimal(MoneyUnit.BTC);
 
-		return lessThanMaximum && hasValidDecimalPlaces && isGreaterThanZero;
+		return lessThanMaximum && hasValidDecimalPlaces && isGreaterThanZero && withinBalance;
 	}
 
 	private static decimal CountDecimalPlaces(decimal dec)
