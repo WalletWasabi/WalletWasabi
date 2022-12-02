@@ -55,6 +55,8 @@ public abstract record MultipartyTransactionState
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize - UnpaidSharedOverhead);
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
+	public ImmutableList<InputRegistered> InputsRegistered { get; init; } = ImmutableList<InputRegistered>.Empty;
+	public ImmutableList<InputRemoved> InputsRemoved { get; init; } = ImmutableList<InputRemoved>.Empty;
 
 	public MultipartyTransactionState GetStateFrom(int stateId) =>
 		this with

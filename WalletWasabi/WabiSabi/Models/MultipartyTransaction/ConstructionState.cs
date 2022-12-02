@@ -62,18 +62,19 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 		}
 
-		IEvent eventToAdd = phase is Phase.InputRegistration
-			? new InputRegistered(coin, ownershipProof)
-			: new InputAdded(coin, ownershipProof);
+		if (phase is Phase.InputRegistration)
+		{
+			return this with { InputsRegistered = InputsRegistered.Add(new InputRegistered(coin, ownershipProof)) };
+		}
 
-		return this with { Events = Events.Add(eventToAdd) };
+		return this with { Events = Events.Add(new InputAdded(coin, ownershipProof)) };
 	}
 
 	public ConstructionState RemoveInput(Coin coin, OwnershipProof ownershipProof)
 	{
 		// It's not possible to use Inputs to know if coin is registered because this field will be empty during InputRegistrationPhase
 		// It must be ensured that the coin is registered before calling this function
-		return this with { Events = Events.Add(new InputRemoved(coin, ownershipProof)) };
+		return this with { InputsRemoved = InputsRemoved.Add(new InputRemoved(coin, ownershipProof)) };
 	}
 
 	public ConstructionState AddOutput(TxOut output)

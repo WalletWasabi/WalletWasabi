@@ -43,7 +43,9 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				.SelectMany(r => r.Alices.Select(a => a.Coin));
 
 			// Coins that registered to the requested round even if they were unregistered
-			var allRegisteredCoinsRequestedRound = round.CoinjoinState.Events.OfType<InputRegistered>().Select(x => x.Coin);
+			var allRegisteredCoinsRequestedRound = round.CoinjoinState.InputsRegistered
+				.Where(x => round.CoinjoinState.InputsRemoved.All(y => y.Coin.Outpoint != x.Coin.Outpoint))
+				.Select(x => x.Coin);
 
 			if (registeredCoinsOngoingRounds.Any(x => x.Outpoint == coin.Outpoint) || allRegisteredCoinsRequestedRound.Any(x => x.Outpoint == coin.Outpoint))
 			{
