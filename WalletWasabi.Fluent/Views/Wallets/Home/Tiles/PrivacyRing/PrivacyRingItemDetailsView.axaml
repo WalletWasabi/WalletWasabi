@@ -33,7 +33,7 @@
         </ir:AdaptiveBehavior>
       </i:Interaction.Behaviors>
 
-      <StackPanel IsVisible="{Binding !IsNonPrivate}">
+      <StackPanel IsVisible="{Binding !IsNonPrivate}" MinHeight="42">
         <Separator Margin="0 3 0 9" />
         <StackPanel Opacity="0.8" IsVisible="{Binding !IsNonPrivate}" Classes="privacyLevel" x:Name="PrivacyLevel" HorizontalAlignment="Center">
           <Border VerticalAlignment="Center" BorderThickness="1" CornerRadius="2"
@@ -45,7 +45,7 @@
         </StackPanel>
       </StackPanel>
 
-      <StackPanel IsVisible="{Binding IsNonPrivate}">
+      <StackPanel IsVisible="{Binding IsNonPrivate}" MinHeight="42">
         <Separator IsVisible="{Binding !Coin.SmartLabel.IsEmpty}" Margin="0 3 0 9" />
         <c:LabelsItemsPresenter Items="{Binding Coin.SmartLabel}" DockPanel.Dock="Top" HorizontalAlignment="Center" />
       </StackPanel>

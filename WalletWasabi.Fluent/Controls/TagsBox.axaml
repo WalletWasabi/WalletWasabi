@@ -185,7 +185,7 @@
   <Style Selector="c|TagsBox AutoCompleteBox">
     <Setter Property="Background" Value="{x:Null}" />
     <Setter Property="Padding" Value="15 10 15 8" />
-    <Setter Property="Margin" Value="0,0,0,0" />
+    <Setter Property="Margin" Value="0 0 0 2" />
     <Setter Property="MaxDropDownHeight" Value="90" />
     <Setter Property="MinimumPrefixLength" Value="1" />
     <Setter Property="Focusable" Value="False" />
@@ -266,6 +266,4 @@
       </ContextMenu>
     </Setter>
   </Style>
-
-
 </Styles>

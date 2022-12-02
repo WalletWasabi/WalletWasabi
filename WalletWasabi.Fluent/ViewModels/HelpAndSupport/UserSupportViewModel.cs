@@ -6,12 +6,12 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "User Support",
-	Caption = "Opens a website in the default browser",
+	Caption = "Open Wasabi's user support website",
 	Order = 0,
 	Category = "Help & Support",
 	Keywords = new[]
 	{
-			"User", "Support", "Website"
+		"User", "Support", "Website"
 	},
 	IconName = "person_support_regular")]
 public partial class UserSupportViewModel : TriggerCommandViewModel

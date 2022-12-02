@@ -28,7 +28,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin = coin;
 		Amount = Coin.Amount;
 
-		ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected);
+		ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x));
 
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
@@ -37,6 +37,9 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin.WhenAnyValue(c => c.IsBanned).Subscribe(x => IsBanned = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.Height).Select(_ => Coin.GetConfirmations()).Subscribe(x => ConfirmedToolTip = $"{x} confirmation{TextHelpers.AddSIfPlural(x)}").DisposeWith(_disposables);
+
+		// Remove selection when coin participates in a coinjoin.
+		this.WhenAnyValue(x => x.CoinJoinInProgress).Where(x => x).Subscribe(_ => IsSelected = false);
 	}
 
 	public ICommand ToggleSelectCommand { get; }
