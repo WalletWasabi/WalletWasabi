@@ -10,14 +10,14 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class PrivacyTextPresenter : UserControl
 {
-	private static GlyphRun CreateGlyphRun(double width, FontFamily fontFamily, double fontSize)
+	private GlyphRun CreateGlyphRun(double width)
 	{
 		var privacyChar = UIConstants.PrivacyChar;
 
-		var glyphTypeface = new Typeface((FontFamily?) fontFamily).GlyphTypeface;
+		var glyphTypeface = new Typeface((FontFamily?) FontFamily).GlyphTypeface;
 		var glyph = glyphTypeface.GetGlyph(privacyChar);
 
-		var scale = fontSize / glyphTypeface.DesignEmHeight;
+		var scale = FontSize / glyphTypeface.DesignEmHeight;
 		var advance = glyphTypeface.GetGlyphAdvance(glyph) * scale;
 
 		var count = (int) (width / advance);
@@ -26,7 +26,7 @@ public class PrivacyTextPresenter : UserControl
 		var characters = new ReadOnlySlice<char>(new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray()));
 		var glyphs = new ReadOnlySlice<ushort>(new ReadOnlyMemory<ushort>(Enumerable.Repeat(glyph, count).ToArray()));
 
-		return new GlyphRun(glyphTypeface, fontSize, glyphs, advances, characters: characters);
+		return new GlyphRun(glyphTypeface, FontSize, glyphs, advances, characters: characters);
 	}
 
 	private GlyphRun? _glyphRun;
@@ -56,7 +56,7 @@ public class PrivacyTextPresenter : UserControl
 		if (_glyphRun is null || _width != _width)
 		{
 			(_glyphRun as IDisposable)?.Dispose();
-			_glyphRun = CreateGlyphRun(width, FontFamily, FontSize);
+			_glyphRun = CreateGlyphRun(width);
 			_width = width;
 		}
 
