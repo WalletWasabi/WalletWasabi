@@ -22,7 +22,7 @@ public class PrivacyTextPresenter : UserControl
 			FontSize,
 			TextAlignment.Left,
 			TextWrapping.NoWrap,
-			Size.Empty);
+			Size.Infinity);
 	}
 
 	private GlyphRun CreateGlyphRun(double width)
