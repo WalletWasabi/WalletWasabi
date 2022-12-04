@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
 [NavigationMetaData(
 	Title = "Legal Document",
-	Caption = "Displays terms and conditions",
+	Caption = "Display terms and conditions",
 	Order = 3,
 	Category = "General",
 	Keywords = new[] { "View", "Legal", "Document", "Terms", "Conditions", "Privacy", "Policy", "Statement" },

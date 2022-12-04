@@ -1,4 +1,4 @@
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 public enum Punishment
 {

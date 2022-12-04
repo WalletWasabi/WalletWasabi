@@ -18,13 +18,14 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner
 {
 	public Arena(
 		TimeSpan period,
-		Network network,
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
@@ -34,7 +35,6 @@ public partial class Arena : PeriodicRunner
 		CoinJoinScriptStore? coinJoinScriptStore = null,
 		CoinVerifier? coinVerifier = null) : base(period)
 	{
-		Network = network;
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
@@ -51,7 +51,6 @@ public partial class Arena : PeriodicRunner
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
 	private AsyncLock AsyncLock { get; } = new();
-	private Network Network { get; }
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }

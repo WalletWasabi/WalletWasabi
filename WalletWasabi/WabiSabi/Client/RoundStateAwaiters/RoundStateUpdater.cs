@@ -86,7 +86,7 @@ public class RoundStateUpdater : PeriodicRunner
 		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
 	}
 
-	private Task<RoundState> CreateRoundAwaiter(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
+	private Task<RoundState> CreateRoundAwaiterAsync(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
 	{
 		RoundStateAwaiter? roundStateAwaiter = null;
 
@@ -107,19 +107,19 @@ public class RoundStateUpdater : PeriodicRunner
 		return roundStateAwaiter.Task;
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, null, predicate, cancellationToken);
+		return CreateRoundAwaiterAsync(null, null, predicate, cancellationToken);
 	}
 
-	public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Phase phase, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(roundId, phase, null, cancellationToken);
+		return CreateRoundAwaiterAsync(roundId, phase, null, cancellationToken);
 	}
 
 	public Task<RoundState> CreateRoundAwaiter(Phase phase, CancellationToken cancellationToken)
 	{
-		return CreateRoundAwaiter(null, phase, null, cancellationToken);
+		return CreateRoundAwaiterAsync(null, phase, null, cancellationToken);
 	}
 
 	/// <summary>

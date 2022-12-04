@@ -93,4 +93,18 @@ public class LinqExtensionsTests
 			Assert.Equal(collection2[i], tuple[i].Item2);
 		}
 	}
+
+	[Fact]
+	public void MaxOrDefault()
+	{
+		Assert.Equal(10, Array.Empty<int>().MaxOrDefault(defaultValue: 10));
+		Assert.Equal(1, new int[] { 1 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(2, new int[] { 1, 2 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(3, new int[] { 1, 2, 3 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 1, 2, 3, 4 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4, 3, 2, 1 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4, 3, 2 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4, 3 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4 }.MaxOrDefault(defaultValue: 10));
+	}
 }
