@@ -25,7 +25,7 @@ public class PrivacyTextPresenter : UserControl
 
 	public override void Render(DrawingContext context)
 	{
-		if (Bounds.Width == double.NaN || Bounds.Width == 0)
+		if (double.IsNaN(Bounds.Width) || Bounds.Width == 0)
 		{
 			return;
 		}
