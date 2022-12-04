@@ -31,18 +31,27 @@ public class PrivacyTextPresenter : UserControl
 
 	private GlyphRun? _glyphRun;
 	private double _width;
+	private FormattedText? _formattedText;
+
+	private FormattedText CreateFormattedText()
+	{
+		return new FormattedText(
+			"#",
+			new Typeface(FontFamily, FontStyle, FontWeight),
+			FontSize,
+			TextAlignment.Left,
+			TextWrapping.NoWrap,
+			Size.Empty);
+	}
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		var formattedText = new FormattedText(
-				"#",
-				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				availableSize);
+		if (_formattedText is null)
+		{
+			_formattedText = CreateFormattedText();
+		}
 
-		return new Size(FontSize, formattedText.Bounds.Height);
+		return new Size(FontSize, _formattedText.Bounds.Height);
 	}
 
 	public override void Render(DrawingContext context)
