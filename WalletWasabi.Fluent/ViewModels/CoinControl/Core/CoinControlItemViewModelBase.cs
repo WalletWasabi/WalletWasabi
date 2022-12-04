@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract partial class CoinControlItemViewModelBase : ViewModelBase, IHierarchicallySelectable
+public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchicallySelectable
 {
-	[AutoNotify] private bool? _isSelected;
+	private bool? _isSelected;
 
 	public CoinControlItemViewModelBase(IEnumerable<IHierarchicallySelectable> children)
 	{
@@ -47,5 +48,21 @@ public abstract partial class CoinControlItemViewModelBase : ViewModelBase, IHie
 
 	public HierarchicalSelection HierarchicalSelection { get; }
 
+	public bool CanBeSelected { get; protected set; }
+
 	public IEnumerable<IHierarchicallySelectable> Selectables { get; }
+
+	public bool? IsSelected
+	{
+		get => _isSelected;
+		set
+		{
+			if (!CanBeSelected && value == true)
+			{
+				return;
+			}
+
+			this.RaiseAndSetIfChanged(ref _isSelected, value);
+		}
+	}
 }

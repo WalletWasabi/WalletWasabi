@@ -17,6 +17,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase
 		IsCoinjoining = pocket.Coins.Any(x => x.CoinJoinInProgress);
 		AnonymityScore = (int) pocket.Coins.Max(x => x.HdPubKey.AnonymitySet);
 		Labels = pocket.Labels;
+		CanBeSelected = true;
 	}
 
 	private static IEnumerable<CoinCoinControlItemViewModel> GetChildren(Pocket pocket)
