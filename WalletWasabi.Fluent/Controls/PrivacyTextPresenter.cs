@@ -10,6 +10,21 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class PrivacyTextPresenter : UserControl
 {
+	private GlyphRun? _glyphRun;
+	private double _width;
+	private FormattedText? _formattedText;
+
+	private FormattedText CreateFormattedText()
+	{
+		return new FormattedText(
+			"#",
+			new Typeface(FontFamily, FontStyle, FontWeight),
+			FontSize,
+			TextAlignment.Left,
+			TextWrapping.NoWrap,
+			Size.Empty);
+	}
+
 	private GlyphRun CreateGlyphRun(double width)
 	{
 		var privacyChar = UIConstants.PrivacyChar;
@@ -27,21 +42,6 @@ public class PrivacyTextPresenter : UserControl
 		var glyphs = new ReadOnlySlice<ushort>(new ReadOnlyMemory<ushort>(Enumerable.Repeat(glyph, count).ToArray()));
 
 		return new GlyphRun(glyphTypeface, FontSize, glyphs, advances, characters: characters);
-	}
-
-	private GlyphRun? _glyphRun;
-	private double _width;
-	private FormattedText? _formattedText;
-
-	private FormattedText CreateFormattedText()
-	{
-		return new FormattedText(
-			"#",
-			new Typeface(FontFamily, FontStyle, FontWeight),
-			FontSize,
-			TextAlignment.Left,
-			TextWrapping.NoWrap,
-			Size.Empty);
 	}
 
 	protected override Size MeasureOverride(Size availableSize)
