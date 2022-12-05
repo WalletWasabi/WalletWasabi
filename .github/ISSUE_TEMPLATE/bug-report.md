@@ -33,7 +33,6 @@ Example: Ubuntu 16.04
 Insert Your Logs Here
 ```
 
-
 You can find the `Logs.txt` file in the dropdown menu of the search bar or inside your Wasabi data folder or find `%PROFILE_PATH%/WalletWasabi/Client/Logs.txt` file.
 
 ### Wasabi Version
