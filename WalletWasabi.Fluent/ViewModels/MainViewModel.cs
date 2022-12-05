@@ -229,6 +229,17 @@ public partial class MainViewModel : ViewModelBase
 
 			return null;
 		});
+
+		WalletInfoViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				// TODO: Display password dialog if needed, see WalletInfoCommand execute action.
+				return new WalletInfoViewModel(walletViewModel);
+			}
+
+			return null;
+		});
 	}
 
 	public void ApplyUiConfigWindowSate()
