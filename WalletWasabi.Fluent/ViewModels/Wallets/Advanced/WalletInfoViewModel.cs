@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 	Title = "Wallet Info",
 	Caption = "Displays wallet info",
 	IconName = "nav_wallet_24_regular",
-	Order = 3,
+	Order = 4,
 	Category = "Wallet",
 	Keywords = new[] { "Wallet", "Info", },
 	NavBarPosition = NavBarPosition.None,
