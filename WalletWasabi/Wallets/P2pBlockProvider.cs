@@ -45,7 +45,7 @@ public class P2pBlockProvider : IBlockProvider
 	{
 		get
 		{
-			if (Network == Network.RegTest)
+			if (Network == Network.RegTest && Nodes.ConnectedNodes.Any())
 			{
 				return Nodes.ConnectedNodes.First();
 			}
@@ -66,7 +66,7 @@ public class P2pBlockProvider : IBlockProvider
 	/// <param name="hash">The block's hash that identifies the requested block.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>The requested bitcoin block.</returns>
-	public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
+	public async Task<Block?> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		Block? block = null;
 		try
@@ -97,6 +97,12 @@ public class P2pBlockProvider : IBlockProvider
 					if (block is { })
 					{
 						break;
+					}
+
+					// Didn't manage to download block from local node, retry if RegTest
+					if (Network == Network.RegTest)
+					{
+						continue;
 					}
 
 					// If no connection, wait, then continue.
@@ -202,7 +208,7 @@ public class P2pBlockProvider : IBlockProvider
 		}
 
 		// Don't retry to connect yet to avoid losing time
-		if (LastFailConnectLocalNode.IsRunning && LastFailConnectLocalNode.Elapsed.TotalSeconds < RuntimeParams.Instance.RetryConnectLocalNodeSeconds)
+		if (Network != Network.RegTest && LastFailConnectLocalNode.IsRunning && LastFailConnectLocalNode.Elapsed.TotalSeconds < RuntimeParams.Instance.RetryConnectLocalNodeSeconds)
 		{
 			return;
 		}
@@ -252,20 +258,23 @@ public class P2pBlockProvider : IBlockProvider
 			LastFailConnectLocalNode.Stop();
 			LocalBitcoinCoreNode = localNode;
 		}
-		catch (SocketException)
-		{
-			if (!LastFailConnectLocalNode.IsRunning)
-			{
-				Logger.LogDebug("Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources." +
-				                $" Will retry in {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s.");
-			}
-
-			LastFailConnectLocalNode.Restart();
-		}
 		catch (Exception ex)
 		{
 			DisconnectDisposeNullLocalBitcoinCoreNode();
-			Logger.LogWarning(ex);
+			if (ex is SocketException)
+			{
+				if (!LastFailConnectLocalNode.IsRunning)
+				{
+					Logger.LogDebug("Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources." +
+					                (Network == Network.RegTest ? $" Will retry in {RuntimeParams.Instance.RetryConnectLocalNodeSeconds}s." : ""));
+				}
+
+				LastFailConnectLocalNode.Restart();
+			}
+			else
+			{
+				Logger.LogWarning(ex);
+			}
 		}
 	}
 
