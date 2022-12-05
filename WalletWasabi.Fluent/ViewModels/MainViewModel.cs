@@ -208,6 +208,16 @@ public partial class MainViewModel : ViewModelBase
 
 			return null;
 		});
+
+		WalletSettingsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return walletViewModel.Settings;
+			}
+
+			return null;
+		});
 	}
 
 	public void ApplyUiConfigWindowSate()
