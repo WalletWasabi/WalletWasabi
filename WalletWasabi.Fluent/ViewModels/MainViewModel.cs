@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -214,6 +215,16 @@ public partial class MainViewModel : ViewModelBase
 			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
 			{
 				return walletViewModel.Settings;
+			}
+
+			return null;
+		});
+
+		WalletStatsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return new WalletStatsViewModel(walletViewModel);
 			}
 
 			return null;

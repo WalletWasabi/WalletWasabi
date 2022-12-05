@@ -10,7 +10,15 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
-[NavigationMetaData(Title = "Wallet Stats")]
+[NavigationMetaData(
+	Title = "Wallet Stats",
+	Caption = "Displays wallet stats",
+	IconName = "nav_wallet_24_regular",
+	Order = 3,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Stats", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletStatsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
