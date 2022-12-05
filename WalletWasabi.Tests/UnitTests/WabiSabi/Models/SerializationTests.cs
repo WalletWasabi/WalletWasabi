@@ -23,7 +23,7 @@ public class SerializationTests
 {
 	private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 	private static IEnumerable<Scalar> Scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
-	private static CredentialIssuerSecretKey IssuerKey = new(new InsecureRandom());
+	private static CredentialIssuerSecretKey IssuerKey = new(InsecureRandom.Instance);
 
 	[Fact]
 	public void InputRegistrationRequestMessageSerialization()

@@ -18,6 +18,8 @@ using System.Collections.Immutable;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : PeriodicRunner

@@ -99,7 +99,7 @@
                                             Width="{Binding Width, Mode=TwoWay}"
                                             Height="{Binding Height, Mode=TwoWay}" />
           <ir:AdaptiveBehavior>
-            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="260" ClassName="small" TargetControl="{Binding #Carousel}" />
+            <ir:AdaptiveClassSetter MinHeight="0" MaxHeight="290" ClassName="small" TargetControl="{Binding #Carousel}" />
           </ir:AdaptiveBehavior>
         </i:Interaction.Behaviors>
 
@@ -149,7 +149,7 @@
           </Carousel.PageTransition>
           <Carousel.DataTemplates>
             <DataTemplate DataType="{x:Type tiles:PrivacyControlTileViewModel}">
-              <ringView:PrivacyRingDetailsView IsEnabled="False" VerticalAlignment="Center">
+              <ringView:PrivacyRingDetailsView VerticalAlignment="Center">
                 <i:Interaction.Behaviors>
                   <behaviors:FadeInBehavior InitialDelay="0:0:1" />
                 </i:Interaction.Behaviors>

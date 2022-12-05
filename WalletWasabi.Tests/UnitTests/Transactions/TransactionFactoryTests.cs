@@ -181,8 +181,6 @@ public class TransactionFactoryTests
 		var password = "foo";
 		var keyManager = ServiceFactory.CreateKeyManager(password);
 
-		keyManager.AssertCleanKeysIndexed();
-
 		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
 		var scoins = new[]
 		{
@@ -577,7 +575,7 @@ public class TransactionFactoryTests
 
 		TransactionSizeException ex = Assert.Throws<TransactionSizeException>(() => transactionFactory.BuildTransaction(payment, new FeeRate(12m)));
 		Assert.Equal(paymentAmount, ex.Target);
-		Assert.Equal(Money.Coins(0.23022846m), ex.MaximumPossible);
+		Assert.Equal(Money.Coins(0.24209089m), ex.MaximumPossible);
 	}
 
 	[Fact]
