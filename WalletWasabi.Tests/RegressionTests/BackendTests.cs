@@ -70,7 +70,7 @@ public class BackendTests
 	[Fact]
 	public async Task BroadcastReplayTxAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(_, IRPCClient rpc, _, _, _, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var utxos = await rpc.ListUnspentAsync();
 		var utxo = utxos[0];
@@ -107,7 +107,7 @@ public class BackendTests
 	[Fact]
 	public async Task FilterBuilderTestAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(_, IRPCClient rpc, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
@@ -177,7 +177,7 @@ public class BackendTests
 	{
 		var requestUri = "btc/Blockchain/status";
 
-		(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(_, IRPCClient rpc, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var segwitTaprootIndexBuilderService = global.SegwitTaprootIndexBuilderService;
 		var taprootIndexBuilderService = global.TaprootIndexBuilderService;

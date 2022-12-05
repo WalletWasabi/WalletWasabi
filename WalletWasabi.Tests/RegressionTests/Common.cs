@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -64,7 +63,7 @@ public static class Common
 		}
 	}
 
-	public static async Task<(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
+	public static async Task<(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global)> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
 		int numberOfBlocksToGenerate,
 		[CallerFilePath] string callerFilePath = "",
@@ -76,7 +75,6 @@ public static class Common
 		{
 			await global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
 		}
-		global.Coordinator.UtxoReferee.Clear();
 
 		var network = global.RpcClient.Network;
 		var serviceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
@@ -88,6 +86,6 @@ public static class Common
 		var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
 		var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 		await bitcoinStore.InitializeAsync();
-		return ("password", global.RpcClient, network, global.Coordinator, serviceConfiguration, bitcoinStore, global);
+		return ("password", global.RpcClient, network, serviceConfiguration, bitcoinStore, global);
 	}
 }

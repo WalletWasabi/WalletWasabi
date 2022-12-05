@@ -8,6 +8,8 @@ namespace WalletWasabi.Tor.Http.Extensions;
 
 public static class HttpContentExtensions
 {
+	private static readonly JsonSerializerSettings Settings = new();
+
 	public static async Task<T> ReadAsJsonAsync<T>(this HttpContent me)
 	{
 		if (me is null)
@@ -15,12 +17,8 @@ public static class HttpContentExtensions
 			throw new ArgumentNullException(nameof(me));
 		}
 
-		var settings = new JsonSerializerSettings
-		{
-			Converters = new[] { new RoundStateResponseJsonConverter(WasabiClient.ApiVersion) }
-		};
 		var jsonString = await me.ReadAsStringAsync().ConfigureAwait(false);
-		return JsonConvert.DeserializeObject<T>(jsonString, settings)
+		return JsonConvert.DeserializeObject<T>(jsonString, Settings)
 			?? throw new InvalidOperationException($"Deserialization failed. Received json: {jsonString}");
 	}
 }

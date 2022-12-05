@@ -50,7 +50,7 @@ public class WalletTests
 	[Fact]
 	public async Task FilterDownloaderTestAsync()
 	{
-		(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(_, IRPCClient rpc, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		await using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
@@ -117,7 +117,7 @@ public class WalletTests
 	[Fact]
 	public async Task ReorgTestAsync()
 	{
-		(string password, IRPCClient rpc, Network network, _, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(string password, IRPCClient rpc, Network network, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		var keyManager = KeyManager.CreateNew(out _, password, network);
 
@@ -226,7 +226,7 @@ public class WalletTests
 	[Fact]
 	public async Task WalletTestsAsync()
 	{
-		(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		// Create the services.
 		// 1. Create connection service.

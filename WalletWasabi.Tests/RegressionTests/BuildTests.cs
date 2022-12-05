@@ -38,7 +38,7 @@ public class BuildTests
 	[Fact]
 	public async Task BuildTransactionValidationsTestAsync()
 	{
-		(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 		// Create the services.
 		// 1. Create connection service.
@@ -192,7 +192,7 @@ public class BuildTests
 	[Fact]
 	public async Task BuildTransactionReorgsTestAsync()
 	{
-		(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+		(string password, IRPCClient rpc, Network network, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 		bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
 		// Create the services.
 		// 1. Create connection service.
