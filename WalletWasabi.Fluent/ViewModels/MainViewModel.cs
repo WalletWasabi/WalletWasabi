@@ -20,6 +20,7 @@ using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -236,6 +237,17 @@ public partial class MainViewModel : ViewModelBase
 			{
 				// TODO: Display password dialog if needed, see WalletInfoCommand execute action.
 				return new WalletInfoViewModel(walletViewModel);
+			}
+
+			return null;
+		});
+
+		SendViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				// TODO: Check if we can send?
+				return new SendViewModel(walletViewModel);
 			}
 
 			return null;
