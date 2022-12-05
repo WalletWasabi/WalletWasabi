@@ -198,6 +198,16 @@ public partial class MainViewModel : ViewModelBase
 
 			return null;
 		});
+
+		CoinJoinSettingsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel && !walletViewModel.IsWatchOnly)
+			{
+				return walletViewModel.CoinJoinSettings;
+			}
+
+			return null;
+		});
 	}
 
 	public void ApplyUiConfigWindowSate()
