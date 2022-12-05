@@ -201,7 +201,7 @@ public static class Program
 		await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256sumAscFilePath).ConfigureAwait(false);
 
 		// Verify back Wasabi installer's hashes
-		await VerifyInstallerFileHashesAsync(finalFiles, sha256SumsFilePath).ConfigureAwait(false);
+		await WasabiSignerHelpers.VerifyInstallerFileHashesAsync(finalFiles, sha256SumsFilePath).ConfigureAwait(false);
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
@@ -585,26 +585,6 @@ public static class Program
 			// Use Bash on other platforms.
 			string arguments = string.Join(" && ", commands);
 			StartProcessAndWaitForExit("bash", BinDistDirectory, arguments: $"-c \"{arguments}\"");
-		}
-	}
-
-	private static async Task VerifyInstallerFileHashesAsync(string[] finalFiles, string sha256SumsFilePath)
-	{
-		string[] lines = await File.ReadAllLinesAsync(sha256SumsFilePath).ConfigureAwait(false);
-		var hashWithFileNameLines = lines.Where(line => line.Contains("Wasabi-"));
-
-		foreach (var installerFilePath in finalFiles)
-		{
-			string installerName = Path.GetFileName(installerFilePath);
-			string installerExpectedHash = hashWithFileNameLines.Single(line => line.Contains(installerName)).Split(" ")[0];
-
-			var bytes = await WasabiSignerHelpers.GetShaComputedBytesOfFileAsync(installerFilePath).ConfigureAwait(false);
-			string installerRealHash = Convert.ToHexString(bytes).ToLower();
-
-			if (installerExpectedHash != installerRealHash)
-			{
-				throw new InvalidOperationException("Installer file's hash doesn't match expected hash.");
-			}
 		}
 	}
 
