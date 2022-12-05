@@ -17,7 +17,7 @@ public class HierarchicalSelection : ReactiveObject, IDisposable
 	{
 		var childrenSelectionStates = model.Selectables
 			.AsObservableChangeSet()
-			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(0.1), scheduler: RxApp.MainThreadScheduler)
+			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(50), scheduler: RxApp.MainThreadScheduler)
 			.ToCollection()
 			.Select(collection => GetSelectionState(collection.Select(selectable => selectable.IsSelected).ToList()))
 			.Where(_ => _canUpdate);
