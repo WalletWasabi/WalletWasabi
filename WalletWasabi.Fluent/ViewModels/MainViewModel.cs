@@ -20,6 +20,7 @@ using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -248,6 +249,16 @@ public partial class MainViewModel : ViewModelBase
 			{
 				// TODO: Check if we can send?
 				return new SendViewModel(walletViewModel);
+			}
+
+			return null;
+		});
+
+		ReceiveViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return new ReceiveViewModel(walletViewModel.Wallet);
 			}
 
 			return null;
