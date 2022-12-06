@@ -40,8 +40,7 @@ public class Global : IDisposable
 
 		// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 		P2pNode = new(config.Network, config.GetBitcoinP2pEndPoint(), new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
-		BlockNotifier blockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode);
-		HostedServices.Register<BlockNotifier>(() => blockNotifier, "Block Notifier");
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), rpcClient, P2pNode), "Block Notifier");
 
 		// Initialize index building
 		// Initialize index building
@@ -49,8 +48,8 @@ public class Global : IDisposable
 		var segwitTaprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 		var taprootIndexFilePath = Path.Combine(indexBuilderServiceDir, $"TaprootIndex{RpcClient.Network}.dat");
 
-		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, blockNotifier, segwitTaprootIndexFilePath);
-		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, blockNotifier, taprootIndexFilePath);
+		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), segwitTaprootIndexFilePath);
+		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, HostedServices.Get<BlockNotifier>(), taprootIndexFilePath);
 	}
 
 	public string DataDir { get; }
