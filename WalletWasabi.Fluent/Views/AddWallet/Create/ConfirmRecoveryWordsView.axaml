@@ -19,8 +19,9 @@
                  EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <ListBox Items="{Binding AvailableWords}" DockPanel.Dock="Top" Margin="30 10 30 0"
+    <Grid RowDefinitions="*,16,Auto,*,20" Margin="0 0 0 21">
+
+      <ListBox Items="{Binding AvailableWords}"
                SelectedItem="{Binding SelectedWord}"
                Background="Transparent" HorizontalAlignment="Center">
         <ListBox.ItemsPanel>
@@ -43,43 +44,38 @@
         </ListBox.Styles>
       </ListBox>
 
-      <ScrollViewer HorizontalAlignment="Stretch"
-                    VerticalAlignment="Center"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Disabled"
-                    Margin="0 -50 0 0">
-        <Panel>
-          <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
-            <ItemsControl.Styles>
-              <Style Selector="TextBlock">
-                <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
-                <Setter Property="Height" Value="42" />
-              </Style>
-            </ItemsControl.Styles>
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
-                  <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
-                  <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0" />
-                </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+      <Panel Grid.Row="2">
+        <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
+          <ItemsControl.Styles>
+            <Style Selector="TextBlock">
+              <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
+              <Setter Property="Height" Value="42" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel MaxHeight="168" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
+                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-          <Grid ColumnDefinitions="*,1,*,1,*"
-              HorizontalAlignment="Center" VerticalAlignment="Center"
-              Width="{Binding #ItemsControl.Bounds.Width}"
-              Height="{Binding #ItemsControl.Bounds.Height}">
-            <Separator Classes="vertical" Grid.Column="1" />
-            <Separator Classes="vertical" Grid.Column="3" />
-          </Grid>
-        </Panel>
-      </ScrollViewer>
-    </DockPanel>
+        <Grid ColumnDefinitions="*,1,*,1,*"
+            HorizontalAlignment="Center" VerticalAlignment="Center"
+            Width="{Binding #ItemsControl.Bounds.Width}"
+            Height="{Binding #ItemsControl.Bounds.Height}">
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20"/>
+          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20"/>
+        </Grid>
+      </Panel>
+
+    </Grid>
   </c:ContentArea>
 </UserControl>
