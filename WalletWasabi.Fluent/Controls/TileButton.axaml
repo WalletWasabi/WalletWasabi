@@ -14,7 +14,8 @@
             <TextBlock x:Name="PART_Text"
                        Text="{TemplateBinding Text}"
                        Foreground="{TemplateBinding Foreground}" />
-            <Panel>
+            <Panel VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
               <PathIcon x:Name="PART_Icon"
                         Data="{TemplateBinding Icon}"
                         Width="{TemplateBinding IconSize}"
