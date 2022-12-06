@@ -17,7 +17,7 @@ public class PrivacyTextPresenter : UserControl
 	private FormattedText CreateFormattedText()
 	{
 		return new FormattedText(
-			"#",
+			"",
 			new Typeface(FontFamily, FontStyle, FontWeight),
 			FontSize,
 			TextAlignment.Left,
@@ -51,7 +51,7 @@ public class PrivacyTextPresenter : UserControl
 			_formattedText = CreateFormattedText();
 		}
 
-		return new Size(FontSize, _formattedText.Bounds.Height);
+		return new Size(0, _formattedText.Bounds.Height);
 	}
 
 	public override void Render(DrawingContext context)
@@ -62,7 +62,7 @@ public class PrivacyTextPresenter : UserControl
 		}
 
 		var width = Bounds.Width;
-		if (_glyphRun is null || _width != _width)
+		if (_glyphRun is null || width != _width)
 		{
 			(_glyphRun as IDisposable)?.Dispose();
 			_glyphRun = CreateGlyphRun(width);
