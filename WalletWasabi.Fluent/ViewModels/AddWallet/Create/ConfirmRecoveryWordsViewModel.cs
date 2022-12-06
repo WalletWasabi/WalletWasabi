@@ -18,6 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Confirm Recovery Words")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
+	private const int NumberOfOptions = 3;
 	private readonly List<RecoveryWordViewModel> _words;
 	private readonly Mnemonic _mnemonic;
 	private readonly string _walletName;
@@ -102,7 +103,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			_mnemonic.WordList
 					 .GetWords()
 					 .OrderBy(_ => Random.Shared.Next())
-					 .Take(3)
+					 .Take(NumberOfOptions - 1)
 					 .Concat(new[] { CurrentWord.Word })
 					 .OrderBy(_ => Random.Shared.Next())
 					 .ToList();
