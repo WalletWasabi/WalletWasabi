@@ -19,14 +19,23 @@
                  EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <Grid RowDefinitions="*,16,Auto,*,20" Margin="0 0 0 21">
+    <c:ContentArea.Styles>
+      <Style Selector="c|ContentArea[EnableSkip=True] Grid#Layout">
+        <Setter Property="Margin" Value="0 0 0 22"/>
+      </Style>
+      <Style Selector="c|ContentArea[EnableSkip=False] Grid#Layout">
+        <Setter Property="Margin" Value="0 0 0 38"/>
+      </Style>
+    </c:ContentArea.Styles>
+    
+    <Grid RowDefinitions="*,16,Auto,*,20" x:Name="Layout">
 
       <ListBox Items="{Binding AvailableWords}"
                SelectedItem="{Binding SelectedWord}"
                Background="Transparent" HorizontalAlignment="Center">
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
-            <UniformGrid Columns="4" />
+            <UniformGrid Columns="3" />
           </ItemsPanelTemplate>
         </ListBox.ItemsPanel>
         <ListBox.Styles>
