@@ -201,7 +201,7 @@ public static class Program
 		await WasabiSignerHelpers.VerifySha256SumsFileAsync(sha256sumAscFilePath).ConfigureAwait(false);
 
 		// Verify back Wasabi installer's hashes
-		await WasabiSignerHelpers.VerifyInstallerFileHashesAsync(finalFiles, sha256SumsFilePath).ConfigureAwait(false);
+		await WasabiSignerHelpers.VerifyInstallerFileHashesAsync(finalFiles, sha256sumAscFilePath).ConfigureAwait(false);
 
 		IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
 	}
