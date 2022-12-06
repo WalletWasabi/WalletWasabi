@@ -19,8 +19,6 @@ public class IdempotencyRequestCache
 		AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
 	};
 
-	private static TimeSpan RequestTimeout { get; } = TimeSpan.FromMinutes(5);
-
 	/// <summary>Guards <see cref="ResponseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
 	/// <seealso href="https://github.com/dotnet/runtime/issues/36499"/>
@@ -63,12 +61,9 @@ public class IdempotencyRequestCache
 
 		if (callAction)
 		{
-			using CancellationTokenSource timeoutCts = new(RequestTimeout);
 			try
 			{
-				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
-
-				var result = await action(request, cancellationToken).WithAwaitCancellationAsync(linkedCts.Token).ConfigureAwait(false);
+				var result = await action(request, cancellationToken).WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
 				responseTcs.SetResult(result);
 				return result;
 			}
@@ -79,9 +74,7 @@ public class IdempotencyRequestCache
 					ResponseCache.Remove(request);
 				}
 
-				responseTcs.SetException(!timeoutCts.IsCancellationRequested
-					? e
-					: new InvalidOperationException("DeadLock prevention timeout kicked in!", e));
+				responseTcs.SetException(e);
 
 				// The exception will be thrown below at 'await' to avoid unobserved exception.
 			}
@@ -95,6 +88,7 @@ public class IdempotencyRequestCache
 	/// <para>Note that if there is a simultaneous request for the cache key, it is not stopped and its result is discarded.</para>
 	/// </remarks>
 	internal void Remove<TRequest>(TRequest cacheKey)
+		where TRequest : notnull
 	{
 		lock (ResponseCacheLock)
 		{

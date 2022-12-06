@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /restore/
+Disallow: /bak/
+Disallow: /old/
+Disallow: /back/
+Disallow: /backups/

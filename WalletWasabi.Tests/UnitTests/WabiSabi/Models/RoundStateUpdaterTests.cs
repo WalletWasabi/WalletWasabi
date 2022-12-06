@@ -40,10 +40,10 @@ public class RoundStateUpdaterTests
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var round1TSCts = new CancellationTokenSource();
-		var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.InputRegistration, cancellationToken);
-		var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.OutputRegistration, cancellationToken);
-		var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.TransactionSigning, round1TSCts.Token);
-		var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, Phase.Ended, cancellationToken);
+		var round1IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.InputRegistration, cancellationToken);
+		var round1ORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.OutputRegistration, cancellationToken);
+		var round1TSTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.TransactionSigning, round1TSCts.Token);
+		var round1TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.Ended, cancellationToken);
 
 		// Start
 		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -57,8 +57,8 @@ public class RoundStateUpdaterTests
 		// Force the RoundStatusUpdater to run. After this it will know about the existence of `round2` so,
 		// we can subscribe to events.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
-		var round2IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, Phase.InputRegistration, cancellationToken);
-		var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, Phase.Ended, cancellationToken);
+		var round2IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.InputRegistration, cancellationToken);
+		var round2TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.Ended, cancellationToken);
 
 		// Force the RoundStatusUpdater to run again just to make it trigger the events.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
@@ -118,8 +118,8 @@ public class RoundStateUpdaterTests
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var roundTSCts = new CancellationTokenSource();
-		var roundIRTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.InputRegistration, cancellationToken);
-		var roundORTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken);
+		var roundIRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		var roundORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
 
 		// Start
 		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -166,8 +166,8 @@ public class RoundStateUpdaterTests
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var roundTSCts = new CancellationTokenSource();
-		var roundIRTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.InputRegistration, cancellationToken);
-		var roundORTask = roundStatusUpdater.CreateRoundAwaiter(roundState.Id, Phase.OutputRegistration, cancellationToken);
+		var roundIRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		var roundORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
 
 		// Start
 		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
@@ -207,7 +207,7 @@ public class RoundStateUpdaterTests
 			using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
 			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-				await roundStatusUpdater.CreateRoundAwaiter(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
+				await roundStatusUpdater.CreateRoundAwaiterAsync(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
 		}
 		finally
 		{

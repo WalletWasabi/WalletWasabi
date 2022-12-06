@@ -1,10 +1,10 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Models;
 
-namespace WalletWasabi.WabiSabi.Backend.Banning;
+namespace WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 /// <summary>
 /// Malicious UTXOs are sent here.

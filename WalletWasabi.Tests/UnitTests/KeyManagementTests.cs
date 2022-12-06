@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using System.IO;
 using System.Linq;
@@ -5,7 +6,10 @@ using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -27,17 +31,20 @@ public class KeyManagementTests
 
 		Assert.NotNull(manager.ChainCode);
 		Assert.NotNull(manager.EncryptedSecret);
-		Assert.NotNull(manager.ExtPubKey);
+		Assert.NotNull(manager.SegwitExtPubKey);
+		Assert.NotNull(manager.TaprootExtPubKey);
 
 		Assert.NotNull(manager2.ChainCode);
 		Assert.NotNull(manager2.EncryptedSecret);
-		Assert.NotNull(manager2.ExtPubKey);
+		Assert.NotNull(manager2.SegwitExtPubKey);
+		Assert.NotNull(manager2.TaprootExtPubKey);
 
 		Assert.NotNull(manager3.ChainCode);
 		Assert.NotNull(manager3.EncryptedSecret);
-		Assert.NotNull(manager3.ExtPubKey);
+		Assert.NotNull(manager3.SegwitExtPubKey);
+		Assert.NotNull(manager3.TaprootExtPubKey);
 
-		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState(Network.Main));
+		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.SegwitExtPubKey, manager.TaprootExtPubKey, true, null, new BlockchainState(Network.Main));
 		var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
 		Logger.TurnOff();
 		Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));
@@ -45,22 +52,26 @@ public class KeyManagementTests
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
+		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
 
 		Assert.Equal(manager.ChainCode, sameManager2.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager2.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager2.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager2.SegwitExtPubKey);
+		Assert.Equal(manager.TaprootExtPubKey, sameManager2.TaprootExtPubKey);
 
 		var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password, Network.Main);
 		Assert.NotEqual(mnemonic, mnemonic4);
 		Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
-		Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+		Assert.NotEqual(manager.SegwitExtPubKey, differentManager.SegwitExtPubKey);
+		Assert.NotEqual(manager.TaprootExtPubKey, differentManager.TaprootExtPubKey);
 
 		var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!, Network.Main);
 		Assert.Equal(manager2.ChainCode, manager5.ChainCode);
 		Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
-		Assert.Equal(manager2.ExtPubKey, manager5.ExtPubKey);
+		Assert.Equal(manager2.SegwitExtPubKey, manager5.SegwitExtPubKey);
+		Assert.Equal(manager2.TaprootExtPubKey, manager5.TaprootExtPubKey);
 	}
 
 	[Fact]
@@ -68,18 +79,19 @@ public class KeyManagementTests
 	{
 		string password = "password";
 		var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network.Main);
-		var sameManager = KeyManager.Recover(mnemonic, password, Network.Main, KeyManager.GetAccountKeyPath(Network.Main));
+		var sameManager = KeyManager.Recover(mnemonic, password, Network.Main, KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit));
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
+		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
 
-		var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, 55);
+		var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, null, 55);
 		Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
-		Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
+		Assert.NotEqual(manager.SegwitExtPubKey, differentManager.SegwitExtPubKey);
+		Assert.NotEqual(manager.TaprootExtPubKey, differentManager.TaprootExtPubKey);
 
-		differentManager.AssertCleanKeysIndexed();
 		var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true);
 		Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 		Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
@@ -91,11 +103,11 @@ public class KeyManagementTests
 		string password = "password";
 		var manager = KeyManager.CreateNew(out _, password, Network.Main);
 
-		manager.AssertCleanKeysIndexed();
 		var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
-		lastKey.SetKeyState(KeyState.Used);
-		var newKeys = manager.AssertCleanKeysIndexed();
-		Assert.Equal(manager.MinGapLimit, newKeys.Count());
+		manager.SetKeyState(KeyState.Used, lastKey);
+
+		var newLastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
+		Assert.Equal(manager.MinGapLimit, newLastKey.Index - lastKey.Index);
 	}
 
 	[Fact]
@@ -117,14 +129,21 @@ public class KeyManagementTests
 
 		manager.ToFile(); // assert it does not throw
 
-		for (int i = 0; i < 1000; i++)
+		void Generate500keys(ScriptPubKeyType scriptPubKeyType)
 		{
-			var isInternal = Random.Shared.Next(2) == 0;
-			var label = RandomString.AlphaNumeric(21);
-			var keyState = (KeyState)Random.Shared.Next(3);
-			manager.GenerateNewKey(label, keyState, isInternal);
+			for (int i = 0; i < 500; i++)
+			{
+				var isInternal = Random.Shared.Next(2) == 0;
+				var label = RandomString.AlphaNumeric(21);
+				var keyState = (KeyState) Random.Shared.Next(3);
+				manager.GenerateNewKey(label, keyState, isInternal, scriptPubKeyType);
+			}
+
+			manager.ToFile();
 		}
-		manager.ToFile();
+
+		Generate500keys(ScriptPubKeyType.Segwit);
+		Generate500keys(ScriptPubKeyType.TaprootBIP86);
 
 		Assert.True(File.Exists(filePath));
 
@@ -132,7 +151,22 @@ public class KeyManagementTests
 
 		Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
-		Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
+		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
+		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
+	public void CanSerializeHeightCorrectly()
+	{
+		var filePath = "wallet-serialization.json";
+		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+		manager.SetBestHeight(10_000);
+		manager.ToFile();
+
+		var sameManager = KeyManager.FromFile(filePath);
+		Assert.Equal(new Height(9_899), sameManager.GetBestHeight());
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}
@@ -157,7 +191,7 @@ public class KeyManagementTests
 			Assert.Equal(isInternal, generatedKey.IsInternal);
 			Assert.Equal(label, generatedKey.Label);
 			Assert.Equal(keyState, generatedKey.KeyState);
-			Assert.StartsWith(KeyManager.GetAccountKeyPath(network).ToString(), generatedKey.FullKeyPath.ToString());
+			Assert.StartsWith(KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit).ToString(), generatedKey.FullKeyPath.ToString());
 		}
 	}
 
@@ -165,31 +199,24 @@ public class KeyManagementTests
 	public void GapCountingTests()
 	{
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(false, ignoreTail: false));
+		var hdPubKeys = Enumerable.Range(0, 100)
+			.Select(i => km.GenerateNewKey(SmartLabel.Empty, i % 2 == 0 ? KeyState.Clean : KeyState.Locked, true))
+			.ToArray();
 
-		var k = km.GenerateNewKey("", KeyState.Clean, true);
-		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		km.SetKeyState(KeyState.Used, hdPubKeys[0]);
+		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
 
-		km.GenerateNewKey("", KeyState.Locked, true);
-		Assert.Equal(2, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		km.SetKeyState(KeyState.Used, hdPubKeys[10]);
+		Assert.Equal(10, km.CountConsecutiveUnusedKeys(true));
 
-		k.SetKeyState(KeyState.Used);
-		Assert.Equal(1, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		km.SetKeyState(KeyState.Used, hdPubKeys[30]);
+		Assert.Equal(20, km.CountConsecutiveUnusedKeys(true));
 
-		for (int i = 0; i < 100; i++)
-		{
-			var k2 = km.GenerateNewKey("", KeyState.Clean, true);
-			if (i == 50)
-			{
-				k = k2;
-			}
-		}
-		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
-		k.SetKeyState(KeyState.Locked);
-		Assert.Equal(101, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
-		k.SetKeyState(KeyState.Used);
-		Assert.Equal(51, km.CountConsecutiveUnusedKeys(true, ignoreTail: false));
+		km.SetKeyState(KeyState.Used, hdPubKeys[80]);
+		Assert.Equal(50, km.CountConsecutiveUnusedKeys(true));
+
+		km.SetKeyState(KeyState.Clean, hdPubKeys[30]);
+		Assert.Equal(70, km.CountConsecutiveUnusedKeys(true));
 	}
 
 	private static void DeleteFileAndDirectoryIfExists(string filePath)

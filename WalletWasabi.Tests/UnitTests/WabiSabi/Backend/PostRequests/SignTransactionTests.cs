@@ -86,6 +86,7 @@ public class SignTransactionTests
 				Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 			}
 		}
+
 		await arena.StopAsync(CancellationToken.None);
 	}
 }

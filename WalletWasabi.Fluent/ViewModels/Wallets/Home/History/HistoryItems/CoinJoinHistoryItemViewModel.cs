@@ -29,14 +29,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
 
 		var amount = transactionSummary.Amount;
-		if (amount < Money.Zero)
-		{
-			OutgoingAmount = amount * -1;
-		}
-		else
-		{
-			IncomingAmount = amount;
-		}
+		SetAmount(amount);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(

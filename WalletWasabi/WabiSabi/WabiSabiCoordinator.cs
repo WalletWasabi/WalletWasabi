@@ -9,6 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
@@ -33,10 +34,9 @@ public class WabiSabiCoordinator : BackgroundService
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
 
-		RoundParameterFactory roundParameterFactory = new RoundParameterFactory(Config, rpc.Network);
+		RoundParameterFactory roundParameterFactory = new(Config, rpc.Network);
 		Arena = new(
 			parameters.RoundProgressSteppingPeriod,
-			rpc.Network,
 			Config,
 			rpc,
 			Warden.Prison,

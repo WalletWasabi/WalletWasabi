@@ -75,7 +75,7 @@ public class CoinJoinManager : BackgroundService
 		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
-		// Coinjoin handling Start / Stop and finallization.
+		// Coinjoin handling Start / Stop and finalization.
 		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
 
 		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
@@ -447,7 +447,7 @@ public class CoinJoinManager : BackgroundService
 			{
 				foreach (var hdPubKey in w.KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 				{
-					hdPubKey.SetKeyState(state);
+					w.KeyManager.SetKeyState(state, hdPubKey);
 				}
 			}
 			else

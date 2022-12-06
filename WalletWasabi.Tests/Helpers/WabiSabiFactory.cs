@@ -39,14 +39,14 @@ public static class WabiSabiFactory
 	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		key ??= new();
-		var coin = WabiSabiFactory.CreateCoin(key, amount, scriptPubKeyType);
+		var coin = CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
-		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, roundId);
+		var ownershipProof = CreateOwnershipProof(key, roundId);
 		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
 	}
 
 	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? roundId = null)
-		=> new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundId ?? uint256.One);
+		=> new(CoordinatorIdentifier, roundId ?? uint256.One);
 
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
@@ -70,7 +70,7 @@ public static class WabiSabiFactory
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters, new InsecureRandom());
+		new(parameters, InsecureRandom.Instance);
 
 	public static Round CreateRound(WabiSabiConfig cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
@@ -144,10 +144,9 @@ public static class WabiSabiFactory
 	public static ArenaClient CreateArenaClient(Arena arena, Round? round = null)
 	{
 		var roundState = RoundState.FromRound(round ?? arena.Rounds.First());
-		var random = new InsecureRandom();
 		return new ArenaClient(
-			roundState.CreateAmountCredentialClient(random),
-			roundState.CreateVsizeCredentialClient(random),
+			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
+			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
 			CoordinatorIdentifier,
 			arena);
 	}
@@ -176,17 +175,16 @@ public static class WabiSabiFactory
 		IEnumerable<Credential> vsizeZeroCredentials
 	) CreateWabiSabiClientsAndIssuers(Round round)
 	{
-		var rnd = new InsecureRandom();
 		var amountIssuer = round.AmountCredentialIssuer;
 		var vsizeIssuer = round.VsizeCredentialIssuer;
 		var amountClient = new WabiSabiClient(
 			amountIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-			rnd,
+			InsecureRandom.Instance,
 			amountIssuer.MaxAmount);
 
 		var vsizeClient = new WabiSabiClient(
 			vsizeIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-			rnd,
+			InsecureRandom.Instance,
 			vsizeIssuer.MaxAmount);
 
 		var (amountZeroCredentials, vsizeZeroCredentials) = EnsureZeroCredentials(amountClient, vsizeClient, amountIssuer, vsizeIssuer);
@@ -277,7 +275,10 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
+		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount),
+			blameOf: round,
+			blameWhitelist: round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(),
+			InsecureRandom.Instance);
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
