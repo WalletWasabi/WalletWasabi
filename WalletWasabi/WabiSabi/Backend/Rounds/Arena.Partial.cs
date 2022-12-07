@@ -380,10 +380,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		}
+
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 		}
+
 		if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);

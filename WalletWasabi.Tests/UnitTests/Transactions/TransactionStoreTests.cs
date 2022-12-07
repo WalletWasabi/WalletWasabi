@@ -87,8 +87,8 @@ public class TransactionStoreTests
 		{
 			File.Delete(filePath);
 		}
-		var txStore = new TransactionStore();
-		await txStore.InitializeAsync(dir, Network.Main, $"{nameof(TransactionStore)}.{nameof(TransactionStore.InitializeAsync)}", CancellationToken.None);
+		var txStore = new TransactionStore(dir, Network.Main);
+		await txStore.InitializeAsync($"{nameof(TransactionStore)}.{nameof(TransactionStore.InitializeAsync)}", CancellationToken.None);
 		return txStore;
 	}
 }
