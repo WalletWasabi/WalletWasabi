@@ -200,23 +200,9 @@ public class CoinJoinClient
 	{
 		var roundId = roundState.Id;
 
-		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
-
 		try
 		{
-			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
-			if (!registeredAliceClientAndCircuits.Any())
-			{
-				return new CoinJoinResult(false);
-			}
-
-			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
-
-			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
-
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
-
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			var result = await ProceedWithRoundAsync(roundState, smartCoins, cancellationToken).ConfigureAwait(false);
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -234,7 +220,35 @@ public class CoinJoinClient
 				_ => throw new ArgumentOutOfRangeException()
 			};
 			roundState.LogInfo(msg);
+			return result;
+		}
+		finally
+		{
+			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+		}
+	}
 
+	private async Task<CoinJoinResult> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
+	{
+		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
+		try
+		{
+			var roundId = roundState.Id;
+
+			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+			if (!registeredAliceClientAndCircuits.Any())
+			{
+				return new CoinJoinResult(false);
+			}
+
+			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
+
+			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
+
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
@@ -257,8 +271,6 @@ public class CoinJoinClient
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
-			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
 	}
 
