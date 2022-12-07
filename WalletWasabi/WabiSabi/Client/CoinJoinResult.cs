@@ -8,10 +8,11 @@ public record CoinJoinResult(
 	bool GoForBlameRound,
 	bool SuccessfulBroadcast,
 	ImmutableList<SmartCoin> RegisteredCoins,
-	ImmutableList<Script> RegisteredOutputs)
+	ImmutableList<Script> RegisteredOutputs,
+	Transaction? UnsignedCoinJoin)
 {
 	public CoinJoinResult(bool goForBlameRound) :
-		this(goForBlameRound, false, ImmutableList<SmartCoin>.Empty, ImmutableList<Script>.Empty)
+		this(goForBlameRound, false, ImmutableList<SmartCoin>.Empty, ImmutableList<Script>.Empty, null)
 	{
 	}
 }
