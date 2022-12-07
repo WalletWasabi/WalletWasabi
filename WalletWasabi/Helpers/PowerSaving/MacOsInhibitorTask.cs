@@ -17,10 +17,13 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
 		string innerCommand = $$"""
-			\$(caffeinate -i &) ;
+			caffeinate -i &
 			caffeinatePid=\$!;
 			trap \"kill -9 \$caffeinatePid\" 0 SIGINT SIGTERM;
-			wait {{Environment.ProcessId}};
+			while [ -n "$(grep {{Environment.ProcessId}})" ];
+			do
+			    sleep 1;
+			done;
 			""".ReplaceLineEndings(replacementText: " ");
 
 		string command = $"/bin/bash";
