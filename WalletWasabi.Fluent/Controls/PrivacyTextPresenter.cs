@@ -35,7 +35,7 @@ public class PrivacyTextPresenter : UserControl
 		var scale = FontSize / glyphTypeface.DesignEmHeight;
 		var advance = glyphTypeface.GetGlyphAdvance(glyph) * scale;
 
-		var count = (int) (width / advance);
+		var count = (int)Math.Ceiling(width / advance);
 		if (count == 0)
 		{
 			return null;
