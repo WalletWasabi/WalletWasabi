@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -8,17 +6,13 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchicallySelectable, IDisposable
+public abstract class CoinControlItemViewModelBase : ViewModelBase
 {
 	private bool? _isSelected;
-	private readonly CompositeDisposable _disposables = new();
 
-	public CoinControlItemViewModelBase(IEnumerable<IHierarchicallySelectable> children)
+	protected CoinControlItemViewModelBase()
 	{
-		Selectables = children.ToList();
-		Children = Selectables.Cast<CoinControlItemViewModelBase>().ToList();
-		HierarchicalSelectionHandler = new HierarchicalSelectionHandler(this);
-		HierarchicalSelectionHandler.DisposeWith(_disposables);
+		CanBeSelected = !IsCoinjoining;
 	}
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
@@ -27,7 +21,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchica
 
 	public bool IsNonPrivate => !IsSemiPrivate && !IsPrivate;
 
-	public IEnumerable<CoinControlItemViewModelBase> Children { get; }
+	public IReadOnlyCollection<CoinControlItemViewModelBase> Children { get; protected set; } = new List<CoinControlItemViewModelBase>();
 
 	public bool IsConfirmed { get; protected set; }
 
@@ -49,11 +43,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchica
 
 	public bool IsExpanded { get; set; } = true;
 
-	public HierarchicalSelectionHandler HierarchicalSelectionHandler { get; }
-
 	public bool CanBeSelected { get; protected set; }
-
-	public IEnumerable<IHierarchicallySelectable> Selectables { get; }
 
 	public bool? IsSelected
 	{
@@ -66,15 +56,6 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchica
 			}
 
 			this.RaiseAndSetIfChanged(ref _isSelected, value);
-		}
-	}
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
-		foreach (var child in Children)
-		{
-			child.Dispose();
 		}
 	}
 }

@@ -1,4 +1,3 @@
-using System.Linq;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 
@@ -6,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
-	public CoinCoinControlItemViewModel(SmartCoin smartCoin) : base(Enumerable.Empty<IHierarchicallySelectable>())
+	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
 	{
 		SmartCoin = smartCoin;
 		Amount = smartCoin.Amount;

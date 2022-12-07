@@ -197,7 +197,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 0;
 	}
 
-	private static IReadOnlyCollection<CoinControlItemViewModelBase> CreateItems(IEnumerable<Pocket> pockets)
+	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreateItems(IEnumerable<Pocket> pockets)
 	{
 		return pockets
 			.Select(pocket => new PocketCoinControlItemViewModel(pocket))
