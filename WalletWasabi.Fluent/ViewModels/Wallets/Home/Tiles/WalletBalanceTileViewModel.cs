@@ -12,7 +12,7 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 		var wallet = walletVm.Wallet;
 
 		var balance = walletVm.UiTriggers.BalanceUpdateTrigger
-			.Select(_ => wallet.Coins.TotalAmount());
+			.Select(_ => wallet.Coins.Available().TotalAmount());
 
 		BalanceBtc = balance
 			.Select(money => $"{money.ToFormattedString()} BTC");
