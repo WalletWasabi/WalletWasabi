@@ -48,7 +48,7 @@ public class HierarchicalSelectionHandler : ReactiveObject, IDisposable
 
 	private static bool? GetSelectionState(IReadOnlyCollection<IHierarchicallySelectable> children)
 	{
-		var selectionCount = children.Count(x => x.IsSelected == true || x.IsSelected == null);
+		var selectionCount = children.Count(x => x.IsSelected is true or null);
         
 		bool? selectionState = selectionCount == 0
 			? false
