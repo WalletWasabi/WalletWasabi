@@ -70,8 +70,13 @@ public class TransactionFactory
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
 
-		if (allowedInputs is not null && allowedInputs.Any()) // If allowedInputs are specified then select the coins from them.
+		if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 		{
+			if (!allowedInputs.Any())
+			{
+				throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+			}
+
 			allowedSmartCoinInputs = allowedSmartCoinInputs
 				.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 				.ToList();
