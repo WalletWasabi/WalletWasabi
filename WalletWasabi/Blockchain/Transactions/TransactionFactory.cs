@@ -65,17 +65,13 @@ public class TransactionFactory
 		}
 
 		// Get allowed coins to spend.
-		var availableCoinsView = Coins.Unspent();
+		var availableCoinsView = Coins.Available().Unspent();
 		List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 				? availableCoinsView.ToList()
 				: availableCoinsView.Confirmed().ToList();
-		if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
-		{
-			if (!allowedInputs.Any())
-			{
-				throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
-			}
 
+		if (allowedInputs is not null && allowedInputs.Any()) // If allowedInputs are specified then select the coins from them.
+		{
 			allowedSmartCoinInputs = allowedSmartCoinInputs
 				.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 				.ToList();
@@ -98,6 +94,11 @@ public class TransactionFactory
 					}
 				}
 			}
+		}
+
+		if (!allowedSmartCoinInputs.Any())
+		{
+			throw new NoAvailableCoinsException();
 		}
 
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
