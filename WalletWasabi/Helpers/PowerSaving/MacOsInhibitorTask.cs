@@ -16,6 +16,10 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
+		// The script is written with newlines but we need to pass the script to
+		// bash -c as a one-liner, so that's why we use the "ReplaceLineEndings" command.
+		//
+		// Note that this script requires dollar signs ($) and quotes (") to be escaped.
 		string innerCommand = $$"""
 			caffeinate -i &
 			caffeinatePid=$!;
@@ -24,7 +28,7 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 			do
 				sleep 1;
 			done;
-			""" .ReplaceLineEndings(replacementText: " ");
+			""".ReplaceLineEndings(replacementText: " ");
 
 		string command = $"/bin/bash";
 		string arguments = $"-c \"{innerCommand}\"";
