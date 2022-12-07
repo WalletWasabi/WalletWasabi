@@ -202,7 +202,15 @@ public class CoinJoinClient
 
 		try
 		{
-			var result = await ProceedWithRoundAsync(roundState, smartCoins, cancellationToken).ConfigureAwait(false);
+			CoinJoinResult? result = null;
+			try
+			{
+				result = await ProceedWithRoundAsync(roundState, smartCoins, cancellationToken).ConfigureAwait(false);
+			}
+			catch (NoCoinsToMixException)
+			{
+				return new CoinJoinResult(false);
+			}
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
@@ -241,7 +249,7 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				return new CoinJoinResult(false);
+				throw new NoCoinsToMixException($"The coordinator rejected all of our inputs({smartCoins.Count()}).");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
