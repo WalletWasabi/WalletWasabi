@@ -28,7 +28,14 @@
       </Style>
     </c:ContentArea.Styles>
     
-    <Grid RowDefinitions="*,16,Auto,*,20" x:Name="Layout">
+    <Grid x:Name="Layout">
+      <Grid.RowDefinitions>
+        <RowDefinition MinHeight="36" Height="*"/>
+        <RowDefinition Height="16"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="20"/>
+      </Grid.RowDefinitions>
 
       <ListBox Items="{Binding AvailableWords}"
                SelectedItem="{Binding SelectedWord}"

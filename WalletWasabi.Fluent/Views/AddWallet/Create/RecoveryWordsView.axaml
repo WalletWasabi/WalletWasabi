@@ -15,7 +15,14 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-    <Grid RowDefinitions="*,0,Auto,*,20">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition MinHeight="30" Height="*"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="20"/>
+      </Grid.RowDefinitions>
       
       <Panel Grid.Row="2">
         <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
@@ -48,7 +55,6 @@
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20"/>
         </Grid>
       </Panel>
-
 
       <c:InfoMessage Opacity="0.5"
                      HorizontalAlignment="Center"
