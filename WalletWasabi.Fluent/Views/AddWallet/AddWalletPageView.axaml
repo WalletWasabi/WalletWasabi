@@ -5,6 +5,8 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
@@ -14,33 +16,46 @@
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
                  EnableNext="False">
-    <UniformGrid Rows="1" HorizontalAlignment="Center">
-      <UniformGrid.Styles>
-        <Style Selector="c|TileButton">
-          <Setter Property="Margin" Value="10" />
-          <Setter Property="IconSize" Value="50" />
-        </Style>
-      </UniformGrid.Styles>
-      <c:TileButton Text="Create a new wallet"
-                    Classes="action doubleline"
-                    Icon="{StaticResource add_regular}"
-                    Command="{Binding CreateWalletCommand}"
-                    IsDefault="{Binding IsActive}" />
+    <Panel>
+      <i:Interaction.Behaviors>
+        <ir:AdaptiveBehavior>
+          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="650" MaxWidthOperator="LessThanOrEqual" ClassName="small" />
+        </ir:AdaptiveBehavior>
+      </i:Interaction.Behaviors>
 
-      <c:TileButton Text="Connect to hardware wallet"
-                    Classes="doubleline"
-                    Icon="{StaticResource calculator_regular}"
-                    Command="{Binding ConnectHardwareWalletCommand}" />
+      <UniformGrid Rows="1" HorizontalAlignment="Center">
+        <UniformGrid.Styles>
+          <Style Selector="c|TileButton">
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="IconSize" Value="50" />
+          </Style>
 
-      <c:TileButton Text="Import a wallet"
-                    Classes="doubleline"
-                    Icon="{StaticResource import_regular}"
-                    Command="{Binding ImportWalletCommand}" />
+          <Style Selector="Panel.small c|TileButton">
+            <Setter Property="Width" Value="120" />
+            <Setter Property="VerticalContentAlignment" Value="Bottom"/>
+          </Style>
+        </UniformGrid.Styles>
+        <c:TileButton Text="Create a new wallet"
+                      Classes="action doubleline"
+                      Icon="{StaticResource add_regular}"
+                      Command="{Binding CreateWalletCommand}"
+                      IsDefault="{Binding IsActive}" />
 
-      <c:TileButton Text="Recover a wallet"
-                    Classes="doubleline"
-                    Icon="{StaticResource recover_arrow_right_regular}"
-                    Command="{Binding RecoverWalletCommand}" />
-    </UniformGrid>
+        <c:TileButton Text="Connect to hardware wallet"
+                      Classes="doubleline"
+                      Icon="{StaticResource calculator_regular}"
+                      Command="{Binding ConnectHardwareWalletCommand}" />
+
+        <c:TileButton Text="Import a wallet"
+                      Classes="doubleline"
+                      Icon="{StaticResource import_regular}"
+                      Command="{Binding ImportWalletCommand}" />
+
+        <c:TileButton Text="Recover a wallet"
+                      Classes="doubleline"
+                      Icon="{StaticResource recover_arrow_right_regular}"
+                      Command="{Binding RecoverWalletCommand}" />
+      </UniformGrid>
+    </Panel>
   </c:ContentArea>
 </UserControl>

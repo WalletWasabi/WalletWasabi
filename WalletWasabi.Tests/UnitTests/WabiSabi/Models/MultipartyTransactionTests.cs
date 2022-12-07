@@ -1,15 +1,15 @@
 using NBitcoin;
 using System.Collections.Immutable;
-using WalletWasabi.Crypto;
 using System.Linq;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Tests.Helpers;
 using Xunit;
-using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
@@ -23,7 +23,9 @@ public class MultipartyTransactionTests
 		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
 		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 	}) with
-	{ MiningFeeRate = new FeeRate(0m) };
+	{
+		MiningFeeRate = new FeeRate(0m)
+	};
 
 	private static readonly CoinJoinInputCommitmentData CommitmentData = WabiSabiFactory.CreateCommitmentData();
 
