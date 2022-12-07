@@ -97,6 +97,7 @@ public record ConstructionState : MultipartyTransactionState
 
 		return this with { Events = Events.Add(new OutputAdded(output)) };
 	}
+
 	public SigningState Finalize()
 	{
 		if (EstimatedVsize > Parameters.MaxTransactionSize)

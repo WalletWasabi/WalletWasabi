@@ -17,30 +17,31 @@ namespace WalletWasabi.Blockchain.Transactions;
 
 public class TransactionStore : IAsyncDisposable
 {
-	public string WorkFolderPath { get; private set; }
-	public Network Network { get; private set; }
+	public TransactionStore(string workFolderPath, Network network)
+	{
+		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+		Network = network;
 
-	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new Dictionary<uint256, SmartTransaction>();
-	private object TransactionsLock { get; } = new object();
+		// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
+		TransactionsFileManager = new IoManager(filePath: Path.Combine(WorkFolderPath, "Transactions.dat"));
+	}
+
+	public string WorkFolderPath { get; }
+	public Network Network { get; }
+
+	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
+	private object TransactionsLock { get; } = new();
 	private IoManager TransactionsFileManager { get; set; }
-	private AsyncLock TransactionsFileAsyncLock { get; } = new AsyncLock();
-	private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
-	private object OperationsLock { get; } = new object();
+	private AsyncLock TransactionsFileAsyncLock { get; } = new();
+	private List<ITxStoreOperation> Operations { get; } = new();
+	private object OperationsLock { get; } = new();
 
-	private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
+	private AbandonedTasks AbandonedTasks { get; } = new();
 
-	public async Task InitializeAsync(string workFolderPath, Network network, string operationName, CancellationToken cancel)
+	public async Task InitializeAsync(string operationName, CancellationToken cancel)
 	{
 		using (BenchmarkLogger.Measure(operationName: operationName))
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			Network = Guard.NotNull(nameof(network), network);
-
-			var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
-
-			// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
-			TransactionsFileManager = new IoManager(transactionsFilePath);
-
 			cancel.ThrowIfCancellationRequested();
 			using (await TransactionsFileAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
@@ -101,7 +102,7 @@ public class TransactionStore : IAsyncDisposable
 		{
 			// We found a corrupted entry. Stop here.
 			// Delete the corrupted file.
-			// Do not try to autocorrect, because the internal data structures are throwing events that may confuse the consumers of those events.
+			// Do not try to automatically correct the data, because the internal data structures are throwing events that may confuse the consumers of those events.
 			Logger.LogError($"{TransactionsFileManager.FileNameWithoutExtension} file got corrupted. Deleting it...");
 			TransactionsFileManager.DeleteMe();
 			throw;
