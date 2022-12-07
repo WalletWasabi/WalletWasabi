@@ -24,7 +24,7 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 			caffeinate -i &
 			caffeinatePid=$!;
 			trap \"kill -9 \$caffeinatePid\" 0 SIGINT SIGTERM;
-			while [ -n \"$(grep {{Environment.ProcessId}} )\" ];
+			while (ps -p {{Environment.ProcessId}} );
 			do
 				sleep 1;
 			done;
