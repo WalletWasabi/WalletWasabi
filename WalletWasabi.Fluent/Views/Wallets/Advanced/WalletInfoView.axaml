@@ -76,12 +76,12 @@
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public External Output descriptor"
                        TextValue="{Binding WpkhOutputDescriptors.PublicExternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PublicExternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PublicExternal}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public Internal Output descriptor"
                        TextValue="{Binding WpkhOutputDescriptors.PublicInternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PublicInternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PublicInternal}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
 
         <c:PreviewItem Icon="{StaticResource key_regular}"
@@ -89,21 +89,21 @@
                        IsVisible="{Binding !!WpkhOutputDescriptors.PrivateExternal}"
                        PrivacyModeEnabled="{Binding !ShowSensitiveData}"
                        TextValue="{Binding WpkhOutputDescriptors.PrivateExternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PrivateExternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PrivateExternal}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Private Internal Output descriptor"
                        IsVisible="{Binding !!WpkhOutputDescriptors.PrivateInternal}"
                        PrivacyModeEnabled="{Binding !ShowSensitiveData}"
                        TextValue="{Binding WpkhOutputDescriptors.PrivateInternal}">
-          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PrivateInternal}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+          <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhOutputDescriptors.PrivateInternal}" ForceShow="{Binding ShowSensitiveData}" />
         </c:PreviewItem>
       </StackPanel>
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key"
                      TextValue="{Binding ExtendedAccountPublicKey}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
 
       <Separator />
@@ -111,7 +111,7 @@
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account zpub"
                      TextValue="{Binding ExtendedAccountZpub}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountZpub}" ForceShow="{Binding ShowSensitiveData}" NumberOfPrivacyChars="38" />
+        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountZpub}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>
