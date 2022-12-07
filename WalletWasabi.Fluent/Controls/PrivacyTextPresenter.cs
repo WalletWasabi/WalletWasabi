@@ -25,7 +25,7 @@ public class PrivacyTextPresenter : UserControl
 			Size.Infinity);
 	}
 
-	private GlyphRun CreateGlyphRun(double width)
+	private GlyphRun? CreateGlyphRun(double width)
 	{
 		var privacyChar = UIConstants.PrivacyChar;
 
@@ -36,6 +36,10 @@ public class PrivacyTextPresenter : UserControl
 		var advance = glyphTypeface.GetGlyphAdvance(glyph) * scale;
 
 		var count = (int) (width / advance);
+		if (count == 0)
+		{
+			return null;
+		}
 
 		var advances = new ReadOnlySlice<double>(new ReadOnlyMemory<double>(Enumerable.Repeat(advance, count).ToArray()));
 		var characters = new ReadOnlySlice<char>(new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray()));
@@ -69,6 +73,9 @@ public class PrivacyTextPresenter : UserControl
 			_width = width;
 		}
 
-		context.DrawGlyphRun(Foreground, _glyphRun);
+		if (_glyphRun is { })
+		{
+			context.DrawGlyphRun(Foreground, _glyphRun);
+		}
 	}
 }
