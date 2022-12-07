@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Moq;
 using NBitcoin;
 using System.Linq;
@@ -33,6 +34,43 @@ public class TransactionFactoryTests
 
 		Assert.Equal(ex.Minimum, amount);
 		Assert.Equal(ex.Actual, transactionFactory.Coins.Select(x => x.Amount).Sum());
+	}
+
+	[Fact]
+	public void NoAvailableCoinsTest()
+	{
+		var password = "foo";
+		var keyManager = ServiceFactory.CreateKeyManager(password);
+
+		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
+		var scoins = new[]
+		{
+				BitcoinFactory.CreateSmartCoin(NewKey("Pablo"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Daniel"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Adolf"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Maria"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Ding"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Joseph"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Eve"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Julio"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Donald, Jean, Lee, Onur"), 0.9m),
+				BitcoinFactory.CreateSmartCoin(NewKey("Satoshi"), 0.9m)
+		};
+
+		foreach (var coin in scoins)
+		{
+			coin.CoinJoinInProgress = true;
+		}
+
+		var coinsView = new CoinsView(scoins.ToArray());
+		var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password);
+
+		using Key key1 = new();
+		var payment = new PaymentIntent(key1, Money.Coins(1.75m), label: "Sophie");
+		var feeRate = new FeeRate(2m);
+
+		Assert.Throws<NoAvailableCoinsException>(() => transactionFactory.BuildTransaction(payment, feeRate));
 	}
 
 	[Fact]
