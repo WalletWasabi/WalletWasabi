@@ -18,13 +18,13 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 	{
 		string innerCommand = $$"""
 			caffeinate -i &
-			caffeinatePid=\$!;
+			caffeinatePid=$!;
 			trap \"kill -9 \$caffeinatePid\" 0 SIGINT SIGTERM;
-			while [ -n "$(grep {{Environment.ProcessId}})" ];
+			while [ -n \"$(grep {{Environment.ProcessId}} )\" ];
 			do
-			    sleep 1;
+				sleep 1;
 			done;
-			""".ReplaceLineEndings(replacementText: " ");
+			""" .ReplaceLineEndings(replacementText: " ");
 
 		string command = $"/bin/bash";
 		string arguments = $"-c \"{innerCommand}\"";
