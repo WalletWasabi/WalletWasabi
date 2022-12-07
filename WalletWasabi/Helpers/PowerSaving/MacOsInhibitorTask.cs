@@ -17,9 +17,9 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
 		string innerCommand = $$"""
-			$(caffeinate -i &) ;
-			caffeinatePid=$!;
-			trap \"kill -9 $caffeinatePid\" 0 SIGINT SIGTERM;
+			\$(caffeinate -i &) ;
+			caffeinatePid=\$!;
+			trap \"kill -9 \$caffeinatePid\" 0 SIGINT SIGTERM;
 			wait {{Environment.ProcessId}};
 			""".ReplaceLineEndings(replacementText: " ");
 
