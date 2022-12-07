@@ -209,13 +209,9 @@ public class CoinJoinClient
 			{
 				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, smartCoins, cancellationToken).ConfigureAwait(false);
 			}
-			catch (UnexpectedRoundPhaseException ex)
+			catch (UnexpectedRoundPhaseException ex) when (ex.Actual == Phase.Ended)
 			{
-				// If the actual state of the round in Ended we let the execution continue.
-				if (ex.Actual != Phase.Ended)
-				{
-					throw;
-				}
+				// Do nothing - if the actual state of the round in Ended we let the execution continue.
 			}
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
@@ -1104,41 +1100,26 @@ public class CoinJoinClient
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
 		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
-		try
+		using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+
+		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
+
+		// Register coins.
+		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+
+		if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
 		{
-			using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
-
-			CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
-
-			// Register coins.
-			var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
-
-			if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
-			{
-				throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
-			}
-
-			if (!result.IsDefaultOrEmpty)
-			{
-				// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
-				var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
-				CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
-			}
-
-			return result;
+			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
 		}
-		catch (UnexpectedRoundPhaseException ex)
+
+		if (!result.IsDefaultOrEmpty)
 		{
-			roundState = ex.RoundState;
-			var message = ex.RoundState.EndRoundState switch
-			{
-				EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
-				_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
-			};
-
-			roundState.LogInfo(message);
-			return ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
+			// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+			var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
 		}
+
+		return result;
 	}
 }
