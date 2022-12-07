@@ -14,7 +14,6 @@
       <c:PreviewItem Label="Number of coins (UTXOs)"
                      TextValue="{Binding CoinCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding CoinCount}" />
       </c:PreviewItem>
       <Separator />
@@ -52,28 +51,24 @@
       <c:PreviewItem Label="Number of addresses"
                      TextValue="{Binding GeneratedKeyCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding GeneratedKeyCount}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Number of clean addresses"
                      TextValue="{Binding GeneratedCleanKeyCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding GeneratedCleanKeyCount}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Number of locked addresses"
                      TextValue="{Binding GeneratedLockedKeyCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding GeneratedLockedKeyCount}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Number of used addresses"
                      TextValue="{Binding GeneratedUsedKeyCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding GeneratedUsedKeyCount}" />
       </c:PreviewItem>
 
@@ -81,14 +76,12 @@
       <c:PreviewItem Label="Largest receive key gap"
                      TextValue="{Binding LargestExternalKeyGap}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding LargestExternalKeyGap}" />
       </c:PreviewItem>
       <Separator />
       <c:PreviewItem Label="Largest change key gap"
                      TextValue="{Binding LargestInternalKeyGap}">
         <c:PrivacyContentControl Classes="monoSpaced"
-
                                  Content="{Binding LargestInternalKeyGap}" />
       </c:PreviewItem>
     </StackPanel>
