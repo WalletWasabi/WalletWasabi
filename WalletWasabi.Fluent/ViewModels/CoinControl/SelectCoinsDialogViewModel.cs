@@ -1,13 +1,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive.Linq;
+using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
-using Avalonia.Data;
-using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -31,10 +28,14 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
+	private readonly CompositeDisposable _disposables = new ();
+
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var items = CreateItems(pockets);
+		items.ToList().ForEach(x => x.DisposeWith(_disposables));
+		
 		SetSelectionState(items, selectedCoins);
 
 		var pocketColumn = PocketColumn();
@@ -68,6 +69,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		_disposables.Dispose();
+
+		base.OnNavigatedFrom(isInHistory);
+	}
 
 	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
 	{

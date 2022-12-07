@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -7,15 +8,17 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
-public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchicallySelectable
+public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchicallySelectable, IDisposable
 {
 	private bool? _isSelected;
+	private readonly CompositeDisposable _disposables = new();
 
 	public CoinControlItemViewModelBase(IEnumerable<IHierarchicallySelectable> children)
 	{
 		Selectables = children.ToList();
 		Children = Selectables.Cast<CoinControlItemViewModelBase>().ToList();
-		HierarchicalSelection = new HierarchicalSelection(this);
+		HierarchicalSelectionHandler = new HierarchicalSelectionHandler(this);
+		HierarchicalSelectionHandler.DisposeWith(_disposables);
 	}
 
 	public bool IsPrivate => Labels == CoinPocketHelper.PrivateFundsText;
@@ -46,7 +49,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchica
 
 	public bool IsExpanded { get; set; } = true;
 
-	public HierarchicalSelection HierarchicalSelection { get; }
+	public HierarchicalSelectionHandler HierarchicalSelectionHandler { get; }
 
 	public bool CanBeSelected { get; protected set; }
 
@@ -63,6 +66,15 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase, IHierarchica
 			}
 
 			this.RaiseAndSetIfChanged(ref _isSelected, value);
+		}
+	}
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
+		foreach (var child in Children)
+		{
+			child.Dispose();
 		}
 	}
 }
