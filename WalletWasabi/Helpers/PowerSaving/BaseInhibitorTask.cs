@@ -58,6 +58,10 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		{
 			Logger.LogTrace("Elapsed time limit for the inhibitor task to live.");
 		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug(ex);
+		}
 		finally
 		{
 			if (!Process.HasExited)
