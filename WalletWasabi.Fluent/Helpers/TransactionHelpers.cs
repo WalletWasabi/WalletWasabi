@@ -33,7 +33,7 @@ public static class TransactionHelpers
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			coins.Where(coin => coin.IsAvailable()).Select(coin => coin.Outpoint),
+			coins.Select(coin => coin.Outpoint),
 			tryToSign: tryToSign);
 
 		return txRes;

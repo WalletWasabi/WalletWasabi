@@ -83,7 +83,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					var pockets = wallet.GetPockets();
 					var spentCoins = transaction.SpentCoins;
 					var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
-					var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
+					var coinsToUse = usedPockets.SelectMany(x => x.Coins).Where(coin => coin.IsAvailable()).ToImmutableArray();
 
 					IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
 						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
