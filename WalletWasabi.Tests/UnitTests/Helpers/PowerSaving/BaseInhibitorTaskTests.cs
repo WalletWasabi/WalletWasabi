@@ -22,7 +22,7 @@ public class BaseInhibitorTaskTests
 		mockProcess.Setup(p => p.WaitForExitAsync(It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.Returns((CancellationToken cancellationToken, bool killOnCancel) => Task.Delay(Timeout.Infinite, cancellationToken));
 		mockProcess.Setup(p => p.HasExited).Returns(false);
-		mockProcess.Setup(p => p.Kill());
+		mockProcess.Setup(p => p.Kill(It.IsAny<bool>()));
 
 		TestInhibitorClass psTask = new(TimeSpan.FromSeconds(10), DefaultReason, mockProcess.Object);
 
