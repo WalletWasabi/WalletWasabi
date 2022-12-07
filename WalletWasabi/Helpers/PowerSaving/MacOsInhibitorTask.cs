@@ -16,8 +16,15 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
-		string command = $"caffeinate";
-		string arguments = $"-i";
+		string innerCommand = $$"""
+			caffeinate -i &;
+			caffeinatePid=$!;
+			trap \"kill -9 $caffeinatePid\" 0 SIGINT SIGTERM;
+			wait {{Environment.ProcessId}};
+			""".ReplaceLineEndings(replacementText: " ");
+
+		string command = $"/bin/bash";
+		string arguments = $"-c \"{innerCommand}\"";
 
 		Logger.LogTrace($"Command to invoke: {command} {arguments}");
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);

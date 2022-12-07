@@ -65,7 +65,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 				// Process cannot stop on its own so we know it is actually running.
 				try
 				{
-					Process.Kill();
+					Process.Kill(entireProcessTree: true);
 					Logger.LogTrace("Inhibit task was killed.");
 				}
 				catch (Exception ex)
