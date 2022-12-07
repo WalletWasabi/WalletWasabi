@@ -81,14 +81,14 @@ public class SmartCoinSelector : ICoinSelector
 			.OrderBy(group => group.Unconfirmed)
 			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
 			.ThenByDescending(group => group.ClusterPrivacy)   // Select lesser-known coins.
-			.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
+			.ThenBy(group => group.Amount)           // Once we order them by cluster-privacy, we want to be as close to the target as we can.
 			.First()
 			.Coins;
 
 		var coinsInBestClusterByScript = bestCoinCluster
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
-			.OrderBy(x => x.Coins.Sum(c => c.Amount))
+			.OrderByDescending(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
 		// {1} {2} ... {n} {1, 2} {1, 2, 3} {1, 2, 3, 4} ... {1, 2, 3, 4, 5 ... n}
@@ -96,12 +96,13 @@ public class SmartCoinSelector : ICoinSelector
 				.Concat(coinsInBestClusterByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
 
 		// Flattens the groups of coins and filters out the ones that are too small.
-		// Finally it sorts the solutions by number or coins (those with less coins on the top).
+		// Finally it sorts the solutions by amount and coins (those with less coins on the top).
 		var candidates = coinsGroup
 			.Select(x => x.SelectMany(y => y.Coins))
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
-			.OrderBy(x => x.Coins.Count());
+			.OrderBy(x => x.Total)              // the closer we are to the target the better
+			.ThenBy(x => x.Coins.Count());      // prefer lesser coin selection on the same amount
 
 		IterationCount++;
 

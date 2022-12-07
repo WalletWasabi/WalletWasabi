@@ -58,7 +58,7 @@ public class SingleInstanceCheckerTests
 		int mainNetPort = GenerateRandomPort();
 
 		// Disposal test.
-		await using SingleInstanceChecker firstInstance = new(mainNetPort);
+		await using SingleInstanceChecker firstInstance = new(mainNetPort, TimeoutMultiplier);
 		long eventCalled = 0;
 
 		firstInstance.OtherInstanceStarted += SetCalled;

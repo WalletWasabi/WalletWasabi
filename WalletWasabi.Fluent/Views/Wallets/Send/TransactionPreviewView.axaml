@@ -39,7 +39,7 @@
             </Viewbox>
           </Button>
 
-          <Border Padding="10 0 10 10" Cursor="Hand" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
+          <Border Padding="10 0 10 10" IsVisible="{Binding CurrentTransactionSummary.MaxPrivacy}">
             <Interaction.Behaviors>
               <behaviors:ShowFlyoutOnPointerOverBehavior />
             </Interaction.Behaviors>

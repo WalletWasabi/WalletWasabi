@@ -23,7 +23,7 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var privacyTextCell = (PrivacyTextCell) model;
+		var privacyTextCell = (PrivacyTextCell)model;
 		var text = privacyTextCell.Value;
 
 		_numberOfPrivacyChars = privacyTextCell.NumberOfPrivacyChars;
@@ -40,6 +40,11 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	public override void Render(DrawingContext context)
 	{
+		if (this.Background is { } background)
+		{
+			context.FillRectangle(background, new Rect(this.Bounds.Size));
+		}
+
 		if (_formattedText is null)
 		{
 			var placeHolder = new FormattedText(

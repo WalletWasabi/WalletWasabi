@@ -90,7 +90,7 @@ public class Global
 
 		HttpClientFactory = new HttpClientFactory(
 			Config.UseTor ? TorSettings.SocksEndpoint : null,
-			backendUriGetter: () => Config.GetClearnetBackendUri());
+			backendUriGetter: () => Config.GetBackendUri());
 
 		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 		LegalChecker = new(DataDir);
