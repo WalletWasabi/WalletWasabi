@@ -28,11 +28,11 @@ public class SerializationTests
 	public void InputRegistrationRequestMessageSerialization()
 	{
 		var message = new InputRegistrationRequest(
-				BitcoinFactory.CreateUint256(),
-				BitcoinFactory.CreateOutPoint(),
-				new OwnershipProof(),
-				CreateZeroCredentialsRequest(),
-				CreateZeroCredentialsRequest());
+			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateOutPoint(),
+			new OwnershipProof(),
+			CreateZeroCredentialsRequest(),
+			CreateZeroCredentialsRequest());
 
 		AssertSerialization(message);
 	}

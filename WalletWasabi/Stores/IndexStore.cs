@@ -229,11 +229,11 @@ public class IndexStore : IAsyncDisposable
 			// Before Wasabi 1.1.6
 			var oldFileNames = new[]
 			{
-					"ImmatureIndex.dat" ,
-					"ImmatureIndex.dat.dig",
-					"MatureIndex.dat",
-					"MatureIndex.dat.dig"
-				};
+				"ImmatureIndex.dat" ,
+				"ImmatureIndex.dat.dig",
+				"MatureIndex.dat",
+				"MatureIndex.dat.dig"
+			};
 
 			var oldIndexFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "BitcoinStore", Network.ToString());
 
