@@ -153,8 +153,6 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			NotifyWalletStartedCoinJoin(walletToStart);
-
 			if (IsUserInSendWorkflow)
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
@@ -203,6 +201,7 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			NotifyWalletStartedCoinJoin(walletToStart);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
