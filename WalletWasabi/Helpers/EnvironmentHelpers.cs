@@ -13,15 +13,6 @@ namespace WalletWasabi.Helpers;
 
 public static class EnvironmentHelpers
 {
-	[Flags]
-	private enum EXECUTION_STATE : uint
-	{
-		ES_AWAYMODE_REQUIRED = 0x00000040,
-		ES_CONTINUOUS = 0x80000000,
-		ES_DISPLAY_REQUIRED = 0x00000002,
-		ES_SYSTEM_REQUIRED = 0x00000001
-	}
-
 	// appName, dataDir
 	private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
 
@@ -121,7 +112,7 @@ public static class EnvironmentHelpers
 	// This method removes the path and file extension.
 	//
 	// Given Wasabi releases are currently built using Windows, the generated assemblies contain
-	// the hardcoded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
+	// the hard coded "C:\Users\User\Desktop\WalletWasabi\.......\FileName.cs" string because that
 	// is the real path of the file, it doesn't matter what OS was targeted.
 	// In Windows and Linux that string is a valid path and that means Path.GetFileNameWithoutExtension
 	// can extract the file name but in the case of OSX the same string is not a valid path so, it assumes
@@ -231,31 +222,5 @@ public static class EnvironmentHelpers
 		var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? throw new NullReferenceException("Assembly or Assembly's Name was null.");
 		var fluentExecutable = Path.Combine(fullBaseDir, assemblyName);
 		return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{fluentExecutable}.exe" : $"{fluentExecutable}";
-	}
-
-	[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-	private static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
-
-	/// <summary>
-	/// Reset the system sleep timer, this method has to be called from time to time to prevent sleep.
-	/// It does not prevent the display to turn off.
-	/// </summary>
-	public static async Task ProlongSystemAwakeAsync()
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			// Reset the system sleep timer.
-			var result = SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED);
-			if (result == 0)
-			{
-				throw new InvalidOperationException("SetThreadExecutionState failed.");
-			}
-		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			// Prevent macOS system from idle sleep and keep it for 1 second. This will reset the idle sleep timer.
-			string shellCommand = $"caffeinate -i -t 1";
-			await ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
-		}
 	}
 }
