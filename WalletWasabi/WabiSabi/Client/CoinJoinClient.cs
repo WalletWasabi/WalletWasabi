@@ -261,7 +261,7 @@ public class CoinJoinClient
 			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClientAndCircuits.Any())
 			{
-				throw new NoCoinsToMixException($"The coordinator rejected all of our inputs({smartCoins.Count()}).");
+				throw new NoCoinsToMixException($"The coordinator rejected all of our inputs ({smartCoins.Count()}).");
 			}
 
 			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
