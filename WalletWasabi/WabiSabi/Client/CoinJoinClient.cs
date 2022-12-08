@@ -211,7 +211,7 @@ public class CoinJoinClient
 			}
 			catch (UnexpectedRoundPhaseException ex) when (ex.Actual == Phase.Ended)
 			{
-				// Do nothing - if the actual state of the round in Ended we let the execution continue.
+				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
