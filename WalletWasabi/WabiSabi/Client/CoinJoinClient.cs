@@ -246,11 +246,6 @@ public class CoinJoinClient
 		}
 	}
 
-	private record CoinJoinRoundResult(
-		ImmutableArray<AliceClient> AliceClientsThatSigned,
-		IEnumerable<TxOut> OutputTxOuts,
-		Transaction UnsignedCoinJoin);
-
 	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
 	{
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
