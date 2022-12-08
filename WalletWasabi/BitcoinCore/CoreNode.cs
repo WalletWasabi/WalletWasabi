@@ -129,7 +129,7 @@ public class CoreNode
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
-					$"{configPrefix}.disablewallet	= 1",
+					$"{configPrefix}.disablewallet	= 1", // https://github.com/zkSNACKs/WalletWasabi/pull/9714
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
