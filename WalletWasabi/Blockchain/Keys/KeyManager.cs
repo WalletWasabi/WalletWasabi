@@ -359,6 +359,12 @@ public class KeyManager
 		return newKey;
 	}
 
+	public HdPubKey GetNextChangeKey() =>
+		GetKeys(x => 
+			x.KeyState == KeyState.Clean && 
+			x.IsInternal == true &&
+		    x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
+	
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
 		// BIP44-ish derivation scheme
