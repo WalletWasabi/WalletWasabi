@@ -256,6 +256,7 @@ public class Global
 							EndPointStrategy.Default(Network, EndPointType.Rpc),
 							txIndex: null,
 							prune: null,
+							disableWallet: 1,
 							mempoolReplacement: "fee,optin",
 							userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 							fallbackFee: null, // ToDo: Maybe we should have it, not only for tests?
