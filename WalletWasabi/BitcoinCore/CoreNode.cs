@@ -258,7 +258,7 @@ public class CoreNode
 
 		Process process = Process.Start(startInfo)!;
 
-		string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+		string responseString = await process.StandardOutput.ReadToEndAsync(cancel).ConfigureAwait(false);
 		await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 		if (process.ExitCode != 0)
