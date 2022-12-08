@@ -129,7 +129,6 @@ public class CoreNode
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
-					$"{configPrefix}.disablewallet	= 1", // https://github.com/zkSNACKs/WalletWasabi/pull/9714
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
@@ -150,6 +149,11 @@ public class CoreNode
 			if (coreNodeParams.Prune is { })
 			{
 				desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
+			}
+
+			if (coreNodeParams.DisableWallet is { })
+			{
+				desiredConfigLines.Add($"{configPrefix}.disablewallet = {coreNodeParams.DisableWallet}");
 			}
 
 			if (coreNodeParams.MempoolReplacement is { })
