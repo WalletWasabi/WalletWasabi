@@ -6,8 +6,8 @@ This document lists all the officially supported software and devices by Wasabi 
 
 - Windows 10 1607+
 - Windows 11 22000+
-- macOs 10.15+
-- Ubuntu 16.04, 18.04, 20.04+
+- macOS 10.15+
+- Ubuntu 18.04+
 - Fedora 33+
 - Debian 10+
 
