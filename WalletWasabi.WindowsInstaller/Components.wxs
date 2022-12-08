@@ -33,5 +33,16 @@
         <RemoveFolder Id="RemoveDesktop" Directory="DesktopFolder" On="uninstall" />
       </Component>
     </DirectoryRef>
+
+    <CustomAction Id="EXECUTE_AFTER_FINALIZE"
+        Execute="immediate" 
+        Impersonate="no"
+        Return="asyncNoWait"
+        Directory="INSTALLFOLDER"
+        ExeCommand="[INSTALLFOLDER]wassabee.exe" />
+
+    <InstallExecuteSequence>
+      <Custom Action="EXECUTE_AFTER_FINALIZE" After="InstallFinalize">NOT Installed</Custom>
+    </InstallExecuteSequence>
   </Fragment>
 </Wix>
