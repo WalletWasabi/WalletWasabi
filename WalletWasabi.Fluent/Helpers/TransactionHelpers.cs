@@ -57,7 +57,7 @@ public static class TransactionHelpers
 			payments: intent,
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
-			allowedInputs: coins.Where(coin => coin.IsAvailable()).Select(coin => coin.Outpoint),
+			allowedInputs: coins.Select(coin => coin.Outpoint),
 			payjoinClient: payJoinClient,
 			tryToSign: tryToSign);
 
@@ -118,7 +118,7 @@ public static class TransactionHelpers
 			builder.BuildTransaction(
 				intent,
 				feeRateFetcher: () => transactionInfo.FeeRate,
-				allowedCoins.Where(coin => coin.IsAvailable()).Select(x => x.Outpoint),
+				allowedCoins.Select(x => x.Outpoint),
 				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
 				transactionInfo.PayJoinClient,
 				tryToSign: false);
