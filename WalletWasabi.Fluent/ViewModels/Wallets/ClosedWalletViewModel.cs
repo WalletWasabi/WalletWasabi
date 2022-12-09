@@ -1,5 +1,5 @@
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
@@ -11,19 +11,13 @@ public class ClosedWalletViewModel : WalletViewModelBase
 	protected ClosedWalletViewModel(Wallet wallet)
 		: base(wallet)
 	{
+		Loading = new LoadingViewModel(Wallet);
+
+		this.WhenAnyValue(x => x.Loading.IsLoading)
+			.BindTo(this, x => x.IsLoading);
 	}
 
-	public LoadingViewModel? Loading { get; private set; }
-
-	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-	{
-		base.OnNavigatedTo(isInHistory, disposables);
-
-		Loading ??= new LoadingViewModel(Wallet);
-		Loading.Activate(disposables);
-
-		IsLoading = true;
-	}
+	public LoadingViewModel Loading { get; }
 
 	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
 	{
