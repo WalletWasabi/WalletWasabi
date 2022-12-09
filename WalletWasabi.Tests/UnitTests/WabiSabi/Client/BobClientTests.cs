@@ -1,12 +1,15 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
@@ -44,7 +47,8 @@ public class BobClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackCoordinatorSignerKeyHex);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
