@@ -74,7 +74,7 @@ public class TransactionFactory
 		{
 			if (!allowedInputs.Any())
 			{
-				throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+				throw new ArgumentException($"Specified input list ({nameof(allowedInputs)}) was not null, but empty.");
 			}
 
 			allowedSmartCoinInputs = allowedSmartCoinInputs
