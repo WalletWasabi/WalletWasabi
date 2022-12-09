@@ -314,6 +314,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return result ? await BuildTransactionAsync(reason) : null;
 		}
+		catch (ArgumentException ex)
+		{
+			Logger.LogInfo(ex.Message);
+
+			await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
+				"Wasabi was unable to create your transaction.");
+
+			return null;
+		}
 		catch (NoAvailableCoinsException ex)
 		{
 			Logger.LogInfo(ex.Message);
@@ -480,6 +489,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				_cancellationTokenSource?.Cancel();
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
+		}
+		catch (NoAvailableCoinsException ex)
+		{
+			Logger.LogInfo(ex.Message);
+			await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
+				"Wasabi was unable to send your transaction.");
 		}
 		catch (Exception ex)
 		{
