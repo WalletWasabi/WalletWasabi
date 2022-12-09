@@ -494,7 +494,7 @@ public class CoinJoinClient
 		{
 			try
 			{
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
 			}
 			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 			{
@@ -1089,7 +1089,7 @@ public class CoinJoinClient
 			? registeredAliceClients
 			: registeredAliceClients.RemoveAt(SecureRandom.GetInt(0, registeredAliceClients.Length));
 
-		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateEndTime, combinedToken).Wait(cancellationToken);
 		roundState.LogInfo($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.");
 
 		return (unsignedCoinJoin.Transaction, alicesToSign);

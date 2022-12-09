@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
@@ -200,14 +201,17 @@ public class ArenaClient
 		TransactionWithPrecomputedData unsignedCoinJoin,
 		CancellationToken cancellationToken)
 	{
+		Logger.LogDebug("Start calculations");
 		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, ownershipProof, unsignedCoinJoin.PrecomputedTransactionData);
 		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
+		Logger.LogDebug("Verifying script");
 		if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
 		{
 			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 		}
-
-		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		Logger.LogDebug("Sending request");
+		RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).Wait(cancellationToken);
+		Logger.LogDebug("Sent request - done");
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
