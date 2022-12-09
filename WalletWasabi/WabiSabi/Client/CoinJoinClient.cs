@@ -200,30 +200,28 @@ public class CoinJoinClient
 	{
 		var roundId = roundState.Id;
 
-		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
-
 		try
 		{
-			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
-			if (!registeredAliceClientAndCircuits.Any())
+			ImmutableArray<AliceClient> aliceClientsThatSigned = ImmutableArray<AliceClient>.Empty;
+			IEnumerable<TxOut> outputTxOuts = Enumerable.Empty<TxOut>();
+			Transaction? unsignedCoinJoin = null;
+			try
 			{
-				return new CoinJoinResult(false);
+				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, smartCoins, cancellationToken).ConfigureAwait(false);
 			}
-
-			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
-
-			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
-
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
-
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			catch (UnexpectedRoundPhaseException ex) when (ex.Actual == Phase.Ended)
+			{
+				// Do nothing - if the actual state of the round is Ended we let the execution continue.
+			}
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
 
+			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
+
 			var msg = roundState.EndRoundState switch
 			{
-				EndRoundState.TransactionBroadcasted => $"Broadcasted. Coinjoin TxId: ({unsignedCoinJoin.GetHash()})",
-				EndRoundState.TransactionBroadcastFailed => $"Failed to broadcast. Coinjoin TxId: ({unsignedCoinJoin.GetHash()})",
+				EndRoundState.TransactionBroadcasted => $"Broadcasted. Coinjoin TxId: ({hash})",
+				EndRoundState.TransactionBroadcastFailed => $"Failed to broadcast. Coinjoin TxId: ({hash})",
 				EndRoundState.AbortedWithError => "Round abnormally finished.",
 				EndRoundState.AbortedNotEnoughAlices => "Aborted. Not enough participants.",
 				EndRoundState.AbortedNotEnoughAlicesSigned => "Aborted. Not enough participants signed the coinjoin transaction.",
@@ -234,16 +232,45 @@ public class CoinJoinClient
 				_ => throw new ArgumentOutOfRangeException()
 			};
 			roundState.LogInfo(msg);
-
-			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
-
-			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
-
 			return new CoinJoinResult(
 				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
 				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
-				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList());
+				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
+				UnsignedCoinJoin: unsignedCoinJoin);
+		}
+		finally
+		{
+			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+		}
+	}
+
+	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
+	{
+		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
+		try
+		{
+			var roundId = roundState.Id;
+
+			registeredAliceClientAndCircuits = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+			if (!registeredAliceClientAndCircuits.Any())
+			{
+				throw new NoCoinsToMixException($"The coordinator rejected all {smartCoins.Count()} inputs.");
+			}
+
+			roundState.LogInfo($"Successfully registered {registeredAliceClientAndCircuits.Length} inputs.");
+
+			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
+
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
+
+			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
+
+			return (aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin);
 		}
 		finally
 		{
@@ -257,8 +284,6 @@ public class CoinJoinClient
 				aliceClientAndCircuit.AliceClient.Finish();
 				aliceClientAndCircuit.PersonCircuit.Dispose();
 			}
-			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
 	}
 
@@ -318,11 +343,13 @@ public class CoinJoinClient
 					// if the round does not exist then it ended/aborted.
 					registrationsCts.Cancel();
 					confirmationsCts.Cancel();
+					roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
 				}
 				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
 				{
 					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
+						roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
 						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 						{
 							// Cancel all remaining pending input registrations because they will arrive late too.
@@ -1070,41 +1097,26 @@ public class CoinJoinClient
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
 		var timeUntilOutputReg = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
-		try
+		using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
+
+		CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
+
+		// Register coins.
+		var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
+
+		if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
 		{
-			using CancellationTokenSource timeUntilOutputRegCts = new(timeUntilOutputReg + ExtraPhaseTimeoutMargin);
-			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeUntilOutputRegCts.Token);
-
-			CoinJoinClientProgress.SafeInvoke(this, new EnteringInputRegistrationPhase(roundState, roundState.InputRegistrationEnd));
-
-			// Register coins.
-			var result = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
-
-			if (!RoundStatusUpdater.TryGetRoundState(roundState.Id, out var newRoundState))
-			{
-				throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
-			}
-
-			if (!result.IsDefaultOrEmpty)
-			{
-				// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
-				var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
-				CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
-			}
-
-			return result;
+			throw new InvalidOperationException($"Round '{roundState.Id}' is missing.");
 		}
-		catch (UnexpectedRoundPhaseException ex)
+
+		if (!result.IsDefaultOrEmpty)
 		{
-			roundState = ex.RoundState;
-			var message = ex.RoundState.EndRoundState switch
-			{
-				EndRoundState.AbortedNotEnoughAlices => $"Not enough participants in the round to continue. Waiting for a new round.",
-				_ => $"Registration phase ended by the coordinator: '{ex.Message}' code: '{ex.RoundState.EndRoundState}'."
-			};
-
-			roundState.LogInfo(message);
-			return ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
+			// Be aware: at this point we are already in connection confirmation and all the coins got their first confirmation, so this is not exactly the starting time of the phase.
+			var estimatedRemainingFromConnectionConfirmation = DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			CoinJoinClientProgress.SafeInvoke(this, new EnteringConnectionConfirmationPhase(newRoundState, estimatedRemainingFromConnectionConfirmation));
 		}
+
+		return result;
 	}
 }
