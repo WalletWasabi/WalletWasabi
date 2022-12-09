@@ -31,6 +31,8 @@ public class ArenaClient
 	public WabiSabiClient VsizeCredentialClient { get; }
 	public string CoordinatorIdentifier { get; }
 	public IWabiSabiApiRequestHandler RequestHandler { get; }
+	private TaskCompletionSource<TransactionSignaturesRequest> TransactionSignaturesRequestTaskCompSource { get; } = new();
+	private bool PrecomputeTransactionSignaturesRequestStarted { get; set; } = false;
 
 	public async Task<(ArenaResponse<Guid> ArenaResponse, bool IsPayingZeroCoordinationFee)> RegisterInputAsync(
 		uint256 roundId,
@@ -192,6 +194,37 @@ public class ArenaClient
 		return new(false, zeroAmountCredentials, zeroVsizeCredentials);
 	}
 
+	public void PrecomputeTransactionSignaturesRequest(
+		uint256 roundId,
+		Coin coin,
+		OwnershipProof ownershipProof,
+		IKeyChain keyChain,
+		TransactionWithPrecomputedData unsignedCoinJoin,
+		CancellationToken cancellationToken)
+	{
+		if (PrecomputeTransactionSignaturesRequestStarted)
+		{
+			throw new InvalidOperationException($"{nameof(PrecomputeTransactionSignaturesRequest)} already started.");
+		}
+		PrecomputeTransactionSignaturesRequestStarted = true;
+
+		try
+		{
+			var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, ownershipProof, unsignedCoinJoin.PrecomputedTransactionData);
+			var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
+			if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
+			{
+				throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
+			}
+
+			TransactionSignaturesRequestTaskCompSource.SetResult(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript));
+		}
+		catch (Exception ex)
+		{
+			TransactionSignaturesRequestTaskCompSource.SetException(ex);
+		}
+	}
+
 	public async Task SignTransactionAsync(
 		uint256 roundId,
 		Coin coin,
@@ -200,14 +233,13 @@ public class ArenaClient
 		TransactionWithPrecomputedData unsignedCoinJoin,
 		CancellationToken cancellationToken)
 	{
-		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, ownershipProof, unsignedCoinJoin.PrecomputedTransactionData);
-		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
-		if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
+		if (!PrecomputeTransactionSignaturesRequestStarted)
 		{
-			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
+			PrecomputeTransactionSignaturesRequest(roundId, coin, ownershipProof, keyChain, unsignedCoinJoin, cancellationToken);
 		}
+		var request = await TransactionSignaturesRequestTaskCompSource.Task.ConfigureAwait(false);
 
-		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		await RequestHandler.SignTransactionAsync(request, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)

@@ -485,11 +485,13 @@ public class CoinJoinClient
 			scheduledDates,
 			async (aliceClient, scheduledDate) =>
 			{
+				aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
 				var delay = scheduledDate - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
+
 				try
 				{
 					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
