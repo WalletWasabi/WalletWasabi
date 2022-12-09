@@ -75,7 +75,7 @@ public class CoinJoinManager : BackgroundService
 		// Detects and notifies about wallets that can participate in a coinjoin.
 		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
 
-		// Coinjoin handling Start / Stop and finallization.
+		// Coinjoin handling Start / Stop and finalization.
 		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
 
 		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
@@ -153,8 +153,6 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			NotifyWalletStartedCoinJoin(walletToStart);
-
 			if (IsUserInSendWorkflow)
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
@@ -203,6 +201,7 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			NotifyWalletStartedCoinJoin(walletToStart);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{

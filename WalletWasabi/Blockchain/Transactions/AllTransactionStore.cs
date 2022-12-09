@@ -21,10 +21,10 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-		Network = Guard.NotNull(nameof(network), network);
+		Network = network;
 
-		MempoolStore = new TransactionStore();
-		ConfirmedStore = new TransactionStore();
+		MempoolStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "Mempool"), network);
+		ConfirmedStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion), network);
 	}
 
 	#region Initializers
@@ -40,14 +40,11 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		using (BenchmarkLogger.Measure())
 		{
-			var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
-			var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
-
 			var initTasks = new[]
 			{
-					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
-					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
-				};
+				MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
+				ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
+			};
 
 			await Task.WhenAll(initTasks).ConfigureAwait(false);
 			EnsureConsistency();
