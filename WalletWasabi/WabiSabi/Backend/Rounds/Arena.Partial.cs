@@ -12,6 +12,8 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Events;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -133,6 +135,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
+			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationFlag);
 		}
 	}
 
