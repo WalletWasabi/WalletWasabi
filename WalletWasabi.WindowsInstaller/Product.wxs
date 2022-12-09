@@ -60,9 +60,22 @@
             Event="NewDialog"
             Value="WelcomeDlg"
             Order="99">1</Publish>
+      <Publish Dialog="ExitDialog"
+            Control="Finish"
+            Event="DoAction"
+            Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
     </UI>
 
-    <!-- Define components, shortcuts, files, etc... for instealler. -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Thank you for helping the world staying private." />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Wasabi Wallet" />
+    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]wassabee.exe" />
+
+    <CustomAction Id="LaunchApplication"
+        BinaryKey="WixCA"
+        DllEntry="WixShellExec"
+        Impersonate="yes" />
+
+    <!-- Define components, shortcuts, files, etc... for installer. -->
     <Feature Id="ProductFeature" Title="Wasabi" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="PublishedComponents" />
