@@ -19,6 +19,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Events;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -47,6 +48,9 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
+	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
+	public event EventHandler<CoinjoinTransactionCreatedEventArgs>? CoinjoinTransactionCreated;
+	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
 
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
@@ -274,6 +278,7 @@ public partial class Arena : PeriodicRunner
 				if (state.IsFullySigned)
 				{
 					Transaction coinjoin = state.CreateTransaction();
+					CoinjoinTransactionCreated?.Invoke(this, new CoinjoinTransactionCreatedEventArgs(round.Id, coinjoin));
 
 					// Logging.
 					round.LogInfo("Trying to broadcast coinjoin.");
@@ -636,15 +641,18 @@ public partial class Arena : PeriodicRunner
 	private void AddRound(Round round)
 	{
 		Rounds.Add(round);
+		RoundCreated?.Invoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
 	}
 
 	private void SetRoundPhase(Round round, Phase phase)
 	{
 		round.SetPhase(phase);
+		RoundPhaseChanged?.Invoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
 	}
 
 	private void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
+		RoundPhaseChanged?.Invoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
 	}
 }

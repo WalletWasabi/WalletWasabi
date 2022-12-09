@@ -12,11 +12,14 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Events;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
 public partial class Arena : IWabiSabiApiRequestHandler
 {
+	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
+
 	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		try
@@ -129,6 +132,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
+			AffiliationAdded?.Invoke(this, new AffiliationAddedEventArgs(round.Id, alice.Coin, request.AffiliationFlag, alice.IsPayingZeroCoordinationFee));
 		}
 	}
 
