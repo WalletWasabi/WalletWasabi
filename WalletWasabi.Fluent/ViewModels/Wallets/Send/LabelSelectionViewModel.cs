@@ -51,6 +51,11 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var coins = Pocket.Merge(pockets).Coins;
 		var allCoins = Pocket.Merge(_allPockets).Coins;
 
+		if (!coins.Any())
+		{
+			return false;
+		}
+
 		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(
 			keyManager: _keyManager,
 			transactionInfo: _info,
