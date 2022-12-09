@@ -41,7 +41,7 @@ public class CoinJoinManager : BackgroundService
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	public bool IsUserInSendWorkflow { get; set; }
+	private HashSet<string> WalletsInSendWorkflow { get; } = new ();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -153,7 +153,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (IsUserInSendWorkflow)
+			if (WalletsInSendWorkflow.Contains(walletToStart.WalletName))
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
@@ -522,6 +522,10 @@ public class CoinJoinManager : BackgroundService
 			}
 		}
 	}
+	
+	public void WalletEnteredSendWorkflow(IWallet wallet) => WalletsInSendWorkflow.Add(wallet.WalletName);
+	
+	public void WalletLeftSendWorkflow(IWallet wallet) => WalletsInSendWorkflow.Remove(wallet.WalletName);
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{
