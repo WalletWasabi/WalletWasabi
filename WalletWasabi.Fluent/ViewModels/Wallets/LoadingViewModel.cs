@@ -12,15 +12,15 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class LoadingViewModel : ActivatableViewModel
+public partial class LoadingViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
+	[AutoNotify] private volatile bool _isLoading;
 
 	private Stopwatch? _stopwatch;
-	private volatile bool _isLoading;
 	private uint _filtersToDownloadCount;
 	private uint _filtersToProcessCount;
 	private uint _filterProcessStartingHeight;
@@ -29,10 +29,25 @@ public partial class LoadingViewModel : ActivatableViewModel
 	{
 		_wallet = wallet;
 		_percent = 0;
+	}
+
+	public CompositeDisposable? Disposable { get; private set; }
+
+	public string WalletName => _wallet.WalletName;
+
+	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
+
+	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
+
+	public void Start()
+	{
+		_stopwatch = Stopwatch.StartNew();
+		Disposable = new CompositeDisposable();
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
-			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false));
+			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
+			.DisposeWith(Disposable);
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
 			.SubscribeAsync(async _ =>
@@ -43,22 +58,8 @@ public partial class LoadingViewModel : ActivatableViewModel
 				}
 
 				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
-			});
-	}
-
-	public string WalletName => _wallet.WalletName;
-
-	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
-
-	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
-
-	protected override void OnActivated(CompositeDisposable disposables)
-	{
-		base.OnActivated(disposables);
-
-		Percent = 0;
-		StatusText = " ";
-		_stopwatch ??= Stopwatch.StartNew();
+			})
+			.DisposeWith(Disposable);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -67,7 +68,14 @@ public partial class LoadingViewModel : ActivatableViewModel
 				var processedCount = GetCurrentProcessedCount();
 				UpdateStatus(processedCount);
 			})
-			.DisposeWith(disposables);
+			.DisposeWith(Disposable);
+	}
+
+	public void Stop()
+	{
+		Disposable?.Dispose();
+		Disposable = null;
+		_stopwatch?.Stop();
 	}
 
 	private uint GetCurrentProcessedCount()
@@ -91,12 +99,12 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	private async Task LoadWalletAsync(bool isBackendAvailable)
 	{
-		if (_isLoading)
+		if (IsLoading)
 		{
 			return;
 		}
 
-		_isLoading = true;
+		IsLoading = true;
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
