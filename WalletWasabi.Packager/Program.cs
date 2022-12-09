@@ -34,6 +34,8 @@ public static class Program
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog"/>
 	private static string[] Targets = new[]
 	{
+		// Uncomment once HWI and Tor for Windows arm64 are supported.
+		//"win-arm64",
 		"win7-x64",
 		"linux-x64",
 		"osx-x64",
