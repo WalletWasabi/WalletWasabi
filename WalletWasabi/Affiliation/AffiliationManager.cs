@@ -8,16 +8,17 @@ using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
+using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.Affiliation;
 
 public class AffiliationManager : BackgroundService, IDisposable
 {
-	public AffiliationManager(Arena arena, IReadOnlyDictionary<AffiliationFlag, string> urls, string privateKeyHex, IHttpClientFactory httpClientFactory)
+	public AffiliationManager(Arena arena, WabiSabiConfig wabiSabiConfig, IHttpClientFactory httpClientFactory)
 	{
-		Signer = new(privateKeyHex);
+		Signer = new(wabiSabiConfig.AffiliationMessageSignerKey);
 		Arena = arena;
-		Clients = urls.ToDictionary(
+		Clients = wabiSabiConfig.AffiliateServers.ToDictionary(
 			 x => x.Key,
 			  x =>
 			  {
