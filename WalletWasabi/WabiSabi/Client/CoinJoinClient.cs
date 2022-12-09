@@ -263,6 +263,7 @@ public class CoinJoinClient
 		}
 		finally
 		{
+			// Cancel and handle the task.
 			waitRoundEndedTaskCts.Cancel();
 			try
 			{
@@ -273,6 +274,7 @@ public class CoinJoinClient
 				// Make sure that to not generate UnobserverTaskException.
 				roundState.LogDebug(ex.Message);
 			}
+
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
 
 			// Try to update to the latest roundState.
