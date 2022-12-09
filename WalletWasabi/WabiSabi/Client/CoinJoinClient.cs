@@ -343,11 +343,13 @@ public class CoinJoinClient
 					// if the round does not exist then it ended/aborted.
 					registrationsCts.Cancel();
 					confirmationsCts.Cancel();
+					roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.");
 				}
 				else if (wpe.ErrorCode is WabiSabiProtocolErrorCode.WrongPhase)
 				{
 					if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 					{
+						roundState.LogInfo($"Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.");
 						if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 						{
 							// Cancel all remaining pending input registrations because they will arrive late too.
