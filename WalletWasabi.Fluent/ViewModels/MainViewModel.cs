@@ -53,7 +53,7 @@ public partial class MainViewModel : ViewModelBase
 		_addWalletPage = new AddWalletPageViewModel();
 		_settingsPage = new SettingsPageViewModel();
 		_privacyMode = new PrivacyModeViewModel();
-		_navBar = new NavBarViewModel(MainScreen);
+		_navBar = new NavBarViewModel();
 
 		NavigationManager.RegisterType(_navBar);
 		RegisterViewModels();
