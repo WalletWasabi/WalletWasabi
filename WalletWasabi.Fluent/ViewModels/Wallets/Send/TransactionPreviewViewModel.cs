@@ -375,9 +375,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 
 		var selectedAmount = _info.Coins.Sum(x => x.Amount);
-		var totalBalanceUsed = selectedAmount == _wallet.Coins.TotalAmount();
+		var totalAvailableBalanceUsed = selectedAmount == _wallet.Coins.Available().TotalAmount();
 
-		if (totalBalanceUsed)
+		if (totalAvailableBalanceUsed)
 		{
 			if (selectedAmount == _info.Amount && !(_info.IsFixedAmount || _info.IsPayJoin))
 			{
