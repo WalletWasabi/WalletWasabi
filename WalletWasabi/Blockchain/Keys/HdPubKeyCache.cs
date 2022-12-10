@@ -38,8 +38,8 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
 	{
 		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
-		HdPubKeysByScript.Add(scriptPubKey, hdPubKey);
-		ScriptBytesByKeyPath.Add(hdPubKey.FullKeyPath, scriptPubKey.ToCompressedBytes());
+		HdPubKeysByScript.AddOrReplace(scriptPubKey, hdPubKey);
+		ScriptBytesByKeyPath.AddOrReplace(hdPubKey.FullKeyPath, scriptPubKey.ToCompressedBytes());
 		HdPubKeys.Add(hdPubKey);
 	}
 	
