@@ -195,30 +195,6 @@ public class KeyManagementTests
 		}
 	}
 
-	[Fact]
-	public void GapCountingTests()
-	{
-		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var hdPubKeys = Enumerable.Range(0, 100)
-			.Select(i => km.GenerateNewKey(SmartLabel.Empty, i % 2 == 0 ? KeyState.Clean : KeyState.Locked, true))
-			.ToArray();
-
-		km.SetKeyState(KeyState.Used, hdPubKeys[0]);
-		Assert.Equal(0, km.CountConsecutiveUnusedKeys(true));
-
-		km.SetKeyState(KeyState.Used, hdPubKeys[10]);
-		Assert.Equal(10, km.CountConsecutiveUnusedKeys(true));
-
-		km.SetKeyState(KeyState.Used, hdPubKeys[30]);
-		Assert.Equal(20, km.CountConsecutiveUnusedKeys(true));
-
-		km.SetKeyState(KeyState.Used, hdPubKeys[80]);
-		Assert.Equal(50, km.CountConsecutiveUnusedKeys(true));
-
-		km.SetKeyState(KeyState.Clean, hdPubKeys[30]);
-		Assert.Equal(70, km.CountConsecutiveUnusedKeys(true));
-	}
-
 	private static void DeleteFileAndDirectoryIfExists(string filePath)
 	{
 		var dir = Path.GetDirectoryName(filePath);

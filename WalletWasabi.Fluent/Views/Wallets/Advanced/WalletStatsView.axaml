@@ -71,19 +71,6 @@
         <c:PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding GeneratedUsedKeyCount}" />
       </c:PreviewItem>
-
-      <Separator />
-      <c:PreviewItem Label="Largest receive key gap"
-                     TextValue="{Binding LargestExternalKeyGap}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 Content="{Binding LargestExternalKeyGap}" />
-      </c:PreviewItem>
-      <Separator />
-      <c:PreviewItem Label="Largest change key gap"
-                     TextValue="{Binding LargestInternalKeyGap}">
-        <c:PrivacyContentControl Classes="monoSpaced"
-                                 Content="{Binding LargestInternalKeyGap}" />
-      </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>
 </UserControl>
