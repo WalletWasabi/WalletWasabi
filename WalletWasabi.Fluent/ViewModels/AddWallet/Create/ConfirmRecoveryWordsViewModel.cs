@@ -41,13 +41,9 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		if (isInHistory)
-		{
-			Navigate().Back();
-			return;
-		}
-
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		ConfirmationWords.Clear();
 
 		var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
@@ -68,6 +64,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		EnableBack = true;
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
+
+		var nextCommandCanExecute =
+			confirmationWordsSourceList
+			.Connect()
+			.WhenValueChanged(x => x.IsConfirmed)
+			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+
+		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 
 		SetSkip();
 
@@ -128,7 +132,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		else
 		{
 			await NavigateDialogAsync(new ConfirmRecoveryWordsTryAgainViewModel(), NavigationTarget.CompactDialogScreen);
-
 			Navigate().Back();
 		}
 	}
@@ -156,10 +159,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 				});
 			IsBusy = false;
 			await NavigateDialogAsync(new CoinJoinProfilesViewModel(km, true), NavigationTarget.DialogScreen);
-		}
-		else
-		{
-			Navigate().Back();
 		}
 	}
 

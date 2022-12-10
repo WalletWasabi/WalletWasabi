@@ -17,7 +17,7 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <Grid>
       <Grid.RowDefinitions>
-        <RowDefinition MinHeight="30" Height="*"/>
+        <RowDefinition MinHeight="36" Height="*"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>

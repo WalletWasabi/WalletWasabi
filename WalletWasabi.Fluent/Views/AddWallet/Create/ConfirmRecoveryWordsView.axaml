@@ -12,22 +12,14 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}'}"
+                 Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}', FallbackValue=' '}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="False"
+                 EnableNext="True"
+                 NextContent="Continue"
                  EnableSkip="{Binding IsSkipEnabled}"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <c:ContentArea.Styles>
-      <Style Selector="c|ContentArea[EnableSkip=True] Grid#Layout">
-        <Setter Property="Margin" Value="0 0 0 22"/>
-      </Style>
-      <Style Selector="c|ContentArea[EnableSkip=False] Grid#Layout">
-        <Setter Property="Margin" Value="0 0 0 38"/>
-      </Style>
-    </c:ContentArea.Styles>
-    
     <Grid x:Name="Layout">
       <Grid.RowDefinitions>
         <RowDefinition MinHeight="36" Height="*"/>
@@ -54,8 +46,7 @@
             </Setter>
           </Style>
           <Style Selector="ListBoxItem[IsPointerOver=True] /template/ c|TagControl">
-            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
-            <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+            <Setter Property="Background" Value="{DynamicResource InvisibleButtonPointerOverBackgroundColor}" />
           </Style>
         </ListBox.Styles>
       </ListBox>
