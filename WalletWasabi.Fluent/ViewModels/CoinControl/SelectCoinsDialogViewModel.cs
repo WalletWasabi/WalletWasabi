@@ -36,7 +36,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		var items = CreateItems(pockets);
 		items.ToList().ForEach(x => x.DisposeWith(_disposables));
 		
-		SetSelectionState(items, selectedCoins);
+		SyncSelectedItems(items, selectedCoins);
 
 		var pocketColumn = PocketColumn();
 		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(items)
@@ -59,16 +59,21 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoins(items)));
 	}
 
-	private IEnumerable<SmartCoin> GetSelectedCoins(IEnumerable<CoinControlItemViewModelBase> coinControlItemViewModelBases)
+	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
+
+	private static IEnumerable<CoinCoinControlItemViewModel> GetAllCoins(IEnumerable<PocketCoinControlItemViewModel> pockets)
 	{
-		return Flatten(coinControlItemViewModelBases)
-			.OfType<CoinCoinControlItemViewModel>()
-			.Where(x => x.IsSelected == true)
-			.Select(x => x.SmartCoin)
-			.ToList();
+		return pockets
+			.SelectMany(x => x.Children)
+			.OfType<CoinCoinControlItemViewModel>();
 	}
 
-	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
+	private static IEnumerable<SmartCoin> GetSelectedCoins(IEnumerable<PocketCoinControlItemViewModel> coinControlItemViewModelBases)
+	{
+		return GetAllCoins(coinControlItemViewModelBases)
+			.Where(x => x.IsSelected == true)
+			.Select(x => x.SmartCoin);
+	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
@@ -82,7 +87,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
 			SelectionColumn(),
 			group => group.Children,
-			node => node.Children.Count() > 1,
+			node => node.Children.Count > 1,
 			node => node.IsExpanded);
 	}
 
@@ -96,15 +101,13 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			GridLength.Auto);
 	}
 
-	private static void SetSelectionState(IEnumerable<CoinControlItemViewModelBase> items, IEnumerable<SmartCoin> selectedCoins)
+	private static void SyncSelectedItems(IEnumerable<PocketCoinControlItemViewModel> items, IEnumerable<SmartCoin> selectedCoins)
 	{
-		var flatten = Flatten(items).ToList();
-		var coins = flatten.OfType<CoinCoinControlItemViewModel>();
-		var coinsToSelect = coins.Select(c => new { c, IsSelected = selectedCoins.Any(other => other  == c.SmartCoin) });
-
-		foreach (var tuple in coinsToSelect)
+		var allCoins = GetAllCoins(items);
+		var selected = allCoins.Where(x => selectedCoins.Any(other => other == x.SmartCoin));
+		foreach (var viewModel in selected)
 		{
-			tuple.c.IsSelected = tuple.IsSelected;
+			viewModel.IsSelected = true;
 		}
 	}
 
