@@ -54,6 +54,13 @@
       </c:PreviewItem>
       <Separator />
 
+      <c:PreviewItem Icon="{StaticResource organization_regular}"
+                           Label="Account Key Path (Taproot)"
+                           TextValue="{Binding TaprootAccountKeyPath}">
+        <TextBlock Classes="monoSpaced" Text="{Binding TaprootAccountKeyPath}" />
+      </c:PreviewItem>
+      <Separator />
+      
       <c:PreviewItem Icon="{StaticResource private_key_regular}"
                      Label="Extended Account Private Key xpriv"
                      TextValue="{Binding ExtendedAccountPrivateKey}"

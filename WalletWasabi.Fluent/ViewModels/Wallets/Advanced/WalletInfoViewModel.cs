@@ -48,6 +48,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 		SegWitExtendedAccountPublicKey = wallet.KeyManager.SegwitExtPubKey.ToString(network);
 		ExtendedAccountZpub = wallet.KeyManager.SegwitExtPubKey.ToZpub(network);
 		SegWitAccountKeyPath = $"m/{wallet.KeyManager.SegwitAccountKeyPath}";
+		TaprootAccountKeyPath = $"m/{wallet.KeyManager.TaprootAccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 	}
 
@@ -56,6 +57,8 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	public string ExtendedAccountZpub { get; }
 
 	public string SegWitAccountKeyPath { get; }
+
+	public string TaprootAccountKeyPath { get; }
 
 	public string? MasterKeyFingerprint { get; }
 
