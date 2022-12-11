@@ -101,9 +101,9 @@
       </StackPanel>
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
-                     Label="Extended Account Public Key"
-                     TextValue="{Binding ExtendedAccountPublicKey}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
+                     Label="Extended Account Public Key (SegWit)"
+                     TextValue="{Binding SegWitExtendedAccountPublicKey}">
+        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding SegWitExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
 
       <Separator />
