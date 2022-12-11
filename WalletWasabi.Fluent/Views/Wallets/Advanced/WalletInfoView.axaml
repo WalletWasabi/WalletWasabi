@@ -48,9 +48,9 @@
       <Separator IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
       <c:PreviewItem Icon="{StaticResource organization_regular}"
-                     Label="Account Key Path"
-                     TextValue="{Binding AccountKeyPath}">
-        <TextBlock Classes="monoSpaced" Text="{Binding AccountKeyPath}" />
+                     Label="Account Key Path (SegWit)"
+                     TextValue="{Binding SegWitAccountKeyPath}">
+        <TextBlock Classes="monoSpaced" Text="{Binding SegWitAccountKeyPath}" />
       </c:PreviewItem>
       <Separator />
 
