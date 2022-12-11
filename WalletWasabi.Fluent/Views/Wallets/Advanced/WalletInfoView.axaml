@@ -96,14 +96,6 @@
                      TextValue="{Binding ExtendedAccountPublicKey}">
         <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
-
-      <Separator />
-
-      <c:PreviewItem Icon="{StaticResource key_regular}"
-                     Label="Extended Account zpub"
-                     TextValue="{Binding ExtendedAccountZpub}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountZpub}" ForceShow="{Binding ShowSensitiveData}" />
-      </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

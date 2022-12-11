@@ -45,14 +45,11 @@ public partial class WalletInfoViewModel : RoutableViewModel
 		}
 
 		ExtendedAccountPublicKey = wallet.KeyManager.SegwitExtPubKey.ToString(network);
-		ExtendedAccountZpub = wallet.KeyManager.SegwitExtPubKey.ToZpub(network);
 		AccountKeyPath = $"m/{wallet.KeyManager.SegwitAccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 	}
 
 	public string ExtendedAccountPublicKey { get; }
-
-	public string ExtendedAccountZpub { get; }
 
 	public string AccountKeyPath { get; }
 
