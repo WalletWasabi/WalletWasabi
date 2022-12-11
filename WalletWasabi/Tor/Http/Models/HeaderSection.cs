@@ -11,12 +11,14 @@ namespace WalletWasabi.Tor.Http.Models;
 
 public class HeaderSection
 {
-	public List<HeaderField> Fields { get; private set; } = new List<HeaderField>();
+	private const string ContentLengthHeaderName = "Content-Length";
+
+	public List<HeaderField> Fields { get; private set; } = new();
 
 	public string ToString(bool endWithTwoCRLF)
 	{
 		StringBuilder sb = new();
-		foreach (var field in Fields)
+		foreach (HeaderField field in Fields)
 		{
 			sb.Append(field.ToString(endWithCRLF: true));
 		}
@@ -101,7 +103,7 @@ public class HeaderSection
 		var allParts = new HashSet<string>();
 		foreach (var field in hs.Fields)
 		{
-			if (field.IsNameEqual("Content-Length"))
+			if (field.IsNameEqual(ContentLengthHeaderName))
 			{
 				var parts = field.Value.Trim().Split(',');
 				foreach (var part in parts)
@@ -116,8 +118,8 @@ public class HeaderSection
 			{
 				throw new InvalidDataException("Invalid Content-Length.");
 			}
-			hs.Fields.RemoveAll(x => x.IsNameEqual("Content-Length"));
-			hs.Fields.Add(new HeaderField("Content-Length", allParts.First()));
+			hs.Fields.RemoveAll(x => x.IsNameEqual(ContentLengthHeaderName));
+			hs.Fields.Add(new HeaderField(ContentLengthHeaderName, allParts.First()));
 		}
 	}
 
@@ -180,9 +182,9 @@ public class HeaderSection
 		// - And I explicitly expand the "headers" variable
 		if (headers is HttpContentHeaders contentHeaders && contentHeaders.ContentLength is { } contentLength)
 		{
-			if (hs.Fields.All(x => !x.IsNameEqual("Content-Length")))
+			if (hs.Fields.All(x => !x.IsNameEqual(ContentLengthHeaderName)))
 			{
-				hs.Fields.Add(new HeaderField("Content-Length", contentLength.ToString()));
+				hs.Fields.Add(new HeaderField(ContentLengthHeaderName, contentLength.ToString()));
 			}
 		}
 		// -- End [SECTION] Crazy VS2017/.NET Core 1.1 bug ---
