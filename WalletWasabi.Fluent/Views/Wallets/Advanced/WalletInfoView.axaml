@@ -112,8 +112,14 @@
                      TextValue="{Binding SegWitExtendedAccountPublicKey}">
         <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding SegWitExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
-
       <Separator />
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Label="Extended Account Public Key (Taproot)"
+                     TextValue="{Binding TaprootExtendedAccountPublicKey}">
+        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding TaprootExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
+      </c:PreviewItem>
+      <Separator IsVisible="{Binding !!TaprootExtendedAccountPublicKey}"/>
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account zpub"
