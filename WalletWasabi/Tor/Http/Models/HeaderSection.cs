@@ -13,23 +13,15 @@ public class HeaderSection
 {
 	public List<HeaderField> Fields { get; private set; } = new List<HeaderField>();
 
-	public string ToString(bool endWithTwoCRLF)
+	public override string ToString()
 	{
 		StringBuilder sb = new();
 		foreach (var field in Fields)
 		{
 			sb.Append(field.ToString(endWithCRLF: true));
 		}
-		if (endWithTwoCRLF)
-		{
-			sb.Append(CRLF);
-		}
-		return sb.ToString();
-	}
 
-	public override string ToString()
-	{
-		return ToString(false);
+		return sb.ToString();
 	}
 
 	public static async Task<HeaderSection> CreateNewAsync(string headersString)
