@@ -19,7 +19,7 @@ namespace WalletWasabi.Backend.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, AffiliationManager affiliationManager)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore, IAffiliationManager affiliationManager)
 	{
 		IdempotencyRequestCache = idempotencyRequestCache;
 		Arena = arena;
@@ -31,7 +31,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	private IdempotencyRequestCache IdempotencyRequestCache { get; }
 	private Arena Arena { get; }
 	private CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
-	private AffiliationManager AffiliationManager { get; }
+	private IAffiliationManager AffiliationManager { get; }
 
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)

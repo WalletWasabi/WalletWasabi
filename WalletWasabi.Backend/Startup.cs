@@ -12,6 +12,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using WalletWasabi.Affiliation;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
@@ -113,7 +114,7 @@ public class Startup
 		{
 			var global = serviceProvider.GetRequiredService<Global>();
 			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-			return coordinator.AffiliationManager;
+			return (IAffiliationManager)coordinator.AffiliationManager;
 		});
 		services.AddStartupTask<InitConfigStartupTask>();
 
