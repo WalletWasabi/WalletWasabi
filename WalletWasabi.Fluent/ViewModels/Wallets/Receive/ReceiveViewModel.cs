@@ -51,7 +51,6 @@ public partial class ReceiveViewModel : RoutableViewModel
 	private void OnNext()
 	{
 		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
-
 		SuggestionLabels.Labels.Clear();
 
 		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
