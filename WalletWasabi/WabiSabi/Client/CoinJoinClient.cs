@@ -479,24 +479,28 @@ public class CoinJoinClient
 		CancellationToken cancellationToken)
 	{
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
+		var aliceAndDates = aliceClients.Zip(scheduledDates).Select(i => new AliceAndDate(i.First, i.Second));
 
-		await Parallel.ForEachAsync((aliceClients, scheduledDates), async (aliceClient, delay) =>
+		await Parallel.ForEachAsync(aliceAndDates, async (aliceAndDate, ct) =>
 		{
+			var aliceClient = aliceAndDate.AliceClient;
+			var scheduledDate = aliceAndDate.DateTimeOffset;
+
 			Logger.LogDebug($"Starting precomputation {aliceClient.AliceId}.");
-			aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
+			aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, ct);
 			Logger.LogDebug($"Finished precomputation {aliceClient.AliceId}");
 
 			var delay = scheduledDate - DateTimeOffset.UtcNow;
 			if (delay > TimeSpan.Zero)
 			{
 				Logger.LogDebug($"Starting deleay {aliceClient.AliceId}.");
-				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(delay, ct).ConfigureAwait(false);
 			}
 
 			try
 			{
 				Logger.LogDebug($"Starting sign {aliceClient.AliceId}.");
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, ct).ConfigureAwait(false);
 				Logger.LogDebug($"Finished sign {aliceClient.AliceId}.");
 			}
 			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
@@ -1121,4 +1125,6 @@ public class CoinJoinClient
 
 		return result;
 	}
+
+	private record AliceAndDate(AliceClient AliceClient, DateTimeOffset DateTimeOffset);
 }
