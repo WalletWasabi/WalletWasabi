@@ -480,39 +480,30 @@ public class CoinJoinClient
 	{
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
-		Parallel.ForEach(aliceClients, aliceClient =>
+		await Parallel.ForEachAsync((aliceClients, scheduledDates), async (aliceClient, delay) =>
 		{
 			Logger.LogDebug($"Starting precomputation {aliceClient.AliceId}.");
 			aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
 			Logger.LogDebug($"Finished precomputation {aliceClient.AliceId}");
-		});
 
-		var tasks = Enumerable.Zip(
-			aliceClients,
-			scheduledDates,
-			async (aliceClient, scheduledDate) =>
+			var delay = scheduledDate - DateTimeOffset.UtcNow;
+			if (delay > TimeSpan.Zero)
 			{
-				var delay = scheduledDate - DateTimeOffset.UtcNow;
-				if (delay > TimeSpan.Zero)
-				{
-					Logger.LogDebug($"Starting deleay {aliceClient.AliceId}.");
-					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-				}
+				Logger.LogDebug($"Starting deleay {aliceClient.AliceId}.");
+				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+			}
 
-				try
-				{
-					Logger.LogDebug($"Starting sign {aliceClient.AliceId}.");
-					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
-					Logger.LogDebug($"Finished sign {aliceClient.AliceId}.");
-				}
-				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
-				{
-					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
-				}
-			})
-			.ToImmutableArray();
-
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+			try
+			{
+				Logger.LogDebug($"Starting sign {aliceClient.AliceId}.");
+				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+				Logger.LogDebug($"Finished sign {aliceClient.AliceId}.");
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
+			{
+				Logger.LogDebug("Signature was already sent - bypassing error.", ex);
+			}
+		}).ConfigureAwait(false);
 	}
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
