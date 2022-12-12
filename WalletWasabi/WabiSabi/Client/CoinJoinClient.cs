@@ -480,12 +480,16 @@ public class CoinJoinClient
 	{
 		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingEndTime, MaximumRequestDelay);
 
+		Parallel.ForEach(aliceClients, aliceClient =>
+		{
+			aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
+		});
+
 		var tasks = Enumerable.Zip(
 			aliceClients,
 			scheduledDates,
 			async (aliceClient, scheduledDate) =>
 			{
-				aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
 				var delay = scheduledDate - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
