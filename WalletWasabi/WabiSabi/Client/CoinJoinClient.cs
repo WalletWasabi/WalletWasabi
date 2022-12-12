@@ -482,7 +482,9 @@ public class CoinJoinClient
 
 		Parallel.ForEach(aliceClients, aliceClient =>
 		{
+			Logger.LogDebug($"Starting precomputation {aliceClient.AliceId}.");
 			aliceClient.PrecomputeSignTransaction(unsignedCoinJoinTransaction, KeyChain, cancellationToken);
+			Logger.LogDebug($"Finished precomputation {aliceClient.AliceId}");
 		});
 
 		var tasks = Enumerable.Zip(
@@ -493,12 +495,15 @@ public class CoinJoinClient
 				var delay = scheduledDate - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
+					Logger.LogDebug($"Starting deleay {aliceClient.AliceId}.");
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
 
 				try
 				{
+					Logger.LogDebug($"Starting sign {aliceClient.AliceId}.");
 					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+					Logger.LogDebug($"Finished sign {aliceClient.AliceId}.");
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
