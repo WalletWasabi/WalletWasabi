@@ -11,5 +11,5 @@ public record AffiliateInformation
 	IReadOnlyDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>> CoinjoinRequests
 )
 {
-	public static AffiliateInformation Empty = new AffiliateInformation(Enumerable.Empty<AffiliationFlag>(), ImmutableDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>>.Empty);
+	public static readonly AffiliateInformation Empty = new AffiliateInformation(Enumerable.Empty<AffiliationFlag>(), ImmutableDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>>.Empty);
 }
