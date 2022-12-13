@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 
 namespace WalletWasabi.Affiliation;
 
-public class Signer
+public class Signer : IDisposable
 {
 	private ECDsa ECDsa;
 
@@ -23,6 +23,11 @@ public class Signer
 		{
 			throw new NotSupportedException("Unsupported curve.");
 		}
+	}
+
+	public void Dispose()
+	{
+		ECDsa.Dispose();
 	}
 
 	public byte[] Sign(byte[] digest)

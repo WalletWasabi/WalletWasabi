@@ -15,13 +15,15 @@ public class AffiliationManager : BackgroundService, IAffiliationManager
 {
 	public AffiliationManager(Arena arena, ImmutableDictionary<AffiliationFlag, string> urls, string privateKeyHex)
 	{
+		Signer = new(privateKeyHex);
 		Arena = arena;
 		HttpClient httpclient = new();
 		Clients = urls.ToDictionary(x => x.Key, x => new AffiliateServerHttpApiClient(new ClearnetHttpClient(httpclient, () => new Uri(x.Value)))).ToImmutableDictionary();
 		AffiliateServerStatusUpdater = new(Clients);
-		CoinjoinRequestsUpdater = new(Arena, Clients, new(privateKeyHex));
+		CoinjoinRequestsUpdater = new(Arena, Clients, Signer);
 	}
 
+	private Signer Signer { get; }
 	private Arena Arena { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
 	private AffiliateServerStatusUpdater AffiliateServerStatusUpdater { get; }
@@ -42,6 +44,7 @@ public class AffiliationManager : BackgroundService, IAffiliationManager
 	public override void Dispose()
 	{
 		AffiliateServerStatusUpdater.Dispose();
+		Signer.Dispose();
 	}
 
 	public AffiliateInformation GetAffiliateInformation()
