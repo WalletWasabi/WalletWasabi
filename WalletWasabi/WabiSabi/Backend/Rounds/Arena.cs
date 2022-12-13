@@ -51,6 +51,7 @@ public partial class Arena : PeriodicRunner
 	public event EventHandler<RoundCreatedEventArgs>? RoundCreated;
 	public event EventHandler<CoinjoinTransactionCreatedEventArgs>? CoinjoinTransactionCreated;
 	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
+	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
@@ -278,7 +279,7 @@ public partial class Arena : PeriodicRunner
 				if (state.IsFullySigned)
 				{
 					Transaction coinjoin = state.CreateTransaction();
-					CoinjoinTransactionCreated?.Invoke(this, new CoinjoinTransactionCreatedEventArgs(round.Id, coinjoin));
+					CoinjoinTransactionCreated?.SafeInvoke(this, new CoinjoinTransactionCreatedEventArgs(round.Id, coinjoin));
 
 					// Logging.
 					round.LogInfo("Trying to broadcast coinjoin.");
@@ -558,7 +559,7 @@ public partial class Arena : PeriodicRunner
 	{
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead); 
+		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
@@ -641,18 +642,18 @@ public partial class Arena : PeriodicRunner
 	private void AddRound(Round round)
 	{
 		Rounds.Add(round);
-		RoundCreated?.Invoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
+		RoundCreated?.SafeInvoke(this, new RoundCreatedEventArgs(round.Id, round.Parameters));
 	}
 
 	private void SetRoundPhase(Round round, Phase phase)
 	{
 		round.SetPhase(phase);
-		RoundPhaseChanged?.Invoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
+		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, phase));
 	}
 
 	private void EndRound(Round round, EndRoundState endRoundState)
 	{
 		round.EndRound(endRoundState);
-		RoundPhaseChanged?.Invoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
+		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
 	}
 }
