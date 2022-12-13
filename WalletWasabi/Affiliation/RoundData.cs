@@ -10,14 +10,13 @@ namespace WalletWasabi.Affiliation;
 
 public class RoundData
 {
-	public RoundData()
+	public RoundData(RoundParameters roundParameters)
 	{
 		Inputs = new();
-		RoundParameters = null;
 		Transaction = null;
 	}
 
-	private RoundParameters? RoundParameters { get; set; }
+	private RoundParameters RoundParameters { get; }
 	private NBitcoin.Transaction? Transaction { get; set; }
 	private bool IsLocked { get; set; } = false;
 
@@ -35,7 +34,7 @@ public class RoundData
 
 	public bool IsReady()
 	{
-		return (Transaction is not null) && (RoundParameters is not null);
+		return Transaction is not null;
 	}
 
 	public void AddTransaction(NBitcoin.Transaction transaction)
@@ -45,15 +44,6 @@ public class RoundData
 			throw new InvalidOperationException("Transaction was already set.");
 		}
 		Transaction = transaction;
-	}
-
-	public void AddRoundParameters(RoundParameters roundParameters)
-	{
-		if (RoundParameters is not null)
-		{
-			throw new InvalidOperationException("Round parameters were already set.");
-		}
-		RoundParameters = roundParameters;
 	}
 
 	public void AddInput(Coin coin, AffiliationFlag affiliationFlag, bool zeroCoordinationFee)

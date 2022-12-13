@@ -184,8 +184,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private void CreateRound(uint256 roundId, RoundParameters roundParameters)
 	{
-		RoundData roundData = new();
-		roundData.AddRoundParameters(roundParameters);
+		RoundData roundData = new(roundParameters);
 
 		if (!RoundData.TryAdd(roundId, roundData))
 		{
