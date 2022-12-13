@@ -52,7 +52,7 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 			.DisposeWith(disposable);
 	}
 
-	private bool IsValidUsd(string s)
+	public bool IsValidUsd(string s)
 	{
 		if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
 		{
@@ -66,7 +66,7 @@ public class AutoPasteAmountBehavior : AttachedToVisualTreeBehavior<DualCurrency
 		return hasValidDecimalPlaces && isGreaterThanZero && withinBalance;
 	}
 
-	private bool IsValidBtc(string s)
+	public bool IsValidBtc(string s)
 	{
 		if (!decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
 		{

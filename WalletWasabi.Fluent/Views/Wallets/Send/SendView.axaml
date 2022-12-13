@@ -11,6 +11,23 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="behaviors:Hint">
+      <DockPanel>
+        <Button DockPanel.Dock="Right" Background="Transparent" Content="x" FontSize="12"
+                VerticalAlignment="Top">
+        </Button>
+        <DockPanel> 
+          <Button Background="Transparent" Margin="8" Padding="0" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False"                  Cursor="Hand">
+            <PathIcon Data="{StaticResource paste_regular}" Width="20" />
+          </Button>
+          <TextBlock Text="{Binding Content}" VerticalAlignment="Center" />
+        </DockPanel>
+      </DockPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
   <c:ContentArea
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True"
@@ -113,7 +130,7 @@
                                   ConversionCurrencyCode="USD"
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
             <i:Interaction.Behaviors>
-              <behaviors:AutoPasteAmountBehavior MaxAmountBtc="{Binding Balance.BalanceBtc^}" ExchangeRate="{Binding ExchangeRate}" />
+              <behaviors:HintBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}" />
             </i:Interaction.Behaviors>
           </c:DualCurrencyEntryBox>
         </DockPanel>

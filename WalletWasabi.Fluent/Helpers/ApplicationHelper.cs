@@ -19,4 +19,7 @@ public static class ApplicationHelper
 
 		return Observable.Return("");
 	}
+
+	public static IObservable<string> ClipboardTextChanged => Observable.Interval(TimeSpan.FromSeconds(0.2))
+		.SelectMany(_ => Application.Current.Clipboard.GetTextAsync().ToObservable().Select(x => x ?? ""));
 }

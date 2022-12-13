@@ -62,8 +62,23 @@ public class DualCurrencyEntryBox : UserControl
 	private readonly char _decimalSeparator = '.';
 	private readonly char _groupSeparator = ' ';
 	private Button? _swapButton;
-	private CurrencyEntryBox? _leftEntryBox;
-	private CurrencyEntryBox? _rightEntryBox;
+
+	public static readonly StyledProperty<CurrencyEntryBox?> RightEntryBoxProperty = AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>("RightEntryBox");
+
+	public CurrencyEntryBox? RightEntryBox
+	{
+		get => GetValue(RightEntryBoxProperty);
+		set => SetValue(RightEntryBoxProperty, value);
+	}
+
+	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty = AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>("LeftEntryBox");
+
+	public CurrencyEntryBox? LeftEntryBox
+	{
+		get => GetValue(LeftEntryBoxProperty);
+		set => SetValue(LeftEntryBoxProperty, value);
+	}
+
 	private decimal _amountBtc;
 	private bool _canUpdateDisplay = true;
 	private bool _canUpdateFiat = true;
@@ -323,8 +338,8 @@ public class DualCurrencyEntryBox : UserControl
 		_disposable = new CompositeDisposable();
 
 		_swapButton = e.NameScope.Find<Button>("PART_SwapButton");
-		_leftEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_LeftEntryBox");
-		_rightEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_RightEntryBox");
+		LeftEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_LeftEntryBox");
+		RightEntryBox = e.NameScope.Find<CurrencyEntryBox>("PART_RightEntryBox");
 
 		if (_swapButton is { })
 		{
@@ -346,8 +361,8 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		var focusOn =
 			IsConversionReversed
-				? _rightEntryBox
-				: _leftEntryBox;
+				? RightEntryBox
+				: LeftEntryBox;
 
 		focusOn?.Focus();
 	}
@@ -384,21 +399,21 @@ public class DualCurrencyEntryBox : UserControl
 	// setting Grid.Column via pseudoclass based style doesn't work, not even using AffectsMeasure()... Avalonia bug?
 	private void ReorganizeVisuals()
 	{
-		if (_leftEntryBox is { } && _rightEntryBox is { })
+		if (LeftEntryBox is { } && RightEntryBox is { })
 		{
-			var grid = _leftEntryBox.FindAncestorOfType<Grid>();
-			grid?.Children.Remove(_leftEntryBox);
-			grid?.Children.Remove(_rightEntryBox);
+			var grid = LeftEntryBox.FindAncestorOfType<Grid>();
+			grid?.Children.Remove(LeftEntryBox);
+			grid?.Children.Remove(RightEntryBox);
 
 			if (IsConversionReversed)
 			{
-				grid?.Children.Add(_rightEntryBox);
-				grid?.Children.Add(_leftEntryBox);
+				grid?.Children.Add(RightEntryBox);
+				grid?.Children.Add(LeftEntryBox);
 			}
 			else
 			{
-				grid?.Children.Add(_leftEntryBox);
-				grid?.Children.Add(_rightEntryBox);
+				grid?.Children.Add(LeftEntryBox);
+				grid?.Children.Add(RightEntryBox);
 			}
 		}
 	}

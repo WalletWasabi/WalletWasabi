@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -9,6 +10,8 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.Behaviors;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -124,7 +127,37 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+
+		BitcoinContent = ApplicationHelper.ClipboardTextChanged
+			.Select(Parse)
+			.WithLatestFrom(Balance.BalanceBtc, (parsed, balance) => new { parsed, balance })
+			.Select(x => x.parsed is { } && x.parsed <= x.balance ? x.parsed : null)
+			.Select(money => money?.ToString());
 	}
+
+	private static Money? Parse(string s)
+	{
+		return decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d) ? new Money(d, MoneyUnit.BTC) : null;
+	}
+
+	private static decimal CountDecimalPlaces(decimal dec)
+	{
+		var bits = decimal.GetBits(dec);
+		ulong lowInt = (uint) bits[0];
+		ulong midInt = (uint) bits[1];
+		var exponent = (bits[3] & 0x00FF0000) >> 16;
+		var result = exponent;
+		var lowDecimal = lowInt | (midInt << 32);
+		while (result > 0 && lowDecimal % 10 == 0)
+		{
+			result--;
+			lowDecimal /= 10;
+		}
+
+		return result;
+	}
+
+	public IObservable<string?> BitcoinContent { get; }
 
 	public bool IsQrButtonVisible { get; }
 
