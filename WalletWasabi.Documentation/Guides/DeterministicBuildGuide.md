@@ -19,7 +19,7 @@ Example of `global.json` that is set to strictly use a specific version:
 ```json
 {
   "sdk": {
-    "version": "6.0.302",
+    "version": "7.0.100",
     "allowPrerelease": false,
     "rollForward": "disable"
   }
