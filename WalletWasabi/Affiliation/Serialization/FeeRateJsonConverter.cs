@@ -27,10 +27,7 @@ public class FeeRateJsonConverter : JsonConverter<decimal>
 		{
 			return DecodeDecimal(number);
 		}
-		else
-		{
-			throw new Exception();
-		}
+		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 
 	public override void WriteJson(JsonWriter writer, decimal value, JsonSerializer serializer)

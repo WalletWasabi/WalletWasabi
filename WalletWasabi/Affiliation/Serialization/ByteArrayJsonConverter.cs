@@ -1,5 +1,6 @@
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
@@ -11,21 +12,12 @@ public class ByteArrayJsonConverter : JsonConverter<byte[]>
 		{
 			return Encoders.Hex.DecodeData(serialized);
 		}
-		else
-		{
-			throw new Exception();
-		}
+		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 
 	public override void WriteJson(JsonWriter writer, byte[]? value, JsonSerializer serializer)
 	{
-		if (value is null)
-		{
-			throw new ArgumentNullException(nameof(value));
-		}
-		else
-		{
-			writer.WriteValue(Encoders.Hex.EncodeData(value));
-		}
+		Guard.NotNull(nameof(value), value);
+		writer.WriteValue(Encoders.Hex.EncodeData(value));
 	}
 }
