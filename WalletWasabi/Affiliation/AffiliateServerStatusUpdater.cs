@@ -28,16 +28,16 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		return RunningAffiliateServers;
 	}
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
-		await UpdateRunningAffiliateServersAsync();
+		await UpdateRunningAffiliateServersAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private static async Task<bool> IsAffiliateServerRunning(AffiliateServerHttpApiClient client, CancellationToken cancellationToken)
 	{
 		try
 		{
-			StatusResponse result = await client.GetStatus(new StatusRequest(), cancellationToken);
+			StatusResponse result = await client.GetStatus(new StatusRequest(), cancellationToken).ConfigureAwait(false);
 			return true;
 		}
 		catch (Exception exception)
@@ -47,50 +47,38 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		}
 	}
 
-	private async Task<bool> IsAffiliateServerRunning(AffiliateServerHttpApiClient client)
+	private async Task UpdateRunningAffiliateServersAsync(AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource cancellationTokenSource = new(AffiliateServerTimeout);
-		CancellationToken cancellationToken = cancellationTokenSource.Token;
-		return await IsAffiliateServerRunning(client, cancellationToken);
-	}
-
-	private async Task UpdateRunningAffiliateServersAsync(AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient)
-	{
-		try
+		using CancellationTokenSource timeoutCTS = new(AffiliateServerTimeout);
+		using CancellationTokenSource linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCTS.Token);
+		if (await IsAffiliateServerRunning(affiliateServerHttpApiClient, linkedCTS.Token).ConfigureAwait(false))
 		{
-			if (await IsAffiliateServerRunning(affiliateServerHttpApiClient))
+			if (!RunningAffiliateServers.Contains(affiliationFlag))
 			{
-				if (!RunningAffiliateServers.Contains(affiliationFlag))
-				{
-					RunningAffiliateServers = RunningAffiliateServers.Add(affiliationFlag);
-					Logging.Logger.LogInfo($"Affiliate server '{affiliationFlag}' went up.");
-				}
-				else
-				{
-					Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is running.");
-				}
+				RunningAffiliateServers = RunningAffiliateServers.Add(affiliationFlag);
+				Logging.Logger.LogInfo($"Affiliate server '{affiliationFlag}' went up.");
 			}
 			else
 			{
-				if (RunningAffiliateServers.Contains(affiliationFlag))
-				{
-					RunningAffiliateServers = RunningAffiliateServers.Remove(affiliationFlag);
-					Logging.Logger.LogWarning($"Affiliate server '{affiliationFlag}' went down.");
-				}
-				else
-				{
-					Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is not running.");
-				}
+				Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is running.");
 			}
 		}
-		catch (Exception exception)
+		else
 		{
-			Logging.Logger.LogError(exception.Message);
+			if (RunningAffiliateServers.Contains(affiliationFlag))
+			{
+				RunningAffiliateServers = RunningAffiliateServers.Remove(affiliationFlag);
+				Logging.Logger.LogWarning($"Affiliate server '{affiliationFlag}' went down.");
+			}
+			else
+			{
+				Logging.Logger.LogDebug($"Affiliate server '{affiliationFlag}' is not running.");
+			}
 		}
 	}
 
-	private async Task UpdateRunningAffiliateServersAsync()
+	private async Task UpdateRunningAffiliateServersAsync(CancellationToken cancellationToken)
 	{
-		await Task.WhenAll(Clients.Select(x => UpdateRunningAffiliateServersAsync(x.Key, x.Value)));
+		await Task.WhenAll(Clients.Select(x => UpdateRunningAffiliateServersAsync(x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
 	}
 }
