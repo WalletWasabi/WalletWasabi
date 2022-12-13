@@ -158,7 +158,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (WalletsInSendWorkflow.TryGetValue(walletToStart.WalletName, out _))
+			if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
