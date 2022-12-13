@@ -528,9 +528,9 @@ public class CoinJoinManager : BackgroundService
 		}
 	}
 	
-	public void WalletEnteredSendWorkflow(IWallet wallet) => WalletsInSendWorkflow.TryAdd(wallet.WalletName, 0);
+	public void WalletEnteredSendWorkflow(string walletName) => WalletsInSendWorkflow.TryAdd(walletName, 0);
 	
-	public void WalletLeftSendWorkflow(IWallet wallet) => WalletsInSendWorkflow.Remove(wallet.WalletName, out _);
+	public void WalletLeftSendWorkflow(string walletName) => WalletsInSendWorkflow.Remove(walletName, out _);
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{

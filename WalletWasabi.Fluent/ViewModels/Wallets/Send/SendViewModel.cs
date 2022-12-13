@@ -307,7 +307,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (_coinJoinManager is { } coinJoinManager)
 			{
-				coinJoinManager.WalletEnteredSendWorkflow(_wallet);
+				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName);
 			}
 		}
 
@@ -329,7 +329,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
 		{
-			coinJoinManager.WalletLeftSendWorkflow(_wallet);
+			coinJoinManager.WalletLeftSendWorkflow(_wallet.WalletName);
 		}
 	}
 }
