@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
@@ -10,21 +11,12 @@ public class AffiliationFlagJsonConverter : JsonConverter<AffiliationFlag>
 		{
 			return new AffiliationFlag(serialized);
 		}
-		else
-		{
-			throw new Exception();
-		}
+		throw new JsonSerializationException("Cannot deserialize object.");
 	}
 
 	public override void WriteJson(JsonWriter writer, AffiliationFlag? value, JsonSerializer serializer)
 	{
-		if (value is null)
-		{
-			throw new ArgumentNullException(nameof(value));
-		}
-		else
-		{
-			writer.WriteValue(value.Name);
-		}
+		Guard.NotNull(nameof(value), value);
+		writer.WriteValue(value.Name);
 	}
 }
