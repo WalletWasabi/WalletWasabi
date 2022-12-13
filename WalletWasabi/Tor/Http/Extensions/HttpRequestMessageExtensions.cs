@@ -55,7 +55,7 @@ public static class HttpRequestMessageExtensions
 		string startLine = new RequestLine(request.Method, requestUriOverride, new HttpProtocol($"HTTP/{request.Version.Major}.{request.Version.Minor}")).ToString();
 
 		string headers = "";
-		if (request.Headers.NotNullAndNotEmpty())
+		if (setHost || request.Headers.NotNullAndNotEmpty())
 		{
 			HeaderSection headerSection = HeaderSection.CreateNew(request.Headers);
 
