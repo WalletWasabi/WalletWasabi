@@ -5,51 +5,23 @@ using WalletWasabi.Affiliation.Serialization;
 namespace WalletWasabi.Affiliation;
 
 [TypeConverter(typeof(AffiliationFlagConverter))]
-public class AffiliationFlag : IEquatable<AffiliationFlag>
+public record AffiliationFlag
 {
-	public static AffiliationFlag Default = new AffiliationFlag("WalletWasabi");
-	public static AffiliationFlag Trezor = new AffiliationFlag("trezor");
+	public static readonly AffiliationFlag Default = new AffiliationFlag("WalletWasabi");
+	public static readonly AffiliationFlag Trezor = new AffiliationFlag("trezor");
 
 	private const int MinimumNameLength = 1;
 	private const int MaximumNameLength = 20;
 
-	private string _name = "";
+	public string Name { get; }
 
 	public AffiliationFlag(string name)
 	{
+		if (!IsValidName(name))
+		{
+			throw new ArgumentException("The name is too long, too short or contains non-alphanumeric characters.", nameof(name));
+		}
 		Name = name;
-	}
-
-	public string Name
-	{
-		get
-		{
-			return _name;
-		}
-		private set
-		{
-			if (!IsAlphanumeric(value))
-			{
-				throw new Exception("Name of the affiliation flag contains nonalphanumeric character.");
-			}
-
-			if (value.Length < MinimumNameLength)
-			{
-				throw new Exception("Name of the affiliation flag is too short.");
-			}
-
-			if (value.Length > MaximumNameLength)
-			{
-				throw new Exception("Name of the affiliation flag is too long.");
-			}
-
-			_name = value;
-		}
-	}
-
-	public bool Equals(AffiliationFlag? other)
-	{
-		return Name == other?.Name;
 	}
 
 	public override string ToString()
@@ -60,5 +32,25 @@ public class AffiliationFlag : IEquatable<AffiliationFlag>
 	private static bool IsAlphanumeric(string text)
 	{
 		return text.All(char.IsLetterOrDigit);
+	}
+
+	private static bool IsValidName(string name)
+	{
+		if (!IsAlphanumeric(name))
+		{
+			return false;
+		}
+
+		if (name.Length < MinimumNameLength)
+		{
+			return false;
+		}
+
+		if (name.Length > MaximumNameLength)
+		{
+			return false;
+		}
+
+		return true;
 	}
 }
