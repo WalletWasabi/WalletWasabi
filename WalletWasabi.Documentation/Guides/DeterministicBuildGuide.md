@@ -24,6 +24,7 @@ Example of `global.json` that is set to strictly use a specific version:
     "rollForward": "disable"
   }
 }
+```
 
 ## 2. Reproduce builds
 
