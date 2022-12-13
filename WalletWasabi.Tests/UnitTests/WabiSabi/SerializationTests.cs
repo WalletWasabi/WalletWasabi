@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;

@@ -1,6 +1,6 @@
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
-public struct DialogResult<TResult>
+public readonly struct DialogResult<TResult>
 {
 	public DialogResult(TResult? result, DialogResultKind kind)
 	{

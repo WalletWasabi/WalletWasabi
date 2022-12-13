@@ -1,4 +1,6 @@
-namespace WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels;
+
+namespace WalletWasabi.Fluent;
 
 public static class UiServices
 {

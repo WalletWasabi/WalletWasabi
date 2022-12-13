@@ -27,9 +27,9 @@ public class PrivacyTextPresenter : UserControl
 
 	private GlyphRun? CreateGlyphRun(double width)
 	{
-		var privacyChar = UIConstants.PrivacyChar;
+		var privacyChar = UiConstants.PrivacyChar;
 
-		var glyphTypeface = new Typeface((FontFamily?) FontFamily).GlyphTypeface;
+		var glyphTypeface = new Typeface((FontFamily?)FontFamily).GlyphTypeface;
 		var glyph = glyphTypeface.GetGlyph(privacyChar);
 
 		var scale = FontSize / glyphTypeface.DesignEmHeight;
@@ -50,10 +50,7 @@ public class PrivacyTextPresenter : UserControl
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (_formattedText is null)
-		{
-			_formattedText = CreateFormattedText();
-		}
+		_formattedText ??= CreateFormattedText();
 
 		return new Size(0, _formattedText.Bounds.Height);
 	}

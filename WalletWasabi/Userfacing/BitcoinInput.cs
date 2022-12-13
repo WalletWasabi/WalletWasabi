@@ -1,8 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
+using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Helpers;
+namespace WalletWasabi.Userfacing;
 
 public static class BitcoinInput
 {

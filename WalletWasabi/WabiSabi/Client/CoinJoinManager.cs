@@ -41,7 +41,12 @@ public class CoinJoinManager : BackgroundService
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	public bool IsUserInSendWorkflow { get; set; }
+
+	/// <summary>
+	/// The Dictionary is used for tracking the wallets that are in send workflow.
+	/// There is no thread-safe list so the Value of the item in the dictionary is a not used dummy value.
+	/// </summary>
+	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -153,7 +158,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (IsUserInSendWorkflow)
+			if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
@@ -374,10 +379,10 @@ public class CoinJoinManager : BackgroundService
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
-			if (result.SuccessfulBroadcast)
+			if (result is SuccessfulCoinJoinResult successfulCoinjoin)
 			{
-				CoinRefrigerator.Freeze(result.RegisteredCoins);
-				await MarkDestinationsUsedAsync(result.RegisteredOutputs).ConfigureAwait(false);
+				CoinRefrigerator.Freeze(successfulCoinjoin.Coins);
+				await MarkDestinationsUsedAsync(successfulCoinjoin.OutputScripts).ConfigureAwait(false);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
@@ -479,7 +484,7 @@ public class CoinJoinManager : BackgroundService
 			finishedCoinJoin.Wallet,
 			finishedCoinJoin.CoinJoinTask.Status switch
 			{
-				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result.SuccessfulBroadcast => CompletionStatus.Success,
+				TaskStatus.RanToCompletion when finishedCoinJoin.CoinJoinTask.Result is SuccessfulCoinJoinResult => CompletionStatus.Success,
 				TaskStatus.Canceled => CompletionStatus.Canceled,
 				TaskStatus.Faulted => CompletionStatus.Failed,
 				_ => CompletionStatus.Unknown,
@@ -498,10 +503,10 @@ public class CoinJoinManager : BackgroundService
 	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
 		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
-			.Confirmed()
-			.Where(x => !x.IsImmature(bestHeight))
-			.Where(x => !x.IsBanned)
-			.Where(x => !CoinRefrigerator.IsFrozen(x));
+			.Where(coin => !coin.IsExcludedFromCoinJoin)
+			.Where(coin => !coin.IsImmature(bestHeight))
+			.Where(coin => !coin.IsBanned)
+			.Where(coin => !CoinRefrigerator.IsFrozen(coin));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
@@ -522,6 +527,10 @@ public class CoinJoinManager : BackgroundService
 			}
 		}
 	}
+
+	public void WalletEnteredSendWorkflow(string walletName) => WalletsInSendWorkflow.TryAdd(walletName, 0);
+
+	public void WalletLeftSendWorkflow(string walletName) => WalletsInSendWorkflow.Remove(walletName, out _);
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{

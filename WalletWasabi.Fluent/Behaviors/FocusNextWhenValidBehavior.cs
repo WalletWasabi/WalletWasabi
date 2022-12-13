@@ -1,14 +1,14 @@
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class FocusNextWhenValid : DisposingBehavior<TextBox>
+public class FocusNextWhenValidBehavior : DisposingBehavior<TextBox>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{
@@ -20,8 +20,8 @@ public class FocusNextWhenValid : DisposingBehavior<TextBox>
 		var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty);
 		var text = AssociatedObject.GetObservable(TextBox.TextProperty);
 
-		hasErrors.Select(_ => Unit.Default)
-			.Merge(text.Select(_ => Unit.Default))
+		hasErrors.ToSignal()
+			.Merge(text.ToSignal())
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ =>

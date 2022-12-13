@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;
@@ -19,13 +20,12 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 
 	public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			BlocksFolderPath = blocksFolderPath;
-			Network = network;
-			CreateFolders();
-			Prune(targetBlocksFolderSizeMb);
-		}
+		using IDisposable _ = BenchmarkLogger.Measure();
+
+		BlocksFolderPath = blocksFolderPath;
+		Network = network;
+		CreateFolders();
+		Prune(targetBlocksFolderSizeMb);
 	}
 
 	public string BlocksFolderPath { get; }

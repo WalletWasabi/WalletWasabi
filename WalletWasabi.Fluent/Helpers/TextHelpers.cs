@@ -74,6 +74,6 @@ public static class TextHelpers
 
 	public static string GetPrivacyMask(int repeatCount)
 	{
-		return new string(UIConstants.PrivacyChar, repeatCount);
+		return new string(UiConstants.PrivacyChar, repeatCount);
 	}
 }
