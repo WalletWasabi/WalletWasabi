@@ -40,7 +40,7 @@ dotnet build
 dotnet run -- --onlybinaries
 ```
 
-The previous commands produce Wasabi's binaries for Windows, macOS and Linux. Also, for your convenience, a new file explorer window will navigate you to the binaries location - i.e. `WalletWasabi\\WalletWasabi.Gui\\bin\\dist`.
+The previous commands produce Wasabi's binaries for Windows, macOS and Linux. Also, for your convenience, a new file explorer window will navigate you to the binaries location - i.e. `WalletWasabi\\WalletWasabi.Fluent.Desktop\\bin\\dist`.
 
 ![](https://i.imgur.com/8XAQzz4.png)
 
