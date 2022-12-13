@@ -51,19 +51,19 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		return (IReadOnlyDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>>)CoinjoinRequests.ToDictionary(x => x.Key, x => (IReadOnlyDictionary<AffiliationFlag, byte[]>)x.Value);
 	}
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
-		await UpdateCoinjoinRequestsAsync();
+		await UpdateCoinjoinRequestsAsync(cancellationToken).ConfigureAwait(false);
 		RemoveRounds();
 	}
 
-	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, RoundData roundData, AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient)
+	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, RoundData roundData, AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
 	{
-		Body body = roundData.GetAffiliationData(affiliationFlag);
-		byte[]? result = await GetCoinjoinRequestAsync(affiliateServerHttpApiClient, body);
-
-		if (result is not null)
+		try
 		{
+			Body body = roundData.GetAffiliationData(affiliationFlag);
+			byte[] result = await GetCoinjoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
+
 			if (!CoinjoinRequests.ContainsKey(roundId))
 			{
 				CoinjoinRequests.Add(roundId, new());
@@ -71,41 +71,38 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 			Dictionary<AffiliationFlag, byte[]> coinjoinRequests = CoinjoinRequests[roundId];
 
-			if (coinjoinRequests.ContainsKey(affiliationFlag))
+			if (!coinjoinRequests.TryAdd(affiliationFlag, result))
 			{
 				throw new InvalidOperationException("The coinjoin request is already set.");
 			}
-
-			coinjoinRequests.Add(affiliationFlag, result);
 		}
-		else
+		catch (Exception exception)
 		{
-			Logging.Logger.LogWarning($"Cannot get coinjoin request from affiliate server '{affiliationFlag}'.");
+			Logging.Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception.Message}");
 		}
 	}
 
-	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId)
+	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, CancellationToken cancellationToken)
 	{
-		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
+		if (!RoundData.TryGetValue(roundId, out RoundData roundData))
 		{
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
 		roundData.Lock();
 
-		await Task.WhenAll(Clients.Select(x => UpdateCoinjoinRequestsAsync(roundId, roundData, x.Key, x.Value)));
+		await Task.WhenAll(Clients.Select(x => UpdateCoinjoinRequestsAsync(roundId, roundData, x.Key, x.Value, cancellationToken))).ConfigureAwait(false);
 	}
 
-	private async Task UpdateCoinjoinRequestsAsync()
+	private async Task UpdateCoinjoinRequestsAsync(CancellationToken cancellationToken)
 	{
-		while (RoundsToUpdate.Any())
+		while (RoundsToUpdate.TryDequeue(out uint256 roundId))
 		{
 			try
 			{
-				uint256 roundId = RoundsToUpdate.Dequeue();
 				if (!RoundsToRemove.Contains(roundId))
 				{
-					await UpdateCoinjoinRequestsAsync(roundId);
+					await UpdateCoinjoinRequestsAsync(roundId, cancellationToken).ConfigureAwait(false);
 				}
 			}
 			catch (Exception exception)
@@ -135,11 +132,10 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private void RemoveRounds()
 	{
-		while (RoundsToRemove.Any())
+		while (RoundsToRemove.TryDequeue(out uint256 roundId))
 		{
 			try
 			{
-				uint256 roundId = RoundsToRemove.Dequeue();
 				RemoveRound(roundId);
 			}
 			catch (Exception exception)
@@ -149,32 +145,20 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		}
 	}
 
-	private async Task<byte[]?> GetCoinjoinRequestAsync(AffiliateServerHttpApiClient client, Body body)
+	private async Task<byte[]> GetCoinjoinRequestAsync(AffiliateServerHttpApiClient client, Body body, CancellationToken cancellationToken)
 	{
 		Payload payload = new(new Header(), body);
 		byte[] signature = Signer.Sign(payload.GetCanonicalSerialization());
 		GetCoinjoinRequestRequest coinjoinRequestRequest = new(body, signature);
-		return await GetCoinjoinRequestAsync(client, coinjoinRequestRequest);
+		return await GetCoinjoinRequestAsync(client, coinjoinRequestRequest, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task<byte[]?> GetCoinjoinRequestAsync(AffiliateServerHttpApiClient client, GetCoinjoinRequestRequest getCoinjoinRequestRequest)
+	private async Task<byte[]> GetCoinjoinRequestAsync(AffiliateServerHttpApiClient client, GetCoinjoinRequestRequest getCoinjoinRequestRequest, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource cancellationTokenSource = new(AffiliateServerTimeout);
-		CancellationToken cancellationToken = cancellationTokenSource.Token;
-		return await GetCoinjoinRequestAsync(client, getCoinjoinRequestRequest, cancellationToken);
-	}
-
-	private async Task<byte[]?> GetCoinjoinRequestAsync(AffiliateServerHttpApiClient client, GetCoinjoinRequestRequest getCoinjoinRequestRequest, CancellationToken cancellationToken)
-	{
-		try
-		{
-			GetCoinjoinRequestResponse getCoinjoinRequestResponse = await client.GetCoinjoinRequest(getCoinjoinRequestRequest, cancellationToken);
-			return getCoinjoinRequestResponse.CoinjoinRequest;
-		}
-		catch (Exception)
-		{
-			return null;
-		}
+		using CancellationTokenSource timeoutCTS = new(AffiliateServerTimeout);
+		using CancellationTokenSource linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCTS.Token);
+		GetCoinjoinRequestResponse getCoinjoinRequestResponse = await client.GetCoinjoinRequest(getCoinjoinRequestRequest, linkedCTS.Token).ConfigureAwait(false);
+		return getCoinjoinRequestResponse.CoinjoinRequest;
 	}
 
 	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinatrionFee)
@@ -219,64 +203,36 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs affiliationAddedEventArgs)
 	{
-		try
-		{
-			uint256 roundId = affiliationAddedEventArgs.RoundId;
-			Coin coin = affiliationAddedEventArgs.Coin;
-			AffiliationFlag affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
-			bool isPayingZeroCoordinatrionFee = affiliationAddedEventArgs.IsPayingZeroCoordinatrionFee;
+		uint256 roundId = affiliationAddedEventArgs.RoundId;
+		Coin coin = affiliationAddedEventArgs.Coin;
+		AffiliationFlag affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
+		bool isPayingZeroCoordinatrionFee = affiliationAddedEventArgs.IsPayingZeroCoordinatrionFee;
 
-			AddAffiliation(roundId, coin, affiliationFlag, isPayingZeroCoordinatrionFee);
-		}
-		catch (Exception exception)
-		{
-			Logging.Logger.LogError(exception.Message);
-		}
+		AddAffiliation(roundId, coin, affiliationFlag, isPayingZeroCoordinatrionFee);
 	}
 
 	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs roundCreatedEventArgs)
 	{
-		try
-		{
-			uint256 roundId = roundCreatedEventArgs.RoundId;
-			RoundParameters roundParameters = roundCreatedEventArgs.RoundParameters;
+		uint256 roundId = roundCreatedEventArgs.RoundId;
+		RoundParameters roundParameters = roundCreatedEventArgs.RoundParameters;
 
-			CreateRound(roundId, roundParameters);
-		}
-		catch (Exception exception)
-		{
-			Logging.Logger.LogError(exception.Message);
-		}
+		CreateRound(roundId, roundParameters);
 	}
 
 	private void Arena_CoinjoinTransactionAdded(object? sender, CoinjoinTransactionCreatedEventArgs coinjoinTransactionCreatedEventArgs)
 	{
-		try
-		{
-			uint256 roundId = coinjoinTransactionCreatedEventArgs.RoundId;
-			NBitcoin.Transaction transaction = coinjoinTransactionCreatedEventArgs.Transaction;
+		uint256 roundId = coinjoinTransactionCreatedEventArgs.RoundId;
+		NBitcoin.Transaction transaction = coinjoinTransactionCreatedEventArgs.Transaction;
 
-			AddCoinjoinTransaction(roundId, transaction);
-		}
-		catch (Exception exception)
-		{
-			Logging.Logger.LogError(exception.Message);
-		}
+		AddCoinjoinTransaction(roundId, transaction);
 	}
 
 	private void Arena_RoundPhaseChanged(object? sender, RoundPhaseChangedEventArgs roundPhaseChangedEventArgs)
 	{
-		try
-		{
-			uint256 roundId = roundPhaseChangedEventArgs.RoundId;
-			Phase phase = roundPhaseChangedEventArgs.Phase;
+		uint256 roundId = roundPhaseChangedEventArgs.RoundId;
+		Phase phase = roundPhaseChangedEventArgs.Phase;
 
-			ChangePhase(roundId, phase);
-		}
-		catch (Exception exception)
-		{
-			Logging.Logger.LogError(exception.Message);
-		}
+		ChangePhase(roundId, phase);
 	}
 
 	private void AddHandlers(Arena arena)
