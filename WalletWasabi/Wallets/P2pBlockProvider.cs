@@ -157,7 +157,8 @@ public class P2pBlockProvider : IBlockProvider
 					catch (Exception ex)
 					{
 						Logger.LogDebug(ex);
-						DisconnectNode(node,
+						DisconnectNode(
+							node,
 							$"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.",
 							force: true);
 						continue;
