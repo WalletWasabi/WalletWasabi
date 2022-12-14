@@ -38,19 +38,18 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 			.DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.IsSelected)
-			.Do(
-				isSelected =>
+			.Do(isSelected =>
+			{
+				if (isSelected is null)
 				{
-					if (isSelected is null)
-					{
-						return;
-					}
+					return;
+				}
 
-					foreach (var item in Children)
-					{
-						item.IsSelected = isSelected.Value;
-					}
-				})
+				foreach (var item in Children)
+				{
+					item.IsSelected = isSelected.Value;
+				}
+			})
 			.Subscribe()
 			.DisposeWith(_disposables);
 	}
