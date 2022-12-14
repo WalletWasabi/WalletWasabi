@@ -248,6 +248,7 @@ public class Wallet : BackgroundService, IWallet
 
 	/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 	/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
+	/// <param name="allowUnavailableCoins">Allow to spend currently coinjoining coins, if necessary. Most of the time we want to avoid this.</param>
 	/// <exception cref="ArgumentException"></exception>
 	/// <exception cref="ArgumentNullException"></exception>
 	/// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -258,9 +259,12 @@ public class Wallet : BackgroundService, IWallet
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
-		bool tryToSign = true)
+		bool tryToSign = true,
+		bool allowUnavailableCoins = false)
 	{
-		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+		var allCoins = allowUnavailableCoins ? Coins : Coins.Available();
+
+		var builder = new TransactionFactory(Network, KeyManager, allCoins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 		return builder.BuildTransaction(
 			payments,
 			feeRateFetcher: () =>
