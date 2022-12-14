@@ -28,13 +28,12 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Children
 			.AsObservableChangeSet()
 			.WhenPropertyChanged(x => x.IsSelected)
-			.Select(
-				_ =>
-				{
-					var totalCount = Children.Count;
-					var selectedCount = Children.Count(x => x.IsSelected == true);
-					return (bool?) (selectedCount == totalCount ? true : selectedCount == 0 ? false : null);
-				})
+			.Select(_ =>
+			{
+				var totalCount = Children.Count;
+				var selectedCount = Children.Count(x => x.IsSelected == true);
+				return (bool?)(selectedCount == totalCount ? true : selectedCount == 0 ? false : null);
+			})
 			.BindTo(this, x => x.IsSelected)
 			.DisposeWith(_disposables);
 
