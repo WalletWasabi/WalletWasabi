@@ -52,21 +52,21 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoins(pocketItems)));
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)));
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
 
-	private static IEnumerable<CoinCoinControlItemViewModel> GetAllCoins(IEnumerable<PocketCoinControlItemViewModel> pockets)
+	private static IEnumerable<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
 	{
 		return pockets
 			.SelectMany(x => x.Children)
 			.OfType<CoinCoinControlItemViewModel>();
 	}
 
-	private static IEnumerable<SmartCoin> GetSelectedCoins(IEnumerable<PocketCoinControlItemViewModel> coinControlItemViewModelBases)
+	private static IEnumerable<SmartCoin> GetSelectedCoinItems(IEnumerable<PocketCoinControlItemViewModel> pocketItems)
 	{
-		return GetAllCoins(coinControlItemViewModelBases)
+		return GetAllCoinItems(pocketItems)
 			.Where(x => x.IsSelected == true)
 			.Select(x => x.SmartCoin);
 	}
@@ -104,7 +104,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	private static void SyncSelectedItems(IEnumerable<PocketCoinControlItemViewModel> items, IEnumerable<SmartCoin> selectedCoins)
 	{
-		var allCoins = GetAllCoins(items);
+		var allCoins = GetAllCoinItems(items);
 		var selected = allCoins.Where(x => selectedCoins.Any(other => other == x.SmartCoin));
 		foreach (var viewModel in selected)
 		{
