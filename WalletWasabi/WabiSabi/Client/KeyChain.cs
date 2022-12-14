@@ -20,11 +20,21 @@ public class KeyChain : BaseKeyChain
 
 	private KeyManager KeyManager { get; }
 	private ExtKey? MasterKey { get; set; }
+	private Dictionary<Script, BitcoinSecret> BitcoinSecrets { get; } = new();
 
 	[MemberNotNull(nameof(MasterKey))]
 	public void PreloadMasterKey()
 	{
 		MasterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup());
+	}
+
+	public void PreloadBitcoinSecrets(IEnumerable<Script> scriptPubKeys)
+	{
+		BitcoinSecrets.Clear();
+		foreach (var scriptPubKey in scriptPubKeys)
+		{
+			BitcoinSecrets.Add(scriptPubKey, GetBitcoinSecret(scriptPubKey));
+		}
 	}
 
 	protected override Key GetMasterKey()
@@ -46,6 +56,11 @@ public class KeyChain : BaseKeyChain
 
 	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
+		if (BitcoinSecrets.TryGetValue(scriptPubKey, out var bitcoinSecret))
+		{
+			return bitcoinSecret;
+		}
+
 		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
 		if (hdKey is null)
 		{
@@ -58,7 +73,7 @@ public class KeyChain : BaseKeyChain
 			_ when scriptPubKey.IsScriptType(ScriptType.Taproot) => ScriptPubKeyType.TaprootBIP86,
 			_ => throw new NotSupportedException("Not supported script type.")
 		};
-		
+
 		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(derivedScriptPubKeyType) != scriptPubKey)
 		{
 			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
