@@ -33,11 +33,12 @@ public class KeyChain : BaseKeyChain
 	{
 		BitcoinSecrets.Clear();
 
-		var hdKeyAndScripPubs = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKeys.ToArray()).Zip(scriptPubKeys);
+		var secretAndhdPubs = KeyManager.GetSecretsAndPubKeyPairs(Kitchen.SaltSoup(), scriptPubKeys.ToArray());
 
-		foreach (var (hdKey, scriptPubKey) in hdKeyAndScripPubs)
+		foreach (var (secret, hdPub) in secretAndhdPubs)
 		{
-			BitcoinSecrets.Add(scriptPubKey, GetBitcoinSecret(scriptPubKey, hdKey));
+			var scriptPubKey = hdPub.GetAssumedScriptPubKey();
+			BitcoinSecrets.Add(scriptPubKey, GetBitcoinSecret(scriptPubKey, secret));
 		}
 	}
 
