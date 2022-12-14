@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace WalletWasabi.Affiliation;
 
-public class AffiliationManager : BackgroundService, IAffiliationManager
+public class AffiliationManager : BackgroundService, IAffiliationManager, IDisposable
 {
 	public AffiliationManager(Arena arena, ImmutableDictionary<AffiliationFlag, string> urls, string privateKeyHex)
 	{
@@ -42,7 +42,7 @@ public class AffiliationManager : BackgroundService, IAffiliationManager
 
 	public override void Dispose()
 	{
-		AffiliateServerStatusUpdater.Dispose();
+		CoinjoinRequestsUpdater.Dispose();
 		Signer.Dispose();
 	}
 
