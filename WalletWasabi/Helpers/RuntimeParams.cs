@@ -90,7 +90,6 @@ public class RuntimeParams
 		{
 			Logger.LogInfo($"Could not load {nameof(RuntimeParams)}: {ex}.");
 		}
-
 		InternalInstance = new RuntimeParams();
 	}
 

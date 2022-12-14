@@ -303,7 +303,6 @@ public class P2pBlockProvider : IBlockProvider
 		}
 		catch (Exception ex)
 		{
-			DisconnectDisposeNullLocalBitcoinCoreNode();
 			Logger.LogWarning(ex);
 		}
 
