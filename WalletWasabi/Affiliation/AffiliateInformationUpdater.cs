@@ -46,9 +46,9 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		RemoveHandlers(Arena);
 	}
 
-	public IReadOnlyDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
+	public ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
 	{
-		return (IReadOnlyDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>>)CoinjoinRequests.ToDictionary(x => x.Key, x => (IReadOnlyDictionary<AffiliationFlag, byte[]>)x.Value);
+		return CoinjoinRequests.ToDictionary(x => x.Key, x => x.Value.ToImmutableDictionary()).ToImmutableDictionary();
 	}
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
