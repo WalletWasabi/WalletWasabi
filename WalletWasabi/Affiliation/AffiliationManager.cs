@@ -48,6 +48,6 @@ public class AffiliationManager : BackgroundService, IAffiliationManager, IDispo
 
 	public AffiliateInformation GetAffiliateInformation()
 	{
-		return new AffiliateInformation(AffiliateServerStatusUpdater.RunningAffiliateServers, CoinjoinRequestsUpdater.GetCoinjoinRequests());
+		return new AffiliateInformation(AffiliateServerStatusUpdater.GetRunningAffiliateServers(), CoinjoinRequestsUpdater.GetCoinjoinRequests());
 	}
 }
