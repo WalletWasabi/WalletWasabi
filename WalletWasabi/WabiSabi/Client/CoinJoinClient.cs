@@ -458,7 +458,10 @@ public class CoinJoinClient
 
 		if (KeyChain is KeyChain keyChain)
 		{
-			keyChain.PreloadBitcoinSecrets(smartCoins.Select(c => c.ScriptPubKey));
+			using (BenchmarkLogger.Measure(operationName: nameof(keyChain.PreloadBitcoinSecrets)))
+			{
+				keyChain.PreloadBitcoinSecrets(smartCoins.Select(c => c.ScriptPubKey));
+			}
 		}
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)

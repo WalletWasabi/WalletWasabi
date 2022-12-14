@@ -4,6 +4,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -31,9 +32,12 @@ public class KeyChain : BaseKeyChain
 	public void PreloadBitcoinSecrets(IEnumerable<Script> scriptPubKeys)
 	{
 		BitcoinSecrets.Clear();
-		foreach (var scriptPubKey in scriptPubKeys)
+
+		var hdKeyAndScripPubs = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKeys.ToArray()).Zip(scriptPubKeys);
+
+		foreach (var (hdKey, scriptPubKey) in hdKeyAndScripPubs)
 		{
-			BitcoinSecrets.Add(scriptPubKey, GetBitcoinSecret(scriptPubKey));
+			BitcoinSecrets.Add(scriptPubKey, GetBitcoinSecret(scriptPubKey, hdKey));
 		}
 	}
 
@@ -62,6 +66,12 @@ public class KeyChain : BaseKeyChain
 		}
 
 		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
+
+		return GetBitcoinSecret(scriptPubKey, hdKey);
+	}
+
+	private BitcoinSecret GetBitcoinSecret(Script scriptPubKey, ExtKey hdKey)
+	{
 		if (hdKey is null)
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
