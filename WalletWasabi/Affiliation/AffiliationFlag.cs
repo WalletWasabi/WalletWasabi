@@ -13,8 +13,6 @@ public record AffiliationFlag
 	private const int MinimumNameLength = 1;
 	private const int MaximumNameLength = 20;
 
-	public string Name { get; }
-
 	public AffiliationFlag(string name)
 	{
 		if (!IsValidName(name))
@@ -23,6 +21,8 @@ public record AffiliationFlag
 		}
 		Name = name;
 	}
+
+	public string Name { get; }
 
 	public override string ToString()
 	{
