@@ -19,6 +19,8 @@ public class NavBarViewModel : ViewModelBase
 		TopItems = new ObservableCollection<NavBarItemViewModel>();
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
+		SetDefaultSelection();
+
 		Observable.Amb(
 				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
 				TopItems.ToObservableChangeSet(),
@@ -47,6 +49,16 @@ public class NavBarViewModel : ViewModelBase
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
+
+	private void SetDefaultSelection()
+	{
+		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
+
+		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
+		{
+			walletToSelect.OpenCommand.Execute(default);
+		}
+	}
 
 	public async Task InitialiseAsync()
 	{
