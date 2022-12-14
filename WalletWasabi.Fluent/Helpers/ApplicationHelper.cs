@@ -3,6 +3,7 @@ using System.Reactive.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -21,5 +22,8 @@ public static class ApplicationHelper
 	}
 
 	public static IObservable<string> ClipboardTextChanged => Observable.Interval(TimeSpan.FromSeconds(0.2))
-		.SelectMany(_ => Application.Current.Clipboard.GetTextAsync().ToObservable().Select(x => x ?? ""));
+		.SelectMany(_ => Application.Current.Clipboard
+			.GetTextAsync()
+			.ToObservable()
+			.WhereNotNull());
 }

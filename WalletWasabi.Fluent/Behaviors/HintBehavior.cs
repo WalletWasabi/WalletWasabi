@@ -10,93 +10,100 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class HintBehavior : Behavior<Control>
 {
-    public static readonly StyledProperty<string> ContentProperty = AvaloniaProperty.Register<HintBehavior, string>(
-        "Content");
+	public static readonly StyledProperty<string> ContentProperty = AvaloniaProperty.Register<HintBehavior, string>("Content");
 
-    public static readonly StyledProperty<IDataTemplate> SuggestionTemplateProperty = AvaloniaProperty.Register<HintBehavior, IDataTemplate>(
-        "SuggestionTemplate");
+	public static readonly StyledProperty<IDataTemplate> SuggestionTemplateProperty = AvaloniaProperty.Register<HintBehavior, IDataTemplate>("SuggestionTemplate");
 
-    private Flyout flyout;
+	public static readonly StyledProperty<Control?> TargetProperty = AvaloniaProperty.Register<HintBehavior, Control?>("Target");
 
-    public string Content
-    {
-        get => GetValue(ContentProperty);
-        set => SetValue(ContentProperty, value);
-    }
+	private Flyout _flyout;
 
-    public IDataTemplate HintTemplate
-    {
-        get => GetValue(SuggestionTemplateProperty);
-        set => SetValue(SuggestionTemplateProperty, value);
-    }
+	public string Content
+	{
+		get => GetValue(ContentProperty);
+		set => SetValue(ContentProperty, value);
+	}
 
-    public static readonly StyledProperty<Control> TargetProperty = AvaloniaProperty.Register<HintBehavior, Control>(
-        "Target");
+	public IDataTemplate HintTemplate
+	{
+		get => GetValue(SuggestionTemplateProperty);
+		set => SetValue(SuggestionTemplateProperty, value);
+	}
 
-    public Control Target
-    {
-        get => GetValue(TargetProperty);
-        set => SetValue(TargetProperty, value);
-    }
+	public Control? Target
+	{
+		get => GetValue(TargetProperty);
+		set => SetValue(TargetProperty, value);
+	}
 
-    protected override void OnAttachedToVisualTree()
-    {
-        flyout = new Flyout { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight, ShowMode = FlyoutShowMode.Transient };
+	protected override void OnAttachedToVisualTree()
+	{
+		_flyout = new Flyout { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight, ShowMode = FlyoutShowMode.Transient };
 
-        var targets = this
-            .WhenAnyValue(x => x.Target)
-            .WhereNotNull();
+		var targets = this
+			.WhenAnyValue(x => x.Target)
+			.WhereNotNull();
 
-        var focusedControl = targets
-            .Select(x => Observable.FromEventPattern(x, nameof(x.GotFocus)))
-            .Switch()
-            .Select(x => (TextBox)x.Sender);
+		var focusedControl = targets
+			.Select(x => Observable.FromEventPattern(x, nameof(x.GotFocus)))
+			.Switch()
+			.Select(x => (TextBox?) x.Sender);
 
-        var content = this.WhenAnyValue(x => x.Content);
+		var content = this.WhenAnyValue(x => x.Content);
 
-        var hints = focusedControl
-            .WithLatestFrom(content)
-            .Where(tuple => !string.IsNullOrWhiteSpace(tuple.Second))
-            .Select(tuple => new Hint(tuple.Second, s =>
-            {
-                tuple.First.Text = s;
-                flyout.Hide();
-            }));
+		var hints = focusedControl
+			.WithLatestFrom(content)
+			.Where(tuple => !string.IsNullOrWhiteSpace(tuple.Second) && tuple.First?.Text != tuple.Second)
+			.Select(
+				tuple => new Hint(
+					tuple.Second,
+					s =>
+					{
+						if (tuple.First != null)
+						{
+							tuple.First.Text = s;
+						}
 
-        hints
-            .Do(ShowHint)
-            .Subscribe();
+						_flyout.Hide();
+					}));
 
-        var unfocusedControl = targets
-            .Select(x => Observable.FromEventPattern(x, nameof(x.LostFocus)))
-            .Switch()
-            .Select(x => (TextBox)x.Sender);
+		hints
+			.Do(ShowHint)
+			.Subscribe();
 
-        unfocusedControl
-            .Do(_ => flyout.Hide())
-            .Subscribe();
+		var unfocusedControl = targets
+			.Select(x => Observable.FromEventPattern(x, nameof(x.LostFocus)))
+			.Switch()
+			.Select(x => (TextBox?) x.Sender);
 
-        Target ??= AssociatedObject as TextBox;
-        
-        base.OnAttachedToVisualTree();
-    }
+		unfocusedControl
+			.Do(_ => _flyout.Hide())
+			.Subscribe();
 
-    private void ShowHint(Hint hint)
-    {
-        flyout.Content = new ContentControl { ContentTemplate = HintTemplate, Content = hint };
-        flyout.ShowAt(Target);
-    }
+		Target ??= AssociatedObject as TextBox;
+
+		base.OnAttachedToVisualTree();
+	}
+
+	private void ShowHint(Hint hint)
+	{
+		_flyout.Content = new ContentControl { ContentTemplate = HintTemplate, Content = hint };
+		if (Target != null)
+		{
+			_flyout.ShowAt(Target);
+		}
+	}
 }
 
 public class Hint : ReactiveObject
 {
-    public Hint(string content, Action<string> onPaste)
-    {
-        Content = content;
-        AcceptHintCommand = ReactiveCommand.Create(() => onPaste(content));
-    }
+	public Hint(string content, Action<string> onPaste)
+	{
+		Content = content;
+		AcceptHintCommand = ReactiveCommand.Create(() => onPaste(content));
+	}
 
-    public string Content { get; }
+	public string Content { get; }
 
-    public ReactiveCommand<Unit, Unit> AcceptHintCommand { get; set; }
+	public ReactiveCommand<Unit, Unit> AcceptHintCommand { get; set; }
 }

@@ -131,6 +131,7 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
             <i:Interaction.Behaviors>
               <behaviors:HintBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}" />
+              <behaviors:HintBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}" />
             </i:Interaction.Behaviors>
           </c:DualCurrencyEntryBox>
         </DockPanel>

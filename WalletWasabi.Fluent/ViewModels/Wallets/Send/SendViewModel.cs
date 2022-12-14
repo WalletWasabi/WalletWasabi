@@ -11,6 +11,8 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Behaviors;
+using WalletWasabi.Fluent.Controls;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
@@ -82,28 +84,31 @@ public partial class SendViewModel : RoutableViewModel
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
-		QrCommand = ReactiveCommand.Create(async () =>
-		{
-			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
-			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
-			if (!string.IsNullOrWhiteSpace(result.Result))
+		QrCommand = ReactiveCommand.Create(
+			async () =>
 			{
-				To = result.Result;
-			}
-		});
+				ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
+				if (!string.IsNullOrWhiteSpace(result.Result))
+				{
+					To = result.Result;
+				}
+			});
 
 		var nextCommandCanExecute =
 			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
-				.Select(tup =>
-				{
-					var (amountBtc, to) = tup;
-					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
-					var hasError = Validations.Any;
+				.Select(
+					tup =>
+					{
+						var (amountBtc, to) = tup;
+						var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
+						var hasError = Validations.Any;
 
-					return allFilled && !hasError;
-				});
+						return allFilled && !hasError;
+					});
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
+		NextCommand = ReactiveCommand.CreateFromTask(
+			async () =>
 			{
 				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
@@ -132,7 +137,22 @@ public partial class SendViewModel : RoutableViewModel
 			.Select(Parse)
 			.WithLatestFrom(Balance.BalanceBtc, (parsed, balance) => new { parsed, balance })
 			.Select(x => x.parsed is { } && x.parsed <= x.balance ? x.parsed : null)
-			.Select(money => money?.ToString());
+			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
+
+		UsdContent = Observable.CombineLatest(
+				ApplicationHelper.ClipboardTextChanged,
+				Balance.BalanceBtc,
+				Balance.ExchangeRateObs,
+				(text, balance, exchangeRate) =>
+				{
+					if (decimal.TryParse(text, out var m))
+					{
+						return m <= balance.ToDecimal(MoneyUnit.BTC) * exchangeRate ? m : (decimal?) null;
+					}
+
+					return null;
+				})
+			.Select(money => money?.ToString("0.00"));
 	}
 
 	private static Money? Parse(string s)
@@ -140,22 +160,7 @@ public partial class SendViewModel : RoutableViewModel
 		return decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d) ? new Money(d, MoneyUnit.BTC) : null;
 	}
 
-	private static decimal CountDecimalPlaces(decimal dec)
-	{
-		var bits = decimal.GetBits(dec);
-		ulong lowInt = (uint) bits[0];
-		ulong midInt = (uint) bits[1];
-		var exponent = (bits[3] & 0x00FF0000) >> 16;
-		var result = exponent;
-		var lowDecimal = lowInt | (midInt << 32);
-		while (result > 0 && lowDecimal % 10 == 0)
-		{
-			result--;
-			lowDecimal /= 10;
-		}
-
-		return result;
-	}
+	public IObservable<string?> UsdContent { get; set; }
 
 	public IObservable<string?> BitcoinContent { get; }
 
