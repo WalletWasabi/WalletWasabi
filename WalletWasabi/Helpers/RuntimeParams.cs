@@ -19,9 +19,6 @@ public class RuntimeParams
 	[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 	public int NetworkNodeTimeout { get; set; } = 16;
 
-	[JsonProperty(PropertyName = "RetryConnectLocalNodeSeconds")]
-	public int RetryConnectLocalNodeSeconds { get; } = 120;
-
 	#region Business logic
 
 	public static RuntimeParams Instance
@@ -86,13 +83,14 @@ public class RuntimeParams
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 			InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString)
-							?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
+			                   ?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
 			return;
 		}
 		catch (Exception ex)
 		{
 			Logger.LogInfo($"Could not load {nameof(RuntimeParams)}: {ex}.");
 		}
+
 		InternalInstance = new RuntimeParams();
 	}
 
