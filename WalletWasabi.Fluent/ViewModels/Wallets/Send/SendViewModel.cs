@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -145,12 +144,9 @@ public partial class SendViewModel : RoutableViewModel
 				Balance.ExchangeRateObs,
 				(text, balance, exchangeRate) =>
 				{
-					if (decimal.TryParse(text, out var m))
-					{
-						return m <= balance.ToDecimal(MoneyUnit.BTC) * exchangeRate ? m : (decimal?) null;
-					}
-
-					return null;
+					return text
+						.Try(x => decimal.TryParse(x, out var n) ? n : (decimal?)default)
+						.Ensure(x => x <= balance.ToDecimal(MoneyUnit.BTC) * exchangeRate);
 				})
 			.Select(money => money?.ToString("0.00"));
 	}
@@ -162,22 +158,14 @@ public partial class SendViewModel : RoutableViewModel
 				Balance.BalanceBtc,
 				(text, balance) =>
 				{
-					if (Money.TryParse(text, out var m))
-					{
-						return m <= balance ? m : null;
-					}
-
-					return null;
+					return text
+						.Try(x => Money.TryParse(x, out var n) ? n : default)
+						.Ensure(x => x <= balance);
 				})
 			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
 	}
 
-	private static Money? Parse(string s)
-	{
-		return decimal.TryParse(s, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d) ? new Money(d, MoneyUnit.BTC) : null;
-	}
-
-	public IObservable<string?> UsdContent { get; set; }
+	public IObservable<string?> UsdContent { get; }
 
 	public IObservable<string?> BitcoinContent { get; }
 
