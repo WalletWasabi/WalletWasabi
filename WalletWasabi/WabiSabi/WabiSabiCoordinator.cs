@@ -126,6 +126,7 @@ public class WabiSabiCoordinator : BackgroundService
 		Arena.CoinJoinBroadcast -= Arena_CoinJoinBroadcast;
 		ConfigWatcher.Dispose();
 		Warden.Dispose();
+		AffiliationManager.Dispose();
 		base.Dispose();
 	}
 }
