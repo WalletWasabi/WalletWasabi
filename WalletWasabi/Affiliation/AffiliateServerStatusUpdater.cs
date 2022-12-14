@@ -21,11 +21,11 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	}
 
 	private IDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
-	public ImmutableList<AffiliationFlag> RunningAffiliateServers { get; private set; }
+	private ImmutableList<AffiliationFlag> RunningAffiliateServers { get; set; }
 
-	public IEnumerable<AffiliationFlag> GetRunningAffiliateServers()
+	public ImmutableArray<AffiliationFlag> GetRunningAffiliateServers()
 	{
-		return RunningAffiliateServers;
+		return RunningAffiliateServers.ToImmutableArray();
 	}
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
