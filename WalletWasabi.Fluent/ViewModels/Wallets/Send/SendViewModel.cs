@@ -133,14 +133,14 @@ public partial class SendViewModel : RoutableViewModel
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
 
-		BitcoinContent = ApplicationHelper.ClipboardTextChanged
-			.Select(Parse)
-			.WithLatestFrom(Balance.BalanceBtc, (parsed, balance) => new { parsed, balance })
-			.Select(x => x.parsed is { } && x.parsed <= x.balance ? x.parsed : null)
-			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
+		BitcoinContent = ClipboardBtcContent();
+		UsdContent = ClipboardUsdContent();
+	}
 
-		UsdContent = Observable.CombineLatest(
-				ApplicationHelper.ClipboardTextChanged,
+	private IObservable<string?> ClipboardUsdContent()
+	{
+		return ApplicationHelper.ClipboardTextChanged
+			.CombineLatest(
 				Balance.BalanceBtc,
 				Balance.ExchangeRateObs,
 				(text, balance, exchangeRate) =>
@@ -153,6 +153,23 @@ public partial class SendViewModel : RoutableViewModel
 					return null;
 				})
 			.Select(money => money?.ToString("0.00"));
+	}
+
+	private IObservable<string?> ClipboardBtcContent()
+	{
+		return ApplicationHelper.ClipboardTextChanged
+			.CombineLatest(
+				Balance.BalanceBtc,
+				(text, balance) =>
+				{
+					if (Money.TryParse(text, out var m))
+					{
+						return m <= balance ? m : null;
+					}
+
+					return null;
+				})
+			.Select(money => money?.ToDecimal(MoneyUnit.BTC).FormattedBtc());
 	}
 
 	private static Money? Parse(string s)
