@@ -96,7 +96,7 @@ public class P2pBlockProvider : IBlockProvider
 						}
 					}
 
-					if (block is null)
+					if (block is not null)
 					{
 						break;
 					}
