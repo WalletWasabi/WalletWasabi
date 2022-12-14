@@ -63,15 +63,6 @@
       </c:PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource private_key_regular}"
-                     Label="Extended Account Private Key zprv"
-                     TextValue="{Binding ExtendedAccountZprv}"
-                     IsVisible="{Binding !!ExtendedAccountZprv}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedAccountZprv}" />
-      </c:PreviewItem>
-      <Separator IsVisible="{Binding !!ExtendedAccountZprv}" />
-
       <StackPanel Spacing="10" IsVisible="{Binding WpkhOutputDescriptors, Converter={x:Static ObjectConverters.IsNotNull}}">
         <c:PreviewItem Icon="{StaticResource key_regular}"
                        Label="Public External Output descriptor"
@@ -104,14 +95,6 @@
                      Label="Extended Account Public Key"
                      TextValue="{Binding ExtendedAccountPublicKey}">
         <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
-      </c:PreviewItem>
-
-      <Separator />
-
-      <c:PreviewItem Icon="{StaticResource key_regular}"
-                     Label="Extended Account zpub"
-                     TextValue="{Binding ExtendedAccountZpub}">
-        <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding ExtendedAccountZpub}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

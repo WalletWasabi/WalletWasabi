@@ -325,7 +325,7 @@ public class KeyManager
 		}
 	}
 
-	public HdPubKey GetNextReceiveKey(SmartLabel label, out bool minGapLimitIncreased)
+	public HdPubKey GetNextReceiveKey(SmartLabel label)
 	{
 		if (label.IsEmpty)
 		{
@@ -334,31 +334,25 @@ public class KeyManager
 
 		lock (CriticalStateLock)
 		{
-			minGapLimitIncreased = false;
-			var newKey = GetNextReceiveKey(label);
+			// Find the next clean external key with empty label.
+			var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
+			if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
+			{
+				SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
+				var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
+				HdPubKeyCache.AddRangeKeys(newHdPubKeys);
+
+				newKey = newHdPubKeys.First();
+			}
+			newKey.SetLabel(label);
+
+			SkipSynchronization = false;
+
 			ToFile();
 			return newKey;
 		}
 	}
 	
-	private HdPubKey GetNextReceiveKey(SmartLabel label)
-	{
-		// Find the next clean external key with empty label.
-		var externalView = HdPubKeyCache.GetView(SegwitExternalKeyGenerator.KeyPath);
-		if (externalView.CleanKeys.FirstOrDefault(x => x.Label.IsEmpty) is not { } newKey)
-		{
-			SegwitExternalKeyGenerator = SegwitExternalKeyGenerator with { MinGapLimit = SegwitExternalKeyGenerator.MinGapLimit + 1 };
-			var newHdPubKeys = SegwitExternalKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToList();
-			HdPubKeyCache.AddRangeKeys(newHdPubKeys); 
-
-			newKey = newHdPubKeys.First();
-		}
-		newKey.SetLabel(label);
-
-		SkipSynchronization = false;
-		return newKey;
-	}
-
 	public HdPubKey GetNextChangeKey() =>
 		GetKeys(x => 
 			x.KeyState == KeyState.Clean && 
