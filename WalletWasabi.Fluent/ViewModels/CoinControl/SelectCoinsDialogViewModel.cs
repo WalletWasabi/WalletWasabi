@@ -30,12 +30,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
-		var items = CreateItems(pockets);
+		var pocketItems = CreatePocketItems(pockets);
 		
-		SyncSelectedItems(items, selectedCoins);
+		SyncSelectedItems(pocketItems, selectedCoins);
 
 		var pocketColumn = PocketColumn();
-		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(items)
+		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
 		{
 			Columns =
 			{
@@ -52,7 +52,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoins(items)));
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoins(pocketItems)));
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
@@ -199,19 +199,19 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 0;
 	}
 
-	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreateItems(IEnumerable<Pocket> pockets)
+	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreatePocketItems(IEnumerable<Pocket> pockets)
 	{
 		return pockets
 			.Select(pocket => new PocketCoinControlItemViewModel(pocket))
 			.ToList();
 	}
 
-	public static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
 	}
 
-	public static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty?> selector)
+	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty?> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
 	}
