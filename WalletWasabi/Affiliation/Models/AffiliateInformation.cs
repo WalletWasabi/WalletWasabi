@@ -7,9 +7,9 @@ namespace WalletWasabi.Affiliation.Models;
 
 public record AffiliateInformation
 (
-	IEnumerable<AffiliationFlag> RunningAffiliateServers,
-	IReadOnlyDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>> CoinjoinRequests
+	ImmutableArray<AffiliationFlag> RunningAffiliateServers,
+	ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>> CoinjoinRequests
 )
 {
-	public static readonly AffiliateInformation Empty = new AffiliateInformation(Enumerable.Empty<AffiliationFlag>(), ImmutableDictionary<uint256, IReadOnlyDictionary<AffiliationFlag, byte[]>>.Empty);
+	public static readonly AffiliateInformation Empty = new AffiliateInformation(ImmutableArray<AffiliationFlag>.Empty, ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>>.Empty);
 }
