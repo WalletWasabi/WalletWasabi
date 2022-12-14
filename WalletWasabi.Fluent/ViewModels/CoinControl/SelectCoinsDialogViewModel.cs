@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
@@ -30,11 +31,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 {
 	private readonly CompositeDisposable _disposables = new ();
 
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var items = CreateItems(pockets);
-		items.ToList().ForEach(x => x.DisposeWith(_disposables));
 		
 		SyncSelectedItems(items, selectedCoins);
 
@@ -49,7 +50,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 				AnonymityScoreColumn(),
 				pocketColumn
 			}
-		};
+		}.DisposeWith(_disposables);
 
 		Source.SortBy(pocketColumn, ListSortDirection.Descending);
 		Source.RowSelection!.SingleSelect = true;
@@ -78,6 +79,11 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
 		_disposables.Dispose();
+
+		foreach (var pocket in Source.Items.OfType<PocketCoinControlItemViewModel>())
+		{
+			pocket.Dispose();
+		}
 
 		base.OnNavigatedFrom(isInHistory);
 	}
