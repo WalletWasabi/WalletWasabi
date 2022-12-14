@@ -268,7 +268,7 @@ public class P2pBlockProvider : IBlockProvider
 				if (!LastFailConnectLocalNode.IsRunning)
 				{
 					Logger.LogDebug("Did not find local listening and running full node instance. Trying to fetch needed blocks from other sources." +
-					                (Network == Network.RegTest ? "" : $" Will retry in {RetryConnectLocalNodeSeconds}s."));
+					                (Network == Network.RegTest ? "" : $" Will retry periodically."));
 				}
 
 				// Retry more at the beginning because maybe the node was just not ready.
