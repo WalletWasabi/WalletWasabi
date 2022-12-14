@@ -672,7 +672,7 @@ public class CoinJoinClient
 			.GroupBy(x => x.HdPubKey)
 			.Select(x => x.ToList())
 			.Where(x => x.Count > 1)
-			.OrderBy(x => x.Count);
+			.OrderByDescending(x => x.Count);
 
 		if (sameAddressCoins.Any())
 		{
