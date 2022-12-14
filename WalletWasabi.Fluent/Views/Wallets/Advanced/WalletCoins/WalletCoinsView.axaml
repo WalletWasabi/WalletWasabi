@@ -16,8 +16,8 @@
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 SkipContent="Send selected coins"
-                 EnableSkip="{Binding IsAnySelected^}">
+                 SkipContent="{Binding SelectedCoinsCount, StringFormat=Send {0} selected coin}"
+                 EnableSkip="{Binding !!SelectedCoinsCount}">
     <TreeDataGrid Source="{Binding Source}"
                   CanUserSortColumns="True">
       <TreeDataGrid.Styles>

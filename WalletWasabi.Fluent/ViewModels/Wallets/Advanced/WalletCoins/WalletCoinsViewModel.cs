@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
-	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
+	[AutoNotify] private int _selectedCoinsCount;
 
 	[AutoNotify]
 	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
@@ -50,11 +50,13 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			.Replay(1)
 			.RefCount();
 
-		IsAnySelected = coinChanges
+		coinChanges
 			.AutoRefresh(x => x.IsSelected)
 			.ToCollection()
-			.Select(items => items.Any(t => t.IsSelected))
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Select(items => items.Count(t => t.IsSelected))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.BindTo(this, x=> x.SelectedCoinsCount)
+			.DisposeWith(disposables);
 
 		coinChanges
 			.DisposeMany()
