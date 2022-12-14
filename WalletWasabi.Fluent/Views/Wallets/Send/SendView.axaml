@@ -13,17 +13,22 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
 
   <UserControl.DataTemplates>
-    <DataTemplate DataType="behaviors:Hint">
+    <DataTemplate DataType="behaviors:Suggestion">
       <DockPanel>
-        <Button DockPanel.Dock="Right" Background="Transparent" Content="x" FontSize="12"
+        <Button DockPanel.Dock="Right" Background="Transparent"
+                Cursor="Hand"
+                Padding="4"
                 VerticalAlignment="Top">
+          <Button.Content>
+            <PathIcon Data="{StaticResource dismiss_light}" Width="5" DockPanel.Dock="Left" />
+          </Button.Content>
         </Button>
-        <DockPanel> 
-          <Button Background="Transparent" Margin="8" Padding="0" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False"                  Cursor="Hand">
-            <PathIcon Data="{StaticResource paste_regular}" Width="20" />
-          </Button>
-          <TextBlock Text="{Binding Content}" VerticalAlignment="Center" />
-        </DockPanel>
+        <Button Background="Transparent" Margin="8" Padding="0" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False" Cursor="Hand">
+          <DockPanel>
+            <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
+            <TextBlock Margin="8" Text="{Binding Text}" VerticalAlignment="Center" />
+          </DockPanel>
+        </Button>
       </DockPanel>
     </DataTemplate>
   </UserControl.DataTemplates>
@@ -130,8 +135,8 @@
                                   ConversionCurrencyCode="USD"
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
             <i:Interaction.Behaviors>
-              <behaviors:HintBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}" />
-              <behaviors:HintBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}" />
+              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}" />
+              <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}" />
             </i:Interaction.Behaviors>
           </c:DualCurrencyEntryBox>
         </DockPanel>
