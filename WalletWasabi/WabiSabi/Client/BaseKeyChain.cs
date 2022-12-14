@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -18,9 +19,16 @@ public abstract class BaseKeyChain : IKeyChain
 
 	protected abstract Key GetMasterKey();
 
+	private ConcurrentDictionary<Script, BitcoinSecret> ScriptAndSecrets { get; } = new();
+
+	private BitcoinSecret GetSecretWithCache(Script scriptPubKey)
+	{
+		return ScriptAndSecrets.GetOrAdd(scriptPubKey, GetBitcoinSecret);
+	}
+
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		var secret = GetBitcoinSecret(destination.ScriptPubKey);
+		var secret = GetSecretWithCache(destination.ScriptPubKey);
 
 		var masterKey = GetMasterKey();
 		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
@@ -32,7 +40,7 @@ public abstract class BaseKeyChain : IKeyChain
 			signingKey,
 			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
 			commitmentData,
-			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) 
+			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)
 				? ScriptPubKeyType.Segwit
 				: ScriptPubKeyType.TaprootBIP86);
 		return ownershipProof;
@@ -53,14 +61,14 @@ public abstract class BaseKeyChain : IKeyChain
 			throw new InvalidOperationException("Missing input.");
 		}
 
-		var secret = GetBitcoinSecret(coin.ScriptPubKey);
+		var secret = GetSecretWithCache(coin.ScriptPubKey);
 
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);
 		builder.AddCoins(coin);
 		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, precomputedTransactionData as TaprootReadyPrecomputedTransactionData));
 		builder.SignTransactionInPlace(transaction);
-		
+
 		return transaction;
 	}
 
