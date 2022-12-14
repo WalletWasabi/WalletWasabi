@@ -20,6 +20,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Events;
+using WalletWasabi.Affiliation;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -655,5 +656,10 @@ public partial class Arena : PeriodicRunner
 	{
 		round.EndRound(endRoundState);
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
+	}
+
+	private void NotifyAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinationFee)
+	{
+		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationFlag, isPayingZeroCoordinationFee));
 	}
 }
