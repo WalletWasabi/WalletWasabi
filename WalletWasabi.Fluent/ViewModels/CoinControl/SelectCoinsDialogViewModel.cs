@@ -111,8 +111,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		}
 	}
 
-	private static IEnumerable<CoinControlItemViewModelBase> Flatten(IEnumerable<CoinControlItemViewModelBase> r) => r.SelectMany(x => new[] { x }.Concat(Flatten(x.Children)));
-
 	private static IColumn<CoinControlItemViewModelBase> AmountColumn()
 	{
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
