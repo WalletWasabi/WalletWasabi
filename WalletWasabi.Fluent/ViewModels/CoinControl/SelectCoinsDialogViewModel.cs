@@ -29,9 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	private readonly CompositeDisposable _disposables = new ();
-
-	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
@@ -50,7 +47,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 				AnonymityScoreColumn(),
 				pocketColumn
 			}
-		}.DisposeWith(_disposables);
+		};
 
 		Source.SortBy(pocketColumn, ListSortDirection.Descending);
 		Source.RowSelection!.SingleSelect = true;
@@ -78,12 +75,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
-		_disposables.Dispose();
-
 		foreach (var pocket in Source.Items.OfType<PocketCoinControlItemViewModel>())
 		{
 			pocket.Dispose();
 		}
+
+		Source.Dispose();
 
 		base.OnNavigatedFrom(isInHistory);
 	}
