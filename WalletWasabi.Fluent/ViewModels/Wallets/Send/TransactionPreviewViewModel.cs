@@ -565,7 +565,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 
 		var usedCoins = transaction.SpentCoins;
-		var pockets = _wallet.GetPockets().ToArray();
+		var pockets = _wallet.GetPockets(onlyAvailableCoins: true).ToArray();
 		var labelSelection = new LabelSelectionViewModel(_wallet.KeyManager, _wallet.Kitchen.SaltSoup(), _info, isSilent: true);
 		labelSelection.Reset(pockets);
 

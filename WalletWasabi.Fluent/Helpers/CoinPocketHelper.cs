@@ -14,10 +14,15 @@ public static class CoinPocketHelper
 	public static readonly SmartLabel PrivateFundsText = new("Private Funds");
 	public static readonly SmartLabel SemiPrivateFundsText = new("Semi-private Funds");
 
-	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
+	public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold, bool onlyAvailableCoins = false)
 	{
 		List<(SmartLabel SmartLabel, ICoinsView Coins)> pockets = new();
 		var clusters = new Dictionary<SmartLabel, List<SmartCoin>>();
+
+		if (onlyAvailableCoins)
+		{
+			allCoins = allCoins.Available();
+		}
 
 		foreach (SmartCoin coin in allCoins.Where(x => x.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold))
 		{
@@ -71,5 +76,5 @@ public static class CoinPocketHelper
 		return pockets;
 	}
 
-	public static IEnumerable<Pocket> GetPockets(this Wallet wallet) => wallet.Coins.Available().GetPockets(wallet.AnonScoreTarget).Select(x => new Pocket(x));
+	public static IEnumerable<Pocket> GetPockets(this Wallet wallet, bool onlyAvailableCoins = false) => wallet.Coins.GetPockets(wallet.AnonScoreTarget, onlyAvailableCoins).Select(x => new Pocket(x));
 }

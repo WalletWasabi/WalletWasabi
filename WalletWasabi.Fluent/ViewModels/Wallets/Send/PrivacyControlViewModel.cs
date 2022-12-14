@@ -47,7 +47,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		var privateThreshold = _wallet.AnonScoreTarget;
 
-		LabelSelection.Reset(_wallet.Coins.Available().GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
+		LabelSelection.Reset(_wallet.Coins.GetPockets(privateThreshold, onlyAvailableCoins: true).Select(x => new Pocket(x)).ToArray());
 		LabelSelection.SetUsedLabel(_usedCoins, privateThreshold);
 	}
 
