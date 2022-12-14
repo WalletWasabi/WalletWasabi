@@ -12,7 +12,7 @@ using WalletWasabi.Affiliation.Serialization;
 
 namespace WalletWasabi.Affiliation;
 
-public class AffiliateServerHttpApiClient : IAffiliateServerApi
+public class AffiliateServerHttpApiClient
 {
 	private IHttpClient Client;
 

@@ -17,8 +17,7 @@ public class AffiliationManager : BackgroundService, IAffiliationManager
 	{
 		Signer = new(privateKeyHex);
 		Arena = arena;
-		HttpClient httpclient = new();
-		Clients = urls.ToDictionary(x => x.Key, x => new AffiliateServerHttpApiClient(new ClearnetHttpClient(httpclient, () => new Uri(x.Value)))).ToImmutableDictionary();
+		Clients = urls.ToDictionary(x => x.Key, x => new AffiliateServerHttpApiClient(new ClearnetHttpClient(new HttpClient(), () => new Uri(x.Value)))).ToImmutableDictionary();
 		AffiliateServerStatusUpdater = new(Clients);
 		CoinjoinRequestsUpdater = new(Arena, Clients, Signer);
 	}
