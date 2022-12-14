@@ -4,6 +4,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -23,6 +24,14 @@ public abstract class BaseKeyChain : IKeyChain
 
 	private BitcoinSecret GetSecretWithCache(Script scriptPubKey)
 	{
+		if (ScriptAndSecrets.ContainsKey(scriptPubKey))
+		{
+			Logger.LogInfo("Found in the cache");
+		}
+		else
+		{
+			Logger.LogInfo("Not found the cache");
+		}
 		return ScriptAndSecrets.GetOrAdd(scriptPubKey, GetBitcoinSecret);
 	}
 
