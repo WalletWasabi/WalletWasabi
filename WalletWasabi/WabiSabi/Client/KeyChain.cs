@@ -5,6 +5,9 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.SignalR;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -21,7 +24,7 @@ public class KeyChain : BaseKeyChain
 
 	private KeyManager KeyManager { get; }
 	private ExtKey? MasterKey { get; set; }
-	private Dictionary<Script, BitcoinSecret> BitcoinSecrets { get; } = new();
+	private ConcurrentDictionary<Script, BitcoinSecret> BitcoinSecrets { get; } = new();
 
 	[MemberNotNull(nameof(MasterKey))]
 	public void PreloadMasterKey()
@@ -35,11 +38,12 @@ public class KeyChain : BaseKeyChain
 
 		var secretAndhdPubs = KeyManager.GetSecretsAndPubKeyPairs(Kitchen.SaltSoup(), scriptPubKeys.ToArray());
 
-		foreach (var (secret, hdPub) in secretAndhdPubs)
+		Parallel.ForEach(secretAndhdPubs, (tuple, ct) =>
 		{
+			var (secret, hdPub) = tuple;
 			var scriptPubKey = hdPub.GetAssumedScriptPubKey();
-			BitcoinSecrets.Add(scriptPubKey, GetBitcoinSecret(scriptPubKey, secret));
-		}
+			BitcoinSecrets.TryAdd(scriptPubKey, GetBitcoinSecret(scriptPubKey, secret));
+		});
 	}
 
 	protected override Key GetMasterKey()
