@@ -32,6 +32,10 @@ public class KeyChain : BaseKeyChain
 		MasterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup());
 	}
 
+	/// <summary>
+	/// Do the CPU intense operations for specified scripts.
+	/// </summary>
+	/// <param name="scriptPubKeys"></param>
 	public void PreloadBitcoinSecrets(IEnumerable<Script> scriptPubKeys)
 	{
 		BitcoinSecrets.Clear();
