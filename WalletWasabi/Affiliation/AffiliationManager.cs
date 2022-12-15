@@ -22,7 +22,7 @@ public class AffiliationManager : BackgroundService, IAffiliationManager, IDispo
 		CoinjoinRequestsUpdater = new(Arena, Clients, Signer);
 	}
 
-	private Signer Signer { get; }
+	private CoinJoinRequestRequestsSigner Signer { get; }
 	private Arena Arena { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
 	private AffiliateServerStatusUpdater AffiliateServerStatusUpdater { get; }
