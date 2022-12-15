@@ -15,8 +15,8 @@ namespace WalletWasabi.Affiliation;
 
 public class CoinjoinRequestsUpdater : PeriodicRunner
 {
-	private static TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
-	private static TimeSpan Interval = TimeSpan.FromSeconds(1);
+	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
+	private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
 
 	public CoinjoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, CoinJoinRequestRequestsSigner signer)
 		  : base(Interval)
