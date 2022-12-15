@@ -666,20 +666,6 @@ public class CoinJoinClient
 			// Let's not mess up the logs when this function gets called many times.
 			return ImmutableList<TCoin>.Empty;
 		}
-		
-		var sameAddressCoins = semiPrivateCoins
-			.Union(redCoins)
-			.GroupBy(x => x.HdPubKey)
-			.Select(x => x.ToList())
-			.Where(x => x.Count > 1)
-			.OrderByDescending(x => x.Count);
-
-		if (sameAddressCoins.Any())
-		{
-			// Select between 2 and MaxInputsRegistrableByWallet coins that are on reused HdPubKey.
-			// First from the max reused HdPubKey then complete with the 2nd max etc... until reaching max or no more coins on reused HdPubKey
-			return sameAddressCoins.SelectMany(group => group).Take(MaxInputsRegistrableByWallet).ToImmutableList();
-		}
 
 		Logger.LogDebug($"Coin selection started:");
 		Logger.LogDebug($"{nameof(filteredCoins)}: {filteredCoins.Length} coins, valued at {Money.Satoshis(filteredCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
@@ -903,6 +889,20 @@ public class CoinJoinClient
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
 			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
+		}
+
+		foreach (var coin in winner)
+		{
+			// Get all other coins on the same address in case some winners are on a reused address
+			var otherCoinsOnSameAddress = semiPrivateCoins
+				.Union(redCoins)
+				.Where(x => x.HdPubKey == coin.HdPubKey && x != coin);
+			// Add these coins to the winner by respecting MaxInputsRegistrableByWallet
+			winner = winner.Union(otherCoinsOnSameAddress.Take(MaxInputsRegistrableByWallet - winner.Count)).ToList();
+			if (winner.Count >= MaxInputsRegistrableByWallet)
+			{
+				break;
+			}
 		}
 
 		return winner.ToShuffled().ToImmutableList();
