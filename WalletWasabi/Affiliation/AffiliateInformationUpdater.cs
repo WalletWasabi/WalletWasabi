@@ -119,13 +119,9 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
-		if (CoinjoinRequests.ContainsKey(roundId))
+		if (!CoinjoinRequests.Remove(roundId))
 		{
-			CoinjoinRequests.Remove(roundId);
-		}
-		else
-		{
-			// This can occurd if the round is finished befor coinjoin requests are updated
+			// This can occur if the round is finished before coinjoin requests are updated.
 			Logging.Logger.LogInfo($"The round ({roundId}) does not exist.");
 		}
 	}
