@@ -18,7 +18,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 	private static TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
 	private static TimeSpan Interval = TimeSpan.FromSeconds(1);
 
-	public CoinjoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, Signer signer)
+	public CoinjoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, CoinJoinRequestRequestsSigner signer)
 		  : base(Interval)
 	{
 		Arena = arena;
@@ -34,7 +34,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 	}
 
 	private Arena Arena { get; }
-	private Signer Signer { get; }
+	private CoinJoinRequestRequestsSigner Signer { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
 	private Dictionary<uint256, Dictionary<AffiliationFlag, byte[]>> CoinjoinRequests { get; }
 	private ConcurrentDictionary<uint256, RoundData> RoundData { get; }
