@@ -33,7 +33,7 @@ public class KeyChain : BaseKeyChain
 	}
 
 	/// <summary>
-	/// Do the CPU intense operations for specified scripts.
+	/// Do the CPU intense operations for specified scripts. With every call the previously stored data cleared.
 	/// </summary>
 	/// <param name="scriptPubKeys"></param>
 	public void PreloadBitcoinSecrets(IEnumerable<Script> scriptPubKeys)
