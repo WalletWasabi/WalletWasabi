@@ -33,7 +33,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 		await UpdateRunningAffiliateServersAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private static async Task<bool> IsAffiliateServerRunning(AffiliateServerHttpApiClient client, CancellationToken cancellationToken)
+	private static async Task<bool> IsAffiliateServerRunningAsync(AffiliateServerHttpApiClient client, CancellationToken cancellationToken)
 	{
 		try
 		{
