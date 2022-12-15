@@ -153,7 +153,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 	{
 		using CancellationTokenSource timeoutCTS = new(AffiliateServerTimeout);
 		using CancellationTokenSource linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCTS.Token);
-		GetCoinjoinRequestResponse getCoinjoinRequestResponse = await client.GetCoinjoinRequest(getCoinjoinRequestRequest, linkedCTS.Token).ConfigureAwait(false);
+		GetCoinjoinRequestResponse getCoinjoinRequestResponse = await client.GetCoinjoinRequestAsync(getCoinjoinRequestRequest, linkedCTS.Token).ConfigureAwait(false);
 		return getCoinjoinRequestResponse.CoinjoinRequest;
 	}
 
