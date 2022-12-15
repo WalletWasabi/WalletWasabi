@@ -84,7 +84,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, CancellationToken cancellationToken)
 	{
-		if (!RoundData.TryGetValue(roundId, out RoundData roundData))
+		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
 		{
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
@@ -96,7 +96,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private async Task UpdateCoinjoinRequestsAsync(CancellationToken cancellationToken)
 	{
-		while (RoundsToUpdate.TryDequeue(out uint256 roundId))
+		while (RoundsToUpdate.TryDequeue(out uint256? roundId))
 		{
 			try
 			{
@@ -114,7 +114,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private void RemoveRound(uint256 roundId)
 	{
-		if (!RoundData.TryRemove(roundId, out var roundData))
+		if (!RoundData.TryRemove(roundId, out RoundData? roundData))
 		{
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
