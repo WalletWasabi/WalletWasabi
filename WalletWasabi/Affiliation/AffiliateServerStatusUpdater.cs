@@ -10,8 +10,8 @@ namespace WalletWasabi.Affiliation;
 
 public class AffiliateServerStatusUpdater : PeriodicRunner
 {
-	private static TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(20);
-	private static TimeSpan Interval = TimeSpan.FromMinutes(1);
+	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(20);
+	private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
 
 	public AffiliateServerStatusUpdater(IDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients)
 		  : base(Interval)
