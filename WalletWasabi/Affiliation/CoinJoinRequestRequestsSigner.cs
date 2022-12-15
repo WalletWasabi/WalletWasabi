@@ -3,11 +3,11 @@ using System.Security.Cryptography;
 
 namespace WalletWasabi.Affiliation;
 
-public class Signer : IDisposable
+public class CoinJoinRequestRequestsSigner : IDisposable
 {
 	private ECDsa ECDsa;
 
-	public Signer(string signingKeyHex)
+	public CoinJoinRequestRequestsSigner(string signingKeyHex)
 	{
 		byte[] signingKeyBytes = Encoders.Hex.DecodeData(signingKeyHex);
 		ECDsa = ECDsa.Create();
