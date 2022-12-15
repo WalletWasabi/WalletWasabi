@@ -27,10 +27,10 @@ public class AffiliateServerHttpApiClient
 		GetStatus
 	}
 
-	public Task<GetCoinjoinRequestResponse> GetCoinjoinRequest(GetCoinjoinRequestRequest request, CancellationToken cancellationToken) =>
+	public Task<GetCoinjoinRequestResponse> GetCoinjoinRequestAsync(GetCoinjoinRequestRequest request, CancellationToken cancellationToken) =>
 		SendAsync<GetCoinjoinRequestRequest, GetCoinjoinRequestResponse>(RemoteAction.GetCoinjoinRequest, request, TimeSpan.FromSeconds(10), 6, cancellationToken);
 
-	public Task<StatusResponse> GetStatus(StatusRequest request, CancellationToken cancellationToken) =>
+	public Task<StatusResponse> GetStatusAsync(StatusRequest request, CancellationToken cancellationToken) =>
 		SendAsync<StatusRequest, StatusResponse>(RemoteAction.GetStatus, request, TimeSpan.FromSeconds(10), 2, cancellationToken);
 
 	private async Task<HttpResponseMessage> SendAsync(RemoteAction action, string jsonString, TimeSpan requestTimeout, CancellationToken cancellationToken)
