@@ -38,7 +38,7 @@ public abstract class BaseKeyChain : IKeyChain
 		return ownershipProof;
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof, PrecomputedTransactionData precomputedTransactionData)
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
 	{
 		transaction = transaction.Clone();
 		if (transaction.Inputs.Count == 0)
