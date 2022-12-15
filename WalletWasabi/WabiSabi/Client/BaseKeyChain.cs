@@ -58,7 +58,7 @@ public abstract class BaseKeyChain : IKeyChain
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);
 		builder.AddCoins(coin);
-		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, precomputedTransactionData as TaprootReadyPrecomputedTransactionData));
+		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
 		builder.SignTransactionInPlace(transaction);
 		
 		return transaction;
