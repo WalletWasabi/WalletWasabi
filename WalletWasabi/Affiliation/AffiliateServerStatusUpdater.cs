@@ -37,7 +37,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	{
 		try
 		{
-			StatusResponse result = await client.GetStatus(new StatusRequest(), cancellationToken).ConfigureAwait(false);
+			StatusResponse result = await client.GetStatusAsync(new StatusRequest(), cancellationToken).ConfigureAwait(false);
 			return true;
 		}
 		catch (Exception exception)
@@ -51,7 +51,7 @@ public class AffiliateServerStatusUpdater : PeriodicRunner
 	{
 		using CancellationTokenSource timeoutCTS = new(AffiliateServerTimeout);
 		using CancellationTokenSource linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCTS.Token);
-		if (await IsAffiliateServerRunning(affiliateServerHttpApiClient, linkedCTS.Token).ConfigureAwait(false))
+		if (await IsAffiliateServerRunningAsync(affiliateServerHttpApiClient, linkedCTS.Token).ConfigureAwait(false))
 		{
 			if (!RunningAffiliateServers.Contains(affiliationFlag))
 			{
