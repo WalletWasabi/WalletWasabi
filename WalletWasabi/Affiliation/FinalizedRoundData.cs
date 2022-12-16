@@ -38,5 +38,4 @@ public class FinalizedRoundData
 	{
 		return ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
 	}
-
 }
