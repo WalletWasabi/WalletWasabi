@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -453,16 +454,16 @@ public class KeyManager
 
 		password ??= "";
 
-		var pwHash = password.GetHashCode();
+		var passwordHash = password.GetHashCode();
 
-		if (MasterKeyAndPasswordHash is { } hashAndKey)
+		if (MasterKeyAndPasswordHash is { MasterKey: var masterkey, PasswordHash: var storedPasswordHash })
 		{
-			if (pwHash != hashAndKey.PasswordHash)
+			if (passwordHash != storedPasswordHash)
 			{
 				throw new SecurityException("Invalid password.");
 			}
 
-			return hashAndKey.MasterKey;
+			return masterkey;
 		}
 
 		try
@@ -474,7 +475,7 @@ public class KeyManager
 			MasterFingerprint ??= secret.PubKey.GetHDFingerPrint();
 			DeriveTaprootExtPubKey(extKey);
 
-			MasterKeyAndPasswordHash = (pwHash, extKey);
+			MasterKeyAndPasswordHash = (passwordHash, extKey);
 
 			return extKey;
 		}
