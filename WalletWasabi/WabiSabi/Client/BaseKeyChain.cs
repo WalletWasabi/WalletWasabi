@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Wallets;
@@ -18,7 +18,12 @@ public abstract class BaseKeyChain : IKeyChain
 
 	protected abstract Key GetMasterKey();
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, BitcoinSecret secret, CoinJoinInputCommitmentData commitmentData)
+	public OwnershipProof GetOwnershipProof(SmartCoinAndSecret coinAndSecret, CoinJoinInputCommitmentData commitmentData)
+	{
+		return GetOwnershipProof(coinAndSecret.Coin.ScriptPubKey, coinAndSecret.Secret, commitmentData);
+	}
+
+	public OwnershipProof GetOwnershipProof(Script scriptPubKey, BitcoinSecret secret, CoinJoinInputCommitmentData commitmentData)
 	{
 		var masterKey = GetMasterKey();
 		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
@@ -28,12 +33,18 @@ public abstract class BaseKeyChain : IKeyChain
 		var signingKey = secret.PrivateKey;
 		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 			signingKey,
-			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
+			new OwnershipIdentifier(identificationKey, scriptPubKey),
 			commitmentData,
-			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)
+			scriptPubKey.IsScriptType(ScriptType.P2WPKH)
 				? ScriptPubKeyType.Segwit
 				: ScriptPubKeyType.TaprootBIP86);
 		return ownershipProof;
+	}
+
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
+	{
+		BitcoinSecret secret = GetBitcoinSecret(coin.ScriptPubKey);
+		return Sign(transaction, coin, secret, precomputedTransactionData);
 	}
 
 	public Transaction Sign(Transaction transaction, Coin coin, BitcoinSecret secret, PrecomputedTransactionData precomputedTransactionData)

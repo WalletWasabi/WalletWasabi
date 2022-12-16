@@ -35,7 +35,7 @@ public class StepTransactionSigningTests
 			MinInputCountByRoundMultiplier = 0.5,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
-		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinAndSecretKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
@@ -70,7 +70,7 @@ public class StepTransactionSigningTests
 			MinInputCountByRoundMultiplier = 0.5,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
-		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinAndSecretKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
@@ -112,7 +112,7 @@ public class StepTransactionSigningTests
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 
-		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinAndSecretKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
@@ -159,7 +159,7 @@ public class StepTransactionSigningTests
 			TransactionSigningTimeout = TimeSpan.Zero,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
-		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinAndSecretKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
@@ -203,7 +203,7 @@ public class StepTransactionSigningTests
 			FailFastOutputRegistrationTimeout = TimeSpan.Zero,
 			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
-		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinAndSecretKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
 		mockRpc.Setup(rpc => rpc.SendRawTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
@@ -244,7 +244,7 @@ public class StepTransactionSigningTests
 	}
 
 	private async Task<(Round Round, AliceClient AliceClient1, AliceClient AliceClient2)>
-			CreateRoundWithOutputsReadyToSignAsync(Arena arena, IKeyChain keyChain, SmartCoin coin1, SmartCoin coin2)
+			CreateRoundWithOutputsReadyToSignAsync(Arena arena, IKeyChain keyChain, SmartCoinAndSecret coin1, SmartCoinAndSecret coin2)
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;

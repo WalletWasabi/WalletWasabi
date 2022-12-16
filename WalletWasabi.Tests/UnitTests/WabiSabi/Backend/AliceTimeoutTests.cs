@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
@@ -24,8 +25,8 @@ public class AliceTimeoutTests
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var km = ServiceFactory.CreateKeyManager(password: "");
 		var key = BitcoinFactory.CreateHdPubKey(km);
-		var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
-		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
+		SmartCoinAndSecret smartCoinAndSecret = BitcoinFactory.CreateSmartCoinAndSecret(km, key, Money.Coins(10m));
+		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(smartCoinAndSecret.Coin);
 
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
@@ -37,7 +38,7 @@ public class AliceTimeoutTests
 		KeyChain keyChain = new(km, new Kitchen(ingredients: ""));
 
 		using CancellationTokenSource registrationCts = new();
-		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
+		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoinAndSecret, keyChain, roundStateUpdater, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
 
 		while (round.Alices.Count == 0)
 		{

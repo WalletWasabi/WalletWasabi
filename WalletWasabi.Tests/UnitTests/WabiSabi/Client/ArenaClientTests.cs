@@ -82,7 +82,7 @@ public class ArenaClientTests
 		var coins = destinationProvider.GetNextDestinations(2, false)
 			.Select(dest => (
 				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), dest)),
-				OwnershipProof: keyChain.GetOwnershipProof(dest, keyChain.GetBitcoinSecret(dest.ScriptPubKey), WabiSabiFactory.CreateCommitmentData(round.Id))))
+				OwnershipProof: keyChain.GetOwnershipProof(dest.ScriptPubKey, keyChain.GetBitcoinSecret(dest.ScriptPubKey), WabiSabiFactory.CreateCommitmentData(round.Id))))
 			.ToArray();
 
 		Alice alice1 = WabiSabiFactory.CreateAlice(coins[0].Coin, coins[0].OwnershipProof, round: round);

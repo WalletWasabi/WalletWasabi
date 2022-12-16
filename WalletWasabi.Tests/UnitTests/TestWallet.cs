@@ -108,9 +108,9 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public ExtPubKey GetExtPubKey(Script scriptPubKey) =>
 		ScriptPubKeys[scriptPubKey].Neuter();
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, BitcoinSecret bitcoinSecret, CoinJoinInputCommitmentData committedData)
+	public OwnershipProof GetOwnershipProof(Script scriptPubKey, BitcoinSecret bitcoinSecret, CoinJoinInputCommitmentData committedData)
 	{
-		if (!ScriptPubKeys.TryGetValue(destination.ScriptPubKey, out var extKey))
+		if (!ScriptPubKeys.TryGetValue(scriptPubKey, out var extKey))
 		{
 			throw new ArgumentException("Destination doesn't belong to this wallet.");
 		}
@@ -118,7 +118,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		using var identificationKey = new Key();
 		return OwnershipProof.GenerateCoinJoinInputProof(
 				extKey.PrivateKey,
-				new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
+				new OwnershipIdentifier(identificationKey, scriptPubKey),
 				committedData,
 				ScriptPubKeyType.Segwit);
 	}
@@ -154,4 +154,14 @@ public class TestWallet : IKeyChain, IDestinationProvider
 
 	private ExtKey CreateNewKey() =>
 		ExtKey.Derive(NextKeyIndex++);
+
+	public BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
+	{
+		if (!ScriptPubKeys.TryGetValue(scriptPubKey, out var extKey))
+		{
+			throw new ArgumentException("Destination doesn't belong to this wallet.");
+		}
+
+		return extKey.PrivateKey.GetBitcoinSecret(Rpc.Network);
+	}
 }

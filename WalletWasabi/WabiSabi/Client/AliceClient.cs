@@ -1,18 +1,18 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using System.Linq;
-using WalletWasabi.Extensions;
-using System.Net.Http;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
@@ -23,8 +23,7 @@ public class AliceClient
 		Guid aliceId,
 		RoundState roundState,
 		ArenaClient arenaClient,
-		SmartCoin coin,
-		BitcoinSecret bitcoinSecret,
+		SmartCoinAndSecret coinAndSecret,
 		OwnershipProof ownershipProof,
 		IEnumerable<Credential> issuedAmountCredentials,
 		IEnumerable<Credential> issuedVsizeCredentials,
@@ -34,8 +33,7 @@ public class AliceClient
 		AliceId = aliceId;
 		RoundId = roundState.Id;
 		ArenaClient = arenaClient;
-		SmartCoin = coin;
-		BitcoinSecret = bitcoinSecret;
+		SmartCoinAndSecret = coinAndSecret;
 		OwnershipProof = ownershipProof;
 		FeeRate = roundParameters.MiningFeeRate;
 		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
@@ -49,7 +47,8 @@ public class AliceClient
 	public Guid AliceId { get; }
 	public uint256 RoundId { get; }
 	private ArenaClient ArenaClient { get; }
-	public SmartCoin SmartCoin { get; }
+	public SmartCoin SmartCoin => SmartCoinAndSecret.Coin;
+	public SmartCoinAndSecret SmartCoinAndSecret { get; }
 	private OwnershipProof OwnershipProof { get; }
 	private FeeRate FeeRate { get; }
 	private CoordinationFeeRate CoordinationFeeRate { get; }
@@ -59,24 +58,20 @@ public class AliceClient
 	private TimeSpan ConfirmationTimeout { get; }
 	public bool IsPayingZeroCoordinationFee { get; }
 
-	private BitcoinSecret BitcoinSecret { get; }
-
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
 		ArenaClient arenaClient,
-		SmartCoin coin,
+		SmartCoinAndSecret coinAndSecret,
 		IKeyChain keyChain,
 		RoundStateUpdater roundStatusUpdater,
 		CancellationToken unregisterCancellationToken,
 		CancellationToken registrationCancellationToken,
-		CancellationToken confirmationCancellationToken,
-		BitcoinSecret? bitcoinSecret = null)
+		CancellationToken confirmationCancellationToken)
 	{
 		AliceClient? aliceClient = null;
 		try
 		{
-			bitcoinSecret ??= (keyChain as KeyChain)?.GetBitcoinSecret(coin.ScriptPubKey);
-			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, keyChain, registrationCancellationToken).ConfigureAwait(false);
+			aliceClient = await RegisterInputAsync(roundState, arenaClient, coinAndSecret, keyChain, registrationCancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
@@ -95,18 +90,19 @@ public class AliceClient
 		return aliceClient;
 	}
 
-	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, BitcoinSecret bitcoinSecret, IKeyChain keyChain, CancellationToken cancellationToken)
+	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoinAndSecret coinAndSecret, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
+		SmartCoin coin = coinAndSecret.Coin;
+
 		AliceClient? aliceClient;
 		try
 		{
 			var ownershipProof = keyChain.GetOwnershipProof(
-				coin,
-				bitcoinSecret,
+				coinAndSecret,
 				new CoinJoinInputCommitmentData(arenaClient.CoordinatorIdentifier, roundState.Id));
 
 			var (response, isPayingZeroCoordinationFee) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-			aliceClient = new(response.Value, roundState, arenaClient, coin, bitcoinSecret, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
+			aliceClient = new(response.Value, roundState, arenaClient, coinAndSecret, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
 			coin.CoinJoinInProgress = true;
 
 			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
@@ -256,7 +252,7 @@ public class AliceClient
 
 	public async Task SignTransactionAsync(TransactionWithPrecomputedData unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
-		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, BitcoinSecret, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, SmartCoinAndSecret.Secret, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 	}

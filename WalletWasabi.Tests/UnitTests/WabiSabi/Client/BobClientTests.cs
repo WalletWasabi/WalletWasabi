@@ -34,9 +34,9 @@ public class BobClientTests
 		var round = WabiSabiFactory.CreateRound(config);
 		var km = ServiceFactory.CreateKeyManager("");
 		var key = BitcoinFactory.CreateHdPubKey(km);
-		SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(2m));
+		SmartCoinAndSecret coinAndSecret1 = BitcoinFactory.CreateSmartCoinAndSecret(km, key, Money.Coins(2m));
 
-		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin);
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coinAndSecret1.Coin);
 		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(token);
 
@@ -64,7 +64,7 @@ public class BobClientTests
 		await roundStateUpdater.StartAsync(token);
 
 		var keyChain = new KeyChain(km, new Kitchen(""));
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, token, token, token);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coinAndSecret1, keyChain, roundStateUpdater, token, token, token);
 
 		do
 		{

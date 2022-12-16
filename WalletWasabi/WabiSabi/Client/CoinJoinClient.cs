@@ -343,7 +343,7 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancel);
 		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancel);
 
-		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoin coin, BitcoinSecret bitcoinSecret)
+		async Task<(AliceClient? AliceClient, PersonCircuit? PersonCircuit)> RegisterInputAsync(SmartCoinAndSecret coinAndSecret)
 		{
 			PersonCircuit? personCircuit = null;
 			bool disposeCircuit = true;
@@ -361,7 +361,7 @@ public class CoinJoinClient
 					CoordinatorIdentifier,
 					arenaRequestHandler);
 
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token, bitcoinSecret).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coinAndSecret, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
 				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
@@ -455,22 +455,23 @@ public class CoinJoinClient
 		var safetyBuffer = TimeSpan.FromMinutes(1);
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd - safetyBuffer);
 
-		using Key dummyKey = new();
-		var bitcoinSecretAndPubKeys = KeyChain is KeyChain keyChain
-			? keyChain.GetBitcoinSecrets(smartCoins.Select(coin => coin.ScriptPubKey), timeoutAndGlobalCts.Token)
-			: smartCoins.ToDictionary(coin => coin.ScriptPubKey, coin => new BitcoinSecret(dummyKey, Network.Main));
+		IEnumerable<SmartCoinAndSecret> coinsAndSecrets = smartCoins
+			.AsParallel()
+			.WithCancellation(timeoutAndGlobalCts.Token)
+			.Select(coin => new SmartCoinAndSecret(coin, KeyChain.GetBitcoinSecret(coin.ScriptPubKey)));
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-		var aliceClients = smartCoins.Zip(
+		var aliceClients = coinsAndSecrets.Zip(
 			scheduledDates,
-			async (coin, date) =>
+			async (coinAndSecret, date) =>
 			{
 				var delay = date - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
 					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
 				}
-				return await RegisterInputAsync(coin, bitcoinSecretAndPubKeys[coin.ScriptPubKey]).ConfigureAwait(false);
+
+				return await RegisterInputAsync(coinAndSecret).ConfigureAwait(false);
 			})
 			.ToImmutableArray();
 

@@ -78,6 +78,12 @@ public static class WabiSabiFactory
 			MaxVsizeAllocationPerAlice = 11 + 31 + MultipartyTransactionParameters.SharedOverhead
 		});
 
+	public static Mock<IRPCClient> CreatePreconfiguredRpcClient()
+		=> CreatePreconfiguredRpcClient(Array.Empty<Coin>());
+
+	public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params SmartCoin[] coins)
+		=> CreatePreconfiguredRpcClient(coins.Select(x => x.Coin).ToArray());
+
 	public static Mock<IRPCClient> CreatePreconfiguredRpcClient(params Coin[] coins)
 	{
 		using Key key = new();
@@ -288,6 +294,20 @@ public static class WabiSabiFactory
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
 		return (keyChain, smartCoin1, smartCoin2);
+	}
+
+	public static (IKeyChain, SmartCoinAndSecret, SmartCoinAndSecret) CreateCoinAndSecretKeyPairs(KeyManager? keyManager = null)
+	{
+		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
+		var keyChain = new KeyChain(km, new Kitchen(""));
+
+		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
+		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
+		ExtKey[] secrets = km.GetSecrets("", smartCoin1.ScriptPubKey, smartCoin2.ScriptPubKey).ToArray();
+		BitcoinSecret secret1 = secrets[0].PrivateKey.GetBitcoinSecret(Network.Main);
+		BitcoinSecret secret2 = secrets[1].PrivateKey.GetBitcoinSecret(Network.Main);
+
+		return (keyChain, new SmartCoinAndSecret(smartCoin1, secret1), new SmartCoinAndSecret(smartCoin2, secret2));
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(
