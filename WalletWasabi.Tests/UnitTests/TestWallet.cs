@@ -123,7 +123,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, BitcoinSecret bitcoinSecret, PrecomputedTransactionData precomputeTransactionData)
+	public Transaction Sign(Transaction transaction, Coin coin, BitcoinSecret _, PrecomputedTransactionData precomputeTransactionData)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
 		{

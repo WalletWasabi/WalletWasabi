@@ -75,7 +75,7 @@ public class AliceClient
 		AliceClient? aliceClient = null;
 		try
 		{
-			bitcoinSecret ??= (keyChain as KeyChain).GetBitcoinSecret(coin.ScriptPubKey);
+			bitcoinSecret ??= (keyChain as KeyChain)?.GetBitcoinSecret(coin.ScriptPubKey);
 			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, keyChain, registrationCancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 

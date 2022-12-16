@@ -455,12 +455,10 @@ public class CoinJoinClient
 		var safetyBuffer = TimeSpan.FromMinutes(1);
 		var scheduledDates = GetScheduledDates(smartCoins.Count(), roundState.InputRegistrationEnd - safetyBuffer);
 
-		if (KeyChain is not KeyChain keyChain)
-		{
-			throw new InvalidOperationException();
-		}
-
-		var bitcoinSecretAndPubKeys = keyChain.GetBitcoinSecrets(smartCoins.Select(coin => coin.ScriptPubKey), timeoutAndGlobalCts.Token);
+		using Key dummyKey = new();
+		var bitcoinSecretAndPubKeys = KeyChain is KeyChain keyChain
+			? keyChain.GetBitcoinSecrets(smartCoins.Select(coin => coin.ScriptPubKey), timeoutAndGlobalCts.Token)
+			: smartCoins.ToDictionary(coin => coin.ScriptPubKey, coin => new BitcoinSecret(dummyKey, Network.Main));
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
