@@ -279,7 +279,8 @@ public partial class Arena : PeriodicRunner
 			{
 				if (state.IsFullySigned)
 				{
-					Transaction coinjoin = CreateTransaction(round.Id, state);
+					Transaction coinjoin = state.CreateTransaction();
+					CoinjoinTransactionCreated?.SafeInvoke(this, new CoinjoinTransactionCreatedEventArgs(round.Id, coinjoin));
 
 					// Logging.
 					round.LogInfo("Trying to broadcast coinjoin.");
@@ -660,12 +661,5 @@ public partial class Arena : PeriodicRunner
 	private void NotifyAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinationFee)
 	{
 		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationFlag, isPayingZeroCoordinationFee));
-	}
-
-	private Transaction CreateTransaction(uint256 roundId, SigningState signingState)
-	{
-		Transaction coinjoin = signingState.CreateTransaction();
-		CoinjoinTransactionCreated?.SafeInvoke(this, new CoinjoinTransactionCreatedEventArgs(roundId, coinjoin));
-		return coinjoin;
 	}
 }
