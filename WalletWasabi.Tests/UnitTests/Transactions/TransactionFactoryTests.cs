@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.HttpOverrides;
 using Moq;
 using NBitcoin;
 using System.Linq;
@@ -9,8 +7,6 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using Xunit;
