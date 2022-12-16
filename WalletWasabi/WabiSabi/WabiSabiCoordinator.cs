@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Affiliation;
@@ -20,7 +21,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, CoinVerifier? coinVerifier = null)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory, CoinVerifier? coinVerifier = null)
 	{
 		Parameters = parameters;
 
@@ -47,7 +48,7 @@ public class WabiSabiCoordinator : BackgroundService
 			transactionArchiver,
 			coinJoinScriptStore,
 			coinVerifier);
-		AffiliationManager = new(Arena, Config.AffiliateServers, Config.CoordinatorSignerKeyHex);
+		AffiliationManager = new(Arena, Config.AffiliateServers, Config.CoordinatorSignerKeyHex, httpClientFactory);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);
 		Arena.CoinJoinBroadcast += Arena_CoinJoinBroadcast;
