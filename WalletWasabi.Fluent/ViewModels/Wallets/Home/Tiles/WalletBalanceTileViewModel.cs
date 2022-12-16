@@ -7,12 +7,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public class WalletBalanceTileViewModel : ActivatableViewModel
 {
-	public WalletBalanceTileViewModel(WalletViewModel walletVm)
+	public WalletBalanceTileViewModel(WalletViewModel walletVm, bool showOnlyAvailable = false)
 	{
 		var wallet = walletVm.Wallet;
 
 		var balance = walletVm.UiTriggers.BalanceUpdateTrigger
-			.Select(_ => wallet.Coins.Available().TotalAmount());
+			.Select(_ => showOnlyAvailable ? wallet.Coins.Available().TotalAmount() : wallet.Coins.TotalAmount());
 
 		BalanceBtc = balance
 			.Select(money => $"{money.ToFormattedString()} BTC");
