@@ -286,16 +286,6 @@ public static class WabiSabiFactory
 			blameWhitelist: round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(),
 			InsecureRandom.Instance);
 
-	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
-	{
-		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
-		var keyChain = new KeyChain(km, new Kitchen(""));
-
-		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
-		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
-		return (keyChain, smartCoin1, smartCoin2);
-	}
-
 	public static (IKeyChain, SmartCoinAndSecret, SmartCoinAndSecret) CreateCoinAndSecretKeyPairs(KeyManager? keyManager = null)
 	{
 		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
