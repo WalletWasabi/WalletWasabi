@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Immutable;
+using System.Net.Http;
 using WalletWasabi.Affiliation.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using System.Threading;
@@ -13,11 +14,11 @@ namespace WalletWasabi.Affiliation;
 
 public class AffiliationManager : BackgroundService, IAffiliationManager, IDisposable
 {
-	public AffiliationManager(Arena arena, ImmutableDictionary<AffiliationFlag, string> urls, string privateKeyHex)
+	public AffiliationManager(Arena arena, ImmutableDictionary<AffiliationFlag, string> urls, string privateKeyHex, IHttpClientFactory httpClientFactory)
 	{
 		Signer = new(privateKeyHex);
 		Arena = arena;
-		Clients = urls.ToDictionary(x => x.Key, x => new AffiliateServerHttpApiClient(new ClearnetHttpClient(new HttpClient(), () => new Uri(x.Value)))).ToImmutableDictionary();
+		Clients = urls.ToDictionary(x => x.Key, x => new AffiliateServerHttpApiClient(new ClearnetHttpClient(httpClientFactory.CreateClient(), () => new Uri(x.Value)))).ToImmutableDictionary();
 		AffiliateServerStatusUpdater = new(Clients);
 		CoinjoinRequestsUpdater = new(Arena, Clients, Signer);
 	}
