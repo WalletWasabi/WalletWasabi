@@ -82,7 +82,7 @@ public class ArenaClientTests
 		var coins = destinationProvider.GetNextDestinations(2, false)
 			.Select(dest => (
 				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), dest)),
-				OwnershipProof: keyChain.GetOwnershipProof(dest, WabiSabiFactory.CreateCommitmentData(round.Id))))
+				OwnershipProof: keyChain.GetOwnershipProof(dest, keyChain.GetBitcoinSecret(dest.ScriptPubKey), WabiSabiFactory.CreateCommitmentData(round.Id))))
 			.ToArray();
 
 		Alice alice1 = WabiSabiFactory.CreateAlice(coins[0].Coin, coins[0].OwnershipProof, round: round);
@@ -115,14 +115,14 @@ public class ArenaClientTests
 
 		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<ArgumentException>(async () =>
-				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, finalizedEmptyState.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
+				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, keyChain.GetBitcoinSecret(alice1.Coin.ScriptPubKey), finalizedEmptyState.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
 
 		var oneInput = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).Finalize();
 		round.CoinjoinState = oneInput;
 
 		// Trying to sign coins those are not in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, oneInput.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
+				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, keyChain.GetBitcoinSecret(alice2.Coin.ScriptPubKey), oneInput.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
 
 		var twoInputs = emptyState
 			.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData)
@@ -133,13 +133,13 @@ public class ArenaClientTests
 		Assert.False(round.Assert<SigningState>().IsFullySigned);
 		var unsigned = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 
-		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, unsigned, CancellationToken.None);
+		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, keyChain.GetBitcoinSecret(alice1.Coin.ScriptPubKey), unsigned, CancellationToken.None);
 		Assert.True(round.Assert<SigningState>().IsInputSigned(alice1.Coin.Outpoint));
 		Assert.False(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
 		Assert.False(round.Assert<SigningState>().IsFullySigned);
 
-		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, unsigned, CancellationToken.None);
+		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, keyChain.GetBitcoinSecret(alice2.Coin.ScriptPubKey), unsigned, CancellationToken.None);
 		Assert.True(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
 		Assert.True(round.Assert<SigningState>().IsFullySigned);

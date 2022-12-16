@@ -460,24 +460,21 @@ public class CoinJoinClient
 			throw new InvalidOperationException();
 		}
 
-		var bitcoinSecrets = keyChain.GetBitcoinSecrets(smartCoins.Select(coin => coin.ScriptPubKey), timeoutAndGlobalCts.Token);
+		var bitcoinSecretAndPubKeys = keyChain.GetBitcoinSecrets(smartCoins.Select(coin => coin.ScriptPubKey), timeoutAndGlobalCts.Token);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
-		var aliceClients = smartCoins
-			.Zip(scheduledDates, bitcoinSecrets)
-			.Select(tuple => Task.Run(async () =>
+		var aliceClients = smartCoins.Zip(
+			scheduledDates,
+			async (coin, date) =>
 			{
-				var coin = tuple.First;
-				var date = tuple.Second;
-				var secret = tuple.Third;
 				var delay = date - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
 					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
 				}
-				return await RegisterInputAsync(coin, new BitcoinSecret(new Key(), Network.Main)).ConfigureAwait(false);
-			}, timeoutAndGlobalCts.Token))
-			.ToArray();
+				return await RegisterInputAsync(coin, bitcoinSecretAndPubKeys[coin.ScriptPubKey]).ConfigureAwait(false);
+			})
+			.ToImmutableArray();
 
 		await Task.WhenAll(aliceClients).ConfigureAwait(false);
 

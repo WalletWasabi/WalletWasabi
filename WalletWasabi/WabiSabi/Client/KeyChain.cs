@@ -48,7 +48,7 @@ public class KeyChain : BaseKeyChain
 		}
 	}
 
-	public IEnumerable<BitcoinSecret> GetBitcoinSecrets(IEnumerable<Script> scriptPubKeys, CancellationToken cancellationToken)
+	public Dictionary<Script, BitcoinSecret> GetBitcoinSecrets(IEnumerable<Script> scriptPubKeys, CancellationToken cancellationToken)
 	{
 		var secretAndhdPubs = KeyManager.GetSecretsAndPubKeyPairs(Kitchen.SaltSoup(), scriptPubKeys.ToArray());
 
@@ -85,7 +85,7 @@ public class KeyChain : BaseKeyChain
 		});
 
 		// Restore the order of scriptPubKeys.
-		return scriptPubKeys.Select(scriptPubKey => scriptAndSecrets[scriptPubKey]).ToArray();
+		return scriptAndSecrets.ToDictionary(pair => pair.Key, pair => pair.Value);
 	}
 
 	public override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
