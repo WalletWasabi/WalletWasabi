@@ -14,6 +14,7 @@ public class RoundData
 	{
 		Inputs = new();
 		Transaction = null;
+		RoundParameters = roundParameters;
 	}
 
 	private RoundParameters RoundParameters { get; }
