@@ -7,9 +7,9 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public interface IKeyChain
 {
-	OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData);
+	OwnershipProof GetOwnershipProof(IDestination destination, BitcoinSecret bitcoinSecret, CoinJoinInputCommitmentData committedData);
 
-	Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData);
+	Transaction Sign(Transaction transaction, Coin coin, BitcoinSecret bitcoinSecret, PrecomputedTransactionData precomputeTransactionData);
 
 	void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
 }

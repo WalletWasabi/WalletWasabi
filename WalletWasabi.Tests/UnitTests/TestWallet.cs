@@ -108,7 +108,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 	public ExtPubKey GetExtPubKey(Script scriptPubKey) =>
 		ScriptPubKeys[scriptPubKey].Neuter();
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData)
+	public OwnershipProof GetOwnershipProof(IDestination destination, BitcoinSecret bitcoinSecret, CoinJoinInputCommitmentData committedData)
 	{
 		if (!ScriptPubKeys.TryGetValue(destination.ScriptPubKey, out var extKey))
 		{
@@ -123,7 +123,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
+	public Transaction Sign(Transaction transaction, Coin coin, BitcoinSecret bitcoinSecret, PrecomputedTransactionData precomputeTransactionData)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
 		{

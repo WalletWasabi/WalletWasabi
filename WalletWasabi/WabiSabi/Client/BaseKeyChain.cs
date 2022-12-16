@@ -18,10 +18,8 @@ public abstract class BaseKeyChain : IKeyChain
 
 	protected abstract Key GetMasterKey();
 
-	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
+	public OwnershipProof GetOwnershipProof(IDestination destination, BitcoinSecret secret, CoinJoinInputCommitmentData commitmentData)
 	{
-		var secret = GetBitcoinSecret(destination.ScriptPubKey);
-
 		var masterKey = GetMasterKey();
 		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
 		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019")
@@ -32,13 +30,13 @@ public abstract class BaseKeyChain : IKeyChain
 			signingKey,
 			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
 			commitmentData,
-			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) 
+			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)
 				? ScriptPubKeyType.Segwit
 				: ScriptPubKeyType.TaprootBIP86);
 		return ownershipProof;
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
+	public Transaction Sign(Transaction transaction, Coin coin, BitcoinSecret secret, PrecomputedTransactionData precomputedTransactionData)
 	{
 		transaction = transaction.Clone();
 		if (transaction.Inputs.Count == 0)
@@ -53,14 +51,12 @@ public abstract class BaseKeyChain : IKeyChain
 			throw new InvalidOperationException("Missing input.");
 		}
 
-		var secret = GetBitcoinSecret(coin.ScriptPubKey);
-
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);
 		builder.AddCoins(coin);
 		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
 		builder.SignTransactionInPlace(transaction);
-		
+
 		return transaction;
 	}
 

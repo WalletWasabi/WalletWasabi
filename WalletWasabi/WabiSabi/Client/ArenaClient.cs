@@ -196,10 +196,11 @@ public class ArenaClient
 		uint256 roundId,
 		Coin coin,
 		IKeyChain keyChain, // unused now
+		BitcoinSecret bitcoinSecret,
 		TransactionWithPrecomputedData unsignedCoinJoin,
 		CancellationToken cancellationToken)
 	{
-		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, unsignedCoinJoin.PrecomputedTransactionData);
+		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, bitcoinSecret, unsignedCoinJoin.PrecomputedTransactionData);
 		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
 		if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
 		{
