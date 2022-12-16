@@ -62,5 +62,5 @@ public abstract class BaseKeyChain : IKeyChain
 
 	public abstract void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts);
 
-	protected abstract BitcoinSecret GetBitcoinSecret(Script scriptPubKey);
+	public abstract BitcoinSecret GetBitcoinSecret(Script scriptPubKey);
 }

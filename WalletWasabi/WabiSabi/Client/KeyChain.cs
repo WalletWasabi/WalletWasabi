@@ -88,7 +88,7 @@ public class KeyChain : BaseKeyChain
 		return scriptPubKeys.Select(scriptPubKey => scriptAndSecrets[scriptPubKey]).ToArray();
 	}
 
-	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
+	public override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
 		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
 		if (hdKey is null)

@@ -65,16 +65,17 @@ public class AliceClient
 		RoundState roundState,
 		ArenaClient arenaClient,
 		SmartCoin coin,
-		BitcoinSecret bitcoinSecret,
 		IKeyChain keyChain,
 		RoundStateUpdater roundStatusUpdater,
 		CancellationToken unregisterCancellationToken,
 		CancellationToken registrationCancellationToken,
-		CancellationToken confirmationCancellationToken)
+		CancellationToken confirmationCancellationToken,
+		BitcoinSecret? bitcoinSecret = null)
 	{
 		AliceClient? aliceClient = null;
 		try
 		{
+			bitcoinSecret ??= (keyChain as KeyChain).GetBitcoinSecret(coin.ScriptPubKey);
 			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, bitcoinSecret, keyChain, registrationCancellationToken).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 

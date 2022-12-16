@@ -21,11 +21,12 @@ public class KeyChainTests
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
 
 		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.
+		var secret = keyChain.GetBitcoinSecret(coin.ScriptPubKey);
 
-		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData()));
+		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, secret, transaction.PrecomputeTransactionData()));
 
 		transaction.Inputs.Add(coin.Outpoint);
-		var signedTx = keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData(new[] { coin }));
+		var signedTx = keyChain.Sign(transaction, coin, secret, transaction.PrecomputeTransactionData(new[] { coin }));
 		Assert.True(signedTx.HasWitness);
 	}
 }
