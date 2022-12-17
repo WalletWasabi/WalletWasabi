@@ -38,20 +38,6 @@
       <Setter Property="BorderBrush" Value="{DynamicResource TextForegroundColor}" />
     </Style>
   </UserControl.Styles>
-  <UserControl.DataTemplates>
-    <DataTemplate DataType="profiles:EconomicCoinJoinProfileViewModel">
-      <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{StaticResource SystemAccentColor}" />
-    </DataTemplate>
-    <DataTemplate DataType="profiles:SpeedyCoinJoinProfileViewModel">
-      <PathIcon Data="{StaticResource coinjoin_speed}" Foreground="{StaticResource SystemAccentColor}" />
-    </DataTemplate>
-    <DataTemplate DataType="profiles:PrivateCoinJoinProfileViewModel">
-      <PathIcon Data="{StaticResource coinjoin_privacy}" Foreground="{StaticResource SystemAccentColor}" />
-    </DataTemplate>
-    <DataTemplate DataType="profiles:ManualCoinJoinProfileViewModel">
-      <PathIcon Data="{StaticResource wallet_action_advanced}" Foreground="{StaticResource SystemAccentColor}" />
-    </DataTemplate>
-  </UserControl.DataTemplates>
   <Button Classes="plain"
           Command="{Binding OpenFlyoutCommand}">
     <Interaction.Behaviors>
@@ -63,7 +49,20 @@
            Background="Transparent">
       <Panel IsVisible="{Binding ShowProfile}"
              Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ContentPresenter Content="{Binding}" DataContext="{Binding SelectedProfile}" />
+        <ContentPresenter Content="{Binding}" DataContext="{Binding SelectedProfile}">
+          <DataTemplate DataType="profiles:EconomicCoinJoinProfileViewModel">
+            <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{StaticResource SystemAccentColor}" />
+          </DataTemplate>
+          <DataTemplate DataType="profiles:SpeedyCoinJoinProfileViewModel">
+            <PathIcon Data="{StaticResource coinjoin_speed}" Foreground="{StaticResource SystemAccentColor}" />
+          </DataTemplate>
+          <DataTemplate DataType="profiles:PrivateCoinJoinProfileViewModel">
+            <PathIcon Data="{StaticResource coinjoin_privacy}" Foreground="{StaticResource SystemAccentColor}" />
+          </DataTemplate>
+          <DataTemplate DataType="profiles:ManualCoinJoinProfileViewModel">
+            <PathIcon Data="{StaticResource wallet_action_advanced}" Foreground="{StaticResource SystemAccentColor}" />
+          </DataTemplate>
+        </ContentPresenter>
       </Panel>
 
       <Image IsVisible="{Binding !ShowProfile}"
