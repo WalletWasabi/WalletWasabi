@@ -134,7 +134,7 @@
                       <PathIcon Data="{StaticResource coinjoin_cost}"  Foreground="{Binding $parent[c:TileButton].Foreground}" />
                     </Viewbox>
 
-                    <TextBlock Text="Economic Mode" TextAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Text="Minimum cost" TextAlignment="Center" VerticalAlignment="Center" />
                   </DockPanel>
                 </c:TileButton>
               </DataTemplate>
