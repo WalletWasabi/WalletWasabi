@@ -39,7 +39,6 @@ public partial class WalletInfoViewModel : RoutableViewModel
 			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
 			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.SegwitAccountKeyPath).GetWif(network).ToWif();
 			ExtendedMasterZprv = secret.ToZPrv(network);
-			ExtendedAccountZprv = secret.Derive(wallet.KeyManager.SegwitAccountKeyPath).ToZPrv(network);
 
 			// TODO: Should work for every type of wallet, temporarily disabling it.
 			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
@@ -47,7 +46,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 		SegWitExtendedAccountPublicKey = wallet.KeyManager.SegwitExtPubKey.ToString(network);
 		TaprootExtendedAccountPublicKey = wallet.KeyManager.TaprootExtPubKey?.ToString(network);
-		ExtendedAccountZpub = wallet.KeyManager.SegwitExtPubKey.ToZpub(network);
+
 		SegWitAccountKeyPath = $"m/{wallet.KeyManager.SegwitAccountKeyPath}";
 		TaprootAccountKeyPath = $"m/{wallet.KeyManager.TaprootAccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
@@ -57,7 +56,6 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 	public string TaprootExtendedAccountPublicKey { get; }
 
-	public string ExtendedAccountZpub { get; }
 
 	public string SegWitAccountKeyPath { get; }
 
@@ -70,8 +68,6 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	public string? ExtendedAccountPrivateKey { get; }
 
 	public string? ExtendedMasterZprv { get; }
-
-	public string? ExtendedAccountZprv { get; }
 
 	public WpkhDescriptors? WpkhOutputDescriptors { get; }
 
