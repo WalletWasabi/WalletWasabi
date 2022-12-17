@@ -44,6 +44,7 @@ public class BindableFlyoutOpenBehavior : DisposingBehavior<Control>
 		}
 
 		this.WhenAnyValue(x => x.IsOpen)
+			.Skip(1)
 			.Subscribe(isOpen =>
 			{
 				if (isOpen)
