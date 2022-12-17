@@ -44,7 +44,7 @@
       <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding IsFlyoutOpen}" AutoOpenOnPointerOver="False" />
     </Interaction.Behaviors>
 
-    <Panel ToolTip.Tip="{Binding SelectedProfile.Title, StringFormat='Selected Coinjoin Profile: {0} (click to change)'}"
+    <Panel ToolTip.Tip="{Binding SelectedProfile.Title, StringFormat='Selected Coinjoin Profile: {0} (click to change)', FallbackValue='Click to select your Coinjoin Profile'}"
            ToolTip.Placement="Top" ToolTip.VerticalOffset="-5"
            Background="Transparent">
       <Panel IsVisible="{Binding ShowProfile}"
