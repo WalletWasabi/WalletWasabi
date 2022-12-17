@@ -50,6 +50,10 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 			{
 				profile = result.Profile;
 			}
+			else
+			{
+				return;
+			}
 		}
 
 		SelectedProfile = null;
