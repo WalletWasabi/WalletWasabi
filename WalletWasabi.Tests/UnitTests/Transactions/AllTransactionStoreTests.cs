@@ -79,7 +79,7 @@ public class AllTransactionStoreTests
 	{
 		var dir = PrepareWorkDir();
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		Assert.NotNull(txStore.ConfirmedStore);
 		Assert.NotNull(txStore.MempoolStore);
@@ -139,7 +139,7 @@ public class AllTransactionStoreTests
 		await File.WriteAllLinesAsync(txFile, txFileContent);
 
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		Assert.Equal(6, txStore.GetTransactions().Count());
 		Assert.Equal(6, txStore.GetTransactionHashes().Count());
@@ -197,7 +197,7 @@ public class AllTransactionStoreTests
 		await File.WriteAllLinesAsync(txFile, txFileContent);
 
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		Assert.Equal(6, txStore.GetTransactions().Count());
 		Assert.Equal(6, txStore.GetTransactionHashes().Count());
@@ -232,7 +232,7 @@ public class AllTransactionStoreTests
 		await File.WriteAllLinesAsync(txFile, txFileContent);
 
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		Assert.Equal(6, txStore.GetTransactions().Count());
 		Assert.Equal(2, txStore.MempoolStore.GetTransactions().Count());
@@ -270,7 +270,7 @@ public class AllTransactionStoreTests
 		await File.WriteAllLinesAsync(txFile, txFileContent);
 
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		Assert.Equal(6, txStore.GetTransactions().Count());
 		Assert.Equal(2, txStore.MempoolStore.GetTransactions().Count());
@@ -322,7 +322,7 @@ public class AllTransactionStoreTests
 
 		await using (var txStore = new AllTransactionStore(dir, network))
 		{
-			await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+			await txStore.InitializeAsync();
 
 			var txs = txStore.GetTransactions();
 			var txHashes = txStore.GetTransactionHashes();
@@ -333,7 +333,7 @@ public class AllTransactionStoreTests
 
 		await using (var txStore = new AllTransactionStore(PrepareWorkDir(), network))
 		{
-			await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+			await txStore.InitializeAsync();
 
 			txStore.AddOrUpdate(uTx3);
 			txStore.AddOrUpdate(uTx1);
@@ -355,7 +355,7 @@ public class AllTransactionStoreTests
 	public async Task DoesntUpdateAsync(Network network)
 	{
 		await using var txStore = new AllTransactionStore(PrepareWorkDir(), network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		var tx = BitcoinFactory.CreateSmartTransaction();
 		Assert.False(txStore.TryUpdate(tx));
@@ -408,7 +408,7 @@ public class AllTransactionStoreTests
 		await File.WriteAllLinesAsync(txFile, txFileContent);
 
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		// Two transactions are in the mempool store and unconfirmed.
 		Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out var myUnconfirmedTx1));
@@ -454,7 +454,7 @@ public class AllTransactionStoreTests
 
 		var network = Network.Main;
 		await using var txStore = new AllTransactionStore(dir, network);
-		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
+		await txStore.InitializeAsync();
 
 		foreach (var height in Enumerable.Range(1, blocks))
 		{
