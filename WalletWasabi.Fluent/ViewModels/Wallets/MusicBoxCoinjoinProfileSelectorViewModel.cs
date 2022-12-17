@@ -17,6 +17,7 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private bool _isFlyoutOpen;
+	[AutoNotify] private bool _showProfile;
 
 	public MusicBoxCoinjoinProfileSelectorViewModel(KeyManager keyManager)
 	{
@@ -31,6 +32,11 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 			IsFlyoutOpen = true;
 		});
 		SelectProfileCommand = ReactiveCommand.CreateFromTask<CoinJoinProfileViewModelBase>(async p => await OnCoinjoinProfileSelectedAsync(keyManager, p));
+
+		this.WhenAnyValue(x => x.SelectedProfile)
+			.Select(x => x is null)
+			.CombineLatest(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
+			.Subscribe(x => ShowProfile = !x.First && !x.Second);
 	}
 
 	public ICommand OpenFlyoutCommand { get; }

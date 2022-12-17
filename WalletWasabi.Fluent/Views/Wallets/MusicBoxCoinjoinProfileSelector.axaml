@@ -41,10 +41,12 @@
     </Interaction.Behaviors>
 
     <Panel>
-      <ContentPresenter Content="{Binding}" DataContext="{Binding SelectedProfile}"
-                        Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" />
+      <Panel IsVisible="{Binding ShowProfile}"
+             Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ContentPresenter Content="{Binding}" DataContext="{Binding SelectedProfile}" />
+      </Panel>
 
-      <Image IsVisible="{Binding SelectedProfile, Converter={x:Static ObjectConverters.IsNull}}"
+      <Image IsVisible="{Binding !ShowProfile}"
              Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center"
              Source="{DynamicResource wasabi_logo_dynamic}" />
     </Panel>
