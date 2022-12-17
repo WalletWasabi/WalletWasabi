@@ -8,6 +8,9 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.MusicBoxCoinjoinProfileSelector">
   <UserControl.Styles>
+    <Style Selector="ToolTip">
+      <Setter Property="MaxWidth" Value="1000" />
+    </Style>
     <Style Selector="FlyoutPresenter">
       <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
@@ -40,7 +43,9 @@
       <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding IsFlyoutOpen}" AutoOpenOnPointerOver="False" />
     </Interaction.Behaviors>
 
-    <Panel>
+    <Panel ToolTip.Tip="{Binding SelectedProfile.Title, StringFormat='Selected Coinjoin Profile: {0} (click to change)'}"
+           ToolTip.Placement="Top" ToolTip.VerticalOffset="-5"
+           Background="Transparent">
       <Panel IsVisible="{Binding ShowProfile}"
              Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center">
         <ContentPresenter Content="{Binding}" DataContext="{Binding SelectedProfile}" />
@@ -81,6 +86,7 @@
                 <Setter Property="ClipToBounds" Value="False" />
               </Style>
             </ItemsControl.Styles>
+
             <ItemsControl.DataTemplates>
 
               <!-- Private -->
