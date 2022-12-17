@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:profiles="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -33,9 +33,12 @@
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Command" Value="{Binding $parent[UserControl].DataContext.SelectProfileCommand}" />
+      <Setter Property="CommandParameter" Value="{Binding}" />
     </Style>
-    <Style Selector="c|TileButton:pointerover">
-      <Setter Property="BorderBrush" Value="{DynamicResource TextForegroundColor}" />
+    <Style Selector="c|TileButton.selected">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
     </Style>
   </UserControl.Styles>
   <Button Classes="plain"
@@ -93,11 +96,10 @@
 
               <!-- Private -->
               <DataTemplate DataType="profiles:PrivateCoinJoinProfileViewModel">
-                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
-                              CommandParameter="{Binding}">
+                <c:TileButton Classes.selected="{Binding IsSelected}">
                   <DockPanel>
                     <Viewbox>
-                      <PathIcon Data="{StaticResource coinjoin_privacy}" />
+                      <PathIcon Data="{StaticResource coinjoin_privacy}" Foreground="{Binding $parent[c:TileButton].Foreground}" />
                     </Viewbox>
 
                     <StackPanel VerticalAlignment="Center" Spacing="2">
@@ -110,11 +112,10 @@
 
               <!-- Speedy -->
               <DataTemplate DataType="profiles:SpeedyCoinJoinProfileViewModel">
-                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
-                              CommandParameter="{Binding}">
+                <c:TileButton Classes.selected="{Binding IsSelected}">
                   <DockPanel>
                     <Viewbox>
-                      <PathIcon Data="{StaticResource coinjoin_speed}" />
+                      <PathIcon Data="{StaticResource coinjoin_speed}" Foreground="{Binding $parent[c:TileButton].Foreground}" />
                     </Viewbox>
 
                     <StackPanel>
@@ -127,11 +128,10 @@
 
               <!-- Economic -->
               <DataTemplate DataType="profiles:EconomicCoinJoinProfileViewModel">
-                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
-                              CommandParameter="{Binding}">
+                <c:TileButton Classes.selected="{Binding IsSelected}">
                   <DockPanel>
                     <Viewbox>
-                      <PathIcon Data="{StaticResource coinjoin_cost}" />
+                      <PathIcon Data="{StaticResource coinjoin_cost}"  Foreground="{Binding $parent[c:TileButton].Foreground}" />
                     </Viewbox>
 
                     <TextBlock Text="Economic Mode" TextAlignment="Center" VerticalAlignment="Center" />
@@ -141,11 +141,10 @@
 
               <!-- Custom -->
               <DataTemplate DataType="profiles:ManualCoinJoinProfileViewModel">
-                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
-                              CommandParameter="{Binding}">
+                <c:TileButton Classes.selected="{Binding IsSelected}">
                   <DockPanel>
                     <Viewbox>
-                      <PathIcon Data="{StaticResource wallet_action_advanced}" />
+                      <PathIcon Data="{StaticResource wallet_action_advanced}" Foreground="{Binding $parent[c:TileButton].Foreground}" />
                     </Viewbox>
 
                     <StackPanel>

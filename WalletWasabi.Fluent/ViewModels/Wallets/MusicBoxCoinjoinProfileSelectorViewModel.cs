@@ -36,7 +36,11 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 		this.WhenAnyValue(x => x.SelectedProfile)
 			.Select(x => x is null)
 			.CombineLatest(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
-			.Subscribe(x => ShowProfile = !x.First && !x.Second);
+			.Subscribe(x =>
+			{
+				Profiles.ForEach(p => p.IsSelected = p.GetType() == SelectedProfile?.GetType());
+				ShowProfile = !x.First && !x.Second;
+			});
 	}
 
 	public ICommand OpenFlyoutCommand { get; }

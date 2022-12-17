@@ -1,7 +1,9 @@
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-public abstract class CoinJoinProfileViewModelBase : ViewModelBase
+public abstract partial class CoinJoinProfileViewModelBase : ViewModelBase
 {
+	[AutoNotify] private bool _isSelected;
+
 	public abstract string Title { get; }
 
 	public abstract string Description { get; }
