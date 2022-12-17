@@ -22,9 +22,7 @@
                         Height="{TemplateBinding IconSize}" />
 
               <ContentPresenter x:Name="PART_ContentPresenter"
-                                Content="{TemplateBinding Content}"
-                                Height="{TemplateBinding IconSize}"
-                                Width="{TemplateBinding IconSize}" />
+                                Content="{TemplateBinding Content}" />
             </Panel>
           </DockPanel>
         </Border>
@@ -40,8 +38,6 @@
   </Style>
 
   <Style Selector="c|TileButton /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Margin" Value="0 0 0 15" />
   </Style>
 

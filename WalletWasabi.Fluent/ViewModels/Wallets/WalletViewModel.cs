@@ -41,6 +41,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		Settings = new WalletSettingsViewModel(this);
 		CoinJoinSettings = new CoinJoinSettingsViewModel(this);
+		MusicBoxCoinjoinProfileSelector = new MusicBoxCoinjoinProfileSelectorViewModel(wallet.KeyManager);
 		UiTriggers = new UiTriggers(this);
 		History = new HistoryViewModel(this);
 
@@ -120,6 +121,8 @@ public partial class WalletViewModel : WalletViewModelBase
 	public UiTriggers UiTriggers { get; }
 
 	public CoinJoinSettingsViewModel CoinJoinSettings { get; }
+
+	public MusicBoxCoinjoinProfileSelectorViewModel MusicBoxCoinjoinProfileSelector { get; }
 
 	public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 

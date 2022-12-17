@@ -1,0 +1,154 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:profiles="using:WalletWasabi.Fluent.ViewModels.CoinJoinProfiles"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.MusicBoxCoinjoinProfileSelector">
+  <UserControl.Styles>
+    <Style Selector="FlyoutPresenter">
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="Height" Value="580" />
+      <Setter Property="MaxHeight" Value="580" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter > Panel">
+      <Setter Property="Height" Value="520" />
+      <Setter Property="MaxHeight" Value="520" />
+    </Style>
+  </UserControl.Styles>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="profiles:EconomicCoinJoinProfileViewModel">
+      <PathIcon Data="{StaticResource coinjoin_cost}" Foreground="{StaticResource SystemAccentColor}" />
+    </DataTemplate>
+    <DataTemplate DataType="profiles:SpeedyCoinJoinProfileViewModel">
+      <PathIcon Data="{StaticResource coinjoin_speed}" Foreground="{StaticResource SystemAccentColor}" />
+    </DataTemplate>
+    <DataTemplate DataType="profiles:PrivateCoinJoinProfileViewModel">
+      <PathIcon Data="{StaticResource coinjoin_privacy}" Foreground="{StaticResource SystemAccentColor}" />
+    </DataTemplate>
+    <DataTemplate DataType="profiles:ManualCoinJoinProfileViewModel">
+      <PathIcon Data="{StaticResource wallet_action_advanced}" Foreground="{StaticResource SystemAccentColor}" />
+    </DataTemplate>
+  </UserControl.DataTemplates>
+  <Button Classes="plain"
+          Command="{Binding OpenFlyoutCommand}">
+    <Interaction.Behaviors>
+      <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding IsFlyoutOpen}" AutoOpenOnPointerOver="False" />
+    </Interaction.Behaviors>
+
+    <Panel>
+      <ContentPresenter Content="{Binding}" DataContext="{Binding SelectedProfile}"
+                        Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" />
+
+      <Image IsVisible="{Binding SelectedProfile, Converter={x:Static ObjectConverters.IsNull}}"
+             Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center"
+             Source="{DynamicResource wasabi_logo_dynamic}" />
+    </Panel>
+    <FlyoutBase.AttachedFlyout>
+      <Flyout Placement="Top" ShowMode="Transient">
+        <DockPanel>
+          <TextBlock Text="Select your profile" Margin="0 5 0 5"
+                     DockPanel.Dock="Top" />
+          <ItemsControl Items="{Binding Profiles}">
+            <ItemsControl.Styles>
+              <Style Selector="c|TileButton">
+                <Setter Property="Margin" Value="10" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Width" Value="300" />
+                <Setter Property="Height" Value="90" />
+                <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+              <Style Selector="c|TileButton:pointerover">
+                <Setter Property="BorderBrush" Value="{DynamicResource TextForegroundColor}" />
+              </Style>
+              <Style Selector="Viewbox">
+                <Setter Property="DockPanel.Dock" Value="Left" />
+                <Setter Property="Margin" Value="10" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Stretch" Value="Uniform" />
+              </Style>
+              <Style Selector="Viewbox > PathIcon">
+                <Setter Property="ClipToBounds" Value="False" />
+              </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.DataTemplates>
+
+              <!-- Private -->
+              <DataTemplate DataType="profiles:PrivateCoinJoinProfileViewModel">
+                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
+                              CommandParameter="{Binding}">
+                  <DockPanel>
+                    <Viewbox>
+                      <PathIcon Data="{StaticResource coinjoin_privacy}" />
+                    </Viewbox>
+
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                      <TextBlock Text="Maximum Privacy" TextAlignment="Center" />
+                      <TextBlock Text="Choice of the paranoid" TextAlignment="Center" />
+                    </StackPanel>
+                  </DockPanel>
+                </c:TileButton>
+              </DataTemplate>
+
+              <!-- Speedy -->
+              <DataTemplate DataType="profiles:SpeedyCoinJoinProfileViewModel">
+                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
+                              CommandParameter="{Binding}">
+                  <DockPanel>
+                    <Viewbox>
+                      <PathIcon Data="{StaticResource coinjoin_speed}" />
+                    </Viewbox>
+
+                    <StackPanel>
+                      <TextBlock Text="Maximum Speed" TextAlignment="Center" />
+                      <TextBlock Text="Privacy Faster" TextAlignment="Center" />
+                    </StackPanel>
+                  </DockPanel>
+                </c:TileButton>
+              </DataTemplate>
+
+              <!-- Economic -->
+              <DataTemplate DataType="profiles:EconomicCoinJoinProfileViewModel">
+                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
+                              CommandParameter="{Binding}">
+                  <DockPanel>
+                    <Viewbox>
+                      <PathIcon Data="{StaticResource coinjoin_cost}" />
+                    </Viewbox>
+
+                    <TextBlock Text="Economic Mode" TextAlignment="Center" VerticalAlignment="Center" />
+                  </DockPanel>
+                </c:TileButton>
+              </DataTemplate>
+
+              <!-- Custom -->
+              <DataTemplate DataType="profiles:ManualCoinJoinProfileViewModel">
+                <c:TileButton Command="{Binding $parent[UserControl].DataContext.SelectProfileCommand}"
+                              CommandParameter="{Binding}">
+                  <DockPanel>
+                    <Viewbox>
+                      <PathIcon Data="{StaticResource wallet_action_advanced}" />
+                    </Viewbox>
+
+                    <StackPanel>
+                      <TextBlock Text="Custom" TextAlignment="Center" />
+                      <TextBlock Text="Maximum Control" TextAlignment="Center" />
+                    </StackPanel>
+                  </DockPanel>
+                </c:TileButton>
+              </DataTemplate>
+            </ItemsControl.DataTemplates>
+          </ItemsControl>
+        </DockPanel>
+      </Flyout>
+    </FlyoutBase.AttachedFlyout>
+  </Button>
+</UserControl>
