@@ -106,14 +106,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private void OnWordSelected(RecoveryWordViewModel selectedWord)
 	{
-		if (CurrentWord is null)
-		{
-			return;
-		}
-
 		if (selectedWord.IsConfirmed)
 		{
 			selectedWord.IsSelected = true;
+			return;
+		}
+
+		if (CurrentWord is null)
+		{
 			return;
 		}
 
