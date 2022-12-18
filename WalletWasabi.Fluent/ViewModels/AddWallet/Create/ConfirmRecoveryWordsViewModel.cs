@@ -18,25 +18,23 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Confirm Recovery Words")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
-	private const int NumberOfOptions = 3;
 	private readonly List<RecoveryWordViewModel> _words;
 	private readonly Mnemonic _mnemonic;
 	private readonly string _walletName;
 
 	[AutoNotify] private bool _isSkipEnabled;
-	[AutoNotify] private string? _selectedWord;
 	[AutoNotify] private RecoveryWordViewModel? _currentWord;
+	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
 	public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> words, Mnemonic mnemonic, string walletName)
 	{
+		_availableWords = new List<RecoveryWordViewModel>();
 		_words = words;
 		_mnemonic = mnemonic;
 		_walletName = walletName;
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
-
-	public ObservableCollectionExtended<string> AvailableWords { get; } = new();
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -77,13 +75,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		confirmationWordsSourceList.AddRange(_words);
 
-		SetNextWord();
+		AvailableWords = confirmationWordsSourceList.Items.OrderBy(_ => Random.Shared.Next()).ToList();
 
-		this.WhenAnyValue(x => x.SelectedWord)
-			.Skip(1)
-			.DoAsync(_ => OnWordSelectedAsync())
-			.Subscribe()
-			.DisposeWith(disposables);
+		confirmationWordsSourceList
+			.Connect()
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Subscribe(x => OnWordSelected(x.Sender));
+
+		SetNextWord();
 
 		var enableCancel = Services.WalletManager.HasWallet();
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
@@ -99,40 +98,54 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 				_ => null
 			};
 
-		AvailableWords.Clear();
-
 		if (CurrentWord is { })
 		{
-			var words =
-			_mnemonic.WordList
-					 .GetWords()
-					 .OrderBy(_ => Random.Shared.Next())
-					 .Take(NumberOfOptions - 1)
-					 .Concat(new[] { CurrentWord.Word })
-					 .OrderBy(_ => Random.Shared.Next())
-					 .ToList();
-
-			AvailableWords.AddRange(words);
+			EnableAvailableWords(true);
 		}
 	}
 
-	private async Task OnWordSelectedAsync()
+	private void OnWordSelected(RecoveryWordViewModel selectedWord)
 	{
 		if (CurrentWord is null)
 		{
 			return;
 		}
 
-		CurrentWord.SelectedWord = SelectedWord;
+		if (selectedWord.IsConfirmed)
+		{
+			selectedWord.IsSelected = true;
+			return;
+		}
+
+		if (selectedWord.IsSelected)
+		{
+			CurrentWord.SelectedWord = selectedWord.Word;
+		}
+		else
+		{
+			CurrentWord.SelectedWord = null;
+		}
 
 		if (CurrentWord.IsConfirmed)
 		{
 			SetNextWord();
 		}
+		else if (!selectedWord.IsSelected)
+		{
+			EnableAvailableWords(true);
+		}
 		else
 		{
-			await NavigateDialogAsync(new ConfirmRecoveryWordsTryAgainViewModel(), NavigationTarget.CompactDialogScreen);
-			Navigate().Back();
+			EnableAvailableWords(false);
+			selectedWord.IsEnabled = true;
+		}
+	}
+
+	private void EnableAvailableWords(bool enable)
+	{
+		foreach (var w in AvailableWords)
+		{
+			w.IsEnabled = enable;
 		}
 	}
 

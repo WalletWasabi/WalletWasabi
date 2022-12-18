@@ -6,6 +6,7 @@ public partial class RecoveryWordViewModel : ViewModelBase
 {
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private bool _isEnabled;
 	[AutoNotify] private string? _selectedWord;
 
 	public RecoveryWordViewModel(int index, string word)
@@ -25,6 +26,7 @@ public partial class RecoveryWordViewModel : ViewModelBase
 		SelectedWord = null;
 		IsSelected = false;
 		IsConfirmed = false;
+		IsEnabled = true;
 	}
 
 	private void ValidateWord()

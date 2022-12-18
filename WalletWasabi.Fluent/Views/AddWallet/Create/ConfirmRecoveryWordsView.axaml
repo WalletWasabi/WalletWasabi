@@ -22,34 +22,49 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Grid x:Name="Layout">
       <Grid.RowDefinitions>
-        <RowDefinition MinHeight="36" Height="*"/>
-        <RowDefinition Height="16"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="20"/>
+        <RowDefinition MinHeight="70" Height="*" />
+        <RowDefinition Height="16" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <ListBox Items="{Binding AvailableWords}"
-               SelectedItem="{Binding SelectedWord}"
-               Background="Transparent" HorizontalAlignment="Center">
-        <ListBox.ItemsPanel>
-          <ItemsPanelTemplate>
-            <UniformGrid Columns="3" />
-          </ItemsPanelTemplate>
-        </ListBox.ItemsPanel>
-        <ListBox.Styles>
-          <Style Selector="ListBoxItem">
-            <Setter Property="Template">
-              <ControlTemplate TargetType="ListBoxItem">
-                <c:TagControl Content="{Binding .}" HorizontalContentAlignment="Center" Margin="10 0 10 0" />
-              </ControlTemplate>
+      <c:RecoveryWordsControl Items="{Binding AvailableWords}">
+        <c:RecoveryWordsControl.Styles>
+          <Style Selector="StackPanel">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+          </Style>
+          <Style Selector="ItemsControl">
+            <Setter Property="ItemsPanel">
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
             </Setter>
           </Style>
-          <Style Selector="ListBoxItem[IsPointerOver=True] /template/ c|TagControl">
-            <Setter Property="Background" Value="{DynamicResource InvisibleButtonPointerOverBackgroundColor}" />
-          </Style>
-        </ListBox.Styles>
-      </ListBox>
+        </c:RecoveryWordsControl.Styles>
+        <c:RecoveryWordsControl.ItemTemplate>
+          <DataTemplate x:DataType="create:RecoveryWordViewModel">
+            <CheckBox IsChecked="{Binding IsSelected}"
+                      IsEnabled="{Binding IsEnabled}">
+              <CheckBox.Styles>
+                <Style Selector="CheckBox[IsChecked=True] /template/ c|TagControl">
+                  <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+                  <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+                </Style>
+                <Style Selector="CheckBox[IsEnabled=False] /template/ c|TagControl">
+                  <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+                  <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
+                </Style>
+              </CheckBox.Styles>
+              <CheckBox.Template>
+                <ControlTemplate>
+                  <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
+                </ControlTemplate>
+              </CheckBox.Template>
+            </CheckBox>
+          </DataTemplate>
+        </c:RecoveryWordsControl.ItemTemplate>
+      </c:RecoveryWordsControl>
 
       <Panel Grid.Row="2">
         <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
@@ -57,6 +72,9 @@
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
               <Setter Property="Height" Value="42" />
+            </Style>
+            <Style Selector="TextBlock.error">
+              <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
             </Style>
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
@@ -68,7 +86,8 @@
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
-                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0" />
+                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
+                           Classes.error="{Binding !IsConfirmed}" />
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
@@ -78,11 +97,10 @@
             HorizontalAlignment="Center" VerticalAlignment="Center"
             Width="{Binding #ItemsControl.Bounds.Width}"
             Height="{Binding #ItemsControl.Bounds.Height}">
-          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20"/>
-          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20"/>
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
+          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
       </Panel>
-
     </Grid>
   </c:ContentArea>
 </UserControl>
