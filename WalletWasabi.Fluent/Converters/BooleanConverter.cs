@@ -6,6 +6,10 @@ namespace WalletWasabi.Fluent.Converters;
 
 public class BooleanConverter : IValueConverter
 {
+	public object? TrueValue { get; set; }
+
+	public object? FalseValue { get; set; }
+
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value is bool isTrue)
@@ -25,8 +29,4 @@ public class BooleanConverter : IValueConverter
 	{
 		throw new NotSupportedException();
 	}
-
-	public object? TrueValue { get; set; }
-
-	public object? FalseValue { get; set; }
 }
