@@ -891,18 +891,23 @@ public class CoinJoinClient
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
-		foreach (var coin in winner)
+		// If the address of a winner contains other coins (address reuse, same HdPubKey),
+		// complete the selection with them until MaxInputsRegistrableByWallet threshold.
+		var nonSelectedCoins = semiPrivateCoins
+			.Union(redCoins)
+			.Except(winner);
+
+		// Order by most to least reused to try not splitting coins from same address into several rounds.
+		var nonSelectedCoinsOnSameAddresses = nonSelectedCoins
+			.Where(x => winner.Any(y => y.HdPubKey == x.HdPubKey))
+			.GroupBy(x => x.HdPubKey)
+			.OrderByDescending(g => g.Count())
+			.SelectMany(g => g)
+			.ToList();
+
+		if (winner.Count < MaxInputsRegistrableByWallet)
 		{
-			// Get all other coins on the same address in case some winners are on a reused address
-			var otherCoinsOnSameAddress = semiPrivateCoins
-				.Union(redCoins)
-				.Where(x => x.HdPubKey == coin.HdPubKey && x != coin);
-			// Add these coins to the winner by respecting MaxInputsRegistrableByWallet
-			winner = winner.Union(otherCoinsOnSameAddress.Take(MaxInputsRegistrableByWallet - winner.Count)).ToList();
-			if (winner.Count >= MaxInputsRegistrableByWallet)
-			{
-				break;
-			}
+			winner.AddRange(nonSelectedCoinsOnSameAddresses.Take(MaxInputsRegistrableByWallet - winner.Count));
 		}
 
 		return winner.ToShuffled().ToImmutableList();
