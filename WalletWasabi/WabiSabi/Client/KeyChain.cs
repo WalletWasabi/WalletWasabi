@@ -1,31 +1,34 @@
-using System.Collections.Generic;
 using NBitcoin;
+using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto;
 using WalletWasabi.Wallets;
-using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public class KeyChain : BaseKeyChain
+public class KeyChain : IKeyChain
 {
-	public KeyChain(KeyManager keyManager, Kitchen kitchen) : base(kitchen)
+	public KeyChain(KeyManager keyManager, Kitchen kitchen)
 	{
 		if (keyManager.IsWatchOnly)
 		{
-			throw new ArgumentException("A watch-only keymanager cannot be used to initialize a keychain.");
+			throw new ArgumentException("A watch-only key manager cannot be used to initialize a key chain.");
 		}
+
 		KeyManager = keyManager;
+		Kitchen = kitchen;
 	}
 
 	private KeyManager KeyManager { get; }
+	private Kitchen Kitchen { get; }
 
-	protected override Key GetMasterKey()
+	private Key GetMasterKey()
 	{
 		return KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
 	}
 
-	public override void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
 	{
 		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{
@@ -33,7 +36,7 @@ public class KeyChain : BaseKeyChain
 		}
 	}
 
-	protected override BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
+	private BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
 		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
 		if (hdKey is null)
@@ -54,5 +57,51 @@ public class KeyChain : BaseKeyChain
 		}
 		var secret = hdKey.PrivateKey.GetBitcoinSecret(KeyManager.GetNetwork());
 		return secret;
+	}
+
+	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
+	{
+		var secret = GetBitcoinSecret(destination.ScriptPubKey);
+
+		var masterKey = GetMasterKey();
+		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
+		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019")
+			.DeriveChild("Ownership identification key").Key;
+
+		var signingKey = secret.PrivateKey;
+		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+			signingKey,
+			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
+			commitmentData,
+			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)
+				? ScriptPubKeyType.Segwit
+				: ScriptPubKeyType.TaprootBIP86);
+		return ownershipProof;
+	}
+
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
+	{
+		transaction = transaction.Clone();
+		if (transaction.Inputs.Count == 0)
+		{
+			throw new ArgumentException("No inputs to sign.", nameof(transaction));
+		}
+
+		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
+
+		if (txInput is null)
+		{
+			throw new InvalidOperationException("Missing input.");
+		}
+
+		var secret = GetBitcoinSecret(coin.ScriptPubKey);
+
+		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
+		builder.AddKeys(secret);
+		builder.AddCoins(coin);
+		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
+		builder.SignTransactionInPlace(transaction);
+
+		return transaction;
 	}
 }
