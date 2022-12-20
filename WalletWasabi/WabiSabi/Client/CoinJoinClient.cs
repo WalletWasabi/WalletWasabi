@@ -891,14 +891,12 @@ public class CoinJoinClient
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
-		// If the address of a winner contains other coins (address reuse, same HdPubKey),
+		// If the address of a winner contains other coins (address reuse, same HdPubKey) that are available but not selected,
 		// complete the selection with them until MaxInputsRegistrableByWallet threshold.
-		var nonSelectedCoins = semiPrivateCoins
-			.Union(redCoins)
-			.Except(winner);
-
 		// Order by most to least reused to try not splitting coins from same address into several rounds.
-		var nonSelectedCoinsOnSameAddresses = nonSelectedCoins
+		var nonSelectedCoinsOnSameAddresses = semiPrivateCoins
+			.Union(redCoins)
+			.Except(winner)
 			.Where(x => winner.Any(y => y.HdPubKey == x.HdPubKey))
 			.GroupBy(x => x.HdPubKey)
 			.OrderByDescending(g => g.Count())
