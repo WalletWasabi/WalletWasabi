@@ -1,4 +1,3 @@
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -117,17 +116,4 @@ public class FlyoutSuggestionBehavior : Behavior<Control>
 			_flyout.ShowAt(Target);
 		}
 	}
-}
-
-public class Suggestion : ReactiveObject
-{
-	public Suggestion(string text, Action onAccept)
-	{
-		Text = text;
-		AcceptHintCommand = ReactiveCommand.Create(onAccept);
-	}
-
-	public string Text { get; }
-
-	public ReactiveCommand<Unit, Unit> AcceptHintCommand { get; set; }
 }

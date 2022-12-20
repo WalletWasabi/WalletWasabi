@@ -8,27 +8,25 @@ public class BooleanConverter : IValueConverter
 {
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		if (value is bool b)
+		if (value is bool isTrue)
 		{
-			if (b)
+			if (isTrue)
 			{
 				return TrueValue;
 			}
-			else
-			{
-				return FalseValue;
-			}
+
+			return FalseValue;
 		}
 
 		return AvaloniaProperty.UnsetValue;
 	}
 
-	public object? TrueValue { get; set; }
-
-	public object? FalseValue { get; set; }
-
-	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		throw new NotSupportedException();
 	}
+
+	public object? TrueValue { get; set; }
+
+	public object? FalseValue { get; set; }
 }
