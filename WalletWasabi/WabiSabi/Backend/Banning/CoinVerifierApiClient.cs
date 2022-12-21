@@ -42,7 +42,7 @@ public class CoinVerifierApiClient
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 		content.Headers.Authorization = new("Bearer", ApiToken);

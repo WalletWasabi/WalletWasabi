@@ -56,7 +56,7 @@ public class CoinVerifier
 	{
 		var before = DateTimeOffset.UtcNow;
 
-		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
+		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(45));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
 		var lastChangeId = Whitelist.ChangeId;
