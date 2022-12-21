@@ -12,6 +12,13 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public record CoinVerifyInfo(ApiResponse ApiResponse, Coin Coin);
 
+public enum ApiResponse
+{
+	Clean,
+	Dirty,
+	TimedOut
+}
+
 public class CoinVerifier
 {
 	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
@@ -95,13 +102,11 @@ public class CoinVerifier
 
 				shouldBanUtxo = CheckForFlags(response.ApiResponseItem!);
 
-				// Clean
 				if (!shouldBanUtxo)
 				{
 					Whitelist.Add(coin.Outpoint);
 					yield return new CoinVerifyInfo(ApiResponse.Clean, coin);
 				}
-				// Dirty
 				else
 				{
 					yield return new CoinVerifyInfo(ApiResponse.Dirty, coin);
@@ -138,12 +143,5 @@ public class CoinVerifier
 		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		return shouldBan;
-	}
-
-	public enum ApiResponse
-	{
-		Clean,
-		Dirty,
-		TimedOut
 	}
 }
