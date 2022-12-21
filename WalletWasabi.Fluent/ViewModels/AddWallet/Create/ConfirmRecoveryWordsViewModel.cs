@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.Views.AddWallet.Create;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
@@ -75,12 +76,21 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		confirmationWordsSourceList.AddRange(_words);
 
-		AvailableWords = confirmationWordsSourceList.Items.OrderBy(_ => Random.Shared.Next()).ToList();
+		AvailableWords =
+			confirmationWordsSourceList.Items
+									   .Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+									   .OrderBy(_ => Random.Shared.Next())
+									   .ToList();
 
-		confirmationWordsSourceList
+		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>();
+
+		availableWordsSourceList
+			.DisposeWith(disposables)
 			.Connect()
 			.WhenPropertyChanged(x => x.IsSelected)
 			.Subscribe(x => OnWordSelected(x.Sender));
+
+		availableWordsSourceList.AddRange(AvailableWords);
 
 		SetNextWord();
 
@@ -128,6 +138,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		if (CurrentWord.IsConfirmed)
 		{
+			selectedWord.IsConfirmed = true;
 			SetNextWord();
 		}
 		else if (!selectedWord.IsSelected)
