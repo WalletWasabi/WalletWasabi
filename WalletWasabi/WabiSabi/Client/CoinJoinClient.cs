@@ -910,7 +910,7 @@ public class CoinJoinClient
 
 			if (nonSelectedCoinsOnSameAddresses.Count > 0)
 			{
-				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on same public addresses than some selected coins.");
+				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on the same addresses of some selected coins.");
 			}
 		}
 
