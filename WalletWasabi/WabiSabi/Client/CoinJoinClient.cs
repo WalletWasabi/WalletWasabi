@@ -903,9 +903,15 @@ public class CoinJoinClient
 				.GroupBy(x => x.HdPubKey)
 				.OrderByDescending(g => g.Count())
 				.SelectMany(g => g)
-				.Take(MaxInputsRegistrableByWallet - winner.Count);
+				.Take(MaxInputsRegistrableByWallet - winner.Count)
+				.ToList();
 			
 			winner.AddRange(nonSelectedCoinsOnSameAddresses);
+
+			if (nonSelectedCoinsOnSameAddresses.Count > 0)
+			{
+				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on same public addresses than some selected coins.");
+			}
 		}
 
 		return winner.ToShuffled().ToImmutableList();
