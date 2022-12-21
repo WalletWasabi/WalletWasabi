@@ -28,11 +28,11 @@ public class Prison
 	/// </summary>
 	public Guid ChangeId { get; private set; } = Guid.NewGuid();
 
-	public (int noted, int banned) CountInmates()
+	public (int noted, int banned, int longBanned) CountInmates()
 	{
 		lock (Lock)
 		{
-			return (Inmates.Count(x => x.Value.Punishment == Punishment.Noted), Inmates.Count(x => x.Value.Punishment == Punishment.Banned));
+			return (Inmates.Count(x => x.Value.Punishment == Punishment.Noted), Inmates.Count(x => x.Value.Punishment == Punishment.Banned), Inmates.Count(x => x.Value.Punishment == Punishment.LongBanned));
 		}
 	}
 
