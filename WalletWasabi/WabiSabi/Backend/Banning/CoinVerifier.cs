@@ -6,10 +6,11 @@ using System.Threading;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
+using static WalletWasabi.WabiSabi.Backend.Banning.CoinVerifier;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
-public record CoinVerifyInfo(bool ShouldBan, Coin Coin);
+public record CoinVerifyInfo(ApiResponse ApiResponse, Coin Coin);
 
 public class CoinVerifier
 {
@@ -70,7 +71,7 @@ public class CoinVerifier
 			if (CheckIfAlreadyVerified(coin))
 			{
 				innocentsCounter++;
-				yield return new CoinVerifyInfo(false, coin);
+				yield return new CoinVerifyInfo(ApiResponse.Clean, coin);
 			}
 			else
 			{
@@ -81,17 +82,30 @@ public class CoinVerifier
 		Logger.LogInfo($"{innocentsCounter} out of {coinsToCheck.Count()} utxo is already verified in Round({roundId}).");
 		await foreach (var response in CoinVerifierApiClient.VerifyScriptsAsync(scriptsToCheck, linkedCts.Token))
 		{
-			bool shouldBanUtxo = CheckForFlags(response.ApiResponseItem);
+			bool shouldBanUtxo = false;
 
 			// Find all coins with the same script (address reuse).
 			foreach (var coin in coinsToCheck.Where(c => c.ScriptPubKey == response.ScriptPubKey))
 			{
+				// Timeout
+				if (response.ApiResponseItem is null)
+				{
+					yield return new CoinVerifyInfo(ApiResponse.TimedOut, coin);
+				}
+
+				shouldBanUtxo = CheckForFlags(response.ApiResponseItem!);
+
+				// Clean
 				if (!shouldBanUtxo)
 				{
 					Whitelist.Add(coin.Outpoint);
+					yield return new CoinVerifyInfo(ApiResponse.Clean, coin);
 				}
-
-				yield return new CoinVerifyInfo(shouldBanUtxo, coin);
+				// Dirty
+				else
+				{
+					yield return new CoinVerifyInfo(ApiResponse.Dirty, coin);
+				}
 			}
 		}
 
@@ -124,5 +138,12 @@ public class CoinVerifier
 		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		return shouldBan;
+	}
+
+	public enum ApiResponse
+	{
+		Clean,
+		Dirty,
+		TimedOut
 	}
 }

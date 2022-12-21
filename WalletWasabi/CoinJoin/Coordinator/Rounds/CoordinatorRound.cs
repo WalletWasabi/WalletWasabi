@@ -643,15 +643,23 @@ public class CoordinatorRound
 		{
 			return;
 		}
+
 		List<OutPoint> inputsToBan = new();
+		List<OutPoint> timedOutInputs = new();
+
 		try
 		{
 			var coinsToCheck = Alices.SelectMany(a => a.Inputs);
 			await foreach (var info in CoinVerifier.VerifyCoinsAsync(coinsToCheck, CancellationToken.None, RoundId.ToString()))
 			{
-				if (info.ShouldBan)
+				if (info.ApiResponse is CoinVerifier.ApiResponse.Dirty)
 				{
 					inputsToBan.Add(info.Coin.Outpoint);
+				}
+
+				if (info.ApiResponse is CoinVerifier.ApiResponse.TimedOut)
+				{
+					timedOutInputs.Add(info.Coin.Outpoint);
 				}
 			}
 		}
@@ -660,8 +668,8 @@ public class CoordinatorRound
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
 		}
 
-		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
-		Logger.LogInfo($"Alices({alicesToRemove.Length}) was force banned in round '{RoundId}'.");
+		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint)) || timedOutInputs.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
+		Logger.LogInfo($"Alices({alicesToRemove.Length}) was removed in round '{RoundId}'. {inputsToBan.Count} force banned and {timedOutInputs.Count} response didn't arrive in time.");
 		foreach (var alice in alicesToRemove)
 		{
 			Alices.Remove(alice);

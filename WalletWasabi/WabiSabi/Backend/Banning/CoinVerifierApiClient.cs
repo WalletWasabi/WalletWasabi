@@ -65,36 +65,36 @@ public class CoinVerifierApiClient
 		return (deserializedRecord, script);
 	}
 
-	public async IAsyncEnumerable<(ApiResponseItem ApiResponseItem, Script ScriptPubKey)> VerifyScriptsAsync(IEnumerable<Script> scripts, [EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<(ApiResponseItem? ApiResponseItem, Script ScriptPubKey)> VerifyScriptsAsync(IEnumerable<Script> scriptsToCheck, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		IEnumerable<IEnumerable<Script>> chunks = scripts.Chunk(100);
+		Dictionary<Task<(ApiResponseItem, Script)>, Script> taskScriptPairs = new();
 
-		foreach (var chunk in chunks)
+		foreach (Script script in scriptsToCheck)
 		{
-			var tasks = chunk.Select(script => SendRequestAsync(script, cancellationToken)).ToList();
+			taskScriptPairs.Add(Task.Run(() => SendRequestAsync(script, cancellationToken)), script);
+		}
 
-			foreach (var task in tasks)
+		foreach (var task in taskScriptPairs.Keys)
+		{
+			(ApiResponseItem? ApiResponseItem, Script? ScriptPubKey) response = (null, null);
+			try
 			{
-				(ApiResponseItem ApiResponseItem, Script ScriptPubKey) response;
-				try
-				{
-					var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
+				var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
 
-					response = await completedTask.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					continue;
-				}
-
-				yield return response;
+				response = await completedTask.ConfigureAwait(false);
 			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				continue;
+			}
+
+			// If response.ScriptPubKey is null, then the task timed out, use the dictionary to map back the timed out script.
+			yield return (response.ApiResponseItem, response.ScriptPubKey ?? taskScriptPairs[task]);
 		}
 	}
 }

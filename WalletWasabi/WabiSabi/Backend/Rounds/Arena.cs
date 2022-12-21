@@ -128,11 +128,16 @@ public partial class Arena : PeriodicRunner
 						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
 						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
 						{
-							if (coinVerifyInfo.ShouldBan)
+							if (coinVerifyInfo.ApiResponse is CoinVerifier.ApiResponse.Dirty)
 							{
 								banCounter++;
 								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
 								Prison.Ban(aliceToPunish, round.Id, isLongBan: true);
+								round.Alices.Remove(aliceToPunish);
+							}
+							else if (coinVerifyInfo.ApiResponse is CoinVerifier.ApiResponse.TimedOut)
+							{
+								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
 								round.Alices.Remove(aliceToPunish);
 							}
 						}
@@ -553,7 +558,7 @@ public partial class Arena : PeriodicRunner
 	{
 		// If timeout we must fill up the outputs to build a reasonable transaction.
 		// This won't be signed by the alice who failed to provide output, so we know who to ban.
-		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead); 
+		var estimatedBlameScriptCost = round.Parameters.MiningFeeRate.GetFee(blameScript.EstimateOutputVsize() + coinjoin.UnpaidSharedOverhead);
 		var diffMoney = coinjoin.Balance - coinjoin.EstimatedCost - estimatedBlameScriptCost;
 		if (diffMoney > round.Parameters.AllowedOutputAmounts.Min)
 		{
@@ -581,7 +586,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 				}
 				else
-				{ 
+				{
 					round.LogWarning($"Some alices failed to signal ready. There were some leftover satoshis. Added amount to miner fees: '{diffMoney}'.");
 				}
 			}
