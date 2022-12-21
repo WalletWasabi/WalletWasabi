@@ -652,12 +652,12 @@ public class CoordinatorRound
 			var coinsToCheck = Alices.SelectMany(a => a.Inputs);
 			await foreach (var info in CoinVerifier.VerifyCoinsAsync(coinsToCheck, CancellationToken.None, RoundId.ToString()))
 			{
-				if (info.ApiResponse is CoinVerifier.ApiResponse.Dirty)
+				if (info.ApiResponse is ApiResponse.Dirty)
 				{
 					inputsToBan.Add(info.Coin.Outpoint);
 				}
 
-				if (info.ApiResponse is CoinVerifier.ApiResponse.TimedOut)
+				if (info.ApiResponse is ApiResponse.TimedOut)
 				{
 					timedOutInputs.Add(info.Coin.Outpoint);
 				}

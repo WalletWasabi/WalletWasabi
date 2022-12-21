@@ -43,7 +43,7 @@ public class CoinVerifierTests
 
 		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
-			if (item.ApiResponse is CoinVerifier.ApiResponse.Dirty)
+			if (item.ApiResponse is ApiResponse.Dirty)
 			{
 				naughtyCoins.Add(item.Coin);
 			}
@@ -82,7 +82,7 @@ public class CoinVerifierTests
 
 		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
-			if (item.ApiResponse is CoinVerifier.ApiResponse.Dirty)
+			if (item.ApiResponse is ApiResponse.Dirty)
 			{
 				naughtyCoins.Add(item.Coin);
 			}
@@ -114,7 +114,7 @@ public class CoinVerifierTests
 
 		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
-			if (item.ApiResponse is CoinVerifier.ApiResponse.Dirty)
+			if (item.ApiResponse is ApiResponse.Dirty)
 			{
 				naughtyCoins.Add(item.Coin);
 			}
@@ -149,7 +149,7 @@ public class CoinVerifierTests
 
 		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
-			Assert.False(item.ApiResponse is CoinVerifier.ApiResponse.Dirty);
+			Assert.False(item.ApiResponse is ApiResponse.Dirty);
 		}
 	}
 
@@ -177,7 +177,7 @@ public class CoinVerifierTests
 
 		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
-			if (item.ApiResponse is CoinVerifier.ApiResponse.Dirty)
+			if (item.ApiResponse is ApiResponse.Dirty)
 			{
 				naughtyCoins.Add(item.Coin);
 			}
