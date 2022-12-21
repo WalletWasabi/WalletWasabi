@@ -64,7 +64,7 @@ public class Warden : PeriodicRunner
 
 		if (longBanned > 0)
 		{
-			Logger.LogInfo($"{longBanned} force-banned UTXOs are found in prison.");
+			Logger.LogInfo($"{longBanned} long-banned UTXOs are found in prison.");
 		}
 
 		return prison;
