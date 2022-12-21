@@ -55,9 +55,9 @@ public class UiTriggers
 	/// <summary>
 	/// Triggers when any of the coins starts/stops participating in a coinjoin
 	/// </summary>
-	public IObservable<Unit> WalletCoinsCoinjoinTrigger => Observable.Interval(TimeSpan.FromSeconds(0.5), RxApp.MainThreadScheduler)
-		.Select(_ => _wallet.Coins.ToArray().Where(x => x.CoinJoinInProgress))
+	public IObservable<Unit> WalletCoinsCoinjoinTrigger => Observable.Interval(TimeSpan.FromSeconds(1), RxApp.MainThreadScheduler)
+		.Select(_ => _wallet.Coins.Where(x => x.CoinJoinInProgress).ToList())
 		.Buffer(2, 1)
-		.Where(list => !new HashSet<SmartCoin>(list[0]).SetEquals(new HashSet<SmartCoin>(list[0])))
+		.Where(list => !new HashSet<SmartCoin>(list[0]).SetEquals(new HashSet<SmartCoin>(list[1])))
 		.ToSignal();
 }
