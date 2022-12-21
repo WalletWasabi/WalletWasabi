@@ -10,6 +10,7 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi;
 
@@ -55,7 +56,8 @@ public class HwiClient
 		}
 		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 		{
-			throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
+			Logger.LogError($"'hwi {arguments}' operation is canceled.", ex);
+			throw new OperationCanceledException("Confirmation response didn't arrive in time.");
 		}
 		//// HWI is inconsistent with error codes here.
 		catch (HwiException ex) when (ex.ErrorCode is HwiErrorCode.DeviceConnError or HwiErrorCode.DeviceNotReady)
