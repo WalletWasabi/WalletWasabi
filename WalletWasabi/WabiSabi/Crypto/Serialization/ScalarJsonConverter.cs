@@ -1,5 +1,6 @@
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
 
