@@ -41,7 +41,12 @@ public class CoinJoinManager : BackgroundService
 	public RoundStateUpdater RoundStatusUpdater { get; }
 	public string CoordinatorIdentifier { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
-	public bool IsUserInSendWorkflow { get; set; }
+	
+	/// <summary>
+	/// The Dictionary is used for tracking the wallets that are in send workflow.
+	/// There is no thread-safe list so the Value of the item in the dictionary is a not used dummy value.
+	/// </summary>
+	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new ();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
@@ -153,9 +158,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			NotifyWalletStartedCoinJoin(walletToStart);
-
-			if (IsUserInSendWorkflow)
+			if (WalletsInSendWorkflow.ContainsKey(walletToStart.WalletName))
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
@@ -203,6 +206,7 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, coinCandidates, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			NotifyWalletStartedCoinJoin(walletToStart);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
@@ -523,6 +527,10 @@ public class CoinJoinManager : BackgroundService
 			}
 		}
 	}
+	
+	public void WalletEnteredSendWorkflow(string walletName) => WalletsInSendWorkflow.TryAdd(walletName, 0);
+	
+	public void WalletLeftSendWorkflow(string walletName) => WalletsInSendWorkflow.Remove(walletName, out _);
 
 	private void CoinJoinTracker_WalletCoinJoinProgressChanged(object? sender, CoinJoinProgressEventArgs e)
 	{

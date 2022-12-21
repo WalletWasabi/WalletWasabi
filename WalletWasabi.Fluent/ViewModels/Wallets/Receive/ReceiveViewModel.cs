@@ -50,17 +50,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels), out bool minGapLimitIncreased);
-
-		if (minGapLimitIncreased)
-		{
-			int minGapLimit = _wallet.KeyManager.MinGapLimit;
-			int prevMinGapLimit = minGapLimit - 1;
-			var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
-
-			// TODO: notification
-		}
-
+		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
 		SuggestionLabels.Labels.Clear();
 
 		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));

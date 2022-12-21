@@ -1,5 +1,6 @@
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements;

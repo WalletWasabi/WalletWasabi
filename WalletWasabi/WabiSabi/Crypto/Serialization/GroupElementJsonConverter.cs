@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Crypto.Serialization;
 
