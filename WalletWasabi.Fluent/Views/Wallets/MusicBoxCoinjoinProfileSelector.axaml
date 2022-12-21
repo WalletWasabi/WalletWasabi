@@ -42,9 +42,9 @@
     </Style>
   </UserControl.Styles>
   <Button Classes="plain"
-          Command="{Binding OpenFlyoutCommand}">
+          Command="{Binding ShowSelectorCommand}">
     <Interaction.Behaviors>
-      <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding IsFlyoutOpen}" AutoOpenOnPointerOver="False" />
+      <behaviors:BindableFlyoutOpenBehavior IsOpen="{Binding IsSelectorVisible}" AutoOpenOnPointerOver="False" />
     </Interaction.Behaviors>
 
     <Panel ToolTip.Tip="{Binding SelectedProfile.Title, StringFormat='Coinjoin Profile: {0}', FallbackValue='Click to select your Coinjoin Profile'}"

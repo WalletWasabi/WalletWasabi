@@ -16,25 +16,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class MusicBoxCoinjoinProfileSelectorViewModel : ActivatableViewModel
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
-	[AutoNotify] private bool _isFlyoutOpen;
+	[AutoNotify] private bool _isSelectorVisible;
 	[AutoNotify] private bool _showProfile;
+	private readonly KeyManager _keyManager;
 
 	public MusicBoxCoinjoinProfileSelectorViewModel(KeyManager keyManager)
 	{
+		_keyManager = keyManager;
+
 		Profiles = DefaultProfiles.ToList();
 		Profiles.Add(new ManualCoinJoinProfileViewModel(keyManager));
 
-		_selectedProfile = IdentifySelectedProfile(keyManager);
-
-		OpenFlyoutCommand = ReactiveCommand.Create(() =>
+		ShowSelectorCommand = ReactiveCommand.Create(() =>
 		{
-			IsFlyoutOpen = false;
-			IsFlyoutOpen = true;
+			IsSelectorVisible = false;
+			IsSelectorVisible = true;
 		});
+
 		SelectProfileCommand = ReactiveCommand.CreateFromTask<CoinJoinProfileViewModelBase>(async p => await OnCoinjoinProfileSelectedAsync(keyManager, p));
 	}
 
-	public ICommand OpenFlyoutCommand { get; }
+	public ICommand ShowSelectorCommand { get; }
 	public ICommand SelectProfileCommand { get; }
 
 	protected override void OnActivated(CompositeDisposable disposables)
@@ -48,11 +50,13 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : ActivatableViewM
 				ShowProfile = !x.First && !x.Second;
 			})
 			.DisposeWith(disposables);
+
+		SelectedProfile = IdentifySelectedProfile();
 	}
 
 	private async Task OnCoinjoinProfileSelectedAsync(KeyManager keyManager, CoinJoinProfileViewModelBase profile)
 	{
-		IsFlyoutOpen = false;
+		IsSelectorVisible = false;
 
 		if (profile is ManualCoinJoinProfileViewModel)
 		{
@@ -62,6 +66,9 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : ActivatableViewM
 			NavigationState.Instance.CompactDialogScreenNavigation.To(dialog);
 
 			var dialogResult = await dialogResultTask;
+
+			NavigationState.Instance.CompactDialogScreenNavigation.Clear();
+
 			if (dialogResult.Result is { } result)
 			{
 				profile = result.Profile;
@@ -77,15 +84,15 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : ActivatableViewM
 		keyManager.SetCoinjoinProfile(profile);
 	}
 
-	public static CoinJoinProfileViewModelBase IdentifySelectedProfile(KeyManager keyManager)
+	public CoinJoinProfileViewModelBase IdentifySelectedProfile()
 	{
-		var currentProfile = new ManualCoinJoinProfileViewModel(keyManager);
+		var currentProfile = new ManualCoinJoinProfileViewModel(_keyManager);
 		var result = DefaultProfiles.FirstOrDefault(x => x == currentProfile) ?? currentProfile;
 
 		// Edge case: Update the PrivateCJProfile anonscore target, otherwise the randomly selected value will be displayed all time.
 		if (result is PrivateCoinJoinProfileViewModel)
 		{
-			result = new PrivateCoinJoinProfileViewModel(keyManager.AnonScoreTarget);
+			result = new PrivateCoinJoinProfileViewModel(_keyManager.AnonScoreTarget);
 		}
 
 		return result;

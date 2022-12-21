@@ -173,6 +173,8 @@ public partial class WalletViewModel : WalletViewModelBase
 		{
 			tile.Activate(disposables);
 		}
+
+		MusicBoxCoinjoinProfileSelector.Activate(disposables);
 	}
 
 	public static WalletViewModel Create(Wallet wallet)
