@@ -49,8 +49,7 @@
                                       Grid.Column="{TemplateBinding LeftColumn}"
                                       Background="Transparent"
                                       BorderThickness="0"
-                                      IsRightSide="{TemplateBinding IsConversionReversed}">
-                  </c:CurrencyEntryBox>
+                                      IsRightSide="{TemplateBinding IsConversionReversed}" />
 
                   <Button x:Name="PART_SwapButton" Focusable="False"
                           HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"

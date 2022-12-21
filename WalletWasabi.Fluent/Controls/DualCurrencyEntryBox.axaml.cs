@@ -57,28 +57,17 @@ public class DualCurrencyEntryBox : UserControl
 	public static readonly StyledProperty<int> RightColumnProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, int>(nameof(RightColumn));
 
+	public static readonly StyledProperty<CurrencyEntryBox?> RightEntryBoxProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(RightEntryBox));
+
+	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>(nameof(LeftEntryBox));
+
 	private readonly CultureInfo _customCultureInfo;
 	private CompositeDisposable? _disposable;
 	private readonly char _decimalSeparator = '.';
 	private readonly char _groupSeparator = ' ';
 	private Button? _swapButton;
-
-	public static readonly StyledProperty<CurrencyEntryBox?> RightEntryBoxProperty = AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>("RightEntryBox");
-
-	public CurrencyEntryBox? RightEntryBox
-	{
-		get => GetValue(RightEntryBoxProperty);
-		set => SetValue(RightEntryBoxProperty, value);
-	}
-
-	public static readonly StyledProperty<CurrencyEntryBox?> LeftEntryBoxProperty = AvaloniaProperty.Register<DualCurrencyEntryBox, CurrencyEntryBox?>("LeftEntryBox");
-
-	public CurrencyEntryBox? LeftEntryBox
-	{
-		get => GetValue(LeftEntryBoxProperty);
-		set => SetValue(LeftEntryBoxProperty, value);
-	}
-
 	private decimal _amountBtc;
 	private bool _canUpdateDisplay = true;
 	private bool _canUpdateFiat = true;
@@ -184,6 +173,18 @@ public class DualCurrencyEntryBox : UserControl
 	{
 		get => GetValue(RightColumnProperty);
 		set => SetValue(RightColumnProperty, value);
+	}
+
+	public CurrencyEntryBox? RightEntryBox
+	{
+		get => GetValue(RightEntryBoxProperty);
+		set => SetValue(RightEntryBoxProperty, value);
+	}
+
+	public CurrencyEntryBox? LeftEntryBox
+	{
+		get => GetValue(LeftEntryBoxProperty);
+		set => SetValue(LeftEntryBoxProperty, value);
 	}
 
 	protected override void OnLostFocus(RoutedEventArgs e)
