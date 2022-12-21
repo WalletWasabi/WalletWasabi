@@ -11,8 +11,13 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 	{
 		var wallet = walletVm.Wallet;
 
-		var balance = walletVm.UiTriggers.BalanceUpdateTrigger
-			.Select(_ => showOnlyAvailable ? wallet.Coins.Available().TotalAmount() : wallet.Coins.TotalAmount());
+		var trigger = walletVm.UiTriggers.BalanceUpdateTrigger;
+		if (showOnlyAvailable)
+		{
+			trigger = trigger.Merge(walletVm.UiTriggers.WalletCoinsCoinjoinTrigger);
+		}
+
+		var balance = trigger.Select(_ => showOnlyAvailable ? wallet.Coins.Available().TotalAmount() : wallet.Coins.TotalAmount());
 
 		BalanceBtc = balance
 			.Select(money => $"{money.ToFormattedString()} BTC");

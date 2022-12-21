@@ -1,6 +1,9 @@
-﻿using System.Reactive;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -48,4 +51,13 @@ public class UiTriggers
 	/// Triggers on subscription and when a transaction is processed to the wallet or the anon score target changed.
 	/// </summary>
 	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Skip(1);
+
+	/// <summary>
+	/// Triggers when any of the coins starts/stops participating in a coinjoin
+	/// </summary>
+	public IObservable<Unit> WalletCoinsCoinjoinTrigger => Observable.Interval(TimeSpan.FromSeconds(1), RxApp.MainThreadScheduler)
+		.Select(_ => _wallet.Coins.Where(x => x.CoinJoinInProgress).ToList())
+		.Buffer(2, 1)
+		.Where(list => !new HashSet<SmartCoin>(list[0]).SetEquals(new HashSet<SmartCoin>(list[1])))
+		.ToSignal();
 }
