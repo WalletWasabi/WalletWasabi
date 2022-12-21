@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -12,8 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-[NavigationMetaData(Title = "Coinjoin Profiles")]
-public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewModel
+public partial class MusicBoxCoinjoinProfileSelectorViewModel : ActivatableViewModel
 {
 	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
 	[AutoNotify] private bool _isFlyoutOpen;
@@ -32,7 +32,13 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 			IsFlyoutOpen = true;
 		});
 		SelectProfileCommand = ReactiveCommand.CreateFromTask<CoinJoinProfileViewModelBase>(async p => await OnCoinjoinProfileSelectedAsync(keyManager, p));
+	}
 
+	public ICommand OpenFlyoutCommand { get; }
+	public ICommand SelectProfileCommand { get; }
+
+	protected override void OnActivated(CompositeDisposable disposables)
+	{
 		this.WhenAnyValue(x => x.SelectedProfile)
 			.Select(x => x is null)
 			.CombineLatest(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
@@ -40,11 +46,9 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 			{
 				Profiles.ForEach(p => p.IsSelected = p.GetType() == SelectedProfile?.GetType());
 				ShowProfile = !x.First && !x.Second;
-			});
+			})
+			.DisposeWith(disposables);
 	}
-
-	public ICommand OpenFlyoutCommand { get; }
-	public ICommand SelectProfileCommand { get; }
 
 	private async Task OnCoinjoinProfileSelectedAsync(KeyManager keyManager, CoinJoinProfileViewModelBase profile)
 	{
@@ -53,9 +57,11 @@ public partial class MusicBoxCoinjoinProfileSelectorViewModel : RoutableViewMode
 		if (profile is ManualCoinJoinProfileViewModel)
 		{
 			var dialog = new ManualCoinJoinProfileDialogViewModel(profile);
+			var dialogResultTask = dialog.GetDialogResultAsync();
 
-			var dialogResult = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);
+			NavigationState.Instance.CompactDialogScreenNavigation.To(dialog);
 
+			var dialogResult = await dialogResultTask;
 			if (dialogResult.Result is { } result)
 			{
 				profile = result.Profile;
