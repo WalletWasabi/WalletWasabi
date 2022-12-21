@@ -80,7 +80,6 @@ Linux: "/home/{your username}/.walletwasabi/backend"
 6. Edit some lines in `WabiSabiConfig.json`. For example, make the `InputRegistrationPhase` faster and allow rounds to have between 2 and 100 inputs:
 ```
 "StandardInputRegistrationTimeout": "0d 0h 2m 0s",
-...
 "MaxInputCountByRound": 100,
 "MinInputCountByRoundMultiplier": 0.02,
 ```
