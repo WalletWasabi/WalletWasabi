@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace System;
+namespace WalletWasabi.Helpers;
 
 public static unsafe class ByteHelpers
 {

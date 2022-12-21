@@ -51,7 +51,7 @@ public class Warden : PeriodicRunner
 
 		var prison = new Prison(inmates);
 
-		var (noted, banned) = prison.CountInmates();
+		var (noted, banned, longBanned) = prison.CountInmates();
 		if (noted > 0)
 		{
 			Logger.LogInfo($"{noted} noted UTXOs are found in prison.");
@@ -60,6 +60,11 @@ public class Warden : PeriodicRunner
 		if (banned > 0)
 		{
 			Logger.LogInfo($"{banned} banned UTXOs are found in prison.");
+		}
+
+		if (longBanned > 0)
+		{
+			Logger.LogInfo($"{longBanned} long-banned UTXOs are found in prison.");
 		}
 
 		return prison;

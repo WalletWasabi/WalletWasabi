@@ -950,6 +950,9 @@ hr {
 .m-100 {
     margin: 100px 0;
 }
+.card label {
+    width: calc(100% - 30px);
+}
 @media (min-width: 576px) {
     body {
         --breakpoint: 540px;
@@ -1030,7 +1033,7 @@ hr {
     }
     .fixed-img img {
         object-fit: cover;
-        height: 60vh;
+        height: 100vh;
     }
     .dropdown-menu {
         background: transparent;
@@ -1068,7 +1071,7 @@ hr {
         margin: 20px 0;
     }
     .p-100 {
-        padding: 40px;
+        padding: 40px 0;
     }
     .p-200 {
         padding: 40px 0;
@@ -1078,6 +1081,9 @@ hr {
     }
     .floating-title {
         font-size: 60px;
+    }
+    .card label {
+        font-size: 14px;
     }
 }
 @media only screen and (max-width: 600px) {
@@ -1135,6 +1141,13 @@ hr {
     .timeline li:nth-child(even):before,
     .timeline li:nth-child(odd):before {
         right: calc(15% - 4px);
+    }
+    .timeline-title {
+        font-size: 16px;
+        margin-top: 10px;
+    }
+    .timeline-small-img {
+        height: 14px;
     }
 }
 @media only screen and (max-width: 400px) {} @media only screen and (max-width: 320px) {
