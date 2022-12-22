@@ -569,6 +569,8 @@ public class CoinJoinClient
 						tasks = tasks.Union(myMissingSignatures.Select(aliceClient => aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken)).ToList());
 						await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
 					}
+
+					break;
 				}
 			}
 			catch (InvalidOperationException)
