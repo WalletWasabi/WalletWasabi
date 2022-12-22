@@ -15,7 +15,7 @@
   <UserControl.DataTemplates>
 
     <DataTemplate DataType="behaviors:Suggestion">
-      <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False" Cursor="Hand">
+      <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptCommand}" Focusable="False" Cursor="Hand">
         <DockPanel HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
           <TextBlock Margin="4 0 0 0" Text="{Binding Text}" VerticalAlignment="Center" />
