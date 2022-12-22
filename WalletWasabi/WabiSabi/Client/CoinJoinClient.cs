@@ -560,7 +560,7 @@ public class CoinJoinClient
 					for (var i = 0; i < 3; i++)
 					{
 						// Too many parallel requests, don't add more.
-						// ToDo: Replace older requests with ne ones. 
+						// ToDo: Replace older requests with new ones. 
 						if (tasks.Count() > 20)
 						{
 							break;
