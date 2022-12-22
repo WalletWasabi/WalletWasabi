@@ -12,7 +12,7 @@ public static class ApplicationHelper
 {
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
-	public static IObservable<string> GetClipboardTextChanged(IScheduler? scheduler = default)
+	public static IObservable<string> ClipboardTextChanged(IScheduler? scheduler = default)
 	{
 		return Observable.Interval(TimeSpan.FromSeconds(0.2), scheduler ?? Scheduler.Default)
 			.SelectMany(

@@ -16,7 +16,7 @@ internal class ClipboardHelper
 
 	public IObservable<string?> ClipboardUsdContents()
 	{
-		return ApplicationHelper.GetClipboardTextChanged(RxApp.MainThreadScheduler)
+		return ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
 			.CombineLatest(
 				BalanceSource.UsdBalances,
 				(text, balanceUsd) =>
@@ -28,7 +28,7 @@ internal class ClipboardHelper
 
 	public IObservable<string?> ClipboardBtcContents()
 	{
-		return ApplicationHelper.GetClipboardTextChanged(RxApp.MainThreadScheduler)
+		return ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
 			.CombineLatest(
 				BalanceSource.Balances,
 				(text, balance) =>
