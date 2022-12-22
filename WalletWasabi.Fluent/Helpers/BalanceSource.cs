@@ -1,7 +1,7 @@
 using System.Reactive.Linq;
 using NBitcoin;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
+namespace WalletWasabi.Fluent.Helpers;
 
 public class BalanceSource
 {
