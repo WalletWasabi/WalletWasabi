@@ -331,11 +331,14 @@ public class AmountDecomposer
 	/// <returns>Pair of denomination and the number of times we found it in a breakdown.</returns>
 	private Dictionary<ulong, long> GetDenominationFrequencies(IEnumerable<Money> inputEffectiveValues)
 	{
-		var secondLargestInput = inputEffectiveValues.OrderByDescending(x => x).Skip(1).First();
-		IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.Satoshi);
+		var ordered = inputEffectiveValues.OrderByDescending(x => x).ToArray();
+		var secondLargestInput = ordered.Skip(1).FirstOrDefault() ?? ordered.First();
+				
+				;
+		IEnumerable<ulong> demonsForBreakDown = DenominationsPlusFees.Where(x => x <= (ulong)secondLargestInput.Satoshi).ToArray();
 
 		Dictionary<ulong, long> denomFrequencies = new();
-		foreach (var input in inputEffectiveValues)
+		foreach (var input in ordered)
 		{
 			foreach (var denom in BreakDown(input, demonsForBreakDown))
 			{

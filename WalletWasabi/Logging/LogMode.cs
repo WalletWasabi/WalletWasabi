@@ -11,5 +11,6 @@ public enum LogMode
 	Debug,
 
 	/// <summary>Logs to <see cref="Logger.FilePath"/> file.</summary>
-	File
+	File,
+	DotNetLoggers
 }

@@ -48,6 +48,10 @@ public class CoinjoinAnalyzer
 			// We are searching for any transaction inputs of analyzedTransaction that might have come from this transaction.
 			// If we find such remixed outputs, then we determine how much they contributed to our anonymity set.
 			SmartTransaction transaction = transactionOutput.Transaction;
+			if (transaction is null)
+			{
+				return 0;
+			}
 			double sanction = -ComputeAnonymityContribution(transactionOutput, AnalyzedTransactionPrevOuts);
 
 			// Recursively branch out into all of the transaction inputs' histories and compute the sanction for each branch.

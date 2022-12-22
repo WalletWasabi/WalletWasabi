@@ -9,4 +9,5 @@ public record CoinJoinResult(
 	bool SuccessfulBroadcast,
 	ImmutableList<SmartCoin> RegisteredCoins,
 	ImmutableList<Script> RegisteredOutputs,
-	Transaction? UnsignedCoinJoin);
+	ImmutableDictionary<TxOut, PendingPayment> HandledPayments,
+	Transaction UnsignedCoinJoin, uint256 RoundId);

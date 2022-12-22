@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Logging;
@@ -212,6 +214,22 @@ public static class Logger
 					Debug.Write(finalMessage);
 				}
 
+				if (Modes.Contains(LogMode.DotNetLoggers))
+				{
+					if(Microsoft.Extensions.Logging.LogLevel.TryParse(level.ToString().Replace("Info", "Information"),true, out Microsoft.Extensions.Logging.LogLevel equivalentLogger))
+					{
+						if (DotnetLogger is null)
+						{
+							_pendingDotnetLogger.Add(() => DotnetLogger.Log(equivalentLogger,finalMessage));
+						}
+						else
+						{
+							DotnetLogger.Log(equivalentLogger,finalMessage);
+						}
+						
+					}
+				}
+
 				if (!Modes.Contains(LogMode.File))
 				{
 					return;
@@ -246,6 +264,22 @@ public static class Logger
 			Interlocked.Exchange(ref LoggingFailedCount, 0);
 		}
 	}
+
+	private static ILogger _dotnetLogger = null;
+	private static List<Action> _pendingDotnetLogger = new List<Action>();
+	public static ILogger? DotnetLogger
+	{
+		get { return _dotnetLogger;}
+		set
+		{
+			_dotnetLogger = value;
+
+			while (_dotnetLogger is not null && _pendingDotnetLogger.Any())
+			{
+				var action = _pendingDotnetLogger.First();
+				action.Invoke();
+			}
+		} } 
 
 	#endregion GeneralLoggingMethods
 

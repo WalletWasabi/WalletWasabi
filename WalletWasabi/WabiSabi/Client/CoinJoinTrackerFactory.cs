@@ -48,11 +48,12 @@ public class CoinJoinTrackerFactory
 			RoundStatusUpdater,
 			CoordinatorIdentifier,
 			LiquidityClueProvider,
-			wallet.AnonScoreTarget,
+			wallet.AnonymitySetTarget,
 			consolidationMode: wallet.ConsolidationMode,
 			redCoinIsolation: wallet.RedCoinIsolation,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
-			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
+			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
+			wallet.GetCoinSelector(), wallet.BatchPayments);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, stopWhenAllMixed, overridePlebStop, CancellationToken);
 	}

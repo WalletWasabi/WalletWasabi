@@ -84,10 +84,11 @@ public class Wallet : BackgroundService, IWallet
 	public ICoinsView Coins { get; private set; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
+	public bool BatchPayments { get; } = false;
 
 	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
 
-	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonScoreTarget) >= 1;
+	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonymitySetTarget) >= 1;
 
 	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
 
@@ -512,7 +513,7 @@ public class Wallet : BackgroundService, IWallet
 	public IKeyChain? KeyChain { get; }
 
 	public IDestinationProvider DestinationProvider { get; }
-	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
+	public int AnonymitySetTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode => false;
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 }
