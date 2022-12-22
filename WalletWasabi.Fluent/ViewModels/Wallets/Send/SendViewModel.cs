@@ -132,7 +132,7 @@ public partial class SendViewModel : RoutableViewModel
 		var exchangeRates = this.WhenAnyValue(x => x.WalletVm.Wallet.Synchronizer.UsdExchangeRate);
 		var balances = this.WhenAnyValue(x => x.WalletVm.UiTriggers.BalanceUpdateTrigger).Select(_ => walletVm.Wallet.Coins.TotalAmount());
 
-		_clipboardHelper = new ClipboardHelper(new BalanceSource(exchangeRates, balances));
+		_clipboardHelper = new ClipboardHelper(new BalanceHelper(exchangeRates, balances));
 	}
 
 	public IObservable<string?> UsdContent => _clipboardHelper.ClipboardUsdContents();

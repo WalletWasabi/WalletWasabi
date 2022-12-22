@@ -7,18 +7,18 @@ namespace WalletWasabi.Fluent.Helpers;
 
 internal class ClipboardHelper
 {
-	public ClipboardHelper(BalanceSource balanceSource)
+	public ClipboardHelper(BalanceHelper balanceHelper)
 	{
-		BalanceSource = balanceSource;
+		BalanceHelper = balanceHelper;
 	}
 
-	private BalanceSource BalanceSource { get; }
+	private BalanceHelper BalanceHelper { get; }
 
 	public IObservable<string?> ClipboardUsdContents()
 	{
 		return ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
 			.CombineLatest(
-				BalanceSource.UsdBalances,
+				BalanceHelper.UsdBalances,
 				(text, balanceUsd) =>
 				{
 					return ParseToUsd(text).Ensure(n => n <= balanceUsd);
@@ -30,7 +30,7 @@ internal class ClipboardHelper
 	{
 		return ApplicationHelper.ClipboardTextChanged(RxApp.MainThreadScheduler)
 			.CombineLatest(
-				BalanceSource.Balances,
+				BalanceHelper.Balances,
 				(text, balance) =>
 				{
 					return ParseToMoney(text)

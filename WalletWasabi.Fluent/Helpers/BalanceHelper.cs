@@ -3,9 +3,9 @@ using NBitcoin;
 
 namespace WalletWasabi.Fluent.Helpers;
 
-public class BalanceSource
+public class BalanceHelper
 {
-	public BalanceSource(IObservable<decimal> exchangeRates, IObservable<Money> balances)
+	public BalanceHelper(IObservable<decimal> exchangeRates, IObservable<Money> balances)
 	{
 		ExchangeRates = exchangeRates;
 		Balances = balances;
