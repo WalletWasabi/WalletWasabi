@@ -7,12 +7,12 @@ namespace WalletWasabi.Fluent.Helpers;
 
 internal class ClipboardHelper
 {
-	private BalanceSource BalanceSource { get; }
-
 	public ClipboardHelper(BalanceSource balanceSource)
 	{
 		BalanceSource = balanceSource;
 	}
+
+	private BalanceSource BalanceSource { get; }
 
 	public IObservable<string?> ClipboardUsdContents()
 	{
