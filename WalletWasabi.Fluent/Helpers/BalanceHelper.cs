@@ -5,14 +5,14 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class BalanceHelper
 {
-	public BalanceHelper(IObservable<decimal> exchangeRates, IObservable<Money> balances)
+	public BalanceHelper(IObservable<decimal> exchangeRate, IObservable<Money> balance)
 	{
-		ExchangeRates = exchangeRates;
-		Balances = balances;
-		UsdBalances = balances.CombineLatest(exchangeRates, (balance, exchangeRate) => balance.ToDecimal(MoneyUnit.BTC) * exchangeRate);
+		ExchangeRate = exchangeRate;
+		Balance = balance;
+		UsdBalance = balance.CombineLatest(exchangeRate, (b, er) => b.ToDecimal(MoneyUnit.BTC) * er);
 	}
 
-	public IObservable<Money> Balances { get; }
-	public IObservable<decimal> UsdBalances { get; }
-	public IObservable<decimal> ExchangeRates { get; }
+	public IObservable<Money> Balance { get; }
+	public IObservable<decimal> UsdBalance { get; }
+	public IObservable<decimal> ExchangeRate { get; }
 }

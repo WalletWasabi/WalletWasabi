@@ -135,9 +135,9 @@ public partial class SendViewModel : RoutableViewModel
 		_clipboardHelper = new ClipboardHelper(new BalanceHelper(exchangeRates, balances));
 	}
 
-	public IObservable<string?> UsdContent => _clipboardHelper.ClipboardUsdContents();
+	public IObservable<string?> UsdContent => _clipboardHelper.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
 
-	public IObservable<string?> BitcoinContent => _clipboardHelper.ClipboardBtcContents();
+	public IObservable<string?> BitcoinContent => _clipboardHelper.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
 	public bool IsQrButtonVisible { get; }
 
