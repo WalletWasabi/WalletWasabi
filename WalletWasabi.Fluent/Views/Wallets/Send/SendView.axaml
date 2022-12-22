@@ -6,7 +6,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -49,8 +49,8 @@
               <TextBlock DataContext="{Binding Balance}">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^" Converter="{x:Static conv:MoneyConverters.ToFormattedBtc}" />
-                    <Binding Path="BalanceFiat^" Converter="{x:Static conv:MoneyConverters.ToUsdAproxBetweenParens}" />
+                    <Binding Path="BalanceBtc^" />
+                    <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
               </TextBlock>
@@ -135,23 +135,23 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
             <c:DualCurrencyEntryBox.Resources>
 
-              <conv:BooleanConverter x:Key="LeftBooleanConverter">
-                <conv:BooleanConverter.TrueValue>
+              <converters:BooleanConverter x:Key="LeftBooleanConverter">
+                <converters:BooleanConverter.TrueValue>
                   <FlyoutPlacementMode>BottomEdgeAlignedRight</FlyoutPlacementMode>
-                </conv:BooleanConverter.TrueValue>
-                <conv:BooleanConverter.FalseValue>
+                </converters:BooleanConverter.TrueValue>
+                <converters:BooleanConverter.FalseValue>
                   <FlyoutPlacementMode>BottomEdgeAlignedLeft</FlyoutPlacementMode>
-                </conv:BooleanConverter.FalseValue>
-              </conv:BooleanConverter>
+                </converters:BooleanConverter.FalseValue>
+              </converters:BooleanConverter>
 
-              <conv:BooleanConverter x:Key="RightBooleanConverter">
-                <conv:BooleanConverter.TrueValue>
+              <converters:BooleanConverter x:Key="RightBooleanConverter">
+                <converters:BooleanConverter.TrueValue>
                   <FlyoutPlacementMode>BottomEdgeAlignedLeft</FlyoutPlacementMode>
-                </conv:BooleanConverter.TrueValue>
-                <conv:BooleanConverter.FalseValue>
+                </converters:BooleanConverter.TrueValue>
+                <converters:BooleanConverter.FalseValue>
                   <FlyoutPlacementMode>BottomEdgeAlignedRight</FlyoutPlacementMode>
-                </conv:BooleanConverter.FalseValue>
-              </conv:BooleanConverter>
+                </converters:BooleanConverter.FalseValue>
+              </converters:BooleanConverter>
 
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>

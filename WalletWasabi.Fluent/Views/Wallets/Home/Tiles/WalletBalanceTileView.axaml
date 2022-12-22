@@ -13,7 +13,7 @@
   <c:TileControl Title="BALANCE" IsBottomContentVisible="{Binding HasBalance^}" SeparatorMargin="0 0 0 6">
     <Viewbox Margin="0 3" VerticalAlignment="Center" MaxHeight="40">
       <c:PrivacyContentControl Classes="h2 monoSpaced" HorizontalContentAlignment="Center"
-                               Content="{Binding BalanceBtc^, Converter={x:Static converters:MoneyConverters.ToFormattedBtc}}" />
+                               Content="{Binding BalanceBtc^}" />
     </Viewbox>
     <c:TileControl.BottomContent>
       <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
