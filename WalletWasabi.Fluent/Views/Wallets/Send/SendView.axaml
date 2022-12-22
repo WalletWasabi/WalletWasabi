@@ -12,22 +12,32 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
 
-
   <UserControl.DataTemplates>
 
     <DataTemplate DataType="behaviors:Suggestion">
-      <Button Background="Transparent" HorizontalAlignment="Center" Margin="8" Padding="0" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False" Cursor="Hand">
-        <DockPanel>
+      <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptHintCommand}" Focusable="False" Cursor="Hand">
+        <DockPanel HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
-          <TextBlock Margin="8" Text="{Binding Text}" VerticalAlignment="Center" />
+          <TextBlock Margin="4 0 0 0" Text="{Binding Text}" VerticalAlignment="Center" />
         </DockPanel>
       </Button>
     </DataTemplate>
+
   </UserControl.DataTemplates>
 
   <UserControl.Styles>
+
     <Style Selector="FlyoutPresenter">
       <Setter Property="Padding" Value="0" />
+      <Setter Property="MinWidth" Value="0" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
 
   </UserControl.Styles>
