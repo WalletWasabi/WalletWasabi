@@ -538,9 +538,48 @@ public class CoinJoinClient
 				{
 					Logger.LogDebug("Signature was already sent - bypassing error.", ex);
 				}
-			})
-			.ToImmutableArray();
+			});
 
+		// Assume that all clients are in same round
+		while (RoundStatusUpdater.TryGetRoundState(aliceClients.First().RoundId, out var currentRoundState) && currentRoundState.Phase != Phase.Ended)
+		{
+			try
+			{
+				var currentSigningState = currentRoundState.Assert<SigningState>();
+				var myMissingSignatures = aliceClients.Where(x => currentSigningState.UnsignedInputs.Any(y => y == x.SmartCoin.Coin));
+
+				if (currentSigningState.IsFullySigned || !myMissingSignatures.Any())
+				{
+					// Already signed every inputs, nothing else to do.
+					break;
+				}
+
+				if (signingEndTime > DateTimeOffset.UtcNow && (signingEndTime - DateTimeOffset.UtcNow).TotalSeconds < 30)
+				{
+					// Still have inputs to register but we are running out of time, retry aggressively (3 times).
+					for (var i = 0; i < 3; i++)
+					{
+						// Too many parallel requests, don't add more.
+						// ToDo: Replace older requests with ne ones. 
+						if (tasks.Count() > 20)
+						{
+							break;
+						}
+
+						tasks = tasks.Union(myMissingSignatures.Select(aliceClient => aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken)).ToList());
+						await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
+					}
+				}
+			}
+			catch (InvalidOperationException ex)
+			{
+				// Ignore
+			}
+
+			await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
+		}
+
+		tasks.ToImmutableArray();
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
