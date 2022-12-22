@@ -571,7 +571,7 @@ public class CoinJoinClient
 					}
 				}
 			}
-			catch (InvalidOperationException ex)
+			catch (InvalidOperationException)
 			{
 				Logger.LogDebug($"Current state was not SigningState");
 				break;
