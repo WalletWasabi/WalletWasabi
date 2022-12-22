@@ -573,7 +573,8 @@ public class CoinJoinClient
 			}
 			catch (InvalidOperationException ex)
 			{
-				// Ignore
+				Logger.LogDebug($"Current state was not SigningState");
+				break;
 			}
 
 			await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
