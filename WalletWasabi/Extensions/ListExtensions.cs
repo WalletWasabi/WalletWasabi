@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using WalletWasabi.Helpers;
 
-namespace System.Collections.Generic;
+namespace WalletWasabi.Extensions;
 
 public static class ListExtensions
 {
@@ -23,7 +24,7 @@ public static class ListExtensions
 
 		while (lower <= upper)
 		{
-			int middle = lower + ((upper - lower) / 2);
+			int middle = lower + (upper - lower) / 2;
 			int comparisonResult = list[middle].CompareTo(value);
 
 			if (comparisonResult < 0)

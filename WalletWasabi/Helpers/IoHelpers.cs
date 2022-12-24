@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace System.IO;
+namespace WalletWasabi.Helpers;
 
 public static class IoHelpers
 {
@@ -95,9 +95,9 @@ public static class IoHelpers
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 						? "explorer.exe"
-						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+						: RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 							? "open"
-							: "xdg-open"),
+							: "xdg-open",
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
 				});

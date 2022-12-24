@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
