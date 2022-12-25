@@ -95,9 +95,9 @@ public static class IoHelpers
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 						? "explorer.exe"
-						: RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 							? "open"
-							: "xdg-open",
+							: "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
 				});

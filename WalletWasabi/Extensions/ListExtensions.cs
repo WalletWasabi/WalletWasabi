@@ -24,7 +24,7 @@ public static class ListExtensions
 
 		while (lower <= upper)
 		{
-			int middle = lower + (upper - lower) / 2;
+			int middle = lower + ((upper - lower) / 2);
 			int comparisonResult = list[middle].CompareTo(value);
 
 			if (comparisonResult < 0)
