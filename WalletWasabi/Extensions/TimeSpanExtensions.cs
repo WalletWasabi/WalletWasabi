@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Crypto.Randomness;
 
-namespace System;
+namespace WalletWasabi.Extensions;
 
 public static class TimeSpanExtensions
 {
