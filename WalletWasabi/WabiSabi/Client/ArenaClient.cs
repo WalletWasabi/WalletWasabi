@@ -195,12 +195,11 @@ public class ArenaClient
 	public async Task SignTransactionAsync(
 		uint256 roundId,
 		Coin coin,
-		OwnershipProof ownershipProof,
-		IKeyChain keyChain,
+		IKeyChain keyChain, // unused now
 		TransactionWithPrecomputedData unsignedCoinJoin,
 		CancellationToken cancellationToken)
 	{
-		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, ownershipProof, unsignedCoinJoin.PrecomputedTransactionData);
+		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin.Transaction, coin, unsignedCoinJoin.PrecomputedTransactionData);
 		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
 		if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
 		{

@@ -140,7 +140,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
+			changeHdPubKey = KeyManager.GetNextChangeKey();
 
 			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}

@@ -321,10 +321,10 @@ public class StepOutputRegistrationTests
 		var bobClient1 = new BobClient(round1.Id, arenaClient1);
 		var bobClient2 = new BobClient(round2.Id, arenaClient2);
 
-		var out1a = keyManager1.GetNextReceiveKey("o1a", out _);
-		var out1b = keyManager1.GetNextReceiveKey("o1b", out _);
-		var out2a = keyManager2.GetNextReceiveKey("o2a", out _);
-		var out2b = keyManager2.GetNextReceiveKey("o2b", out _);
+		var out1a = keyManager1.GetNextReceiveKey("o1a");
+		var out1b = keyManager1.GetNextReceiveKey("o1b");
+		var out2a = keyManager2.GetNextReceiveKey("o2a");
+		var out2b = keyManager2.GetNextReceiveKey("o2b");
 
 		var bob1a = bobClient1.RegisterOutputAsync(
 			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),

@@ -123,8 +123,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
-	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof, PrecomputedTransactionData precomputeTransactionData)
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
 		{
