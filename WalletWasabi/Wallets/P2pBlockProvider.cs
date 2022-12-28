@@ -111,8 +111,6 @@ public class P2pBlockProvider : IBlockProvider
 						continue;
 					}
 
-					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-
 					await NodeTimeoutsAsync(increaseDecrease: false).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
