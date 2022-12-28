@@ -41,6 +41,7 @@ public static class DynamicDataExtensions
 						case ChangeReason.Add:
 							cache.AddOrUpdate(transformFactory(change.Current), change.Key);
 							break;
+
 						case ChangeReason.Update:
 							{
 								if (updateAction == null)
@@ -53,16 +54,19 @@ public static class DynamicDataExtensions
 
 								updateAction(previous, change.Current);
 
-								// send a refresh as this will force downstream operators 
+								// send a refresh as this will force downstream operators
 								cache.Refresh(change.Key);
 							}
 							break;
+
 						case ChangeReason.Remove:
 							cache.Remove(change.Key);
 							break;
+
 						case ChangeReason.Refresh:
 							cache.Refresh(change.Key);
 							break;
+
 						case ChangeReason.Moved:
 							// Do nothing !
 							break;

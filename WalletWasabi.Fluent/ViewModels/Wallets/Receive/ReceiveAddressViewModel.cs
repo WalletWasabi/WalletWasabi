@@ -130,6 +130,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			})
 			.DisposeWith(disposables);
 	}
+
 	private void GenerateQrCode()
 	{
 		try
