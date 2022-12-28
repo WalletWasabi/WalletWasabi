@@ -65,7 +65,7 @@ public static class HttpRequestMessageExtensions
 		if (request.Headers.NotNullAndNotEmpty())
 		{
 			var headerSection = HeaderSection.CreateNew(request.Headers);
-			headers += headerSection.ToString(endWithTwoCRLF: false);
+			headers += headerSection.ToString();
 		}
 
 		string messageBody = "";
@@ -74,7 +74,7 @@ public static class HttpRequestMessageExtensions
 			if (request.Content.Headers.NotNullAndNotEmpty())
 			{
 				var headerSection = HeaderSection.CreateNew(request.Content.Headers);
-				headers += headerSection.ToString(endWithTwoCRLF: false);
+				headers += headerSection.ToString();
 			}
 
 			messageBody = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

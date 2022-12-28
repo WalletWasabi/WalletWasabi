@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Linq;
 
 namespace WalletWasabi.Helpers;
 
@@ -59,6 +60,26 @@ public class WasabiSignerHelpers
 		string keyFileContent = await File.ReadAllTextAsync(wasabiPrivateKeyFilePath).ConfigureAwait(false);
 		BitcoinSecret secret = new(keyFileContent, Network.Main);
 		return secret.PrivateKey;
+	}
+
+	public static async Task VerifyInstallerFileHashesAsync(string[] finalFiles, string sha256SumsFilePath)
+	{
+		string[] lines = await File.ReadAllLinesAsync(sha256SumsFilePath).ConfigureAwait(false);
+		var hashWithFileNameLines = lines.Where(line => line.Contains("Wasabi-"));
+
+		foreach (var installerFilePath in finalFiles)
+		{
+			string installerName = Path.GetFileName(installerFilePath);
+			string installerExpectedHash = hashWithFileNameLines.Single(line => line.Contains(installerName)).Split(" ")[0];
+
+			var bytes = await GetShaComputedBytesOfFileAsync(installerFilePath).ConfigureAwait(false);
+			string installerRealHash = Convert.ToHexString(bytes).ToLower();
+
+			if (installerExpectedHash != installerRealHash)
+			{
+				throw new InvalidOperationException("Installer file's hash doesn't match expected hash.");
+			}
+		}
 	}
 
 	/// <summary>

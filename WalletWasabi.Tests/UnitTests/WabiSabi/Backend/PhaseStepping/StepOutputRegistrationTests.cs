@@ -14,7 +14,6 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 
@@ -223,6 +222,7 @@ public class StepOutputRegistrationTests
 		{
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
+
 		await Task.WhenAll(task1, task2);
 		var aliceClient1 = await task1;
 		var aliceClient2 = await task2;
@@ -321,10 +321,10 @@ public class StepOutputRegistrationTests
 		var bobClient1 = new BobClient(round1.Id, arenaClient1);
 		var bobClient2 = new BobClient(round2.Id, arenaClient2);
 
-		var out1a = keyManager1.GetNextReceiveKey("o1a", out _);
-		var out1b = keyManager1.GetNextReceiveKey("o1b", out _);
-		var out2a = keyManager2.GetNextReceiveKey("o2a", out _);
-		var out2b = keyManager2.GetNextReceiveKey("o2b", out _);
+		var out1a = keyManager1.GetNextReceiveKey("o1a");
+		var out1b = keyManager1.GetNextReceiveKey("o1b");
+		var out2a = keyManager2.GetNextReceiveKey("o2a");
+		var out2b = keyManager2.GetNextReceiveKey("o2b");
 
 		var bob1a = bobClient1.RegisterOutputAsync(
 			out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
@@ -348,13 +348,13 @@ public class StepOutputRegistrationTests
 			{
 				try
 				{
-					// Trying to registed the same script again and again.
+					// Trying to register the same script again and again.
 					await bobClient2.RegisterOutputAsync(
 						out1a.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
 						amountCredentials2a.Take(ProtocolConstants.CredentialNumber),
 						vsizeCredentials2a.Take(ProtocolConstants.CredentialNumber),
 						combinedCts.Token);
-					throw new InvalidOperationException("This output shoud never be able to register.");
+					throw new InvalidOperationException("This output should never be able to register.");
 				}
 				catch (WabiSabiProtocolException)
 				{
