@@ -113,11 +113,11 @@ public class P2pBlockProvider : IBlockProvider
 
 					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
-					await NodeTimeoutsAsync(false).ConfigureAwait(false);
+					await NodeTimeoutsAsync(increaseDecrease: false).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
-					await NodeTimeoutsAsync(true).ConfigureAwait(false);
+					await NodeTimeoutsAsync(increaseDecrease: true).ConfigureAwait(false);
 
 					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 					continue;
@@ -125,9 +125,7 @@ public class P2pBlockProvider : IBlockProvider
 				catch (Exception ex)
 				{
 					Logger.LogDebug(ex);
-					DisconnectNode(node,
-						$"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.",
-						force: true);
+					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
 					continue;
 				}
 
