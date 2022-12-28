@@ -28,7 +28,7 @@ public static class Guard
 	}
 
 	[return: NotNull]
-	public static T NotNull<T>(string parameterName, T value)
+	public static T NotNull<T>(string parameterName, [NotNull] T? value)
 	{
 		AssertCorrectParameterName(parameterName);
 		return value ?? throw new ArgumentNullException(parameterName, "Parameter cannot be null.");

@@ -41,8 +41,6 @@ public class Wallet : BackgroundService, IWallet
 		RuntimeParams.SetDataDir(dataDir);
 		HandleFiltersLock = new AsyncLock();
 
-		KeyManager.AssertCleanKeysIndexedAndPersist();
-
 		if (!KeyManager.IsWatchOnly)
 		{
 			KeyChain = new KeyChain(KeyManager, Kitchen);
@@ -152,11 +150,6 @@ public class Wallet : BackgroundService, IWallet
 		{
 			IsLoggedIn = true;
 			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
-		}
-
-		if (IsLoggedIn && KeyChain is KeyChain keychain)
-		{
-			keychain.PreloadMasterKey();
 		}
 
 		return IsLoggedIn;

@@ -32,11 +32,13 @@ public abstract class BaseKeyChain : IKeyChain
 			signingKey,
 			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
 			commitmentData,
-			ScriptPubKeyType.Segwit);
+			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) 
+				? ScriptPubKeyType.Segwit
+				: ScriptPubKeyType.TaprootBIP86);
 		return ownershipProof;
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
 	{
 		transaction = transaction.Clone();
 		if (transaction.Inputs.Count == 0)
@@ -53,7 +55,12 @@ public abstract class BaseKeyChain : IKeyChain
 
 		var secret = GetBitcoinSecret(coin.ScriptPubKey);
 
-		transaction.Sign(secret, coin);
+		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
+		builder.AddKeys(secret);
+		builder.AddCoins(coin);
+		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
+		builder.SignTransactionInPlace(transaction);
+		
 		return transaction;
 	}
 

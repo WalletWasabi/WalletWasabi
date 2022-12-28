@@ -19,28 +19,17 @@ public class KeyChain : BaseKeyChain
 	}
 
 	private KeyManager KeyManager { get; }
-	private ExtKey? MasterKey { get; set; }
-
-	[MemberNotNull(nameof(MasterKey))]
-	public void PreloadMasterKey()
-	{
-		MasterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup());
-	}
 
 	protected override Key GetMasterKey()
 	{
-		if (MasterKey is null)
-		{
-			PreloadMasterKey();
-		}
-		return MasterKey.PrivateKey;
+		return KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
 	}
 
 	public override void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
 	{
 		foreach (var hdPubKey in KeyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{
-			hdPubKey.SetKeyState(state);
+			KeyManager.SetKeyState(state, hdPubKey);
 		}
 	}
 
@@ -51,7 +40,15 @@ public class KeyChain : BaseKeyChain
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
 		}
-		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
+
+		var derivedScriptPubKeyType = scriptPubKey switch
+		{
+			_ when scriptPubKey.IsScriptType(ScriptType.P2WPKH) => ScriptPubKeyType.Segwit,
+			_ when scriptPubKey.IsScriptType(ScriptType.Taproot) => ScriptPubKeyType.TaprootBIP86,
+			_ => throw new NotSupportedException("Not supported script type.")
+		};
+
+		if (hdKey.PrivateKey.PubKey.GetScriptPubKey(derivedScriptPubKeyType) != scriptPubKey)
 		{
 			throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
 		}

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace WalletWasabi.Packager;
 
@@ -23,6 +23,8 @@ public class ArgsProcessor
 	public bool IsPublish() => IsOneOf("publish");
 
 	public bool IsSign() => IsOneOf("sign");
+
+	public bool IsGeneratePrivateKey() => IsOneOf("generatekeys");
 
 	private bool IsOneOf(params string[] values)
 	{
