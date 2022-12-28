@@ -113,7 +113,7 @@ public class BuildTests
 			false));
 
 		// Get some money, make it confirm.
-		var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network), Money.Coins(1m));
+		var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network), Money.Coins(1m));
 
 		// Generate some coins
 		await rpc.GenerateAsync(2);
@@ -147,7 +147,7 @@ public class BuildTests
 			Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 			// Add new money with no confirmation
-			var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
+			var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar").GetP2wpkhAddress(network), Money.Coins(2m));
 			await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 			// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
@@ -226,7 +226,7 @@ public class BuildTests
 		var scp = k.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 		var fundingTxId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 
 		// Generate some coins
@@ -325,7 +325,7 @@ public class BuildTests
 
 			var overwriteTx = Transaction.Create(network);
 			overwriteTx.Inputs.AddRange(invalidSmartTransaction.Transaction.Inputs);
-			var walletAddress = keyManager.GetNextReceiveKey("foo", out _).GetP2wpkhAddress(network);
+			var walletAddress = keyManager.GetNextReceiveKey("foo").GetP2wpkhAddress(network);
 			bool onAddress = false;
 			foreach (var invalidOutput in invalidSmartTransaction.Transaction.Outputs)
 			{

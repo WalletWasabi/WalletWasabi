@@ -9,6 +9,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -307,7 +308,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			if (_coinJoinManager is { } coinJoinManager)
 			{
-				coinJoinManager.IsUserInSendWorkflow = true;
+				coinJoinManager.WalletEnteredSendWorkflow(_wallet.WalletName);
 			}
 		}
 
@@ -329,7 +330,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
 		{
-			coinJoinManager.IsUserInSendWorkflow = false;
+			coinJoinManager.WalletLeftSendWorkflow(_wallet.WalletName);
 		}
 	}
 }

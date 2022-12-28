@@ -1,4 +1,4 @@
-using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Userfacing;

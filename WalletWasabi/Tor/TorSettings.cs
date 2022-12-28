@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Tor;

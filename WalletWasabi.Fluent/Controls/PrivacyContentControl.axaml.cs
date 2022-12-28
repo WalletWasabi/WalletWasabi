@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -15,9 +16,6 @@ public enum ReplacementMode
 
 public class PrivacyContentControl : ContentControl
 {
-	public static readonly StyledProperty<uint> NumberOfPrivacyCharsProperty =
-		AvaloniaProperty.Register<PrivacyContentControl, uint>(nameof(NumberOfPrivacyChars), 5);
-
 	public static readonly StyledProperty<ReplacementMode> PrivacyReplacementModeProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, ReplacementMode>(nameof(PrivacyReplacementMode));
 
@@ -41,21 +39,9 @@ public class PrivacyContentControl : ContentControl
 
 		IsContentRevealed = displayContent
 			.ReplayLastActive();
-
-		PrivacyText = this.WhenAnyValue(x => x.NumberOfPrivacyChars)
-			.Select(n => TextHelpers.GetPrivacyMask((int)n))
-			.ReplayLastActive();
 	}
-
-	private IObservable<string> PrivacyText { get; } = Observable.Empty<string>();
 
 	private IObservable<bool> IsContentRevealed { get; } = Observable.Empty<bool>();
-
-	public uint NumberOfPrivacyChars
-	{
-		get => GetValue(NumberOfPrivacyCharsProperty);
-		set => SetValue(NumberOfPrivacyCharsProperty, value);
-	}
 
 	public ReplacementMode PrivacyReplacementMode
 	{

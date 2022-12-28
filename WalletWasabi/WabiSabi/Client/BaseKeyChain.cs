@@ -38,7 +38,7 @@ public abstract class BaseKeyChain : IKeyChain
 		return ownershipProof;
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof, PrecomputedTransactionData precomputedTransactionData)
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
 	{
 		transaction = transaction.Clone();
 		if (transaction.Inputs.Count == 0)
@@ -58,7 +58,7 @@ public abstract class BaseKeyChain : IKeyChain
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);
 		builder.AddCoins(coin);
-		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, precomputedTransactionData as TaprootReadyPrecomputedTransactionData));
+		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
 		builder.SignTransactionInPlace(transaction);
 		
 		return transaction;

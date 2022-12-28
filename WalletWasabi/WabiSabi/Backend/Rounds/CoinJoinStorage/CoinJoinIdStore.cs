@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;

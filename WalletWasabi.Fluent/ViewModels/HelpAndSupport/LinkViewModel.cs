@@ -1,7 +1,7 @@
-using System.IO;
 using System.Windows.Input;
 using Avalonia;
 using ReactiveUI;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 

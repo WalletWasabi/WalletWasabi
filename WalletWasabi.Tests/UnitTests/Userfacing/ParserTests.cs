@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using System.Linq;
 using System.Net;
+using WalletWasabi.Extensions;
 using WalletWasabi.Userfacing;
 using Xunit;
 
