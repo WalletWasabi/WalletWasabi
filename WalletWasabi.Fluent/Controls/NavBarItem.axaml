@@ -19,6 +19,7 @@
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
   </Style>
 
+  <!-- TODO: Enable back when item dragging is enabled
   <Style Selector="c|NavBarItem:not(:dragging):selectable">
     <Setter Property="Transitions">
       <Setter.Value>
@@ -28,6 +29,7 @@
       </Setter.Value>
     </Setter>
   </Style>
+  -->
 
   <Style Selector="c|NavBarItem">
     <Setter Property="ClipToBounds" Value="False" />

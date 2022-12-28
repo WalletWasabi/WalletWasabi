@@ -12,11 +12,11 @@
 
   <c:TileControl Title="BALANCE" IsBottomContentVisible="{Binding HasBalance^}" SeparatorMargin="0 0 0 6">
     <Viewbox Margin="0 3" VerticalAlignment="Center" MaxHeight="40">
-      <c:PrivacyContentControl NumberOfPrivacyChars="16" Classes="h2 monoSpaced" HorizontalContentAlignment="Center"
+      <c:PrivacyContentControl Classes="h2 monoSpaced" HorizontalContentAlignment="Center"
                                Content="{Binding BalanceBtc^}" />
     </Viewbox>
     <c:TileControl.BottomContent>
-      <c:PrivacyContentControl Classes="bold monoSpaced" NumberOfPrivacyChars="9" Margin="4" VerticalAlignment="Center"
+      <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
                                HorizontalAlignment="Center" Opacity="0.8"
                                Content="{Binding BalanceFiat^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
     </c:TileControl.BottomContent>

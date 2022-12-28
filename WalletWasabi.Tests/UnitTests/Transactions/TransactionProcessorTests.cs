@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -894,7 +895,7 @@ public class TransactionProcessorTests
 		var spendingTx = CreateSpendingTransaction(
 			Enumerable.Repeat(receivedCoin.Coin, 1),
 			destinationKey.GetScriptPubKey(ScriptPubKeyType.Legacy),
-			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone"), out _).P2wpkhScript);
+			transactionProcessor.KeyManager.GetNextReceiveKey(new SmartLabel("someone")).P2wpkhScript);
 		relevant = transactionProcessor.Process(spendingTx);
 		Assert.True(relevant.IsNews);
 

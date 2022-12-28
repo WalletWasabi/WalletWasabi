@@ -103,16 +103,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel(MinGapLimit),
 			NavigationTarget.CompactDialogScreen);
 
 		if (result.Kind == DialogResultKind.Normal)
 		{
-			var (accountKeyPathIn, minGapLimitIn) = result.Result;
+			var minGapLimitIn = result.Result;
 
-			if (accountKeyPathIn is { } && minGapLimitIn is { })
+			if (minGapLimitIn is { })
 			{
-				AccountKeyPath = accountKeyPathIn;
 				MinGapLimit = (int)minGapLimitIn;
 			}
 		}
