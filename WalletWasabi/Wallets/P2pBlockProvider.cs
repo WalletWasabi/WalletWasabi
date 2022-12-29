@@ -45,7 +45,7 @@ public class P2pBlockProvider : IBlockProvider
 		{
 			if (Network == Network.RegTest)
 			{
-				return Nodes.ConnectedNodes.First();
+				return Nodes.ConnectedNodes.FirstOrDefault();
 			}
 
 			return _localBitcoinCoreNode;
