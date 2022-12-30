@@ -10,7 +10,7 @@
   <Style Selector="c|HistoryPlaceholderPanel">
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid x:Name="Root">
+        <Grid>
           <Panel>
             <ItemsControl x:Name="PART_DummyRows" x:CompileBindings="False" Opacity="0.1" >
               <ItemsControl.Styles>
