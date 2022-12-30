@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="80"
+             x:Class="WalletWasabi.Fluent.Controls.EmptyWalletActionsControl"
+             x:DataType="wallets:WalletViewModel"
+             x:CompileBindings="True">
+  <Border CornerRadius="2" BorderThickness="1" Background="{DynamicResource TileRegionColor}"
+                  BorderBrush="{DynamicResource TileBorderColor}" VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Padding="10" x:Name="RootBorder">
+
+    <StackPanel x:Name="StackPanel">
+
+      <StackPanel.Styles>
+        <Style Selector="StackPanel.horizontal">
+          <Setter Property="Orientation" Value="Horizontal" />
+        </Style>
+
+        <Style Selector="TextBlock">
+          <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="TextBlock.horizontal">
+          <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+      </StackPanel.Styles>
+
+
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock TextAlignment="Center">Your wallet is empty</TextBlock>
+        <TextBlock x:Name="StartBy">Start by</TextBlock>
+      </StackPanel>
+      <Button Classes="function" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="6"
+              Command="{Binding ReceiveCommand}">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <PathIcon Data="{StaticResource wallet_action_receive}" />
+          <TextBlock Text="Receiving some Bitcoin" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
+
+    <Interaction.Behaviors>
+      <AdaptiveBehavior SourceControl="{Binding $parent}" >
+        <AdaptiveBehavior.Setters>
+          <AdaptiveClassSetter MinHeightOperator="LessThan" MinHeight="100" TargetControl="StackPanel" ClassName="horizontal" />
+          <AdaptiveClassSetter MinHeightOperator="LessThan" MinHeight="100" TargetControl="StartBy" ClassName="horizontal" />
+        </AdaptiveBehavior.Setters>
+      </AdaptiveBehavior>
+    </Interaction.Behaviors>
+
+  </Border>
+</UserControl>

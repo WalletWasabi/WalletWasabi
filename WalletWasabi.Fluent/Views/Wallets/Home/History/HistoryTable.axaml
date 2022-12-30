@@ -278,7 +278,7 @@
     </TreeDataGrid>
     <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                RowHeight="{StaticResource HistoryTableRowHeight}"
-                               IsVisible="{Binding IsTransactionHistoryEmpty}"
+                               IsVisible="{Binding IsTransactionHistoryEmpty, FallbackValue=False}"
                                DataContext="{Binding WalletViewModel}" />
   </Panel>
 </UserControl>

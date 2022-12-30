@@ -1,29 +1,27 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:DataType="wallets:WalletViewModel"
-        x:CompileBindings="True"
         xmlns:c="using:WalletWasabi.Fluent.Controls"
         xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets">
-
   <Design.PreviewWith>
-    <c:HistoryPlaceholderPanel Width="300" Height="250" />
+    <c:HistoryPlaceholderPanel Width="800" Height="90" />
   </Design.PreviewWith>
 
   <Style Selector="c|HistoryPlaceholderPanel">
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid>
+        <Grid x:Name="Root">
           <Panel>
-            <Panel.Styles>
-              <Style Selector="Border.dummyLine">
-                <Setter Property="Opacity" Value="{Binding .}" />
-                <Setter Property="Background" Value="{DynamicResource SystemChromeGrayColor}" />
-                <Setter Property="Height" Value="10" />
-                <Setter Property="CornerRadius" Value="5" />
-                <Setter Property="Margin" Value="5 0" />
-              </Style>
-            </Panel.Styles>
             <ItemsControl x:Name="PART_DummyRows" x:CompileBindings="False" Opacity="0.1" >
+              <ItemsControl.Styles>
+                <Style Selector="Border.dummyLine">
+                  <Setter Property="Opacity" Value="{Binding .}" />
+                  <Setter Property="Background" Value="{DynamicResource SystemChromeGrayColor}" />
+                  <Setter Property="Height" Value="10" />
+                  <Setter Property="CornerRadius" Value="5" />
+                  <Setter Property="Margin" Value="5 0" />
+                </Style>
+              </ItemsControl.Styles>
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <StackPanel Orientation="Vertical" />
@@ -43,25 +41,8 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <c:EmptyWalletActionsControl />
           </Panel>
-
-          <Border CornerRadius="2" BorderThickness="1" Background="{DynamicResource TileRegionColor}"
-                  BorderBrush="{DynamicResource TileBorderColor}" VerticalAlignment="Center" HorizontalAlignment="Center"
-                  Padding="12">
-            <StackPanel>
-              <TextBlock TextAlignment="Center">Your wallet is empty</TextBlock>
-              <TextBlock TextAlignment="Center">Start by</TextBlock>
-              <Button Classes="function" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8"
-                      Command="{Binding ReceiveCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="15">
-                  <PathIcon Data="{StaticResource wallet_action_receive}" />
-                  <TextBlock Text="Receiving some Bitcoin" />
-                </StackPanel>
-              </Button>
-            </StackPanel>
-
-          </Border>
-
         </Grid>
       </ControlTemplate>
     </Setter>
