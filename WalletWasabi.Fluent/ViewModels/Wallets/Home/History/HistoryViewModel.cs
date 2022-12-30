@@ -25,7 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 public partial class HistoryViewModel : ActivatableViewModel
 {
 	private readonly SourceList<HistoryItemViewModelBase> _transactionSourceList;
-	private readonly WalletViewModel _walletVm;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
@@ -34,9 +33,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	public HistoryViewModel(WalletViewModel walletVm)
+	public HistoryViewModel(WalletViewModel walletViewModel)
 	{
-		_walletVm = walletVm;
+		WalletViewModel = walletViewModel;
 		_transactionSourceList = new SourceList<HistoryItemViewModelBase>();
 		_transactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 		_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModelBase>();
@@ -178,6 +177,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public HierarchicalTreeDataGridSource<HistoryItemViewModelBase> Source { get; }
 
+	public WalletViewModel WalletViewModel { get; }
+
 	public void SelectTransaction(uint256 txid)
 	{
 		var txnItem = Transactions.FirstOrDefault(item =>
@@ -204,7 +205,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		base.OnActivated(disposables);
 
-		_walletVm.UiTriggers.TransactionsUpdateTrigger
+		WalletViewModel.UiTriggers.TransactionsUpdateTrigger
 			.DoAsync(async _ => await UpdateAsync())
 			.Subscribe()
 			.DisposeWith(disposables);
@@ -214,7 +215,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		try
 		{
-			var historyBuilder = new TransactionHistoryBuilder(_walletVm.Wallet);
+			var historyBuilder = new TransactionHistoryBuilder(WalletViewModel.Wallet);
 			var rawHistoryList = await Task.Run(historyBuilder.BuildHistorySummary);
 			var orderedRawHistoryList = rawHistoryList.OrderBy(x => x.DateTime).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
@@ -244,14 +245,14 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			if (!item.IsOwnCoinjoin)
 			{
-				yield return new TransactionHistoryItemViewModel(i, item, _walletVm, balance);
+				yield return new TransactionHistoryItemViewModel(i, item, WalletViewModel, balance);
 			}
 
 			if (item.IsOwnCoinjoin)
 			{
 				if (coinJoinGroup is null)
 				{
-					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, _walletVm);
+					coinJoinGroup = new CoinJoinsHistoryItemViewModel(i, item, WalletViewModel);
 				}
 				else
 				{
@@ -265,7 +266,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			{
 				if (cjg.CoinJoinTransactions.Count == 1)
 				{
-					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), _walletVm, balance, true);
+					var singleCjItem = new CoinJoinHistoryItemViewModel(cjg.OrderIndex, cjg.CoinJoinTransactions.First(), WalletViewModel, balance, true);
 					yield return singleCjItem;
 				}
 				else

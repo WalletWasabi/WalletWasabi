@@ -279,6 +279,6 @@
     <c:HistoryPlaceholderPanel Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                                RowHeight="{StaticResource HistoryTableRowHeight}"
                                IsVisible="{Binding IsTransactionHistoryEmpty}"
-                               Opacity="0.1" />
+                               DataContext="{Binding WalletViewModel}" />
   </Panel>
 </UserControl>
