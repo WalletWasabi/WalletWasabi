@@ -50,10 +50,7 @@ public class PrivacyTextPresenter : UserControl
 
 	protected override Size MeasureOverride(Size availableSize)
 	{
-		if (_formattedText is null)
-		{
-			_formattedText = CreateFormattedText();
-		}
+		_formattedText ??= CreateFormattedText();
 
 		return new Size(0, _formattedText.Bounds.Height);
 	}
