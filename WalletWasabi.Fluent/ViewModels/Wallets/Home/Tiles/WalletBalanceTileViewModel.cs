@@ -34,7 +34,7 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 
 		CopyBalanceCommand = ReactiveCommand.CreateFromObservable<PointerEventArgs, Unit>(eventArgs =>
 		{
-			if (!eventArgs.GetCurrentPoint((IVisual?) eventArgs.Source).Properties.IsRightButtonPressed)
+			if (!eventArgs.GetCurrentPoint((IVisual?)eventArgs.Source).Properties.IsRightButtonPressed)
 			{
 				return Observable.Empty(Unit.Default);
 			}
