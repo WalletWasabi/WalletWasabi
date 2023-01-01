@@ -47,20 +47,7 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 		_isCopyActive = CopyBalanceCommand.IsExecuting.ToProperty(this, x => x.IsCopyRunning);
 	}
 
-	private static string FormatMoney(Money money)
-	{
-		return $"{money.ToFormattedString()} BTC";
-	}
-
 	public bool IsCopyRunning => _isCopyActive.Value;
-
-	private static async Task SetTextAsync(Wallet wallet)
-	{
-		if (Application.Current is { Clipboard: { } clipboard })
-		{
-			await clipboard.SetTextAsync(FormatMoney(wallet.Coins.TotalAmount()));
-		}
-	}
 
 	public ReactiveCommand<PointerEventArgs, Unit> CopyBalanceCommand { get; set; }
 
@@ -69,4 +56,17 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 	public IObservable<decimal> BalanceFiat { get; }
 
 	public IObservable<string> BalanceBtc { get; }
+
+	private static string FormatMoney(Money money)
+	{
+		return $"{money.ToFormattedString()} BTC";
+	}
+
+	private static async Task SetTextAsync(Wallet wallet)
+	{
+		if (Application.Current is { Clipboard: { } clipboard })
+		{
+			await clipboard.SetTextAsync(FormatMoney(wallet.Coins.TotalAmount()));
+		}
+	}
 }
