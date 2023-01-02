@@ -13,7 +13,7 @@ public static class CanonicalJsonSerializationOptions
 	{
 		protected override System.Collections.Generic.IList<JsonProperty> CreateProperties(System.Type type, MemberSerialization memberSerialization)
 		{
-			return base.CreateProperties(type, memberSerialization).OrderBy(p => p.PropertyName).ToList();
+			return base.CreateProperties(type, memberSerialization).OrderBy(p => p.PropertyName, StringComparer.Ordinal).ToList();
 		}
 	}
 }
