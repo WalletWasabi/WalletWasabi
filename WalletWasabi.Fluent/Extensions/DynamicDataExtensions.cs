@@ -26,7 +26,7 @@ public static class DynamicDataExtensions
 		Action<TDestination, TObject>? updateAction = null) where TKey : notnull
 	{
 		return source.Scan(
-			(ChangeAwareCache<TDestination, TKey>?) null,
+			(ChangeAwareCache<TDestination, TKey>?)null,
 			(cache, changes) =>
 			{
 				if (cache == null)
@@ -42,20 +42,20 @@ public static class DynamicDataExtensions
 							cache.AddOrUpdate(transformFactory(change.Current), change.Key);
 							break;
 						case ChangeReason.Update:
-						{
-							if (updateAction == null)
 							{
-								continue;
+								if (updateAction == null)
+								{
+									continue;
+								}
+
+								var previous = cache.Lookup(change.Key).ValueOrThrow(
+									() => new MissingKeyException($"{change.Key} is not found."));
+
+								updateAction(previous, change.Current);
+
+								// send a refresh as this will force downstream operators 
+								cache.Refresh(change.Key);
 							}
-
-							var previous = cache.Lookup(change.Key).ValueOrThrow(
-								() => new MissingKeyException($"{change.Key} is not found."));
-
-							updateAction(previous, change.Current);
-
-							// send a refresh as this will force downstream operators 
-							cache.Refresh(change.Key);
-						}
 							break;
 						case ChangeReason.Remove:
 							cache.Remove(change.Key);

@@ -179,7 +179,7 @@ public class DependencyGraphTaskScheduler
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
 					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
-					
+
 				}
 				catch (Exception ex)
 				{
