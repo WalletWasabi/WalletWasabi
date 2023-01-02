@@ -41,12 +41,7 @@ public record AffiliationFlag
 			return false;
 		}
 
-		if (name.Length < MinimumNameLength)
-		{
-			return false;
-		}
-
-		if (name.Length > MaximumNameLength)
+		if (name.Length < MinimumNameLength || name.Length > MaximumNameLength)
 		{
 			return false;
 		}
