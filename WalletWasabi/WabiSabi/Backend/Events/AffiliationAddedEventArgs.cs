@@ -6,7 +6,7 @@ namespace WalletWasabi.WabiSabi.Backend.Events;
 
 public class AffiliationAddedEventArgs : EventArgs
 {
-	public AffiliationAddedEventArgs(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinatrionFee) : base()
+	public AffiliationAddedEventArgs(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinationFee) : base()
 	{
 		RoundId = roundId;
 		Coin = coin;
