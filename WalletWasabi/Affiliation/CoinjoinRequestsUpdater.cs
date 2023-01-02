@@ -124,14 +124,14 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		return getCoinjoinRequestResponse.CoinjoinRequest;
 	}
 
-	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinatrionFee)
+	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinationFee)
 	{
 		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
 		{
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
-		roundData.AddInput(coin, affiliationFlag, isPayingZeroCoordinatrionFee);
+		roundData.AddInput(coin, affiliationFlag, isPayingZeroCoordinationFee);
 	}
 
 	private void AddCoinjoinTransaction(uint256 roundId, NBitcoin.Transaction transaction)
@@ -167,9 +167,9 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		uint256 roundId = affiliationAddedEventArgs.RoundId;
 		Coin coin = affiliationAddedEventArgs.Coin;
 		AffiliationFlag affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
-		bool isPayingZeroCoordinatrionFee = affiliationAddedEventArgs.IsPayingZeroCoordinatrionFee;
+		bool isPayingZeroCoordinationFee = affiliationAddedEventArgs.IsPayingZeroCoordinationFee;
 
-		AddAffiliation(roundId, coin, affiliationFlag, isPayingZeroCoordinatrionFee);
+		AddAffiliation(roundId, coin, affiliationFlag, isPayingZeroCoordinationFee);
 	}
 
 	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs roundCreatedEventArgs)
