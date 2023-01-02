@@ -29,7 +29,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		RoundData = new();
 		RoundsToUpdate = new();
 
-		AddHandlers(arena);
+		AddHandlers();
 	}
 
 	private Arena Arena { get; }
@@ -41,7 +41,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	public override void Dispose()
 	{
-		RemoveHandlers(Arena);
+		RemoveHandlers();
 	}
 
 	public ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
@@ -196,7 +196,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		ChangePhase(roundId, phase);
 	}
 
-	private void AddHandlers(Arena arena)
+	private void AddHandlers()
 	{
 		Arena.RoundCreated += Arena_RoundCreated;
 		Arena.AffiliationAdded += Arena_AffiliationAdded;
@@ -204,7 +204,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		Arena.RoundPhaseChanged += Arena_RoundPhaseChanged;
 	}
 
-	private void RemoveHandlers(Arena arena)
+	private void RemoveHandlers()
 	{
 		Arena.RoundCreated -= Arena_RoundCreated;
 		Arena.AffiliationAdded -= Arena_AffiliationAdded;
