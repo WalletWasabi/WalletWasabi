@@ -93,8 +93,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	private static IAffiliationManager NewMockAffiliationManager()
 	{
-		var mockAffiliatoinManager = new Mock<IAffiliationManager>();
-		mockAffiliatoinManager.Setup(x => x.GetAffiliateInformation()).Returns(AffiliateInformation.Empty);
-		return mockAffiliatoinManager.Object;
+		Mock<IAffiliationManager> mockManager = new();
+		mockManager.Setup(x => x.GetAffiliateInformation()).Returns(AffiliateInformation.Empty);
+		return mockManager.Object;
 	}
 }
