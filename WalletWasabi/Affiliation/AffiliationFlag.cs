@@ -31,7 +31,7 @@ public record AffiliationFlag
 
 	private static bool IsAlphanumeric(string text)
 	{
-		return text.All(char.IsLetterOrDigit);
+		return text.All(x => char.IsAscii(x) && char.IsLetterOrDigit(x));
 	}
 
 	private static bool IsValidName(string name)
