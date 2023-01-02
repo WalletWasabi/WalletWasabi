@@ -4,5 +4,5 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public interface IWasabiBackendStatusProvider
 {
-	SynchronizeResponse? LastResponse { get; }
+	bool Connected { get; }
 }

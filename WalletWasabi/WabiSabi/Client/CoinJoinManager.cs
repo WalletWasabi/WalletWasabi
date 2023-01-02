@@ -27,14 +27,14 @@ public class CoinJoinManager : BackgroundService
 
 	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
 	{
-		WasabiBackendStatusProvide = wasabiBackendStatusProvider;
+		WasabiBackendStatusProvider = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = backendHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
 	}
 
-	private IWasabiBackendStatusProvider WasabiBackendStatusProvide { get; }
+	private IWasabiBackendStatusProvider WasabiBackendStatusProvider { get; }
 
 	public IWalletProvider WalletProvider { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
@@ -180,7 +180,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			if (WasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
+			if (!WasabiBackendStatusProvider.Connected )
 			{
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
@@ -200,7 +200,7 @@ public class CoinJoinManager : BackgroundService
 				return;
 			}
 
-			var coinCandidates = (await SelectCandidateCoinsAsync(walletToStart, synchronizerResponse.BestHeight).ConfigureAwait(false)).ToArray();
+			var coinCandidates = (await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false)).ToArray();
 			if (coinCandidates.Length == 0)
 			{
 				walletToStart.LogDebug("No candidate coins available to mix.");
@@ -528,11 +528,11 @@ public class CoinJoinManager : BackgroundService
 			.Where(x => x.IsMixable)
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
-	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet, int bestHeight)
+	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet)
 		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
 			.Available()
 			.Confirmed()
-			.Where(x => !x.IsImmature(bestHeight))
+			// .Where(x => !x.IsImmature(bestHeight))
 			.Where(x => !x.IsBanned)
 			.Where(x => !CoinRefrigerator.IsFrozen(x));
 
