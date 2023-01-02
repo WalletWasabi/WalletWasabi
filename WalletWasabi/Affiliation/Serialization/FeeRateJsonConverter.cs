@@ -13,7 +13,7 @@ public class FeeRateJsonConverter : JsonConverter<decimal>
 
 	private static decimal DecodeDecimal(long value)
 	{
-		return ((decimal)value) * Base;
+		return value * Base;
 	}
 
 	private static bool IsEncodable(decimal value)
