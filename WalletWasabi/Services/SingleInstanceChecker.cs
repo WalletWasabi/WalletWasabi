@@ -160,7 +160,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
 
 					// The read operation cancellation will happen on reader disposal.
-					string answer = await reader.ReadToEndAsync(cts.Token).ConfigureAwait(false);
+					string answer = await reader.ReadToEndAsync().ConfigureAwait(false);
 					if (answer == WasabiMagicString)
 					{
 						Logger.LogInfo($"Detected another Wasabi instance.");

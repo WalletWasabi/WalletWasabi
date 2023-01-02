@@ -53,7 +53,7 @@ public class JsonRpcServer : BackgroundService
 				if (request.HttpMethod == "POST")
 				{
 					using var reader = new StreamReader(request.InputStream);
-					string body = await reader.ReadToEndAsync(stoppingToken).ConfigureAwait(false);
+					string body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
 					if (IsAuthorized(context))
 					{

@@ -1,23 +1,23 @@
 {
   "version": 1,
   "dependencies": {
-    "net7.0": {
+    "net6.0": {
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "IJOsB1cm6FYGXxhlNoWR6zZYFREEBzeFX76NlBGhrZ7+VMK4piLm3fAgUBliasyEUg5MOOqFz5EGv8nmU5rXWQ==",
+        "requested": "[6.0.9, )",
+        "resolved": "6.0.9",
+        "contentHash": "8Fpz4d3sxuLSHqe4zby0c4br5kqmFCR7ki1utqvjZo9oK0G+pWqqhgB1f6efSLpseAWGK3xF1aK+7mfvhmcMtA==",
         "dependencies": {
-          "Microsoft.AspNetCore.JsonPatch": "7.0.0",
+          "Microsoft.AspNetCore.JsonPatch": "6.0.9",
           "Newtonsoft.Json": "13.0.1",
           "Newtonsoft.Json.Bson": "1.0.2"
         }
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
+        "requested": "[6.0.2-mauipre.1.22102.15, )",
+        "resolved": "6.0.2-mauipre.1.22102.15",
+        "contentHash": "NsAA1qh2dPHfXcFSL7QEV8cKvbsny3q7b2hvzfC91XnEfJX7h3LyJ9MIa0f4ZvRdknAawll4PfoufWgwRSXy1g=="
       },
       "NBitcoin": {
         "type": "Direct",
@@ -37,8 +37,8 @@
       },
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "svHQiUvLNdI2nac68WNQHNo/ZWyavFpt3Oip09QRnWeFqG9iyakKiNLavXr6KE8y7KxEXZNld96KQYbKz8SJMQ==",
+        "resolved": "6.0.9",
+        "contentHash": "1d31TnoW0na1vYI0qE/vbrB534CWKo70o3ACGz0N0m/SchcZMKc0D/4WTyI0w0emxx63YiyYKWkkyO+EUbQfeg==",
         "dependencies": {
           "Microsoft.CSharp": "4.7.0",
           "Newtonsoft.Json": "13.0.1"
@@ -275,12 +275,12 @@
         }
       }
     },
-    "net7.0/linux-arm64": {
+    "net6.0/linux-arm64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
+        "requested": "[6.0.2-mauipre.1.22102.15, )",
+        "resolved": "6.0.2-mauipre.1.22102.15",
+        "contentHash": "NsAA1qh2dPHfXcFSL7QEV8cKvbsny3q7b2hvzfC91XnEfJX7h3LyJ9MIa0f4ZvRdknAawll4PfoufWgwRSXy1g=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
@@ -565,12 +565,12 @@
         }
       }
     },
-    "net7.0/linux-x64": {
+    "net6.0/linux-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
+        "requested": "[6.0.2-mauipre.1.22102.15, )",
+        "resolved": "6.0.2-mauipre.1.22102.15",
+        "contentHash": "NsAA1qh2dPHfXcFSL7QEV8cKvbsny3q7b2hvzfC91XnEfJX7h3LyJ9MIa0f4ZvRdknAawll4PfoufWgwRSXy1g=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
@@ -855,12 +855,12 @@
         }
       }
     },
-    "net7.0/osx-arm64": {
+    "net6.0/osx-arm64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
+        "requested": "[6.0.2-mauipre.1.22102.15, )",
+        "resolved": "6.0.2-mauipre.1.22102.15",
+        "contentHash": "NsAA1qh2dPHfXcFSL7QEV8cKvbsny3q7b2hvzfC91XnEfJX7h3LyJ9MIa0f4ZvRdknAawll4PfoufWgwRSXy1g=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
@@ -1145,12 +1145,12 @@
         }
       }
     },
-    "net7.0/osx-x64": {
+    "net6.0/osx-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
+        "requested": "[6.0.2-mauipre.1.22102.15, )",
+        "resolved": "6.0.2-mauipre.1.22102.15",
+        "contentHash": "NsAA1qh2dPHfXcFSL7QEV8cKvbsny3q7b2hvzfC91XnEfJX7h3LyJ9MIa0f4ZvRdknAawll4PfoufWgwRSXy1g=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",
@@ -1435,12 +1435,12 @@
         }
       }
     },
-    "net7.0/win7-x64": {
+    "net6.0/win7-x64": {
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ=="
+        "requested": "[6.0.2-mauipre.1.22102.15, )",
+        "resolved": "6.0.2-mauipre.1.22102.15",
+        "contentHash": "NsAA1qh2dPHfXcFSL7QEV8cKvbsny3q7b2hvzfC91XnEfJX7h3LyJ9MIa0f4ZvRdknAawll4PfoufWgwRSXy1g=="
       },
       "runtime.any.System.Collections": {
         "type": "Transitive",

@@ -209,8 +209,8 @@
       },
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "svHQiUvLNdI2nac68WNQHNo/ZWyavFpt3Oip09QRnWeFqG9iyakKiNLavXr6KE8y7KxEXZNld96KQYbKz8SJMQ==",
+        "resolved": "6.0.9",
+        "contentHash": "1d31TnoW0na1vYI0qE/vbrB534CWKo70o3ACGz0N0m/SchcZMKc0D/4WTyI0w0emxx63YiyYKWkkyO+EUbQfeg==",
         "dependencies": {
           "Microsoft.CSharp": "4.7.0",
           "Newtonsoft.Json": "13.0.1"
@@ -218,10 +218,10 @@
       },
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "IJOsB1cm6FYGXxhlNoWR6zZYFREEBzeFX76NlBGhrZ7+VMK4piLm3fAgUBliasyEUg5MOOqFz5EGv8nmU5rXWQ==",
+        "resolved": "6.0.9",
+        "contentHash": "8Fpz4d3sxuLSHqe4zby0c4br5kqmFCR7ki1utqvjZo9oK0G+pWqqhgB1f6efSLpseAWGK3xF1aK+7mfvhmcMtA==",
         "dependencies": {
-          "Microsoft.AspNetCore.JsonPatch": "7.0.0",
+          "Microsoft.AspNetCore.JsonPatch": "6.0.9",
           "Newtonsoft.Json": "13.0.1",
           "Newtonsoft.Json.Bson": "1.0.2"
         }
@@ -662,8 +662,8 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[7.0.0, )",
-          "Microsoft.Win32.SystemEvents": "[7.0.0, )",
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[6.0.9, )",
+          "Microsoft.Win32.SystemEvents": "[6.0.2-mauipre.1.22102.15, )",
           "NBitcoin": "[7.0.14, )",
           "NBitcoin.Secp256k1": "[3.0.1, )"
         }
