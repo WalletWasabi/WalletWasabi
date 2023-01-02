@@ -236,11 +236,14 @@ public class CoinJoinClient
 		{
 			ImmutableArray<AliceClient> aliceClientsThatSigned = ImmutableArray<AliceClient>.Empty;
 			IEnumerable<TxOut> outputTxOuts = Enumerable.Empty<TxOut>();
-			Transaction? unsignedCoinJoin = null;
+			Transaction unsignedCoinJoin = null;
+			ImmutableDictionary<TxOut, PendingPayment> batchedPayments = ImmutableDictionary<TxOut, PendingPayment>.Empty;
 			try
 			{
-				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
-				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, smartCoins, cancelOrRoundEndedCts.Token).ConfigureAwait(false);
+				using CancellationTokenSource cancelOrRoundEndedCts =
+					CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
+				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin, batchedPayments) = await ProceedWithRoundAsync(roundState, smartCoins, cancelOrRoundEndedCts.Token)
+					.ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
 			{
@@ -255,21 +258,16 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
+
 			roundState = await waitRoundEndedTask.ConfigureAwait(false);
 
-			var registeredAliceClients = registeredAliceClientAndCircuits.Select(x => x.AliceClient).ToImmutableArray();
-
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
-
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts.outputTxOuts, cancellationToken).ConfigureAwait(false);
-			
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
 
 			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
-			if (outputTxOuts.batchedPayments.Any())
+			if (batchedPayments.Any())
 			{
 				var success = roundState.EndRoundState == EndRoundState.TransactionBroadcasted;
-				foreach (var batchedPayment in outputTxOuts.batchedPayments)
+				foreach (var batchedPayment in batchedPayments)
 				{
 					if (success)
 					{
@@ -312,7 +310,9 @@ public class CoinJoinClient
 				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
 				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
 				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-				UnsignedCoinJoin: unsignedCoinJoin);
+				HandledPayments: batchedPayments.ToImmutableDictionary(),
+				UnsignedCoinJoin: unsignedCoinJoin,
+				RoundId: roundId);
 		}
 		finally
 		{
@@ -336,7 +336,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
+	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin, ImmutableDictionary<TxOut, PendingPayment> HandledPayments)> ProceedWithRoundAsync(RoundState roundState, IEnumerable<SmartCoin> smartCoins, CancellationToken cancellationToken)
 	{
 		ImmutableArray<(AliceClient AliceClient, PersonCircuit PersonCircuit)> registeredAliceClientAndCircuits = ImmutableArray<(AliceClient, PersonCircuit)>.Empty;
 		try
@@ -355,19 +355,11 @@ public class CoinJoinClient
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts.outputTxOuts, cancellationToken).ConfigureAwait(false);
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, unsignedCoinJoin, roundState);
 
 			LiquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts.outputTxOuts);
-
-			return new CoinJoinResult(
-				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
-				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
-				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
-				RegisteredOutputs: outputTxOuts.outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-				HandledPayments: outputTxOuts.batchedPayments.ToImmutableDictionary(),
-				unsignedCoinJoin,
-				roundState.Id);
+			return new(aliceClientsThatSigned, outputTxOuts.outputTxOuts, unsignedCoinJoin,outputTxOuts.batchedPayments.ToImmutableDictionary());
 		}
 		finally
 		{
@@ -699,8 +691,7 @@ public class CoinJoinClient
 		int anonScoreTarget,
 		int semiPrivateThreshold,
 		Money liquidityClue,
-		WasabiRandom rnd,
-		int maxCoins)
+		WasabiRandom rnd)
 		where TCoin : class, ISmartCoin, IEquatable<TCoin>
 	{
 		if (semiPrivateThreshold < 0)
@@ -755,7 +746,7 @@ public class CoinJoinClient
 
 		int inputCount = Math.Min(
 			privateCoins.Length + allowedNonPrivateCoins.Count,
-			consolidationMode ? maxCoins : GetInputTarget(rnd, maxCoins));
+			consolidationMode ? MaxInputsRegistrableByWallet : GetInputTarget(rnd, MaxInputsRegistrableByWallet));
 		if (consolidationMode)
 		{
 			Logger.LogDebug($"Consolidation mode is on.");
