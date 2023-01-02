@@ -14,12 +14,12 @@ namespace WalletWasabi.Affiliation;
 
 public class AffiliateServerHttpApiClient
 {
-	private IHttpClient Client;
-
 	public AffiliateServerHttpApiClient(IHttpClient client)
 	{
 		Client = client;
 	}
+
+	private IHttpClient Client { get; }
 
 	private enum RemoteAction
 	{
@@ -40,7 +40,7 @@ public class AffiliateServerHttpApiClient
 		using CancellationTokenSource requestTimeoutCTS = new(requestTimeout);
 		using CancellationTokenSource linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, requestTimeoutCTS.Token);
 
-		return await Client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, linkedCTS.Token);
+		return await Client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, linkedCTS.Token).ConfigureAwait(false);
 	}
 
 	private async Task<HttpResponseMessage> SendAsync(RemoteAction action, string jsonString, TimeSpan requestTimeout, int requestNumber, CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ public class AffiliateServerHttpApiClient
 		{
 			try
 			{
-				return await SendAsync(action, jsonString, requestTimeout, cancellationToken);
+				return await SendAsync(action, jsonString, requestTimeout, cancellationToken).ConfigureAwait(false);
 			}
 			catch (HttpRequestException httpRequestException)
 			{
@@ -88,15 +88,14 @@ public class AffiliateServerHttpApiClient
 		  where TRequest : class
 		  where TResponse : class
 	{
-		string requestSerialized = Serialize(request);
-		using HttpResponseMessage response = await SendAsync(action, Serialize(request), requestTimeout, requestNumber, cancellationToken);
+		using HttpResponseMessage response = await SendAsync(action, Serialize(request), requestTimeout, requestNumber, cancellationToken).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
 		{
-			await response.ThrowUnwrapExceptionFromContentAsync(cancellationToken);
+			await response.ThrowUnwrapExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		string responseSerialized = await response.Content.ReadAsStringAsync(cancellationToken);
+		string responseSerialized = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		return Deserialize<TResponse>(responseSerialized);
 	}
 
