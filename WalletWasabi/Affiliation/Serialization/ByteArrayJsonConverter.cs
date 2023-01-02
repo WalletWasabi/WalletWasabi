@@ -10,7 +10,7 @@ public class ByteArrayJsonConverter : JsonConverter<byte[]>
 	{
 		if (reader.Value is string serialized)
 		{
-			return Encoders.Hex.DecodeData(serialized);
+			return Convert.FromHexString(serialized);
 		}
 		throw new JsonSerializationException("Cannot deserialize object.");
 	}
@@ -18,6 +18,6 @@ public class ByteArrayJsonConverter : JsonConverter<byte[]>
 	public override void WriteJson(JsonWriter writer, byte[]? value, JsonSerializer serializer)
 	{
 		Guard.NotNull(nameof(value), value);
-		writer.WriteValue(Encoders.Hex.EncodeData(value));
+		writer.WriteValue(Convert.ToHexString(value).ToLower());
 	}
 }
