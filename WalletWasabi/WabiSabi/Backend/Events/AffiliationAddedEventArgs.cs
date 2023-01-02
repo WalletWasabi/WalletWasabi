@@ -11,11 +11,11 @@ public class AffiliationAddedEventArgs : EventArgs
 		RoundId = roundId;
 		Coin = coin;
 		AffiliationFlag = affiliationFlag;
-		IsPayingZeroCoordinatrionFee = isPayingZeroCoordinatrionFee;
+		IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
 	}
 
 	public uint256 RoundId { get; }
 	public Coin Coin { get; }
 	public AffiliationFlag AffiliationFlag { get; }
-	public bool IsPayingZeroCoordinatrionFee { get; }
+	public bool IsPayingZeroCoordinationFee { get; }
 }
