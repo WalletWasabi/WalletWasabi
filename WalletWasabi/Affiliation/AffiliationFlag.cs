@@ -7,8 +7,8 @@ namespace WalletWasabi.Affiliation;
 [TypeConverter(typeof(AffiliationFlagConverter))]
 public record AffiliationFlag
 {
-	public static readonly AffiliationFlag Default = new AffiliationFlag("WalletWasabi");
-	public static readonly AffiliationFlag Trezor = new AffiliationFlag("trezor");
+	public static readonly AffiliationFlag Default = new("WalletWasabi");
+	public static readonly AffiliationFlag Trezor = new("trezor");
 
 	private const int MinimumNameLength = 1;
 	private const int MaximumNameLength = 20;
