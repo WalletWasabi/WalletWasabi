@@ -41,7 +41,7 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 
 			return Observable.FromAsync(() => SetTextAsync(wallet))
 				.ToSignal()
-				.Concat(Observable.Timer(TimeSpan.FromSeconds(2)).ToSignal());
+				.Concat(Observable.Timer(TimeSpan.FromSeconds(1)).ToSignal());
 		});
 
 		_isCopyActive = CopyBalanceCommand.IsExecuting.ToProperty(this, x => x.IsCopyRunning);
