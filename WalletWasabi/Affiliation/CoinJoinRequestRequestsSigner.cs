@@ -5,13 +5,11 @@ namespace WalletWasabi.Affiliation;
 
 public class CoinJoinRequestRequestsSigner : IDisposable
 {
-	private ECDsa ECDsa;
-
 	public CoinJoinRequestRequestsSigner(string signingKeyHex)
 	{
 		byte[] signingKeyBytes = Encoders.Hex.DecodeData(signingKeyHex);
 		ECDsa = ECDsa.Create();
-		ECDsa.ImportECPrivateKey(signingKeyBytes, out var readBytes);
+		ECDsa.ImportECPrivateKey(signingKeyBytes, out int readBytes);
 
 		if (signingKeyBytes.Length != readBytes)
 		{
@@ -25,13 +23,15 @@ public class CoinJoinRequestRequestsSigner : IDisposable
 		}
 	}
 
-	public void Dispose()
-	{
-		ECDsa.Dispose();
-	}
+	private ECDsa ECDsa { get; }
 
 	public byte[] Sign(byte[] digest)
 	{
 		return ECDsa.SignData(digest, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+	}
+
+	public void Dispose()
+	{
+		ECDsa.Dispose();
 	}
 }
