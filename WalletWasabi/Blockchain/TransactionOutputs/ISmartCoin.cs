@@ -11,7 +11,7 @@ public interface ISmartCoin
 	/// <remarks>Note there might be a new script type that even NBitcoin does not support.</remarks>
 	ScriptType ScriptType { get; }
 
-	HdPubKey HdPubKey { get; }
+	Script ScriptPubKey { get; }
 
 	double AnonymitySet { get; }
 

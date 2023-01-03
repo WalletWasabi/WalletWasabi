@@ -893,19 +893,18 @@ public class CoinJoinClient
 
 		if (winner.Count < MaxInputsRegistrableByWallet)
 		{
-			
 			// If the address of a winner contains other coins (address reuse, same HdPubKey) that are available but not selected,
 			// complete the selection with them until MaxInputsRegistrableByWallet threshold.
 			// Order by most to least reused to try not splitting coins from same address into several rounds.
 			var nonSelectedCoinsOnSameAddresses = filteredCoins
 				.Except(winner)
-				.Where(x => winner.Any(y => y.HdPubKey == x.HdPubKey))
-				.GroupBy(x => x.HdPubKey)
+				.Where(x => winner.Any(y => y.ScriptPubKey == x.ScriptPubKey))
+				.GroupBy(x => x.ScriptPubKey)
 				.OrderByDescending(g => g.Count())
 				.SelectMany(g => g)
 				.Take(MaxInputsRegistrableByWallet - winner.Count)
 				.ToList();
-			
+
 			winner.AddRange(nonSelectedCoinsOnSameAddresses);
 
 			if (nonSelectedCoinsOnSameAddresses.Count > 0)
