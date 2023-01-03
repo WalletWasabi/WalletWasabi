@@ -32,7 +32,7 @@ public abstract class BaseKeyChain : IKeyChain
 			signingKey,
 			new OwnershipIdentifier(identificationKey, destination.ScriptPubKey),
 			commitmentData,
-			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) 
+			destination.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)
 				? ScriptPubKeyType.Segwit
 				: ScriptPubKeyType.TaprootBIP86);
 		return ownershipProof;
@@ -60,7 +60,7 @@ public abstract class BaseKeyChain : IKeyChain
 		builder.AddCoins(coin);
 		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)precomputedTransactionData));
 		builder.SignTransactionInPlace(transaction);
-		
+
 		return transaction;
 	}
 

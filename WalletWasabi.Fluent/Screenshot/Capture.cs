@@ -99,52 +99,52 @@ public static class Capture
 		switch (extension.ToLower())
 		{
 			case ".png":
-			{
-				using var stream = File.Create(path);
-				var pixelSize = new PixelSize((int)size.Width, (int)size.Height);
-				var dpiVector = new Vector(96d, 96d);
-				using var bitmap = new RenderTargetBitmap(pixelSize, dpiVector);
-				target.Measure(size);
-				target.Arrange(new Rect(size));
-				bitmap.Render(target);
-				bitmap.Save(stream);
-				break;
-			}
+				{
+					using var stream = File.Create(path);
+					var pixelSize = new PixelSize((int)size.Width, (int)size.Height);
+					var dpiVector = new Vector(96d, 96d);
+					using var bitmap = new RenderTargetBitmap(pixelSize, dpiVector);
+					target.Measure(size);
+					target.Arrange(new Rect(size));
+					bitmap.Render(target);
+					bitmap.Save(stream);
+					break;
+				}
 			case ".svg":
-			{
-				using var stream = File.Create(path);
-				using var managedWStream = new SKManagedWStream(stream);
-				var bounds = SKRect.Create(new SKSize((float)size.Width, (float)size.Height));
-				using var canvas = SKSvgCanvas.Create(bounds, managedWStream);
-				target.Measure(size);
-				target.Arrange(new Rect(size));
-				Render(target, canvas, 96d);
-				break;
-			}
+				{
+					using var stream = File.Create(path);
+					using var managedWStream = new SKManagedWStream(stream);
+					var bounds = SKRect.Create(new SKSize((float)size.Width, (float)size.Height));
+					using var canvas = SKSvgCanvas.Create(bounds, managedWStream);
+					target.Measure(size);
+					target.Arrange(new Rect(size));
+					Render(target, canvas, 96d);
+					break;
+				}
 			case ".pdf":
-			{
-				using var stream = File.Create(path);
-				using var managedWStream = new SKManagedWStream(stream);
-				using var document = SKDocument.CreatePdf(stream, 72f);
-				using var canvas = document.BeginPage((float)size.Width, (float)size.Height);
-				target.Measure(size);
-				target.Arrange(new Rect(size));
-				Render(target, canvas, 72f);
-				break;
-			}
+				{
+					using var stream = File.Create(path);
+					using var managedWStream = new SKManagedWStream(stream);
+					using var document = SKDocument.CreatePdf(stream, 72f);
+					using var canvas = document.BeginPage((float)size.Width, (float)size.Height);
+					target.Measure(size);
+					target.Arrange(new Rect(size));
+					Render(target, canvas, 72f);
+					break;
+				}
 			case ".skp":
-			{
-				using var stream = File.Create(path);
-				var bounds = SKRect.Create(new SKSize((float)size.Width, (float)size.Height));
-				using var pictureRecorder = new SKPictureRecorder();
-				using var canvas = pictureRecorder.BeginRecording(bounds);
-				target.Measure(size);
-				target.Arrange(new Rect(size));
-				Render(target, canvas, 96d);
-				using var picture = pictureRecorder.EndRecording();
-				picture.Serialize(stream);
-				break;
-			}
+				{
+					using var stream = File.Create(path);
+					var bounds = SKRect.Create(new SKSize((float)size.Width, (float)size.Height));
+					using var pictureRecorder = new SKPictureRecorder();
+					using var canvas = pictureRecorder.BeginRecording(bounds);
+					target.Measure(size);
+					target.Arrange(new Rect(size));
+					Render(target, canvas, 96d);
+					using var picture = pictureRecorder.EndRecording();
+					picture.Serialize(stream);
+					break;
+				}
 		}
 	}
 }
