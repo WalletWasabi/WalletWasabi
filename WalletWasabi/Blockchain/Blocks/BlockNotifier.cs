@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Blocks;

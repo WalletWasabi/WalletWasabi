@@ -529,7 +529,10 @@ public class CoinJoinClient
 				}
 				try
 				{
-					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+					using (BenchmarkLogger.Measure(LogLevel.Debug, nameof(SignTransactionAsync)))
+					{
+						await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+					}
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{

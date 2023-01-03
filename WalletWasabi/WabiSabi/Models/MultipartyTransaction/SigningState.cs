@@ -111,7 +111,7 @@ public record SigningState : MultipartyTransactionState
 
 		return tx;
 	}
-	
+
 	public TransactionWithPrecomputedData CreateUnsignedTransactionWithPrecomputedData()
 	{
 		var tx = CreateUnsignedTransaction();
