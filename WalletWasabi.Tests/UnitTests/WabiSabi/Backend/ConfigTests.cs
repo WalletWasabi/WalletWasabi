@@ -6,6 +6,7 @@ using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;

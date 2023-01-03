@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
@@ -20,14 +19,13 @@ public class KeyChainTests
 
 		var coinDestination = destinationProvider.GetNextDestinations(1, false).First();
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
-		var ownershipProof = keyChain.GetOwnershipProof(coinDestination, new CoinJoinInputCommitmentData("test", uint256.One));
 
 		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.
 
-		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData()));
+		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData()));
 
 		transaction.Inputs.Add(coin.Outpoint);
-		var signedTx = keyChain.Sign(transaction, coin, ownershipProof, transaction.PrecomputeTransactionData(new[] { coin }));
+		var signedTx = keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData(new[] { coin }));
 		Assert.True(signedTx.HasWitness);
 	}
 }

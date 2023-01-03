@@ -194,6 +194,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_stateMachine.Configure(State.WaitingForAutoStart)
 			.Permit(Trigger.WalletStartedCoinJoin, State.Playing)
 			.Permit(Trigger.AutoCoinJoinOff, State.StoppedOrPaused)
+			.Permit(Trigger.PlebStopActivated, State.PlebStopActive)
 			.OnEntry(() =>
 			{
 				PlayVisible = true;
@@ -369,8 +370,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 				var startTime = confirmationPhase.TimeoutAt - confirmationPhase.RoundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 				var totalEndTime = confirmationPhase.TimeoutAt +
-				                   confirmationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout +
-				                   confirmationPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout;
+								   confirmationPhase.RoundState.CoinjoinState.Parameters.OutputRegistrationTimeout +
+								   confirmationPhase.RoundState.CoinjoinState.Parameters.TransactionSigningTimeout;
 
 				StartCountDown(
 					message: _coinJoinInProgress,

@@ -56,7 +56,7 @@ public static class ImportWalletHelper
 			?? throw new ArgumentNullException($"Can't get KeyManager, ExtPubKey was null.");
 
 		var taprootXpubString = jsonWallet["TaprootExtPubKey"]?.ToString();
-		
+
 		var mfpString = jsonWallet["MasterFingerprint"]?.ToString()
 			?? throw new ArgumentNullException($"Can't get KeyManager, MasterFingerprint was null.");
 

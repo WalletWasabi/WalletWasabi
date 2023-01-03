@@ -67,10 +67,10 @@ public class ProcessAsync : IDisposable
 		}
 	}
 
-	/// <inheritdoc cref="Process.Kill()"/>
-	public virtual void Kill()
+	/// <inheritdoc cref="Process.Kill(bool)"/>
+	public virtual void Kill(bool entireProcessTree = false)
 	{
-		Process.Kill();
+		Process.Kill(entireProcessTree);
 	}
 
 	/// <summary>
