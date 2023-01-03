@@ -39,11 +39,6 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 	private ConcurrentDictionary<uint256, RoundData> RoundData { get; }
 	private Queue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; }
 
-	public override void Dispose()
-	{
-		RemoveHandlers();
-	}
-
 	public ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
 	{
 		return CoinjoinRequests.ToDictionary(x => x.Key, x => x.Value.ToImmutableDictionary()).ToImmutableDictionary();
@@ -210,6 +205,11 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		Arena.AffiliationAdded -= Arena_AffiliationAdded;
 		Arena.CoinjoinTransactionCreated -= Arena_CoinjoinTransactionAdded;
 		Arena.RoundPhaseChanged -= Arena_RoundPhaseChanged;
+	}
+
+	public override void Dispose()
+	{
+		RemoveHandlers();
 	}
 
 	private record FinalizedRoundDataWithRoundId(uint256 RoundId, FinalizedRoundData FinalizedRoundData);
