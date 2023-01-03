@@ -95,7 +95,7 @@ public class P2pBlockProvider : IBlockProvider
 				{
 					// More permissive timeout if few nodes are connected to avoid exhaustion
 					var timeout = Nodes.ConnectedNodes.Count < 3
-						? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout*1.5,600)
+						? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
 						: RuntimeParams.Instance.NetworkNodeTimeout;
 
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
@@ -309,7 +309,7 @@ public class P2pBlockProvider : IBlockProvider
 
 		// Sanity check
 		var minTimeout = Network == Network.Main ? 3 : 2;
-		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout*1.5) : minTimeout;
+		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout * 1.5) : minTimeout;
 		if (timeout < minTimeout)
 		{
 			timeout = minTimeout;

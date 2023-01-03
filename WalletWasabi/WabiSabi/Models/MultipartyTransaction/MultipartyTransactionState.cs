@@ -46,9 +46,9 @@ public abstract record MultipartyTransactionState
 	[JsonIgnore]
 	public Money EstimatedCost => Parameters.MiningFeeRate.GetFee(EstimatedVsize - UnpaidSharedOverhead);
 
-	[JsonIgnore] 
+	[JsonIgnore]
 	public int UnpaidSharedOverhead { get; init; } = MultipartyTransactionParameters.SharedOverhead;
-	
+
 	[JsonIgnore]
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize - UnpaidSharedOverhead);
 
