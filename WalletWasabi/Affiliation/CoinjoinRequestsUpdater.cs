@@ -96,7 +96,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 
 	private void RemoveRound(uint256 roundId)
 	{
-		if (!RoundData.TryRemove(roundId, out RoundData? roundData))
+		if (!RoundData.TryRemove(roundId, out _))
 		{
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
