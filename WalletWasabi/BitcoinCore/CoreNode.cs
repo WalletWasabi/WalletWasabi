@@ -28,27 +28,29 @@ public class CoreNode
 	public EndPoint RpcEndPoint { get; private set; }
 	public IRPCClient RpcClient { get; private set; }
 	private BitcoindRpcProcessBridge Bridge { get; set; }
-	public string DataDir { get; private set; }
-	public Network Network { get; private set; }
-	public MempoolService MempoolService { get; private set; }
+	public string DataDir { get; }
+	public Network Network { get; }
+	public MempoolService MempoolService { get; }
 
-	public CoreConfig Config { get; private set; }
+	public CoreConfig Config { get; } = new();
 	public P2pNode P2pNode { get; private set; }
+
+	public CoreNode(string dataDir, Network network, MempoolService mempoolService)
+	{
+		DataDir = dataDir;
+		Network = network;
+		MempoolService = mempoolService;
+	}
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
 		Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 		using (BenchmarkLogger.Measure())
 		{
-			var coreNode = new CoreNode
-			{
-				DataDir = coreNodeParams.DataDir,
-				Network = coreNodeParams.Network,
-				MempoolService = coreNodeParams.MempoolService
-			};
+			CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService);
 
 			var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
-			coreNode.Config = new CoreConfig();
+
 			if (File.Exists(configPath))
 			{
 				var configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
