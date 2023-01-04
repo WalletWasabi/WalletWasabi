@@ -305,8 +305,7 @@ public class CoreNode
 
 	public async Task DisposeAsync()
 	{
-		var p2pNode = P2pNode;
-		if (p2pNode is { })
+		if (P2pNode is { } p2pNode)
 		{
 			await p2pNode.DisposeAsync().ConfigureAwait(false);
 		}
