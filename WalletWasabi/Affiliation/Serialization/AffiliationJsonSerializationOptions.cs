@@ -5,7 +5,8 @@ namespace WalletWasabi.Affiliation.Serialization;
 
 public static class AffiliationJsonSerializationOptions
 {
-	public static readonly List<JsonConverter> Converters = new() {
+	public static readonly List<JsonConverter> Converters = new()
+	{
 		new AffiliationByteArrayJsonConverter(),
 		new AffiliationFeeRateJsonConverter()
 	};
