@@ -104,7 +104,7 @@ public class AffiliateServerHttpApiClient
 	{
 		try
 		{
-			return JsonConvert.SerializeObject(obj, JsonSerializationOptions.Settings);
+			return JsonConvert.SerializeObject(obj, AffiliationJsonSerializationOptions.Settings);
 		}
 		catch
 		{
@@ -116,7 +116,7 @@ public class AffiliateServerHttpApiClient
 	{
 		try
 		{
-			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Settings)
+			return JsonConvert.DeserializeObject<TResponse>(jsonString, AffiliationJsonSerializationOptions.Settings)
 				?? throw new Exception();
 		}
 		catch
