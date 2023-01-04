@@ -46,7 +46,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 	private bool IsAncestorOf(TState state, TState parent)
 	{
-		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext value))
+		if (_states.TryGetValue(state, out StateMachine<TState, TTrigger>.StateContext? value))
 		{
 			StateContext current = value;
 
@@ -84,7 +84,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 		{
 			var destination = _currentState.GetDestination(trigger);
 
-			if (_states.TryGetValue(destination, out StateMachine<TState, TTrigger>.StateContext value) && value.Parent is { } parent && !IsInState(parent.StateId))
+			if (_states.TryGetValue(destination, out StateMachine<TState, TTrigger>.StateContext? value) && value.Parent is { } parent && !IsInState(parent.StateId))
 			{
 				Goto(parent.StateId);
 			}
@@ -237,7 +237,7 @@ public class StateMachine<TState, TTrigger> where TTrigger : Enum where TState :
 
 		internal void Process(TTrigger trigger)
 		{
-			if (_triggerActions.TryGetValue(trigger, out List<Action> value) && value is { } actions)
+			if (_triggerActions.TryGetValue(trigger, out List<Action>? value) && value is { } actions)
 			{
 				foreach (var action in actions)
 				{

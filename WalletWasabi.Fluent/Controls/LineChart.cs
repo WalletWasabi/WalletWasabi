@@ -832,7 +832,7 @@ public partial class LineChart : Control
 
 	private void UpdateSubscription(INotifyCollectionChanged? oldValue, INotifyCollectionChanged? newValue)
 	{
-		if (oldValue is { } && _collectionChangedSubscriptions.TryGetValue(oldValue, out IDisposable value))
+		if (oldValue is { } && _collectionChangedSubscriptions.TryGetValue(oldValue, out IDisposable? value))
 		{
 			value.Dispose();
 			_collectionChangedSubscriptions.Remove(oldValue);

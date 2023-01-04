@@ -27,7 +27,7 @@ public class RequestTimeStatista
 			var toDisplay = false;
 			lock (Lock)
 			{
-				if (Requests.TryGetValue(request, out List<(DateTimeOffset Time, TimeSpan Duration)> value))
+				if (Requests.TryGetValue(request, out List<(DateTimeOffset Time, TimeSpan Duration)>? value))
 				{
 					value.Add((DateTimeOffset.UtcNow, duration));
 				}

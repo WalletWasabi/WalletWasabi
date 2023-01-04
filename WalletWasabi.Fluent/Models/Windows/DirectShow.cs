@@ -946,7 +946,7 @@ public static class DirectShow
 					.ToDictionary(x => (Guid)x.GetValue(null)!, x => x.Name);
 			}
 
-			if (NicknameCache.TryGetValue(guid, out string value))
+			if (NicknameCache.TryGetValue(guid, out string? value))
 			{
 				var name = value;
 				var elem = name.Split('_');

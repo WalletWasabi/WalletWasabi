@@ -22,7 +22,7 @@ public static class NavigationManager
 
 	public static T? Get<T>() where T : ViewModelBase
 	{
-		if (TypeRegistry.TryGetValue(typeof(T), out ViewModelBase value) && value is T vmb)
+		if (TypeRegistry.TryGetValue(typeof(T), out ViewModelBase? value) && value is T vmb)
 		{
 			return vmb;
 		}
