@@ -87,9 +87,8 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 	{
 		if (!string.IsNullOrWhiteSpace(propertyName))
 		{
-			return ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any()
-				? ErrorsByPropertyName[propertyName]
-				: ErrorDescriptors.Empty;
+			return ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors value) && value.Any()
+				? value : ErrorDescriptors.Empty;
 		}
 		else
 		{
