@@ -119,7 +119,7 @@ public class KeyManager
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
-		new KeyPath(
+		new(
 			(network.Name, scriptPubKeyType) switch
 			{
 				("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
