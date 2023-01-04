@@ -56,6 +56,7 @@ public class CoreNode
 				var configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
 				coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
@@ -108,12 +109,14 @@ public class CoreNode
 			{
 				await coreNode.TryStopAsync(false).ConfigureAwait(false);
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			if (coreNodeParams.TryDeleteDataDir)
 			{
 				await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
@@ -127,16 +130,16 @@ public class CoreNode
 			}
 
 			var desiredConfigLines = new List<string>()
-				{
-					$"{configPrefix}.server			= 1",
-					$"{configPrefix}.listen			= 1",
-					$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
-					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
-					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
-					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
-					$"{configPrefix}.rpcport		= {rpcPortParameter}",
-					$"{configPrefix}.softwareexpiry	= 0",
-				};
+			{
+				$"{configPrefix}.server			= 1",
+				$"{configPrefix}.listen			= 1",
+				$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
+				$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+				$"{configPrefix}.rpcbind		= {rpcBindParameter}",
+				$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
+				$"{configPrefix}.rpcport		= {rpcPortParameter}",
+				$"{configPrefix}.softwareexpiry	= 0",
+			};
 
 			if (!cookieAuth)
 			{
@@ -236,6 +239,7 @@ public class CoreNode
 				IoHelpers.EnsureContainingDirectoryExists(configPath);
 				await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), CancellationToken.None).ConfigureAwait(false);
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			// If it isn't already running, then we run it.
@@ -249,10 +253,12 @@ public class CoreNode
 				await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 			await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+
 			cancel.ThrowIfCancellationRequested();
 
 			return coreNode;
