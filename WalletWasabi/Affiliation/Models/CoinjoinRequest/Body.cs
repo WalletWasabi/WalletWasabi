@@ -28,7 +28,7 @@ public record Body
 	public long Slip44CoinType { get; }
 
 	[JsonProperty(PropertyName = "fee_rate")]
-	[JsonConverter(typeof(FeeRateJsonConverter))]
+	[JsonConverter(typeof(AffiliationFeeRateJsonConverter))]
 	public decimal FeeRate { get; }
 
 	[JsonProperty(PropertyName = "no_fee_threshold")]

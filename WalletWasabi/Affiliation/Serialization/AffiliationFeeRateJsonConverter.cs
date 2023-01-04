@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
-public class FeeRateJsonConverter : JsonConverter<decimal>
+public class AffiliationFeeRateJsonConverter : JsonConverter<decimal>
 {
 	public static readonly decimal Base = 1e-8m;
 

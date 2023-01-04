@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Affiliation.Serialization;
 
-public class ByteArrayJsonConverter : JsonConverter<byte[]>
+public class AffiliationByteArrayJsonConverter : JsonConverter<byte[]>
 {
 	public override byte[]? ReadJson(JsonReader reader, Type objectType, byte[]? existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{

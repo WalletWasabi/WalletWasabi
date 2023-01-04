@@ -37,12 +37,12 @@ public class SerializationTests
 
 	private static void AssertSerialization<T>(T message)
 	{
-		var serializedMessage = JsonConvert.SerializeObject(message, JsonSerializationOptions.Settings);
-		var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, JsonSerializationOptions.Settings);
-		var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, JsonSerializationOptions.Settings);
+		var serializedMessage = JsonConvert.SerializeObject(message, AffiliationJsonSerializationOptions.Settings);
+		var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, AffiliationJsonSerializationOptions.Settings);
+		var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, AffiliationJsonSerializationOptions.Settings);
 
 		Assert.Equal(reserializedMessage, serializedMessage);
 	}
 
-	private record Fee([JsonConverter(typeof(FeeRateJsonConverter))] decimal feeRate);
+	private record Fee([JsonConverter(typeof(AffiliationFeeRateJsonConverter))] decimal feeRate);
 }

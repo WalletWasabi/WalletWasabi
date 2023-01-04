@@ -13,7 +13,7 @@ public record GetCoinjoinRequestRequest
 	}
 
 	[JsonProperty(PropertyName = "signature")]
-	[JsonConverter(typeof(ByteArrayJsonConverter))]
+	[JsonConverter(typeof(AffiliationByteArrayJsonConverter))]
 	public byte[] Signature { get; }
 
 	[JsonProperty(PropertyName = "body")]

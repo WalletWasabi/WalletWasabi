@@ -13,7 +13,7 @@ public record Outpoint
 	}
 
 	[JsonProperty(PropertyName = "hash")]
-	[JsonConverter(typeof(ByteArrayJsonConverter))]
+	[JsonConverter(typeof(AffiliationByteArrayJsonConverter))]
 	public byte[] Hash { get; }
 
 	[JsonProperty(PropertyName = "index")]

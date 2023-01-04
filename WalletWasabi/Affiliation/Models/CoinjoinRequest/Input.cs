@@ -24,7 +24,7 @@ public record Input
 	public Outpoint Prevout { get; }
 
 	[JsonProperty(PropertyName = "script_pubkey")]
-	[JsonConverter(typeof(ByteArrayJsonConverter))]
+	[JsonConverter(typeof(AffiliationByteArrayJsonConverter))]
 	public byte[] ScriptPubkey { get; }
 
 	[JsonProperty(PropertyName = "is_no_fee")]

@@ -16,7 +16,7 @@ public record Output
 	public long Amount { get; }
 
 	[JsonProperty(PropertyName = "script_pubkey")]
-	[JsonConverter(typeof(ByteArrayJsonConverter))]
+	[JsonConverter(typeof(AffiliationByteArrayJsonConverter))]
 	public byte[] ScriptPubkey { get; }
 
 	public static Output FromTxOut(TxOut txOut)
