@@ -24,6 +24,13 @@ namespace WalletWasabi.BitcoinCore;
 
 public class CoreNode
 {
+	public CoreNode(string dataDir, Network network, MempoolService mempoolService)
+	{
+		DataDir = dataDir;
+		Network = network;
+		MempoolService = mempoolService;
+	}
+
 	public EndPoint P2pEndPoint { get; private set; }
 	public EndPoint RpcEndPoint { get; private set; }
 	public IRPCClient RpcClient { get; private set; }
@@ -34,13 +41,6 @@ public class CoreNode
 
 	public CoreConfig Config { get; } = new();
 	public P2pNode P2pNode { get; private set; }
-
-	public CoreNode(string dataDir, Network network, MempoolService mempoolService)
-	{
-		DataDir = dataDir;
-		Network = network;
-		MempoolService = mempoolService;
-	}
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
