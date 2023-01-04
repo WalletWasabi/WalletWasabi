@@ -14,8 +14,11 @@ namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public class RoundStateUpdater : PeriodicRunner
 {
-	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+	private readonly IWasabiBackendStatusProvider _wasabiBackendStatusProvider;
+
+	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler, IWasabiBackendStatusProvider wasabiBackendStatusProvider) : base(requestInterval)
 	{
+		_wasabiBackendStatusProvider = wasabiBackendStatusProvider;
 		ArenaRequestHandler = arenaRequestHandler;
 	}
 
@@ -34,6 +37,10 @@ public class RoundStateUpdater : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		if (!_wasabiBackendStatusProvider.Connected)
+		{
+			return;
+		}
 		if (SlowRequestsMode)
 		{
 			lock (AwaitersLock)

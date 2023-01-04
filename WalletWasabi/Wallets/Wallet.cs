@@ -90,7 +90,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage(new CoinsView(Coins), AnonymitySetTarget) >= 1;
 
-	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync() => Task.FromResult(GetCoinjoinCoinCandidates());
+	public Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(string coordinatorname) => Task.FromResult(GetCoinjoinCoinCandidates());
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
 
@@ -505,10 +505,13 @@ public class Wallet : BackgroundService, IWallet
 		return wallet;
 	}
 
-	public bool IsMixable =>
-		State == WalletState.Started // Only running wallets
-		&& !KeyManager.IsWatchOnly // that are not watch-only wallets
-		&& Kitchen.HasIngredients;
+
+	bool IWallet.IsMixable(string coordinator)
+	{
+		return State == WalletState.Started // Only running wallets
+			&& !KeyManager.IsWatchOnly // that are not watch-only wallets
+			&& Kitchen.HasIngredients;
+	}
 
 	public IKeyChain? KeyChain { get; }
 

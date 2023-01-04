@@ -18,6 +18,17 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
+public class BannedCoinEventArgs : EventArgs
+{
+	public OutPoint Utxo { get; }
+	public DateTimeOffset BannedTime { get; }
+
+	public BannedCoinEventArgs(OutPoint utxo, DateTimeOffset bannedTime)
+	{
+		Utxo = utxo;
+		BannedTime = bannedTime;
+	}
+}
 
 public class CoinJoinManager : BackgroundService
 {
@@ -25,8 +36,9 @@ public class CoinJoinManager : BackgroundService
 	private record StartCoinJoinCommand(IWallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(IWallet Wallet, string walletName) : CoinJoinCommand(Wallet);
 
-	public CoinJoinManager(IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
+	public CoinJoinManager(string coordinatorName ,IWalletProvider walletProvider, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, IWasabiBackendStatusProvider wasabiBackendStatusProvider, string coordinatorIdentifier)
 	{
+		CoordinatorName = coordinatorName;
 		WasabiBackendStatusProvider = wasabiBackendStatusProvider;
 		WalletProvider = walletProvider;
 		HttpClientFactory = backendHttpClientFactory;
@@ -34,6 +46,7 @@ public class CoinJoinManager : BackgroundService
 		CoordinatorIdentifier = coordinatorIdentifier;
 	}
 
+	public string CoordinatorName { get; }
 	private IWasabiBackendStatusProvider WasabiBackendStatusProvider { get; }
 
 	public IWalletProvider WalletProvider { get; }
@@ -49,6 +62,7 @@ public class CoinJoinManager : BackgroundService
 	private ConcurrentDictionary<string, byte> WalletsInSendWorkflow { get; } = new();
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
+	public event EventHandler<BannedCoinEventArgs>? OnBan;
 
 	public CoinJoinClientState HighestCoinJoinClientState { get; private set; }
 
@@ -141,7 +155,11 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoordinatorIdentifier, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(HttpClientFactory, RoundStatusUpdater, CoordinatorIdentifier, stoppingToken,
+			args =>
+			{
+				OnBan?.Invoke(this,args);
+			});
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -250,8 +268,7 @@ public class CoinJoinManager : BackgroundService
 				
 				walletToStop = stopCommand.Wallet;
 			}
-
-			var autoStartRemoved = TryRemoveTrackedAutoStart(stopCommand.Wallet);
+			var autoStartRemoved = TryRemoveTrackedAutoStart(walletToStop);
 
 			if (trackedCoinJoins.TryGetValue(stopCommand.walletName, out var coinJoinTrackerToStop))
 			{
@@ -269,6 +286,10 @@ public class CoinJoinManager : BackgroundService
 
 		bool TryRemoveTrackedAutoStart(IWallet wallet)
 		{
+			if (wallet is null)
+			{
+				return false;
+			}
 			if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
 			{
 				trackedAutoStart.CancellationTokenSource.Cancel();
@@ -525,15 +546,15 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task<ImmutableDictionary<string, IWallet>> GetMixableWalletsAsync() =>
 		(await WalletProvider.GetWalletsAsync().ConfigureAwait(false))
-			.Where(x => x.IsMixable)
+			.Where(x => x.IsMixable(CoordinatorName))
 			.ToImmutableDictionary(x => x.WalletName, x => x);
 
 	private async Task<IEnumerable<SmartCoin>> SelectCandidateCoinsAsync(IWallet openedWallet)
-		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+		=> new CoinsView(await openedWallet.GetCoinjoinCoinCandidatesAsync(CoordinatorName).ConfigureAwait(false))
 			.Available()
 			.Confirmed()
 			// .Where(x => !x.IsImmature(bestHeight))
-			.Where(x => !x.IsBanned)
+			// .Where(x => !x.IsBanned)
 			.Where(x => !CoinRefrigerator.IsFrozen(x));
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)

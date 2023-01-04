@@ -27,6 +27,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinClient
 {
+	private readonly Action<BannedCoinEventArgs> _onCoinBan;
 	private readonly bool _batchPayments;
 	private const int MaxInputsRegistrableByWallet = 10; // how many
 	private const int MaxWeightedAnonLoss = 3; // Maximum tolerable WeightedAnonLoss.
@@ -42,6 +43,7 @@ public class CoinJoinClient
 	/// <param name="anonScoreTarget">Coins those have reached anonymity target, but still can be mixed if desired.</param>
 	/// <param name="consolidationMode">If true, then aggressively try to consolidate as many coins as it can.</param>
 	public CoinJoinClient(
+		Action<BannedCoinEventArgs> onCoinBan,
 		IWasabiHttpClientFactory httpClientFactory,
 		IKeyChain keyChain,
 		IDestinationProvider destinationProvider,
@@ -55,6 +57,7 @@ public class CoinJoinClient
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
 		IRoundCoinSelector? coinSelectionFunc = null , bool batchPayments = default)
 	{
+		_onCoinBan = onCoinBan;
 		_batchPayments = batchPayments;
 		HttpClientFactory = httpClientFactory;
 		KeyChain = keyChain;
@@ -413,7 +416,7 @@ public class CoinJoinClient
 					CoordinatorIdentifier,
 					arenaRequestHandler);
 
-				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token).ConfigureAwait(false);
+				var aliceClient = await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, KeyChain, RoundStatusUpdater, linkedUnregisterCts.Token, linkedRegistrationsCts.Token, linkedConfirmationsCts.Token, _onCoinBan).ConfigureAwait(false);
 
 				// Right after the first real-cred confirmation happened we entered into critical phase.
 				if (Interlocked.Exchange(ref eventInvokedAlready, 1) == 0)
@@ -1178,14 +1181,22 @@ public class CoinJoinClient
 		{
 			outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 		}
+		var nonMixedOutputs = outputValues.Where(money => !BlockchainAnalyzer.StdDenoms.Contains(money));
+		var mixedOutputs = outputValues.Where(money => BlockchainAnalyzer.StdDenoms.Contains(money));
+		
+		// Get as many destinations as outputs we need.
+		var destinations = await DestinationProvider.GetNextDestinationsAsync(mixedOutputs.Count(), preferTaprootOutputs, true).ConfigureAwait(false);
+		var destinationsNonMixed = await DestinationProvider.GetNextDestinationsAsync(nonMixedOutputs.Count(), preferTaprootOutputs, false).ConfigureAwait(false);
+
 		roundState.LogDebug($"Decomposed to {outputValues.Count()} outputs");
 
-		// Get as many destinations as outputs we need.
-		var destinations = await DestinationProvider.GetNextDestinationsAsync(outputValues.Count(), preferTaprootOutputs).ConfigureAwait(false);
 		Dictionary<TxOut, PendingPayment> result =
 			paymentsToBatch.ToDictionary(payment => new TxOut(payment.Value, payment.Destination.ScriptPubKey));
-		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey))
-			.Concat(result.Keys);
+		var outputTxOuts =
+			mixedOutputs.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey))
+				.Concat(nonMixedOutputs.Zip(destinationsNonMixed,
+					(amount, destination) => new TxOut(amount, destination.ScriptPubKey)))
+				.Concat(result.Keys);
 		
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);

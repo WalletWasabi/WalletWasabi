@@ -57,20 +57,20 @@ public class AliceClient
 	private TimeSpan ConfirmationTimeout { get; }
 	public bool IsPayingZeroCoordinationFee { get; }
 
-	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
-		RoundState roundState,
+	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(RoundState roundState,
 		ArenaClient arenaClient,
 		SmartCoin coin,
 		IKeyChain keyChain,
 		RoundStateUpdater roundStatusUpdater,
 		CancellationToken unregisterCancellationToken,
 		CancellationToken registrationCancellationToken,
-		CancellationToken confirmationCancellationToken)
+		CancellationToken confirmationCancellationToken, Action<BannedCoinEventArgs> onCoinBan)
 	{
 		AliceClient? aliceClient = null;
 		try
 		{
-			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
+			
+			aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken, onCoinBan).ConfigureAwait(false);
 			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
@@ -89,7 +89,8 @@ public class AliceClient
 		return aliceClient;
 	}
 
-	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken)
+	private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient,
+		SmartCoin coin, IKeyChain keyChain, CancellationToken cancellationToken, Action<BannedCoinEventArgs> onCoinBan)
 	{
 		AliceClient? aliceClient;
 		try
@@ -100,6 +101,7 @@ public class AliceClient
 
 			var (response, isPayingZeroCoordinationFee) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
+			
 			coin.CoinJoinInProgress = true;
 
 			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
@@ -119,8 +121,10 @@ public class AliceClient
 					{
 						Logger.LogError($"{nameof(InputBannedExceptionData)} is missing.");
 					}
-					coin.BannedUntilUtc = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
-					Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {coin.BannedUntilUtc}.");
+
+					var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+					onCoinBan.Invoke(new BannedCoinEventArgs(coin.Outpoint, bannedUntil));
+					Logger.LogInfo($"{coin.Coin.Outpoint} is banned until {bannedUntil}.");
 					break;
 
 				case WabiSabiProtocolErrorCode.InputNotWhitelisted:

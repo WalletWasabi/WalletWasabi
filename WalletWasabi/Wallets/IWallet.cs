@@ -15,7 +15,7 @@ public interface IWallet
 {
 	string WalletName { get; }
 	bool IsUnderPlebStop { get; }
-	bool IsMixable { get; }
+	bool IsMixable(string coordinator);
 
 	/// <summary>
 	/// Watch only wallets have no key chains.
@@ -31,7 +31,7 @@ public interface IWallet
 
 	Task<bool> IsWalletPrivateAsync();
 
-	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync();
+	Task<IEnumerable<SmartCoin>> GetCoinjoinCoinCandidatesAsync(string coordinatorname);
 
 	Task<IEnumerable<SmartTransaction>> GetTransactionsAsync();
 

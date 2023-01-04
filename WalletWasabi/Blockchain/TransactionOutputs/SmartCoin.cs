@@ -107,17 +107,17 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
 	}
 
-	public DateTimeOffset? BannedUntilUtc
-	{
-		get => _bannedUntilUtc;
-		set
-		{
-			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
-			{
-				RefreshAndGetIsBanned();
-			}
-		}
-	}
+	// public DateTimeOffset? BannedUntilUtc
+	// {
+	// 	get => _bannedUntilUtc;
+	// 	set
+	// 	{
+	// 		if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
+	// 		{
+	// 			RefreshAndGetIsBanned();
+	// 		}
+	// 	}
+	// }
 
 	/// <summary>
 	/// If the backend thinks it's spent, but Wasabi does not yet know.
@@ -149,30 +149,30 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <summary>
 	/// If you want to have a notification about a coin is released, then you have to periodically read IsBanned.
 	/// </summary>
-	public bool IsBanned
-	{
-		get => RefreshAndGetIsBanned();
-		private set => RaiseAndSetIfChanged(ref _isBanned, value);
-	}
+	// public bool IsBanned
+	// {
+	// 	get => RefreshAndGetIsBanned();
+	// 	private set => RaiseAndSetIfChanged(ref _isBanned, value);
+	// }
 
 	public bool IsImmature(int bestHeight)
 	{
 		return Transaction.Transaction.IsCoinBase && Height < bestHeight - 100;
 	}
 
-	public bool RefreshAndGetIsBanned()
-	{
-		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
-		{
-			IsBanned = true;
-			return true;
-		}
-
-		IsBanned = false;
-		BannedUntilUtc = null;
-
-		return false;
-	}
+	// public bool RefreshAndGetIsBanned()
+	// {
+	// 	if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
+	// 	{
+	// 		IsBanned = true;
+	// 		return true;
+	// 	}
+	//
+	// 	IsBanned = false;
+	// 	BannedUntilUtc = null;
+	//
+	// 	return false;
+	// }
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]
 	public bool IsSpent() => SpenderTransaction is not null;

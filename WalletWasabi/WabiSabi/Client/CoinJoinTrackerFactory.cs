@@ -13,12 +13,17 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinTrackerFactory
 {
+	private readonly Action<BannedCoinEventArgs> _onCoinBan;
+
 	public CoinJoinTrackerFactory(
 		IWasabiHttpClientFactory httpClientFactory,
 		RoundStateUpdater roundStatusUpdater,
 		string coordinatorIdentifier,
-		CancellationToken cancellationToken)
+		CancellationToken cancellationToken,
+		
+		Action<BannedCoinEventArgs> onCoinBan)
 	{
+		_onCoinBan = onCoinBan;
 		HttpClientFactory = httpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
 		CoordinatorIdentifier = coordinatorIdentifier;
@@ -42,6 +47,7 @@ public class CoinJoinTrackerFactory
 		}
 
 		var coinJoinClient = new CoinJoinClient(
+			_onCoinBan,
 			HttpClientFactory,
 			wallet.KeyChain,
 			wallet.DestinationProvider,
@@ -53,7 +59,7 @@ public class CoinJoinTrackerFactory
 			redCoinIsolation: wallet.RedCoinIsolation,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
-			wallet.GetCoinSelector(), wallet.BatchPayments);
+			wallet.GetCoinSelector(), wallet.BatchPayments );
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidates, stopWhenAllMixed, overridePlebStop, CancellationToken);
 	}
