@@ -1,10 +1,8 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -36,7 +34,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	public TransactionStore ConfirmedStore { get; }
 	private object Lock { get; } = new object();
 
-	public async Task InitializeAsync(bool ensureBackwardsCompatibility = true, CancellationToken cancel = default)
+	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
 		using (BenchmarkLogger.Measure())
 		{
@@ -48,62 +46,6 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 			await Task.WhenAll(initTasks).ConfigureAwait(false);
 			EnsureConsistency();
-
-			if (ensureBackwardsCompatibility)
-			{
-				cancel.ThrowIfCancellationRequested();
-				EnsureBackwardsCompatibility();
-			}
-		}
-	}
-
-	private void EnsureBackwardsCompatibility()
-	{
-		try
-		{
-			// Before Wasabi 1.1.7
-			var networkIndependentTransactionsFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Transactions");
-			if (Directory.Exists(networkIndependentTransactionsFolderPath))
-			{
-				var oldTransactionsFolderPath = Path.Combine(networkIndependentTransactionsFolderPath, Network.Name);
-				if (Directory.Exists(oldTransactionsFolderPath))
-				{
-					lock (Lock)
-					{
-						foreach (var filePath in Directory.EnumerateFiles(oldTransactionsFolderPath))
-						{
-							try
-							{
-								string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-								var allWalletTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
-								foreach (var tx in allWalletTransactions)
-								{
-									AddOrUpdateNoLock(tx);
-								}
-
-								File.Delete(filePath);
-							}
-							catch (Exception ex)
-							{
-								Logger.LogTrace(ex);
-							}
-						}
-
-						Directory.Delete(oldTransactionsFolderPath, recursive: true);
-					}
-				}
-
-				// If all networks successfully migrated, too, then delete the transactions folder, too.
-				if (!Directory.EnumerateFileSystemEntries(networkIndependentTransactionsFolderPath).Any())
-				{
-					Directory.Delete(networkIndependentTransactionsFolderPath, recursive: true);
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning("Backwards compatibility could not be ensured.");
-			Logger.LogWarning(ex);
 		}
 	}
 

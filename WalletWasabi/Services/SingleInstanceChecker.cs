@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
@@ -159,7 +160,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 					using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
 
 					// The read operation cancellation will happen on reader disposal.
-					string answer = await reader.ReadToEndAsync().WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
+					string answer = await reader.ReadToEndAsync(cts.Token).ConfigureAwait(false);
 					if (answer == WasabiMagicString)
 					{
 						Logger.LogInfo($"Detected another Wasabi instance.");

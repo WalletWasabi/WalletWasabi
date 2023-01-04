@@ -18,13 +18,13 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 
 	public IEnumerable<byte[]> GetScriptPubKeysBytes() =>
 		ScriptBytesByKeyPath.Values;
-	
+
 	public bool TryGetPubKey(Script destination, [NotNullWhen(true)] out HdPubKey? hdPubKey) =>
 		HdPubKeysByScript.TryGetValue(destination, out hdPubKey);
 
 	public HdPubKeyPathView GetView(KeyPath keyPath) =>
 		Snapshot.GetChildKeyOf(keyPath);
-	
+
 	public IEnumerable<HdPubKey> AddRangeKeys(IEnumerable<HdPubKey> keys)
 	{
 		foreach (var key in keys)
@@ -38,11 +38,11 @@ public class HdPubKeyCache : IEnumerable<HdPubKey>
 	public void AddKey(HdPubKey hdPubKey, ScriptPubKeyType scriptPubKeyType)
 	{
 		var scriptPubKey = hdPubKey.PubKey.GetScriptPubKey(scriptPubKeyType);
-		HdPubKeysByScript.Add(scriptPubKey, hdPubKey);
-		ScriptBytesByKeyPath.Add(hdPubKey.FullKeyPath, scriptPubKey.ToCompressedBytes());
+		HdPubKeysByScript.AddOrReplace(scriptPubKey, hdPubKey);
+		ScriptBytesByKeyPath.AddOrReplace(hdPubKey.FullKeyPath, scriptPubKey.ToCompressedBytes());
 		HdPubKeys.Add(hdPubKey);
 	}
-	
+
 	public IEnumerator<HdPubKey> GetEnumerator() =>
 		HdPubKeys
 		.OrderBy(x => x.Index)

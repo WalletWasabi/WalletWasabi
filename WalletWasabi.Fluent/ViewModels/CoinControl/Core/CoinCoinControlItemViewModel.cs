@@ -14,7 +14,7 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		var confirmationCount = smartCoin.GetConfirmations();
 		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
 		BannedUntilUtcToolTip = smartCoin.BannedUntilUtc.HasValue ? $"Can't participate in coinjoin until: {smartCoin.BannedUntilUtc:g}" : null;
-		AnonymityScore = (int) smartCoin.HdPubKey.AnonymitySet;
+		AnonymityScore = (int)smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
 	}

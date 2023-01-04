@@ -1,6 +1,7 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models.Serialization;
 
