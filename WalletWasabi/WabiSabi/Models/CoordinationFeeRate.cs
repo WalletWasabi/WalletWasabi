@@ -3,7 +3,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Models;
 
-public struct CoordinationFeeRate
+public readonly struct CoordinationFeeRate
 {
 	public static readonly CoordinationFeeRate Zero = new(0, Money.Zero);
 
