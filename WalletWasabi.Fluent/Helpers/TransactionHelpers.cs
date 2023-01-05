@@ -104,6 +104,12 @@ public static class TransactionHelpers
 	{
 		minimumAmount = transactionInfo.Amount;
 
+		// In this method we want to check if allowedCoins is enough to build the tx or not. If it's empty, no need to go forward.
+		if (!allowedCoins.Any())
+		{
+			return false;
+		}
+
 		try
 		{
 			var intent = new PaymentIntent(
