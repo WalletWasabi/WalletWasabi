@@ -28,7 +28,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 {
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel)
 	{
-		var pockets = walletViewModel.Wallet.GetPockets(onlyAvailableCoins: true);
+		var pockets = walletViewModel.Wallet.GetPockets();
 		var items = CreateItems(pockets);
 
 		var pocketColumn = PocketColumn();
