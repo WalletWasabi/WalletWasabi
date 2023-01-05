@@ -1,10 +1,10 @@
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;

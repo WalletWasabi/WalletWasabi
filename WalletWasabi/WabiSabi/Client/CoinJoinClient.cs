@@ -894,6 +894,28 @@ public class CoinJoinClient
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 		}
 
+		if (winner.Count < MaxInputsRegistrableByWallet)
+		{
+			// If the address of a winner contains other coins (address reuse, same HdPubKey) that are available but not selected,
+			// complete the selection with them until MaxInputsRegistrableByWallet threshold.
+			// Order by most to least reused to try not splitting coins from same address into several rounds.
+			var nonSelectedCoinsOnSameAddresses = filteredCoins
+				.Except(winner)
+				.Where(x => winner.Any(y => y.ScriptPubKey == x.ScriptPubKey))
+				.GroupBy(x => x.ScriptPubKey)
+				.OrderByDescending(g => g.Count())
+				.SelectMany(g => g)
+				.Take(MaxInputsRegistrableByWallet - winner.Count)
+				.ToList();
+
+			winner.AddRange(nonSelectedCoinsOnSameAddresses);
+
+			if (nonSelectedCoinsOnSameAddresses.Count > 0)
+			{
+				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on the same addresses of some selected coins.");
+			}
+		}
+
 		return winner.ToShuffled().ToImmutableList();
 	}
 

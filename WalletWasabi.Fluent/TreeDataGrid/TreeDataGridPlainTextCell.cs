@@ -15,7 +15,7 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
-		var plainTextCell = (PlainTextCell) model;
+		var plainTextCell = (PlainTextCell)model;
 		var text = plainTextCell.Value;
 
 		if (text != _value)
