@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vms="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:views="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:privacyBar="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="140"
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
