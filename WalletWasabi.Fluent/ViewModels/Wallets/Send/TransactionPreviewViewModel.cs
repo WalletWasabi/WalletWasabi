@@ -314,24 +314,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			return result ? await BuildTransactionAsync(reason) : null;
 		}
-		catch (ArgumentException ex)
-		{
-			Logger.LogInfo(ex.Message);
-
-			await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
-				"Wasabi was unable to create your transaction.");
-
-			return null;
-		}
-		catch (NoAvailableCoinsException ex)
-		{
-			Logger.LogInfo(ex.Message);
-
-			await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
-				"Wasabi was unable to create your transaction.");
-
-			return null;
-		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
