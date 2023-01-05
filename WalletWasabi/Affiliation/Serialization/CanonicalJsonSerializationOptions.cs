@@ -22,9 +22,29 @@ public static class CanonicalJsonSerializationOptions
 	/// <seealso href="https://stackoverflow.com/a/11309106/3744182"/>
 	private class OrderedContractResolver : DefaultContractResolver
 	{
+		private static bool IsValidCharacter(char c)
+		{
+			return char.IsAscii(c) && (char.IsLetter(c) && char.IsLower(c) || char.IsDigit(c) || c == '_');
+		}
+
+		private static bool IsValidPropertyName(string name)
+		{
+			return name.All(IsValidCharacter);
+		}
+
 		protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
 		{
-			return base.CreateProperties(type, memberSerialization).OrderBy(p => p.PropertyName, StringComparer.Ordinal).ToList();
+			IEnumerable<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
+
+			foreach (JsonProperty property in properties)
+			{
+				if (!IsValidPropertyName(property.PropertyName))
+				{
+					throw new JsonSerializationException("Object property contains an invalid character.");
+				}
+			}
+
+			return properties.OrderBy(p => p.PropertyName, StringComparer.Ordinal).ToList();
 		}
 	}
 }
