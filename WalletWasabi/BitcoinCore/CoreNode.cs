@@ -3,7 +3,6 @@ using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,7 +16,6 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.BitcoinCore;
@@ -263,30 +261,6 @@ public class CoreNode
 
 			return coreNode;
 		}
-	}
-
-	public static async Task<Version> GetVersionAsync(CancellationToken cancel)
-	{
-		string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
-		ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(processPath, arguments: "-version");
-
-		Process process = Process.Start(startInfo)!;
-
-		string responseString = await process.StandardOutput.ReadToEndAsync(cancel).ConfigureAwait(false);
-		await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-		if (process.ExitCode != 0)
-		{
-			throw new BitcoindException($"Process exited with incorrect exit code: {process.ExitCode}.");
-		}
-
-		string firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
-		string versionString = firstLine
-			.Split("version v", StringSplitOptions.RemoveEmptyEntries)
-			.Last()
-			.Split(".knots", StringSplitOptions.RemoveEmptyEntries).First();
-
-		return new(versionString);
 	}
 
 	public async Task<Node> CreateNewP2pNodeAsync()
