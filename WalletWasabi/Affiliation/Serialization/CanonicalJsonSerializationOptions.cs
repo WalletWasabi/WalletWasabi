@@ -24,7 +24,7 @@ public static class CanonicalJsonSerializationOptions
 	{
 		private static bool IsValidCharacter(char c)
 		{
-			return char.IsAscii(c) && (char.IsLetter(c) && char.IsLower(c) || char.IsDigit(c) || c == '_');
+			return char.IsAscii(c) && ((char.IsLetter(c) && char.IsLower(c)) || char.IsDigit(c) || c == '_');
 		}
 
 		private static bool IsValidPropertyName(string name)
