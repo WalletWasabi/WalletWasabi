@@ -53,10 +53,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
 			.Bind(ConfirmationWords)
 			.OnItemAdded(x => x.Reset())
-			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed))
-			.Where(x => x)
-			.DoAsync(_ => OnNextAsync())
 			.Subscribe()
 			.DisposeWith(disposables);
 
