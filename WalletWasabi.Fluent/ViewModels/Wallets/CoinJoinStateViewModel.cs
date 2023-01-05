@@ -26,7 +26,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private readonly MusicStatusMessageViewModel _waitingMessage = new() { Message = "Waiting for coinjoin" };
 	private readonly MusicStatusMessageViewModel _pauseMessage = new() { Message = "Coinjoin is paused" };
 	private readonly MusicStatusMessageViewModel _stoppedMessage = new() { Message = "Coinjoin is stopped" };
-	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin, continuing..." };
+	private readonly MusicStatusMessageViewModel _roundSucceedMessage = new() { Message = "Successful coinjoin! Continuing..." };
 	private readonly MusicStatusMessageViewModel _roundFinishedMessage = new() { Message = "Round finished, waiting for next round" };
 	private readonly MusicStatusMessageViewModel _abortedNotEnoughAlicesMessage = new() { Message = "Not enough participants, retrying..." };
 	private readonly MusicStatusMessageViewModel _coinJoinInProgress = new() { Message = "Coinjoin in progress" };
@@ -308,7 +308,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				{
 					CoinjoinError.NoCoinsToMix => new() { Message = "Waiting for confirmed funds" },
 					CoinjoinError.UserInSendWorkflow => new() { Message = "Waiting for closed send dialog" },
-					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray!! Your wallet is private" },
+					CoinjoinError.AllCoinsPrivate => new() { Message = "Hurray! Your funds are private" },
 					_ => new() { Message = "Waiting for valid conditions" }
 				};
 
