@@ -80,10 +80,10 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 					// Only allow to create 1 more input with BnB. This accounts for the change created.
 					int maxInputCount = transaction.SpentCoins.Count() + 1;
 
-					var pockets = wallet.GetPockets();
+					var pockets = wallet.GetPockets(onlyAvailableCoins: true);
 					var spentCoins = transaction.SpentCoins;
 					var usedPockets = pockets.Where(x => x.Coins.Any(coin => spentCoins.Contains(coin)));
-					var coinsToUse = usedPockets.SelectMany(x => x.Coins).Where(coin => coin.IsAvailable()).ToImmutableArray();
+					var coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 					IAsyncEnumerable<ChangeAvoidanceSuggestionViewModel> suggestions =
 						ChangeAvoidanceSuggestionViewModel.GenerateSuggestionsAsync(info, wallet, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token);
