@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Immutable;
 using System.Collections.Generic;
+using Microsoft.Extensions.Hosting;
 using WalletWasabi.Affiliation.Models;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -13,13 +14,10 @@ using WalletWasabi.Affiliation.Models.CoinjoinRequest;
 
 namespace WalletWasabi.Affiliation;
 
-public class CoinjoinRequestsUpdater : PeriodicRunner
+public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 {
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
-	private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
-
 	public CoinjoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, CoinJoinRequestRequestsSigner signer)
-		  : base(Interval)
 	{
 		Arena = arena;
 		Clients = clients;
@@ -35,48 +33,18 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 	private Arena Arena { get; }
 	private CoinJoinRequestRequestsSigner Signer { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
-	private Dictionary<uint256, Dictionary<AffiliationFlag, byte[]>> CoinjoinRequests { get; }
+	private ConcurrentDictionary<uint256, ConcurrentDictionary<AffiliationFlag, byte[]>> CoinjoinRequests { get; }
 	private ConcurrentDictionary<uint256, RoundData> RoundData { get; }
-	private Queue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; }
+	private AsyncQueue<FinalizedRoundDataWithRoundId> RoundsToUpdate { get; }
 
 	public ImmutableDictionary<uint256, ImmutableDictionary<AffiliationFlag, byte[]>> GetCoinjoinRequests()
 	{
 		return CoinjoinRequests.ToDictionary(x => x.Key, x => x.Value.ToImmutableDictionary()).ToImmutableDictionary();
 	}
 
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		await UpdateCoinjoinRequestsAsync(cancellationToken).ConfigureAwait(false);
-	}
-
-	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
-	{
-		try
-		{
-			Body body = finalizedRoundData.GetAffiliationData(affiliationFlag);
-			byte[] result = await GetCoinjoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
-
-			if (!CoinjoinRequests.ContainsKey(roundId))
-			{
-				CoinjoinRequests.Add(roundId, new());
-			}
-
-			Dictionary<AffiliationFlag, byte[]> coinjoinRequests = CoinjoinRequests[roundId];
-
-			if (!coinjoinRequests.TryAdd(affiliationFlag, result))
-			{
-				throw new InvalidOperationException("The coinjoin request is already set.");
-			}
-		}
-		catch (Exception exception)
-		{
-			Logging.Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception.Message}");
-		}
-	}
-
-	private async Task UpdateCoinjoinRequestsAsync(CancellationToken cancellationToken)
-	{
-		while (RoundsToUpdate.TryDequeue(out FinalizedRoundDataWithRoundId finalizedRoundDataWithRoundId))
+		await foreach (FinalizedRoundDataWithRoundId finalizedRoundDataWithRoundId in RoundsToUpdate.GetAsyncIterator(cancellationToken))
 		{
 			try
 			{
@@ -89,6 +57,26 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 		}
 	}
 
+	private async Task UpdateCoinjoinRequestsAsync(uint256 roundId, FinalizedRoundData finalizedRoundData, AffiliationFlag affiliationFlag, AffiliateServerHttpApiClient affiliateServerHttpApiClient, CancellationToken cancellationToken)
+	{
+		try
+		{
+			Body body = finalizedRoundData.GetAffiliationData(affiliationFlag);
+			byte[] result = await GetCoinjoinRequestAsync(affiliateServerHttpApiClient, body, cancellationToken).ConfigureAwait(false);
+
+			ConcurrentDictionary<AffiliationFlag, byte[]> coinjoinRequests = CoinjoinRequests.GetOrAdd(roundId, new ConcurrentDictionary<AffiliationFlag, byte[]>());
+
+			if (!coinjoinRequests.TryAdd(affiliationFlag, result))
+			{
+				throw new InvalidOperationException("The coinjoin request is already set.");
+			}
+		}
+		catch (Exception exception)
+		{
+			Logging.Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception.Message}");
+		}
+	}
+
 	private void RemoveRound(uint256 roundId)
 	{
 		if (!RoundData.TryRemove(roundId, out _))
@@ -96,7 +84,7 @@ public class CoinjoinRequestsUpdater : PeriodicRunner
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
-		if (!CoinjoinRequests.Remove(roundId))
+		if (!CoinjoinRequests.TryRemove(roundId, out _))
 		{
 			// This can occur if the round is finished before coinjoin requests are updated.
 			Logging.Logger.LogInfo($"The round ({roundId}) does not exist.");
