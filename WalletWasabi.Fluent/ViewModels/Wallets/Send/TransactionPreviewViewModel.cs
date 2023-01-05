@@ -238,7 +238,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (selectCoinsDialog.Kind == DialogResultKind.Normal && selectCoinsDialog.Result is { })
 		{
-			if (new HashSet<SmartCoin>(selectedCoins).SetEquals(selectCoinsDialog.Result))
+			if (selectedCoins.ToHashSet().SetEquals(selectCoinsDialog.Result))
 			{
 				return;
 			}
