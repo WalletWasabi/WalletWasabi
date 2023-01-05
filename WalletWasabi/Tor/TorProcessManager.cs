@@ -192,10 +192,14 @@ public class TorProcessManager : IAsyncDisposable
 					}
 				}
 			}
-			catch (System.ComponentModel.Win32Exception)
+			catch (Win32Exception ex)
 			{
-				Logger.LogError("Tor cannot be started because your chip is not compatible with the executable." +
-				                " If your chip is a Mac Silicon (M1/M2), please install Rosetta 2.");
+				string message = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+					? "Tor process cannot be started. Please check that you have installed Rosetta 2 (https://support.apple.com/en-us/HT211861) if you use Apple Silicon machine."
+					: "Failed to start the Tor process.";
+				Logger.LogError(message, ex);
+				setNewTcs = false;
+				throw;
 			}
 			catch (Exception ex)
 			{
