@@ -359,7 +359,7 @@ public class KeyManager
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
 			x.IsInternal == true &&
-		    x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
+			x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
 
 	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
 		GetKeys(x =>
