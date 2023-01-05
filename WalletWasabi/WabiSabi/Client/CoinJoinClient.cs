@@ -501,12 +501,20 @@ public class CoinJoinClient
 
 	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 	{
-		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
-			.GroupBy(x => x.ScriptPubKey)
-			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
+		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs;
+		var coinjoinOutputScripts = coinJoinOutputs.Select(x => x.ScriptPubKey);
+		var expectedOutputScripts = expectedOutputs.Select(x => x.ScriptPubKey);
+		var allMyScriptsAreThere = coinjoinOutputScripts.IsSuperSetOf(expectedOutputScripts);
 
-		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
+		var expectedScriptHashSet = coinjoinOutputScripts.ToHashSet();
+		var receivedMoney = coinJoinOutputs
+			.Where(x => expectedScriptHashSet.Contains(x.ScriptPubKey))
+			.Sum(x => x.Value);
+
+		var expectedMoneyToReceive = expectedOutputs.Sum(x => x.Value);
+		var allMyMoneyIsThere = receivedMoney >= expectedMoneyToReceive;  
+
+		return allMyScriptsAreThere && allMyMoneyIsThere;
 	}
 
 	private async Task SignTransactionAsync(
