@@ -31,7 +31,7 @@
       </Interaction.Behaviors>
 
     </c:TileControl>
-    <Popup IsOpen="{Binding IsCopyRunning, Mode=OneWay}" PlacementMode="Pointer">
+    <Popup IsOpen="{Binding IsCopyRunning^, Mode=OneWay}" PlacementMode="Pointer">
       <Border Background="{DynamicResource TileRegionColor}" Padding="8" BorderThickness="1" BorderBrush="{DynamicResource TileBorderColor}">
         <TextBlock>Copied!</TextBlock>
       </Border>

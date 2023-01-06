@@ -14,8 +14,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public class WalletBalanceTileViewModel : ActivatableViewModel
 {
-	private readonly ObservableAsPropertyHelper<bool> _isCopyActive;
-
 	public WalletBalanceTileViewModel(WalletViewModel walletVm)
 	{
 		var wallet = walletVm.Wallet;
@@ -44,10 +42,10 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 				.Concat(Observable.Timer(TimeSpan.FromSeconds(1)).ToSignal());
 		});
 
-		_isCopyActive = CopyBalanceCommand.IsExecuting.ToProperty(this, x => x.IsCopyRunning);
+		IsCopyRunning = CopyBalanceCommand.IsExecuting;
 	}
 
-	public bool IsCopyRunning => _isCopyActive.Value;
+	public IObservable<bool> IsCopyRunning { get; }
 
 	public ReactiveCommand<PointerEventArgs, Unit> CopyBalanceCommand { get; set; }
 
