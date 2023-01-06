@@ -60,7 +60,7 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackCoordinatorSignerKeyHex);
+		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackAffiliationMessageSignerKey);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
 		var apiClient = new ArenaClient(null!, null!, config.CoordinatorIdentifier, wabiSabiApi);
@@ -101,7 +101,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackCoordinatorSignerKeyHex);
+		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackAffiliationMessageSignerKey);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
 		InsecureRandom rnd = InsecureRandom.Instance;
@@ -186,7 +186,7 @@ public class ArenaClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackCoordinatorSignerKeyHex);
+		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackAffiliationMessageSignerKey);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
 		var roundState = RoundState.FromRound(round);

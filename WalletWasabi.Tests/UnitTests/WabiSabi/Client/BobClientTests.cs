@@ -47,7 +47,7 @@ public class BobClientTests
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
 		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
-		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackCoordinatorSignerKeyHex);
+		AffiliationManager affiliationManager = new(arena, ImmutableDictionary<AffiliationFlag, string>.Empty, Constants.FallbackAffiliationMessageSignerKey);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore, affiliationManager);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
