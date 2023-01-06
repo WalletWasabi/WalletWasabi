@@ -10,7 +10,7 @@
              x:DataType="tiles:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
 
-  <Grid>
+  <Panel>
     <c:TileControl Title="BALANCE" IsBottomContentVisible="{Binding HasBalance^}" SeparatorMargin="0 0 0 6">
       <Viewbox Margin="0 3" VerticalAlignment="Center" MaxHeight="40">
         <c:PrivacyContentControl Classes="h2 monoSpaced" HorizontalContentAlignment="Center"
@@ -36,5 +36,5 @@
         <TextBlock>Copied!</TextBlock>
       </Border>
     </Popup>
-  </Grid>
+  </Panel>
 </UserControl>
