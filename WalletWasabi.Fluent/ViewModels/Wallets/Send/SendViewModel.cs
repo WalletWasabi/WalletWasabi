@@ -10,6 +10,7 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -29,10 +30,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
 	Title = "Send",
-	Caption = "",
+	Caption = "Displays wallet send dialog",
 	IconName = "wallet_action_send",
+	Order = 5,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Send", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SendViewModel : RoutableViewModel
 {

@@ -135,7 +135,7 @@ public class KeyManagementTests
 			{
 				var isInternal = Random.Shared.Next(2) == 0;
 				var label = RandomString.AlphaNumeric(21);
-				var keyState = (KeyState) Random.Shared.Next(3);
+				var keyState = (KeyState)Random.Shared.Next(3);
 				manager.GenerateNewKey(label, keyState, isInternal, scriptPubKeyType);
 			}
 

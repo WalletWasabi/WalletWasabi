@@ -61,22 +61,40 @@
         <Setter Property="TextAlignment" Value="Center" />
       </Style>
 
-      <Style Selector="treeDataGrid|TreeDataGridPrivacyTextCell">
+      <Style Selector="treeDataGrid|TreeDataGridPlainTextCell">
         <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="Margin" Value="10 0" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
       </Style>
 
-      <Style Selector="ContentPresenter > TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+      <Style Selector="TreeDataGridExpanderCell">
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Border Background="{TemplateBinding Background}">
+              <DockPanel>
+                <Border DockPanel.Dock="Left"
+                        Margin="4 0"
+                        Width="12" Height="12">
+                  <ToggleButton Classes="ExpandCollapseChevron"
+                                Focusable="False"
+                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
+                                IsVisible="{TemplateBinding ShowExpander}"
+                                Cursor="Hand" />
+                </Border>
+                <Decorator Name="PART_Content" />
+              </DockPanel>
+            </Border>
+          </ControlTemplate>
+        </Setter>
       </Style>
 
     </controls:ContentArea.Styles>
 
     <TreeDataGrid Source="{Binding Source}" CanUserSortColumns="True">
-      <TreeDataGrid.ElementFactory> 
-        <treeDataGrid:PlainTextElementFactory /> 
-      </TreeDataGrid.ElementFactory> 
+      <TreeDataGrid.ElementFactory>
+        <treeDataGrid:PlainTextElementFactory />
+      </TreeDataGrid.ElementFactory>
     </TreeDataGrid>
 
   </controls:ContentArea>

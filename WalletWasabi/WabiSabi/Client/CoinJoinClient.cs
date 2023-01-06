@@ -200,6 +200,19 @@ public class CoinJoinClient
 	{
 		var roundId = roundState.Id;
 
+		// the task is watching if the round ends during operations. If it does it will trigger cancellation.
+		using CancellationTokenSource waitRoundEndedTaskCts = new();
+		using CancellationTokenSource roundEndedCts = new();
+		var waitRoundEndedTask = Task.Run(async () =>
+		{
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(waitRoundEndedTaskCts.Token, cancellationToken);
+			var rs = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, linkedCts.Token).ConfigureAwait(false);
+
+			// Indicate that the round was ended. Cancel ongoing operations those are using this CTS.
+			roundEndedCts.Cancel();
+			return rs;
+		});
+
 		try
 		{
 			ImmutableArray<AliceClient> aliceClientsThatSigned = ImmutableArray<AliceClient>.Empty;
@@ -207,14 +220,23 @@ public class CoinJoinClient
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
-				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, smartCoins, cancellationToken).ConfigureAwait(false);
+				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
+				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, smartCoins, cancelOrRoundEndedCts.Token).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				// If the Round ended we let the execution continue, otherwise throw.
+				if (!roundEndedCts.IsCancellationRequested)
+				{
+					throw;
+				}
 			}
 			catch (UnexpectedRoundPhaseException ex) when (ex.Actual == Phase.Ended)
 			{
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			roundState = await RoundStatusUpdater.CreateRoundAwaiterAsync(s => s.Id == roundId && s.Phase == Phase.Ended, cancellationToken).ConfigureAwait(false);
+			roundState = await waitRoundEndedTask.ConfigureAwait(false);
 
 			var hash = unsignedCoinJoin is { } tx ? tx.GetHash().ToString() : "Not available";
 
@@ -241,8 +263,23 @@ public class CoinJoinClient
 		}
 		finally
 		{
+			// Cancel and handle the task.
+			waitRoundEndedTaskCts.Cancel();
+			try
+			{
+				_ = await waitRoundEndedTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				// Make sure that to not generate UnobserverTaskException.
+				roundState.LogDebug(ex.Message);
+			}
+
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
-			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
+
+			// Try to update to the latest roundState.
+			var currentRoundState = RoundStatusUpdater.TryGetRoundState(roundState.Id, out var latestRoundState) ? latestRoundState : roundState;
+			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(currentRoundState));
 		}
 	}
 
@@ -492,7 +529,10 @@ public class CoinJoinClient
 				}
 				try
 				{
-					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+					using (BenchmarkLogger.Measure(LogLevel.Debug, nameof(SignTransactionAsync)))
+					{
+						await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, KeyChain, cancellationToken).ConfigureAwait(false);
+					}
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
@@ -852,6 +892,28 @@ public class CoinJoinClient
 			Logger.LogDebug($"Optimizing selection, removing coins coming from the same tx.");
 			Logger.LogDebug($"{nameof(sameTxAllowance)}: {sameTxAllowance}.");
 			Logger.LogDebug($"{nameof(winner)}: {winner.Count} coins, {string.Join(", ", winner.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
+		}
+
+		if (winner.Count < MaxInputsRegistrableByWallet)
+		{
+			// If the address of a winner contains other coins (address reuse, same HdPubKey) that are available but not selected,
+			// complete the selection with them until MaxInputsRegistrableByWallet threshold.
+			// Order by most to least reused to try not splitting coins from same address into several rounds.
+			var nonSelectedCoinsOnSameAddresses = filteredCoins
+				.Except(winner)
+				.Where(x => winner.Any(y => y.ScriptPubKey == x.ScriptPubKey))
+				.GroupBy(x => x.ScriptPubKey)
+				.OrderByDescending(g => g.Count())
+				.SelectMany(g => g)
+				.Take(MaxInputsRegistrableByWallet - winner.Count)
+				.ToList();
+
+			winner.AddRange(nonSelectedCoinsOnSameAddresses);
+
+			if (nonSelectedCoinsOnSameAddresses.Count > 0)
+			{
+				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on the same addresses of some selected coins.");
+			}
 		}
 
 		return winner.ToShuffled().ToImmutableList();
