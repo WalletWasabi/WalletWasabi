@@ -4,5 +4,5 @@ namespace WalletWasabi.Affiliation;
 
 public interface IAffiliationManager
 {
-	public AffiliateInformation GetAffiliateInformation();
+	AffiliateInformation GetAffiliateInformation();
 }
