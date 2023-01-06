@@ -17,10 +17,12 @@ public class ConfigTests
 		var config = new CoreConfig();
 		config.AddOrUpdate(configStringBuilder.ToString());
 		var expectedConfig =
-@"foo = bar
+			"""
+			foo = bar
 
-bar = bar
-";
+			bar = bar
+
+			""";
 		Assert.Equal(expectedConfig, config.ToString());
 	}
 
@@ -28,33 +30,39 @@ bar = bar
 	public void CanParse()
 	{
 		var testConfig =
-@"foo=buz
-foo = bar";
+			"""
+			foo=buz
+			foo = bar
+			""";
 
 		testConfig += Environment.NewLine;
 		testConfig += Environment.NewLine;
 		testConfig += Environment.NewLine;
 		testConfig +=
-@" foo = bar
-foo bar = buz quxx
+			"""
+			 foo = bar
+			foo bar = buz quxx
 
-too =1
-foo
-bar
-#qoo=boo";
+			too =1
+			foo
+			bar
+			#qoo=boo
+			""";
 		var coreConfig = new CoreConfig();
 		coreConfig.AddOrUpdate(testConfig);
 
 		var expectedConfig =
-@"foo = bar
+			"""
+			foo = bar
 
-foo bar = buz quxx
+			foo bar = buz quxx
 
-too = 1
-foo
-bar
-#qoo=boo
-";
+			too = 1
+			foo
+			bar
+			#qoo=boo
+
+			""";
 
 		Assert.Equal(expectedConfig, coreConfig.ToString());
 
@@ -114,30 +122,34 @@ bar
 		Assert.Equal("0", tooValue);
 
 		expectedConfig =
-@"foo = bar
+			"""
+			foo = bar
 
-foo bar = buz quxx
+			foo bar = buz quxx
 
-foo
-bar
-#qoo=boo
-moo = 1
-too = 0
-";
+			foo
+			bar
+			#qoo=boo
+			moo = 1
+			too = 0
+
+			""";
 
 		Assert.Equal(expectedConfig, coreConfig.ToString());
 
 		var expectedConfig2 =
-@"foo = bar
+			"""
+			foo = bar
 
-foo bar = buz quxx
+			foo bar = buz quxx
 
-foo
-bar
-#qoo=boo
-moo = 1
-too = 0
-";
+			foo
+			bar
+			#qoo=boo
+			moo = 1
+			too = 0
+
+			""";
 		Assert.Equal(expectedConfig2, coreConfig2.ToString());
 	}
 
@@ -145,15 +157,19 @@ too = 0
 	public void KeepsOrder()
 	{
 		var testConfig =
-@"foo=bar
-buz=qux";
+			"""
+			foo=bar
+			buz=qux
+			""";
 		var coreConfig = new CoreConfig();
 		coreConfig.AddOrUpdate(testConfig);
 
 		var expectedConfig =
-@"foo = bar
-buz = qux
-";
+			"""
+			foo = bar
+			buz = qux
+
+			""";
 
 		Assert.Equal(expectedConfig, coreConfig.ToString());
 
@@ -167,33 +183,37 @@ buz = qux
 	public void HandlesSections()
 	{
 		var testConfig =
-@"qux=1
-[main]
-foo=1
-bar=1
-[test]
-foo=2
-bar=2
-[regtest]
-foo=3
-bar=4
-[main]
-buz=1
-test.buz=2";
+			"""
+			qux=1
+			[main]
+			foo=1
+			bar=1
+			[test]
+			foo=2
+			bar=2
+			[regtest]
+			foo=3
+			bar=4
+			[main]
+			buz=1
+			test.buz=2
+			""";
 		var coreConfig = new CoreConfig();
 		coreConfig.AddOrUpdate(testConfig);
 
 		var expectedConfig =
-@"qux = 1
-main.foo = 1
-main.bar = 1
-test.foo = 2
-test.bar = 2
-regtest.foo = 3
-regtest.bar = 4
-main.buz = 1
-test.buz = 2
-";
+			"""
+			qux = 1
+			main.foo = 1
+			main.bar = 1
+			test.foo = 2
+			test.bar = 2
+			regtest.foo = 3
+			regtest.bar = 4
+			main.buz = 1
+			test.buz = 2
+
+			""";
 
 		Assert.Equal(expectedConfig, coreConfig.ToString());
 	}
