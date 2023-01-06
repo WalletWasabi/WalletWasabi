@@ -5,17 +5,16 @@ using System.Threading.Channels;
 
 public class AsyncQueue<T>
 {
-	private Channel<T> _channel { get; }
+	private Channel<T> _channel;
 
 	public AsyncQueue()
 	{
-		_channel = Channel.CreateUnbounded<T>(
-			new UnboundedChannelOptions
-			{
-				SingleReader = false,
-				SingleWriter = false
-			}
-		);
+		UnboundedChannelOptions unboundedChannelOptions = new()
+		{
+			SingleReader = false,
+			SingleWriter = false
+		};
+		_channel = Channel.CreateUnbounded<T>(unboundedChannelOptions);
 	}
 
 	public async Task<T> DequeueAsync(CancellationToken cancellationToken)
