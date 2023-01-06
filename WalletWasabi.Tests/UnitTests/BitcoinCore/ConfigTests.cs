@@ -14,6 +14,7 @@ public class ConfigTests
 		configStringBuilder.Append(Environment.NewLine);
 		configStringBuilder.Append(Environment.NewLine);
 		configStringBuilder.Append("bar=bar");
+
 		var config = new CoreConfig();
 		config.AddOrUpdate(configStringBuilder.ToString());
 		var expectedConfig =
