@@ -17,7 +17,7 @@ namespace WalletWasabi.Affiliation;
 public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 {
 	private static readonly TimeSpan AffiliateServerTimeout = TimeSpan.FromSeconds(60);
-	public CoinjoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, CoinJoinRequestRequestsSigner signer)
+	public CoinjoinRequestsUpdater(Arena arena, ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> clients, AffiliationMessageSigner signer)
 	{
 		Arena = arena;
 		Clients = clients;
@@ -31,7 +31,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 	}
 
 	private Arena Arena { get; }
-	private CoinJoinRequestRequestsSigner Signer { get; }
+	private AffiliationMessageSigner Signer { get; }
 	private ImmutableDictionary<AffiliationFlag, AffiliateServerHttpApiClient> Clients { get; }
 	private ConcurrentDictionary<uint256, ConcurrentDictionary<AffiliationFlag, byte[]>> CoinjoinRequests { get; }
 	private ConcurrentDictionary<uint256, RoundData> RoundData { get; }
