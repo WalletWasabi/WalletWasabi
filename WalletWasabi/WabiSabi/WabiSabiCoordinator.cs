@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -19,7 +20,9 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore, CoinJoinScriptStore coinJoinScriptStore, CoinVerifier? coinVerifier = null)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc, ICoinJoinIdStore coinJoinIdStore,
+		CoinJoinScriptStore coinJoinScriptStore, IHttpClientFactory httpClientFactory,
+		CoinVerifier? coinVerifier = null)
 	{
 		Parameters = parameters;
 
@@ -43,6 +46,7 @@ public class WabiSabiCoordinator : BackgroundService
 			Warden.Prison,
 			coinJoinIdStore,
 			roundParameterFactory,
+			httpClientFactory,
 			transactionArchiver,
 			coinJoinScriptStore,
 			coinVerifier);

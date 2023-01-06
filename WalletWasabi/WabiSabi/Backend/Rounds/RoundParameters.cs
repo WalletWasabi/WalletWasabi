@@ -102,7 +102,7 @@ public record RoundParameters
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
 			wabiSabiConfig.AllowedInputTypes,
-			wabiSabiConfig.AllowedOutputTypes,
+			wabiSabiConfig.AllowedOutputTypes.ToImmutableSortedSet(),
 			wabiSabiConfig.StandardInputRegistrationTimeout,
 			wabiSabiConfig.ConnectionConfirmationTimeout,
 			wabiSabiConfig.OutputRegistrationTimeout,

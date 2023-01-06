@@ -12,6 +12,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net.Http;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
@@ -42,6 +43,7 @@ public class Startup
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 
 		services.AddMemoryCache();
+		services.AddHttpClient();
 
 		services.AddMvc(options => options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress))))
 			.AddControllersAsServices();
@@ -95,7 +97,7 @@ public class Startup
 			IMemoryCache memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
 			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
 
-			return new Global(dataDir, cachedRpc, config);
+			return new Global(dataDir, cachedRpc, config, serviceProvider.GetRequiredService<IHttpClientFactory>());
 		});
 		services.AddSingleton(serviceProvider =>
 		{

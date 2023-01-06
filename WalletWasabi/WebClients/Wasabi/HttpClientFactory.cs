@@ -39,7 +39,18 @@ public class HttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
 		}
 		else
 		{
+			if (BackendUriGetter().IsLoopback)
+			{
+				var handler = new HttpClientHandler();
+				// Only GZip is currently used by Wasabi Backend.
+				handler.AutomaticDecompression = DecompressionMethods.GZip;
+				handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
+				HttpClient = new(handler);
+			}
+
 			BackendHttpClient = new ClearnetHttpClient(HttpClient, BackendUriGetter);
+			
 		}
 
 		SharedWasabiClient = new(BackendHttpClient);

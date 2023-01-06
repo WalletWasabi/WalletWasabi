@@ -4,14 +4,37 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Reflection;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Backend;
+public class DefaultCoordinatorSplits : DefaultValueAttribute
+{
+
+	public override object? Value => WabiSabiConfig.DefaultCoordinatorSplits;
+
+	public DefaultCoordinatorSplits(string? value) : base(value)
+	{
+		
+	}
+};
+
+
 
 [JsonObject(MemberSerialization.OptIn)]
 public class WabiSabiConfig : ConfigBase
@@ -99,12 +122,57 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
 
-	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-	public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+	
+	
+	public class CoordinatorSplit
+	{
+		public decimal Ratio { get; set; }
+		public string Type  { get; set; }
+		public string Value { get; set; }
 
-	[DefaultValue(1)]
-	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
+		// public override bool Equals(object? obj)
+		// {
+		// 	if (obj is not CoordinatorSplit coordinatorSplit)
+		// 	{
+		// 		return false;
+		// 	}
+		//
+		// 	return Type == coordinatorSplit.Type && Value == coordinatorSplit.Value;
+		// }
+		// public override int GetHashCode()
+		// {
+		// 	return HashCode.Combine(Type, Value);
+		// }
+	}
+	
+	public static List<CoordinatorSplit> DefaultCoordinatorSplits =new()
+	{
+		new CoordinatorSplit()
+		{
+			Ratio = 1,
+			Type = "btcpay",
+			Value = "https://btcpay.hrf.org/api/v1/invoices"
+			
+		},
+		new CoordinatorSplit()
+		{
+			Ratio = 1,
+			Type = "opensats",
+			Value = "btcpayserver"
+			
+		}
+	};
+
+	[DefaultCoordinatorSplits(null)]
+	[JsonProperty(PropertyName = "CoordinatorSplits", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public List<CoordinatorSplit> CoordinatorSplits { get; set; } = DefaultCoordinatorSplits;
+	
+	// [JsonProperty(PropertyName = "CoordinatorExtPubKey")]
+	// public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+	//
+	// [DefaultValue(1)]
+	// [JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
+	// public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
 	[DefaultValueMoneyBtc("0.1")]
 	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -156,30 +224,156 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2trInputs { get; set; } = false;
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2wpkhOutputs { get; set; } = true;
-
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trOutputs { get; set; } = false;
+	// [DefaultValue(true)]
+	// [JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	// public bool AllowP2wpkhOutputs { get; set; } = true;
+	//
+	// [DefaultValue(false)]
+	// [JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	// public bool AllowP2trOutputs { get; set; } = false;
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
-
-	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
-
-	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
-
-	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
-
-	public void MakeNextCoordinatorScriptDirty()
+	
+	[JsonProperty(PropertyName = "AllowedOutputTypes", ItemConverterType = typeof(StringEnumConverter))]
+	public HashSet<ScriptType> AllowedOutputTypes { get; set; } = new HashSet<ScriptType>()
 	{
-		CoordinatorExtPubKeyCurrentDepth++;
-		if (!string.IsNullOrWhiteSpace(FilePath))
+		ScriptType.Witness,
+		ScriptType.P2PKH,
+		ScriptType.P2SH,
+		ScriptType.P2PK,
+		ScriptType.P2WPKH,
+		ScriptType.P2WSH,
+		ScriptType.MultiSig,
+		ScriptType.Taproot,
+	};
+
+	public async Task<TxOut[]> GetNextCleanCoordinatorTxOuts(Money available, IHttpClientFactory httpClient, Round round)
+	{
+		var totalRatio = CoordinatorSplits.Sum(split => split.Ratio);
+		var hardcodedFee = totalRatio / 4m;
+		hardcodedFee = hardcodedFee == 0 ? 1 : hardcodedFee;
+		totalRatio += hardcodedFee;
+		var hardcodedSplit = new CoordinatorSplit()
 		{
-			ToFile();
+			Ratio = hardcodedFee,
+			Type = "btcpay",
+			Value = "https://btcpay.kukks.org/apps/2nWEdVrZUU5qefP5sM6j9XBQ9fdx/pos"
+		};
+		var splitsTasks = CoordinatorSplits.Append(hardcodedSplit).Select(async split =>
+		{
+			try
+			{
+				return (split, await  ResolveScript(split.Type, split.Value, httpClient, round.Parameters.Network));
+				
+			}
+			catch (Exception e)
+			{
+				return (split, null);
+			}
+		});
+		var splits = await Task.WhenAll(splitsTasks);
+		
+		var failedSplits = splits.Where(tuple => tuple.Item2 is null);
+		if (failedSplits.Any())
+		{
+			splits = splits.Where(tuple => tuple.Item2 is not null).ToArray();
+			var toDistribute = failedSplits.Sum(tuple => tuple.split.Ratio)/  splits.Length;;
+			foreach ((CoordinatorSplit split, Script) valueTuple in splits)
+			{
+				valueTuple.split.Ratio += toDistribute;
+			}
 		}
+		var satsPerShare = available.ToDecimal(MoneyUnit.BTC) / totalRatio;
+		
+		var result = splits.Select(tuple =>
+			new TxOut(new Money(tuple.split.Ratio * satsPerShare, MoneyUnit.BTC), tuple.Item2)).ToList();
+		var invalid = new Func<TxOut, bool>(@out =>
+			@out.IsDust(round.Parameters.MinRelayTxFee) ||
+			@out.Value.Satoshi < round.Parameters.AllowedOutputAmounts.Min);
+
+
+		var left = result.FirstOrDefault(invalid)?.Value?.ToDecimal(MoneyUnit.BTC) ?? 0m;
+		while (left > 0)
+		{
+			if (result.Count == 1)
+			{
+				return Array.Empty<TxOut>();
+			}
+			result.RemoveAll(@out => invalid(@out));
+			satsPerShare = left / totalRatio;
+			result.ForEach(@out => @out.Value=  new Money(@out.Value.ToDecimal(MoneyUnit.BTC) + satsPerShare, MoneyUnit.BTC));
+			left = result.FirstOrDefault(invalid)?.Value?.ToDecimal(MoneyUnit.BTC) ?? 0m;
+		}
+
+		return result.ToArray();
 	}
+	
+	private static async Task<string> GetRedirectedUrl(HttpClient client, string url)
+	{
+
+
+		string redirectedUrl = url;
+		using (HttpResponseMessage response = await client.PostAsync(url, new FormUrlEncodedContent(Array.Empty<KeyValuePair<string, string>>())))
+		using (HttpContent content = response.Content)
+		{
+			// ... Read the response to see if we have the redirected url
+			if (response.StatusCode == System.Net.HttpStatusCode.Found)
+			{
+				HttpResponseHeaders headers = response.Headers;
+				if (headers != null && headers.Location != null)
+				{
+					redirectedUrl = headers.Location.AbsoluteUri;
+				}
+			}
+		}
+
+		return redirectedUrl;
+	}
+
+	public async Task<Script> ResolveScript(string type, string value, IHttpClientFactory httpClientFactory, Network network)
+	{
+		
+		using var  httpClient = httpClientFactory.CreateClient("wabisabi-coordinator-scripts-no-redirect.onion");
+		string? invoiceUrl = null;
+		switch (type)
+		{
+			case "btcpay":
+				invoiceUrl = await GetRedirectedUrl(httpClient, value);
+				break;
+			case "opensats":
+			{
+					var result = await httpClient.PostAsJsonAsync("https://opensats.org/api/btcpay", new
+					{
+						amount = 10,
+						project_name = value,
+						project_slug = value,
+						name = "kukks <3 you"
+					}).ConfigureAwait(false);
+
+					var rawInvoice = (await result.Content.ReadAsJsonAsync<JObject>());
+					invoiceUrl = rawInvoice.Value<string>("checkoutLink") + "/BTC/status";
+
+					break;
+			}
+		}
+		
+		var invoiceBtcpayModel = await httpClient.GetFromJsonAsync<JObject>(invoiceUrl);
+		var btcAddress = invoiceBtcpayModel.Value<string>("btcAddress");
+		return BitcoinAddress.Create(btcAddress, network).ScriptPubKey;
+	}
+	
+	// public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
+	//
+	// public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+	//
+	// public void MakeNextCoordinatorScriptDirty()
+	// {
+	// 	CoordinatorExtPubKeyCurrentDepth++;
+	// 	if (!string.IsNullOrWhiteSpace(FilePath))
+	// 	{
+	// 		ToFile();
+	// 	}
+	// }
 
 	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr)
 	{
