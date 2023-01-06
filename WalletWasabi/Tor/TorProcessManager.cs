@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -194,7 +195,7 @@ public class TorProcessManager : IAsyncDisposable
 			}
 			catch (Win32Exception ex)
 			{
-				string message = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+				var message = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) && (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
 					? "Tor process cannot be started. Please check that you have installed Rosetta 2 (https://support.apple.com/en-us/HT211861) if you use Apple Silicon machine."
 					: "Failed to start the Tor process.";
 				Logger.LogError(message, ex);
