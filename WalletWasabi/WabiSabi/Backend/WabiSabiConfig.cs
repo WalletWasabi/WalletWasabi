@@ -166,9 +166,9 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowP2trOutputs { get; set; } = false;
 
-	[DefaultValue(Constants.FallbackCoordinatorSignerKeyHex)]
-	[JsonProperty(PropertyName = "CoordinatorSignerKeyHex", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string CoordinatorSignerKeyHex { get; set; } = Constants.FallbackCoordinatorSignerKeyHex;
+	[DefaultValue(Constants.FallbackAffiliationMessageSignerKey)]
+	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string AffiliationMessageSignerKey { get; set; } = Constants.FallbackAffiliationMessageSignerKey;
 
 	[DefaultAffiliateServersAttribute]
 	[JsonProperty(PropertyName = "AffiliateServers", DefaultValueHandling = DefaultValueHandling.Populate)]
