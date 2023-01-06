@@ -21,6 +21,6 @@ public class SignatureTests
 	[Fact]
 	public void FallbackSignerKeyTest()
 	{
-		CoinJoinRequestRequestsSigner signer = new(Constants.FallbackCoordinatorSignerKeyHex);
+		AffiliationMessageSigner signer = new(Constants.FallbackAffiliationMessageSignerKey);
 	}
 }
