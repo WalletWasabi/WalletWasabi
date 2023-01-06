@@ -42,6 +42,23 @@ public class TorTests : IAsyncLifetime
 		await QBitTestAsync(client, 10, alterRequests: true);
 	}
 
+	[Theory]
+	[InlineData(150)]
+	public async Task OverloadTestAsync(int times)
+	{
+		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
+
+		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(10));
+		var tasks = new List<Task>();
+		for (var i = 0; i < times; i++)
+		{
+			var task = client.SendAsync(HttpMethod.Get, "/", null, ctsTimeout.Token);
+			tasks.Add(task);
+		}
+
+		await Task.WhenAll(tasks);
+	}
+
 	[Fact]
 	public async Task CanRequestChunkEncodedAsync()
 	{
