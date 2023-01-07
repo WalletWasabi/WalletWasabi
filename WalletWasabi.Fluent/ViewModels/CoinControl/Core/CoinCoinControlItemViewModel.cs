@@ -7,6 +7,7 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 {
 	public CoinCoinControlItemViewModel(SmartCoin smartCoin)
 	{
+		SmartCoin = smartCoin;
 		Amount = smartCoin.Amount;
 		IsConfirmed = smartCoin.Confirmed;
 		IsBanned = smartCoin.IsBanned;
@@ -17,5 +18,9 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		AnonymityScore = (int)smartCoin.HdPubKey.AnonymitySet;
 		Labels = smartCoin.HdPubKey.Label;
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
+		IsSelected = false;
+		CanBeSelected = !IsCoinjoining;
 	}
+
+	public SmartCoin SmartCoin { get; }
 }
