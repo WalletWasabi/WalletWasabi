@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -10,13 +12,18 @@ using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
 public class TorTests : IAsyncLifetime
 {
-	public TorTests()
+
+	private ITestOutputHelper TestOutputHelper { get; }
+
+	public TorTests(ITestOutputHelper testOutputHelper)
 	{
+		TestOutputHelper = testOutputHelper;
 		TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
 		TorManager = new(Common.TorSettings);
 	}
@@ -49,14 +56,32 @@ public class TorTests : IAsyncLifetime
 		TorHttpClient client = MakeTorHttpClient(new("http://api.ipify.org/"), Mode.NewCircuitPerRequest);
 
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(10));
-		var tasks = new List<Task>();
+		var sw = new Stopwatch();
+		sw.Start();
+
+		var tasks = new List<Task<bool>>();
 		for (var i = 0; i < times; i++)
 		{
-			var task = client.SendAsync(HttpMethod.Get, "/", null, ctsTimeout.Token);
+			var task = SendHandleExceptAsync(client, ctsTimeout.Token);
 			tasks.Add(task);
 		}
+		var results = await Task.WhenAll(tasks);
 
-		await Task.WhenAll(tasks);
+		sw.Stop();
+		TestOutputHelper.WriteLine($"Elapsed seconds: {sw.Elapsed.TotalSeconds} - Successes: {results.Count(x => x)} - Failures: {results.Count(x => !x)}");
+	}
+
+	private async Task<bool> SendHandleExceptAsync(TorHttpClient client, CancellationToken cancel)
+	{
+		try
+		{
+			await client.SendAsync(HttpMethod.Get, "/", null, cancel);
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
 	}
 
 	[Fact]
