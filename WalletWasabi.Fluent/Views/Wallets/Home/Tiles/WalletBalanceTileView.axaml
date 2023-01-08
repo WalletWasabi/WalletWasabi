@@ -19,9 +19,7 @@
     <c:TileControl.BottomContent>
       <c:PrivacyContentControl Classes="bold monoSpaced" Margin="4" VerticalAlignment="Center"
                                HorizontalAlignment="Center" Opacity="0.8"
-                               Content="{Binding BalanceFiat^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}">
-      </c:PrivacyContentControl>
-
+                               Content="{Binding BalanceFiat^, Converter={x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}}" />
     </c:TileControl.BottomContent>
 
     <Interaction.Behaviors>
