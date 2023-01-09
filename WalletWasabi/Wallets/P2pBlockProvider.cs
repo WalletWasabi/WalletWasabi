@@ -15,8 +15,7 @@ using WalletWasabi.WebClients.Wasabi;
 namespace WalletWasabi.Wallets;
 
 /// <summary>
-/// P2pBlockProvider is a blocks provider that provides blocks
-/// from bitcoin nodes using the P2P bitcoin protocol.
+/// P2P block provider is a blocks provider getting the blocks from bitcoin nodes using the P2P bitcoin protocol.
 /// </summary>
 public class P2pBlockProvider : IBlockProvider
 {
@@ -31,15 +30,13 @@ public class P2pBlockProvider : IBlockProvider
 		Network = network;
 	}
 
-	public static event EventHandler<bool>? DownloadingBlockChanged;
+	private NodesGroup Nodes { get; }
+	private CoreNode? CoreNode { get; }
+	private HttpClientFactory HttpClientFactory { get; }
+	private ServiceConfiguration ServiceConfiguration { get; }
+	private Network Network { get; }
 
-	public NodesGroup Nodes { get; }
-	public CoreNode? CoreNode { get; }
-	public HttpClientFactory HttpClientFactory { get; }
-	public ServiceConfiguration ServiceConfiguration { get; }
-	public Network Network { get; }
-
-	public Node? LocalBitcoinCoreNode
+	private Node? LocalBitcoinCoreNode
 	{
 		get
 		{
@@ -50,7 +47,7 @@ public class P2pBlockProvider : IBlockProvider
 
 			return _localBitcoinCoreNode;
 		}
-		private set => _localBitcoinCoreNode = value;
+		set => _localBitcoinCoreNode = value;
 	}
 
 	private int NodeTimeouts { get; set; }
@@ -64,90 +61,80 @@ public class P2pBlockProvider : IBlockProvider
 	/// <returns>The requested bitcoin block.</returns>
 	public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
-		Block? block = null;
-		try
-		{
-			DownloadingBlockChanged?.Invoke(null, true);
+		Block? block;
 
-			while (true)
+		while (true)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			try
 			{
-				cancellationToken.ThrowIfCancellationRequested();
+				// Try to get block information from local running Core node first.
+				block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
+
+				if (block is { })
+				{
+					break;
+				}
+
+				// If no connection, wait, then continue.
+				while (Nodes.ConnectedNodes.Count == 0)
+				{
+					await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+				}
+
+				// Select a random node we are connected to.
+				Node? node = Nodes.ConnectedNodes.RandomElement();
+				if (node is null || !node.IsConnected)
+				{
+					await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+					continue;
+				}
+
+				// Download block from selected node.
 				try
 				{
-					// Try to get block information from local running Core node first.
-					block = await TryDownloadBlockFromLocalNodeAsync(hash, cancellationToken).ConfigureAwait(false);
+					// More permissive timeout if few nodes are connected to avoid exhaustion
+					var timeout = Nodes.ConnectedNodes.Count < 3
+						? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
+						: RuntimeParams.Instance.NetworkNodeTimeout;
 
-					if (block is { })
+					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
 					{
-						break;
+						using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+						block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
 					}
 
-					// If no connection, wait, then continue.
-					while (Nodes.ConnectedNodes.Count == 0)
+					// Validate block
+					if (!block.Check())
 					{
-						await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-					}
-
-					// Select a random node we are connected to.
-					Node? node = Nodes.ConnectedNodes.RandomElement();
-					if (node is null || !node.IsConnected)
-					{
-						await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 						continue;
 					}
 
-					// Download block from selected node.
-					try
-					{
-						// More permissive timeout if few nodes are connected to avoid exhaustion
-						var timeout = Nodes.ConnectedNodes.Count < 3
-							? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout*1.5,600)
-							: RuntimeParams.Instance.NetworkNodeTimeout;
+					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
-						using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout)))
-						{
-							using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-							block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
-						}
+					await NodeTimeoutsAsync(increaseDecrease: false).ConfigureAwait(false);
+				}
+				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
+				{
+					await NodeTimeoutsAsync(increaseDecrease: true).ConfigureAwait(false);
 
-						// Validate block
-						if (!block.Check())
-						{
-							DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
-							continue;
-						}
-
-						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-
-						await NodeTimeoutsAsync(false).ConfigureAwait(false);
-					}
-					catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
-					{
-						await NodeTimeoutsAsync(true).ConfigureAwait(false);
-
-						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
-						continue;
-					}
-					catch (Exception ex)
-					{
-						Logger.LogDebug(ex);
-						DisconnectNode(node,
-							$"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.",
-							force: true);
-						continue;
-					}
-
-					break; // If got this far, then we have the block and it's valid. Break.
+					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+					continue;
 				}
 				catch (Exception ex)
 				{
 					Logger.LogDebug(ex);
+					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.", force: true);
+					continue;
 				}
+
+				break; // If got this far, then we have the block and it's valid. Break.
 			}
-		}
-		finally
-		{
-			DownloadingBlockChanged?.Invoke(null, false);
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex);
+			}
 		}
 
 		return block;
@@ -322,7 +309,7 @@ public class P2pBlockProvider : IBlockProvider
 
 		// Sanity check
 		var minTimeout = Network == Network.Main ? 3 : 2;
-		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout*1.5) : minTimeout;
+		minTimeout = HttpClientFactory.IsTorEnabled ? (int)Math.Round(minTimeout * 1.5) : minTimeout;
 		if (timeout < minTimeout)
 		{
 			timeout = minTimeout;

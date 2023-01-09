@@ -29,10 +29,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
 	Title = "Send",
-	Caption = "",
+	Caption = "Displays wallet send dialog",
 	IconName = "wallet_action_send",
+	Order = 5,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Send", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SendViewModel : RoutableViewModel
 {
@@ -110,12 +112,14 @@ public partial class SendViewModel : RoutableViewModel
 					return;
 				}
 
+				var amount = new Money(AmountBtc, MoneyUnit.BTC);
 				var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _wallet.Network), _wallet.AnonScoreTarget)
 				{
-					Amount = new Money(AmountBtc, MoneyUnit.BTC),
+					Amount = amount,
 					Recipient = label,
-					PayJoinClient = PayJoinEndPoint is { } ? GetPayjoinClient(PayJoinEndPoint) : null,
-					IsFixedAmount = _isFixedAmount
+					PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
+					IsFixedAmount = IsFixedAmount,
+					SubtractFee = amount == _wallet.Coins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
 				};
 
 				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
@@ -165,7 +169,7 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
-	private IPayjoinClient? GetPayjoinClient(string endPoint)
+	private IPayjoinClient? GetPayjoinClient(string? endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
