@@ -189,13 +189,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 		{
 			InsertWallet(ClosedWalletViewModel.Create(wallet));
 		}
-
-		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
-
-		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
-		{
-			walletToSelect.OpenCommand.Execute(default);
-		}
 	}
 
 	private bool TryGetWalletViewModel(Wallet wallet, [NotNullWhen(true)] out WalletViewModelBase? walletViewModel)

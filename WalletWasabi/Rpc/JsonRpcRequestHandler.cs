@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Extensions;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Rpc;

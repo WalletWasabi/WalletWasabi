@@ -72,7 +72,7 @@ public static class ServiceFactory
 
 	public static KeyManager CreateWatchOnlyKeyManager()
 	{
-		Mnemonic mnemonic = new (Wordlist.English, WordCount.Twelve);
+		Mnemonic mnemonic = new(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey();
 
 		return KeyManager.CreateNewWatchOnly(

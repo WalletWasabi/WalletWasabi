@@ -57,7 +57,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		AmountText = $"{destinationAmount.ToFormattedString()} BTC";
 
 		var fee = _transaction.Fee;
-		FeeText = fee.ToFeeDisplayUnitString();
+		FeeText = fee.ToFeeDisplayUnitFormattedString();
 
 		var exchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 		if (exchangeRate != 0)

@@ -9,7 +9,7 @@ namespace WalletWasabi.Helpers;
 
 public class RuntimeParams
 {
-	private static RuntimeParams InternalInstance = null;
+	private static RuntimeParams? InternalInstance = null;
 	private static string FileDir;
 
 	private RuntimeParams()

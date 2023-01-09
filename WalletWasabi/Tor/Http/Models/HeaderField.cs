@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Tor.Http.Constants;
 

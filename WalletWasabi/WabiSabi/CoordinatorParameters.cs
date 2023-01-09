@@ -1,4 +1,5 @@
 using System.IO;
+using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.WabiSabi;

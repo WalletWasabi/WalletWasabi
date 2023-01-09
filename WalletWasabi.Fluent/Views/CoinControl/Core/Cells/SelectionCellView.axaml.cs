@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyBar;
+namespace WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
-public partial class PrivacyBar : UserControl
+public class SelectionCellView : UserControl
 {
-	public PrivacyBar()
+	public SelectionCellView()
 	{
 		InitializeComponent();
 	}
