@@ -37,24 +37,24 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="create:RecoveryWordViewModel">
-            <CheckBox IsChecked="{Binding IsSelected}"
+            <ToggleButton IsChecked="{Binding IsSelected}"
                       IsEnabled="{Binding IsEnabled}">
-              <CheckBox.Styles>
-                <Style Selector="CheckBox[IsChecked=True] /template/ c|TagControl">
+              <ToggleButton.Styles>
+                <Style Selector="ToggleButton[IsChecked=True] /template/ c|TagControl">
                   <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
                   <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
                 </Style>
-                <Style Selector="CheckBox[IsEnabled=False] /template/ c|TagControl">
+                <Style Selector="ToggleButton[IsEnabled=False] /template/ c|TagControl">
                   <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
                   <Setter Property="BorderBrush" Value="{DynamicResource ButtonForegroundDisabled}" />
                 </Style>
-              </CheckBox.Styles>
-              <CheckBox.Template>
+              </ToggleButton.Styles>
+              <ToggleButton.Template>
                 <ControlTemplate>
                   <c:TagControl DataContext="{Binding Word}" Content="{Binding .}" ToolTip.Tip="{x:Null}" />
                 </ControlTemplate>
-              </CheckBox.Template>
-            </CheckBox>
+              </ToggleButton.Template>
+            </ToggleButton>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
