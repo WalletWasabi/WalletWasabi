@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
 using Microsoft.Extensions.Hosting;
-using System.Collections.Generic;
 
 namespace WalletWasabi.Affiliation;
 
