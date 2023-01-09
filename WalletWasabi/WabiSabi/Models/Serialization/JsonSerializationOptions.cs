@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using WalletWasabi.Affiliation.Serialization;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Timing;
@@ -29,7 +30,7 @@ public class JsonSerializationOptions
 				new TimeSpanJsonConverter(),
 				new CoinJsonConverter(),
 				new CoinJoinEventJsonConverter(),
-				new Affiliation.Serialization.AffiliationFlagJsonConverter(),
+				new AffiliationFlagJsonConverter(),
 			}
 	};
 	public static readonly JsonSerializationOptions Default = new();
