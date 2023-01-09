@@ -6,7 +6,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
-public class SignatureTests
+public class AffiliationMessageSignerTests
 {
 	public (string, string) GenerateKey()
 	{
