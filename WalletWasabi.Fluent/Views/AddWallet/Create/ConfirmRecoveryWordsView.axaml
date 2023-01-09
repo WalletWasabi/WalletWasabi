@@ -38,7 +38,7 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="create:RecoveryWordViewModel">
             <ToggleButton IsChecked="{Binding IsSelected}"
-                      IsEnabled="{Binding IsEnabled}">
+                          IsEnabled="{Binding IsEnabled}">
               <ToggleButton.Styles>
                 <Style Selector="ToggleButton[IsChecked=True] /template/ c|TagControl">
                   <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
@@ -59,8 +59,8 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Panel Grid.Row="2">
-        <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
+      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ItemsControl Items="{Binding ConfirmationWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
@@ -86,10 +86,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Grid ColumnDefinitions="*,1,*,1,*"
-            HorizontalAlignment="Center" VerticalAlignment="Center"
-            Width="{Binding #ItemsControl.Bounds.Width}"
-            Height="{Binding #ItemsControl.Bounds.Height}">
+        <Grid ColumnDefinitions="*,1,*,1,*">
           <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
