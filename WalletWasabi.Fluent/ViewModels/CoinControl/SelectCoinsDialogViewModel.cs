@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -27,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins, Money desiredAmount)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);
@@ -47,13 +49,28 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			}
 		};
 
+		EnoughSelected = SelectedCoins(pocketItems)
+			.Select(coinItems => new Money(coinItems.Sum(n => n.Amount)))
+			.Select(sum => sum >= desiredAmount);
+
 		Source.SortBy(pocketColumn, ListSortDirection.Descending);
 		Source.RowSelection!.SingleSelect = true;
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)));
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)), EnoughSelected);
 	}
+
+	private static IObservable<IEnumerable<CoinCoinControlItemViewModel>> SelectedCoins(IReadOnlyCollection<PocketCoinControlItemViewModel> pocketItems)
+	{
+		return GetAllCoinItems(pocketItems)
+			.AsObservableChangeSet()
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(x => x.Where(m => m.IsSelected == true));
+	}
+
+	public IObservable<bool> EnoughSelected { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
 
