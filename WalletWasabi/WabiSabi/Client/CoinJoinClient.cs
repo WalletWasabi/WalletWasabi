@@ -499,22 +499,23 @@ public class CoinJoinClient
 				arenaRequestHandler));
 	}
 
-	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
+	internal static bool SanityCheck(IEnumerable<TxOut> expectedOutputs, IEnumerable<TxOut> coinJoinOutputs)
 	{
-		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs;
-		var coinjoinOutputScripts = coinJoinOutputs.Select(x => x.ScriptPubKey);
-		var expectedOutputScripts = expectedOutputs.Select(x => x.ScriptPubKey);
-		var allMyScriptsAreThere = coinjoinOutputScripts.IsSuperSetOf(expectedOutputScripts);
+		bool AllExpectedScriptsArePresent() =>
+			coinJoinOutputs
+				.Select(x => x.ScriptPubKey)
+				.IsSuperSetOf(expectedOutputs.Select(x => x.ScriptPubKey));
 
-		var expectedScriptHashSet = coinjoinOutputScripts.ToHashSet();
-		var receivedMoney = coinJoinOutputs
-			.Where(x => expectedScriptHashSet.Contains(x.ScriptPubKey))
-			.Sum(x => x.Value);
-
-		var expectedMoneyToReceive = expectedOutputs.Sum(x => x.Value);
-		var allMyMoneyIsThere = receivedMoney >= expectedMoneyToReceive;  
-
-		return allMyScriptsAreThere && allMyMoneyIsThere;
+		bool AllOutputsHaveAtLeastTheExpectedValue() =>
+			coinJoinOutputs
+				.Join(
+					expectedOutputs,
+					x => x.ScriptPubKey,
+					x => x.ScriptPubKey,
+					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
+				.All(x => x >= 0);
+		
+		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
 	private async Task SignTransactionAsync(
@@ -1122,7 +1123,7 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
-		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction);
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 		if (!mustSignAllInputs)
 		{
 			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
