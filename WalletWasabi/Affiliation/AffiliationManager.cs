@@ -7,12 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http;
 using Microsoft.Extensions.Hosting;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Affiliation;
 
 public class AffiliationManager : BackgroundService, IAffiliationManager, IDisposable
 {
-	public AffiliationManager(Arena arena, ImmutableDictionary<AffiliationFlag, string> urls, string privateKeyHex, IHttpClientFactory httpClientFactory)
+	public AffiliationManager(Arena arena, IReadOnlyDictionary<AffiliationFlag, string> urls, string privateKeyHex, IHttpClientFactory httpClientFactory)
 	{
 		Signer = new(privateKeyHex);
 		Arena = arena;
