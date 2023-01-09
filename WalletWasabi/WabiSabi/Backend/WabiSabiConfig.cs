@@ -170,7 +170,7 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "AffiliationMessageSignerKey", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string AffiliationMessageSignerKey { get; set; } = Constants.FallbackAffiliationMessageSignerKey;
 
-	[DefaultAffiliateServersAttribute]
+	[DefaultAffiliateServers]
 	[JsonProperty(PropertyName = "AffiliateServers", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public ImmutableDictionary<AffiliationFlag, string> AffiliateServers { get; set; } = ImmutableDictionary<AffiliationFlag, string>.Empty;
 
