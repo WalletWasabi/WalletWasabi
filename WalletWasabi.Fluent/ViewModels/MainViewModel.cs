@@ -194,7 +194,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletCoinsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel)
 			{
 				return new WalletCoinsViewModel(walletViewModel);
 			}
@@ -204,7 +204,7 @@ public partial class MainViewModel : ViewModelBase
 
 		CoinJoinSettingsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel && !walletViewModel.IsWatchOnly)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel && !walletViewModel.IsWatchOnly)
 			{
 				return walletViewModel.CoinJoinSettings;
 			}
@@ -214,7 +214,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletSettingsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel)
 			{
 				return walletViewModel.Settings;
 			}
@@ -224,7 +224,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletStatsViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel)
 			{
 				return new WalletStatsViewModel(walletViewModel);
 			}
@@ -234,7 +234,7 @@ public partial class MainViewModel : ViewModelBase
 
 		WalletInfoViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel)
 			{
 				// TODO: Display password dialog if needed, see WalletInfoCommand execute action.
 				return new WalletInfoViewModel(walletViewModel);
@@ -245,7 +245,7 @@ public partial class MainViewModel : ViewModelBase
 
 		SendViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel)
 			{
 				// TODO: Check if we can send?
 				return new SendViewModel(walletViewModel);
@@ -256,7 +256,7 @@ public partial class MainViewModel : ViewModelBase
 
 		ReceiveViewModel.RegisterLazy(() =>
 		{
-			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			if (UiServices.WalletManager.Wallets.FirstOrDefault(x => x.IsSelected) is WalletViewModel walletViewModel)
 			{
 				return new ReceiveViewModel(walletViewModel.Wallet);
 			}
