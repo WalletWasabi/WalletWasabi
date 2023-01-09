@@ -9,7 +9,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitor.Columns.MaxSuggestedAmountColumnView">
   <c:PrivacyContentControl Content="{Binding MaxSuggestedAmount}"
-                           NumberOfPrivacyChars="9"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"
                            Margin="5 0 0 0"

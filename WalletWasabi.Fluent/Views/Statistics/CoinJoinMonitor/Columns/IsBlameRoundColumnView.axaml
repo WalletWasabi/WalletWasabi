@@ -9,7 +9,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitor.Columns.IsBlameRoundColumnView">
   <c:PrivacyContentControl Content="{Binding IsBlameRound}"
-                           NumberOfPrivacyChars="9"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
                            Margin="0 0 0 0"
