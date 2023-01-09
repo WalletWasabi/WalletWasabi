@@ -35,7 +35,7 @@ public static class HardwareWalletOperationHelpers
 			device.Path,
 			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86),
 			genCts.Token).ConfigureAwait(false);
-		
+
 		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, taprootExtPubKey, network, walletFilePath);
 	}
 

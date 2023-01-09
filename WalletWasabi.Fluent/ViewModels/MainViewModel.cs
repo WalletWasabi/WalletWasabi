@@ -19,6 +19,10 @@ using WalletWasabi.Fluent.ViewModels.Statistics.CoinJoinMonitor;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -189,6 +193,78 @@ public partial class MainViewModel : ViewModelBase
 		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
 		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
 		CoinJoinMonitorViewModel.RegisterLazy(() => new CoinJoinMonitorViewModel());
+
+		WalletCoinsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return new WalletCoinsViewModel(walletViewModel);
+			}
+
+			return null;
+		});
+
+		CoinJoinSettingsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel && !walletViewModel.IsWatchOnly)
+			{
+				return walletViewModel.CoinJoinSettings;
+			}
+
+			return null;
+		});
+
+		WalletSettingsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return walletViewModel.Settings;
+			}
+
+			return null;
+		});
+
+		WalletStatsViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return new WalletStatsViewModel(walletViewModel);
+			}
+
+			return null;
+		});
+
+		WalletInfoViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				// TODO: Display password dialog if needed, see WalletInfoCommand execute action.
+				return new WalletInfoViewModel(walletViewModel);
+			}
+
+			return null;
+		});
+
+		SendViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				// TODO: Check if we can send?
+				return new SendViewModel(walletViewModel);
+			}
+
+			return null;
+		});
+
+		ReceiveViewModel.RegisterLazy(() =>
+		{
+			if (UiServices.WalletManager.SelectedWallet is WalletViewModel walletViewModel)
+			{
+				return new ReceiveViewModel(walletViewModel.Wallet);
+			}
+
+			return null;
+		});
 	}
 
 	public void ApplyUiConfigWindowSate()

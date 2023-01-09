@@ -81,7 +81,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 	{
 		var currentPopupHost = Observable
 			.FromEventPattern(flyoutBase, nameof(flyoutBase.Opened))
-			.Select(_ => ((IPopupHostProvider) flyoutBase).PopupHost?.Presenter)
+			.Select(_ => ((IPopupHostProvider)flyoutBase).PopupHost?.Presenter)
 			.WhereNotNull();
 
 		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();

@@ -33,8 +33,7 @@ public class BindableGrid : Grid
 	{
 		base.OnPropertyChanged(change);
 
-		if (change.Property == ColumnDefinitionsSourceProperty
-		    || change.Property == RowDefinitionsSourceProperty)
+		if (change.Property == ColumnDefinitionsSourceProperty || change.Property == RowDefinitionsSourceProperty)
 		{
 			InvalidateDefinitions();
 		}
