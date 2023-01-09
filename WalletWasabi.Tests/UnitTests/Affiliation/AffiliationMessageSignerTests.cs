@@ -21,6 +21,6 @@ public class AffiliationMessageSignerTests
 	[Fact]
 	public void FallbackSignerKeyTest()
 	{
-		AffiliationMessageSigner signer = new(Constants.FallbackAffiliationMessageSignerKey);
+		using AffiliationMessageSigner signer = new(Constants.FallbackAffiliationMessageSignerKey);
 	}
 }
