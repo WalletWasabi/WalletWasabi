@@ -44,5 +44,5 @@ public class SerializationTests
 		Assert.Equal(reserializedMessage, serializedMessage);
 	}
 
-	private record Fee([JsonConverter(typeof(AffiliationFeeRateJsonConverter))] decimal feeRate);
+	private record Fee([JsonConverter(typeof(AffiliationFeeRateJsonConverter))] decimal FeeRate);
 }
