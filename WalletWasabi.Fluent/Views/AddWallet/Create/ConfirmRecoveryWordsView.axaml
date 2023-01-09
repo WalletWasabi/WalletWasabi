@@ -29,20 +29,13 @@
         <RowDefinition Height="20" />
       </Grid.RowDefinitions>
 
-      <c:RecoveryWordsControl Items="{Binding AvailableWords}">
-        <c:RecoveryWordsControl.Styles>
-          <Style Selector="StackPanel">
-            <Setter Property="HorizontalAlignment" Value="Center" />
-          </Style>
-          <Style Selector="ItemsControl">
-            <Setter Property="ItemsPanel">
-              <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" />
-              </ItemsPanelTemplate>
-            </Setter>
-          </Style>
-        </c:RecoveryWordsControl.Styles>
-        <c:RecoveryWordsControl.ItemTemplate>
+      <ItemsControl Items="{Binding AvailableWords}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="create:RecoveryWordViewModel">
             <CheckBox IsChecked="{Binding IsSelected}"
                       IsEnabled="{Binding IsEnabled}">
@@ -63,8 +56,8 @@
               </CheckBox.Template>
             </CheckBox>
           </DataTemplate>
-        </c:RecoveryWordsControl.ItemTemplate>
-      </c:RecoveryWordsControl>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
 
       <Panel Grid.Row="2">
         <ItemsControl Items="{Binding ConfirmationWords}" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="ItemsControl">
