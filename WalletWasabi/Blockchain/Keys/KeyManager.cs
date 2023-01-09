@@ -360,6 +360,11 @@ public class KeyManager
 			x.IsInternal == true &&
 			x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
 
+	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
+		GetKeys(x =>
+				x.KeyState == KeyState.Locked &&
+				x.IsInternal == true);
+	
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
 		// BIP44-ish derivation scheme
