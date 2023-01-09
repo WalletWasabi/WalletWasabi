@@ -5,7 +5,6 @@ using WalletWasabi.Affiliation.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
 using WalletWasabi.Tor.Http;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
