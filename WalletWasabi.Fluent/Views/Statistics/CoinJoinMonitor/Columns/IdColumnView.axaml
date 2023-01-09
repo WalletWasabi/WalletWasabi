@@ -10,7 +10,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Statistics.CoinJoinMonitor.Columns.IdColumnView">
   <c:PrivacyContentControl Content="{Binding Id, Converter={x:Static converters:RoundStateConverters.ToShortId}}"
-                           NumberOfPrivacyChars="9"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"
                            Margin="5 0 0 0"
