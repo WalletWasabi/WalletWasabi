@@ -41,7 +41,7 @@ public class SerializationTests
 		var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, AffiliationJsonSerializationOptions.Settings);
 		var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, AffiliationJsonSerializationOptions.Settings);
 
-		Assert.Equal(reserializedMessage, serializedMessage);
+		Assert.Equal(serializedMessage, reserializedMessage);
 	}
 
 	private record Fee([JsonConverter(typeof(AffiliationFeeRateJsonConverter))] decimal FeeRate);
