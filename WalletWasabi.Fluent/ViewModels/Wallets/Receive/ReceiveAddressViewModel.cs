@@ -86,10 +86,10 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		await Task.Run(async () =>
 		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 			try
 			{
 				var client = new HwiClient(network);
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
 				await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
 			}
@@ -101,7 +101,8 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Unable to send the address to the device");
+				var exMessage = cts.IsCancellationRequested ? "User response didn't arrive in time." : ex.ToUserFriendlyString();
+				await ShowErrorAsync(Title, exMessage, "Unable to send the address to the device");
 			}
 		});
 	}
@@ -130,6 +131,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			})
 			.DisposeWith(disposables);
 	}
+
 	private void GenerateQrCode()
 	{
 		try

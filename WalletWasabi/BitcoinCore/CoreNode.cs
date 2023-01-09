@@ -132,7 +132,8 @@ public class CoreNode
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
-					$"{configPrefix}.rpcport		= {rpcPortParameter}"
+					$"{configPrefix}.rpcport		= {rpcPortParameter}",
+					$"{configPrefix}.softwareexpiry	= 0",
 				};
 
 			if (!cookieAuth)

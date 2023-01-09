@@ -12,7 +12,7 @@ public record UtxoSelectionParameters(
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
 	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters) =>
-		new (
+		new(
 			roundParameters.AllowedInputAmounts,
 			roundParameters.AllowedOutputAmounts,
 			roundParameters.CoordinationFeeRate,
