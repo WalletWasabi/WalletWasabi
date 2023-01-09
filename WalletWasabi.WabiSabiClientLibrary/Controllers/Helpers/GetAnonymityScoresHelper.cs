@@ -22,14 +22,49 @@ public class GetAnonymityScoresHelper
 		BlockchainAnalyzer analyser = new();
 
 		List<AnalyzedTransaction> transactions = new();
+		AddressAnonymityCollection addressAnonymityCollection = new();
 
 		foreach (var transaction in request.Transactions.Reverse())
 		{
 			analyser.Analyze(AnalyzedTransaction.FromTransaction(transaction, labelProvider));
-
+			addressAnonymityCollection.AddRange(labelProvider.GetAnonymitySets());
 		}
 
-		return new GetAnonymityScoresResponse(labelProvider.GetAnonymitySets().ToArray());
+		return new GetAnonymityScoresResponse(addressAnonymityCollection.ToArray());
+	}
+
+	private class AddressAnonymityCollection
+	{
+		public HashSet<string> AddressHashSet { get; }
+		public List<AddressAnonymity> AddressAnonymityList { get; }
+
+		public AddressAnonymityCollection()
+		{
+			AddressHashSet = new();
+			AddressAnonymityList = new();
+		}
+
+		public void Add(AddressAnonymity addressAnonymity)
+		{
+			if (!AddressHashSet.Contains(addressAnonymity.Address))
+			{
+				AddressHashSet.Add(addressAnonymity.Address);
+				AddressAnonymityList.Add(addressAnonymity);
+			}
+		}
+
+		public void AddRange(IEnumerable<AddressAnonymity> addressAnonymityCollection)
+		{
+			foreach (AddressAnonymity addressAnonymity in addressAnonymityCollection)
+			{
+				Add(addressAnonymity);
+			}
+		}
+
+		public AddressAnonymity[] ToArray()
+		{
+			return AddressAnonymityList.ToArray();
+		}
 	}
 
 	private class TransactionLabelProvider
