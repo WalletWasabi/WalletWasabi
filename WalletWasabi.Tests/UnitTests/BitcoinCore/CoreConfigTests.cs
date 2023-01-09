@@ -4,7 +4,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 
-public class ConfigTests
+public class CoreConfigTests
 {
 	[Fact]
 	public void RemovesEmptyDuplications()
