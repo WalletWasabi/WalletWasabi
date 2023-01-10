@@ -95,6 +95,7 @@ public class HostedServices : IDisposable
 		}));
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
+		IsStartAllAsyncStarted = false;
 	}
 
 	private IEnumerable<HostedService> CloneServices()

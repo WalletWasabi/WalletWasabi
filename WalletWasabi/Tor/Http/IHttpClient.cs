@@ -18,13 +18,13 @@ public interface IHttpClient
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 	Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default);
-
-	public static string Combine(string uri1, string uri2)
-	{
-		uri1 = uri1.TrimEnd('/');
-		uri2 = uri2.TrimStart('/');
-		return string.Format("{0}/{1}", uri1, uri2);
-	}
+	//
+	// public static string Combine(string uri1, string uri2)
+	// {
+	// 	uri1 = uri1.TrimEnd('/');
+	// 	uri2 = uri2.TrimStart('/');
+	// 	return string.Format("{0}/{1}", uri1, uri2);
+	// }
 	
 	/// <exception cref="HttpRequestException"/>
 	/// <exception cref="InvalidOperationException"/>
@@ -43,7 +43,7 @@ public interface IHttpClient
 			throw new InvalidOperationException("Base URI is not set.");
 		}
 
-		Uri requestUri = new Uri(Combine(baseUri.ToString(), relativeUri));
+		Uri requestUri = new Uri(baseUri, relativeUri);
 		using HttpRequestMessage httpRequestMessage = new(method, requestUri);
 
 		if (content is { })

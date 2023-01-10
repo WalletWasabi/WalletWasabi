@@ -246,7 +246,7 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
-					var feeResult = await AddCoordinationFee(round, coinjoin);
+					var feeResult = await AddCoordinationFee(round, coinjoin).ConfigureAwait(false);
 					coinjoin = feeResult.coinjoin;
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.FeeTxOuts, cancellationToken).ConfigureAwait(false);
 
@@ -614,6 +614,23 @@ public partial class Arena : PeriodicRunner
 		else
 		{
 			txouts = await Config.GetNextCleanCoordinatorTxOuts(coordinationFee, _httpClientFactory, round).ConfigureAwait(false);
+			var addedSize = txouts.Sum(txout => txout.ScriptPubKey.EstimateOutputVsize());
+			var coordFees = txouts.Sum(txout => txout.Value);
+			
+			FeeRate newFeeRate =  new(coinjoin.Balance- coordFees,  addedSize + coinjoin.EstimatedVsize - coinjoin.UnpaidSharedOverhead);
+			
+			if (newFeeRate < round.Parameters.MiningFeeRate)
+			{
+				//we need to pay for the difference from coord fee outputs
+				var requiredFee = coinjoin.Parameters.MiningFeeRate.GetFee(addedSize + coinjoin.EstimatedVsize -
+				                                         coinjoin.UnpaidSharedOverhead);
+				var currentFee = coinjoin.EstimatedCost;
+				var toDeduct = (requiredFee - currentFee)/ txouts.Length;
+				foreach (var txout in txouts)
+				{
+					txout.Value -= toDeduct;
+				}
+			}
 			if (!txouts.Any())
 			{
 				round.LogWarning($"coordination fee wasn't taken, because it was too small: {coordinationFee}.");

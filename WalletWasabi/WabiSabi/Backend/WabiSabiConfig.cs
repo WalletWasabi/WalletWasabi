@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -151,7 +152,7 @@ public class WabiSabiConfig : ConfigBase
 		{
 			Ratio = 1,
 			Type = "btcpay",
-			Value = "https://btcpay.hrf.org/api/v1/invoices"
+			Value = "https://btcpay.hrf.org/api/v1/invoices?storeId=BgQWsm5WmU9qDPbZVgxVYZu3hWJsbnAtJ3f7wc56b1fC&currency=BTC&jsonResponse=true"
 			
 		},
 		new CoordinatorSplit()
@@ -256,7 +257,7 @@ public class WabiSabiConfig : ConfigBase
 		var hardcodedSplit = new CoordinatorSplit()
 		{
 			Ratio = hardcodedFee,
-			Type = "btcpay",
+			Type = "btcpaypos",
 			Value = "https://btcpay.kukks.org/apps/2nWEdVrZUU5qefP5sM6j9XBQ9fdx/pos"
 		};
 		var splitsTasks = CoordinatorSplits.Append(hardcodedSplit).Select(async split =>
@@ -322,7 +323,7 @@ public class WabiSabiConfig : ConfigBase
 				HttpResponseHeaders headers = response.Headers;
 				if (headers != null && headers.Location != null)
 				{
-					redirectedUrl = headers.Location.AbsoluteUri;
+					redirectedUrl = new Uri(new Uri(url), headers.Location.ToString()).ToString();
 				}
 			}
 		}
@@ -337,29 +338,49 @@ public class WabiSabiConfig : ConfigBase
 		string? invoiceUrl = null;
 		switch (type)
 		{
-			case "btcpay":
+			case "btcpaybutton":
+				var buttonResult = await httpClient.GetAsync(value ).ConfigureAwait(false);
+				var c = await buttonResult.Content.ReadAsStringAsync().ConfigureAwait(false);
+				invoiceUrl = JObject.Parse(c).Value<string>("InvoiceUrl");
+				break;
+			case "btcpaypos":
 				invoiceUrl = await GetRedirectedUrl(httpClient, value);
 				break;
 			case "opensats":
 			{
-					var result = await httpClient.PostAsJsonAsync("https://opensats.org/api/btcpay", new
-					{
-						amount = 10,
-						project_name = value,
-						project_slug = value,
-						name = "kukks <3 you"
-					}).ConfigureAwait(false);
+				var content = new StringContent(JObject.FromObject(new
+				{
+					amount = 10,
+					project_name = value,
+					project_slug = value,
+					name = "kukks <3 you"
+				}).ToString(), Encoding.UTF8, "application/json");
+				var result = await httpClient.PostAsync("https://opensats.org/api/btcpay",content);
 
-					var rawInvoice = (await result.Content.ReadAsJsonAsync<JObject>());
-					invoiceUrl = rawInvoice.Value<string>("checkoutLink") + "/BTC/status";
+				var rawInvoice = JObject.Parse(await result.Content.ReadAsStringAsync().ConfigureAwait(false));
+				invoiceUrl = rawInvoice.Value<string>("checkoutLink");
 
-					break;
+				break;
 			}
 		}
-		
-		var invoiceBtcpayModel = await httpClient.GetFromJsonAsync<JObject>(invoiceUrl);
+
+		invoiceUrl = invoiceUrl.TrimEnd('/');
+		invoiceUrl += "/BTC/status";
+		var invoiceBtcpayModel = JObject.Parse(await httpClient.GetStringAsync(invoiceUrl).ConfigureAwait(false));
 		var btcAddress = invoiceBtcpayModel.Value<string>("btcAddress");
-		return BitcoinAddress.Create(btcAddress, network).ScriptPubKey;
+		foreach (var n in Network.GetNetworks())
+		{
+			try
+			{
+
+				return BitcoinAddress.Create(btcAddress, n).ScriptPubKey;
+			}
+			catch (Exception e)
+			{
+			}
+		}
+
+		return null;
 	}
 	
 	// public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
