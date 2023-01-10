@@ -254,12 +254,9 @@ public class Wallet : BackgroundService, IWallet
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
 		IPayjoinClient? payjoinClient = null,
-		bool tryToSign = true,
-		bool allowUnavailableCoins = false)
+		bool tryToSign = true)
 	{
-		var allCoins = allowUnavailableCoins ? Coins : Coins.Available();
-
-		var builder = new TransactionFactory(Network, KeyManager, allCoins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+		var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
 		return builder.BuildTransaction(
 			payments,
 			feeRateFetcher: () =>
