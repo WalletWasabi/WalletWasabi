@@ -3,4 +3,10 @@
   <Style Selector="ToggleSwitch">
     <Setter Property="Cursor" Value="Hand" />
   </Style>
+  <Style Selector="ToggleSwitch:not(:dragging) /template/ Grid#MovingKnobs">
+    <Setter Property="Transitions">
+      <Transitions>
+      </Transitions>
+    </Setter>
+  </Style>
 </Styles>
