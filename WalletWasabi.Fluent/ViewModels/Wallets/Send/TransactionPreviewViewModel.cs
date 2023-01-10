@@ -317,7 +317,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			var maxPossibleFeeWithSelectedCoins = ex.Actual - _info.Amount;
 			var differenceOfFeePercentage = maxPossibleFeeWithSelectedCoins == Money.Zero ? 0M : (decimal)failedTransactionFee.Satoshi / maxPossibleFeeWithSelectedCoins.Satoshi * 100;
 
-			var canSelectMoreCoins = _wallet.Coins.Any(coin => !_info.Coins.Contains(coin));
+			var canSelectMoreCoins = _wallet.Coins.Available().Any(coin => !_info.Coins.Contains(coin));
 			var isMaxFeeRateFound = TransactionFeeHelper.TryGetMaximumPossibleFeeRate(differenceOfFeePercentage, _wallet, _info.FeeRate, out var maximumPossibleFeeRate);
 
 			if (canSelectMoreCoins)
