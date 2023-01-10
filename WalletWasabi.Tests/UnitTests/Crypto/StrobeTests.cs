@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.StrobeProtocol;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto;

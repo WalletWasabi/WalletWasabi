@@ -6,7 +6,15 @@ using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
-[NavigationMetaData(Title = "Wallet Info")]
+[NavigationMetaData(
+	Title = "Wallet Info",
+	Caption = "Displays wallet info",
+	IconName = "nav_wallet_24_regular",
+	Order = 4,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Info", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _showSensitiveData;
@@ -39,21 +47,17 @@ public partial class WalletInfoViewModel : RoutableViewModel
 			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
 			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.SegwitAccountKeyPath).GetWif(network).ToWif();
 			ExtendedMasterZprv = secret.ToZPrv(network);
-			ExtendedAccountZprv = secret.Derive(wallet.KeyManager.SegwitAccountKeyPath).ToZPrv(network);
 
 			// TODO: Should work for every type of wallet, temporarily disabling it.
 			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
 		}
 
 		ExtendedAccountPublicKey = wallet.KeyManager.SegwitExtPubKey.ToString(network);
-		ExtendedAccountZpub = wallet.KeyManager.SegwitExtPubKey.ToZpub(network);
 		AccountKeyPath = $"m/{wallet.KeyManager.SegwitAccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
 	}
 
 	public string ExtendedAccountPublicKey { get; }
-
-	public string ExtendedAccountZpub { get; }
 
 	public string AccountKeyPath { get; }
 
@@ -64,8 +68,6 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	public string? ExtendedAccountPrivateKey { get; }
 
 	public string? ExtendedMasterZprv { get; }
-
-	public string? ExtendedAccountZprv { get; }
 
 	public WpkhDescriptors? WpkhOutputDescriptors { get; }
 

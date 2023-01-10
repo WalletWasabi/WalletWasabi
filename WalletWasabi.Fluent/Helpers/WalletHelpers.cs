@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 

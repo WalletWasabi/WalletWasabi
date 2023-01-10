@@ -13,6 +13,9 @@
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
+  <i:Interaction.Behaviors>
+    <behaviors:ShowWalletCoinsOnKeyCombinationBehavior Wallet="{Binding}" Key1="LeftCtrl" Key2="D" Key3="C" />
+  </i:Interaction.Behaviors>
   <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
     <c:ContentArea.Title>
       <StackPanel>

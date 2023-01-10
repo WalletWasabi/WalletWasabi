@@ -249,7 +249,7 @@ public class AliceClient
 
 	public async Task SignTransactionAsync(TransactionWithPrecomputedData unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
-		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, OwnershipProof, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+		await ArenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 	}

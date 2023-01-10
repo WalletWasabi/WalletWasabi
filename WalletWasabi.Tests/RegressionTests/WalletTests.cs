@@ -255,7 +255,7 @@ public class WalletTests
 		wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 		// Get some money, make it confirm.
-		var key = keyManager.GetNextReceiveKey("foo label", out _);
+		var key = keyManager.GetNextReceiveKey("foo label");
 		var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 		await rpc.GenerateAsync(1);
 
@@ -291,7 +291,7 @@ public class WalletTests
 			Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
 
 			// Get some money, make it confirm.
-			var key2 = keyManager.GetNextReceiveKey("bar label", out _);
+			var key2 = keyManager.GetNextReceiveKey("bar label");
 			var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.01m));
 			Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(1);

@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -26,13 +27,15 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel)
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
-		var items = CreateItems(pockets);
+		var pocketItems = CreatePocketItems(pockets);
+		
+		SyncSelectedItems(pocketItems, selectedCoins);
 
 		var pocketColumn = PocketColumn();
-		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(items)
+		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
 		{
 			Columns =
 			{
@@ -43,22 +46,70 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 				pocketColumn
 			}
 		};
+
 		Source.SortBy(pocketColumn, ListSortDirection.Descending);
 		Source.RowSelection!.SingleSelect = true;
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)));
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
 
+	private static IEnumerable<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
+	{
+		return pockets
+			.SelectMany(x => x.Children)
+			.OfType<CoinCoinControlItemViewModel>();
+	}
+
+	private static IEnumerable<SmartCoin> GetSelectedCoinItems(IEnumerable<PocketCoinControlItemViewModel> pocketItems)
+	{
+		return GetAllCoinItems(pocketItems)
+			.Where(x => x.IsSelected == true)
+			.Select(x => x.SmartCoin);
+	}
+
+	protected override void OnNavigatedFrom(bool isInHistory)
+	{
+		foreach (var pocket in Source.Items.OfType<PocketCoinControlItemViewModel>())
+		{
+			pocket.Dispose();
+		}
+
+		Source.Dispose();
+
+		base.OnNavigatedFrom(isInHistory);
+	}
+
 	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
 	{
 		return new HierarchicalExpanderColumn<CoinControlItemViewModelBase>(
-			new PlainTextColumn<CoinControlItemViewModelBase>("", _ => "", GridLength.Auto, null),
+			SelectionColumn(),
 			group => group.Children,
 			node => node.Children.Count > 1,
 			node => node.IsExpanded);
+	}
+
+	private static TemplateColumn<CoinControlItemViewModelBase> SelectionColumn()
+	{
+		return new TemplateColumn<CoinControlItemViewModelBase>(
+			"",
+			new FuncDataTemplate<CoinControlItemViewModelBase>(
+				(_, _) => new SelectionCellView(),
+				true),
+			GridLength.Auto);
+	}
+
+	private static void SyncSelectedItems(IEnumerable<PocketCoinControlItemViewModel> items, IEnumerable<SmartCoin> selectedCoins)
+	{
+		var allCoins = GetAllCoinItems(items);
+		var selected = allCoins.Where(x => selectedCoins.Any(other => other == x.SmartCoin));
+		foreach (var viewModel in selected)
+		{
+			viewModel.IsSelected = true;
+		}
 	}
 
 	private static IColumn<CoinControlItemViewModelBase> AmountColumn()
@@ -148,19 +199,19 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		return 0;
 	}
 
-	private static IReadOnlyCollection<CoinControlItemViewModelBase> CreateItems(IEnumerable<Pocket> pockets)
+	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreatePocketItems(IEnumerable<Pocket> pockets)
 	{
 		return pockets
 			.Select(pocket => new PocketCoinControlItemViewModel(pocket))
 			.ToList();
 	}
 
-	public static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
 	}
 
-	public static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty?> selector)
+	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty?> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
 	}
