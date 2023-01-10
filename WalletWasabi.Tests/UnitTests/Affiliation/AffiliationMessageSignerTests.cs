@@ -8,6 +8,7 @@ namespace WalletWasabi.Tests.UnitTests.Affiliation;
 
 public class AffiliationMessageSignerTests
 {
+	/// <summary>The method shows how to generate affiliation message signer key</summary>
 	public (string, string) GenerateKey()
 	{
 		var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -22,5 +23,12 @@ public class AffiliationMessageSignerTests
 	public void FallbackSignerKeyTest()
 	{
 		using AffiliationMessageSigner signer = new(Constants.FallbackAffiliationMessageSignerKey);
+	}
+
+	[Fact]
+	public void GeneratedKeyTest()
+	{
+		(string privateKey, string publicKey) = GenerateKey();
+		using AffiliationMessageSigner signer = new(privateKey);
 	}
 }
