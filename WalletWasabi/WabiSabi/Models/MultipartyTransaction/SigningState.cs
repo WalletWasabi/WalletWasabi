@@ -12,6 +12,8 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 public record SigningState : MultipartyTransactionState
 {
+	private static readonly Version OptInRbfVersion = new Version(2, 1, 0, 0);
+	
 	public SigningState(RoundParameters parameters, IEnumerable<IEvent> events)
 		: base(parameters)
 	{
@@ -85,11 +87,10 @@ public record SigningState : MultipartyTransactionState
 	{
 		var tx = Parameters.CreateTransaction();
 
+		var isRbf = Constants.ClientVersion >= OptInRbfVersion; 
 		foreach (var coin in SortedInputs)
 		{
-			// implied:
-			// nSequence = FINAL
-			tx.Inputs.Add(coin.Outpoint);
+			tx.Inputs.Add(coin.Outpoint, sequence: isRbf ? Sequence.OptInRBF : Sequence.Final);
 		}
 
 		foreach (var txout in SortedOutputs)
