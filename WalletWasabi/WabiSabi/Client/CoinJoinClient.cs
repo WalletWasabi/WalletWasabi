@@ -499,14 +499,23 @@ public class CoinJoinClient
 				arenaRequestHandler));
 	}
 
-	private bool SanityCheck(IEnumerable<TxOut> expectedOutputs, Transaction unsignedCoinJoinTransaction)
+	internal static bool SanityCheck(IEnumerable<TxOut> expectedOutputs, IEnumerable<TxOut> coinJoinOutputs)
 	{
-		var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-		IEnumerable<(Money TotalAmount, Script Key)>? expectedOutputTuples = expectedOutputs
-			.GroupBy(x => x.ScriptPubKey)
-			.Select(o => (o.Select(x => x.Value).Sum(), o.Key));
+		bool AllExpectedScriptsArePresent() =>
+			coinJoinOutputs
+				.Select(x => x.ScriptPubKey)
+				.IsSuperSetOf(expectedOutputs.Select(x => x.ScriptPubKey));
 
-		return coinJoinOutputs.IsSuperSetOf(expectedOutputTuples);
+		bool AllOutputsHaveAtLeastTheExpectedValue() =>
+			coinJoinOutputs
+				.Join(
+					expectedOutputs,
+					x => x.ScriptPubKey,
+					x => x.ScriptPubKey,
+					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
+				.All(x => x >= 0);
+		
+		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
 	private async Task SignTransactionAsync(
@@ -1137,7 +1146,7 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/zkSNACKs/WalletWasabi/issues/8171
-		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction);
+		bool mustSignAllInputs = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 		if (!mustSignAllInputs)
 		{
 			roundState.LogInfo($"There are missing outputs. A subset of inputs will be signed.");
