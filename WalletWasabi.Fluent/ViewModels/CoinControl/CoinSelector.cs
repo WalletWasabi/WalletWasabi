@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
@@ -15,56 +16,55 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
-[NavigationMetaData(
-	Title = "Coin Selection",
-	Caption = "",
-	IconName = "wallet_action_send",
-	NavBarPosition = NavBarPosition.None,
-	Searchable = false,
-	NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
+public class CoinSelector : ViewModelBase
 {
-	private readonly WalletViewModel _walletViewModel;
-	private readonly TransactionInfo _transactionInfo;
+	private readonly BehaviorSubject<IEnumerable<SmartCoin>> _selectedCoinsSubject;
 
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
+	public CoinSelector(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
 	{
-		_walletViewModel = walletViewModel;
-		_transactionInfo = transactionInfo;
+		var pockets = walletViewModel.Wallet.GetPockets();
+		var pocketItems = CreatePocketItems(pockets);
+		
+		SyncSelectedItems(pocketItems, selectedCoins);
 
-		CoinSelector = new CoinSelector(walletViewModel, selectedCoins);
-		
-		RequiredAmount = CoinSelector.SelectedCoins.Select(c => GetRequiredAmount(c));
-		SelectedAmount = CoinSelector.SelectedCoins.Select(c => new Money(c.Sum(x => x.Amount)));
-		RemainingAmount = SelectedAmount.CombineLatest(RequiredAmount, (selected, remaining) => remaining - selected);
-		EnoughSelected = RemainingAmount.Select(remaining => remaining <= Money.Zero);
-		
-		SetupCancel(false, true, false);
-		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, CoinSelector.SelectedCoinsValue), EnoughSelected);
+		var pocketColumn = PocketColumn();
+		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
+		{
+			Columns =
+			{
+				ChildrenColumn(),
+				IndicatorsColumn(),
+				AmountColumn(),
+				AnonymityScoreColumn(),
+				pocketColumn
+			}
+		};
+
+		var coins = pocketItems
+			.SelectMany(x => x.Children)
+			.OfType<CoinCoinControlItemViewModel>()
+			.ToList();
+
+		_selectedCoinsSubject = new BehaviorSubject<IEnumerable<SmartCoin>>(new List<SmartCoin>());
+
+		SelectedCoins = coins
+			.AsObservableChangeSet(x => x.SmartCoin)
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(x => x.Where(m => m.IsSelected == true))
+			.Select(models => models.Select(x => x.SmartCoin));
+
+		SelectedCoins.Subscribe(_selectedCoinsSubject);
 	}
 
-	public CoinSelector CoinSelector { get; set; }
+	public IEnumerable<SmartCoin> SelectedCoinsValue => _selectedCoinsSubject.Value;
 
-	public IObservable<Money> RemainingAmount { get; }
-
-	public IObservable<Money> SelectedAmount { get; }
-
-	public IObservable<Money> RequiredAmount { get; }
-
-	private Money GetRequiredAmount(IEnumerable<SmartCoin> coins)
-	{
-		TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
-		return minimumAmount;
-	}
-
-	public IObservable<bool> EnoughSelected { get; }
+	public IObservable<IEnumerable<SmartCoin>> SelectedCoins { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
 
@@ -82,18 +82,6 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.Where(x => x.IsSelected == true)
 			.Select(x => x.SmartCoin)
 			.ToList();
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		foreach (var pocket in Source.Items.OfType<PocketCoinControlItemViewModel>())
-		{
-			pocket.Dispose();
-		}
-
-		Source.Dispose();
-
-		base.OnNavigatedFrom(isInHistory);
 	}
 
 	private static IColumn<CoinControlItemViewModelBase> ChildrenColumn()
@@ -219,12 +207,12 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			.ToList();
 	}
 
-	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	private static Comparison<TSource> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
 	}
 
-	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty?> selector)
+	private static Comparison<TSource> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
 	}
