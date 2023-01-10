@@ -472,12 +472,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 			}
 		}
-		catch (NoAvailableCoinsException ex)
-		{
-			Logger.LogInfo(ex.Message);
-			await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(),
-				"Wasabi was unable to send your transaction.");
-		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
