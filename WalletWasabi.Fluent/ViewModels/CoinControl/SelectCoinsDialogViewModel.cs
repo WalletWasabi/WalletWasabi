@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
 
@@ -29,8 +30,13 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins, Money desiredAmount)
+	private readonly WalletViewModel _walletViewModel;
+	private readonly TransactionInfo _transactionInfo;
+
+	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
 	{
+		_walletViewModel = walletViewModel;
+		_transactionInfo = transactionInfo;
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);
 		
@@ -49,10 +55,26 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 			}
 		};
 
-		EnoughSelected = SelectedCoins(pocketItems)
-			.Select(coinItems => new Money(coinItems.Sum(n => n.Amount)))
-			.Select(sum => sum >= desiredAmount);
+		var coins = pocketItems
+			.SelectMany(x => x.Children)
+			.OfType<CoinCoinControlItemViewModel>()
+			.ToList();
 
+		var selectedCoinItems = coins
+			.AsObservableChangeSet(x => x.SmartCoin)
+			.AutoRefresh(x => x.IsSelected)
+			.ToCollection()
+			.Select(x =>
+			{
+				var coinCoinControlItemViewModels = x.Where(m => m.IsSelected == true).ToList();
+				return coinCoinControlItemViewModels;
+			});
+
+		RequiredAmount = selectedCoinItems.Select(models => GetRequiredAmount(models.Select(x => x.SmartCoin)));
+
+		SelectedAmount = selectedCoinItems.Select(coins => new Money(coins.Sum(x => x.Amount)));
+		RemainingAmount = SelectedAmount.CombineLatest(RequiredAmount, (selected, remaining) => remaining - selected);
+		EnoughSelected = RemainingAmount.Select(remaining => remaining <= Money.Zero);
 		Source.SortBy(pocketColumn, ListSortDirection.Descending);
 		Source.RowSelection!.SingleSelect = true;
 
@@ -61,31 +83,36 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)), EnoughSelected);
 	}
 
-	private static IObservable<IEnumerable<CoinCoinControlItemViewModel>> SelectedCoins(IReadOnlyCollection<PocketCoinControlItemViewModel> pocketItems)
+	public IObservable<Money> RemainingAmount { get; }
+
+	public IObservable<Money> SelectedAmount { get; }
+
+	public IObservable<Money> RequiredAmount { get; }
+
+	private Money GetRequiredAmount(IEnumerable<SmartCoin> coins)
 	{
-		return GetAllCoinItems(pocketItems)
-			.AsObservableChangeSet()
-			.AutoRefresh(x => x.IsSelected)
-			.ToCollection()
-			.Select(x => x.Where(m => m.IsSelected == true));
+		TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
+		return minimumAmount;
 	}
 
 	public IObservable<bool> EnoughSelected { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
 
-	private static IEnumerable<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
+	private static IList<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
 	{
 		return pockets
 			.SelectMany(x => x.Children)
-			.OfType<CoinCoinControlItemViewModel>();
+			.OfType<CoinCoinControlItemViewModel>()
+			.ToList();
 	}
 
-	private static IEnumerable<SmartCoin> GetSelectedCoinItems(IEnumerable<PocketCoinControlItemViewModel> pocketItems)
+	private static IList<SmartCoin> GetSelectedCoinItems(IEnumerable<PocketCoinControlItemViewModel> pocketItems)
 	{
 		return GetAllCoinItems(pocketItems)
 			.Where(x => x.IsSelected == true)
-			.Select(x => x.SmartCoin);
+			.Select(x => x.SmartCoin)
+			.ToList();
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
