@@ -24,15 +24,22 @@ namespace WalletWasabi.BitcoinCore;
 
 public class CoreNode
 {
+	public CoreNode(string dataDir, Network network, MempoolService mempoolService)
+	{
+		DataDir = dataDir;
+		Network = network;
+		MempoolService = mempoolService;
+	}
+
 	public EndPoint P2pEndPoint { get; private set; }
 	public EndPoint RpcEndPoint { get; private set; }
 	public IRPCClient RpcClient { get; private set; }
 	private BitcoindRpcProcessBridge Bridge { get; set; }
-	public string DataDir { get; private set; }
-	public Network Network { get; private set; }
-	public MempoolService MempoolService { get; private set; }
+	public string DataDir { get; }
+	public Network Network { get; }
+	public MempoolService MempoolService { get; }
 
-	public CoreConfig Config { get; private set; }
+	public CoreConfig Config { get; } = new();
 	public P2pNode P2pNode { get; private set; }
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
@@ -40,20 +47,16 @@ public class CoreNode
 		Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 		using (BenchmarkLogger.Measure())
 		{
-			var coreNode = new CoreNode
-			{
-				DataDir = coreNodeParams.DataDir,
-				Network = coreNodeParams.Network,
-				MempoolService = coreNodeParams.MempoolService
-			};
+			CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService);
 
 			var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
-			coreNode.Config = new CoreConfig();
+
 			if (File.Exists(configPath))
 			{
 				var configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
 				coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
@@ -106,12 +109,14 @@ public class CoreNode
 			{
 				await coreNode.TryStopAsync(false).ConfigureAwait(false);
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			if (coreNodeParams.TryDeleteDataDir)
 			{
 				await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
@@ -125,15 +130,16 @@ public class CoreNode
 			}
 
 			var desiredConfigLines = new List<string>()
-				{
-					$"{configPrefix}.server			= 1",
-					$"{configPrefix}.listen			= 1",
-					$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
-					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
-					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
-					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
-					$"{configPrefix}.rpcport		= {rpcPortParameter}"
-				};
+			{
+				$"{configPrefix}.server			= 1",
+				$"{configPrefix}.listen			= 1",
+				$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
+				$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
+				$"{configPrefix}.rpcbind		= {rpcBindParameter}",
+				$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
+				$"{configPrefix}.rpcport		= {rpcPortParameter}",
+				$"{configPrefix}.softwareexpiry	= 0",
+			};
 
 			if (!cookieAuth)
 			{
@@ -233,6 +239,7 @@ public class CoreNode
 				IoHelpers.EnsureContainingDirectoryExists(configPath);
 				await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), CancellationToken.None).ConfigureAwait(false);
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			// If it isn't already running, then we run it.
@@ -246,10 +253,12 @@ public class CoreNode
 				await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
 				Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
 			}
+
 			cancel.ThrowIfCancellationRequested();
 
 			coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 			await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+
 			cancel.ThrowIfCancellationRequested();
 
 			return coreNode;
@@ -296,8 +305,7 @@ public class CoreNode
 
 	public async Task DisposeAsync()
 	{
-		var p2pNode = P2pNode;
-		if (p2pNode is { })
+		if (P2pNode is { } p2pNode)
 		{
 			await p2pNode.DisposeAsync().ConfigureAwait(false);
 		}

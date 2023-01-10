@@ -119,8 +119,7 @@ public class KeyManager
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
-		new KeyPath(
-			(network.Name, scriptPubKeyType) switch
+		new((network.Name, scriptPubKeyType) switch
 			{
 				("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
 				("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
@@ -361,6 +360,11 @@ public class KeyManager
 			x.IsInternal == true &&
 			x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
 
+	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
+		GetKeys(x =>
+				x.KeyState == KeyState.Locked &&
+				x.IsInternal == true);
+	
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
 		// BIP44-ish derivation scheme

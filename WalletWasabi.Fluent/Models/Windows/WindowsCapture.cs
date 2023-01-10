@@ -309,7 +309,7 @@ public class WindowsCapture
 
 	private static VideoFormat[] GetVideoOutputFormat(IPin pin)
 	{
-		if (!(pin is IAMStreamConfig config))
+		if (pin is not IAMStreamConfig config)
 		{
 			throw new InvalidOperationException("no IAMStreamConfig interface.");
 		}
