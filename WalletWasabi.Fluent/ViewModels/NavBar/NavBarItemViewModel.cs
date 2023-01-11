@@ -46,6 +46,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 				case NavBarItemSelectionMode.Selected:
 					this.RaiseAndSetIfChanged(ref _isSelected, value);
 					break;
+
 				case NavBarItemSelectionMode.Button:
 				case NavBarItemSelectionMode.Toggle:
 					break;

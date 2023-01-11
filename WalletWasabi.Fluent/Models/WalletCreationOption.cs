@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Fluent.Models;
+namespace WalletWasabi.Fluent.Models;
 
 public enum WalletCreationOption
 {

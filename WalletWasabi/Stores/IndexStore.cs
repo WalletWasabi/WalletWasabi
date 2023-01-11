@@ -15,6 +15,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>
