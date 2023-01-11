@@ -145,22 +145,17 @@
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}">
             <c:DualCurrencyEntryBox.Resources>
 
-              <converters:BooleanConverter x:Key="LeftFlyoutPlacementConverter"
+              <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
                                            TrueValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedRight}"
                                            FalseValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedLeft}">
-              </converters:BooleanConverter>
-
-              <converters:BooleanConverter x:Key="RightFlyoutPlacementConverter"
-                                           TrueValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedLeft}"
-                                           FalseValue="{x:Static FlyoutPlacementMode.BottomEdgeAlignedRight}">
               </converters:BooleanConverter>
 
             </c:DualCurrencyEntryBox.Resources>
             <i:Interaction.Behaviors>
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
-                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource LeftFlyoutPlacementConverter}}" />
+                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <behaviors:FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
-                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource RightFlyoutPlacementConverter}}" />
+                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
             </i:Interaction.Behaviors>
           </c:DualCurrencyEntryBox>
         </DockPanel>
