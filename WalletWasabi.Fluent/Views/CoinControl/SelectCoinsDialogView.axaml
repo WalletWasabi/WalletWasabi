@@ -91,11 +91,16 @@
 
     </controls:ContentArea.Styles>
 
-    <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}" CanUserSortColumns="True">
-      <TreeDataGrid.ElementFactory>
-        <treeDataGrid:PlainTextElementFactory />
-      </TreeDataGrid.ElementFactory>
-    </TreeDataGrid>
+    <DockPanel>
+      <TextBlock IsVisible="{Binding !EnoughSelected^}" TextAlignment="Right" DockPanel.Dock="Bottom" Margin="6"
+                 Text="Not enough funds selected, please select more coins."
+                 Foreground="{DynamicResource WarningMessageForeground}" />
+      <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}" CanUserSortColumns="True">
+        <TreeDataGrid.ElementFactory>
+          <treeDataGrid:PlainTextElementFactory />
+        </TreeDataGrid.ElementFactory>
+      </TreeDataGrid>
+    </DockPanel>
 
   </controls:ContentArea>
 </UserControl>

@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -20,8 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	private readonly WalletViewModel _walletViewModel;
 	private readonly TransactionInfo _transactionInfo;
+	private readonly WalletViewModel _walletViewModel;
 
 	public SelectCoinsDialogViewModel(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins, TransactionInfo transactionInfo)
 	{
@@ -29,37 +30,32 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		_transactionInfo = transactionInfo;
 
 		CoinSelector = new CoinSelectorViewModel(walletViewModel, selectedCoins);
-		
-		RequiredAmount = CoinSelector.SelectedCoinsChanged.Select(GetRequiredAmount);
-		SelectedAmount = CoinSelector.SelectedCoinsChanged.Select(c => new Money(c.Sum(x => x.Amount)));
-		RemainingAmount = SelectedAmount.CombineLatest(RequiredAmount, (selected, remaining) => remaining - selected);
-		EnoughSelected = RemainingAmount.Select(remaining => remaining <= Money.Zero);
-		
-		SetupCancel(false, true, false);
+
+		var requiredAmount = CoinSelector.SelectedCoinsChanged.Select(GetRequiredAmount);
+		var selectedAmount = CoinSelector.SelectedCoinsChanged.Select(c => new Money(c.Sum(x => x.Amount)));
+		var remainingAmount = selectedAmount.CombineLatest(requiredAmount, (selected, remaining) => remaining - selected);
+
+		EnoughSelected = remainingAmount.Select(remaining => remaining <= Money.Zero).ReplayLastActive();
 		EnableBack = true;
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, CoinSelector.SelectedCoins), EnoughSelected);
+
+		SetupCancel(false, true, false);
 	}
 
 	public CoinSelectorViewModel CoinSelector { get; }
 
-	public IObservable<Money> RemainingAmount { get; }
-
-	public IObservable<Money> SelectedAmount { get; }
-
-	public IObservable<Money> RequiredAmount { get; }
-
-	private Money GetRequiredAmount(IEnumerable<SmartCoin> coins)
-	{
-		TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
-		return minimumAmount;
-	}
-
-	private IObservable<bool> EnoughSelected { get; }
+	public IObservable<bool> EnoughSelected { get; }
 
 	protected override void OnNavigatedFrom(bool isInHistory)
 	{
 		CoinSelector.Dispose();
 
 		base.OnNavigatedFrom(isInHistory);
+	}
+
+	private Money GetRequiredAmount(IEnumerable<SmartCoin> coins)
+	{
+		TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
+		return minimumAmount;
 	}
 }
