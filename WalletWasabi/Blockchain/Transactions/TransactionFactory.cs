@@ -103,7 +103,7 @@ public class TransactionFactory
 
 		if (!allowedSmartCoinInputs.Any())
 		{
-			throw new NoAvailableCoinsException();
+			throw new ArgumentException($"No available coins to build the transaction at the moment.");
 		}
 
 		TransactionBuilder builder = Network.CreateTransactionBuilder();
