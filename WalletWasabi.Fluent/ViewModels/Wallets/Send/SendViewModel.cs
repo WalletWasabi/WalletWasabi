@@ -9,7 +9,6 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
@@ -25,6 +24,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using WalletWasabi.Fluent.Infrastructure;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 

@@ -2,8 +2,10 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 
-namespace WalletWasabi.Fluent.Helpers;
+namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
