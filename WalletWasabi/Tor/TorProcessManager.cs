@@ -107,6 +107,7 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			ProcessAsync? process = null;
 			TorControlClient? controlClient = null;
+			Exception? exception = null;
 			bool setNewTcs = true;
 
 			// Use CancellationTokenSource to signal that Tor process terminated.
@@ -196,6 +197,7 @@ public class TorProcessManager : IAsyncDisposable
 			{
 				Logger.LogError("Unexpected problem in starting Tor.", ex);
 				setNewTcs = false;
+				exception = ex;
 				throw;
 			}
 			finally
@@ -210,7 +212,16 @@ public class TorProcessManager : IAsyncDisposable
 				}
 
 				cts.Cancel(); // (2)
-				originalTcs.TrySetCanceled(globalCancellationToken);
+
+				if (exception is not null)
+				{
+					originalTcs.TrySetException(exception);
+				}
+				else
+				{
+					originalTcs.TrySetCanceled(globalCancellationToken);
+				}
+
 				cts.Dispose();
 
 				if (controlClient is not null)
