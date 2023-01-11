@@ -12,7 +12,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-public partial class LoadingViewModel : ViewModelBase
+public partial class LoadingViewModel : ActivatableViewModel
 {
 	private readonly Wallet _wallet;
 
@@ -31,23 +31,22 @@ public partial class LoadingViewModel : ViewModelBase
 		_percent = 0;
 	}
 
-	public CompositeDisposable? Disposable { get; private set; }
-
 	public string WalletName => _wallet.WalletName;
 
 	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
 
 	private uint RemainingFiltersToDownload => (uint)Services.BitcoinStore.SmartHeaderChain.HashesLeft;
 
-	public void Start()
+	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		_stopwatch = Stopwatch.StartNew();
-		Disposable = new CompositeDisposable();
+
+		disposables.Add(Disposable.Create(() => _stopwatch.Stop()));
 
 		Services.Synchronizer.WhenAnyValue(x => x.BackendStatus)
 			.Where(status => status == BackendStatus.Connected)
 			.SubscribeAsync(async _ => await LoadWalletAsync(isBackendAvailable: true).ConfigureAwait(false))
-			.DisposeWith(Disposable);
+			.DisposeWith(disposables);
 
 		Observable.FromEventPattern<bool>(Services.Synchronizer, nameof(Services.Synchronizer.ResponseArrivedIsGenSocksServFail))
 			.SubscribeAsync(async _ =>
@@ -59,7 +58,7 @@ public partial class LoadingViewModel : ViewModelBase
 
 				await LoadWalletAsync(isBackendAvailable: false).ConfigureAwait(false);
 			})
-			.DisposeWith(Disposable);
+			.DisposeWith(disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -68,14 +67,7 @@ public partial class LoadingViewModel : ViewModelBase
 				var processedCount = GetCurrentProcessedCount();
 				UpdateStatus(processedCount);
 			})
-			.DisposeWith(Disposable);
-	}
-
-	public void Stop()
-	{
-		Disposable?.Dispose();
-		Disposable = null;
-		_stopwatch?.Stop();
+			.DisposeWith(disposables);
 	}
 
 	private uint GetCurrentProcessedCount()

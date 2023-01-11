@@ -145,7 +145,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 	{
 		IsLoadingWallet = true;
 
-		closedWalletViewModel.Loading.Stop();
+		closedWalletViewModel.StopLoading();
 
 		RemoveWallet(closedWalletViewModel);
 

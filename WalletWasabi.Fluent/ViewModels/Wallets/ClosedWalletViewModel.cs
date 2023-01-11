@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Login;
@@ -8,6 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public class ClosedWalletViewModel : WalletViewModelBase
 {
+	private CompositeDisposable? _disposable;
+
 	protected ClosedWalletViewModel(Wallet wallet)
 		: base(wallet)
 	{
@@ -18,6 +21,19 @@ public class ClosedWalletViewModel : WalletViewModelBase
 	}
 
 	public LoadingViewModel Loading { get; }
+
+	public void StartLoading()
+	{
+		_disposable?.Dispose();
+		_disposable = new CompositeDisposable();
+		Loading.Activate(_disposable);
+	}
+
+	public void StopLoading()
+	{
+		_disposable?.Dispose();
+		_disposable = null;
+	}
 
 	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
 	{

@@ -90,7 +90,7 @@ public partial class LoginViewModel : RoutableViewModel
 	private void LoginWallet(ClosedWalletViewModel closedWalletViewModel)
 	{
 		closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-		closedWalletViewModel.Loading.Start();
+		closedWalletViewModel.StartLoading();
 
 		if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
 		{
