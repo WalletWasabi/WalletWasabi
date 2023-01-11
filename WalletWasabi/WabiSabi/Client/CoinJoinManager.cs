@@ -117,8 +117,9 @@ public class CoinJoinManager : BackgroundService
 				? await GetMixableWalletsAsync().ConfigureAwait(false)
 				: ImmutableDictionary<string, IWallet>.Empty;
 
-			// Notifies when a wallet meets the criteria for participating in a coinjoin.
+			// Notifies when a wallet meets the criteria for participating in a coinjoin.W
 			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
+
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
 				trackedWallets.Add(openedWallet.WalletName, openedWallet);
@@ -395,6 +396,10 @@ public class CoinJoinManager : BackgroundService
 				catch (Exception e)
 				{
 					finishedCoinJoin.Wallet.LogError($"{nameof(CoinJoinClient)} {e.Message} \n {e.StackTrace}");
+					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
+
+					ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts,
+						finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, stoppingToken);
 				}
 			}
 			// Updates the highest coinjoin client state.

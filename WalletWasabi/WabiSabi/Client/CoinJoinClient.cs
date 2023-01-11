@@ -1185,18 +1185,15 @@ public class CoinJoinClient
 		var mixedOutputs = outputValues.Where(money => BlockchainAnalyzer.StdDenoms.Contains(money));
 		
 		// Get as many destinations as outputs we need.
-		var destinations = await DestinationProvider.GetNextDestinationsAsync(mixedOutputs.Count(), preferTaprootOutputs, true).ConfigureAwait(false);
-		var destinationsNonMixed = await DestinationProvider.GetNextDestinationsAsync(nonMixedOutputs.Count(), preferTaprootOutputs, false).ConfigureAwait(false);
+		var destinations = (await DestinationProvider
+			.GetNextDestinationsAsync(mixedOutputs.Count(), preferTaprootOutputs, true).ConfigureAwait(false)).Zip(mixedOutputs, (destination, money) => new TxOut(money, destination));
+		var destinationsNonMixed = (await DestinationProvider.GetNextDestinationsAsync(nonMixedOutputs.Count(), preferTaprootOutputs, false).ConfigureAwait(false)).Zip(nonMixedOutputs, (destination, money) => new TxOut(money, destination));
 
 		roundState.LogDebug($"Decomposed to {outputValues.Count()} outputs");
 
 		Dictionary<TxOut, PendingPayment> result =
 			paymentsToBatch.ToDictionary(payment => new TxOut(payment.Value, payment.Destination.ScriptPubKey));
-		var outputTxOuts =
-			mixedOutputs.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey))
-				.Concat(nonMixedOutputs.Zip(destinationsNonMixed,
-					(amount, destination) => new TxOut(amount, destination.ScriptPubKey)))
-				.Concat(result.Keys);
+		var outputTxOuts = destinations.Concat(destinationsNonMixed).Concat(result.Keys);
 		
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
