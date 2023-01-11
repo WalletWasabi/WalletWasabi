@@ -63,8 +63,6 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			.Do(x => _flyout.Placement = x)
 			.Subscribe()
 			.DisposeWith(disposable);
-
-		base.OnAttachedToVisualTree();
 	}
 
 	private IDisposable Hider(IObservable<Control> targets)
