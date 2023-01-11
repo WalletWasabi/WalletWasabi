@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -10,30 +9,30 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
-public class CoinSelector : ViewModelBase
+public class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
 	private readonly BehaviorSubject<IEnumerable<SmartCoin>> _selectedCoinsSubject;
 
-	public CoinSelector(WalletViewModel walletViewModel, IEnumerable<SmartCoin> selectedCoins)
+	public CoinSelectorViewModel(WalletViewModelBase walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);
-		
-		SyncSelectedItems(pocketItems, selectedCoins);
+
+		SyncSelectedItems(pocketItems, initialCoinSelection);
 
 		var pocketColumn = PocketColumn();
-		Source = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
+		TreeDataGridSource = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
 		{
 			Columns =
 			{
@@ -50,37 +49,40 @@ public class CoinSelector : ViewModelBase
 			.OfType<CoinCoinControlItemViewModel>()
 			.ToList();
 
-		_selectedCoinsSubject = new BehaviorSubject<IEnumerable<SmartCoin>>(new List<SmartCoin>());
-
-		SelectedCoins = coins
+		SelectedCoinsChanged = coins
 			.AsObservableChangeSet(x => x.SmartCoin)
-			.AutoRefresh(x => x.IsSelected)
+			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(100), scheduler: RxApp.MainThreadScheduler)
 			.ToCollection()
 			.Select(x => x.Where(m => m.IsSelected == true))
-			.Select(models => models.Select(x => x.SmartCoin));
+			.Select(models => models.Select(x => x.SmartCoin))
+			.ReplayLastActive();
 
-		SelectedCoins.Subscribe(_selectedCoinsSubject);
+		_selectedCoinsSubject = new BehaviorSubject<IEnumerable<SmartCoin>>(new List<SmartCoin>());
+		SelectedCoinsChanged.Subscribe(_selectedCoinsSubject);
 	}
 
-	public IEnumerable<SmartCoin> SelectedCoinsValue => _selectedCoinsSubject.Value;
+	public IEnumerable<SmartCoin> SelectedCoins => _selectedCoinsSubject.Value;
 
-	public IObservable<IEnumerable<SmartCoin>> SelectedCoins { get; }
+	public IObservable<IEnumerable<SmartCoin>> SelectedCoinsChanged { get; }
 
-	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }
+	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
+
+	public void Dispose()
+	{
+		_selectedCoinsSubject?.Dispose();
+		foreach (var pocket in TreeDataGridSource.Items.OfType<PocketCoinControlItemViewModel>())
+		{
+			pocket.Dispose();
+		}
+
+		TreeDataGridSource.Dispose();
+	}
 
 	private static IList<CoinCoinControlItemViewModel> GetAllCoinItems(IEnumerable<PocketCoinControlItemViewModel> pockets)
 	{
 		return pockets
 			.SelectMany(x => x.Children)
 			.OfType<CoinCoinControlItemViewModel>()
-			.ToList();
-	}
-
-	private static IList<SmartCoin> GetSelectedCoinItems(IEnumerable<PocketCoinControlItemViewModel> pocketItems)
-	{
-		return GetAllCoinItems(pocketItems)
-			.Where(x => x.IsSelected == true)
-			.Select(x => x.SmartCoin)
 			.ToList();
 	}
 

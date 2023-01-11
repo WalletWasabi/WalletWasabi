@@ -91,7 +91,7 @@
 
     </controls:ContentArea.Styles>
 
-    <TreeDataGrid Source="{Binding CoinSelector.Source}" CanUserSortColumns="True">
+    <TreeDataGrid Source="{Binding CoinSelector.TreeDataGridSource}" CanUserSortColumns="True">
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:PlainTextElementFactory />
       </TreeDataGrid.ElementFactory>
