@@ -1,7 +1,5 @@
 using Avalonia.Data.Converters;
-using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Converters;
 
@@ -12,7 +10,4 @@ public static class MoneyConverters
 
 	public static readonly IValueConverter ToUsdAproxBetweenParens =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
-
-	public static readonly IValueConverter ToFormattedBtc =
-		new FuncValueConverter<Money?, string>(n => n?.ToFormattedString() ?? "" + " BTC");
 }

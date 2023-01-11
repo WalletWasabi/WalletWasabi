@@ -1,9 +1,9 @@
-using System.Reactive;
+using System.Windows.Input;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class Suggestion : ReactiveObject
+public class Suggestion
 {
 	public Suggestion(string text, Action onAccept)
 	{
@@ -13,5 +13,5 @@ public class Suggestion : ReactiveObject
 
 	public string Text { get; }
 
-	public ReactiveCommand<Unit, Unit> AcceptCommand { get; set; }
+	public ICommand AcceptCommand { get; set; }
 }

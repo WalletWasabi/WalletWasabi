@@ -3,12 +3,11 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class FlyoutSuggestionBehavior : Behavior<Control>
+public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 {
 	public static readonly StyledProperty<string> ContentProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, string>(nameof(Content));
 
@@ -18,18 +17,11 @@ public class FlyoutSuggestionBehavior : Behavior<Control>
 
 	public static readonly StyledProperty<FlyoutPlacementMode> PlacementModeProperty = AvaloniaProperty.Register<FlyoutSuggestionBehavior, FlyoutPlacementMode>(nameof(PlacementMode));
 
-	private readonly CompositeDisposable _disposables = new();
-
 	private readonly Flyout _flyout;
 
 	public FlyoutSuggestionBehavior()
 	{
 		_flyout = new Flyout { ShowMode = FlyoutShowMode.Transient };
-
-		this.WhenAnyValue(x => x.PlacementMode)
-			.Do(x => _flyout.Placement = x)
-			.Subscribe()
-			.DisposeWith(_disposables);
 	}
 
 	public FlyoutPlacementMode PlacementMode
@@ -56,16 +48,21 @@ public class FlyoutSuggestionBehavior : Behavior<Control>
 		set => SetValue(TargetProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree()
+	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
 		var targets = this
 			.WhenAnyValue(x => x.Target)
 			.WhereNotNull();
 
-		Displayer(targets).DisposeWith(_disposables);
-		Hider(targets).DisposeWith(_disposables);
+		Displayer(targets).DisposeWith(disposable);
+		Hider(targets).DisposeWith(disposable);
 
 		Target ??= AssociatedObject as TextBox;
+
+		this.WhenAnyValue(x => x.PlacementMode)
+			.Do(x => _flyout.Placement = x)
+			.Subscribe()
+			.DisposeWith(disposable);
 
 		base.OnAttachedToVisualTree();
 	}
