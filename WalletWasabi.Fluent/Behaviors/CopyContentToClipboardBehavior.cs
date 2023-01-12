@@ -16,20 +16,8 @@ namespace WalletWasabi.Fluent.Behaviors;
 public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Control>
 {
 	public static readonly StyledProperty<object?> ContentProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, object?>(nameof(Content));
-	public static readonly StyledProperty<DataTemplate> FlyoutContentTemplateProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, DataTemplate>(nameof(FlyoutContentTemplate));
-	public static readonly StyledProperty<object?> FlyoutContentProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, object?>(nameof(FlyoutContent));
-
-	public object? FlyoutContent
-	{
-		get => GetValue(FlyoutContentProperty);
-		set => SetValue(FlyoutContentProperty, value);
-	}
-
-	public DataTemplate FlyoutContentTemplate
-	{
-		get => GetValue(FlyoutContentTemplateProperty);
-		set => SetValue(FlyoutContentTemplateProperty, value);
-	}
+	public static readonly StyledProperty<DataTemplate> FlyoutMessageTemplateProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, DataTemplate>(nameof(FlyoutMessageTemplate));
+	public static readonly StyledProperty<object?> FlyoutMessageProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, object?>(nameof(FlyoutMessage));
 	private readonly Flyout _flyout;
 
 	public CopyContentToClipboardBehavior()
@@ -38,12 +26,24 @@ public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Contr
 		{
 			Content = new ContentPresenter
 			{
-				[!ContentPresenter.ContentTemplateProperty] = this[!FlyoutContentTemplateProperty],
-				[!ContentPresenter.ContentProperty] = this[!FlyoutContentProperty],
+				[!ContentPresenter.ContentTemplateProperty] = this[!FlyoutMessageTemplateProperty],
+				[!ContentPresenter.ContentProperty] = this[!FlyoutMessageProperty]
 			}
 		};
 
 		CopyCommand = ReactiveCommand.CreateFromObservable(() => CopyToClipboard);
+	}
+
+	public object? FlyoutMessage
+	{
+		get => GetValue(FlyoutMessageProperty);
+		set => SetValue(FlyoutMessageProperty, value);
+	}
+
+	public DataTemplate FlyoutMessageTemplate
+	{
+		get => GetValue(FlyoutMessageTemplateProperty);
+		set => SetValue(FlyoutMessageTemplateProperty, value);
 	}
 
 	private ReactiveCommand<Unit, Unit> CopyCommand { get; }
