@@ -66,7 +66,7 @@ public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Contr
 		set => SetValue(ContentProperty, value);
 	}
 
-	private IObservable<Unit> RightClicked
+	private IObservable<Unit> RightClicks
 	{
 		get
 		{
@@ -84,7 +84,7 @@ public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Contr
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		RightClicked
+		RightClicks
 			.InvokeCommand(CopyToClipboardCommand)
 			.DisposeWith(disposable);
 	}
