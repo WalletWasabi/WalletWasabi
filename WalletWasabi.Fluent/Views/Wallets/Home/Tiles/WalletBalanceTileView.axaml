@@ -16,7 +16,13 @@
       <c:PrivacyContentControl Classes="h2 monoSpaced" HorizontalContentAlignment="Center"
                                Content="{Binding BalanceBtc^, Converter={x:Static converters:MoneyConverters.ToBtc}}">
         <Interaction.Behaviors>
-          <behaviors:ClipboardCopyBehavior Content="{Binding BalanceBtc^}" />
+          <behaviors:CopyContentToClipboardBehavior Content="{Binding BalanceBtc^}" FlyoutContent="Copied!">
+            <behaviors:CopyContentToClipboardBehavior.FlyoutContentTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" TextAlignment="Center" />
+              </DataTemplate>
+            </behaviors:CopyContentToClipboardBehavior.FlyoutContentTemplate>
+          </behaviors:CopyContentToClipboardBehavior>
         </Interaction.Behaviors>
       </c:PrivacyContentControl>
     </Viewbox>
