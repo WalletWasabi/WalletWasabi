@@ -107,7 +107,8 @@
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (Taproot)"
-                     TextValue="{Binding TaprootExtendedAccountPublicKey}">
+                     TextValue="{Binding TaprootExtendedAccountPublicKey}"
+                     IsVisible="{Binding !!TaprootExtendedAccountPublicKey}">
         <c:PrivacyContentControl Classes="monoSpaced" Content="{Binding TaprootExtendedAccountPublicKey}" ForceShow="{Binding ShowSensitiveData}" />
       </c:PreviewItem>
       <Separator IsVisible="{Binding !!TaprootExtendedAccountPublicKey}" />
