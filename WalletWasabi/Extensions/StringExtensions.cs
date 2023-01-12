@@ -1,4 +1,4 @@
-namespace System;
+namespace WalletWasabi.Extensions;
 
 public static class StringExtensions
 {

@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using System.Linq;
+
 namespace WalletWasabi.Crypto;
 
 public class OwnershipIdentifier : IBitcoinSerializable, IEquatable<OwnershipIdentifier>

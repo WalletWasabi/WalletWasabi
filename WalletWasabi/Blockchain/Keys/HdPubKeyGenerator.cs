@@ -22,7 +22,7 @@ public record HdPubKeyGenerator(ExtPubKey ExtPubKey, KeyPath KeyPath, int MinGap
 
 	private (KeyPath, ExtPubKey) GenerateKeyByIndex(int index) =>
 		(KeyPath.Derive((uint)index), ExtPubKey.Derive((uint)index));
-	
+
 	private static int GetNextKeyIndex(HdPubKeyPathView view) =>
 		view.Select(x => x.Index).MaxOrDefault(-1) + 1;
 }

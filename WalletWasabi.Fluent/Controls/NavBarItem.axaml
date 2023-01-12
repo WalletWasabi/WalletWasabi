@@ -36,9 +36,7 @@
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <!-- The margin here should be compensated with the same amount in the NavBar's topmost content-->
-        <Panel Margin="5,5,5,0"
-               Height="{TemplateBinding Height}"
+        <Panel Height="{TemplateBinding Height}"
                Width="{TemplateBinding Width}"
                ClipToBounds="False">
           <Border Name="SelectionBackground" />
@@ -98,14 +96,10 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.FontWeight" Value="Normal" />
-    <Setter Property="TextBlock.FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
-  </Style>
-
   <!-- Disabled State -->
   <Style Selector="c|NavBarItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Opacity" Value="0.5" />
+    <Setter Property="Background" Value="Transparent" />
   </Style>
 
   <!-- PointerOver State -->

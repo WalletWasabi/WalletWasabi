@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Tor.Http.Constants;
 
@@ -17,6 +18,7 @@ public class HeaderField
 
 	/// <remarks>Note that comparison of header names must be case-insensitive. <see cref="IsNameEqual(string)"/>.</remarks>
 	public string Name { get; private set; }
+
 	public string Value { get; private set; }
 
 	/// <summary>Compares correctly two header names.</summary>
