@@ -173,7 +173,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsSpent() => SpenderTransaction is not null;
 
 	/// <summary>
-	/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress AND !IsFrozen
+	/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress AND !IsExcludedFromCoinJoin
 	/// </summary>
 	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress && !IsExcludedFromCoinJoin;
 
