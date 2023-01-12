@@ -4,22 +4,46 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml.Templates;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class ClipboardCopyBehavior : AttachedToVisualTreeBehavior<Control>
+public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	public static readonly StyledProperty<object?> ContentProperty = AvaloniaProperty.Register<ClipboardCopyBehavior, object?>(nameof(Content));
-	private readonly Flyout _flyoutBase;
+	public static readonly StyledProperty<object?> ContentProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, object?>(nameof(Content));
+	public static readonly StyledProperty<DataTemplate> FlyoutContentTemplateProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, DataTemplate>(nameof(FlyoutContentTemplate));
+	public static readonly StyledProperty<object?> FlyoutContentProperty = AvaloniaProperty.Register<CopyContentToClipboardBehavior, object?>(nameof(FlyoutContent));
 
-	public ClipboardCopyBehavior()
+	public object? FlyoutContent
 	{
-		_flyoutBase = new Flyout { Content = "Copied!" };
-		CopyCommand = ReactiveCommand.CreateFromObservable(() => Copy);
+		get => GetValue(FlyoutContentProperty);
+		set => SetValue(FlyoutContentProperty, value);
+	}
+
+	public DataTemplate FlyoutContentTemplate
+	{
+		get => GetValue(FlyoutContentTemplateProperty);
+		set => SetValue(FlyoutContentTemplateProperty, value);
+	}
+	private readonly Flyout _flyout;
+
+	public CopyContentToClipboardBehavior()
+	{
+		_flyout = new Flyout
+		{
+			Content = new ContentPresenter
+			{
+				[!ContentPresenter.ContentTemplateProperty] = this[!FlyoutContentTemplateProperty],
+				[!ContentPresenter.ContentProperty] = this[!FlyoutContentProperty],
+			}
+		};
+
+		CopyCommand = ReactiveCommand.CreateFromObservable(() => CopyToClipboard);
 	}
 
 	private ReactiveCommand<Unit, Unit> CopyCommand { get; }
@@ -30,7 +54,7 @@ public class ClipboardCopyBehavior : AttachedToVisualTreeBehavior<Control>
 		set => SetValue(ContentProperty, value);
 	}
 
-	private IObservable<Unit> Copy =>
+	private IObservable<Unit> CopyToClipboard =>
 		Observable
 			.FromAsync(() => SetClipboardTextAsync(Content?.ToString()))
 			.Concat(Observable.Timer(TimeSpan.FromSeconds(1)).ToSignal());
@@ -73,11 +97,11 @@ public class ClipboardCopyBehavior : AttachedToVisualTreeBehavior<Control>
 	{
 		if (isExecuting && AssociatedObject is { })
 		{
-			_flyoutBase.ShowAt(AssociatedObject, true);
+			_flyout.ShowAt(AssociatedObject, true);
 		}
 		else
 		{
-			_flyoutBase.Hide();
+			_flyout.Hide();
 		}
 	}
 }
