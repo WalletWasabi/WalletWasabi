@@ -110,7 +110,7 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 	public ObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
-	public bool TryGetSelectedWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
+	public bool TryGetSelectedAndLoggedInWalletViewModel([NotNullWhen(true)] out WalletViewModel? walletViewModel)
 	{
 		walletViewModel = Wallets.OfType<WalletViewModel>().FirstOrDefault(x => x.IsSelected);
 		return walletViewModel is { };
