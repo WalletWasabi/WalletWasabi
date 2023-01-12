@@ -28,7 +28,7 @@
               <TextBlock DataContext="{Binding Balance}">
                 <TextBlock.Text>
                   <MultiBinding StringFormat="Balance: {0} {1}">
-                    <Binding Path="BalanceBtc^" />
+                    <Binding Path="BalanceBtc^" Converter="{x:Static converters:MoneyConverters.ToBtc}" />
                     <Binding Path="BalanceFiat^" Converter="{x:Static converters:MoneyConverters.ToUsdAproxBetweenParens}" />
                   </MultiBinding>
                 </TextBlock.Text>
