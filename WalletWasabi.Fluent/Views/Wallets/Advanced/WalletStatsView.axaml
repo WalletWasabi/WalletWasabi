@@ -60,7 +60,7 @@
                                  Content="{Binding GeneratedCleanKeyCount}" />
       </c:PreviewItem>
       <Separator />
-      <c:PreviewItem Label="Number of locked addresses"
+      <c:PreviewItem Label="Number of hidden addresses"
                      TextValue="{Binding GeneratedLockedKeyCount}">
         <c:PrivacyContentControl Classes="monoSpaced"
                                  Content="{Binding GeneratedLockedKeyCount}" />
