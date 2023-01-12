@@ -5,7 +5,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:tiles="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:b="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="140"
              x:CompileBindings="True"
              x:DataType="tiles:WalletBalanceTileViewModel"
@@ -16,13 +16,13 @@
       <c:PrivacyContentControl Classes="h2 monoSpaced" HorizontalContentAlignment="Center"
                                Content="{Binding BalanceBtc^, Converter={x:Static converters:MoneyConverters.ToBtc}}">
         <Interaction.Behaviors>
-          <behaviors:CopyContentToClipboardBehavior Content="{Binding BalanceBtc^}" FlyoutContent="Copied!">
-            <!--<behaviors:CopyContentToClipboardBehavior.FlyoutContentTemplate>
+          <b:CopyContentToClipboardBehavior Content="{Binding BalanceBtc^}" FlyoutMessage="Copied!">
+            <b:CopyContentToClipboardBehavior.FlyoutMessageTemplate>
               <DataTemplate x:DataType="x:String">
                 <TextBlock Text="{Binding}" TextAlignment="Center" />
               </DataTemplate>
-            </behaviors:CopyContentToClipboardBehavior.FlyoutContentTemplate>-->
-          </behaviors:CopyContentToClipboardBehavior>
+            </b:CopyContentToClipboardBehavior.FlyoutMessageTemplate>
+          </b:CopyContentToClipboardBehavior>
         </Interaction.Behaviors>
       </c:PrivacyContentControl>
     </Viewbox>
