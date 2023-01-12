@@ -1,3 +1,5 @@
+using Avalonia.Controls;
+using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
