@@ -23,8 +23,27 @@ public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Contr
 	public CopyContentToClipboardBehavior()
 	{
 		_flyout = CreateFlyout();
+
 		var canCopy = this.WhenAnyValue(x => x.Content).Select(x => x is not null);
 		CopyToClipboardCommand = ReactiveCommand.CreateFromObservable(() => CopyToClipboard, canCopy);
+	}
+
+	private IObservable<Unit> CopyToClipboard
+	{
+		get
+		{
+			if (AssociatedObject is null)
+			{
+				throw new InvalidOperationException("Associated object should not be null");
+			}
+
+			var copyToClipboard = Observable.FromAsync(() => SetClipboardTextAsync(Content?.ToString()));
+			var showMessage = ObservableUtils.Do(() => _flyout.ShowAt(AssociatedObject, true));
+			var wait = ObservableUtils.Timer(TimeSpan.FromSeconds(1));
+			var hideMessage = ObservableUtils.Do(_flyout.Hide);
+
+			return Observable.Concat(copyToClipboard, showMessage, wait, hideMessage);
+		}
 	}
 
 	public object? FlyoutMessage
@@ -47,28 +66,26 @@ public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Contr
 		set => SetValue(ContentProperty, value);
 	}
 
-	private IObservable<Unit> CopyToClipboard =>
-		Observable
-			.FromAsync(() => SetClipboardTextAsync(Content?.ToString()))
-			.Concat(Observable.Timer(TimeSpan.FromSeconds(1), RxApp.MainThreadScheduler).ToSignal());
+	private IObservable<Unit> RightClicked
+	{
+		get
+		{
+			if (AssociatedObject is null)
+			{
+				throw new InvalidOperationException("Associated object should not be null");
+			}
+
+			return AssociatedObject
+				.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
+				.Where(IsRightButtonPressed)
+				.ToSignal();
+		}
+	}
 
 	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
 	{
-		if (AssociatedObject is null)
-		{
-			return;
-		}
-
-		AssociatedObject
-			.OnEvent(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel)
-			.Where(IsRightButtonPressed)
-			.ToSignal()
+		RightClicked
 			.InvokeCommand(CopyToClipboardCommand)
-			.DisposeWith(disposable);
-
-		CopyToClipboardCommand.IsExecuting
-			.Do(ToggleFlyout)
-			.Subscribe()
 			.DisposeWith(disposable);
 	}
 
@@ -100,17 +117,5 @@ public class CopyContentToClipboardBehavior : AttachedToVisualTreeBehavior<Contr
 	private bool IsRightButtonPressed(EventPattern<PointerPressedEventArgs> eventPattern)
 	{
 		return eventPattern.EventArgs.GetCurrentPoint(AssociatedObject).Properties.IsRightButtonPressed;
-	}
-
-	private void ToggleFlyout(bool isVisible)
-	{
-		if (isVisible && AssociatedObject is { })
-		{
-			_flyout.ShowAt(AssociatedObject, true);
-		}
-		else
-		{
-			_flyout.Hide();
-		}
 	}
 }
