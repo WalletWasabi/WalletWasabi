@@ -62,7 +62,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 	public string SegWitExtendedAccountPublicKey { get; }
 
-	public string TaprootExtendedAccountPublicKey { get; }
+	public string? TaprootExtendedAccountPublicKey { get; }
 
 	public string SegWitAccountKeyPath { get; }
 
