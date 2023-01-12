@@ -32,7 +32,7 @@
           </Button>
         </StackPanel>
       </CheckBox>
-      <Image Source="{DynamicResource wasabi_logo_dynamic}" MaxHeight="300" Margin="0 -30 0 0" />
+      <Image Source="{DynamicResource legal_checked_graphic}" MaxHeight="300" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>
