@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Behaviors;
 

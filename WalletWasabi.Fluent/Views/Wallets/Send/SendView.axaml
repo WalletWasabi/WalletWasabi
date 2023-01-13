@@ -7,6 +7,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
@@ -14,7 +15,7 @@
 
   <UserControl.DataTemplates>
 
-    <DataTemplate DataType="behaviors:Suggestion">
+    <DataTemplate DataType="models:Suggestion">
       <Button Background="Transparent" HorizontalAlignment="Center" Padding="8" DockPanel.Dock="Right" Command="{Binding AcceptCommand}" Focusable="False" Cursor="Hand">
         <DockPanel HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource paste_regular}" Width="20" DockPanel.Dock="Left" />
@@ -104,8 +105,8 @@
                  AcceptsReturn="False">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
-            <behaviors:ExecuteCommandOnActivated Command="{Binding AutoPasteCommand}" />
-            <behaviors:FocusNextWhenValid />
+            <behaviors:ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
+            <behaviors:FocusNextWhenValidBehavior />
           </i:Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
