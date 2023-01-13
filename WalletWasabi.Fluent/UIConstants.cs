@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels;
+namespace WalletWasabi.Fluent;
 
 public static class UIConstants
 {
