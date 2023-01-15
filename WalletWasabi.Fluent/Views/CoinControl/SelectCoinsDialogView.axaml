@@ -8,9 +8,14 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
+             xmlns:conv="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.TreeDataGrid"
              x:DataType="coinControl:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
+
+  <UserControl.Resources>
+    <converters:IndentConverter x:Key="IndentConverter" Multiplier="10" />
+  </UserControl.Resources>
 
   <controls:ContentArea
     Title="{Binding Title}"
@@ -71,7 +76,7 @@
       <Style Selector="TreeDataGridExpanderCell">
         <Setter Property="Template">
           <ControlTemplate>
-            <Border Background="{TemplateBinding Background}">
+            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Indent, Converter={StaticResource IndentConverter}}">
               <DockPanel>
                 <Border DockPanel.Dock="Left"
                         Margin="4 0"
