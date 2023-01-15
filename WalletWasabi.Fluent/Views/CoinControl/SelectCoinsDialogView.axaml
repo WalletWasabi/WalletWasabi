@@ -8,7 +8,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
              xmlns:coinControl="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
-             xmlns:conv="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.TreeDataGrid"
              x:DataType="coinControl:SelectCoinsDialogViewModel"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.SelectCoinsDialogView"
              x:CompileBindings="True">
