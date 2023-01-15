@@ -37,6 +37,7 @@ public class ClipboardCopyButton : TemplatedControl
 		if (Application.Current is { Clipboard: { } clipboard })
 		{
 			await clipboard.SetTextAsync(Text);
+			await Task.Delay(1000);
 		}
 	}
 }
