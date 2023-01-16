@@ -154,74 +154,90 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		{
 			Columns =
 			{
-				// Selection
-				new TemplateColumn<WalletCoinViewModel>(
-					null,
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = false
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-
-				// Indicators
-				new TemplateColumn<WalletCoinViewModel>(
-					null,
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IndicatorsColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x))
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-
-				// Amount
-				new TemplateColumn<WalletCoinViewModel>(
-					"Amount",
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AmountColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount)
-					},
-					width: new GridLength(0, GridUnitType.Auto)),
-
-				// AnonymityScore
-				new TemplateColumn<WalletCoinViewModel>(
-					new AnonymitySetHeaderView(),
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
-					},
-					width: new GridLength(50, GridUnitType.Pixel)),
-
-				// Labels
-				new TemplateColumn<WalletCoinViewModel>(
-					"Labels",
-					new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new LabelsColumnView(), true),
-					options: new ColumnOptions<WalletCoinViewModel>
-					{
-						CanUserResizeColumn = false,
-						CanUserSortColumn = true,
-						CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
-						CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
-					},
-					width: new GridLength(1, GridUnitType.Star))
+				SelectionColumn(),
+				IndicatorsColumn(),
+				AmountColumn(),
+				AnonymityScoreColumn(),
+				LabelsColumn()
 			}
 		};
 
 		source.RowSelection!.SingleSelect = true;
 
 		return source;
+	}
+
+	private static TemplateColumn<WalletCoinViewModel> SelectionColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			null,
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new SelectionColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = false
+			},
+			width: new GridLength(0, GridUnitType.Auto));
+	}
+
+	private static TemplateColumn<WalletCoinViewModel> IndicatorsColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			null,
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new IndicatorsColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => GetOrderingPriority(x)),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => GetOrderingPriority(x))
+			},
+			width: new GridLength(0, GridUnitType.Auto));
+	}
+
+	private static TemplateColumn<WalletCoinViewModel> AmountColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			"Amount",
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AmountColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount)
+			},
+			width: new GridLength(0, GridUnitType.Auto));
+	}
+
+	private static TemplateColumn<WalletCoinViewModel> AnonymityScoreColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			new AnonymitySetHeaderView(),
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AnonymitySetColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => x.AnonymitySet),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.AnonymitySet)
+			},
+			width: new GridLength(50, GridUnitType.Pixel));
+	}
+
+	private static TemplateColumn<WalletCoinViewModel> LabelsColumn()
+	{
+		return new TemplateColumn<WalletCoinViewModel>(
+			"Labels",
+			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new LabelsColumnView(), true),
+			options: new ColumnOptions<WalletCoinViewModel>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = WalletCoinViewModel.SortAscending(x => x.SmartLabel),
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.SmartLabel)
+			},
+			width: new GridLength(1, GridUnitType.Star));
 	}
 
 	private ICoinsView GetCoins()
