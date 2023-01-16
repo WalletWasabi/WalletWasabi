@@ -2,7 +2,6 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -411,14 +410,9 @@ public class Wallet : BackgroundService, IWallet
 			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 		}
 
-		Logger.LogInfo($"XXX START");
-		Stopwatch sw = Stopwatch.StartNew();
-
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),
 			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
-
-		Logger.LogInfo($"XXX END | {sw.ElapsedMilliseconds} ms");
 	}
 
 	private async Task LoadDummyMempoolAsync()
