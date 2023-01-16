@@ -3,31 +3,36 @@
         xmlns:controls="using:WalletWasabi.Fluent.Controls"
         xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
-    <controls:CopyableItem Width="200">
-      <TextBlock>Hello everyone!</TextBlock>
-    </controls:CopyableItem>
+    <Border Width="300" Height="200">
+      <controls:CopyableItem HorizontalContentAlignment="Center" Background="Red">
+        <Button Background="Blue">Hello everyone!</Button>
+      </controls:CopyableItem>
+    </Border>
   </Design.PreviewWith>
 
   <Style Selector="controls|CopyableItem">
+    <Setter Property="ClipToBounds" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel x:Name="Grid" Background="Transparent" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
-          <Border Width="{Binding #CopyButton.Bounds.Width}" DockPanel.Dock="Left" />
-          <Panel DockPanel.Dock="Right" >
-            <Border Width="{Binding #CopyButton.Bounds.Width}" />
-            <controls:ClipboardCopyButton VerticalAlignment="Center"
-                                          x:Name="CopyButton" Text="{TemplateBinding ContentToCopy}">
+        <Border x:Name="RootPane" Background="{TemplateBinding Background}">
+          <Grid ClipToBounds="False" x:Name="ContentPane"
+                      Background="Transparent"
+                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+            <ContentPresenter
+              Content="{TemplateBinding Content}"
+              ContentTemplate="{TemplateBinding ContentTemplate}" />
+            <controls:ClipboardCopyButton x:Name="CopyButton" Text="{TemplateBinding ContentToCopy}" HorizontalAlignment="Right" Margin="0 0 -24 0">
               <controls:ClipboardCopyButton.IsVisible>
                 <MultiBinding Converter="{x:Static converters:BooleanConverters.Or}">
-                  <Binding Path="#Grid.IsPointerOver" />
+                  <Binding Path="#ContentPane.IsPointerOver" />
                   <Binding Path="#CopyButton.CopyCommand.IsExecuting^" />
                 </MultiBinding>
               </controls:ClipboardCopyButton.IsVisible>
             </controls:ClipboardCopyButton>
-          </Panel>
-          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-        </DockPanel>
+          </Grid></Border>
       </ControlTemplate>
     </Setter>
   </Style>
+
 </Styles>
