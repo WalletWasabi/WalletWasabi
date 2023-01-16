@@ -207,7 +207,8 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
 				CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
-				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount)
+				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount),
+				MinWidth = new GridLength(145, GridUnitType.Pixel)
 			},
 			width: new GridLength(0, GridUnitType.Auto),
 			numberOfPrivacyChars: 9);
