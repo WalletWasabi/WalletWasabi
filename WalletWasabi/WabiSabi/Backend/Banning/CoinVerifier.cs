@@ -47,10 +47,18 @@ public class CoinVerifier
 		List<Task<CoinVerifyResult>> tasks = new();
 		foreach (var coin in coinsToCheck)
 		{
-			if (CoinVerifyItems.TryGetValue(coin, out var item))
+			if (!CoinVerifyItems.TryGetValue(coin, out var item))
 			{
-				tasks.Add(item.TaskCompletionSource.Task);
+				// Quickly re-scheduling the missing items.
+				ScheduleVerification(coin, cancellationToken, TimeSpan.Zero);
+				if (!CoinVerifyItems.TryGetValue(coin, out item))
+				{
+					// This should not happen.
+					Logger.LogError("Coin cannot be re-scheduled for verification.");
+				}
 			}
+
+			tasks.Add(item.TaskCompletionSource.Task);
 		}
 
 		try
@@ -150,10 +158,13 @@ public class CoinVerifier
 			return;
 		}
 
-		if (confirmations is { } confs && coin.Amount > WabiSabiConfig.CoinVerifierRequiredConfirmationAmount && confs < WabiSabiConfig.CoinVerifierRequiredConfirmation)
+		if (coin.Amount >= WabiSabiConfig.CoinVerifierRequiredConfirmationAmount)
 		{
-			taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, ShouldRemove: true));
-			return;
+			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmation)
+			{
+				taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, ShouldRemove: true));
+				return;
+			}
 		}
 
 		_ = Task.Run(async () =>
