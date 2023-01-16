@@ -13,6 +13,8 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.TreeDataGrid;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -197,17 +199,17 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 
 	private static IColumn<WalletCoinViewModel> AmountColumn()
 	{
-		return new TemplateColumn<WalletCoinViewModel>(
+		return new PrivacyTextColumn<WalletCoinViewModel>(
 			"Amount",
-			new FuncDataTemplate<WalletCoinViewModel>((node, ns) => new AmountColumnView(), true),
-			options: new ColumnOptions<WalletCoinViewModel>
+			node => node.Amount.ToFormattedString(),
+			GridLength.Auto,
+			new ColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
 				CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
 				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount)
-			},
-			width: new GridLength(0, GridUnitType.Auto));
+			});
 	}
 
 	private static IColumn<WalletCoinViewModel> AnonymityScoreColumn()
