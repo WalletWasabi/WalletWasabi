@@ -9,11 +9,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.LabelsColumnView">
   <c:PrivacyContentControl
-                           HorizontalAlignment="Stretch"
+                           HorizontalAlignment="Left"
                            VerticalAlignment="Stretch"
                            VerticalContentAlignment="Center"
                            HorizontalContentAlignment="Left"
                            Margin="0 0 7 0"
+                           MinWidth="140"
                            UseOpacity="False">
     <c:LabelsItemsPresenter Items="{Binding SmartLabel}" />
   </c:PrivacyContentControl>
