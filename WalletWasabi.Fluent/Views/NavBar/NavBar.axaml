@@ -8,6 +8,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Views.NavBar"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
@@ -18,6 +19,23 @@
     <behaviors:NavBarSelectedIndicatorParentBehavior />
   </i:Interaction.Behaviors>
   <UserControl.Styles>
+
+    <Style Selector="controls|NavBarBox">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ItemsPresenter Name="PART_ItemsPresenter"
+                            Items="{TemplateBinding Items}"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            ItemTemplate="{TemplateBinding ItemTemplate}"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
 
     <Style Selector="Separator">
       <Setter Property="Background" Value="{DynamicResource AcrylicTrimForeground}" />
@@ -114,14 +132,14 @@
   <DockPanel Margin="0 0 0 5">
 
     <!-- Bottom items -->
-    <ItemsControl Items="{Binding BottomItems}"
-                  DockPanel.Dock="Bottom">
-      <ItemsControl.ItemsPanel>
+    <controls:NavBarBox Items="{Binding BottomItems}"
+                        DockPanel.Dock="Bottom">
+      <controls:NavBarBox.ItemsPanel>
         <ItemsPanelTemplate>
           <ReversibleStackPanel ReverseOrder="True" />
         </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.DataTemplates>
+      </controls:NavBarBox.ItemsPanel>
+      <controls:NavBarBox.DataTemplates>
         <DataTemplate DataType="vm:NavBarItemViewModel">
           <c:NavBarItem>
             <StackPanel>
@@ -132,16 +150,16 @@
             </StackPanel>
           </c:NavBarItem>
         </DataTemplate>
-      </ItemsControl.DataTemplates>
-    </ItemsControl>
+      </controls:NavBarBox.DataTemplates>
+    </controls:NavBarBox>
 
     <!-- Separator -->
     <Separator DockPanel.Dock="Bottom" />
 
     <!-- Wallet List -->
     <ScrollViewer>
-      <ItemsControl Items="{Binding Wallets}">
-        <ItemsControl.DataTemplates>
+      <controls:NavBarBox Items="{Binding Wallets}">
+        <controls:NavBarBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}">
               <Panel>
@@ -157,8 +175,8 @@
               </Panel>
             </c:NavBarItem>
           </DataTemplate>
-        </ItemsControl.DataTemplates>
-      </ItemsControl>
+        </controls:NavBarBox.DataTemplates>
+      </controls:NavBarBox>
     </ScrollViewer>
 
   </DockPanel>
