@@ -12,8 +12,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public class NavBarViewModel : ViewModelBase
+public partial class NavBarViewModel : ViewModelBase
 {
+	[AutoNotify] private WalletViewModelBase? _selectedWallet;
+
 	public NavBarViewModel()
 	{
 		TopItems = new ObservableCollection<NavBarItemViewModel>();
