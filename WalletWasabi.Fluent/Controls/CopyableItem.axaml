@@ -3,24 +3,20 @@
         xmlns:controls="using:WalletWasabi.Fluent.Controls"
         xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters">
   <Design.PreviewWith>
-    <controls:CopyableItem>
+    <controls:CopyableItem Width="200">
       <TextBlock>Hello everyone!</TextBlock>
     </controls:CopyableItem>
   </Design.PreviewWith>
 
   <Style Selector="controls|CopyableItem">
-    <!-- Set Defaults -->
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid x:Name="Grid" Background="Transparent" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-          <Panel Grid.Column="2" Width="20">
-            <controls:ClipboardCopyButton VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="CopyButton" Text="{TemplateBinding ContentToCopy}">
+        <DockPanel x:Name="Grid" Background="Transparent" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+          <Border Width="{Binding #CopyButton.Bounds.Width}" DockPanel.Dock="Left" />
+          <Panel DockPanel.Dock="Right" >
+            <Border Width="{Binding #CopyButton.Bounds.Width}" />
+            <controls:ClipboardCopyButton VerticalAlignment="Center"
+                                          x:Name="CopyButton" Text="{TemplateBinding ContentToCopy}">
               <controls:ClipboardCopyButton.IsVisible>
                 <MultiBinding Converter="{x:Static converters:BooleanConverters.Or}">
                   <Binding Path="#Grid.IsPointerOver" />
@@ -29,7 +25,8 @@
               </controls:ClipboardCopyButton.IsVisible>
             </controls:ClipboardCopyButton>
           </Panel>
-        </Grid>
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </DockPanel>
       </ControlTemplate>
     </Setter>
   </Style>
