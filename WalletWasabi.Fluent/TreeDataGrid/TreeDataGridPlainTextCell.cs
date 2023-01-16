@@ -9,18 +9,17 @@ namespace WalletWasabi.Fluent.TreeDataGrid;
 internal class TreeDataGridPlainTextCell : TreeDataGridCell
 {
 	private FormattedText? _formattedText;
-	private string? _value;
 
-	private string? Text => _value;
+	private string? Text { get; set; }
 
 	public override void Realize(IElementFactory factory, ICell model, int columnIndex, int rowIndex)
 	{
 		var plainTextCell = (PlainTextCell)model;
 		var text = plainTextCell.Value;
 
-		if (text != _value)
+		if (text != Text)
 		{
-			_value = text;
+			Text = text;
 			_formattedText = null;
 		}
 
