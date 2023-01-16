@@ -27,7 +27,7 @@ public class PrivacyTextPresenter : UserControl
 
 	private GlyphRun? CreateGlyphRun(double width)
 	{
-		var privacyChar = UIConstants.PrivacyChar;
+		var privacyChar = UiConstants.PrivacyChar;
 
 		var glyphTypeface = new Typeface((FontFamily?)FontFamily).GlyphTypeface;
 		var glyph = glyphTypeface.GetGlyph(privacyChar);
