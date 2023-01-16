@@ -167,7 +167,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return source;
 	}
 
-	private static TemplateColumn<WalletCoinViewModel> SelectionColumn()
+	private static IColumn<WalletCoinViewModel> SelectionColumn()
 	{
 		return new TemplateColumn<WalletCoinViewModel>(
 			null,
@@ -180,7 +180,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			width: new GridLength(0, GridUnitType.Auto));
 	}
 
-	private static TemplateColumn<WalletCoinViewModel> IndicatorsColumn()
+	private static IColumn<WalletCoinViewModel> IndicatorsColumn()
 	{
 		return new TemplateColumn<WalletCoinViewModel>(
 			null,
@@ -195,7 +195,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			width: new GridLength(0, GridUnitType.Auto));
 	}
 
-	private static TemplateColumn<WalletCoinViewModel> AmountColumn()
+	private static IColumn<WalletCoinViewModel> AmountColumn()
 	{
 		return new TemplateColumn<WalletCoinViewModel>(
 			"Amount",
@@ -210,7 +210,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			width: new GridLength(0, GridUnitType.Auto));
 	}
 
-	private static TemplateColumn<WalletCoinViewModel> AnonymityScoreColumn()
+	private static IColumn<WalletCoinViewModel> AnonymityScoreColumn()
 	{
 		return new TemplateColumn<WalletCoinViewModel>(
 			new AnonymitySetHeaderView(),
@@ -225,7 +225,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			width: new GridLength(50, GridUnitType.Pixel));
 	}
 
-	private static TemplateColumn<WalletCoinViewModel> LabelsColumn()
+	private static IColumn<WalletCoinViewModel> LabelsColumn()
 	{
 		return new TemplateColumn<WalletCoinViewModel>(
 			"Labels",
