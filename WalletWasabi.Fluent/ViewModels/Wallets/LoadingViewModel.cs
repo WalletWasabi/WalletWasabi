@@ -18,7 +18,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
-	[AutoNotify(SetterModifier = AccessModifier.None)] private volatile bool _isLoading;
+	[AutoNotify] private volatile bool _isLoading;
 
 	private Stopwatch? _stopwatch;
 	private uint _filtersToDownloadCount;
@@ -96,8 +96,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 			return;
 		}
 
-		_isLoading = true;
-		this.RaisePropertyChanged(nameof(IsLoading));
+		IsLoading = true;
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
 
