@@ -41,7 +41,8 @@ public class CoinVerifierTests
 		List<Coin> generatedCoins = GenerateCoins(98);
 		List<Coin> naughtyCoins = new();
 
-		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		ScheduleVerifications(coinVerifier, generatedCoins);
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
 			if (item.ShouldBan)
 			{
@@ -55,21 +56,21 @@ public class CoinVerifierTests
 	[Fact]
 	public async Task CanFilterNaughtyUtxoTestAsync()
 	{
+		using HttpResponseMessage dirtyResponse = new(System.Net.HttpStatusCode.OK) { Content = new StringContent(GenerateDirtyJsonReport()) };
+		using HttpResponseMessage cleanResponse = new(System.Net.HttpStatusCode.OK) { Content = new StringContent(GenerateCleanJsonReport()) };
+
 		Mock<HttpClient> mockHttpClient = new();
 		mockHttpClient.SetupSequence(client => client.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() =>
-			{
-				string content = GenerateDirtyJsonReport();
-				HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
-				response.Content = new StringContent(content);
-				return response;
-			}).ReturnsAsync(() =>
-			{
-				string content = GenerateCleanJsonReport();
-				HttpResponseMessage response = new(System.Net.HttpStatusCode.OK);
-				response.Content = new StringContent(content);
-				return response;
-			});
+			.ReturnsAsync(dirtyResponse)
+			.ReturnsAsync(cleanResponse)
+			.ReturnsAsync(cleanResponse)
+			.ThrowsAsync(new InvalidOperationException())
+			.ReturnsAsync(cleanResponse)
+			.ReturnsAsync(cleanResponse)
+			.ReturnsAsync(cleanResponse)
+			.ReturnsAsync(cleanResponse)
+			.ReturnsAsync(cleanResponse)
+			.ReturnsAsync(cleanResponse);
 
 		mockHttpClient.Object.BaseAddress = new Uri(TestURL);
 
@@ -79,15 +80,25 @@ public class CoinVerifierTests
 		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
+		List<Coin> removedCoins = new();
+		List<Coin> checkedCoins = new();
 
-		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		ScheduleVerifications(coinVerifier, generatedCoins);
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
+			checkedCoins.Add(item.Coin);
 			if (item.ShouldBan)
 			{
 				naughtyCoins.Add(item.Coin);
 			}
+			else if (item.ShouldRemove)
+			{
+				removedCoins.Add(item.Coin);
+			}
 		}
 
+		Assert.Equal(10, checkedCoins.Count);
+		Assert.Single(removedCoins);
 		Assert.Single(naughtyCoins);
 	}
 
@@ -112,7 +123,8 @@ public class CoinVerifierTests
 
 		List<Coin> generatedCoins = GenerateCoins(5);
 
-		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		ScheduleVerifications(coinVerifier, generatedCoins);
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
 			if (item.ShouldBan)
 			{
@@ -147,7 +159,8 @@ public class CoinVerifierTests
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
 		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
-		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		ScheduleVerifications(coinVerifier, generatedCoins);
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
 			Assert.False(item.ShouldBan);
 		}
@@ -175,7 +188,8 @@ public class CoinVerifierTests
 
 		List<Coin> generatedCoins = GenerateCoins(10);
 
-		await foreach (var item in coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		ScheduleVerifications(coinVerifier, generatedCoins);
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
 		{
 			if (item.ShouldBan)
 			{
@@ -207,5 +221,13 @@ public class CoinVerifierTests
 		}
 
 		return coins;
+	}
+
+	private void ScheduleVerifications(CoinVerifier coinVerifier, IEnumerable<Coin> coins)
+	{
+		foreach (Coin coin in coins)
+		{
+			coinVerifier.ScheduleVerification(coin, CancellationToken.None);
+		}
 	}
 }

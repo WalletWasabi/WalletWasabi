@@ -44,6 +44,11 @@ public partial class Arena : PeriodicRunner
 		RoundParameterFactory = roundParameterFactory;
 		CoinVerifier = coinVerifier;
 		MaxSuggestedAmountProvider = new(Config);
+
+		if (CoinVerifier is not null)
+		{
+			CoinVerifier.CoinBlackListed += CoinVerifier_CoinBlackListed;
+		}
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -123,20 +128,14 @@ public partial class Arena : PeriodicRunner
 				{
 					try
 					{
-						int banCounter = 0;
-						var aliceDictionary = round.Alices.Where(x => !x.IsPayingZeroCoordinationFee).ToDictionary(a => a.Coin, a => a);
-						IEnumerable<Coin> coinsToCheck = aliceDictionary.Values.Select(x => x.Coin);
-						await foreach (var coinVerifyInfo in CoinVerifier.VerifyCoinsAsync(coinsToCheck, cancel, round.Id.ToString()).ConfigureAwait(false))
+						var aliceDictionary = round.Alices.ToDictionary(a => a.Coin, a => a);
+						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(aliceDictionary.Keys, cancel).ConfigureAwait(false))
 						{
-							if (coinVerifyInfo.ShouldBan)
+							if (coinVerifyInfo.ShouldRemove)
 							{
-								banCounter++;
-								Alice aliceToPunish = aliceDictionary[coinVerifyInfo.Coin];
-								Prison.Ban(aliceToPunish, round.Id, isLongBan: true);
-								round.Alices.Remove(aliceToPunish);
+								round.Alices.Remove(aliceDictionary[coinVerifyInfo.Coin]);
 							}
 						}
-						Logger.LogInfo($"{banCounter} utxos were banned from round {round.Id}.");
 					}
 					catch (Exception exc)
 					{
@@ -631,5 +630,22 @@ public partial class Arena : PeriodicRunner
 		}
 
 		return coordinatorScriptPubKey;
+	}
+
+	private void CoinVerifier_CoinBlackListed(object? _, Coin coin)
+	{
+		// For logging reason Prison needs the roundId.
+		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
+		var roundId = roundState?.Id ?? uint256.Zero;
+		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
+	}
+
+	public override void Dispose()
+	{
+		if (CoinVerifier is not null)
+		{
+			CoinVerifier.CoinBlackListed -= CoinVerifier_CoinBlackListed;
+		}
+		base.Dispose();
 	}
 }

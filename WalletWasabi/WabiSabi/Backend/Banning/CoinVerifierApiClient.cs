@@ -29,7 +29,7 @@ public class CoinVerifierApiClient
 
 	private HttpClient HttpClient { get; set; }
 
-	public virtual async Task<(ApiResponseItem ApiResponseItem, Script Script)> SendRequestAsync(Script script, CancellationToken cancellationToken)
+	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
 		if (HttpClient.BaseAddress is null)
 		{
@@ -62,39 +62,6 @@ public class CoinVerifierApiClient
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return (deserializedRecord, script);
-	}
-
-	public async IAsyncEnumerable<(ApiResponseItem ApiResponseItem, Script ScriptPubKey)> VerifyScriptsAsync(IEnumerable<Script> scripts, [EnumeratorCancellation] CancellationToken cancellationToken)
-	{
-		IEnumerable<IEnumerable<Script>> chunks = scripts.Chunk(100);
-
-		foreach (var chunk in chunks)
-		{
-			var tasks = chunk.Select(script => SendRequestAsync(script, cancellationToken)).ToList();
-
-			foreach (var task in tasks)
-			{
-				(ApiResponseItem ApiResponseItem, Script ScriptPubKey) response;
-				try
-				{
-					var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
-
-					response = await completedTask.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					continue;
-				}
-
-				yield return response;
-			}
-		}
+		return deserializedRecord;
 	}
 }

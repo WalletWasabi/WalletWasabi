@@ -66,6 +66,7 @@ public class Global : IDisposable
 	private HttpClient HttpClient { get; }
 
 	public Coordinator? Coordinator { get; private set; }
+	public CoinVerifier? CoinVerifier { get; private set; }
 
 	public Config Config { get; }
 
@@ -114,6 +115,7 @@ public class Global : IDisposable
 				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
 				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, cancel).ConfigureAwait(false);
 				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig);
+				CoinVerifier = coinVerifier;
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)

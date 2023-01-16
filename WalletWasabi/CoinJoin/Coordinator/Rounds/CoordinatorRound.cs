@@ -643,15 +643,24 @@ public class CoordinatorRound
 		{
 			return;
 		}
-		List<OutPoint> inputsToBan = new();
+
 		try
 		{
-			var coinsToCheck = Alices.SelectMany(a => a.Inputs);
-			await foreach (var info in CoinVerifier.VerifyCoinsAsync(coinsToCheck, CancellationToken.None, RoundId.ToString()))
+			Dictionary<Coin, Alice> coinDictionary = new();
+			foreach (var alice in Alices)
 			{
-				if (info.ShouldBan)
+				foreach (var coin in alice.Inputs)
 				{
-					inputsToBan.Add(info.Coin.Outpoint);
+					coinDictionary.Add(coin, alice);
+				}
+			}
+
+			foreach (var info in await CoinVerifier.VerifyCoinsAsync(coinDictionary.Keys, CancellationToken.None).ConfigureAwait(false))
+			{
+				if (info.ShouldRemove)
+				{
+					var aliceToRemove = coinDictionary[info.Coin];
+					Alices.Remove(aliceToRemove);
 				}
 			}
 		}
@@ -659,14 +668,6 @@ public class CoordinatorRound
 		{
 			Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({Alices.Count}).", exc);
 		}
-
-		var alicesToRemove = Alices.Where(alice => inputsToBan.Any(outpoint => alice.Inputs.Select(input => input.Outpoint).Contains(outpoint))).ToArray();
-		Logger.LogInfo($"Alices({alicesToRemove.Length}) was force banned in round '{RoundId}'.");
-		foreach (var alice in alicesToRemove)
-		{
-			Alices.Remove(alice);
-		}
-		await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, forceBan: true, inputsToBan.ToArray()).ConfigureAwait(false);
 	}
 
 	private async Task MoveToInputRegistrationAsync()
