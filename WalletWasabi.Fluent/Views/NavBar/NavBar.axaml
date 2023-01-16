@@ -158,7 +158,8 @@
 
     <!-- Wallet List -->
     <ScrollViewer>
-      <controls:NavBarBox Items="{Binding Wallets}">
+      <controls:NavBarBox Items="{Binding Wallets}"
+                          SelectedItem="{Binding SelectedWallet}">
         <controls:NavBarBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase">
             <c:NavBarItem ToolTip.Tip="{Binding Title}">
