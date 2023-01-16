@@ -202,14 +202,15 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		return new PrivacyTextColumn<WalletCoinViewModel>(
 			"Amount",
 			node => node.Amount.ToFormattedString(),
-			GridLength.Auto,
-			new ColumnOptions<WalletCoinViewModel>
+			options: new ColumnOptions<WalletCoinViewModel>
 			{
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
 				CompareAscending = WalletCoinViewModel.SortAscending(x => x.Amount),
 				CompareDescending = WalletCoinViewModel.SortDescending(x => x.Amount)
-			});
+			},
+			width: new GridLength(0, GridUnitType.Auto),
+			numberOfPrivacyChars: 9);
 	}
 
 	private static IColumn<WalletCoinViewModel> AnonymityScoreColumn()
