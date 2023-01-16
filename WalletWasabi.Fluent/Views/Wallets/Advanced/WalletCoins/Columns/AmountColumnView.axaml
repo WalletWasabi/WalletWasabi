@@ -12,5 +12,6 @@
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
                            Margin="5 0 10 0"
+                           MinWidth="50"
                            UseOpacity="False" />
 </UserControl>
