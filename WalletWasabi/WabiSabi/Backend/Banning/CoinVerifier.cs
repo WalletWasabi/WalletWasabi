@@ -32,7 +32,7 @@ public class CoinVerifier
 	public WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
-	private ConcurrentDictionary<Coin, TaskCompletionSource<CoinVerifyResult>> CoinVerifyItems { get; } = new();
+	private ConcurrentDictionary<Coin, (DateTimeOffset ScheduleTime, TaskCompletionSource<CoinVerifyResult> TaskCompletionSource)> CoinVerifyItems { get; } = new();
 
 	public event EventHandler<Coin>? CoinBlackListed;
 
@@ -47,9 +47,9 @@ public class CoinVerifier
 		List<Task<CoinVerifyResult>> tasks = new();
 		foreach (var coin in coinsToCheck)
 		{
-			if (CoinVerifyItems.TryGetValue(coin, out var taskCompletionSource))
+			if (CoinVerifyItems.TryGetValue(coin, out var item))
 			{
-				tasks.Add(taskCompletionSource.Task);
+				tasks.Add(item.TaskCompletionSource.Task);
 			}
 		}
 
@@ -60,6 +60,9 @@ public class CoinVerifier
 				var completedTask = await Task.WhenAny(tasks).WaitAsync(linkedCts.Token).ConfigureAwait(false);
 				tasks.Remove(completedTask);
 				var result = await completedTask.WaitAsync(linkedCts.Token).ConfigureAwait(false);
+
+				// The verification task fulfilled its purpose.
+				CoinVerifyItems.TryRemove(result.Coin, out var _);
 
 				// Update the default value with the real result.
 				coinVerifyItems[result.Coin] = result;
@@ -80,7 +83,21 @@ public class CoinVerifier
 			Logger.LogError(ex);
 		}
 
+		CleanUp();
+
 		return coinVerifyItems.Values.ToArray();
+	}
+
+	private void CleanUp()
+	{
+		var now = DateTimeOffset.UtcNow;
+		foreach (var (coin, item) in CoinVerifyItems)
+		{
+			if (item.TaskCompletionSource.Task.IsCompleted && now - item.ScheduleTime > TimeSpan.FromDays(2))
+			{
+				CoinVerifyItems.TryRemove(coin, out var _);
+			}
+		}
 	}
 
 	private bool CheckForFlags(ApiResponseItem response)
@@ -108,7 +125,12 @@ public class CoinVerifier
 	public void ScheduleVerification(Coin coin, CancellationToken cancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
 	{
 		TaskCompletionSource<CoinVerifyResult> taskCompletionSource = new();
-		CoinVerifyItems.TryAdd(coin, taskCompletionSource);
+
+		if (!CoinVerifyItems.TryAdd(coin, (DateTimeOffset.UtcNow, taskCompletionSource)))
+		{
+			Logger.LogWarning("Coin was already scheduled for verification.");
+			return;
+		}
 
 		if (oneHop)
 		{
@@ -145,7 +167,7 @@ public class CoinVerifier
 					await Task.Delay(delayedStart.Value, cancellationToken).ConfigureAwait(false);
 				}
 
-				// Define a timeout.
+				// Define a max timeout for the API request.
 				using CancellationTokenSource timeout = new(TimeSpan.FromMinutes(2));
 				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 				var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
