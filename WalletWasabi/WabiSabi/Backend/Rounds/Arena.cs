@@ -128,18 +128,20 @@ public partial class Arena : PeriodicRunner
 				{
 					try
 					{
-						var aliceDictionary = round.Alices.ToDictionary(a => a.Coin, a => a);
-						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(aliceDictionary.Keys, cancel).ConfigureAwait(false))
+						var coinAliceDictionary = round.Alices.ToDictionary(alice => alice.Coin, alice => alice);
+						foreach (var coinVerifyInfo in await CoinVerifier.VerifyCoinsAsync(coinAliceDictionary.Keys, cancel).ConfigureAwait(false))
 						{
 							if (coinVerifyInfo.ShouldRemove)
 							{
-								round.Alices.Remove(aliceDictionary[coinVerifyInfo.Coin]);
+								round.Alices.Remove(coinAliceDictionary[coinVerifyInfo.Coin]);
 							}
 						}
 					}
 					catch (Exception exc)
 					{
+						// This should never happen.
 						Logger.LogError($"{nameof(CoinVerifier)} has failed to verify all Alices({round.Alices.Count}).", exc);
+						round.EndRound(EndRoundState.AbortedWithError);
 					}
 				}
 
