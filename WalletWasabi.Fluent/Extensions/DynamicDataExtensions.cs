@@ -40,20 +40,18 @@ public static class DynamicDataExtensions
 							break;
 
 						case ChangeReason.Update:
+							if (updateAction == null)
 							{
-								if (updateAction == null)
-								{
-									continue;
-								}
-
-								var previous = cache.Lookup(change.Key).ValueOrThrow(
-									() => new MissingKeyException($"{change.Key} is not found."));
-
-								updateAction(previous, change.Current);
-
-								// send a refresh as this will force downstream operators
-								cache.Refresh(change.Key);
+								continue;
 							}
+
+							var previous = cache.Lookup(change.Key).ValueOrThrow(
+								() => new MissingKeyException($"{change.Key} is not found."));
+
+							updateAction(previous, change.Current);
+
+							// send a refresh as this will force downstream operators
+							cache.Refresh(change.Key);
 							break;
 
 						case ChangeReason.Remove:
