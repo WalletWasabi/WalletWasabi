@@ -24,6 +24,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Constants = WalletWasabi.Helpers.Constants;
+using WalletWasabi.Fluent.Infrastructure;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -41,8 +42,11 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly object _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly CoinJoinManager? _coinJoinManager;
+	private readonly ClipboardObserver _clipboardObserver;
+
 	private bool _parsingTo;
 	private SmartLabel _parsedLabel = SmartLabel.Empty;
+
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -50,9 +54,10 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
-
+	
 	public SendViewModel(WalletViewModel walletVm)
 	{
+		WalletVm = walletVm;
 		_to = "";
 		_wallet = walletVm.Wallet;
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
@@ -129,7 +134,16 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+
+		var exchangeRates = this.WhenAnyValue(x => x.WalletVm.Wallet.Synchronizer.UsdExchangeRate);
+		var balances = this.WhenAnyValue(x => x.WalletVm.UiTriggers.BalanceUpdateTrigger).Select(_ => walletVm.Wallet.Coins.TotalAmount());
+
+		_clipboardObserver = new ClipboardObserver(new WalletBalances(exchangeRates, balances));
 	}
+
+	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
+
+	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
 	public bool IsQrButtonVisible { get; }
 
@@ -142,6 +156,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand InsertMaxCommand { get; }
 
 	public WalletBalanceTileViewModel Balance { get; }
+
+	public WalletViewModel WalletVm { get; }
 
 	private async Task OnAutoPasteAsync()
 	{

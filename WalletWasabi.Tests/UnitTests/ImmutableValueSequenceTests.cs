@@ -49,6 +49,7 @@ public class ImmutableValueSequenceTests
 	}
 
 	public record MyRecord(string Property);
+
 	public class MyClass : IEquatable<MyClass>
 	{
 		public MyClass(string property)
@@ -69,6 +70,7 @@ public class ImmutableValueSequenceTests
 		}
 
 		public override bool Equals(object? obj) => Equals(obj as MyClass);
+
 		public override int GetHashCode() => Property.GetHashCode();
 	}
 }
