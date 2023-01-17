@@ -14,8 +14,6 @@ public class CoinVerifier
 	// This should be much bigger than the possible input-reg period.
 	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
 
-	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
-
 	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
@@ -191,10 +189,10 @@ public class CoinVerifier
 				var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
 
 				// Sanity check.
-				if (delay > AbsoluteScheduleSanityTimeout - ApiRequestTimeout)
+				if (delay > AbsoluteScheduleSanityTimeout)
 				{
 					Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
-					delay = AbsoluteScheduleSanityTimeout - ApiRequestTimeout;
+					delay = AbsoluteScheduleSanityTimeout;
 				}
 
 				if (delay > TimeSpan.Zero)
@@ -202,10 +200,7 @@ public class CoinVerifier
 					await Task.Delay(delay, linkedCts.Token).ConfigureAwait(false);
 				}
 
-				// Define a max timeout for the API request.
-				using CancellationTokenSource apiTimeoutCts = new(ApiRequestTimeout);
-				using CancellationTokenSource withApiTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(apiTimeoutCts.Token, linkedCts.Token);
-				var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, withApiTimeoutCts.Token).ConfigureAwait(false);
+				var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 				var shouldBan = CheckForFlags(apiResponseItem);
 
 				// We got a definetive answer.

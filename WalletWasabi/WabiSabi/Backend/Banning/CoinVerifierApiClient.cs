@@ -13,6 +13,8 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierApiClient
 {
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
+
 	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
 	{
 		ApiToken = token;
@@ -42,7 +44,7 @@ public class CoinVerifierApiClient
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource timeoutTokenSource = new(ApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 		content.Headers.Authorization = new("Bearer", ApiToken);
