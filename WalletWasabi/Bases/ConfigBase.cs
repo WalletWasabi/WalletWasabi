@@ -121,18 +121,11 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		}
 	}
 
-	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
-
 	protected void LoadFileNoLock()
 	{
 		string jsonString = ReadFileNoLock();
 
 		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
-
-		if (TryEnsureBackwardsCompatibility(jsonString))
-		{
-			ToFileNoLock();
-		}
 	}
 
 	protected void ToFileNoLock()
