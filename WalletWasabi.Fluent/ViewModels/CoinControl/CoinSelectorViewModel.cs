@@ -209,12 +209,12 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.ToList();
 	}
 
-	private static Comparison<TSource> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	private static Comparison<TSource?> SortAscending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(x!), selector(y!));
 	}
 
-	private static Comparison<TSource> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
+	private static Comparison<TSource?> SortDescending<TSource, TProperty>(Func<TSource, TProperty> selector)
 	{
 		return (x, y) => Comparer<TProperty>.Default.Compare(selector(y!), selector(x!));
 	}
