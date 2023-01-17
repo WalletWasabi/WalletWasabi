@@ -92,6 +92,7 @@ public class CoinVerifier
 
 	private void CleanUp()
 	{
+		// In a normal case the CoinVerifyItems removed right after queried in VerifyCoinsAsync. This is a sanity clean up.
 		var now = DateTimeOffset.UtcNow;
 		foreach (var (coin, item) in CoinVerifyItems)
 		{
