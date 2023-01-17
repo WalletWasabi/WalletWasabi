@@ -638,6 +638,8 @@ public partial class Arena : PeriodicRunner
 	{
 		// For logging reason Prison needs the roundId.
 		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
+
+		// Cound be a coin from WW1.
 		var roundId = roundState?.Id ?? uint256.Zero;
 		Prison.Ban(coin.Outpoint, roundId, isLongBan: true);
 	}

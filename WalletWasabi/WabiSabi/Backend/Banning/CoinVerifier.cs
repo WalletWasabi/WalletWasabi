@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -207,7 +208,7 @@ public class CoinVerifier
 				// We got a definetive answer.
 				if (shouldBan)
 				{
-					CoinBlackListed?.Invoke(this, coin);
+					CoinBlackListed?.SafeInvoke(this, coin);
 				}
 				else
 				{
