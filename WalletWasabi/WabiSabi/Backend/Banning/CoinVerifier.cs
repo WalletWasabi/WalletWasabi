@@ -11,6 +11,9 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifier
 {
+	private TimeSpan AbsoluteScheduleTimeout { get; } = TimeSpan.FromDays(2);
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
+
 	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
@@ -45,7 +48,7 @@ public class CoinVerifier
 				if (!CoinVerifyItems.TryGetValue(coin, out item))
 				{
 					// This should not happen.
-					Logger.LogError("Coin cannot be re-scheduled for verification.");
+					Logger.LogError($"Coin '{coin.Outpoint}' cannot be re-scheduled for verification.");
 				}
 			}
 
@@ -92,9 +95,15 @@ public class CoinVerifier
 		var now = DateTimeOffset.UtcNow;
 		foreach (var (coin, item) in CoinVerifyItems)
 		{
-			if (item.TaskCompletionSource.Task.IsCompleted && now - item.ScheduleTime > TimeSpan.FromDays(2))
+			if (now - item.ScheduleTime > AbsoluteScheduleTimeout)
 			{
 				CoinVerifyItems.TryRemove(coin, out var _);
+
+				// This should never happen.
+				if (!item.TaskCompletionSource.Task.IsCompleted)
+				{
+					Logger.LogError($"Unfinished task was removed for coin: '{coin.Outpoint}'.");
+				}
 			}
 		}
 	}
@@ -167,19 +176,29 @@ public class CoinVerifier
 
 		_ = Task.Run(async () =>
 		{
+			using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleTimeout);
+			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
+
 			try
 			{
-				delayedStart ??= TimeSpan.Zero;
+				var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
 
-				if (delayedStart > TimeSpan.Zero)
+				// Sanity check.
+				if (delay > AbsoluteScheduleTimeout - ApiRequestTimeout)
 				{
-					await Task.Delay(delayedStart.Value, cancellationToken).ConfigureAwait(false);
+					Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleTimeout}' for coin '{coin.Outpoint}'.");
+					delay = AbsoluteScheduleTimeout - ApiRequestTimeout;
+				}
+
+				if (delay > TimeSpan.Zero)
+				{
+					await Task.Delay(delay, linkedCts.Token).ConfigureAwait(false);
 				}
 
 				// Define a max timeout for the API request.
-				using CancellationTokenSource timeout = new(TimeSpan.FromMinutes(2));
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-				var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
+				using CancellationTokenSource apiTimeoutCts = new(ApiRequestTimeout);
+				using CancellationTokenSource withApiTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(apiTimeoutCts.Token, linkedCts.Token);
+				var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, withApiTimeoutCts.Token).ConfigureAwait(false);
 				var shouldBan = CheckForFlags(apiResponseItem);
 
 				// We got a definetive answer.
@@ -194,9 +213,10 @@ public class CoinVerifier
 
 				taskCompletionSource.SetResult(new CoinVerifyResult(coin, shouldBan, ShouldRemove: shouldBan));
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
 				taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, ShouldRemove: true));
+				Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
 
 				// Do not throw an exception here - unobserverved exception prevention.
 			}
