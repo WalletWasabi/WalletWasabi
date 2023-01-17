@@ -63,7 +63,7 @@ public class WabiSabiClient
 			validationData[i] = new IssuanceValidationData(0, randomness, ma);
 		}
 
-		var transcript = BuildTransnscript(isNullRequest: true);
+		var transcript = BuildTranscript(isNullRequest: true);
 
 		return new(
 			new ZeroCredentialsRequest(
@@ -164,7 +164,7 @@ public class WabiSabiClient
 		var balanceKnowledge = ProofSystem.BalanceProofKnowledge(sumOfZ, deltaR);
 		knowledgeToProve.Add(balanceKnowledge);
 
-		var transcript = BuildTransnscript(isNullRequest: false);
+		var transcript = BuildTranscript(isNullRequest: false);
 		return new(
 			new RealCredentialsRequest(
 				amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Value),
@@ -219,7 +219,7 @@ public class WabiSabiClient
 		return credentials.Select(x => new Credential(x.Requested.Value, x.Requested.Randomness, x.Issued));
 	}
 
-	private Transcript BuildTransnscript(bool isNullRequest)
+	private Transcript BuildTranscript(bool isNullRequest)
 	{
 		var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 		var encodedLabel = Encoding.UTF8.GetBytes(label);

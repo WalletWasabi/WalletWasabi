@@ -17,6 +17,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private readonly KeyManager _keyManager;
 	private readonly string _password;
 	private readonly TransactionInfo _info;
+	private readonly bool _isSilent;
 	private readonly Money _targetAmount;
 	private readonly FeeRate _feeRate;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
@@ -27,12 +28,13 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info)
+	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info, bool isSilent)
 	{
 		_keyManager = keyManager;
 		_password = password;
 		_info = info;
-		_targetAmount = _info.MinimumRequiredAmount == Money.Zero ? _info.Amount : _info.MinimumRequiredAmount;
+		_isSilent = isSilent;
+		_targetAmount = _info.Amount;
 		_feeRate = _info.FeeRate;
 	}
 
@@ -197,7 +199,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			unlabelledViewModel.ToolTip = "There is no information about these people, only use it when necessary!";
 		}
 
-		OnSelectionChanged();
+		if (!_isSilent)
+		{
+			OnSelectionChanged();
+		}
 	}
 
 	public LabelViewModel[] GetAssociatedLabels(LabelViewModel labelViewModel)

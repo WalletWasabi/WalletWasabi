@@ -77,6 +77,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 							password!,
 							Services.WalletManager.Network,
 							AccountKeyPath,
+							null,
 							"", // Make sure it is not saved into a file yet.
 							MinGapLimit);
 
@@ -102,16 +103,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel(MinGapLimit),
 			NavigationTarget.CompactDialogScreen);
 
 		if (result.Kind == DialogResultKind.Normal)
 		{
-			var (accountKeyPathIn, minGapLimitIn) = result.Result;
+			var minGapLimitIn = result.Result;
 
-			if (accountKeyPathIn is { } && minGapLimitIn is { })
+			if (minGapLimitIn is { })
 			{
-				AccountKeyPath = accountKeyPathIn;
 				MinGapLimit = (int)minGapLimitIn;
 			}
 		}
@@ -123,7 +123,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
-	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
+	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
 
 	private int MinGapLimit { get; set; } = 114;
 

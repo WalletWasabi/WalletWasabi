@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using Avalonia.Controls.Primitives;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -41,9 +41,11 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<TreeDat
 			case TransactionHistoryItemViewModel:
 				AssociatedObject.Classes.Add(TransactionClass);
 				break;
+
 			case CoinJoinHistoryItemViewModel:
 				AssociatedObject.Classes.Add(CoinJoinClass);
 				break;
+
 			case CoinJoinsHistoryItemViewModel:
 				AssociatedObject.Classes.Add(CoinJoinsClass);
 				break;

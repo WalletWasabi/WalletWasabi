@@ -79,11 +79,8 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		var navBar = NavigationManager.Get<NavBarViewModel>();
-
-		if (ExistingWallet is { } && navBar is { })
+		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
 		{
-			navBar.SelectedItem = ExistingWallet;
 			Navigate().Clear();
 			ExistingWallet.OpenCommand.Execute(default);
 		}
@@ -142,7 +139,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		if (devices.Length == 0)
 		{
-			Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
+			Message = "Connect the hardware wallet to the PC / Enter the PIN on the device.";
 			return;
 		}
 

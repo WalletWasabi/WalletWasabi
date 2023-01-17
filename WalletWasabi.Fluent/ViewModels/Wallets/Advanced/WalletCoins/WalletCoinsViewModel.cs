@@ -20,7 +20,15 @@ using WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 
-[NavigationMetaData(Title = "Wallet Coins (UTXOs)")]
+[NavigationMetaData(
+	Title = "Wallet Coins (UTXOs)",
+	Caption = "Displays wallet coins",
+	IconName = "nav_wallet_24_regular",
+	Order = 0,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Coins", "UTXO", },
+	NavBarPosition = NavBarPosition.None,
+	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
@@ -131,7 +139,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 			IsFixedAmount = true,
 		};
 
-		Navigate().To(new TransactionPreviewViewModel(wallet, info));
+		Navigate().To(new TransactionPreviewViewModel(_walletVm, info));
 	}
 
 	private FlatTreeDataGridSource<WalletCoinViewModel> CreateGridSource(IEnumerable<WalletCoinViewModel> coins)

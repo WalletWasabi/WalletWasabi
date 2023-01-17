@@ -111,4 +111,15 @@ public record SigningState : MultipartyTransactionState
 
 		return tx;
 	}
+
+	public TransactionWithPrecomputedData CreateUnsignedTransactionWithPrecomputedData()
+	{
+		var tx = CreateUnsignedTransaction();
+		var precomputeTransactionData = tx.PrecomputeTransactionData(Inputs.ToArray());
+		return new TransactionWithPrecomputedData(tx, precomputeTransactionData);
+	}
 }
+
+public record TransactionWithPrecomputedData(
+	Transaction Transaction,
+	PrecomputedTransactionData PrecomputedTransactionData);

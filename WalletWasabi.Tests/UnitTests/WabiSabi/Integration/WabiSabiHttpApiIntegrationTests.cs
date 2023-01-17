@@ -15,6 +15,7 @@ using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
@@ -107,7 +108,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager.AssertCleanKeysIndexed();
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
 			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
@@ -192,14 +192,13 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// Create a key manager and use it to create fake coins.
 		_output.WriteLine("Creating key manager...");
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager.AssertCleanKeysIndexed();
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
 			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
-		keyManager.AssertLockedInternalKeysIndexed(14);
+		keyManager.AssertLockedInternalKeysIndexed(14, false);
 		var outputScriptCandidates = keyManager
 			.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked)
 			.Select(x => x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))
@@ -297,10 +296,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		var keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager1.AssertCleanKeysIndexed();
-
 		var keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
-		keyManager2.AssertCleanKeysIndexed();
 
 		var coins = keyManager1.GetKeys()
 			.Take(inputCount)
@@ -339,6 +335,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			// services to build everything (WabiSabi controller, arena, etc)
 			services.AddScoped(s => new WabiSabiConfig
 			{
+				AllowP2trInputs = true,
+				AllowP2trOutputs = true,
 				MaxInputCountByRound = 2 * inputCount,
 				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				BlameInputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -365,7 +363,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
-		var roundState = await roundStateUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
+		var roundState = await roundStateUpdater.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(mockHttpClientFactory.Object, keyManager1, roundStateUpdater);
 

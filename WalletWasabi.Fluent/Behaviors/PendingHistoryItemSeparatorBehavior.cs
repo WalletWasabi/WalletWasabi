@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;

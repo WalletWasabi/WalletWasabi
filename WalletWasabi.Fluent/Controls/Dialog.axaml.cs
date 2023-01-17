@@ -80,11 +80,11 @@ public class Dialog : ContentControl
 				var increasedHeightThreshold = IncreasedHeightThreshold;
 				var fullScreenHeightThreshold = FullScreenHeightThreshold;
 				var canIncreasedWidth = !double.IsNaN(increasedWidthThreshold)
-				                        && width < increasedWidthThreshold;
+										&& width < increasedWidthThreshold;
 				var canIncreasedHeight = !double.IsNaN(increasedHeightThreshold)
-				                         && height < increasedHeightThreshold;
+										 && height < increasedHeightThreshold;
 				var canGoToFullScreen = !double.IsNaN(fullScreenHeightThreshold)
-				                        && height < fullScreenHeightThreshold;
+										&& height < fullScreenHeightThreshold;
 				IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight;
 				IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight;
 				IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight;

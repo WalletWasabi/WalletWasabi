@@ -123,8 +123,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	/// <remarks>Test wallet assumes that the ownership proof is always correct.</remarks>
-	public Transaction Sign(Transaction transaction, Coin coin, OwnershipProof ownershipProof)
+	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
 		{
@@ -140,7 +139,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		// Test wallet doesn't care
 	}
 
-	public IEnumerable<IDestination> GetNextDestinations(int count) =>
+	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
 		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
 
 	private void ScanTransaction(Transaction tx)

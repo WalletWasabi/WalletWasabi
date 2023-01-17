@@ -7,7 +7,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
 
@@ -49,61 +48,53 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 		_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 			.CombineLatest(this.WhenAnyValue(x => x.Width))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => RefreshCoinsList(itemsSourceList))
+			.Subscribe(_ => RenderBar(itemsSourceList))
 			.DisposeWith(disposables);
 	}
 
-	private void RefreshCoinsList(SourceList<PrivacyBarItemViewModel> itemsSourceList)
+	private void RenderBar(SourceList<PrivacyBarItemViewModel> itemsSourceList)
 	{
+		Items.Clear();
+
 		itemsSourceList.Edit(list => CreateSegments(list));
 	}
 
 	private void CreateSegments(IExtendedList<PrivacyBarItemViewModel> list)
 	{
-		Items.Clear();
 		list.Clear();
 
-		var pockets = _walletViewModel.Wallet.GetPockets();
-
-		var coinCount = pockets.SelectMany(x => x.Coins).Count();
+		var coinCount = _walletViewModel.Wallet.Coins.Count();
 
 		if (Width == 0d || coinCount == 0d)
 		{
 			return;
 		}
 
-		var result = Enumerable.Empty<PrivacyBarItemViewModel>();
+		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
 
-		if (coinCount < UIConstants.PrivacyRingMaxItemCount)
-		{
-			result = CreateCoinSegments(pockets, coinCount);
-		}
-		else
-		{
-			result = CreatePocketSegments(pockets);
-		}
+		var result =
+			shouldCreateSegmentsByCoin
+			? CreateSegmentsByCoin()
+			: CreateSegmentsByPrivacyLevel();
 
-		foreach (var item in result)
-		{
-			list.Add(item);
-		}
+		list.AddRange(result);
 	}
 
-	private IEnumerable<PrivacyBarItemViewModel> CreateCoinSegments(IEnumerable<Pocket> pockets, int coinCount)
+	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByCoin()
 	{
-		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
+		var coinCount = _walletViewModel.Wallet.Coins.Count();
+		var totalAmount = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
 		var usableWidth = (decimal)Width - (coinCount - 1) * GapBetweenSegments;
 
 		// Calculate the width of the segments.
-		var rawSegments = pockets
-			.Where(x => x.Coins.Any())
-			.SelectMany(pocket => pocket.Coins.Select(coin =>
+		var rawSegments =
+			_walletViewModel.Wallet.Coins.Select(coin =>
 			{
 				var amount = coin.Amount.ToDecimal(MoneyUnit.BTC);
 				var width = Math.Abs(usableWidth * amount / totalAmount);
 
-				return (OwnerPocket: pocket, Coin: coin, Width: width);
-			})).ToArray();
+				return (Coin: coin, Width: width);
+			}).ToArray();
 
 		// Artificially enlarge segments smaller than the threshold px in order to make them visible.
 		// Meanwhile decrease those segments that are larger than threshold px in order to fit all in the bar.
@@ -115,18 +106,18 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			rawSegments = rawSegments.Select(x =>
 			{
 				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
-				return (OwnerPocket: x.OwnerPocket, Coin: x.Coin, Width: finalWidth);
+				return (Coin: x.Coin, Width: finalWidth);
 			}).ToArray();
 		}
 
 		// Order the coins as they will be shown in the bar.
 		rawSegments = rawSegments
-			.OrderByDescending(x => x.OwnerPocket.Coins.First().HdPubKey.AnonymitySet)
+			.OrderBy(x => x.Coin.GetPrivacyLevel(_walletViewModel.Wallet))
 			.ThenByDescending(x => x.Width)
 			.ToArray();
 
 		var start = 0.0m;
-		foreach (var (_, coin, width) in rawSegments)
+		foreach (var (coin, width) in rawSegments)
 		{
 			yield return new PrivacyBarItemViewModel(this, coin, (double)start, (double)width);
 
@@ -134,18 +125,24 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 		}
 	}
 
-	private IEnumerable<PrivacyBarItemViewModel> CreatePocketSegments(IEnumerable<Pocket> pockets)
+	private IEnumerable<PrivacyBarItemViewModel> CreateSegmentsByPrivacyLevel()
 	{
-		var totalAmount = pockets.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
-		var usableWidth = (decimal)Width - (pockets.Count() - 1) * GapBetweenSegments;
+		var groupsByPrivacy =
+			_walletViewModel.Wallet.Coins.GroupBy(x => x.GetPrivacyLevel(_walletViewModel.Wallet))
+										 .OrderBy(x => (int)x.Key)
+										 .ToList();
+
+		var totalAmount = _walletViewModel.Wallet.Coins.Sum(x => Math.Abs(x.Amount.ToDecimal(MoneyUnit.BTC)));
+
+		var usableWidth = (decimal)Width - (groupsByPrivacy.Count - 1) * GapBetweenSegments;
 
 		// Calculate the width of the segments.
-		var rawSegments = pockets.Select(pocket =>
+		var rawSegments = groupsByPrivacy.Select(group =>
 		{
-			var amount = pocket.Amount.ToDecimal(MoneyUnit.BTC);
+			var amount = group.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 			var width = Math.Abs(usableWidth * amount / totalAmount);
 
-			return (Pocket: pocket, Width: width);
+			return (PrivacyLevel: group.Key, Width: width);
 		}).ToArray();
 
 		// Artificially enlarge segments smaller than threshold px in order to make them visible.
@@ -158,20 +155,20 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			rawSegments = rawSegments.Select(x =>
 			{
 				var finalWidth = x.Width < EnlargeThreshold ? x.Width + EnlargeBy : x.Width - reduceBy;
-				return (Coin: x.Pocket, Width: finalWidth);
+				return (PrivacyLevel: x.PrivacyLevel, Width: finalWidth);
 			}).ToArray();
 		}
 
-		// Order the pockets as they will be shown in the bar.
+		// Order the segments as they will be shown in the bar.
 		rawSegments = rawSegments
-			.OrderByDescending(x => x.Pocket.Coins.First().HdPubKey.AnonymitySet)
+			.OrderBy(x => x.PrivacyLevel)
 			.ThenByDescending(x => x.Width)
 			.ToArray();
 
 		var start = 0.0m;
-		foreach (var (pocket, width) in rawSegments)
+		foreach (var (privacyLevel, width) in rawSegments)
 		{
-			yield return new PrivacyBarItemViewModel(pocket, Wallet, (double)start, (double)width);
+			yield return new PrivacyBarItemViewModel(privacyLevel, (double)start, (double)width);
 
 			start += width + GapBetweenSegments;
 		}

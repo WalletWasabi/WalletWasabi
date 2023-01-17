@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Input;
 using Avalonia;
 using ReactiveUI;
@@ -11,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
 	Title = "About Wasabi",
-	Caption = "Displays all the current info about the app",
+	Caption = "Display Wasabi's current info",
 	IconName = "info_regular",
 	Order = 4,
 	Category = "Help & Support",
