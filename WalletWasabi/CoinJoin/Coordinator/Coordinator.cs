@@ -442,22 +442,18 @@ public class Coordinator : IDisposable
 	{
 		try
 		{
-			bool bannedAtLeastOne = false;
 			foreach (var round in Rounds)
 			{
 				if (round.ContainsInput(coin.Outpoint, out var alices))
 				{
 					var outPointsToBan = alices.SelectMany(a => a.Inputs).Select(i => i.Outpoint).ToArray();
 					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, forceBan: true, outPointsToBan).ConfigureAwait(false);
-					bannedAtLeastOne = true;
+					return;
 				}
 			}
 
 			// Could be a coin from WW2.
-			if (!bannedAtLeastOne)
-			{
-				await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, 0, forceBan: true, coin.Outpoint).ConfigureAwait(false);
-			}
+			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, 0, forceBan: true, coin.Outpoint).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
