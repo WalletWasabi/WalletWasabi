@@ -36,7 +36,7 @@ public class CoinVerifier
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
 		// Booting up the results with the default value - ban: no, remove: yes.
-		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(c => c, c => new CoinVerifyResult(c, false, true));
+		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 
 		// Building up the task list.
 		List<Task<CoinVerifyResult>> tasks = new();
@@ -155,19 +155,19 @@ public class CoinVerifier
 
 		if (oneHop)
 		{
-			taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, false));
+			taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
 			return;
 		}
 
 		if (Whitelist.TryGet(coin.Outpoint, out _))
 		{
-			taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, false));
+			taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
 			return;
 		}
 
 		if (CoinJoinIdStore.Contains(coin.Outpoint.Hash))
 		{
-			taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, false));
+			taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
 			return;
 		}
 
@@ -175,7 +175,7 @@ public class CoinVerifier
 		{
 			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmation)
 			{
-				taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, ShouldRemove: true));
+				taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 				return;
 			}
 		}
@@ -214,11 +214,11 @@ public class CoinVerifier
 					Whitelist.Add(coin.Outpoint);
 				}
 
-				taskCompletionSource.SetResult(new CoinVerifyResult(coin, shouldBan, ShouldRemove: shouldBan));
+				taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan));
 			}
 			catch (Exception ex)
 			{
-				taskCompletionSource.SetResult(new CoinVerifyResult(coin, false, ShouldRemove: true));
+				taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 				Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
 
 				// Do not throw an exception here - unobserverved exception prevention.
