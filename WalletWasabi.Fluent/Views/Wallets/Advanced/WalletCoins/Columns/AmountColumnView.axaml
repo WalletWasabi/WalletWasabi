@@ -3,12 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:walletcoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="walletcoins:WalletCoinViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletCoins.Columns.AmountColumnView">
-  <TextBlock Text="{Binding Amount}"
-             Margin="5 0 10 0"
-             VerticalAlignment="Center"
-             HorizontalAlignment="Center" />
+  <c:PrivacyContentControl Content="{Binding Amount}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Margin="5 0 10 0"
+                           UseOpacity="False" />
 </UserControl>

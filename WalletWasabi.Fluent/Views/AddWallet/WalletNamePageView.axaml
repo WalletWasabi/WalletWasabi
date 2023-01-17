@@ -19,7 +19,7 @@
       <TextBox MaxLength="50" Text="{Binding WalletName}" Watermark="Type in a wallet name">
         <i:Interaction.Behaviors>
           <behaviors:FocusOnAttachedBehavior />
-          <behaviors:TextBoxSelectAllTextBehavior/>
+          <behaviors:TextBoxSelectAllTextBehavior />
         </i:Interaction.Behaviors>
       </TextBox>
     </StackPanel>

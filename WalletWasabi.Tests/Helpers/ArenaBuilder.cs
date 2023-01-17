@@ -3,9 +3,8 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -24,7 +23,7 @@ public class ArenaBuilder
 	public WabiSabiConfig? Config { get; set; }
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
-	public RoundParameterFactory? RoundParameterFactory { get; set;  }
+	public RoundParameterFactory? RoundParameterFactory { get; set; }
 	public ICoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
@@ -38,7 +37,7 @@ public class ArenaBuilder
 		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
+		Arena arena = new(period, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
 
 		foreach (var round in rounds)
 		{

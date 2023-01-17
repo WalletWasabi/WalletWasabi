@@ -15,7 +15,7 @@ public static class TimeSpanFormatter
 			GetHours(reduced, configuration),
 			GetMinutes(reduced, configuration)
 		};
-			
+
 		return parts.First(s => s is not null) ?? throw new InvalidOperationException($"Invalid timeSpan: {timeSpan}");
 	}
 
@@ -23,7 +23,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Days > 0)
 		{
-			return timeSpan.Days + configuration.DaysLabel;
+			return $"{timeSpan.Days} {configuration.DaysLabel}{TextHelpers.AddSIfPlural(timeSpan.Days)}";
 		}
 
 		return null;
@@ -33,7 +33,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Hours > 0)
 		{
-			return timeSpan.Hours + configuration.HoursLabel;
+			return $"{timeSpan.Hours} {configuration.HoursLabel}{TextHelpers.AddSIfPlural(timeSpan.Hours)}";
 		}
 
 		return null;
@@ -43,7 +43,7 @@ public static class TimeSpanFormatter
 	{
 		if (timeSpan.Minutes > 0)
 		{
-			return timeSpan.Minutes + configuration.MinutesLabel;
+			return $"{timeSpan.Minutes} {configuration.MinutesLabel}{TextHelpers.AddSIfPlural(timeSpan.Minutes)}";
 		}
 
 		return default;
@@ -51,15 +51,15 @@ public static class TimeSpanFormatter
 
 	public class Configuration
 	{
-		public string DaysLabel { get; }
-		public string HoursLabel { get; }
-		public string MinutesLabel { get; }
-
 		public Configuration(string daysLabel, string hoursLabel, string minutesLabel)
 		{
 			DaysLabel = daysLabel;
 			HoursLabel = hoursLabel;
 			MinutesLabel = minutesLabel;
 		}
+
+		public string DaysLabel { get; }
+		public string HoursLabel { get; }
+		public string MinutesLabel { get; }
 	}
 }

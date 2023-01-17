@@ -16,7 +16,16 @@
 
     <c:QuestionControl Content="Does your password contain numbers?"
                        YesCommand="{Binding YesCommand}"
-                       NoCommand="{Binding NoCommand}"
-                       ImageIcon="{Binding Icon}" />
+                       NoCommand="{Binding NoCommand}">
+      <c:QuestionControl.IconContent>
+        <Viewbox Height="150">
+          <StackPanel Orientation="Horizontal" Opacity="0.6">
+            <TextBlock Text="0" />
+            <TextBlock Text=".." Foreground="{DynamicResource SystemAccentColor}" />
+            <TextBlock Text="9" />
+          </StackPanel>
+        </Viewbox>
+      </c:QuestionControl.IconContent>
+    </c:QuestionControl>
   </c:ContentArea>
 </UserControl>

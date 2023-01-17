@@ -22,17 +22,17 @@ public class SerializationTests
 {
 	private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 	private static IEnumerable<Scalar> Scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
-	private static CredentialIssuerSecretKey IssuerKey = new(new InsecureRandom());
+	private static CredentialIssuerSecretKey IssuerKey = new(InsecureRandom.Instance);
 
 	[Fact]
 	public void InputRegistrationRequestMessageSerialization()
 	{
 		var message = new InputRegistrationRequest(
-				BitcoinFactory.CreateUint256(),
-				BitcoinFactory.CreateOutPoint(),
-				new OwnershipProof(),
-				CreateZeroCredentialsRequest(),
-				CreateZeroCredentialsRequest());
+			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateOutPoint(),
+			new OwnershipProof(),
+			CreateZeroCredentialsRequest(),
+			CreateZeroCredentialsRequest());
 
 		AssertSerialization(message);
 	}
@@ -139,8 +139,9 @@ public class SerializationTests
 		AssertSerialization(RoundState.FromRound(round));
 
 		var state = round.Assert<ConstructionState>();
-		state = state.AddInput(CreateCoin());
-		round.CoinjoinState = new SigningState(round.Parameters, state.Events);
+		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
+		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));
 	}
 
@@ -206,10 +207,4 @@ public class SerializationTests
 		new(
 			new[] { MAC.ComputeMAC(IssuerKey, Points.First(), Scalars.First()) },
 			new[] { new Proof(new GroupElementVector(Points.Take(2)), new ScalarVector(Scalars.Take(2))) });
-
-	private static Coin CreateCoin()
-	{
-		using var key = new Key();
-		return WabiSabiFactory.CreateCoin(key);
-	}
 }

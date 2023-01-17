@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
@@ -27,7 +28,7 @@ public class TorControlClientFactory
 
 	public TorControlClientFactory(IRandom? random = null)
 	{
-		Random = random ?? new InsecureRandom();
+		Random = random ?? InsecureRandom.Instance;
 	}
 
 	/// <summary>Helps generate nonces for AUTH challenges.</summary>
@@ -36,9 +37,18 @@ public class TorControlClientFactory
 	/// <summary>Connects to Tor Control endpoint and authenticates using safe-cookie mechanism.</summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.5</seealso>
 	/// <exception cref="TorControlException">If TCP connection cannot be established OR if authentication fails for some reason.</exception>
-	public async Task<TorControlClient> ConnectAndAuthenticateAsync(IPEndPoint endPoint, string cookieString, CancellationToken cancellationToken = default)
+	public async Task<TorControlClient> ConnectAndAuthenticateAsync(EndPoint endPoint, string cookieString, CancellationToken cancellationToken)
 	{
-		TcpClient tcpClient = Connect(endPoint);
+		TcpClient tcpClient;
+		try
+		{
+			tcpClient = await TcpClientConnector.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception e)
+		{
+			Logger.LogError($"Failed to connect to the Tor control: '{endPoint}'.", e);
+			throw new TorControlException($"Failed to connect to the Tor control: '{endPoint}'.", e);
+		}
 		TorControlClient? clientToDispose = null;
 
 		try
@@ -67,7 +77,7 @@ public class TorControlClientFactory
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.24 for SAFECOOKIE authentication.</seealso>
 	/// <seealso href="https://github.com/torproject/stem/blob/63a476056017dda5ede35efc4e4f7acfcc1d7d1a/stem/connection.py#L893">Python implementation.</seealso>
 	/// <exception cref="TorControlException">If authentication fails for some reason.</exception>
-	internal async Task<TorControlClient> AuthSafeCookieOrThrowAsync(TorControlClient controlClient, string cookieString, CancellationToken cancellationToken = default)
+	internal async Task<TorControlClient> AuthSafeCookieOrThrowAsync(TorControlClient controlClient, string cookieString, CancellationToken cancellationToken)
 	{
 		byte[] nonceBytes = new byte[32];
 		Random.GetBytes(nonceBytes);
@@ -113,23 +123,5 @@ public class TorControlClientFactory
 		}
 
 		return controlClient;
-	}
-
-	/// <summary>
-	/// Connects to Tor control using a TCP client.
-	/// </summary>
-	private TcpClient Connect(IPEndPoint endPoint)
-	{
-		try
-		{
-			TcpClient tcpClient = new();
-			tcpClient.Connect(endPoint);
-			return tcpClient;
-		}
-		catch (Exception e)
-		{
-			Logger.LogError($"Failed to connect to the Tor control: '{endPoint}'.", e);
-			throw new TorControlException($"Failed to connect to the Tor control: '{endPoint}'.", e);
-		}
 	}
 }

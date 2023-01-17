@@ -18,10 +18,11 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private readonly IObservable<Unit> _updateTrigger;
 
 	[AutoNotify] private string _date = "";
-	[AutoNotify] private string _status = "";
-	[AutoNotify] private Money? _coinJoinFee;
+	[AutoNotify] private string _coinJoinFeeRawString = "";
 	[AutoNotify] private string _coinJoinFeeString = "";
 	[AutoNotify] private uint256? _transactionId;
+	[AutoNotify] private bool _isConfirmed;
+	[AutoNotify] private int _confirmations;
 
 	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
 	{
@@ -56,9 +57,10 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private void Update()
 	{
 		Date = _coinJoin.DateString;
-		Status = _coinJoin.IsConfirmed ? "Confirmed" : "Pending";
-		CoinJoinFee = _coinJoin.OutgoingAmount;
-		CoinJoinFeeString = CoinJoinFee.ToFeeDisplayUnitString() ?? "Unknown";
+		CoinJoinFeeRawString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitRawString();
+		CoinJoinFeeString = _coinJoin.OutgoingAmount.ToFeeDisplayUnitFormattedString();
+		Confirmations = _coinJoin.CoinJoinTransaction.GetConfirmations();
+		IsConfirmed = Confirmations > 0;
 
 		TransactionId = _coinJoin.CoinJoinTransaction.TransactionId;
 	}

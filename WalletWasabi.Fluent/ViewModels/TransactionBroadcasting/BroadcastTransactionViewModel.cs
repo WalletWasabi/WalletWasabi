@@ -6,21 +6,12 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
-[NavigationMetaData(
-	Title = "Broadcaster",
-	Caption = "Broadcast your transactions here",
-	IconName = "live_regular",
-	Order = 5,
-	Category = "General",
-	Keywords = new[] { "Transaction Id", "Input", "Output", "Amount", "Network", "Fee", "Count", "BTC", "Signed", "Paste", "Import", "Broadcast", "Transaction", },
-	NavBarPosition = NavBarPosition.None,
-	NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "Broadcast Transaction")]
 public partial class BroadcastTransactionViewModel : RoutableViewModel
 {
 	public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
@@ -42,7 +33,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 
 	public string? InputAmountString { get; set; }
 
-	public string? FeeString { get; set; }
+	public string FeeString { get; set; } = "Unknown";
 
 	public int InputCount { get; set; }
 
@@ -89,7 +80,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 			? null
 			: totalInputValue - totalOutputValue;
 
-		FeeString = networkFee?.ToFeeDisplayUnitString() ?? "Unknown";
+		FeeString = networkFee.ToFeeDisplayUnitFormattedString();
 	}
 
 	private async Task OnNextAsync(SmartTransaction transaction)

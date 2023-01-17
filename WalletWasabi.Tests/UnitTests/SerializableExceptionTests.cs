@@ -1,3 +1,4 @@
+using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using Xunit;
 

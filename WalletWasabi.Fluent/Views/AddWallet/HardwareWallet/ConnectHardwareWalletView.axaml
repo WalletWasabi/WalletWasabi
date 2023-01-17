@@ -22,7 +22,7 @@
     <DockPanel>
       <Viewbox MaxHeight="150" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 30 0 0">
         <i:Interaction.Behaviors>
-          <behaviors:DynamicHeightBehavior HeightMultiplier="0.3" HideThresholdHeight="50"/>
+          <behaviors:DynamicHeightBehavior HeightMultiplier="0.3" HideThresholdHeight="50" />
         </i:Interaction.Behaviors>
         <StackPanel Orientation="Horizontal">
           <Image Height="100" Source="{Binding Ledger, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
@@ -31,11 +31,10 @@
           <Image Height="100" Source="{Binding Generic, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
         </StackPanel>
       </Viewbox>
-      <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" DockPanel.Dock="Bottom" VerticalAlignment="Bottom"/>
       <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
         <DockPanel>
-          <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
-          <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 5 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Open wallet" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
+          <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top" />
+          <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 5 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Open wallet" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom" />
         </DockPanel>
         <Viewbox IsVisible="{Binding !ConfirmationRequired}" MaxHeight="100" Margin="15">
           <c:ProgressRing IsIndeterminate="True" Height="100" Width="100" />

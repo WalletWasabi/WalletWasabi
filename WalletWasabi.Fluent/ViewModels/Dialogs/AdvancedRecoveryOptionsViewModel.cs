@@ -9,14 +9,12 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Advanced Recovery Options")]
-public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
+public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?>
 {
-	[AutoNotify] private string _accountKeyPath;
 	[AutoNotify] private string _minGapLimit;
 
-	public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
+	public AdvancedRecoveryOptionsViewModel(int minGapLimit)
 	{
-		this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -27,12 +25,10 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(Key
 
 		var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.IsDialogOpen,
-				x => x.AccountKeyPath,
 				x => x.MinGapLimit,
 				delegate
 				{
-						// This will fire validations before return canExecute value.
-						this.RaisePropertyChanged(nameof(AccountKeyPath));
+					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(MinGapLimit));
 
 					return IsDialogOpen && !Validations.Any;
@@ -41,13 +37,12 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(Key
 
 		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-		_accountKeyPath = interactionInput.keyPath.ToString();
-		_minGapLimit = interactionInput.minGapLimit.ToString();
+		_minGapLimit = minGapLimit.ToString();
 
 		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 
 		NextCommand = ReactiveCommand.Create(
-			() => Close(result: (KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
+			() => Close(result: int.Parse(MinGapLimit)),
 			nextCommandCanExecute);
 
 		CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
@@ -61,23 +56,6 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(Key
 			errors.Add(
 				ErrorSeverity.Error,
 				$"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
-		}
-	}
-
-	private void ValidateAccountKeyPath(IValidationErrors errors)
-	{
-		if (KeyPath.TryParse(AccountKeyPath, out var keyPath) && keyPath is { })
-		{
-			var accountKeyPath = keyPath.GetAccountKeyPath();
-			if (keyPath.Length != accountKeyPath.Length ||
-				accountKeyPath.Length != KeyManager.GetAccountKeyPath(Network.Main).Length)
-			{
-				errors.Add(ErrorSeverity.Error, "Path is not a compatible account derivation path.");
-			}
-		}
-		else
-		{
-			errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
 		}
 	}
 

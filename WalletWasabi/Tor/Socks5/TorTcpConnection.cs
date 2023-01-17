@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Threading;
+using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
@@ -15,23 +15,19 @@ public class TorTcpConnection : IDisposable
 {
 	private volatile bool _disposedValue = false;
 
-	/// <summary>ID generator.</summary>
-	private static long LastId;
-
 	/// <param name="tcpClient">TCP client connected to Tor SOCKS5 endpoint.</param>
 	/// <param name="transportStream">Transport stream to actually send the data to Tor SOCKS5 endpoint (the difference is SSL).</param>
 	/// <param name="circuit">Tor circuit under which we operate with this TCP connection.</param>
 	/// <param name="allowRecycling">Whether it is allowed to re-use this Tor TCP connection.</param>
-	public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
+	public TorTcpConnection(TcpClient tcpClient, Stream transportStream, INamedCircuit circuit, bool allowRecycling)
 	{
-		long id = Interlocked.Increment(ref LastId);
 		string prefix = circuit switch
 		{
 			DefaultCircuit _ => "DC",
 			PersonCircuit _ => "PC",
 			_ => "UC" // Unknown circuit type.
 		};
-		Name = $"{prefix}#{id:0000}#{circuit.Name[0..10]}";
+		Name = $"{prefix}#{circuit.Name[0..5]}";
 
 		TcpClient = tcpClient;
 		TransportStream = transportStream;
@@ -39,11 +35,18 @@ public class TorTcpConnection : IDisposable
 		AllowRecycling = allowRecycling;
 	}
 
-	/// <remarks>Lock object to guard <see cref="State"/> property.</remarks>
-	private object StateLock { get; } = new();
+	/// <remarks>Lock object to guard <see cref="State"/> and <see cref="TorStreamInfo"/> properties.</remarks>
+	private object DataLock { get; } = new();
 
-	/// <remarks>All access to this property must be guarded by <see cref="StateLock"/>.</remarks>
+	/// <remarks>All access to this property must be guarded by <see cref="DataLock"/>.</remarks>
 	private TcpConnectionState State { get; set; }
+
+	/// <summary>Circuit ID string as assigned by Tor for the corresponding Tor stream and Tor stream status information.</summary>
+	/// <remarks>
+	/// Corresponds to <see cref="StreamInfo.CircuitID"/>.
+	/// <para>All access to this property must be guarded by <see cref="DataLock"/>.</para>
+	/// </remarks>
+	private TorStreamInfo? TorStreamInfo { get; set; }
 
 	/// <summary>Gets whether this pool item can be potentially re-used.</summary>
 	private bool AllowRecycling { get; }
@@ -54,7 +57,7 @@ public class TorTcpConnection : IDisposable
 	{
 		get
 		{
-			lock (StateLock)
+			lock (DataLock)
 			{
 				return State == TcpConnectionState.ToDispose || !Circuit.IsActive;
 			}
@@ -72,7 +75,7 @@ public class TorTcpConnection : IDisposable
 	private Stream TransportStream { get; }
 
 	/// <summary>Tor circuit under which this TCP connection operates.</summary>
-	public ICircuit Circuit { get; }
+	public INamedCircuit Circuit { get; }
 
 	/// <summary>
 	/// Stream to transport HTTP(s) request.
@@ -83,7 +86,7 @@ public class TorTcpConnection : IDisposable
 	/// <summary>Reserve the pool item for an HTTP(s) request so no other consumer can use this pool item.</summary>
 	public bool TryReserve()
 	{
-		lock (StateLock)
+		lock (DataLock)
 		{
 			if (State == TcpConnectionState.FreeToUse)
 			{
@@ -102,11 +105,30 @@ public class TorTcpConnection : IDisposable
 	/// <returns>Pool item state after unreserve operation.</returns>
 	public TcpConnectionState Unreserve()
 	{
-		lock (StateLock)
+		lock (DataLock)
 		{
 			Debug.Assert(State == TcpConnectionState.InUse, $"Unexpected state: '{State}'.");
 			State = AllowRecycling ? TcpConnectionState.FreeToUse : TcpConnectionState.ToDispose;
 			return State;
+		}
+	}
+
+	/// <summary>
+	/// Update the latest Tor stream update.
+	/// </summary>
+	/// <param name="ifEmpty"><c>true</c> if we want to process the update only if no previous update has been processed.</param>
+	/// <remarks>
+	/// <paramref name="ifEmpty"/> is helpful to avoid race when <see cref="TorTcpConnection"/> is being created and we
+	/// don't want to miss an update from Tor control for the <see cref="TorTcpConnection"/>.
+	/// </remarks>
+	public void SetLatestStreamInfo(TorStreamInfo streamInfo, bool ifEmpty = false)
+	{
+		lock (DataLock)
+		{
+			if (!ifEmpty || (ifEmpty && TorStreamInfo is null))
+			{
+				TorStreamInfo = streamInfo;
+			}
 		}
 	}
 
@@ -117,7 +139,7 @@ public class TorTcpConnection : IDisposable
 	/// <remarks>Connection transporting an HTTP request that was canceled or otherwise failed must be torn down.</remarks>
 	public void MarkAsToDispose(bool force = true)
 	{
-		lock (StateLock)
+		lock (DataLock)
 		{
 			if (force)
 			{
@@ -134,7 +156,19 @@ public class TorTcpConnection : IDisposable
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return Name;
+		lock (DataLock)
+		{
+			if (TorStreamInfo is not null)
+			{
+				return (TorStreamInfo.Status == StreamStatusFlag.SUCCEEDED)
+					? $"{Name}#C{TorStreamInfo.CircuitId}"
+					: $"{Name}#C{TorStreamInfo.CircuitId}#{TorStreamInfo.Status}";
+			}
+			else
+			{
+				return Name;
+			}
+		}
 	}
 
 	protected virtual void Dispose(bool disposing)

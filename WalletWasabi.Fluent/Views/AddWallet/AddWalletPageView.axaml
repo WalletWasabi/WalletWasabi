@@ -5,6 +5,8 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ir="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Avalonia.Xaml.Interactions"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
@@ -13,76 +15,47 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}"
-                 EnableNext="True"
-                 NextContent="Continue">
-    <ListBox Items="{Binding Options}" SelectedItem="{Binding SelectedOption}" Background="Transparent"
-             ScrollViewer.VerticalScrollBarVisibility="Disabled">
-      <ListBox.Styles>
-        <Style Selector="ListBoxItem">
-          <Setter Property="Cursor" Value="Hand" />
-          <Setter Property="Padding" Value="0 12 0 12" />
-        </Style>
-        <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
-          <Setter Property="Background" Value="Transparent" />
-          <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
+                 EnableNext="False">
+    <Panel>
+      <i:Interaction.Behaviors>
+        <ir:AdaptiveBehavior>
+          <ir:AdaptiveClassSetter MinWidth="0" MaxWidth="650" MaxWidthOperator="LessThanOrEqual" ClassName="small" />
+        </ir:AdaptiveBehavior>
+      </i:Interaction.Behaviors>
 
-        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-          <Setter Property="Background" Value="Transparent" />
-        </Style>
-        <Style Selector="ListBoxItem:selected Border#PART_DecorationBorderHover, ListBoxItem:selected Border#PART_DecorationBorderUnselected">
-          <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-        </Style>
+      <UniformGrid Rows="1" HorizontalAlignment="Center">
+        <UniformGrid.Styles>
+          <Style Selector="c|TileButton">
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="IconSize" Value="50" />
+          </Style>
 
-        <Style Selector="ListBoxItem Border#PART_MainContentBorder">
-          <Setter Property="Padding" Value="10 25 10 25" />
-          <Setter Property="CornerRadius" Value="4" />
-        </Style>
+          <Style Selector="Panel.small c|TileButton">
+            <Setter Property="Width" Value="120" />
+            <Setter Property="VerticalContentAlignment" Value="Bottom"/>
+          </Style>
+        </UniformGrid.Styles>
+        <c:TileButton Text="Create a new wallet"
+                      Classes="action doubleline"
+                      Icon="{StaticResource add_regular}"
+                      Command="{Binding CreateWalletCommand}"
+                      IsDefault="{Binding IsActive}" />
 
-        <Style Selector="ListBoxItem Border#PART_DecorationBorderUnselected">
-          <Setter Property="Padding" Value="10 25 10 25" />
-          <Setter Property="CornerRadius" Value="4" />
-          <Setter Property="Margin" Value="5" />
-          <Setter Property="BorderBrush" Value="#14FFFFFF" />
-          <Setter Property="BorderThickness" Value="1" />
-          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow1}" />
-        </Style>
+        <c:TileButton Text="Connect to hardware wallet"
+                      Classes="doubleline"
+                      Icon="{StaticResource calculator_regular}"
+                      Command="{Binding ConnectHardwareWalletCommand}" />
 
-        <Style Selector="ListBoxItem Border#PART_DecorationBorderHover">
-          <Setter Property="Padding" Value="10 25 10 25" />
-          <Setter Property="CornerRadius" Value="4" />
-          <Setter Property="Margin" Value="5" />
-          <Setter Property="BorderBrush" Value="#2AFFFFFF" />
-          <Setter Property="BorderThickness" Value="1" />
-          <Setter Property="Background" Value="{StaticResource OptimizePrivacyOptionSelectedColor}" />
-          <Setter Property="BoxShadow" Value="{StaticResource OptimizePrivacyOptionBoxShadow2}" />
+        <c:TileButton Text="Import a wallet"
+                      Classes="doubleline"
+                      Icon="{StaticResource import_regular}"
+                      Command="{Binding ImportWalletCommand}" />
 
-          <Setter Property="Opacity" Value="0" />
-        </Style>
-
-        <Style Selector="ListBoxItem:pointerover Border#PART_DecorationBorderHover">
-          <Setter Property="Opacity" Value="1" />
-        </Style>
-      </ListBox.Styles>
-      <ListBox.ItemsPanel>
-        <ItemsPanelTemplate>
-          <UniformGrid Rows="1" />
-        </ItemsPanelTemplate>
-      </ListBox.ItemsPanel>
-      <ListBox.DataTemplates>
-        <DataTemplate>
-          <c:SuggestionItem VerticalAlignment="Center">
-            <StackPanel Spacing="20" Height="150" MaxWidth="180">
-              <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Height="34" />
-              <Viewbox HorizontalAlignment="Center" Height="70">
-                <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
-                          Foreground="{StaticResource SystemAccentColor}" />
-              </Viewbox>
-            </StackPanel>
-          </c:SuggestionItem>
-        </DataTemplate>
-      </ListBox.DataTemplates>
-    </ListBox>
+        <c:TileButton Text="Recover a wallet"
+                      Classes="doubleline"
+                      Icon="{StaticResource recover_arrow_right_regular}"
+                      Command="{Binding RecoverWalletCommand}" />
+      </UniformGrid>
+    </Panel>
   </c:ContentArea>
 </UserControl>

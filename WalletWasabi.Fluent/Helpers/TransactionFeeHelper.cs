@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
@@ -8,8 +11,6 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionFeeHelper
 {
-	public const decimal FeePercentageThreshold = 125;
-
 	private static readonly Dictionary<int, int> TestNetFeeEstimates = new()
 	{
 		[1] = 17,
@@ -24,19 +25,45 @@ public static class TransactionFeeHelper
 		[1008] = 1
 	};
 
-	public static Dictionary<int, int> GetFeeEstimates(Wallet wallet)
+	public static async Task<Dictionary<int, int>> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		if (wallet.FeeProvider.AllFeeEstimate is null)
+		var feeProvider = wallet.FeeProvider;
+
+		bool RpcFeeProviderInError() => feeProvider.RpcFeeProvider?.InError ?? true;
+		bool ThirdPartyFeeProviderInError() => feeProvider.ThirdPartyFeeProvider.InError;
+
+		while (!RpcFeeProviderInError() || !ThirdPartyFeeProviderInError())
 		{
-			throw new InvalidOperationException($"Not possible to get the fee estimates. {nameof(wallet.FeeProvider.AllFeeEstimate)} is null.");
+			if (TryGetFeeEstimates(wallet, out var feeEstimates))
+			{
+				return feeEstimates;
+			}
+
+			await Task.Delay(100, cancellationToken);
 		}
 
-		return wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+		throw new InvalidOperationException("Couldn't get the fee estimations.");
+	}
+
+	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out Dictionary<int, int>? estimates)
+	{
+		estimates = null;
+
+		if (wallet.FeeProvider.AllFeeEstimate is null)
+		{
+			return false;
+		}
+
+		estimates = wallet.Network == Network.TestNet ? TestNetFeeEstimates : wallet.FeeProvider.AllFeeEstimate.Estimations;
+		return true;
 	}
 
 	public static bool AreTransactionFeesEqual(Wallet wallet)
 	{
-		var feeEstimates = GetFeeEstimates(wallet);
+		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
+		{
+			return false;
+		}
 
 		var first = feeEstimates.First();
 		var last = feeEstimates.Last();
@@ -46,8 +73,13 @@ public static class TransactionFeeHelper
 
 	public static TimeSpan CalculateConfirmationTime(FeeRate feeRate, Wallet wallet)
 	{
+		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
+		{
+			return TimeSpan.Zero;
+		}
+
 		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates);
 
 		return feeChartViewModel.TryGetConfirmationTarget(feeRate, out var target)
 			? CalculateConfirmationTime(target)
@@ -65,7 +97,7 @@ public static class TransactionFeeHelper
 	{
 		maximumPossibleFeeRate = FeeRate.Zero;
 
-		if (percentageOfOverpayment <= 0)
+		if (percentageOfOverpayment <= 0 || !TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
 			return false;
 		}
@@ -74,7 +106,7 @@ public static class TransactionFeeHelper
 		maximumPossibleFeeRate = new FeeRate(maxPossibleFeeRateInSatoshiPerByte);
 
 		var feeChartViewModel = new FeeChartViewModel();
-		feeChartViewModel.UpdateFeeEstimates(GetFeeEstimates(wallet));
+		feeChartViewModel.UpdateFeeEstimates(feeEstimates);
 
 		if (!feeChartViewModel.TryGetConfirmationTarget(maximumPossibleFeeRate, out var blockTarget))
 		{

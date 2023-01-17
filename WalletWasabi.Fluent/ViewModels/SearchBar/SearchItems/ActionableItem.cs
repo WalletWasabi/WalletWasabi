@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -14,10 +16,11 @@ public class ActionableItem : IActionableItem
 		OnExecution = onExecution;
 		Category = category;
 		Keywords = keywords ?? Enumerable.Empty<string>();
+		Command = ReactiveCommand.CreateFromTask(onExecution);
 	}
 
+	public ICommand Command { get; set; }
 	public Func<Task> OnExecution { get; }
-
 	public string Name { get; }
 	public string Description { get; }
 	public ComposedKey Key => new(Name);

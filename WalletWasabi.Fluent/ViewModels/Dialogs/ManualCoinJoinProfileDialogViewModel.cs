@@ -1,24 +1,22 @@
 using ReactiveUI;
 using System.Linq;
-using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Coinjoin Settings")]
-public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileViewModel?>
+[NavigationMetaData(Title = "Coinjoin Strategy Settings")]
+public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
-	[AutoNotify] private bool _autoCoinjoin;
+	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{
-		_autoCoinjoin = true;
+		_redCoinIsolation = current.RedCoinIsolation;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 
@@ -38,11 +36,11 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		NextCommand = ReactiveCommand.Create(() =>
 		{
-			var auto = AutoCoinjoin;
+			var isolateRed = RedCoinIsolation;
 			var target = AnonScoreTarget;
 			var hours = (int)Math.Floor(SelectedTimeFrame.TimeFrame.TotalHours);
 
-			Close(DialogResultKind.Normal, new ManualCoinJoinProfileViewModel(auto, target, hours));
+			Close(DialogResultKind.Normal, new ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed)));
 		});
 	}
 
@@ -52,5 +50,9 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 		{
 			return Name;
 		}
+	}
+
+	public record ManualCoinJoinProfileDialogViewModelResult(ManualCoinJoinProfileViewModel Profile)
+	{
 	}
 }

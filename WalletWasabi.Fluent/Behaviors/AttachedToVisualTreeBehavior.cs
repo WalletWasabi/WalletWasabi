@@ -12,10 +12,10 @@ public abstract class AttachedToVisualTreeBehavior<T> : DisposingBehavior<T> whe
 		_disposables = disposables;
 	}
 
-    protected override void OnAttachedToVisualTree()
-    {
+	protected override void OnAttachedToVisualTree()
+	{
 		OnAttachedToVisualTree(_disposables!);
-    }
+	}
 
 	protected abstract void OnAttachedToVisualTree(CompositeDisposable disposable);
 }

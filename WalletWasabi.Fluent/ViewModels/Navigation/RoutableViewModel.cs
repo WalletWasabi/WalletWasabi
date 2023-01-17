@@ -151,10 +151,17 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		return result;
 	}
 
-	protected async Task ShowErrorAsync(string title, string message, string caption)
+	protected async Task ShowErrorAsync(string title, string message, string caption, NavigationTarget target = NavigationTarget.Default)
 	{
 		var dialog = new ShowErrorDialogViewModel(message, title, caption);
-		await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+
+		var navigationTarget = target != NavigationTarget.Default
+			? target
+			: CurrentTarget == NavigationTarget.CompactDialogScreen
+				? NavigationTarget.CompactDialogScreen
+				: NavigationTarget.DialogScreen;
+
+		await NavigateDialogAsync(dialog, navigationTarget);
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)

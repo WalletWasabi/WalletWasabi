@@ -1,8 +1,3 @@
-using NBitcoin;
-using NBitcoin.Policy;
-using System.Collections.Immutable;
-using WalletWasabi.Helpers;
-
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 // This represents parameters all clients must agree on to produce a valid &

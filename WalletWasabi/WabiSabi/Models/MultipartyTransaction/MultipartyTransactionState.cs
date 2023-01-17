@@ -2,17 +2,19 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-public interface IEvent{};
+public interface IEvent
+{ };
 
 public record RoundCreated(RoundParameters RoundParameters) : IEvent;
-public record InputAdded (Coin Coin) : IEvent;
-public record OutputAdded (TxOut Output) : IEvent;
+public record InputAdded(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
+public record OutputAdded(TxOut Output) : IEvent;
 
 public abstract record MultipartyTransactionState
 {
@@ -41,27 +43,32 @@ public abstract record MultipartyTransactionState
 	[JsonIgnore]
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
 
-	// With no coordinator fees we can't ensure that the shared overhead
-	// of the transaction also pays at the nominal feerate so this will have
-	// to do for now, but in the future EstimatedVsize should be used
-	// including the shared overhead
 	[JsonIgnore]
-	public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
+	public Money EstimatedCost => Parameters.MiningFeeRate.GetFee(EstimatedVsize - UnpaidSharedOverhead);
+
+	[JsonIgnore]
+	public int UnpaidSharedOverhead { get; init; } = MultipartyTransactionParameters.SharedOverhead;
+
+	[JsonIgnore]
+	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize - UnpaidSharedOverhead);
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 
 	public MultipartyTransactionState GetStateFrom(int stateId) =>
-		this with {
+		this with
+		{
 			Events = Events.Skip(stateId).ToImmutableList()
 		};
 
 	public MultipartyTransactionState Merge(MultipartyTransactionState diff) =>
-		this with {
+		this with
+		{
 			Events = Events.AddRange(diff.Events)
 		};
 
 	public MultipartyTransactionState AddPreviousStates(MultipartyTransactionState origin) =>
-		this with {
+		this with
+		{
 			Events = origin.Events.AddRange(Events)
 		};
 }

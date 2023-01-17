@@ -17,7 +17,7 @@
     <DockPanel VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 40 0 0">
         <TextBlock Text="Your wallet " />
-        <TextBlock Text="{Binding WalletName}" FontWeight="Bold"/>
+        <TextBlock Text="{Binding WalletName}" FontWeight="Bold" />
         <TextBlock Text=" was added to Wasabi." />
       </StackPanel>
       <Viewbox MaxHeight="200">

@@ -25,7 +25,7 @@ public enum StatusSeverity
 /// <code>
 /// "650" SP StatusType SP StatusSeverity SP StatusAction
 ///                                      [SP StatusArguments] CRLF
-/// 
+///
 /// StatusType = "STATUS_GENERAL" / "STATUS_CLIENT" / "STATUS_SERVER"
 /// StatusSeverity = "NOTICE" / "WARN" / "ERR"
 /// StatusAction = 1*ALPHA
@@ -48,6 +48,14 @@ public record StatusEvent : IAsyncEvent
 	/// <para>Suggested use: Controllers can notify their users that Tor is ready for use as a client once they see this status event.</para>
 	/// </remarks>
 	public const string ActionCircuitEstablished = "CIRCUIT_ESTABLISHED";
+
+	/// <remarks>
+	/// From spec: We are no longer confident that we can build circuits. The "reason" keyword provides an explanation:
+	/// which other status event type caused our lack of confidence.
+	/// <para>Suggested use: Controllers may want to use this event to decide when to indicate progress
+	/// to their users, but should not interrupt the user's browsing to do so.</para>
+	/// </remarks>
+	public const string ActionCircuitNotEstablished = "CIRCUIT_NOT_ESTABLISHED";
 
 	public StatusEvent(string action, Dictionary<string, string> arguments)
 	{

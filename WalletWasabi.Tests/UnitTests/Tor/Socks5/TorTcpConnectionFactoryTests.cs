@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -78,7 +79,7 @@ public class TorTcpConnectionFactoryTests
 
 			// Read SOCKS version.
 			int methodByte = stream.ReadByte();
-			Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
+			Assert.Equal(MethodField.NoAuthenticationRequired.ToByte(), methodByte); // Default circuits use this MethodField.
 
 			// Write response: version + method selected.
 			stream.WriteByte(VerField.Socks5.Value);
@@ -116,6 +117,9 @@ public class TorTcpConnectionFactoryTests
 
 		try
 		{
+			// Use a person circuit to test MethodField being sent to Tor.
+			using PersonCircuit personCircuit = new();
+
 			// Start local TCP server.
 			listener = new(IPAddress.Loopback, port: 0);
 			listener.Start();
@@ -130,7 +134,7 @@ public class TorTcpConnectionFactoryTests
 					TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-					using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
+					using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, personCircuit, timeoutToken);
 					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
 				},
 				timeoutToken);
@@ -176,13 +180,9 @@ public class TorTcpConnectionFactoryTests
 			}
 
 			int plenByte = stream.ReadByte();
-			Assert.Equal(21, plenByte);
-
-			// Read "Passwd".
-			for (int j = 0; j < 21; j++)
-			{
-				_ = stream.ReadByte();
-			}
+			Assert.Equal(1, plenByte);
+			int passwordByte = stream.ReadByte();
+			Assert.Equal('0', passwordByte); // Isolation ID is equal to "0" (zero character string).
 
 			// Write response (UsernamePasswordResponse): version + method selected.
 			stream.WriteByte((byte)AuthVerField.Version1.Value);

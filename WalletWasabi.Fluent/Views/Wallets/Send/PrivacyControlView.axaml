@@ -65,7 +65,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource WarningMessageForeground}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource WarningMessageForeground}" />
               </Style>
-              </ScrollViewer.Styles>
+            </ScrollViewer.Styles>
             <ItemsControl Items="{Binding LabelsWhiteList}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>

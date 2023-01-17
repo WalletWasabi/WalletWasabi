@@ -1,5 +1,6 @@
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
+using WalletWasabi.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements;
@@ -42,6 +43,7 @@ public class GeneratorTests
 	public void FriendlyNameNullCheck()
 	{
 		Assert.False(Generators.TryGetFriendlyGeneratorName(null, out var name));
+		Assert.NotNull(name);
 		Assert.Empty(name);
 	}
 }

@@ -3,9 +3,7 @@ using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -13,7 +11,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
-using System;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -61,13 +59,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Compute but don't commit updated coinjoin to round state, it will
 			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
-			_ = round.Assert<ConstructionState>().AddInput(coin);
-
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(request.OwnershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
-			}
+			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
 
 			// Generate a new GUID with the secure random source, to be sure
 			// that it is not guessable (Guid.NewGuid() documentation does
@@ -236,7 +228,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 							await vsizeRealCredentialTask.ConfigureAwait(false));
 
 						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin);
+						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
 						alice.ConfirmedConnection = true;
 
 						return response;
@@ -263,15 +255,26 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			if (CoinJoinScriptStore?.Contains(request.Script) is true)
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in previous coinjoins.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
 			}
 
-			var inputScripts = round.Alices.Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			var outputScripts = Rounds
+				.Where(r => r.Id != round.Id && r.Phase != Phase.Ended)
+				.SelectMany(r => r.Bobs)
+				.Select(x => x.Script)
+				.ToHashSet();
+			if (outputScripts.Contains(request.Script))
+			{
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (output side).");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
+			}
+
+			var inputScripts = Rounds.SelectMany(r => round.Alices).Select(a => a.Coin.ScriptPubKey).ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
-				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in the round.");
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in round.");
+				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (input side).");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script some round.");
 			}
 
 			Bob bob = new(request.Script, credentialAmount);
@@ -377,10 +380,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		}
+
 		if (txOutResponse.Confirmations == 0)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 		}
+
 		if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);

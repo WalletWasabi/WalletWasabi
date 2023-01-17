@@ -1,8 +1,10 @@
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -16,8 +18,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "nav_settings_24_regular",
 	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
-	NavBarPosition = NavBarPosition.Bottom)]
-public partial class SettingsPageViewModel : NavBarItemViewModel
+	NavBarPosition = NavBarPosition.Bottom,
+	NavigationTarget = NavigationTarget.DialogScreen)]
+public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 {
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
@@ -25,17 +28,23 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	public SettingsPageViewModel()
 	{
 		_selectedTab = 0;
+		SelectionMode = NavBarItemSelectionMode.Button;
+
+		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel();
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
+		AdvancedSettingsTab = new AdvancedSettingsTabViewModel();
 
-		RestartCommand = ReactiveCommand.Create(AppLifetimeHelper.Restart);
+		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
+		NextCommand = CancelCommand;
 	}
 
 	public ICommand RestartCommand { get; }
 
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
+	public AdvancedSettingsTabViewModel AdvancedSettingsTab { get; }
 
 	private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
 	{
@@ -45,6 +54,8 @@ public partial class SettingsPageViewModel : NavBarItemViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		IsModified = SettingsTabViewModelBase.CheckIfRestartIsNeeded();
 
 		SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 

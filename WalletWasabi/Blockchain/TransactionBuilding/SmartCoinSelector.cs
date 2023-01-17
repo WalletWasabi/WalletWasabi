@@ -11,21 +11,40 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class SmartCoinSelector : ICoinSelector
 {
-	public SmartCoinSelector(IEnumerable<SmartCoin> unspentCoins)
+	public SmartCoinSelector(List<SmartCoin> unspentCoins)
 	{
-		UnspentCoins = unspentCoins.Distinct();
+		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private IEnumerable<SmartCoin> UnspentCoins { get; }
+	private List<SmartCoin> UnspentCoins { get; }
+	private int IterationCount { get; set; }
 
-	public IEnumerable<ICoin> Select(IEnumerable<ICoin> unused, IMoney target)
+	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
+	/// <param name="target">Only <see cref="Money"/> type is really supported by this implementation.</param>
+	/// <remarks>Do not call this method repeatedly on a single <see cref="SmartCoinSelector"/> instance.</remarks>
+	public IEnumerable<ICoin> Select(IEnumerable<ICoin> suggestion, IMoney target)
 	{
-		var targetMoney = target as Money;
+		var targetMoney = (Money)target;
 
 		long available = UnspentCoins.Sum(x => x.Amount);
 		if (available < targetMoney)
 		{
 			throw new InsufficientBalanceException(targetMoney, available);
+		}
+
+		if (IterationCount > 500)
+		{
+			throw new TimeoutException("Coin selection timed out.");
+		}
+
+		// The first iteration should never take suggested coins into account .
+		if (IterationCount > 0)
+		{
+			Money suggestedSum = Money.Satoshis(suggestion.Sum(c => (Money)c.Amount));
+			if (suggestedSum < targetMoney)
+			{
+				throw new TransactionSizeException(targetMoney, suggestedSum);
+			}
 		}
 
 		// Get unique clusters.
@@ -34,12 +53,14 @@ public class SmartCoinSelector : ICoinSelector
 			.Distinct();
 
 		// Build all the possible coin clusters, except when it's computationally too expensive.
-		List<IEnumerable<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
+		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 			? uniqueClusters
 				.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-				.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster)))
+				.Select(clusterCombination => UnspentCoins
+					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
+					.ToList())
 				.ToList()
-			: new List<IEnumerable<SmartCoin>>();
+			: new List<List<SmartCoin>>();
 
 		coinClusters.Add(UnspentCoins);
 
@@ -60,14 +81,14 @@ public class SmartCoinSelector : ICoinSelector
 			.OrderBy(group => group.Unconfirmed)
 			.ThenByDescending(group => group.AnonymitySet)     // Always try to spend/merge the largest anonset coins first.
 			.ThenByDescending(group => group.ClusterPrivacy)   // Select lesser-known coins.
-			.ThenByDescending(group => group.Amount)           // Then always try to spend by amount.
+			.ThenBy(group => group.Amount)           // Once we order them by cluster-privacy, we want to be as close to the target as we can.
 			.First()
 			.Coins;
 
 		var coinsInBestClusterByScript = bestCoinCluster
 			.GroupBy(c => c.ScriptPubKey)
 			.Select(group => (ScriptPubKey: group.Key, Coins: group.ToList()))
-			.OrderBy(x => x.Coins.Sum(c => c.Amount))
+			.OrderByDescending(x => x.Coins.Sum(c => c.Amount))
 			.ToImmutableList();
 
 		// {1} {2} ... {n} {1, 2} {1, 2, 3} {1, 2, 3, 4} ... {1, 2, 3, 4, 5 ... n}
@@ -75,12 +96,15 @@ public class SmartCoinSelector : ICoinSelector
 				.Concat(coinsInBestClusterByScript.Scan(ImmutableList<(Script ScriptPubKey, List<SmartCoin> Coins)>.Empty, (acc, coinGroup) => acc.Add(coinGroup)));
 
 		// Flattens the groups of coins and filters out the ones that are too small.
-		// Finally it sorts the solutions by number or coins (those with less coins on the top).
+		// Finally it sorts the solutions by amount and coins (those with less coins on the top).
 		var candidates = coinsGroup
 			.Select(x => x.SelectMany(y => y.Coins))
 			.Select(x => (Coins: x, Total: x.Sum(y => y.Amount)))
 			.Where(x => x.Total >= targetMoney) // filter combinations below target
-			.OrderBy(x => x.Coins.Count());
+			.OrderBy(x => x.Total)              // the closer we are to the target the better
+			.ThenBy(x => x.Coins.Count());      // prefer lesser coin selection on the same amount
+
+		IterationCount++;
 
 		// Select the best solution.
 		return candidates.First().Coins.Select(x => x.Coin);

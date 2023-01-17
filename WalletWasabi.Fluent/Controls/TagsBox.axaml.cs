@@ -462,7 +462,7 @@ public class TagsBox : TemplatedControl
 		if (Suggestions is { } suggestions)
 		{
 			if (RestrictInputToSuggestions &&
-			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
+				!suggestions.Any(x => x.Equals(tag, _stringComparison)))
 			{
 				return;
 			}

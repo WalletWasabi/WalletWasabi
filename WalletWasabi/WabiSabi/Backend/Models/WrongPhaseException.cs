@@ -1,22 +1,13 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend.Models;
 
 public class WrongPhaseException : WabiSabiProtocolException
 {
-	public TimeSpan Late { get; }
-	public Phase CurrentPhase { get; }
-	public Phase[] ExpectedPhases { get; }
-	public uint256 RoundId { get; }
-
-	public WrongPhaseException(Round round, params Phase[] expectedPhases) 
-		: base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).")
+	public WrongPhaseException(Round round, params Phase[] expectedPhases)
+		: base(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).", exceptionData: new WrongPhaseExceptionData(round.Phase))
 	{
 		var latestExpectedPhase = expectedPhases.MaxBy(p => (int)p);
 		var now = DateTimeOffset.UtcNow;
@@ -32,8 +23,25 @@ public class WrongPhaseException : WabiSabiProtocolException
 		};
 
 		Late = now - endTime;
+
+		PhaseTimeout = round.Phase switch
+		{
+			Phase.InputRegistration => round.InputRegistrationTimeFrame.Duration,
+			Phase.ConnectionConfirmation => round.ConnectionConfirmationTimeFrame.Duration,
+			Phase.OutputRegistration => round.OutputRegistrationTimeFrame.Duration,
+			Phase.TransactionSigning => round.TransactionSigningTimeFrame.Duration,
+			Phase.Ended => TimeSpan.Zero,
+			_ => throw new ArgumentException($"Unknown phase {latestExpectedPhase}.")
+		};
+
 		CurrentPhase = round.Phase;
 		RoundId = round.Id;
 		ExpectedPhases = expectedPhases;
 	}
+
+	public TimeSpan Late { get; }
+	public TimeSpan PhaseTimeout { get; }
+	public Phase CurrentPhase { get; }
+	public Phase[] ExpectedPhases { get; }
+	public uint256 RoundId { get; }
 }

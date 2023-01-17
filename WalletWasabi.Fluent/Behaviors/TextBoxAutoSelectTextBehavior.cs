@@ -1,6 +1,9 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Input;
+using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -13,12 +16,17 @@ internal class TextBoxAutoSelectTextBehavior : AttachedToVisualTreeBehavior<Text
 			return;
 		}
 
-		AssociatedObject.SelectAll();
-		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.GotFocus))
-			.Subscribe(_ => AssociatedObject.SelectAll())
+		var gotFocus = AssociatedObject.OnEvent(InputElement.GotFocusEvent);
+		var lostFocus = AssociatedObject.OnEvent(InputElement.LostFocusEvent);
+		var isFocused = gotFocus.Select(_ => true).Merge(lostFocus.Select(_ => false));
+
+		isFocused
+			.Throttle(TimeSpan.FromSeconds(0.1))
+			.DistinctUntilChanged()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Where(focused => focused)
+			.Do(_ => AssociatedObject.SelectAll())
+			.Subscribe()
 			.DisposeWith(disposable);
-		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerReleased))
-			.Subscribe(_ => AssociatedObject.SelectAll())
-			.DisposeWith(disposable);;
 	}
 }

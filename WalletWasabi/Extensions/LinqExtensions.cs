@@ -1,9 +1,7 @@
-using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Extensions;
 
@@ -55,6 +53,23 @@ public static class LinqExtensions
 		return current;
 	}
 
+	/// <summary>
+	/// Selects a random element based on order bias.
+	/// </summary>
+	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
+	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent)
+	{
+		foreach (T element in source)
+		{
+			if (SecureRandom.Instance.GetInt(1, 101) <= biasPercent)
+			{
+				return element;
+			}
+		}
+
+		return source.Any() ? source.First() : default;
+	}
+
 	public static IList<T> Shuffle<T>(this IList<T> list)
 	{
 		int n = list.Count;
@@ -74,18 +89,6 @@ public static class LinqExtensions
 		return list.ToList().Shuffle();
 	}
 
-	public static void AddToValueList<TKey, TElem>(this Dictionary<TKey, List<TElem>> myDic, TKey key, TElem elem) where TKey : notnull
-	{
-		if (myDic.ContainsKey(key))
-		{
-			myDic[key].Add(elem);
-		}
-		else
-		{
-			myDic.Add(key, new List<TElem>() { elem });
-		}
-	}
-
 	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
 		=> source?.Any() is true;
 
@@ -96,14 +99,15 @@ public static class LinqExtensions
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
 		int ofLength)
+	=> ofLength switch
 	{
-		return (ofLength == 1)
-			? items.Select(item => new[] { item })
-			: items.SelectMany((item, i) => items
+		<= 0 => Enumerable.Empty<IEnumerable<T>>(),
+		1 => items.Select(item => new[] { item }),
+		_ => items.SelectMany((item, i) => items
 				.Skip(i + 1)
 				.CombinationsWithoutRepetition(ofLength - 1)
-				.Select(result => new T[] { item }.Concat(result)));
-	}
+				.Select(result => new T[] { item }.Concat(result)))
+	};
 
 	public static IEnumerable<IEnumerable<T>> CombinationsWithoutRepetition<T>(
 		this IEnumerable<T> items,
@@ -129,33 +133,6 @@ public static class LinqExtensions
 				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
 				{
 					yield return new T[] { item }.Concat(result);
-				}
-			}
-
-			++i;
-		}
-	}
-
-	public static IEnumerable<IEnumerable<SmartCoin>> GetPermutations(this IEnumerable<SmartCoin> items, int count, Money minAmount)
-	{
-		int i = 0;
-		foreach (var item in items)
-		{
-			if (count == 1)
-			{
-				if (item.Amount >= minAmount)
-				{
-					yield return new SmartCoin[] { item };
-				}
-			}
-			else
-			{
-				foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
-				{
-					if (item.Amount + result.Sum(x => x.Amount) >= minAmount)
-					{
-						yield return new SmartCoin[] { item }.Concat(result);
-					}
 				}
 			}
 
@@ -220,13 +197,23 @@ public static class LinqExtensions
 	public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
 		other.All(x => me.Contains(x));
 
-	public static ulong Sum(this IEnumerable<ulong> me)
+	public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> list, Func<T, bool> predicate)
 	{
-		ulong inputSum = 0;
-		foreach (var item in me)
+		foreach (T el in list)
 		{
-			inputSum += item;
+			yield return el;
+			if (predicate(el))
+			{
+				yield break;
+			}
 		}
-		return inputSum;
 	}
+
+	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)
+	{
+		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).Sum();
+	}
+
+	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
+		me.DefaultIfEmpty(defaultValue).Max();
 }

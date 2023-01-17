@@ -235,6 +235,7 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 						accumulatedV += sz.V;
 						curLineSize = new UVSize(orientation);
 					}
+
 					firstInLine = i;
 				}
 				else // Continue to accumulate a line

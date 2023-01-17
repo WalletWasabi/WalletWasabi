@@ -90,17 +90,22 @@ public partial class LoginViewModel : RoutableViewModel
 	private void LoginWallet(ClosedWalletViewModel closedWalletViewModel)
 	{
 		closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-		Navigate().To(closedWalletViewModel, NavigationMode.Clear);
+		closedWalletViewModel.StartLoading();
+
+		if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
+		{
+			closedWalletViewModel.OpenCommand.Execute(true);
+		}
 	}
 
 	private async Task<bool> ShowLegalAsync()
 	{
-		if (!Services.LegalChecker.TryGetNewLegalDocs(out var document))
+		if (!Services.LegalChecker.TryGetNewLegalDocs(out _))
 		{
 			return true;
 		}
 
-		var legalDocs = new TermsAndConditionsViewModel(document.Content);
+		var legalDocs = new TermsAndConditionsViewModel();
 
 		var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
 

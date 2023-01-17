@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Messages;
@@ -34,8 +35,8 @@ public class TorControlClientTests
 		// This must happen after a client is subscribed.
 		Task serverTask = Task.Run(async () =>
 		{
-				// We do not want to send the data until the client is really subscribed.
-				while (!timeoutCts.IsCancellationRequested)
+			// We do not want to send the data until the client is really subscribed.
+			while (!timeoutCts.IsCancellationRequested)
 			{
 				if (client.SubscriberCount == 1)
 				{

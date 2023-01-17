@@ -38,6 +38,7 @@ public class OwnershipProofTests
 	public static OwnershipProof CreateOwnershipProof(Key key, uint256 roundHash)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
-			new OwnershipIdentifier(key, key.PubKey.WitHash.ScriptPubKey),
-			new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash));
+			new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)),
+			new CoinJoinInputCommitmentData("wasabiwallet.io", roundHash),
+			ScriptPubKeyType.Segwit);
 }

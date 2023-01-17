@@ -70,6 +70,12 @@ public class LinqExtensionsTests
 	}
 
 	[Fact]
+	public void CombinationsWithoutRepetitionZeroLength()
+	{
+		AssertAsync.CompletesIn(5, () => Enumerable.Range(0, 32).CombinationsWithoutRepetition(ofLength: 0).ToArray());
+	}
+
+	[Fact]
 	public void ZippingTests()
 	{
 		var collection1 = new int[] { 1, 3, 5, 14 };
@@ -86,5 +92,19 @@ public class LinqExtensionsTests
 			Assert.Equal(collection1[i], tuple[i].Item1);
 			Assert.Equal(collection2[i], tuple[i].Item2);
 		}
+	}
+
+	[Fact]
+	public void MaxOrDefault()
+	{
+		Assert.Equal(10, Array.Empty<int>().MaxOrDefault(defaultValue: 10));
+		Assert.Equal(1, new int[] { 1 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(2, new int[] { 1, 2 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(3, new int[] { 1, 2, 3 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 1, 2, 3, 4 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4, 3, 2, 1 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4, 3, 2 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4, 3 }.MaxOrDefault(defaultValue: 10));
+		Assert.Equal(4, new int[] { 4 }.MaxOrDefault(defaultValue: 10));
 	}
 }

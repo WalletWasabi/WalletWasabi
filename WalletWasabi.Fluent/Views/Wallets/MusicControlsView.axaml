@@ -3,7 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             Background="Transparent"
+             IsPointerOver="{Binding IsPointerOver, Mode=OneWayToSource}"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="64"
@@ -43,7 +44,7 @@
         <StackPanel Margin="10 5" Orientation="Horizontal" Spacing="20">
           <StackPanel.Styles>
             <Style Selector="Button:disabled PathIcon">
-              <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}"/>
+              <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
             </Style>
           </StackPanel.Styles>
           <Image Height="35" Width="35" VerticalAlignment="Center" HorizontalAlignment="Center" Source="{DynamicResource wasabi_logo_dynamic}" />
@@ -92,35 +93,33 @@
           </Button>
 
           <Button Classes="plain"
-                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding PauseVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource pause_regular}" />
           </Button>
 
           <Button Classes="plain"
-                  IsEnabled="{Binding !IsInCriticalPhase}"
                   IsVisible="{Binding StopVisible}"
                   Command="{Binding StopPauseCommand}">
             <PathIcon Data="{StaticResource stop_regular}" />
           </Button>
 
           <Ellipse Height="12" Width="12"
-                   Classes.disabled="{Binding !IsAuto}"
+                   Classes.disabled="{Binding !AutoCoinJoinObservable^}"
                    Classes.waiting="{Binding IsAutoWaiting}">
             <Ellipse.Styles>
               <Style Selector="Ellipse">
                 <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
-                <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Enabled" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin enabled" />
               </Style>
               <Style Selector="Ellipse.waiting">
                 <Setter Property="Fill" Value="{DynamicResource CoinjoinActiveColor}" />
                 <Setter Property="ToolTip.Tip"
-                        Value="Auto-start Coinjoin Enabled. Press Play to start immediately." />
+                        Value="Auto-start coinjoin enabled. Press Play to start immediately." />
               </Style>
               <Style Selector="Ellipse.disabled">
                 <Setter Property="Fill" Value="{DynamicResource SystemBaseMediumColor}" />
-                <Setter Property="ToolTip.Tip" Value="Auto-start Coinjoin Disabled" />
+                <Setter Property="ToolTip.Tip" Value="Auto-start coinjoin disabled" />
               </Style>
             </Ellipse.Styles>
           </Ellipse>

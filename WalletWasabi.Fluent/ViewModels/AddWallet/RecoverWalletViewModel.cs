@@ -70,18 +70,21 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 					() =>
 					{
 						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-							.walletFilePath;
+						   .walletFilePath;
 
 						var result = KeyManager.Recover(
 							CurrentMnemonics!,
 							password!,
 							Services.WalletManager.Network,
 							AccountKeyPath,
-							walletFilePath,
+							null,
+							"", // Make sure it is not saved into a file yet.
 							MinGapLimit);
 
 						result.AutoCoinJoin = true;
-						result.SetNetwork(Services.WalletManager.Network);
+
+						// Set the filepath but we will only write the file later when the Ui workflow is done.
+						result.SetFilePath(walletFilePath);
 
 						return result;
 					});
@@ -100,16 +103,15 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+		var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel(MinGapLimit),
 			NavigationTarget.CompactDialogScreen);
 
 		if (result.Kind == DialogResultKind.Normal)
 		{
-			var (accountKeyPathIn, minGapLimitIn) = result.Result;
+			var minGapLimitIn = result.Result;
 
-			if (accountKeyPathIn is { } && minGapLimitIn is { })
+			if (minGapLimitIn is { })
 			{
-				AccountKeyPath = accountKeyPathIn;
 				MinGapLimit = (int)minGapLimitIn;
 			}
 		}
@@ -121,9 +123,9 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
-	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network);
+	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
 
-	private int MinGapLimit { get; set; } = 100;
+	private int MinGapLimit { get; set; } = 114;
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using WalletWasabi.Helpers;
 using WalletWasabi.Microservices;
 using Xunit;
 
@@ -21,9 +22,9 @@ public class HwiBinaryHashesTests
 
 		Dictionary<OSPlatform, string> expectedHashes = new()
 		{
-			{ OSPlatform.Windows, "9e18cdb7c965541eb5d9a308c9360c3cd808ff3aa69bca740d172f73c6e797e7" },
-			{ OSPlatform.Linux, "6bdcb40c3b653fdba20ed8847ee69994c1c2e9f4e1ad2a50fcc3ed53f2c5dd66" },
-			{ OSPlatform.OSX, "7e7fbb907595e8718abe7aa297ee6a5d7fd0cfcd06a6913f51f7710df3a2c25e" },
+			{ OSPlatform.Windows, "3efa5bcde386ca5523a4127f3a9802a7e9ef5320c2a8910ead343386c0b7dbfc" },
+			{ OSPlatform.Linux, "7f4cbe4e5c2cd1ac892f9bd8ac35fb1f837b6a547b528b61aca895a212a90062" },
+			{ OSPlatform.OSX, "1b1a903b4a9884aa06593356e7a958c19ccb56a5bc97e0c6075f968310640fd2" },
 		};
 
 		foreach (var item in expectedHashes)

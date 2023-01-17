@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -88,14 +89,15 @@ public class DependencyGraphTaskScheduler
 
 		// Build tasks and link them together.
 		List<SmartRequestNode> smartRequestNodes = new();
-		List<Task> allTasks = new();
-
-		// Temporary workaround because we don't yet have a mechanism to
-		// propagate the final amounts to request amounts to AliceClient's
-		// connection confirmation loop even though they are already known
-		// after the final successful input registration, which may be well
-		// before the connection confirmation phase actually starts.
-		allTasks.Add(CompleteConnectionConfirmationAsync(aliceClients, bobClient, cancellationToken));
+		List<Task> allTasks = new()
+		{
+			// Temporary workaround because we don't yet have a mechanism to
+			// propagate the final amounts to request amounts to AliceClient's
+			// connection confirmation loop even though they are already known
+			// after the final successful input registration, which may be well
+			// before the connection confirmation phase actually starts.
+			CompleteConnectionConfirmationAsync(aliceClients, bobClient, cancellationToken)
+		};
 
 		using CancellationTokenSource ctsOnError = new();
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
@@ -176,11 +178,11 @@ public class DependencyGraphTaskScheduler
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
-					if (keyChain is KeyChain { KeyManager: var keyManager }
-						&& keyManager.TryGetKeyForScriptPubKey(txOut.ScriptPubKey, out var hdPubKey))
-					{
-						hdPubKey.SetKeyState(KeyState.Used);
-					}
+					keyChain.TrySetScriptStates(KeyState.Used, new[] { txOut.ScriptPubKey });
+				}
+				catch (Exception ex)
+				{
+					Logger.LogInfo($"Output registration error message:'{ex.Message}'.");
 				}
 			}
 		).ToImmutableArray();

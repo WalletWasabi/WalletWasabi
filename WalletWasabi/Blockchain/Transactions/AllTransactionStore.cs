@@ -1,10 +1,8 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -14,17 +12,17 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-public class AllTransactionStore : IAsyncDisposable
+public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 {
 	public AllTransactionStore(string workFolderPath, Network network)
 	{
 		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
-		Network = Guard.NotNull(nameof(network), network);
+		Network = network;
 
-		MempoolStore = new TransactionStore();
-		ConfirmedStore = new TransactionStore();
+		MempoolStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "Mempool"), network);
+		ConfirmedStore = new TransactionStore(workFolderPath: Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion), network);
 	}
 
 	#region Initializers
@@ -36,77 +34,18 @@ public class AllTransactionStore : IAsyncDisposable
 	public TransactionStore ConfirmedStore { get; }
 	private object Lock { get; } = new object();
 
-	public async Task InitializeAsync(bool ensureBackwardsCompatibility = true, CancellationToken cancel = default)
+	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
 		using (BenchmarkLogger.Measure())
 		{
-			var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
-			var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
-
 			var initTasks = new[]
 			{
-					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
-					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
-				};
+				MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
+				ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
+			};
 
 			await Task.WhenAll(initTasks).ConfigureAwait(false);
 			EnsureConsistency();
-
-			if (ensureBackwardsCompatibility)
-			{
-				cancel.ThrowIfCancellationRequested();
-				EnsureBackwardsCompatibility();
-			}
-		}
-	}
-
-	private void EnsureBackwardsCompatibility()
-	{
-		try
-		{
-			// Before Wasabi 1.1.7
-			var networkIndependentTransactionsFolderPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Transactions");
-			if (Directory.Exists(networkIndependentTransactionsFolderPath))
-			{
-				var oldTransactionsFolderPath = Path.Combine(networkIndependentTransactionsFolderPath, Network.Name);
-				if (Directory.Exists(oldTransactionsFolderPath))
-				{
-					lock (Lock)
-					{
-						foreach (var filePath in Directory.EnumerateFiles(oldTransactionsFolderPath))
-						{
-							try
-							{
-								string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-								var allWalletTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?.OrderByBlockchain() ?? Enumerable.Empty<SmartTransaction>();
-								foreach (var tx in allWalletTransactions)
-								{
-									AddOrUpdateNoLock(tx);
-								}
-
-								File.Delete(filePath);
-							}
-							catch (Exception ex)
-							{
-								Logger.LogTrace(ex);
-							}
-						}
-
-						Directory.Delete(oldTransactionsFolderPath, recursive: true);
-					}
-				}
-
-				// If all networks successfully migrated, too, then delete the transactions folder, too.
-				if (!Directory.EnumerateFileSystemEntries(networkIndependentTransactionsFolderPath).Any())
-				{
-					Directory.Delete(networkIndependentTransactionsFolderPath, recursive: true);
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning("Backwards compatibility could not be ensured.");
-			Logger.LogWarning(ex);
 		}
 	}
 
@@ -206,6 +145,7 @@ public class AllTransactionStore : IAsyncDisposable
 		}
 	}
 
+	/// <returns>Transactions ordered by blockchain.</returns>
 	public IEnumerable<SmartTransaction> GetTransactions()
 	{
 		lock (Lock)
@@ -261,6 +201,7 @@ public class AllTransactionStore : IAsyncDisposable
 		}
 	}
 
+	/// <returns>Labels ordered by blockchain.</returns>
 	public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
 
 	#endregion Accessors

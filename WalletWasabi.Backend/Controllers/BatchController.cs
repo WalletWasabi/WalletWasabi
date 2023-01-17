@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
@@ -36,7 +37,12 @@ public class BatchController : ControllerBase
 	public OffchainController OffchainController { get; }
 
 	[HttpGet("synchronize")]
-	public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
+	public async Task<IActionResult> GetSynchronizeAsync(
+		[FromQuery, Required] string bestKnownBlockHash,
+		[FromQuery, Required] int maxNumberOfFilters,
+		[FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative),
+		[FromQuery] string? indexType = null,
+		CancellationToken cancellationToken = default)
 	{
 		bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
 		EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
@@ -53,7 +59,12 @@ public class BatchController : ControllerBase
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+		if (!BlockchainController.TryGetIndexer(indexType, out var indexer))
+		{
+			return BadRequest("Not supported index type.");
+		}
+
+		(Height bestHeight, IEnumerable<FilterModel> filters) = indexer.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
@@ -77,7 +88,7 @@ public class BatchController : ControllerBase
 		{
 			try
 			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode, cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -85,7 +96,7 @@ public class BatchController : ControllerBase
 			}
 		}
 
-		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
+		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync(cancellationToken);
 
 		response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
 

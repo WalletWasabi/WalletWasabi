@@ -14,10 +14,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 [NavigationMetaData(
 	Title = "Receive",
-	Caption = "",
+	Caption = "Displays wallet receive dialog",
 	IconName = "wallet_action_receive",
+	Order = 6,
+	Category = "Wallet",
+	Keywords = new[] { "Wallet", "Receive", "Action", },
 	NavBarPosition = NavBarPosition.None,
-	Searchable = false,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class ReceiveViewModel : RoutableViewModel
 {
@@ -31,7 +33,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(3);
+		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels
@@ -50,17 +52,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels), out bool minGapLimitIncreased);
-
-		if (minGapLimitIncreased)
-		{
-			int minGapLimit = _wallet.KeyManager.MinGapLimit;
-			int prevMinGapLimit = minGapLimit - 1;
-			var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
-
-			// TODO: notification
-		}
-
+		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
 		SuggestionLabels.Labels.Clear();
 
 		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
@@ -68,7 +60,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnShowExistingAddresses()
 	{
-		Navigate().To(new ReceiveAddressesViewModel(_wallet, SuggestionLabels.Suggestions.ToHashSet()));
+		Navigate().To(new ReceiveAddressesViewModel(_wallet));
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)

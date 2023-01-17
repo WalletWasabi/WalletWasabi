@@ -149,18 +149,18 @@ public class MempoolService
 	{
 		SmartTransaction? txAdded = null;
 
-			lock (ProcessedLock)
+		lock (ProcessedLock)
+		{
+			if (ProcessedTransactionHashes.Add(tx.GetHash()))
 			{
-				if (ProcessedTransactionHashes.Add(tx.GetHash()))
-				{
-					txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
-				}
-				else
-				{
-					Interlocked.Increment(ref _duplicatedReceives);
-				}
-				Interlocked.Increment(ref _totalReceives);
+				txAdded = new SmartTransaction(tx, Height.Mempool, label: TryGetLabel(tx.GetHash()));
 			}
+			else
+			{
+				Interlocked.Increment(ref _duplicatedReceives);
+			}
+			Interlocked.Increment(ref _totalReceives);
+		}
 
 		if (txAdded is { })
 		{

@@ -16,7 +16,7 @@ public class WabiSabiProtocolException : Exception
 
 	private static string ErrorCodeDescription(WabiSabiProtocolErrorCode errorCode)
 	{
-		var enumName = Enum.GetName<WabiSabiProtocolErrorCode>(errorCode) ?? "";
+		var enumName = Enum.GetName(errorCode) ?? "";
 		var errorDescription = string.Join(
 			"",
 			enumName.Select((c, i) => i > 0 && char.IsUpper(c)

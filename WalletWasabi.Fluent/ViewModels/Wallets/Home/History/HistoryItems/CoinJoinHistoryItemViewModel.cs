@@ -1,8 +1,8 @@
-using System.Reactive;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -13,9 +13,8 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 	public CoinJoinHistoryItemViewModel(
 		int orderIndex,
 		TransactionSummary transactionSummary,
-		WalletViewModel walletViewModel,
+		WalletViewModel walletVm,
 		Money balance,
-		IObservable<Unit> updateTrigger,
 		bool isSingleCoinJoinTransaction)
 		: base(orderIndex, transactionSummary)
 	{
@@ -26,25 +25,20 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		CoinJoinTransaction = transactionSummary;
 		IsSingleCoinJoinTransaction = isSingleCoinJoinTransaction;
 
+		var confirmations = transactionSummary.GetConfirmations();
+		ConfirmedToolTip = $"{confirmations} confirmation{TextHelpers.AddSIfPlural(confirmations)}";
+
 		var amount = transactionSummary.Amount;
-		if (amount < Money.Zero)
-		{
-			OutgoingAmount = amount * -1;
-		}
-		else
-		{
-			IncomingAmount = amount;
-		}
+		SetAmount(amount);
 
 		ShowDetailsCommand = ReactiveCommand.Create(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
-				new CoinJoinDetailsViewModel(this, updateTrigger)));
+				new CoinJoinDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 
-		DateString = $"{Date.ToLocalTime():MM/dd/yy HH:mm}";
+		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}
 
 	public bool IsSingleCoinJoinTransaction { get; }
 
 	public TransactionSummary CoinJoinTransaction { get; private set; }
-
 }

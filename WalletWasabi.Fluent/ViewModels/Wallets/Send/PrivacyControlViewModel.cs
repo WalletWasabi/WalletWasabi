@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -27,8 +26,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		var amount = transactionInfo.MinimumRequiredAmount == Money.Zero ? transactionInfo.Amount : transactionInfo.MinimumRequiredAmount;
-		LabelSelection = new LabelSelectionViewModel(amount);
+		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Kitchen.SaltSoup(), _transactionInfo, isSilent);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -40,14 +38,14 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private void Complete(IEnumerable<Pocket> pockets)
 	{
-		var coins = pockets.SelectMany(x => x.Coins);
+		var coins = Pocket.Merge(pockets.ToArray()).Coins;
 
 		Close(DialogResultKind.Normal, coins);
 	}
 
 	private void InitializeLabels()
 	{
-		var privateThreshold = _wallet.KeyManager.AnonScoreTarget;
+		var privateThreshold = _wallet.AnonScoreTarget;
 
 		LabelSelection.Reset(_wallet.Coins.GetPockets(privateThreshold).Select(x => new Pocket(x)).ToArray());
 		LabelSelection.SetUsedLabel(_usedCoins, privateThreshold);
@@ -70,7 +68,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 		if (_isSilent)
 		{
-			var autoSelectedPockets = LabelSelection.AutoSelectPockets(_transactionInfo.UserLabels);
+			var autoSelectedPockets = LabelSelection.AutoSelectPockets();
 
 			Complete(autoSelectedPockets);
 		}

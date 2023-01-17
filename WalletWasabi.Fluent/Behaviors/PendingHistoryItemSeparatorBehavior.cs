@@ -1,4 +1,4 @@
-﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
@@ -73,8 +73,8 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		static bool IsSeparator(TreeDataGridRowsPresenter presenter, int index)
 		{
 			return presenter.Items is { } items
-			       && items.Count > index + 1
-			       && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true };
+				   && items.Count > index + 1
+				   && presenter.Items[index + 1].Model is HistoryItemViewModelBase { IsConfirmed: true };
 		}
 	}
 }

@@ -12,7 +12,7 @@ public class CoinJoinTracker : IDisposable
 	private bool _disposedValue;
 
 	public CoinJoinTracker(
-		Wallet wallet,
+		IWallet wallet,
 		CoinJoinClient coinJoinClient,
 		IEnumerable<SmartCoin> coinCandidates,
 		bool stopWhenAllMixed,
@@ -35,7 +35,7 @@ public class CoinJoinTracker : IDisposable
 	private CoinJoinClient CoinJoinClient { get; }
 	private CancellationTokenSource CancellationTokenSource { get; }
 
-	public Wallet Wallet { get; }
+	public IWallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public IEnumerable<SmartCoin> CoinCandidates { get; }
 	public bool StopWhenAllMixed { get; set; }
@@ -64,6 +64,10 @@ public class CoinJoinTracker : IDisposable
 
 			case LeavingCriticalPhase:
 				InCriticalCoinJoinState = false;
+				break;
+
+			case RoundEnded roundEnded:
+				roundEnded.IsStopped = IsStopped;
 				break;
 		}
 

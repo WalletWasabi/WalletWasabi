@@ -1,8 +1,9 @@
-using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using DynamicData;
+using DynamicData.Binding;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -11,92 +12,52 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 /// <summary>
 /// The ViewModel that represents the structure of the sidebar.
 /// </summary>
-public partial class NavBarViewModel : ViewModelBase
+public class NavBarViewModel : ViewModelBase
 {
-	private const double NormalCompactPaneLength = 68;
-	private const double NormalOpenPaneLength = 280;
-
-	private NavBarItemViewModel? _selectedItem;
-	private bool _isNavigating;
-	[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
-	[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
-	[AutoNotify] private bool _isBackButtonVisible;
-	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private Action? _toggleAction;
-	[AutoNotify] private Action? _collapseOnClickAction;
-	[AutoNotify] private double _currentOpenPaneLength;
-	[AutoNotify] private double _currentCompactPaneLength;
-	[AutoNotify] private bool _isHidden;
-
-	public NavBarViewModel(TargettedNavigationStack mainScreen)
+	public NavBarViewModel()
 	{
-		_topItems = new ObservableCollection<NavBarItemViewModel>();
-		_bottomItems = new ObservableCollection<NavBarItemViewModel>();
+		TopItems = new ObservableCollection<NavBarItemViewModel>();
+		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-		mainScreen.WhenAnyValue(x => x.CurrentPage)
-			.WhereNotNull()
-			.OfType<NavBarItemViewModel>()
-			.DistinctUntilChanged()
-			.Subscribe(CurrentPageChanged);
+		SetDefaultSelection();
 
-		this.WhenAnyValue(x => x.SelectedItem)
-			.Subscribe(selectedItem =>
+		Observable.Amb(
+				Wallets.ToObservableChangeSet().Transform(x => x as NavBarItemViewModel),
+				TopItems.ToObservableChangeSet(),
+				BottomItems.ToObservableChangeSet())
+			.WhenPropertyChanged(x => x.IsSelected)
+			.Where(x => x.Value)
+			.Select(x => x.Sender)
+			.Buffer(2, 1)
+			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
+			.Subscribe(x =>
 			{
-				if (selectedItem is { })
+				if (x.OldValue is { } old)
 				{
-					NavigateItem(selectedItem);
+					old.IsSelected = false;
 				}
 
-				if (selectedItem is WalletViewModelBase wallet)
+				if (x.NewValue is WalletViewModelBase wallet)
 				{
 					Services.UiConfig.LastSelectedWallet = wallet.WalletName;
 				}
 			});
-
-		this.WhenAnyValue(x => x.Items.Count)
-			.Subscribe(x =>
-			{
-				if (x > 0 && SelectedItem is null)
-				{
-					if (!UiServices.WalletManager.IsLoadingWallet)
-					{
-						var lastSelectedItem = Items.FirstOrDefault(item => item is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet);
-
-						SelectedItem = lastSelectedItem ?? Items.FirstOrDefault();
-					}
-				}
-			});
-
-		this.WhenAnyValue(x => x.IsOpen)
-			.Subscribe(x =>
-			{
-				if (SelectedItem is { })
-				{
-					SelectedItem.IsExpanded = x;
-				}
-			});
-
-		this.WhenAnyValue(x => x.IsHidden)
-			.Subscribe(x =>
-		   {
-			   CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
-			   CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
-		   });
-
-		UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
-			.WhereNotNull()
-			.OfType<NavBarItemViewModel>()
-			.Subscribe(x => SelectedItem = x);
 	}
 
-	public ReadOnlyObservableCollection<NavBarItemViewModel> Items => UiServices.WalletManager.Items;
+	public ObservableCollection<NavBarItemViewModel> TopItems { get; }
+
+	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
-	public NavBarItemViewModel? SelectedItem
+	private void SetDefaultSelection()
 	{
-		get => _selectedItem;
-		set => SetSelectedItem(value);
+		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
+
+		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
+		{
+			walletToSelect.OpenCommand.Execute(default);
+		}
 	}
 
 	public async Task InitialiseAsync()
@@ -111,7 +72,7 @@ public partial class NavBarViewModel : ViewModelBase
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
-				_topItems.Add(navBarItem);
+				TopItems.Add(navBarItem);
 			}
 		}
 
@@ -121,126 +82,8 @@ public partial class NavBarViewModel : ViewModelBase
 
 			if (viewModel is NavBarItemViewModel navBarItem)
 			{
-				_bottomItems.Add(navBarItem);
+				BottomItems.Add(navBarItem);
 			}
-		}
-	}
-
-	public void DoToggleAction()
-	{
-		ToggleAction?.Invoke();
-	}
-
-	private void RaiseAndChangeSelectedItem(NavBarItemViewModel? value)
-	{
-		_selectedItem = value;
-		this.RaisePropertyChanged(nameof(SelectedItem));
-	}
-
-	private void Select(NavBarItemViewModel? value)
-	{
-		if (_selectedItem == value)
-		{
-			return;
-		}
-
-		if (_selectedItem is { })
-		{
-			_selectedItem.IsSelected = false;
-			_selectedItem.IsExpanded = false;
-		}
-
-		RaiseAndChangeSelectedItem(null);
-		RaiseAndChangeSelectedItem(value);
-
-		if (_selectedItem is { })
-		{
-			_selectedItem.IsSelected = true;
-			_selectedItem.IsExpanded = IsOpen;
-		}
-	}
-
-	private void SetSelectedItem(NavBarItemViewModel? value)
-	{
-		if (value is null || value.SelectionMode == NavBarItemSelectionMode.Selected)
-		{
-			Select(value);
-			return;
-		}
-
-		if (value.SelectionMode == NavBarItemSelectionMode.Button)
-		{
-			_isNavigating = true;
-			var previous = _selectedItem;
-			RaiseAndChangeSelectedItem(null);
-			RaiseAndChangeSelectedItem(value);
-			_isNavigating = false;
-			NavigateItem(value);
-			_isNavigating = true;
-			RaiseAndChangeSelectedItem(null);
-			RaiseAndChangeSelectedItem(previous);
-			_isNavigating = false;
-			return;
-		}
-
-		if (value.SelectionMode == NavBarItemSelectionMode.Toggle)
-		{
-			_isNavigating = true;
-			var previous = _selectedItem;
-			RaiseAndChangeSelectedItem(null);
-			RaiseAndChangeSelectedItem(value);
-			_isNavigating = false;
-			value.Toggle();
-			_isNavigating = true;
-			RaiseAndChangeSelectedItem(null);
-			RaiseAndChangeSelectedItem(previous);
-			_isNavigating = false;
-		}
-	}
-
-	private void CurrentPageChanged(NavBarItemViewModel x)
-	{
-		if (UiServices.WalletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
-		{
-			if (!_isNavigating)
-			{
-				_isNavigating = true;
-
-				var result = UiServices.WalletManager.SelectionChanged(x);
-				if (result is not null)
-				{
-					SelectedItem = x;
-				}
-
-				if (x.SelectionMode == NavBarItemSelectionMode.Selected)
-				{
-					SetSelectedItem(x);
-				}
-
-				_isNavigating = false;
-			}
-		}
-	}
-
-	private void NavigateItem(NavBarItemViewModel x)
-	{
-		if (!_isNavigating)
-		{
-			_isNavigating = true;
-
-			var result = UiServices.WalletManager.SelectionChanged(x);
-			if (result is not null)
-			{
-				SelectedItem = result;
-			}
-
-			if (x.OpenCommand.CanExecute(default))
-			{
-				x.OpenCommand.Execute(default);
-			}
-
-			CollapseOnClickAction?.Invoke();
-			_isNavigating = false;
 		}
 	}
 }

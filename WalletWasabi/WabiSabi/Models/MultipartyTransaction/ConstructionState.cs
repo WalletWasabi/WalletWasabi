@@ -1,5 +1,7 @@
 using NBitcoin;
 using System.Linq;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -13,8 +15,7 @@ public record ConstructionState : MultipartyTransactionState
 	{
 	}
 
-	// TODO ownership proofs and spend status also in scope
-	public ConstructionState AddInput(Coin coin)
+	public ConstructionState AddInput(Coin coin, OwnershipProof ownershipProof, CoinJoinInputCommitmentData coinJoinInputCommitmentData)
 	{
 		var prevout = coin.TxOut;
 
@@ -26,11 +27,6 @@ public record ConstructionState : MultipartyTransactionState
 		if (!Parameters.AllowedInputTypes.Any(x => prevout.ScriptPubKey.IsScriptType(x)))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
-		}
-
-		if (!prevout.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-		{
-			throw new NotImplementedException(); // See #5440
 		}
 
 		if (prevout.Value < Parameters.AllowedInputAmounts.Min)
@@ -61,7 +57,12 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 		}
 
-		return this with { Events = Events.Add(new InputAdded(coin)) };
+		if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+		{
+			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
+		}
+
+		return this with { Events = Events.Add(new InputAdded(coin, ownershipProof)) };
 	}
 
 	public ConstructionState AddOutput(TxOut output)
@@ -111,4 +112,10 @@ public record ConstructionState : MultipartyTransactionState
 
 		return new SigningState(Parameters, Events);
 	}
+
+	public ConstructionState AsPayingForSharedOverhead() =>
+		this with
+		{
+			UnpaidSharedOverhead = 0
+		};
 }

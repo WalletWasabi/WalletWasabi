@@ -5,7 +5,7 @@ namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class CoinJoinStatusEventArgs : StatusChangedEventArgs
 {
-	public CoinJoinStatusEventArgs(Wallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) : base(wallet)
+	public CoinJoinStatusEventArgs(IWallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) : base(wallet)
 	{
 		CoinJoinProgressEventArgs = coinJoinProgressEventArgs;
 	}

@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +10,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -29,8 +31,9 @@ public class IndexBuilderService
 
 	private long _workerCount;
 
-	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
+	public IndexBuilderService(IndexType indexType, IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
+		IndexType = indexType;
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
@@ -38,7 +41,9 @@ public class IndexBuilderService
 		Index = new List<FilterModel>();
 		IndexLock = new AsyncLock();
 
-		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network).Height;
+		PubKeyTypes = IndexTypeConverter.ToRpcPubKeyTypes(IndexType);
+
+		StartingHeight = SmartHeader.GetStartingHeader(RpcClient.Network, IndexType).Height;
 
 		_serviceStatus = NotStarted;
 
@@ -79,6 +84,9 @@ public class IndexBuilderService
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	public bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 	public DateTimeOffset LastFilterBuildTime { get; set; }
+	public IndexType IndexType { get; }
+
+	public RpcPubkeyType[] PubKeyTypes { get; }
 
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
@@ -149,21 +157,21 @@ public class IndexBuilderService
 								syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 							}
 
-								// If wasabi filter height is the same as core we may be done.
-								if (syncInfo.BlockCount == currentHeight)
+							// If wasabi filter height is the same as core we may be done.
+							if (syncInfo.BlockCount == currentHeight)
 							{
-									// Check that core is fully synced
-									if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
+								// Check that core is fully synced
+								if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
 								{
-										// Mark the process notstarted, so it can be started again
-										// and finally block can mark it as stopped.
-										Interlocked.Exchange(ref _serviceStatus, NotStarted);
+									// Mark the process notstarted, so it can be started again
+									// and finally block can mark it as stopped.
+									Interlocked.Exchange(ref _serviceStatus, NotStarted);
 									return;
 								}
 								else
 								{
-										// Knots is catching up give it a 10 seconds
-										await Task.Delay(10000).ConfigureAwait(false);
+									// Knots is catching up give it a 10 seconds
+									await Task.Delay(10000).ConfigureAwait(false);
 									continue;
 								}
 							}
@@ -172,19 +180,19 @@ public class IndexBuilderService
 							uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
 							VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
 
-								// Check if we are still on the best chain,
-								// if not rewind filters till we find the fork.
-								if (currentHash != block.PrevBlockHash)
+							// Check if we are still on the best chain,
+							// if not rewind filters till we find the fork.
+							if (currentHash != block.PrevBlockHash)
 							{
 								Logger.LogWarning("Reorg observed on the network.");
 
 								await ReorgOneAsync().ConfigureAwait(false);
 
-									// Skip the current block.
-									continue;
+								// Skip the current block.
+								continue;
 							}
 
-							var filter = BuildFilterForBlock(block);
+							var filter = BuildFilterForBlock(block, PubKeyTypes);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
@@ -196,14 +204,14 @@ public class IndexBuilderService
 								Index.Add(filterModel);
 							}
 
-								// If not close to the tip, just log debug.
-								if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
+							// If not close to the tip, just log debug.
+							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 							{
-								Logger.LogInfo($"Created filter for block: {nextHeight}.");
+								Logger.LogInfo($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
 							}
 							else
 							{
-								Logger.LogDebug($"Created filter for block: {nextHeight}.");
+								Logger.LogDebug($"Created {Enum.GetName(IndexType)} filter for block: {nextHeight}.");
 							}
 							LastFilterBuildTime = DateTimeOffset.UtcNow;
 						}
@@ -211,15 +219,15 @@ public class IndexBuilderService
 						{
 							Logger.LogDebug(ex);
 
-								// Pause the while loop for a while to not flood logs in case of permanent error.
-								await Task.Delay(1000).ConfigureAwait(false);
+							// Pause the while loop for a while to not flood logs in case of permanent error.
+							await Task.Delay(1000).ConfigureAwait(false);
 						}
 					}
 				}
 				finally
 				{
 					Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
-						Interlocked.Decrement(ref _workerCount);
+					Interlocked.Decrement(ref _workerCount);
 				}
 			}
 			catch (Exception ex)
@@ -229,9 +237,9 @@ public class IndexBuilderService
 		});
 	}
 
-	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
+	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
 	{
-		var scripts = FetchScripts(block);
+		var scripts = FetchScripts(block, pubKeyTypes);
 
 		if (scripts.Any())
 		{
@@ -250,7 +258,7 @@ public class IndexBuilderService
 		}
 	}
 
-	private static List<Script> FetchScripts(VerboseBlockInfo block)
+	private static List<Script> FetchScripts(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
 	{
 		var scripts = new List<Script>();
 
@@ -258,15 +266,16 @@ public class IndexBuilderService
 		{
 			foreach (var input in tx.Inputs)
 			{
-				if (input.PrevOutput is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
+				var prevOut = input.PrevOutput;
+				if (prevOut is not null && pubKeyTypes.Contains(prevOut.PubkeyType))
 				{
-					scripts.Add(input.PrevOutput.ScriptPubKey);
+					scripts.Add(prevOut.ScriptPubKey);
 				}
 			}
 
 			foreach (var output in tx.Outputs)
 			{
-				if (output is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash })
+				if (pubKeyTypes.Contains(output.PubkeyType))
 				{
 					scripts.Add(output.ScriptPubKey);
 				}

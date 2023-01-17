@@ -21,7 +21,6 @@ public class AmountDecomposer
 	{
 		FeeRate = feeRate;
 
-		InputSize = inputSize;
 		OutputSize = outputSize;
 
 		InputFee = FeeRate.GetFee(inputSize);
@@ -46,7 +45,6 @@ public class AmountDecomposer
 	public Money OutputFee { get; }
 	public Money InputFee { get; }
 	public int OutputSize { get; }
-	public int InputSize { get; }
 	public IOrderedEnumerable<ulong> DenominationsPlusFees { get; }
 	private Random Random { get; }
 
@@ -264,7 +262,7 @@ public class AmountDecomposer
 
 		setCandidates.Add(
 			hash.ToHashCode(), // Create hash to ensure uniqueness.
-			(naiveSet, loss + (ulong)naiveSet.Count * OutputFee + (ulong)naiveSet.Count * InputFee)); // The cost is the remaining + output cost + input cost.
+			(naiveSet, loss + (ulong)naiveSet.Count * (OutputFee + InputFee))); // The cost is the remaining + output cost + input cost.
 
 		// Create many decompositions for optimization.
 		var stdDenoms = denoms.Where(x => x <= myInputSum).Select(x => (long)x).ToArray();
@@ -302,7 +300,7 @@ public class AmountDecomposer
 
 		// We want to introduce randomness between the best selections.
 		var bestCandidateCost = orderedCandidates.First().Cost;
-		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.3m);
+		var costTolerance = Money.Coins(bestCandidateCost.ToUnit(MoneyUnit.BTC) * 1.2m);
 		var finalCandidates = orderedCandidates.Where(x => x.Cost <= costTolerance).ToArray();
 
 		// We want to make sure our random selection is not between similar decompositions.

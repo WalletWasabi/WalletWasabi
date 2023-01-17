@@ -15,7 +15,7 @@
                 Data="{StaticResource checkmark_filled}"
                 Foreground="{DynamicResource SystemAccentColor}"
                 Height="11"
-                ToolTip.Tip="Confirmed" />
+                ToolTip.Tip="{Binding ConfirmedToolTip}" />
       <!-- Pending -->
       <PathIcon IsVisible="{Binding !Confirmed}"
                 Data="{StaticResource clock_regular}"
@@ -27,16 +27,16 @@
     <Panel IsVisible="{Binding !IsBanned}">
       <!-- CJ active -->
       <PathIcon IsVisible="{Binding CoinJoinInProgress}"
-                Data="{StaticResource link_filled}"
+                Data="{StaticResource wallet_action_coinjoin}"
                 Foreground="{DynamicResource SystemAccentColor}"
-                Height="9"
+                Height="15"
                 ToolTip.Tip="Coinjoining" />
       <!-- CJ inactive -->
       <PathIcon IsVisible="{Binding !CoinJoinInProgress}"
-                Data="{StaticResource link_filled}"
-                Height="9"
+                Data="{StaticResource wallet_action_coinjoin}"
+                Height="15"
                 Opacity="0.3"
-                ToolTip.Tip="Not Coinjoining" />
+                ToolTip.Tip="Not coinjoining" />
     </Panel>
 
     <!-- Banned -->

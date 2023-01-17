@@ -1,6 +1,9 @@
 using NBitcoin;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
@@ -41,10 +44,10 @@ public class WabiSabiConfig : ConfigBase
 	/// <summary>
 	/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 	/// </summary>
-	[DefaultValueMoneyBtc("1343.75")]
+	[DefaultValueMoneyBtc("43000")]
 	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MaxRegistrableAmount { get; set; } = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice);
+	public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
 
 	[DefaultValue(true)]
 	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -70,6 +73,14 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
+	[DefaultValueTimeSpan("0d 0h 3m 0s")]
+	[JsonProperty(PropertyName = "FailFastOutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan FailFastOutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+
+	[DefaultValueTimeSpan("0d 0h 1m 0s")]
+	[JsonProperty(PropertyName = "FailFastTransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan FailFastTransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
 	[DefaultValueTimeSpan("0d 0h 5m 0s")]
 	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
@@ -89,7 +100,7 @@ public class WabiSabiConfig : ConfigBase
 	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
 
 	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-	public ExtPubKey CoordinatorExtPubKey { get; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
+	public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
 
 	[DefaultValue(1)]
 	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -100,9 +111,66 @@ public class WabiSabiConfig : ConfigBase
 	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
 
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "IsCoinVerifierEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool IsCoinVerifierEnabled { get; set; } = false;
+
+	[DefaultValueIntegerArray("")]
+	[JsonProperty(PropertyName = "RiskFlags", DefaultValueHandling = DefaultValueHandling.Populate)]
+	[JsonConverter(typeof(IntegerArrayJsonConverter))]
+	public IEnumerable<int> RiskFlags { get; set; } = Enumerable.Empty<int>();
+
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "CoinVerifierApiUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoinVerifierApiUrl { get; set; } = "";
+
+	[DefaultValue("")]
+	[JsonProperty(PropertyName = "CoinVerifierApiAuthToken", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoinVerifierApiAuthToken { get; set; } = "";
+
+	[DefaultValueTimeSpan("31d 0h 0m 0s")]
+	[JsonProperty(PropertyName = "ReleaseFromWhitelistAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public TimeSpan ReleaseFromWhitelistAfter { get; set; } = TimeSpan.FromDays(31);
+
+	[DefaultValue(1)]
+	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int RoundParallelization { get; set; } = 1;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancing", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool WW200CompatibleLoadBalancing { get; set; } = false;
+
+	[DefaultValue(0.75)]
+	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancingInputSplit", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public double WW200CompatibleLoadBalancingInputSplit { get; set; } = 0.75;
+
+	[DefaultValue("CoinJoinCoordinatorIdentifier")]
+	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2wpkhInputs { get; set; } = true;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2trInputs { get; set; } = false;
+
+	[DefaultValue(true)]
+	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2wpkhOutputs { get; set; } = true;
+
+	[DefaultValue(false)]
+	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public bool AllowP2trOutputs { get; set; } = false;
+
+	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs);
+
+	public ImmutableSortedSet<ScriptType> AllowedOutputTypes => GetScriptTypes(AllowP2wpkhOutputs, AllowP2trOutputs);
+
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
-	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.WitHash.ScriptPubKey;
+	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
 	public void MakeNextCoordinatorScriptDirty()
 	{
@@ -111,5 +179,23 @@ public class WabiSabiConfig : ConfigBase
 		{
 			ToFile();
 		}
+	}
+
+	private static ImmutableSortedSet<ScriptType> GetScriptTypes(bool p2wpkh, bool p2tr)
+	{
+		var scriptTypes = new List<ScriptType>();
+		if (p2wpkh)
+		{
+			scriptTypes.Add(ScriptType.P2WPKH);
+		}
+		if (p2tr)
+		{
+			scriptTypes.Add(ScriptType.Taproot);
+		}
+
+		// When adding new script types, please see
+		// https://github.com/zkSNACKs/WalletWasabi/issues/5440
+
+		return scriptTypes.ToImmutableSortedSet();
 	}
 }

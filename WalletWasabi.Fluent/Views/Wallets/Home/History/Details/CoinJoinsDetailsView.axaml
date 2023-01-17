@@ -23,24 +23,6 @@
 
       <Separator />
 
-      <!-- Transaction IDs -->
-      <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Label="Transaction ID">
-        <ItemsRepeater Items="{Binding TransactionIds}">
-          <ItemsRepeater.ItemTemplate>
-            <DataTemplate>
-              <c:PreviewItem TextValue="{Binding }">
-                <c:PrivacyContentControl NumberOfPrivacyChars="48">
-                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
-                </c:PrivacyContentControl>
-              </c:PreviewItem>
-            </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
-      </c:PreviewItem>
-
-      <Separator />
-
       <!-- Status -->
       <c:PreviewItem Icon="{StaticResource status_regular}"
                      Label="Status">
@@ -49,11 +31,38 @@
 
       <Separator />
 
+      <!-- TX Count  -->
+      <c:PreviewItem Icon="{StaticResource info_regular}"
+                     Label="Number of transactions"
+                     TextValue="{Binding TxCount}">
+        <TextBlock Text="{Binding TxCount, Mode=OneWay}" />
+      </c:PreviewItem>
+
+      <Separator />
+
       <!-- CJ fee  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Label="Fees"
-                     TextValue="{Binding CoinJoinFeeString}">
+                     TextValue="{Binding CoinJoinFeeRawString}">
         <TextBlock Text="{Binding CoinJoinFeeString, Mode=OneWay}" />
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Transaction IDs -->
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
+                     Label="Transaction IDs">
+        <ItemsRepeater Items="{Binding TransactionIds}">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+              <c:PreviewItem TextValue="{Binding }">
+                <c:PrivacyContentControl>
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
+                </c:PrivacyContentControl>
+              </c:PreviewItem>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
       </c:PreviewItem>
     </StackPanel>
   </c:ContentArea>

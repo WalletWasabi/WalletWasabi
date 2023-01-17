@@ -20,14 +20,16 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[AutoNotify] private string _dateString = "";
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private bool _isExpanded;
+	[AutoNotify] private string _confirmedToolTip;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)
 	{
 		OrderIndex = orderIndex;
 		Id = transactionSummary.TransactionId;
+		_confirmedToolTip = "Confirmed";
 
-		ClipboardCopyCommand =  ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
+		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -43,6 +45,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	public SmartLabel Label { get; init; } = SmartLabel.Empty;
 
 	public bool IsCoinJoin { get; protected set; }
+
+	public bool IsCoinJoinGroup { get; protected set; }
 
 	public IReadOnlyList<HistoryItemViewModelBase> Children => _children ??= LoadChildren();
 
@@ -60,7 +64,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	private async Task CopyToClipboardAsync(string text)
 	{
-		if (Application.Current is {Clipboard: { } clipboard})
+		if (Application.Current is { Clipboard: { } clipboard })
 		{
 			await clipboard.SetTextAsync(text);
 		}
@@ -70,6 +74,20 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	{
 		throw new NotSupportedException();
 	}
+
+	protected void SetAmount(Money amount)
+	{
+		if (amount < Money.Zero)
+		{
+			OutgoingAmount = amount * -1;
+		}
+		else
+		{
+			IncomingAmount = amount;
+		}
+	}
+
+	public virtual bool HasChildren() => false;
 
 	public static Comparison<HistoryItemViewModelBase?> SortAscending<T>(Func<HistoryItemViewModelBase, T> selector)
 	{

@@ -5,6 +5,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Microservices;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
@@ -43,7 +44,7 @@ public class TorProcessManagerTests
 
 		// Set up Tor process manager.
 		Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, DummyTorControlEndpoint);
-		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync())
+		mockTcpConnectionFactory.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(false);
 
 		// Mock TorProcessManager.

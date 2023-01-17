@@ -9,7 +9,7 @@ namespace WalletWasabi.Helpers;
 
 public class RuntimeParams
 {
-	private static RuntimeParams InternalInstance = null;
+	private static RuntimeParams? InternalInstance = null;
 	private static string FileDir;
 
 	private RuntimeParams()
@@ -17,7 +17,7 @@ public class RuntimeParams
 	}
 
 	[JsonProperty(PropertyName = "NetworkNodeTimeout")]
-	public int NetworkNodeTimeout { get; set; } = 64;
+	public int NetworkNodeTimeout { get; set; } = 16;
 
 	#region Business logic
 

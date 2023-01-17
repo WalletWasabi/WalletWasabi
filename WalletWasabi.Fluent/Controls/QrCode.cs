@@ -4,12 +4,12 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
 using Avalonia.Platform;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -85,42 +85,36 @@ public class QrCode : Control
 			return;
 		}
 
-		var sfd = new SaveFileDialog();
-		sfd.Title = "Save QR Code...";
-		sfd.InitialFileName = $"{address}.png";
-		sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-		sfd.Filters.Add(new FileDialogFilter()
-		{ Name = "Portable Network Graphics (PNG) Image file", Extensions = { "png" } });
-
-		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+		var path = await FileDialogHelper.ShowSaveFileDialogAsync(
+			"Save QR Code...",
+			new[] { "png" },
+			$"{address}.png",
+			Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+		if (!string.IsNullOrWhiteSpace(path))
 		{
-			var path = await sfd.ShowAsync(lifetime.MainWindow);
+			var ext = Path.GetExtension(path);
 
-			if (!string.IsNullOrWhiteSpace(path))
+			if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant().TrimStart('.') != "png")
 			{
-				var ext = Path.GetExtension(path);
-
-				if (string.IsNullOrWhiteSpace(ext) || ext.ToLowerInvariant().TrimStart('.') != "png")
-				{
-					path = $"{path}.png";
-				}
-
-				var qrCodeSize = GetQrCodeSize(FinalMatrix, Bounds.Size);
-
-				var pixSize = PixelSize.FromSize(qrCodeSize.coercedSize, 1);
-
-				if (pixSize.Width < MinimumBitmapSizePixelWh || pixSize.Height < MinimumBitmapSizePixelWh)
-				{
-					pixSize = new PixelSize(MinimumBitmapSizePixelWh, MinimumBitmapSizePixelWh);
-				}
-
-				using var rtb = new RenderTargetBitmap(pixSize);
-				using (var rtbCtx = rtb.CreateDrawingContext(null))
-				{
-					DrawQrCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
-				}
-				rtb.Save(path);
+				path = $"{path}.png";
 			}
+
+			var qrCodeSize = GetQrCodeSize(FinalMatrix, Bounds.Size);
+
+			var pixSize = PixelSize.FromSize(qrCodeSize.coercedSize, 1);
+
+			if (pixSize.Width < MinimumBitmapSizePixelWh || pixSize.Height < MinimumBitmapSizePixelWh)
+			{
+				pixSize = new PixelSize(MinimumBitmapSizePixelWh, MinimumBitmapSizePixelWh);
+			}
+
+			using var rtb = new RenderTargetBitmap(pixSize);
+			using (var rtbCtx = rtb.CreateDrawingContext(null))
+			{
+				DrawQrCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
+			}
+
+			rtb.Save(path);
 		}
 	}
 
@@ -144,7 +138,7 @@ public class QrCode : Control
 	}
 
 	private (int indexW, int indexH) GetMatrixIndexSize(bool[,] source) =>
-	(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
+		(source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
 
 	private void DrawQrCodeImage(IDrawingContextImpl ctx, bool[,] source, Size size)
 	{

@@ -18,7 +18,7 @@ public class CredentialIssuerKeyTests
 	[InlineData(1, 1, 1, 1, 0)]
 	public void CannotGenerateIssuerSecretKeyWithZero(int w, int wp, int x0, int x1, int ya)
 	{
-		var keys = new [] { ("w", w), ("wp", wp), ("x0", x0), ("x1", x1), ("ya", ya) };
+		var keys = new[] { ("w", w), ("wp", wp), ("x0", x0), ("x1", x1), ("ya", ya) };
 		var mockRandom = new Mock<WasabiRandom>();
 		var seq = mockRandom.SetupSequence(rnd => rnd.GetScalar());
 		Array.ForEach(keys, k => seq.Returns(k.Item2 == 0 ? Scalar.Zero : Scalar.One));
