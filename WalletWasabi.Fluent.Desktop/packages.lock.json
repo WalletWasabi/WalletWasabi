@@ -159,6 +159,11 @@
           "Avalonia": "0.10.18"
         }
       },
+      "CommunityToolkit.Mvvm": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "Jiu2g5WUdXRwzhJkHB+B4JBKP5A5+fp8xKiW/ZQo5PI+DruI7MbPEcK9K/Aw0YzTiWRuG6CBluzYIWN5Eo7BkQ=="
+      },
       "DynamicData": {
         "type": "Transitive",
         "resolved": "7.1.1",
@@ -677,6 +682,7 @@
           "Avalonia.ReactiveUI": "[0.10.18, )",
           "Avalonia.Skia": "[0.10.18, )",
           "Avalonia.Xaml.Behaviors": "[0.10.18, )",
+          "CommunityToolkit.Mvvm": "[8.0.0, )",
           "System.Drawing.Common": "[7.0.0, )",
           "System.Runtime": "[4.3.1, )",
           "WalletWasabi": "[1.0.0, )"

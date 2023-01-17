@@ -75,6 +75,12 @@
           "Avalonia.Xaml.Interactivity": "0.10.18"
         }
       },
+      "CommunityToolkit.Mvvm": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "Jiu2g5WUdXRwzhJkHB+B4JBKP5A5+fp8xKiW/ZQo5PI+DruI7MbPEcK9K/Aw0YzTiWRuG6CBluzYIWN5Eo7BkQ=="
+      },
       "System.Drawing.Common": {
         "type": "Direct",
         "requested": "[7.0.0, )",
