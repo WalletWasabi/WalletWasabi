@@ -309,9 +309,7 @@ public class ChaumianCoinJoinController : ControllerBase
 
 				foreach (var coin in alice.Inputs)
 				{
-					var delayUntilVerificationStart = round.InputRegistrationTimesout - DateTimeOffset.UtcNow - CoinVerifier?.WabiSabiConfig.CoinVerifierStartBefore ?? TimeSpan.FromMinutes(2);
-
-					CoinVerifier?.ScheduleVerification(coin, CancellationToken.None, delayUntilVerificationStart, false, coinAndTxOutResponses[coin].Confirmations);
+					CoinVerifier?.ScheduleVerification(coin, round.InputRegistrationTimesout, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations);
 				}
 				round.AddAlice(alice);
 

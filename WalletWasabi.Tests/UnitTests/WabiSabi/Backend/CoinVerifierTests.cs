@@ -184,7 +184,8 @@ public class CoinVerifierTests
 		List<Coin> naughtyCoins = new();
 		CoinJoinIdStore coinJoinIdStore = new();
 		CoinVerifierApiClient apiClient = new("token", Network.Main, mockHttpClient.Object);
-		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, new Whitelist(), _wabisabiTestConfig);
+		Whitelist whitelist = new();
+		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, whitelist, _wabisabiTestConfig);
 
 		List<Coin> generatedCoins = GenerateCoins(10);
 
@@ -198,7 +199,7 @@ public class CoinVerifierTests
 		}
 
 		Assert.Empty(naughtyCoins); // Empty, so we won't kick out anyone from the CJ round.
-		Assert.Equal(10, coinVerifier.Whitelist.CountInnocents());
+		Assert.Equal(10, whitelist.CountInnocents());
 	}
 
 	private string GenerateDirtyJsonReport()

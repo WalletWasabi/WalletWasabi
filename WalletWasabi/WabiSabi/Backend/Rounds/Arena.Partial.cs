@@ -117,8 +117,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-			var delayUntilVerificationStart = round.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow - Config.CoinVerifierStartBefore;
-			CoinVerifier?.ScheduleVerification(coin, cancellationToken, delayUntilVerificationStart, oneHop, confirmations);
+			CoinVerifier?.ScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, cancellationToken, oneHop, confirmations);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,

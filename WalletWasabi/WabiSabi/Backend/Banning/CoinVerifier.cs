@@ -19,8 +19,8 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	public Whitelist Whitelist { get; }
-	public WabiSabiConfig WabiSabiConfig { get; }
+	private Whitelist Whitelist { get; }
+	private WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
 	private ConcurrentDictionary<Coin, (DateTimeOffset ScheduleTime, TaskCompletionSource<CoinVerifyResult> TaskCompletionSource)> CoinVerifyItems { get; } = new();
@@ -119,6 +119,13 @@ public class CoinVerifier
 		shouldBan = flagIds.Any(id => WabiSabiConfig.RiskFlags.Contains(id));
 
 		return shouldBan;
+	}
+
+	public void ScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null)
+	{
+		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
+		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
+		ScheduleVerification(coin, cancellationToken, delayUntilStart, oneHop, confirmations);
 	}
 
 	public void ScheduleVerification(Coin coin, CancellationToken cancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
