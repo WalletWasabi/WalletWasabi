@@ -382,21 +382,17 @@ public class ChaumianCoinJoinController : ControllerBase
 			switch (phase)
 			{
 				case RoundPhase.InputRegistration:
-					{
-						round.StartAliceTimeout(alice.UniqueId);
-						break;
-					}
-				case RoundPhase.ConnectionConfirmation:
-					{
-						resp.BlindedOutputSignatures = await round.ConfirmAliceConnectionAsync(alice);
+					round.StartAliceTimeout(alice.UniqueId);
+					break;
 
-						break;
-					}
+				case RoundPhase.ConnectionConfirmation:
+					resp.BlindedOutputSignatures = await round.ConfirmAliceConnectionAsync(alice);
+
+					break;
+
 				default:
-					{
-						TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
-						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
-					}
+					TryLogLateRequest(roundId, RoundPhase.ConnectionConfirmation);
+					return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
 			}
 
 			return Ok(resp);
@@ -451,14 +447,11 @@ public class ChaumianCoinJoinController : ControllerBase
 		switch (phase)
 		{
 			case RoundPhase.InputRegistration:
-				{
-					round.RemoveAlicesBy(uniqueIdGuid);
-					return NoContent();
-				}
+				round.RemoveAlicesBy(uniqueIdGuid);
+				return NoContent();
+
 			default:
-				{
-					return Gone($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
-				}
+				return Gone($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
 		}
 	}
 
@@ -587,22 +580,18 @@ public class ChaumianCoinJoinController : ControllerBase
 		switch (phase)
 		{
 			case RoundPhase.Signing:
+				var hex = round.UnsignedCoinJoinHex;
+				if (hex is { })
 				{
-					var hex = round.UnsignedCoinJoinHex;
-					if (hex is { })
-					{
-						return Ok(hex);
-					}
-					else
-					{
-						return NotFound("Hex not found. This should never happen.");
-					}
+					return Ok(hex);
+				}
+				else
+				{
+					return NotFound("Hex not found. This should never happen.");
 				}
 			default:
-				{
-					TryLogLateRequest(roundId, RoundPhase.Signing);
-					return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
-				}
+				TryLogLateRequest(roundId, RoundPhase.Signing);
+				return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
 		}
 	}
 
@@ -649,64 +638,61 @@ public class ChaumianCoinJoinController : ControllerBase
 		switch (phase)
 		{
 			case RoundPhase.Signing:
+				using (await SigningLock.LockAsync())
 				{
-					using (await SigningLock.LockAsync())
+					foreach (var signaturePair in signatures)
 					{
-						foreach (var signaturePair in signatures)
+						int index = signaturePair.Key;
+						WitScript witness;
+						try
 						{
-							int index = signaturePair.Key;
-							WitScript witness;
-							try
-							{
-								witness = new WitScript(signaturePair.Value);
-							}
-							catch (Exception ex)
-							{
-								return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
-							}
-							int maxIndex = round.CoinJoin.Inputs.Count - 1;
-							if (maxIndex < index)
-							{
-								return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
-							}
-
-							// Check duplicates.
-							if (round.CoinJoin.Inputs[index].HasWitScript())
-							{
-								return BadRequest("Input is already signed.");
-							}
-
-							// Verify witness.
-							// 1. Copy UnsignedCoinJoin.
-							Transaction cjCopy = Transaction.Parse(round.CoinJoin.ToHex(), Network);
-							// 2. Sign the copy.
-							cjCopy.Inputs[index].WitScript = witness;
-							// 3. Convert the current input to IndexedTxIn.
-							IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
-							// 4. Find the corresponding registered input.
-							Coin registeredCoin = alice.Inputs.Single(x => x.Outpoint == cjCopy.Inputs[index].PrevOut);
-							// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
-							if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
-							{
-								return BadRequest($"Invalid witness is provided. {nameof(ScriptError)}: {error}.");
-							}
-
-							// Finally add it to our CJ.
-							round.CoinJoin.Inputs[index].WitScript = witness;
+							witness = new WitScript(signaturePair.Value);
+						}
+						catch (Exception ex)
+						{
+							return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
+						}
+						int maxIndex = round.CoinJoin.Inputs.Count - 1;
+						if (maxIndex < index)
+						{
+							return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
 						}
 
-						alice.State = AliceState.SignedCoinJoin;
+						// Check duplicates.
+						if (round.CoinJoin.Inputs[index].HasWitScript())
+						{
+							return BadRequest("Input is already signed.");
+						}
 
-						await round.BroadcastCoinJoinIfFullySignedAsync();
+						// Verify witness.
+						// 1. Copy UnsignedCoinJoin.
+						Transaction cjCopy = Transaction.Parse(round.CoinJoin.ToHex(), Network);
+						// 2. Sign the copy.
+						cjCopy.Inputs[index].WitScript = witness;
+						// 3. Convert the current input to IndexedTxIn.
+						IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
+						// 4. Find the corresponding registered input.
+						Coin registeredCoin = alice.Inputs.Single(x => x.Outpoint == cjCopy.Inputs[index].PrevOut);
+						// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
+						if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
+						{
+							return BadRequest($"Invalid witness is provided. {nameof(ScriptError)}: {error}.");
+						}
+
+						// Finally add it to our CJ.
+						round.CoinJoin.Inputs[index].WitScript = witness;
 					}
 
-					return NoContent();
+					alice.State = AliceState.SignedCoinJoin;
+
+					await round.BroadcastCoinJoinIfFullySignedAsync();
 				}
+
+				return NoContent();
+
 			default:
-				{
-					TryLogLateRequest(roundId, RoundPhase.Signing);
-					return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
-				}
+				TryLogLateRequest(roundId, RoundPhase.Signing);
+				return Conflict($"Coinjoin can only be requested from Signing phase. Current phase: {phase}.");
 		}
 	}
 
