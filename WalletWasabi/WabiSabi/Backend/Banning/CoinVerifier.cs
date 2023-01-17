@@ -11,7 +11,9 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifier
 {
-	private TimeSpan AbsoluteScheduleTimeout { get; } = TimeSpan.FromDays(2);
+	// This should be much bigger than the possible input-reg period.
+	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
+
 	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
 
 	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
@@ -100,7 +102,7 @@ public class CoinVerifier
 		var now = DateTimeOffset.UtcNow;
 		foreach (var (coin, item) in CoinVerifyItems)
 		{
-			if (now - item.ScheduleTime > AbsoluteScheduleTimeout)
+			if (now - item.ScheduleTime > AbsoluteScheduleSanityTimeout)
 			{
 				CoinVerifyItems.TryRemove(coin, out var _);
 
@@ -181,7 +183,7 @@ public class CoinVerifier
 
 		_ = Task.Run(async () =>
 		{
-			using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleTimeout);
+			using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 
 			try
@@ -189,10 +191,10 @@ public class CoinVerifier
 				var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
 
 				// Sanity check.
-				if (delay > AbsoluteScheduleTimeout - ApiRequestTimeout)
+				if (delay > AbsoluteScheduleSanityTimeout - ApiRequestTimeout)
 				{
-					Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleTimeout}' for coin '{coin.Outpoint}'.");
-					delay = AbsoluteScheduleTimeout - ApiRequestTimeout;
+					Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
+					delay = AbsoluteScheduleSanityTimeout - ApiRequestTimeout;
 				}
 
 				if (delay > TimeSpan.Zero)
