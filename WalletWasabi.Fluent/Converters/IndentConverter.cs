@@ -8,8 +8,6 @@ public class IndentConverter : AvaloniaObject, IValueConverter
 {
 	public static readonly StyledProperty<double> MultiplierProperty = AvaloniaProperty.Register<IndentConverter, double>(nameof(Multiplier));
 
-	public static Avalonia.Controls.Converters.IndentConverter Instance { get; } = new();
-
 	public double Multiplier
 	{
 		get => GetValue(MultiplierProperty);
