@@ -52,7 +52,8 @@ public class CoinVerifier
 				if (!CoinVerifyItems.TryGetValue(coin, out item))
 				{
 					// This should not happen.
-					Logger.LogError($"Coin '{coin.Outpoint}' cannot be re-scheduled for verification.");
+					Logger.LogError($"Coin '{coin.Outpoint}' cannot be re-scheduled for verification. The coin will be removed from the round.");
+					continue;
 				}
 			}
 
