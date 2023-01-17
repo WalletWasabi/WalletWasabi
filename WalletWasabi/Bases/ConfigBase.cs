@@ -50,7 +50,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 
 		lock (FileLock)
 		{
-			string jsonString = ReadFileLocked();
+			string jsonString = ReadFileNoLock();
 			object newConfigObject = Activator.CreateInstance(GetType())!;
 			JsonConvert.PopulateObject(jsonString, newConfigObject, JsonSerializationOptions.Default.Settings);
 
@@ -75,7 +75,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			{
 				try
 				{
-					LoadFileLocked();
+					LoadFileNoLock();
 				}
 				catch (Exception ex)
 				{
@@ -84,7 +84,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 				}
 			}
 
-			ToFileLocked();
+			ToFileNoLock();
 		}
 	}
 
@@ -93,7 +93,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
 		lock (FileLock)
 		{
-			LoadFileLocked();
+			LoadFileNoLock();
 		}
 	}
 
@@ -117,38 +117,38 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	{
 		lock (FileLock)
 		{
-			ToFileLocked();
+			ToFileNoLock();
 		}
 	}
 
 	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
 
-	protected void LoadFileLocked()
+	protected void LoadFileNoLock()
 	{
-		string jsonString = ReadFileLocked();
+		string jsonString = ReadFileNoLock();
 
 		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
 
 		if (TryEnsureBackwardsCompatibility(jsonString))
 		{
-			ToFileLocked();
+			ToFileNoLock();
 		}
 	}
 
-	protected void ToFileLocked()
+	protected void ToFileNoLock()
 	{
 		AssertFilePathSet();
 
 		string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSerializationOptions.Default.Settings);
-		WriteFileLocked(jsonString);
+		WriteFileNoLock(jsonString);
 	}
 
-	protected void WriteFileLocked(string contents)
+	protected void WriteFileNoLock(string contents)
 	{
 		File.WriteAllText(FilePath, contents, Encoding.UTF8);
 	}
 
-	protected string ReadFileLocked()
+	protected string ReadFileNoLock()
 	{
 		return File.ReadAllText(FilePath, Encoding.UTF8);
 	}
