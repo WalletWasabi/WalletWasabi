@@ -33,7 +33,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		var requiredAmount = CoinSelector.SelectedCoinsChanged.Select(GetRequiredAmount);
 		var selectedAmount = CoinSelector.SelectedCoinsChanged.Select(c => new Money(c.Sum(x => x.Amount)));
-		var remainingAmount = selectedAmount.CombineLatest(requiredAmount, (selected, remaining) => remaining - selected);
+		var remainingAmount = selectedAmount.CombineLatest(requiredAmount, (selected, required) => required - selected);
 
 		EnoughSelected = remainingAmount.Select(remaining => remaining <= Money.Zero).ReplayLastActive();
 		EnableBack = true;
