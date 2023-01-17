@@ -38,11 +38,15 @@ public class CoinVerifier
 		// Booting up the results with the default value - ban: no, remove: yes.
 		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(c => c, c => new CoinVerifyResult(c, false, true));
 
+		// Building up the task list.
 		List<Task<CoinVerifyResult>> tasks = new();
 		foreach (var coin in coinsToCheck)
 		{
 			if (!CoinVerifyItems.TryGetValue(coin, out var item))
 			{
+				// If the coin was not scheduled try to quickly schedule it - it should not happen.
+				Logger.LogWarning($"Trying to re-schedule coin '{coin.Outpoint}' for verification.");
+
 				// Quickly re-scheduling the missing items.
 				ScheduleVerification(coin, cancellationToken, TimeSpan.Zero);
 				if (!CoinVerifyItems.TryGetValue(coin, out item))
@@ -63,7 +67,7 @@ public class CoinVerifier
 				tasks.Remove(completedTask);
 				var result = await completedTask.WaitAsync(linkedCts.Token).ConfigureAwait(false);
 
-				// The verification task fulfilled its purpose.
+				// The verification task fulfilled its purpose - clean up.
 				CoinVerifyItems.TryRemove(result.Coin, out var _);
 
 				// Update the default value with the real result.
