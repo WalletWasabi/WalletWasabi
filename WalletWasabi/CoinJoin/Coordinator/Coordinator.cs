@@ -440,13 +440,21 @@ public class Coordinator : IDisposable
 
 	private async void CoinVerifier_CoinBlackListedAsync(object? _, Coin coin)
 	{
+		bool bannedAtLeastOne = false;
 		foreach (var round in Rounds)
 		{
 			if (round.ContainsInput(coin.Outpoint, out var alices))
 			{
 				var outPointsToBan = alices.SelectMany(a => a.Inputs).Select(i => i.Outpoint).ToArray();
 				await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, forceBan: true, outPointsToBan).ConfigureAwait(false);
+				bannedAtLeastOne = true;
 			}
+		}
+
+		if (!bannedAtLeastOne)
+		{
+			await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, 0, forceBan: true, coin.Outpoint).ConfigureAwait(false);
+			Logger.LogError($"Could not find alice in rounds for coin:'{coin.Outpoint}'. Banned only this coin.");
 		}
 	}
 
