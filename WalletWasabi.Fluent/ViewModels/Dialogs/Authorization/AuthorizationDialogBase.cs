@@ -17,18 +17,22 @@ public abstract partial class AuthorizationDialogBase : DialogViewModelBase<bool
 	{
 		NextCommand = new AsyncRelayCommand(AuthorizeCoreAsync);
 
-		EnableAutoBusyOn(NextCommand);
+		// EnableAutoBusyOn(NextCommand);
 	}
 
 	protected abstract Task<bool> AuthorizeAsync();
 
 	private async Task AuthorizeCoreAsync()
 	{
+		IsBusy = true;
+
 		HasAuthorizationFailed = !await AuthorizeAsync();
 
 		if (!HasAuthorizationFailed)
 		{
 			Close(DialogResultKind.Normal, true);
 		}
+
+		IsBusy = false;
 	}
 }

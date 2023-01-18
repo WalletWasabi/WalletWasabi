@@ -39,7 +39,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		NoCommand = new RelayCommand(OnNo);
 
-		EnableAutoBusyOn(NextCommand);
+		// EnableAutoBusyOn(NextCommand);
 	}
 
 	public CancellationTokenSource CancelCts { get; }
@@ -54,6 +54,8 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(HwiEnumerateEntry device)
 	{
+		IsBusy = true;
+
 		try
 		{
 			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
@@ -68,6 +70,8 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occurred during adding your wallet.");
 			Navigate().Back();
 		}
+
+		IsBusy = false;
 	}
 
 	private void OnNo()

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
@@ -23,7 +24,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 
 		NextCommand = new AsyncRelayCommand(async () => await OnNextAsync(transaction));
 
-		EnableAutoBusyOn(NextCommand);
+		// EnableAutoBusyOn(NextCommand);
 
 		ProcessTransaction(transaction, network);
 	}
@@ -86,6 +87,8 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(SmartTransaction transaction)
 	{
+		IsBusy = true;
+
 		try
 		{
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
@@ -96,5 +99,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 			Logger.LogError(ex);
 			await ShowErrorAsync("Broadcast Transaction", ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
 		}
+
+		IsBusy = false;
 	}
 }

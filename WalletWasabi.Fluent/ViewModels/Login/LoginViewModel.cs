@@ -36,7 +36,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		ForgotPasswordCommand = new RelayCommand(() => OnForgotPassword(wallet));
 
-		EnableAutoBusyOn(NextCommand);
+		// EnableAutoBusyOn(NextCommand);
 	}
 
 	public WalletType WalletType { get; }
@@ -49,6 +49,8 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 	{
+		IsBusy = true;
+
 		string? compatibilityPasswordUsed = null;
 
 		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
@@ -76,6 +78,8 @@ public partial class LoginViewModel : RoutableViewModel
 			wallet.Logout();
 			ErrorMessage = "You must accept the Terms and Conditions!";
 		}
+
+		IsBusy = false;
 	}
 
 	private void OnOk()
