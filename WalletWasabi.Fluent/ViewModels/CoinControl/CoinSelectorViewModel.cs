@@ -40,8 +40,8 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 				IndicatorsColumn(),
 				AmountColumn(),
 				AnonymityScoreColumn(),
-				ScriptTypeColumn(),
-				pocketColumn
+				pocketColumn,
+				ScriptTypeColumn()
 			}
 		};
 
