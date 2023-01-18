@@ -194,7 +194,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, new Money(amounts[i])))
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
