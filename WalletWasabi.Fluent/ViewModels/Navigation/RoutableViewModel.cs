@@ -130,6 +130,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		foreach (var command in commands)
 		{
+			// TODO RelayCommand: not possible at all. We need to set it manually.
 			(command as IReactiveCommand)?.IsExecuting
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
