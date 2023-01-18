@@ -63,7 +63,7 @@ public class CoinVerifier
 
 		try
 		{
-			do
+			while (tasks.Any())
 			{
 				var completedTask = await Task.WhenAny(tasks).WaitAsync(linkedCts.Token).ConfigureAwait(false);
 				tasks.Remove(completedTask);
@@ -75,7 +75,6 @@ public class CoinVerifier
 				// Update the default value with the real result.
 				coinVerifyItems[result.Coin] = result;
 			}
-			while (tasks.Any());
 		}
 		catch (OperationCanceledException ex)
 		{
