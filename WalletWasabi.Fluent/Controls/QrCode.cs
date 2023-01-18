@@ -55,7 +55,6 @@ public class QrCode : Control
 		});
 
 		SaveCommand.ThrownExceptions
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ =>
 			{
 				// The error is thrown also in ReceiveAddressViewModel -> SaveQrCodeCommand.ThrownExceptions.

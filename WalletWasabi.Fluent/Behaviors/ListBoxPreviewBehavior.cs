@@ -72,8 +72,7 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 	{
 		if (delay > 0)
 		{
-			Observable.Timer(TimeSpan.FromMilliseconds(delay))
-					  .ObserveOn(RxApp.MainThreadScheduler)
+			Observable.Timer(TimeSpan.FromMilliseconds(delay), RxApp.MainThreadScheduler)
 					  .Subscribe(_ => PreviewItem = null, _clearItemCts.Token);
 		}
 		else

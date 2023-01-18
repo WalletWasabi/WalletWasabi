@@ -17,8 +17,7 @@ public class ShowFlyoutOnPointerOverBehavior : DisposingBehavior<Control>
 
 		Observable
 			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerMoved))
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 			.Subscribe(_ => OnPointerMove())
 			.DisposeWith(disposables);
 	}

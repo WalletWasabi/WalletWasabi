@@ -232,8 +232,7 @@ public class TagsBox : TemplatedControl
 
 		this.WhenAnyValue(x => x.RequestAdd)
 			.Where(x => x)
-			.Throttle(TimeSpan.FromMilliseconds(10))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
 			.Select(_ => CurrentText)
 			.Subscribe(currentText =>
 			{

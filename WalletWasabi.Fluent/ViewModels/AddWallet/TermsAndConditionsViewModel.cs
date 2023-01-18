@@ -16,8 +16,7 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 
 		NextCommand = ReactiveCommand.Create(
 			OnNext,
-			this.WhenAnyValue(x => x.IsAgreed)
-				.ObserveOn(RxApp.MainThreadScheduler));
+			this.WhenAnyValue(x => x.IsAgreed));
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

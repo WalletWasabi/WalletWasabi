@@ -39,8 +39,7 @@ public class CheckMarkVisibilityBehavior : Behavior<PathIcon>
 
 						hasErrors.Select(_ => Unit.Default)
 							.Merge(text.Select(_ => Unit.Default))
-							.Throttle(TimeSpan.FromMilliseconds(100))
-							.ObserveOn(RxApp.MainThreadScheduler)
+							.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 							.Subscribe(
 								_ =>
 								{

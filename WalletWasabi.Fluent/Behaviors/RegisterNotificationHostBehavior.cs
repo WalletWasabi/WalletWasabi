@@ -20,7 +20,6 @@ public class RegisterNotificationHostBehavior : DisposingBehavior<Window>
 		// Must set notification host again after theme changing.
 		Observable
 			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.ResourcesChanged))
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => NotificationHelpers.SetNotificationManager(AssociatedObject))
 			.DisposeWith(disposables);
 	}

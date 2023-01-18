@@ -71,7 +71,6 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));
 
 		_subscription = displayContent
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(SetContentVisible)
 			.Subscribe();
 	}

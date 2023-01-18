@@ -59,7 +59,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		return MainViewModel.Instance.DialogScreen
 			.WhenAnyValue(x => x.CurrentPage)
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x is null);
 	}
 

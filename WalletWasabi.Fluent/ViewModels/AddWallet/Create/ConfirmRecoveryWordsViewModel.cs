@@ -36,7 +36,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		var nextCommandCanExecute =
 			_confirmationWordsSourceList
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.WhenValueChanged(x => x.IsConfirmed)
 			.Select(_ => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
@@ -53,7 +52,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		_confirmationWordsSourceList
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.OnItemAdded(x => x.Reset())
 			.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
 			.Bind(out _confirmationWords)

@@ -47,23 +47,20 @@ public class UiConfig : ConfigBase
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(x => x.SendAmountConversionReversed)
-			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(
 				x => x.WindowWidth,
 				x => x.WindowHeight)
-			.Throttle(TimeSpan.FromMilliseconds(500))
+			.Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
 			.Skip(1) // Won't save on UiConfig creation.
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ => ToFile());
 	}
 

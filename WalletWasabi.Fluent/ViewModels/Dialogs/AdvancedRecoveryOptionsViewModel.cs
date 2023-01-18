@@ -32,8 +32,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 					this.RaisePropertyChanged(nameof(MinGapLimit));
 
 					return IsDialogOpen && !Validations.Any;
-				})
-			.ObserveOn(RxApp.MainThreadScheduler);
+				});
 
 		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 

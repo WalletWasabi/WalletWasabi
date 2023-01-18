@@ -22,8 +22,7 @@ public class FocusNextWhenValidBehavior : DisposingBehavior<TextBox>
 
 		hasErrors.Select(_ => Unit.Default)
 			.Merge(text.Select(_ => Unit.Default))
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
 				if (AssociatedObject is { } &&

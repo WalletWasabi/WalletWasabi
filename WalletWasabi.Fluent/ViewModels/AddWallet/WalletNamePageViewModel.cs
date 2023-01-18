@@ -33,7 +33,6 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		var canExecute =
 			this.WhenAnyValue(x => x.WalletName)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(WalletName, creationOption), canExecute);
