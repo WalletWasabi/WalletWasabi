@@ -14,22 +14,14 @@ public enum NavBarItemSelectionMode
 
 public abstract class NavBarItemViewModel : RoutableViewModel
 {
+	private readonly NavigationMode _defaultNavigationMode;
 	private bool _isSelected;
 
 	protected NavBarItemViewModel(NavigationMode defaultNavigationMode = NavigationMode.Clear)
 	{
+		_defaultNavigationMode = defaultNavigationMode;
 		SelectionMode = NavBarItemSelectionMode.Selected;
-
-		OpenCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			if (IsSelected)
-			{
-				return;
-			}
-
-			IsSelected = true;
-			await OnOpen(defaultNavigationMode);
-		});
+		OpenCommand = ReactiveCommand.CreateFromTask<bool>(OnOpenCommandExecuted);
 	}
 
 	public NavBarItemSelectionMode SelectionMode { get; protected init; }
@@ -55,6 +47,17 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 	}
 
 	public ICommand OpenCommand { get; }
+
+	private async Task OnOpenCommandExecuted(bool enableReSelection = false)
+	{
+		if (!enableReSelection && IsSelected)
+		{
+			return;
+		}
+
+		IsSelected = true;
+		await OnOpen(_defaultNavigationMode);
+	}
 
 	protected virtual Task OnOpen(NavigationMode defaultNavigationMode)
 	{

@@ -117,7 +117,7 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 			return;
 		}
 
-		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger));
+		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Visual.OpacityProperty, 0, BindingPriority.StyleTrigger));
 
 		await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
@@ -125,12 +125,12 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 		{
 			target.SetValue(Canvas.LeftProperty, point.X, BindingPriority.StyleTrigger);
 			target.SetValue(Canvas.TopProperty, point.Y, BindingPriority.StyleTrigger);
-			target.SetValue(Control.OpacityProperty, 1, BindingPriority.StyleTrigger);
+			target.SetValue(Visual.OpacityProperty, 1, BindingPriority.StyleTrigger);
 		});
 
 		await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
-		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Control.OpacityProperty, 0, BindingPriority.StyleTrigger));
+		await Dispatcher.UIThread.InvokeAsync(() => target.SetValue(Visual.OpacityProperty, 0, BindingPriority.StyleTrigger));
 	}
 
 	protected override void OnDetaching()
