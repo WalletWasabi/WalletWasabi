@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Globalization;
 using Avalonia.Data.Converters;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -10,6 +8,9 @@ public static class MoneyConverters
 {
 	public static readonly IValueConverter ToUsd =
 		new FuncValueConverter<decimal, string>(n => n.ToUsd());
+
+	public static readonly IValueConverter ToUsdNumber =
+		new FuncValueConverter<decimal, string>(n => n.ToUsdAmount());
 
 	public static readonly IValueConverter ToUsdAproxBetweenParens =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
