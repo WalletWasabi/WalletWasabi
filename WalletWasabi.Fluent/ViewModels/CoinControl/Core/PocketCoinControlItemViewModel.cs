@@ -24,6 +24,7 @@ public class PocketCoinControlItemViewModel : CoinControlItemViewModelBase, IDis
 		Labels = pocket.Labels;
 		Children = pocket.Coins.OrderByDescending(x => x.Amount).Select(coin => new CoinCoinControlItemViewModel(coin)).ToList();
 		CanBeSelected = true;
+		ScriptType = null;
 
 		Children
 			.AsObservableChangeSet()

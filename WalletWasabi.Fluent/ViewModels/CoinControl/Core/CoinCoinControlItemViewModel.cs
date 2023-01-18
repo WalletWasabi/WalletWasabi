@@ -20,6 +20,7 @@ public class CoinCoinControlItemViewModel : CoinControlItemViewModelBase
 		BannedUntilUtc = smartCoin.BannedUntilUtc;
 		IsSelected = false;
 		CanBeSelected = !IsCoinjoining;
+		ScriptType = smartCoin.ScriptType;
 	}
 
 	public SmartCoin SmartCoin { get; }

@@ -58,4 +58,6 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 			this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 	}
+
+	public ScriptType? ScriptType { get; protected set; }
 }
