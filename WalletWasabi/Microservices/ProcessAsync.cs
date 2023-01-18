@@ -41,7 +41,7 @@ public class ProcessAsync : IDisposable
 	public int Id => Process.Id;
 
 	/// <inheritdoc cref="Process.Handle"/>
-	public IntPtr Handle => Process.Handle;
+	public virtual IntPtr Handle => Process.Handle;
 
 	/// <inheritdoc cref="Process.StandardInput"/>
 	public StreamWriter StandardInput => Process.StandardInput;
