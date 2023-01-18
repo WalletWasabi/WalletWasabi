@@ -51,6 +51,9 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 
 	public bool PreferPsbtWorkflow => Wallet.KeyManager.PreferPsbtWorkflow;
 
+	// TODO SourceGeneration: tempfix for notifying property changed from outside. Find proper solution.
+	public void NotifyPropertyChanged(string propName) => OnPropertyChanged(propName);
+
 	private void SetIcon()
 	{
 		var walletType = WalletHelpers.GetType(Wallet.KeyManager);

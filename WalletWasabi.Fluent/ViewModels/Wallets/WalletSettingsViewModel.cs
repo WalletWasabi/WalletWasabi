@@ -47,7 +47,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 				{
 					_wallet.KeyManager.PreferPsbtWorkflow = value;
 					_wallet.KeyManager.ToFile();
-					walletViewModelBase.RaisePropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
+					walletViewModelBase.NotifyPropertyChanged(nameof(walletViewModelBase.PreferPsbtWorkflow));
 				});
 	}
 
