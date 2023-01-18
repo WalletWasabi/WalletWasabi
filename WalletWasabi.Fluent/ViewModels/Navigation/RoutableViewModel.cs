@@ -126,11 +126,11 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 	}
 
+	// TODO RelayCommand: not possible. We need to set it manually.
 	protected void EnableAutoBusyOn(params ICommand[] commands)
 	{
 		foreach (var command in commands)
 		{
-			// TODO RelayCommand: not possible at all. We need to set it manually.
 			(command as IReactiveCommand)?.IsExecuting
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
