@@ -180,17 +180,24 @@ public class CoinJoinClient
 				ExtraRoundTimeoutMargin);
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
 
-			CoinJoinResult result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
-			if (!result.GoForBlameRound)
+			var result = await StartRoundAsync(coins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
+
+			switch (result)
 			{
-				return result;
+				case SuccessfulCoinjoin sucess:
+					return sucess;
+
+				case FailedCoinjoin failure:
+					return failure;
+	
+				case DisruptedCoinjoin info:
+					// Only use successfully registered coins in the blame round.
+					coins = info.SignedCoins;
+				
+					currentRoundState.LogInfo("Waiting for the blame round.");
+					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
+					break;
 			}
-
-			// Only use successfully registered coins in the blame round.
-			coins = result.RegisteredCoins;
-
-			currentRoundState.LogInfo("Waiting for the blame round.");
-			currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 		}
 
 		throw new InvalidOperationException("Blame rounds were not successful.");
@@ -253,13 +260,19 @@ public class CoinJoinClient
 				EndRoundState.None => "Unknown.",
 				_ => throw new ArgumentOutOfRangeException()
 			};
+			
 			roundState.LogInfo(msg);
-			return new CoinJoinResult(
-				GoForBlameRound: roundState.EndRoundState == EndRoundState.NotAllAlicesSign,
-				SuccessfulBroadcast: roundState.EndRoundState == EndRoundState.TransactionBroadcasted,
-				RegisteredCoins: aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList(),
-				RegisteredOutputs: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-				UnsignedCoinJoin: unsignedCoinJoin);
+			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+			
+			return roundState.EndRoundState switch
+			{
+				EndRoundState.TransactionBroadcasted => new SuccessfulCoinjoin(
+					Coins: signedCoins,
+					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
+					UnsignedCoinJoin: unsignedCoinJoin!),
+				EndRoundState.NotAllAlicesSign => new DisruptedCoinjoin(signedCoins),
+				_ => new FailedCoinjoin()
+			};
 		}
 		finally
 		{
