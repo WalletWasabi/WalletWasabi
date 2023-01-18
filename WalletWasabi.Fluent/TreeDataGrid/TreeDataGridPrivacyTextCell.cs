@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -66,6 +67,9 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
+		Services.UiConfig.WhenAnyPropertyChanged()
+			.Subscribe(config => VerifyAccess());
+
 		var displayContent = PrivacyModeHelper.DelayedRevealAndHide(
 			this.WhenAnyValue(x => x.IsPointerOver),
 			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode));

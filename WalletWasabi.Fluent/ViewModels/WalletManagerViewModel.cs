@@ -27,7 +27,6 @@ public partial class WalletManagerViewModel : ViewModelBase
 		_walletsSourceList
 			.Connect()
 			.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_wallets)
 			.Subscribe();
 

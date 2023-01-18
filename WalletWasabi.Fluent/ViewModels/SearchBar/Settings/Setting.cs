@@ -37,15 +37,13 @@ public partial class Setting<TTarget, TProperty> : ReactiveObject
 		ShowNotificationCommand = ReactiveCommand.Create(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")));
 
 		this.WhenAnyValue(x => x.Value)
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Select(_ => Unit.Default)
 			.InvokeCommand(SetValueCommand);
 
 		this.WhenAnyValue(x => x.Value)
 			.Skip(1)
-			.Throttle(TimeSpan.FromMilliseconds(SettingsTabViewModelBase.ThrottleTime + 50))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(SettingsTabViewModelBase.ThrottleTime + 50), RxApp.MainThreadScheduler)
 			.Where(_ => SettingsTabViewModelBase.CheckIfRestartIsNeeded())
 			.Select(_ => Unit.Default)
 			.InvokeCommand(ShowNotificationCommand);

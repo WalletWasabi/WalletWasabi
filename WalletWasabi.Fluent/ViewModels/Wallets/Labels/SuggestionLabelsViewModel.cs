@@ -137,7 +137,6 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
 			.Top(topSuggestionsCount)
 			.Transform(x => x.Label)
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_topSuggestions)
 			.Subscribe();
 
@@ -146,7 +145,6 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 			.Filter(suggestionLabelsFilter)
 			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
 			.Transform(x => x.Label)
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(_suggestions)
 			.Subscribe();
 

@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -46,11 +47,11 @@ public static class PrivacyModeHelper
 	{
 		var hideObs = Observable
 			.Return(false)
-			.Delay(HideDelay);
+			.Delay(HideDelay, RxApp.MainThreadScheduler);
 
 		var showObs = Observable
 			.Return(true)
-			.Delay(RevealDelay);
+			.Delay(RevealDelay, RxApp.MainThreadScheduler);
 
 		return showObs.Concat(hideObs);
 	}

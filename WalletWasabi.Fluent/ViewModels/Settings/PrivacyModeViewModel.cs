@@ -19,7 +19,6 @@ public partial class PrivacyModeViewModel : NavBarItemViewModel
 
 		this.WhenAnyValue(x => x.PrivacyMode)
 			.Skip(1)
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(
 				x =>
 			{

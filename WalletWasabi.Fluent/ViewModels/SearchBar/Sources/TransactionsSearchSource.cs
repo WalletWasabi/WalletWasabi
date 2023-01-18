@@ -27,8 +27,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 			.DisposeWith(_disposables);
 
 		var results = queries
-			.Select(query => query.Length >= MinQueryLength ? Search(query) : Enumerable.Empty<ISearchItem>())
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Select(query => query.Length >= MinQueryLength ? Search(query) : Enumerable.Empty<ISearchItem>());
 
 		sourceCache
 			.RefillFrom(results)

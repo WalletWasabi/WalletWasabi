@@ -23,8 +23,7 @@ public partial class AdvancedSettingsTabViewModel : SettingsTabViewModelBase
 		_enableGpu = Services.Config.EnableGpu;
 
 		this.WhenAnyValue(x => x.EnableGpu)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
+			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime), RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Subscribe(_ => Save());
 	}

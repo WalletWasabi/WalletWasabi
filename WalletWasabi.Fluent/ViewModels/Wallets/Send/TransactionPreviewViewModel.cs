@@ -98,8 +98,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.Transaction)
 			.WhereNotNull()
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 			.DoAsync(async transaction => await PrivacySuggestions.BuildPrivacySuggestionsAsync(_wallet, _info, transaction, _cancellationTokenSource.Token))
 			.Subscribe();
 

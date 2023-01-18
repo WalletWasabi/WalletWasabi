@@ -23,7 +23,6 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.Bind(out _groups)
 			.DisposeMany()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();
 
 		HasResults = itemsObservable

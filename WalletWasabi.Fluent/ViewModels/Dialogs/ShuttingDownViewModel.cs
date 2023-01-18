@@ -20,8 +20,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		Observable.Interval(TimeSpan.FromSeconds(3))
-				  .ObserveOn(RxApp.MainThreadScheduler)
+		Observable.Interval(TimeSpan.FromSeconds(3), RxApp.MainThreadScheduler)
 				  .Subscribe(_ =>
 				  {
 					  if (_applicationViewModel.CanShutdown())

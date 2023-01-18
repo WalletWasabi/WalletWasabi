@@ -66,15 +66,13 @@ public partial class MainViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.WindowState)
 			.Where(state => state != WindowState.Minimized)
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(state => Services.UiConfig.WindowState = state.ToString());
 
 		IsMainContentEnabled = this.WhenAnyValue(
 				x => x.DialogScreen.IsDialogOpen,
 				x => x.FullScreen.IsDialogOpen,
 				x => x.CompactDialogScreen.IsDialogOpen,
-				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
-			.ObserveOn(RxApp.MainThreadScheduler);
+				(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen));
 
 		this.WhenAnyValue(
 				x => x.DialogScreen.CurrentPage,
@@ -83,7 +81,6 @@ public partial class MainViewModel : ViewModelBase
 				x => x.MainScreen.CurrentPage,
 				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
 			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(page => page.SetActive())
 			.Subscribe();
 

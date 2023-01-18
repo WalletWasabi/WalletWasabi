@@ -60,8 +60,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 			})
 			.DisposeWith(disposables);
 
-		Observable.Interval(TimeSpan.FromSeconds(1))
-			.ObserveOn(RxApp.MainThreadScheduler)
+		Observable.Interval(TimeSpan.FromSeconds(1), RxApp.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
 				var processedCount = GetCurrentProcessedCount();

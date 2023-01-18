@@ -49,8 +49,7 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 				x => x.BitcoinP2PEndPoint,
 				x => x.LocalBitcoinCoreDataDir,
 				x => x.DustThreshold)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
+			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime), RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Subscribe(_ => Save());
 

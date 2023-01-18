@@ -57,8 +57,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 				x => x.UpdateAvailable,
 				x => x.CriticalUpdateAvailable,
 				x => x.IsConnectionIssueDetected)
-			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
 				if (BackendStatus == BackendStatus.Connected)
@@ -71,10 +70,10 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 		var issues = statusCheckerWrapper.Issues
 			.Select(r => r.Where(issue => !issue.Resolved).ToList())
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Publish();
 
 		_torIssues = issues
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.ToProperty(this, m => m.TorIssues);
 
 		issues.Connect();

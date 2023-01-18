@@ -21,7 +21,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 
 		EnableBack = false;
 
-		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen);
 
 		var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.IsDialogOpen,
@@ -34,7 +34,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 					return IsDialogOpen && !Validations.Any;
 				});
 
-		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen);
 
 		_minGapLimit = minGapLimit.ToString();
 

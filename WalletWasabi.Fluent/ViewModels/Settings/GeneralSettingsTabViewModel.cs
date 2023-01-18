@@ -58,12 +58,10 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				});
 
 		this.WhenAnyValue(x => x.AutoCopy)
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.Autocopy = x);
 
 		this.WhenAnyValue(x => x.AutoPaste)
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.AutoPaste = x);
 
@@ -83,17 +81,14 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		});
 
 		this.WhenAnyValue(x => x.CustomChangeAddress)
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
 
 		this.WhenAnyValue(x => x.SelectedFeeDisplayUnit)
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.FeeDisplayUnit = (int)x);
 
 		this.WhenAnyValue(x => x.HideOnClose)
-			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.HideOnClose = x);
 
@@ -101,8 +96,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 				x => x.UseTor,
 				x => x.TerminateTorOnExit,
 				x => x.DownloadNewVersion)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
+			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime), RxApp.MainThreadScheduler)
 			.Skip(1)
 			.Subscribe(_ => Save());
 	}

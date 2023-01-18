@@ -129,7 +129,6 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 		foreach (var command in commands)
 		{
 			(command as IReactiveCommand)?.IsExecuting
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
 				.Subscribe(x => IsBusy = x);
 		}
