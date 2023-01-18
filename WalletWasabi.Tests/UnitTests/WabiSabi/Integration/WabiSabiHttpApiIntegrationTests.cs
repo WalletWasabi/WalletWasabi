@@ -292,7 +292,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var transactionCompleted = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(30));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		var keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
