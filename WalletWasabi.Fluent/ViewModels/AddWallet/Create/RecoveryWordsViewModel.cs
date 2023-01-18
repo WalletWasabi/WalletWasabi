@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -20,9 +21,9 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => OnNext(mnemonic, walletName));
+		NextCommand = new RelayCommand(() => OnNext(mnemonic, walletName));
 
-		CancelCommand = ReactiveCommand.Create(OnCancel);
+		CancelCommand = new RelayCommand(OnCancel);
 	}
 
 	public List<RecoveryWordViewModel> MnemonicWords { get; set; }

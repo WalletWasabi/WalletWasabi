@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -37,7 +38,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 		AdvancedSettingsTab = new AdvancedSettingsTabViewModel();
 
-		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
+		RestartCommand = new RelayCommand(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
 		NextCommand = CancelCommand;
 	}
 

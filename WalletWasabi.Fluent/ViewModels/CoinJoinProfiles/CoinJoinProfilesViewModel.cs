@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -19,12 +20,12 @@ public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{
-		NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, isNewWallet));
+		NextCommand = new RelayCommand(() => OnNext(keyManager, isNewWallet));
 		EnableBack = true;
 
 		Profiles = DefaultProfiles.ToList();
 
-		ManualSetupCommand = ReactiveCommand.CreateFromTask(async () => await OnManualSetupAsync());
+		ManualSetupCommand = new AsyncRelayCommand(async () => await OnManualSetupAsync());
 
 		if (isNewWallet)
 		{

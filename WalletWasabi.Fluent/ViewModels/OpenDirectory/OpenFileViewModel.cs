@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -9,7 +10,7 @@ public abstract class OpenFileViewModel : TriggerCommandViewModel
 	public abstract string FilePath { get; }
 
 	public override ICommand TargetCommand =>
-		ReactiveCommand.CreateFromTask(async () =>
+		new AsyncRelayCommand(async () =>
 		{
 			try
 			{

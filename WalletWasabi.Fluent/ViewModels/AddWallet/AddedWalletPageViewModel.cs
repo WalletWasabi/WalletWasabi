@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive.Disposables;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -23,7 +24,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = new RelayCommand(OnNext);
 	}
 
 	public WalletType WalletType { get; }

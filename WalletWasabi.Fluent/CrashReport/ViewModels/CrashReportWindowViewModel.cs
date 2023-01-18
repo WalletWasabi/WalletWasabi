@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -14,12 +15,12 @@ public class CrashReportWindowViewModel : ViewModelBase
 	public CrashReportWindowViewModel(SerializableException serializedException)
 	{
 		SerializedException = serializedException;
-		CancelCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));
-		NextCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false));
+		CancelCommand = new RelayCommand(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));
+		NextCommand = new RelayCommand(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false));
 
-		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
+		OpenGitHubRepoCommand = new AsyncRelayCommand(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.UserSupportLink));
 
-		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
+		CopyTraceCommand = new AsyncRelayCommand(async () =>
 		{
 			if (Application.Current is { Clipboard: { } clipboard })
 			{

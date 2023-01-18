@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -22,8 +23,6 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 
 		EnableBack = false;
 
-		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
 		var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.IsDialogOpen,
 				x => x.MinGapLimit,
@@ -36,17 +35,15 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 				})
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
 		_minGapLimit = minGapLimit.ToString();
 
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
+		BackCommand = new RelayCommand(() => Navigate().Back());
 
 		NextCommand = ReactiveCommand.Create(
 			() => Close(result: int.Parse(MinGapLimit)),
 			nextCommandCanExecute);
 
-		CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
+		CancelCommand = new RelayCommand(() => Close());
 	}
 
 	private void ValidateMinGapLimit(IValidationErrors errors)

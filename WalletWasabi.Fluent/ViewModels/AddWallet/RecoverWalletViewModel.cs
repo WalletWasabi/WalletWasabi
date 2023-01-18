@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -51,7 +52,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			async () => await OnNextAsync(walletName),
 			NextCommandCanExecute);
 
-		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
+		AdvancedRecoveryOptionsDialogCommand = new AsyncRelayCommand(
 			async () => await OnAdvancedRecoveryOptionsDialogAsync());
 	}
 

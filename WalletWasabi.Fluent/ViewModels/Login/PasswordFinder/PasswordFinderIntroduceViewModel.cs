@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -16,7 +17,7 @@ public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet));
+		NextCommand = new AsyncRelayCommand(async () => await OnNextAsync(wallet));
 	}
 
 	private async Task OnNextAsync(Wallet wallet)

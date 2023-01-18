@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,7 +21,7 @@ public partial class BroadcastTransactionViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
+		NextCommand = new AsyncRelayCommand(async () => await OnNextAsync(transaction));
 
 		EnableAutoBusyOn(NextCommand);
 

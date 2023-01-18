@@ -8,6 +8,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
@@ -35,6 +36,15 @@
       <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
       <Setter Property="IsSelected" Value="{Binding IsSelected}" />
       <Setter Property="Command" Value="{Binding OpenCommand}" />
+
+      <!-- TODO RelayCommand: for relay commands the param seems must be provided  -->
+      <Setter Property="CommandParameter">
+        <Setter.Value>
+          <system:Boolean>
+            True
+          </system:Boolean>
+        </Setter.Value>
+      </Setter>
     </Style>
 
     <Style Selector="c|NavBarItem StackPanel">

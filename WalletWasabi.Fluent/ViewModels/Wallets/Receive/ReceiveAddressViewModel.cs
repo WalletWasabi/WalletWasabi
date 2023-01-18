@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.Input;
 using Gma.QrCodeNet.Encoding;
 using NBitcoin;
 using ReactiveUI;
@@ -40,7 +41,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(async () =>
+		CopyAddressCommand = new AsyncRelayCommand(async () =>
 		{
 			if (Application.Current is { Clipboard: { } clipboard })
 			{
@@ -48,7 +49,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 			}
 		});
 
-		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
+		ShowOnHwWalletCommand = new AsyncRelayCommand(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
 
 		SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
 

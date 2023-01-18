@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -85,10 +86,10 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
 			.Subscribe(endPoint => IsPayJoin = endPoint is { });
 
-		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
-		QrCommand = ReactiveCommand.Create(async () =>
+		PasteCommand = new AsyncRelayCommand(async () => await OnPasteAsync());
+		AutoPasteCommand = new AsyncRelayCommand(async () => await OnAutoPasteAsync());
+		InsertMaxCommand = new RelayCommand(() => AmountBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC));
+		QrCommand = new AsyncRelayCommand(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_wallet.Network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);

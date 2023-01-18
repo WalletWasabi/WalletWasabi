@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -32,9 +33,9 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 		EnableCancel = !wallet.KeyManager.IsWatchOnly;
 
-		NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		NextCommand = new RelayCommand(() => Navigate().Clear());
 
-		CancelCommand = ReactiveCommand.Create(() =>
+		CancelCommand = new RelayCommand(() =>
 		{
 			ShowSensitiveData = !ShowSensitiveData;
 			ShowButtonText = ShowSensitiveData ? "Hide sensitive data" : "Show sensitive data";

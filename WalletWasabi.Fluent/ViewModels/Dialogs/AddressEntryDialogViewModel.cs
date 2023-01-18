@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -44,9 +45,9 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 			.Skip(1)
 			.Subscribe(ParseToField);
 
-		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-		AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
-		QrCommand = ReactiveCommand.CreateFromTask(async () =>
+		PasteCommand = new AsyncRelayCommand(async () => await OnPasteAsync());
+		AutoPasteCommand = new AsyncRelayCommand(OnAutoPasteAsync);
+		QrCommand = new AsyncRelayCommand(async () =>
 		{
 			ShowQrCameraDialogViewModel dialog = new(_network);
 			var result = await NavigateDialogAsync(dialog, NavigationTarget.CompactDialogScreen);

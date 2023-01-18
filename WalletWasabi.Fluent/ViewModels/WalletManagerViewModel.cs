@@ -159,9 +159,9 @@ public partial class WalletManagerViewModel : ViewModelBase
 
 		var walletViewModelItem = OpenWallet(closedWalletViewModel.Wallet);
 
-		if (closedWalletViewModel.IsSelected && walletViewModelItem.OpenCommand.CanExecute(default))
+		if (closedWalletViewModel.IsSelected /*&& walletViewModelItem.OpenCommand.CanExecute(default)*/)
 		{
-			walletViewModelItem.OpenCommand.Execute(default);
+			walletViewModelItem.OpenCommand.Execute(false); // TODO RelayCommand: cannot be default.
 		}
 
 		IsLoadingWallet = false;

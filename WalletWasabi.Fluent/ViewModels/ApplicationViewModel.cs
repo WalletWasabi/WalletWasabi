@@ -2,6 +2,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
@@ -20,9 +21,9 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	{
 		_mainWindowService = mainWindowService;
 
-		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
+		QuitCommand = new RelayCommand(() => Shutdown(false));
 
-		ShowHideCommand = ReactiveCommand.Create(() =>
+		ShowHideCommand = new RelayCommand(() =>
 		{
 			if (IsMainWindowShown)
 			{
@@ -34,7 +35,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 			}
 		});
 
-		ShowCommand = ReactiveCommand.Create(() => _mainWindowService.Show());
+		ShowCommand = new RelayCommand(() => _mainWindowService.Show());
 
 		AboutCommand = ReactiveCommand.Create(AboutExecute, AboutCanExecute());
 

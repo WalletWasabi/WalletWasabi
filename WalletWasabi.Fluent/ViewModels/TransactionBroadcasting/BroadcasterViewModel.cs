@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -15,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class BroadcasterViewModel : TriggerCommandViewModel
 {
-	public override ICommand TargetCommand => ReactiveCommand.CreateFromTask(async () =>
+	public override ICommand TargetCommand => new AsyncRelayCommand(async () =>
 	{
 		var dialogResult = await MainViewModel.Instance.DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
 

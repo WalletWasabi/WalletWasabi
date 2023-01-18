@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -68,7 +69,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.AutoPaste = x);
 
-		StartupCommand = ReactiveCommand.Create(async () =>
+		StartupCommand = new AsyncRelayCommand(async () =>
 		{
 			try
 			{

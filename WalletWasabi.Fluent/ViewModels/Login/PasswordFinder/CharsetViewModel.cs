@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets.PasswordFinder;
@@ -14,7 +15,7 @@ public class CharsetViewModel : ViewModelBase
 		ShortTitle = charset.ToString().ToUpper(CultureInfo.InvariantCulture);
 		Characters = PasswordFinderHelper.Charsets.TryGetValue(charset, out var characters) ? characters : "";
 
-		SelectCommand = ReactiveCommand.Create(() =>
+		SelectCommand = new RelayCommand(() =>
 		{
 			owner.Options.Charset = charset;
 			owner.Navigate().To(new ContainsNumbersViewModel(owner.Options));

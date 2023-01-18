@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -44,7 +45,7 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
-		ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
+		ShowExistingAddressesCommand = new RelayCommand(OnShowExistingAddresses);
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }

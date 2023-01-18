@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -47,10 +48,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		if (_isSkipEnable)
 		{
-			SkipCommand = ReactiveCommand.Create(() => NextCommand.Execute(null));
+			SkipCommand = new RelayCommand(() => NextCommand.Execute(null));
 		}
 
-		CancelCommand = ReactiveCommand.Create(OnCancel);
+		CancelCommand = new RelayCommand(OnCancel);
 
 		_confirmationWordsSourceList
 			.Connect()

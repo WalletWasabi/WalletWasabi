@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
@@ -14,5 +15,5 @@ public class StatusIconDesignViewModel : IStatusIconViewModel
 		new("Issue 3", true)
 	};
 
-	public ICommand OpenTorStatusSiteCommand { get; } = ReactiveCommand.Create(() => { });
+	public ICommand OpenTorStatusSiteCommand { get; } = new RelayCommand(() => { });
 }

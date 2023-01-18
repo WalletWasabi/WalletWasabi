@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -32,7 +33,7 @@ public partial class LabelViewModel : ViewModelBase
 				owner.OnFade(this);
 			});
 
-		ClickedCommand = ReactiveCommand.Create(() => owner.SwapLabel(this));
+		ClickedCommand = new RelayCommand(() => owner.SwapLabel(this));
 
 		_toolTip = label;
 	}

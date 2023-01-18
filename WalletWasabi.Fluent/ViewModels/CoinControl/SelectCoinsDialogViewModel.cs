@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -31,7 +32,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 	{
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);
-		
+
 		SyncSelectedItems(pocketItems, selectedCoins);
 
 		var pocketColumn = PocketColumn();
@@ -52,7 +53,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		SetupCancel(false, true, false);
 		EnableBack = true;
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)));
+		NextCommand = new RelayCommand(() => Close(DialogResultKind.Normal, GetSelectedCoinItems(pocketItems)));
 	}
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> Source { get; }

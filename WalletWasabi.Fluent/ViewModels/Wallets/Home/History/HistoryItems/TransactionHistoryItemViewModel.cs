@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -29,7 +30,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		var amount = transactionSummary.Amount;
 		SetAmount(amount);
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
+		ShowDetailsCommand = new RelayCommand(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new TransactionDetailsViewModel(transactionSummary, walletVm)));
 

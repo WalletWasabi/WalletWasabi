@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -11,7 +12,7 @@ public class HardwareWalletViewModel : WalletViewModel
 {
 	internal HardwareWalletViewModel(Wallet wallet) : base(wallet)
 	{
-		BroadcastPsbtCommand = ReactiveCommand.CreateFromTask(async () =>
+		BroadcastPsbtCommand = new AsyncRelayCommand(async () =>
 		{
 			try
 			{

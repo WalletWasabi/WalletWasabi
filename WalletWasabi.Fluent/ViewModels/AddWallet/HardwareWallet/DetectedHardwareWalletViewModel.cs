@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -34,9 +35,9 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(device));
+		NextCommand = new AsyncRelayCommand(async () => await OnNextAsync(device));
 
-		NoCommand = ReactiveCommand.Create(OnNo);
+		NoCommand = new RelayCommand(OnNo);
 
 		EnableAutoBusyOn(NextCommand);
 	}

@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
@@ -35,7 +36,7 @@ public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.Create(() =>
+		NextCommand = new RelayCommand(() =>
 		{
 			var isolateRed = RedCoinIsolation;
 			var target = AnonScoreTarget;

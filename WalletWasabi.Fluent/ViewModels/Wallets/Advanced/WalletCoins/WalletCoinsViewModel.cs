@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -44,7 +45,7 @@ public partial class WalletCoinsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = CancelCommand;
-		SkipCommand = ReactiveCommand.CreateFromTask(OnSendCoinsAsync);
+		SkipCommand = new AsyncRelayCommand(OnSendCoinsAsync);
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

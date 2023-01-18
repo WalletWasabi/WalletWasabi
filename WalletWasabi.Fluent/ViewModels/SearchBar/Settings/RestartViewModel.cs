@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -9,7 +10,7 @@ public class RestartViewModel : ViewModelBase
 	public RestartViewModel(string message)
 	{
 		Message = message;
-		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
+		RestartCommand = new RelayCommand(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
 	}
 
 	public string Message { get; }

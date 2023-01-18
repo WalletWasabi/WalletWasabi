@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.State;
@@ -95,7 +96,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		walletVm.UiTriggers.TransactionsUpdateTrigger.Subscribe(_ => _stateMachine.Fire(Trigger.BalanceChanged));
 
-		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
+		PlayCommand = new AsyncRelayCommand(async () =>
 		{
 			if (!wallet.KeyManager.IsCoinjoinProfileSelected)
 			{

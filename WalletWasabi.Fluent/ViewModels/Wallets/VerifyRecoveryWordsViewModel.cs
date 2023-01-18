@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -50,7 +51,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			this.WhenAnyValue(x => x.CurrentMnemonics)
 				.Select(_ => IsMnemonicsValid);
 
-		NextCommand = ReactiveCommand.CreateFromTask(
+		NextCommand = new AsyncRelayCommand(
 			async () => await OnNextAsync());
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -13,7 +14,7 @@ public class ShowErrorDialogViewModel : DialogViewModelBase<bool>
 		_title = title;
 		Caption = caption;
 
-		NextCommand = ReactiveCommand.Create(() => Close());
+		NextCommand = new RelayCommand(() => Close());
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

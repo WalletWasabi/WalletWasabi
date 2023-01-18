@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Immutable;
 using System.Linq;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -27,7 +28,7 @@ public class CoinJoinsHistoryItemViewModel : HistoryItemViewModelBase
 		IsCoinJoin = true;
 		IsCoinJoinGroup = true;
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
+		ShowDetailsCommand = new RelayCommand(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinsDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 

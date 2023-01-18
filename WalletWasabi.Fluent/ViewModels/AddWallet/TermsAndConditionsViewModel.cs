@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -13,7 +14,7 @@ public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 
 	public TermsAndConditionsViewModel()
 	{
-		ViewTermsCommand = ReactiveCommand.Create(() => Navigate().To(new LegalDocumentsViewModel()));
+		ViewTermsCommand = new RelayCommand(() => Navigate().To(new LegalDocumentsViewModel()));
 
 		NextCommand = ReactiveCommand.Create(
 			OnNext,

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -37,7 +38,7 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 			async () => await OnImportTransactionAsync(),
 			outputScheduler: RxApp.MainThreadScheduler);
 
-		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
+		PasteCommand = new AsyncRelayCommand(async () => await OnPasteAsync());
 	}
 
 	private async Task OnImportTransactionAsync()

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -30,7 +31,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		Id = transactionSummary.TransactionId;
 		_confirmedToolTip = "Confirmed";
 
-		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(CopyToClipboardAsync);
+		ClipboardCopyCommand = new AsyncRelayCommand<string>(CopyToClipboardAsync); // TODO RelayCommand: nullable
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)

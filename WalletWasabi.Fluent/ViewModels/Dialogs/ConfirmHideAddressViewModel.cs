@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -13,8 +14,8 @@ public class ConfirmHideAddressViewModel : DialogViewModelBase<bool>
 		Label = label;
 		_title = "Hide Address";
 
-		NextCommand = ReactiveCommand.Create(() => Close(result: true));
-		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
+		NextCommand = new RelayCommand(() => Close(result: true));
+		CancelCommand = new RelayCommand(() => Close(DialogResultKind.Cancel));
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

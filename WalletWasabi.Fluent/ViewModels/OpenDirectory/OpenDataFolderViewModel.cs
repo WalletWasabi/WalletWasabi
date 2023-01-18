@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Helpers;
 
@@ -18,7 +19,7 @@ public partial class OpenDataFolderViewModel : TriggerCommandViewModel
 {
 	public OpenDataFolderViewModel()
 	{
-		TargetCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(Services.DataDir));
+		TargetCommand = new RelayCommand(() => IoHelpers.OpenFolderInFileExplorer(Services.DataDir));
 	}
 
 	public override ICommand TargetCommand { get; }

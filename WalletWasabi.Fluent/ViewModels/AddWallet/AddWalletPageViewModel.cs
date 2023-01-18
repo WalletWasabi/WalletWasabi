@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -32,13 +33,13 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 	{
 		SelectionMode = NavBarItemSelectionMode.Button;
 
-		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
+		CreateWalletCommand = new RelayCommand(OnCreateWallet);
 
-		ConnectHardwareWalletCommand = ReactiveCommand.Create(OnConnectHardwareWallet);
+		ConnectHardwareWalletCommand = new RelayCommand(OnConnectHardwareWallet);
 
-		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
+		ImportWalletCommand = new AsyncRelayCommand(OnImportWalletAsync);
 
-		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
+		RecoverWalletCommand = new RelayCommand(OnRecoverWallet);
 	}
 
 	public ICommand CreateWalletCommand { get; }

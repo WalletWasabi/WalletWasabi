@@ -1,6 +1,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -22,7 +23,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		SelectedIndex = 0;
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = new RelayCommand(OnNext);
 		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
 		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
 

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -111,22 +112,22 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (PreferPsbtWorkflow)
 		{
-			SkipCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
+			SkipCommand = new AsyncRelayCommand(OnConfirmAsync);
 
-			NextCommand = ReactiveCommand.CreateFromTask(OnExportPsbtAsync);
+			NextCommand = new AsyncRelayCommand(OnExportPsbtAsync);
 
 			_nextButtonText = "Save PSBT file";
 		}
 		else
 		{
-			NextCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
+			NextCommand = new AsyncRelayCommand(OnConfirmAsync);
 
 			_nextButtonText = "Confirm";
 		}
 
-		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
+		AdjustFeeCommand = new AsyncRelayCommand(OnAdjustFeeAsync);
 
-		UndoCommand = ReactiveCommand.Create(() =>
+		UndoCommand = new RelayCommand(() =>
 		{
 			if (_undoHistory.TryPop(out var previous))
 			{
@@ -136,8 +137,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 		});
 
-		ChangePocketCommand = ReactiveCommand.CreateFromTask(OnChangePocketsAsync);
-		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
+		ChangePocketCommand = new AsyncRelayCommand(OnChangePocketsAsync);
+		ChangeCoinsCommand = new AsyncRelayCommand(OnChangeCoinsAsync);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }

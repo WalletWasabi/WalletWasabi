@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
@@ -88,11 +89,11 @@ public partial class WalletViewModel : WalletViewModelBase
 					return (isSelected && !isWalletBalanceZero && (!areAllCoinsPrivate || pointerOver)) && !wallet.KeyManager.IsWatchOnly;
 				});
 
-		SendCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
+		SendCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(new SendViewModel(this)));
 
-		ReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
+		ReceiveCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(wallet)));
 
-		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
+		WalletInfoCommand = new AsyncRelayCommand(async () =>
 		{
 			if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
 			{
@@ -108,11 +109,11 @@ public partial class WalletViewModel : WalletViewModelBase
 			Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(this));
 		});
 
-		WalletStatsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
+		WalletStatsCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(new WalletStatsViewModel(this)));
 
-		WalletSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
+		WalletSettingsCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(Settings));
 
-		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
+		WalletCoinsCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
 		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
 

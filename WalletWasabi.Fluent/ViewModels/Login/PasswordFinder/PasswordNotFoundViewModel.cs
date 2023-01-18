@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
@@ -9,7 +10,7 @@ public partial class PasswordNotFoundViewModel : RoutableViewModel
 {
 	public PasswordNotFoundViewModel(Wallet wallet)
 	{
-		NextCommand = ReactiveCommand.Create(() => OnNext(wallet));
+		NextCommand = new RelayCommand(() => OnNext(wallet));
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -33,11 +34,11 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;
 
-		CopyCommand = ReactiveCommand.CreateFromTask<uint256>(async txid =>
+		CopyCommand = new AsyncRelayCommand<uint256>(async txid =>
 		{
 			if (Application.Current is { Clipboard: { } clipboard })
 			{
-				await clipboard.SetTextAsync(txid.ToString());
+				await clipboard.SetTextAsync(txid.ToString()); // TODO RelayCommand: nullable
 			}
 		});
 

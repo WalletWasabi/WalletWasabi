@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
@@ -16,8 +17,8 @@ public partial class ContainsNumbersViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
-		NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
+		YesCommand = new RelayCommand(() => SetAnswer(true));
+		NoCommand = new RelayCommand(() => SetAnswer(false));
 	}
 
 	public PasswordFinderOptions Options { get; }

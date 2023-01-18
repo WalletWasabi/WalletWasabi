@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using ReactiveUI;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar;
@@ -21,7 +22,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		_defaultNavigationMode = defaultNavigationMode;
 		SelectionMode = NavBarItemSelectionMode.Selected;
-		OpenCommand = ReactiveCommand.CreateFromTask<bool>(OnOpenCommandExecuted);
+		OpenCommand = new AsyncRelayCommand<bool>(OnOpenCommandExecuted);
 	}
 
 	public NavBarItemSelectionMode SelectionMode { get; protected init; }

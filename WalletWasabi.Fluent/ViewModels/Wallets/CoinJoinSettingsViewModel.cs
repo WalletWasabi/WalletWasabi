@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -41,7 +42,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 
 		NextCommand = CancelCommand;
 
-		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(
+		SetAutoCoinJoin = new AsyncRelayCommand(
 			async () =>
 			{
 				if (_wallet.KeyManager.IsCoinjoinProfileSelected)
@@ -66,7 +67,7 @@ public partial class CoinJoinSettingsViewModel : RoutableViewModel
 				}
 			});
 
-		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
+		SelectCoinjoinProfileCommand = new AsyncRelayCommand(SelectCoinjoinProfileAsync);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)

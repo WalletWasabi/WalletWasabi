@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -24,9 +25,9 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 						  .DistinctUntilChanged()
 						  .Subscribe(OnIsDialogOpenChanged);
 
-		BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
+		BackCommand = new RelayCommand(() => Close(DialogResultKind.Back));
 
-		CancelCommand = ReactiveCommand.Create(() =>
+		CancelCommand = new RelayCommand(() =>
 		{
 			Close(DialogResultKind.Cancel);
 			Navigate().Clear();

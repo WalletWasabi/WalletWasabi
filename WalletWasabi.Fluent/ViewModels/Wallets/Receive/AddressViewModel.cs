@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -22,7 +23,7 @@ public partial class AddressViewModel : ViewModelBase
 		Label = model.Label;
 
 		CopyAddressCommand =
-			ReactiveCommand.CreateFromTask(async () =>
+			new AsyncRelayCommand(async () =>
 			{
 				if (Application.Current is { Clipboard: { } clipboard })
 				{
@@ -31,12 +32,12 @@ public partial class AddressViewModel : ViewModelBase
 			});
 
 		HideAddressCommand =
-			ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
+			new AsyncRelayCommand(async () => await parent.HideAddressAsync(model, Address));
 
 		EditLabelCommand =
-			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
+			new RelayCommand(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
+		NavigateCommand = new RelayCommand(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
 	}
 
 	public ICommand CopyAddressCommand { get; }
@@ -45,7 +46,7 @@ public partial class AddressViewModel : ViewModelBase
 
 	public ICommand EditLabelCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
+	public ICommand NavigateCommand { get; }
 
 	public SmartLabel Label { get; }
 

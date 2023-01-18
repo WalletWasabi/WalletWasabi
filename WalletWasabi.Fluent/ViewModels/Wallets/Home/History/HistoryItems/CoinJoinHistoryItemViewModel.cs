@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -31,7 +32,7 @@ public class CoinJoinHistoryItemViewModel : HistoryItemViewModelBase
 		var amount = transactionSummary.Amount;
 		SetAmount(amount);
 
-		ShowDetailsCommand = ReactiveCommand.Create(() =>
+		ShowDetailsCommand = new RelayCommand(() =>
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new CoinJoinDetailsViewModel(this, walletVm.UiTriggers.TransactionsUpdateTrigger)));
 

@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -16,7 +17,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 		_wallet = wallet;
 		_finalTransaction = finalTransaction;
 
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = new RelayCommand(OnNext);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}

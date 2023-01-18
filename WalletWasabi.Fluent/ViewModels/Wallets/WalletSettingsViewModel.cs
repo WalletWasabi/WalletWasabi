@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -38,7 +39,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 
 		VerifyRecoveryWordsCommand =
-			ReactiveCommand.Create(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
+			new RelayCommand(() => Navigate().To(new VerifyRecoveryWordsViewModel(_wallet)));
 
 		this.WhenAnyValue(x => x.PreferPsbtWorkflow)
 			.Skip(1)

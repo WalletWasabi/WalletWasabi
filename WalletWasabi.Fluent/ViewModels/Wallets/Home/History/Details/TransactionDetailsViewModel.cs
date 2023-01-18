@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
@@ -31,8 +32,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		_walletVm = walletVm;
 
-		NextCommand = ReactiveCommand.Create(OnNext);
-		CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionIdAsync);
+		NextCommand = new RelayCommand(OnNext);
+		CopyTransactionIdCommand = new AsyncRelayCommand(OnCopyTransactionIdAsync);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

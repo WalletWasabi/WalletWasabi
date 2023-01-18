@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -14,7 +15,7 @@ public abstract partial class AuthorizationDialogBase : DialogViewModelBase<bool
 
 	protected AuthorizationDialogBase()
 	{
-		NextCommand = ReactiveCommand.CreateFromTask(AuthorizeCoreAsync);
+		NextCommand = new AsyncRelayCommand(AuthorizeCoreAsync);
 
 		EnableAutoBusyOn(NextCommand);
 	}

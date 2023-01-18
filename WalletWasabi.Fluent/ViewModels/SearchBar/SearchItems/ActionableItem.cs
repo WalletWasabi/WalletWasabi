@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
@@ -16,7 +17,7 @@ public class ActionableItem : IActionableItem
 		OnExecution = onExecution;
 		Category = category;
 		Keywords = keywords ?? Enumerable.Empty<string>();
-		Command = ReactiveCommand.CreateFromTask(onExecution);
+		Command = new AsyncRelayCommand(onExecution);
 	}
 
 	public ICommand Command { get; set; }

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -29,11 +30,11 @@ public partial class LoginViewModel : RoutableViewModel
 		_errorMessage = "";
 		WalletType = WalletHelpers.GetType(closedWalletViewModel.Wallet.KeyManager);
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(closedWalletViewModel, wallet));
+		NextCommand = new AsyncRelayCommand(async () => await OnNextAsync(closedWalletViewModel, wallet));
 
-		OkCommand = ReactiveCommand.Create(OnOk);
+		OkCommand = new RelayCommand(OnOk);
 
-		ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
+		ForgotPasswordCommand = new RelayCommand(() => OnForgotPassword(wallet));
 
 		EnableAutoBusyOn(NextCommand);
 	}
@@ -93,7 +94,7 @@ public partial class LoginViewModel : RoutableViewModel
 		closedWalletViewModel.NotifyPropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 		closedWalletViewModel.StartLoading();
 
-		if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
+		if (closedWalletViewModel.IsSelected /*&& closedWalletViewModel.OpenCommand.CanExecute(default)*/) // TODO RelayCommand: parameter for canExecute cannot be null. Maybe method also needs to be provided (?)
 		{
 			closedWalletViewModel.OpenCommand.Execute(true);
 		}

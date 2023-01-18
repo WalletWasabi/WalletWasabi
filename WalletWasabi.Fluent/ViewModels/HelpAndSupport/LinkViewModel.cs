@@ -1,6 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
-using ReactiveUI;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -9,16 +9,14 @@ public class LinkViewModel : ViewModelBase
 {
 	public LinkViewModel()
 	{
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
-			async (link) =>
-				await IoHelpers.OpenBrowserAsync(link));
+		OpenBrowserCommand = new AsyncRelayCommand<string>(IoHelpers.OpenBrowserAsync); // TODO RelayCommand: nullable
 
-		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
+		CopyLinkCommand = new AsyncRelayCommand<string>(
 			async (link) =>
 				{
 					if (Application.Current is { Clipboard: { } clipboard })
 					{
-						await clipboard.SetTextAsync(link);
+						await clipboard.SetTextAsync(link); // TODO RelayCommand: nullable
 					}
 				});
 	}

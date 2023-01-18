@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -40,9 +41,9 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = new RelayCommand(OnNext);
 
-		AdvancedOptionsCommand = ReactiveCommand.CreateFromTask(ShowAdvancedOptionsAsync);
+		AdvancedOptionsCommand = new AsyncRelayCommand(ShowAdvancedOptionsAsync);
 	}
 
 	public FeeChartViewModel FeeChart { get; }

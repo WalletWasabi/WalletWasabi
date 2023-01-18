@@ -54,9 +54,9 @@ public class NavBarViewModel : ViewModelBase
 	{
 		var walletToSelect = Wallets.FirstOrDefault(item => item.WalletName == Services.UiConfig.LastSelectedWallet) ?? Wallets.FirstOrDefault();
 
-		if (walletToSelect is { } && walletToSelect.OpenCommand.CanExecute(default))
+		if (walletToSelect is { } /*&& walletToSelect.OpenCommand.CanExecute(default)*/) // TODO RelayCommand: parameter for canExecute cannot be null. Maybe method also needs to be provided (?)
 		{
-			walletToSelect.OpenCommand.Execute(default);
+			walletToSelect.OpenCommand.Execute(false); // TODO RelayCommand: cannot be default.
 		}
 	}
 

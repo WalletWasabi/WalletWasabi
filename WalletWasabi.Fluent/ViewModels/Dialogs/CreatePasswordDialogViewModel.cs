@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -28,8 +29,6 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
 
-		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
 		var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.IsDialogOpen,
 				x => x.Password,
@@ -48,11 +47,9 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 				})
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-		BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back), backCommandCanExecute);
+		BackCommand = new RelayCommand(() => Close(DialogResultKind.Back));
 		NextCommand = ReactiveCommand.Create(() => Close(result: Password), nextCommandCanExecute);
-		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
+		CancelCommand = new RelayCommand(() => Close(DialogResultKind.Cancel));
 	}
 
 	public override sealed string Title { get; protected set; }

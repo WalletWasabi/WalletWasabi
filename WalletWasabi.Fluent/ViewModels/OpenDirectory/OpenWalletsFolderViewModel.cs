@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Helpers;
 
@@ -18,7 +19,7 @@ public partial class OpenWalletsFolderViewModel : TriggerCommandViewModel
 {
 	public OpenWalletsFolderViewModel()
 	{
-		TargetCommand = ReactiveCommand.Create(
+		TargetCommand = new RelayCommand(
 			() => IoHelpers.OpenFolderInFileExplorer(Services.WalletManager.WalletDirectories.WalletsDir));
 	}
 

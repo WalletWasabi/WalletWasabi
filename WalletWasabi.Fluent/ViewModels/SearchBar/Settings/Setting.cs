@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Settings;
@@ -33,9 +34,9 @@ public partial class Setting<TTarget, TProperty> : ObservableObject
 
 		Value = (TProperty?)pr.GetValue(target);
 
-		SetValueCommand = ReactiveCommand.Create(() => pr.SetValue(target, Value));
+		SetValueCommand = new RelayCommand(() => pr.SetValue(target, Value));
 
-		ShowNotificationCommand = ReactiveCommand.Create(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")));
+		ShowNotificationCommand = new RelayCommand(() => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")));
 
 		this.WhenAnyValue(x => x.Value)
 			.ObserveOn(RxApp.MainThreadScheduler)

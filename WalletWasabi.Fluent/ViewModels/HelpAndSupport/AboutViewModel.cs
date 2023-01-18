@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -94,21 +96,17 @@ public partial class AboutViewModel : RoutableViewModel
 			IsClickable = true
 		};
 
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
+		OpenBrowserCommand = new AsyncRelayCommand<string>(IoHelpers.OpenBrowserAsync); // TODO RelayCommand: nullability
 
-		AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
+		AboutAdvancedInfoDialogCommand = new AsyncRelayCommand(
 			execute: async () => await NavigateDialogAsync(new AboutAdvancedInfoViewModel(), NavigationTarget.CompactDialogScreen));
 
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
-			async (link) =>
-				await IoHelpers.OpenBrowserAsync(link));
-
-		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
+		CopyLinkCommand = new AsyncRelayCommand<string>(
 			async (link) =>
 				{
 					if (Application.Current is { Clipboard: { } clipboard })
 					{
-						await clipboard.SetTextAsync(link);
+						await clipboard.SetTextAsync(link); // TODO RelayCommand: nullability
 					}
 				});
 

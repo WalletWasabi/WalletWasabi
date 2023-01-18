@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -28,8 +29,8 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	protected RoutableViewModel()
 	{
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back());
-		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		BackCommand = new RelayCommand(() => Navigate().Back());
+		CancelCommand = new RelayCommand(() => Navigate().Clear());
 	}
 
 	public virtual string IconName { get; protected set; } = "navigation_regular";

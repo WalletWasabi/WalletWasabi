@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
@@ -41,16 +42,16 @@ public partial class StatusIconViewModel : ObservableObject, IStatusIconViewMode
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
 
-		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
-		UpdateCommand = ReactiveCommand.Create(() =>
+		ManualUpdateCommand = new AsyncRelayCommand(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		UpdateCommand = new RelayCommand(() =>
 		{
 			Services.UpdateManager.DoUpdateOnClose = true;
 			AppLifetimeHelper.Shutdown();
 		});
 
-		AskMeLaterCommand = ReactiveCommand.Create(() => UpdateAvailable = false);
+		AskMeLaterCommand = new RelayCommand(() => UpdateAvailable = false);
 
-		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
+		OpenTorStatusSiteCommand = new AsyncRelayCommand(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
 
 		this.WhenAnyValue(
 				x => x.TorStatus,

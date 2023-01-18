@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -36,9 +37,9 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(OnNext);
+		NextCommand = new RelayCommand(OnNext);
 
-		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
+		NavigateToExistingWalletLoginCommand = new RelayCommand(OnNavigateToExistingWalletLogin);
 
 		this.WhenAnyValue(x => x.Message)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -80,10 +81,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
+		if (ExistingWallet is { } /*&& ExistingWallet.OpenCommand.CanExecute(default)*/) // TODO RelayCommand: parameter for canExecute cannot be null. Maybe method also needs to be provided (?)
 		{
 			Navigate().Clear();
-			ExistingWallet.OpenCommand.Execute(default);
+			ExistingWallet.OpenCommand.Execute(false); // TODO RelayCommand: cannot be default.
 		}
 	}
 
