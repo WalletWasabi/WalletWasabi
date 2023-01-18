@@ -286,7 +286,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
 	public async Task CoinJoinWithBlameRoundTestAsync(long[] amounts)
 	{
-		int inputCount = amounts.Length;
+		int inputCount = amounts.Length - 0;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
 		var transactionCompleted = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
