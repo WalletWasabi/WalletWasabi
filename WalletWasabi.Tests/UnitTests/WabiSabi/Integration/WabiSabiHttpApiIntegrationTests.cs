@@ -300,12 +300,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coins = keyManager1.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, new Money(amounts[i])))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, (decimal)amounts[i]))
 			.ToArray();
 
 		var badCoins = keyManager2.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, new Money(amounts[i])))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, (decimal)amounts[i]))
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
