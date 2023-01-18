@@ -21,7 +21,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		_defaultNavigationMode = defaultNavigationMode;
 		SelectionMode = NavBarItemSelectionMode.Selected;
-		OpenCommand = ReactiveCommand.CreateFromTask<bool>(OnOpenCommandExecuted);
+		OpenCommand = ReactiveCommand.CreateFromTask<bool>(OnOpenCommandExecutedAsync);
 	}
 
 	public NavBarItemSelectionMode SelectionMode { get; protected init; }
@@ -48,7 +48,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 
 	public ICommand OpenCommand { get; }
 
-	private async Task OnOpenCommandExecuted(bool enableReSelection = false)
+	private async Task OnOpenCommandExecutedAsync(bool enableReSelection = false)
 	{
 		if (!enableReSelection && IsSelected)
 		{
