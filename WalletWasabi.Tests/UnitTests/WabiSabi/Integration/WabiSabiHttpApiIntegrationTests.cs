@@ -283,7 +283,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	}
 
 	[Theory]
-	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
+	[InlineData(new long[] { 20_000_000L, 40_000_000L, 60_000_000L, 80_000_000L })]
 	public async Task CoinJoinWithBlameRoundTestAsync(long[] amounts)
 	{
 		int inputCount = amounts.Length - 0;
@@ -300,12 +300,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coins = keyManager1.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, (decimal)amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, new Money(amounts[i])))
 			.ToArray();
 
 		var badCoins = keyManager2.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, (decimal)amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, new Money(amounts[i])))
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
