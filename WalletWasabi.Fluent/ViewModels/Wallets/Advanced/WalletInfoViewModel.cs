@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -17,9 +18,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
-	[AutoNotify] private bool _showSensitiveData;
-	[AutoNotify] private string _showButtonText = "Show sensitive data";
-	[AutoNotify] private string _lockIconString = "eye_show_regular";
+	[ObservableProperty] private bool _showSensitiveData;
+	[ObservableProperty] private string _showButtonText = "Show sensitive data";
+	[ObservableProperty] private string _lockIconString = "eye_show_regular";
 
 	public WalletInfoViewModel(WalletViewModelBase walletViewModelBase)
 	{

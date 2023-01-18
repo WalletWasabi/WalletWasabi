@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -14,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 [NavigationMetaData(Title = "Coinjoin Strategy")]
 public partial class CoinJoinProfilesViewModel : DialogViewModelBase<bool>
 {
-	[AutoNotify] private CoinJoinProfileViewModelBase? _selectedProfile;
+	[ObservableProperty] private CoinJoinProfileViewModelBase? _selectedProfile;
 
 	public CoinJoinProfilesViewModel(KeyManager keyManager, bool isNewWallet)
 	{

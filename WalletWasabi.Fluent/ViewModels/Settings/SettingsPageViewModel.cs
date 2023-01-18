@@ -1,6 +1,7 @@
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
@@ -22,8 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 {
-	[AutoNotify] private bool _isModified;
-	[AutoNotify] private int _selectedTab;
+	[ObservableProperty] private bool _isModified;
+	[ObservableProperty] private int _selectedTab;
 
 	public SettingsPageViewModel()
 	{

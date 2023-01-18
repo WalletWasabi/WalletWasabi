@@ -25,6 +25,6 @@ public class ShowErrorDialogViewModel : DialogViewModelBase<bool>
 	public override string Title
 	{
 		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+		protected set => SetProperty(ref _title, value);
 	}
 }

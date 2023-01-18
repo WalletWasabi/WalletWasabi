@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -20,10 +21,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _message;
-	[AutoNotify] private bool _isSearching;
-	[AutoNotify] private bool _existingWalletFound;
-	[AutoNotify] private bool _confirmationRequired;
+	[ObservableProperty] private string _message;
+	[ObservableProperty] private bool _isSearching;
+	[ObservableProperty] private bool _existingWalletFound;
+	[ObservableProperty] private bool _confirmationRequired;
 
 	public ConnectHardwareWalletViewModel(string walletName)
 	{

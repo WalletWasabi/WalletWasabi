@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
@@ -17,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 [NavigationMetaData(Title = "Transaction Broadcaster")]
 public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransaction?>
 {
-	[AutoNotify] private SmartTransaction? _finalTransaction;
+	[ObservableProperty] private SmartTransaction? _finalTransaction;
 
 	public LoadTransactionViewModel(Network network)
 	{

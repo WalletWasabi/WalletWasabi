@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -32,9 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 public partial class WalletCoinsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
-	[AutoNotify] private IObservable<bool> _isAnySelected = Observable.Return(false);
+	[ObservableProperty] private IObservable<bool> _isAnySelected = Observable.Return(false);
 
-	[AutoNotify]
+	[ObservableProperty]
 	private FlatTreeDataGridSource<WalletCoinViewModel> _source = new(Enumerable.Empty<WalletCoinViewModel>());
 
 	public WalletCoinsViewModel(WalletViewModel walletVm)

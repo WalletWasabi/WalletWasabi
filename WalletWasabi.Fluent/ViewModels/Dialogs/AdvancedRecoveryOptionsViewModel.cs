@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -11,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 [NavigationMetaData(Title = "Advanced Recovery Options")]
 public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?>
 {
-	[AutoNotify] private string _minGapLimit;
+	[ObservableProperty] private string _minGapLimit;
 
 	public AdvancedRecoveryOptionsViewModel(int minGapLimit)
 	{
@@ -29,7 +30,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 				delegate
 				{
 					// This will fire validations before return canExecute value.
-					this.RaisePropertyChanged(nameof(MinGapLimit));
+					OnPropertyChanged(nameof(MinGapLimit));
 
 					return IsDialogOpen && !Validations.Any;
 				})

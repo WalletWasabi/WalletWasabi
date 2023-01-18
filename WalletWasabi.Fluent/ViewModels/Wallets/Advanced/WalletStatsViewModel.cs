@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
@@ -24,17 +25,17 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	private readonly WalletViewModel _walletViewModel;
 
-	[AutoNotify] private int _coinCount;
-	[AutoNotify] private string _balance = "";
-	[AutoNotify] private string _confirmedBalance = "";
-	[AutoNotify] private string _unconfirmedBalance = "";
-	[AutoNotify] private int _generatedKeyCount;
-	[AutoNotify] private int _generatedCleanKeyCount;
-	[AutoNotify] private int _generatedLockedKeyCount;
-	[AutoNotify] private int _generatedUsedKeyCount;
-	[AutoNotify] private int _totalTransactionCount;
-	[AutoNotify] private int _nonCoinjointransactionCount;
-	[AutoNotify] private int _coinjoinTransactionCount;
+	[ObservableProperty] private int _coinCount;
+	[ObservableProperty] private string _balance = "";
+	[ObservableProperty] private string _confirmedBalance = "";
+	[ObservableProperty] private string _unconfirmedBalance = "";
+	[ObservableProperty] private int _generatedKeyCount;
+	[ObservableProperty] private int _generatedCleanKeyCount;
+	[ObservableProperty] private int _generatedLockedKeyCount;
+	[ObservableProperty] private int _generatedUsedKeyCount;
+	[ObservableProperty] private int _totalTransactionCount;
+	[ObservableProperty] private int _nonCoinjointransactionCount;
+	[ObservableProperty] private int _coinjoinTransactionCount;
 
 	public WalletStatsViewModel(WalletViewModel walletViewModel)
 	{

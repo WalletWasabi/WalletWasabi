@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
@@ -15,7 +16,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
 
-	[AutoNotify] private string _customFee;
+	[ObservableProperty] private string _customFee;
 
 	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{

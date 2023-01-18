@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -9,8 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 {
-	[AutoNotify] private string? _confirmPassword;
-	[AutoNotify] private string? _password;
+	[ObservableProperty] private string? _confirmPassword;
+	[ObservableProperty] private string? _password;
 
 	public CreatePasswordDialogViewModel(string title, string caption = "", bool enableEmpty = true)
 	{
@@ -36,8 +37,8 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 				delegate
 				{
 					// This will fire validations before return canExecute value.
-					this.RaisePropertyChanged(nameof(Password));
-					this.RaisePropertyChanged(nameof(ConfirmPassword));
+					OnPropertyChanged(nameof(Password));
+					OnPropertyChanged(nameof(ConfirmPassword));
 
 					return IsDialogOpen &&
 						   ((enableEmpty && string.IsNullOrEmpty(Password) &&

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
@@ -9,11 +10,11 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 
-public partial class SearchBarViewModel : ReactiveObject
+public partial class SearchBarViewModel : ObservableObject
 {
 	private readonly ReadOnlyObservableCollection<SearchItemGroup> _groups;
-	[AutoNotify] private bool _isSearchListVisible;
-	[AutoNotify] private string _searchText = "";
+	[ObservableProperty] private bool _isSearchListVisible;
+	[ObservableProperty] private string _searchText = "";
 
 	public SearchBarViewModel(IObservable<IChangeSet<ISearchItem, ComposedKey>> itemsObservable)
 	{

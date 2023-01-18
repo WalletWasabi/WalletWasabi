@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -33,12 +34,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private TransactionInfo _info;
 	private TransactionInfo _currentTransactionInfo;
 	private CancellationTokenSource? _cancellationTokenSource;
-	[AutoNotify] private BuildTransactionResult? _transaction;
-	[AutoNotify] private string _nextButtonText;
-	[AutoNotify] private bool _adjustFeeAvailable;
-	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
-	[AutoNotify] private bool _canUndo;
-	[AutoNotify] private bool _isCoinControlVisible;
+	[ObservableProperty] private BuildTransactionResult? _transaction;
+	[ObservableProperty] private string _nextButtonText;
+	[ObservableProperty] private bool _adjustFeeAvailable;
+	[ObservableProperty] private TransactionSummaryViewModel? _displayedTransactionSummary;
+	[ObservableProperty] private bool _canUndo;
+	[ObservableProperty] private bool _isCoinControlVisible;
 
 	public TransactionPreviewViewModel(WalletViewModel walletViewModel, TransactionInfo info)
 	{

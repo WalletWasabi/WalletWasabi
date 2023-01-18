@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -15,11 +16,11 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 {
 	private readonly WalletViewModel _walletVm;
 	private readonly Wallet _wallet;
-	[AutoNotify] private bool _fullyMixed;
-	[AutoNotify] private string _percentText = "";
-	[AutoNotify] private string _balancePrivateBtc = "";
-	[AutoNotify] private bool _hasPrivateBalance;
-	[AutoNotify] private bool _showPrivacyBar;
+	[ObservableProperty] private bool _fullyMixed;
+	[ObservableProperty] private string _percentText = "";
+	[ObservableProperty] private string _balancePrivateBtc = "";
+	[ObservableProperty] private bool _hasPrivateBalance;
+	[ObservableProperty] private bool _showPrivacyBar;
 
 	public PrivacyControlTileViewModel(WalletViewModel walletVm, bool showPrivacyBar = true)
 	{

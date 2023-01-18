@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -23,8 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
-	[AutoNotify] private IEnumerable<string>? _suggestions;
-	[AutoNotify] private Mnemonic? _currentMnemonics;
+	[ObservableProperty] private IEnumerable<string>? _suggestions;
+
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(Mnemonics))]
+	private Mnemonic? _currentMnemonics;
 
 	public RecoverWalletViewModel(string walletName)
 	{
@@ -32,11 +36,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
-			.Subscribe(x =>
-			{
-				CurrentMnemonics = x;
-				this.RaisePropertyChanged(nameof(Mnemonics));
-			});
+			.Subscribe(x => CurrentMnemonics = x);
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 

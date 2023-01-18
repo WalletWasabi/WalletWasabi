@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
@@ -23,12 +24,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 {
-	[AutoNotify] private Network _network;
-	[AutoNotify] private bool _startLocalBitcoinCoreOnStartup;
-	[AutoNotify] private string _localBitcoinCoreDataDir;
-	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
-	[AutoNotify] private string _bitcoinP2PEndPoint;
-	[AutoNotify] private string _dustThreshold;
+	[ObservableProperty] private Network _network;
+	[ObservableProperty] private bool _startLocalBitcoinCoreOnStartup;
+	[ObservableProperty] private string _localBitcoinCoreDataDir;
+	[ObservableProperty] private bool _stopLocalBitcoinCoreOnShutdown;
+	[ObservableProperty] private string _bitcoinP2PEndPoint;
+	[ObservableProperty] private string _dustThreshold;
 
 	public BitcoinTabSettingsViewModel()
 	{

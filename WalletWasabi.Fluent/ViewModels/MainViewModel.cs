@@ -3,6 +3,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.AppServices.Tor;
@@ -30,15 +31,15 @@ public partial class MainViewModel : ViewModelBase
 	private readonly SettingsPageViewModel _settingsPage;
 	private readonly PrivacyModeViewModel _privacyMode;
 	private readonly AddWalletPageViewModel _addWalletPage;
-	[AutoNotify] private DialogScreenViewModel _dialogScreen;
-	[AutoNotify] private DialogScreenViewModel _fullScreen;
-	[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
-	[AutoNotify] private NavBarViewModel _navBar;
-	[AutoNotify] private StatusIconViewModel _statusIcon;
-	[AutoNotify] private string _title = "Wasabi Wallet";
-	[AutoNotify] private WindowState _windowState;
-	[AutoNotify] private bool _isOobeBackgroundVisible;
-	[AutoNotify] private bool _isCoinJoinActive;
+	[ObservableProperty] private DialogScreenViewModel _dialogScreen;
+	[ObservableProperty] private DialogScreenViewModel _fullScreen;
+	[ObservableProperty] private DialogScreenViewModel _compactDialogScreen;
+	[ObservableProperty] private NavBarViewModel _navBar;
+	[ObservableProperty] private StatusIconViewModel _statusIcon;
+	[ObservableProperty] private string _title = "Wasabi Wallet";
+	[ObservableProperty] private WindowState _windowState;
+	[ObservableProperty] private bool _isOobeBackgroundVisible;
+	[ObservableProperty] private bool _isCoinJoinActive;
 
 	public MainViewModel()
 	{

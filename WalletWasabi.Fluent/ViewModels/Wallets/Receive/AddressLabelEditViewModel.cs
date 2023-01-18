@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -10,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 [NavigationMetaData(Title = "Edit Labels")]
 public partial class AddressLabelEditViewModel : RoutableViewModel
 {
-	[AutoNotify] private bool _isCurrentTextValid;
+	[ObservableProperty] private bool _isCurrentTextValid;
 
 	public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 	{

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -47,14 +48,14 @@ public partial class SendViewModel : RoutableViewModel
 	private bool _parsingTo;
 	private SmartLabel _parsedLabel = SmartLabel.Empty;
 
-	[AutoNotify] private string _to;
-	[AutoNotify] private decimal _amountBtc;
-	[AutoNotify] private decimal _exchangeRate;
-	[AutoNotify] private bool _isFixedAmount;
-	[AutoNotify] private bool _isPayJoin;
-	[AutoNotify] private string? _payJoinEndPoint;
-	[AutoNotify] private bool _conversionReversed;
-	
+	[ObservableProperty] private string _to;
+	[ObservableProperty] private decimal _amountBtc;
+	[ObservableProperty] private decimal _exchangeRate;
+	[ObservableProperty] private bool _isFixedAmount;
+	[ObservableProperty] private bool _isPayJoin;
+	[ObservableProperty] private string? _payJoinEndPoint;
+	[ObservableProperty] private bool _conversionReversed;
+
 	public SendViewModel(WalletViewModel walletVm)
 	{
 		WalletVm = walletVm;

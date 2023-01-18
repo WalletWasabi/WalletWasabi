@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 
@@ -7,7 +8,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [NavigationMetaData(Title = "Discreet Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
 public partial class PrivacyModeViewModel : NavBarItemViewModel
 {
-	[AutoNotify] private bool _privacyMode;
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(IconName))]
+	private bool _privacyMode;
 
 	public PrivacyModeViewModel()
 	{
@@ -20,11 +23,9 @@ public partial class PrivacyModeViewModel : NavBarItemViewModel
 		this.WhenAnyValue(x => x.PrivacyMode)
 			.Skip(1)
 			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(
-				x =>
+			.Subscribe(x =>
 			{
 				ToggleTitle();
-				this.RaisePropertyChanged(nameof(IconName));
 				Services.UiConfig.PrivacyMode = x;
 			});
 	}

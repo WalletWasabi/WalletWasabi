@@ -1,4 +1,5 @@
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -12,16 +13,16 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly Wallet _wallet;
 	private BuildTransactionResult? _transaction;
-	[AutoNotify] private string _amountText = "";
-	[AutoNotify] private bool _transactionHasChange;
-	[AutoNotify] private bool _transactionHasPockets;
-	[AutoNotify] private string _confirmationTimeText = "";
-	[AutoNotify] private string _feeText = "";
-	[AutoNotify] private bool _maxPrivacy;
-	[AutoNotify] private bool _isCustomFeeUsed;
-	[AutoNotify] private bool _isOtherPocketSelectionPossible;
-	[AutoNotify] private SmartLabel _labels = SmartLabel.Empty;
-	[AutoNotify] private SmartLabel _recipient = SmartLabel.Empty;
+	[ObservableProperty] private string _amountText = "";
+	[ObservableProperty] private bool _transactionHasChange;
+	[ObservableProperty] private bool _transactionHasPockets;
+	[ObservableProperty] private string _confirmationTimeText = "";
+	[ObservableProperty] private string _feeText = "";
+	[ObservableProperty] private bool _maxPrivacy;
+	[ObservableProperty] private bool _isCustomFeeUsed;
+	[ObservableProperty] private bool _isOtherPocketSelectionPossible;
+	[ObservableProperty] private SmartLabel _labels = SmartLabel.Empty;
+	[ObservableProperty] private SmartLabel _recipient = SmartLabel.Empty;
 
 	public TransactionSummaryViewModel(TransactionPreviewViewModel parent, Wallet wallet, TransactionInfo info, bool isPreview = false)
 	{

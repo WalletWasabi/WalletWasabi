@@ -6,25 +6,27 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
 using System.Windows.Input;
+using Avalonia.Xaml.Interactions.Custom;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class FeeChartViewModel : ViewModelBase
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	[ObservableProperty] // TODO SourceGenerator: private setter
 	private int _sliderMinimum;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	[ObservableProperty] // TODO SourceGenerator: private setter
 	private int _sliderMaximum;
 
-	[AutoNotify] private int _sliderValue;
-	[AutoNotify] private string[]? _satoshiPerByteLabels;
-	[AutoNotify] private double[]? _satoshiPerByteValues;
-	[AutoNotify] private double[]? _confirmationTargetValues;
-	[AutoNotify] private string[]? _confirmationTargetLabels;
-	[AutoNotify] private double _currentConfirmationTarget;
-	[AutoNotify] private decimal _currentSatoshiPerByte;
-	[AutoNotify] private string _currentConfirmationTargetString;
+	[ObservableProperty] private int _sliderValue;
+	[ObservableProperty] private string[]? _satoshiPerByteLabels;
+	[ObservableProperty] private double[]? _satoshiPerByteValues;
+	[ObservableProperty] private double[]? _confirmationTargetValues;
+	[ObservableProperty] private string[]? _confirmationTargetLabels;
+	[ObservableProperty] private double _currentConfirmationTarget;
+	[ObservableProperty] private decimal _currentSatoshiPerByte;
+	[ObservableProperty] private string _currentConfirmationTargetString;
 	private bool _updatingCurrentValue;
 
 	public FeeChartViewModel()

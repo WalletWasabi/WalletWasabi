@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.BitcoinCore.Monitoring;
@@ -18,22 +19,24 @@ using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
-public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
+public partial class StatusIconViewModel : ObservableObject, IStatusIconViewModel, IDisposable
 {
-	[AutoNotify] private StatusIconState _currentState;
-	[AutoNotify] private TorStatus _torStatus;
-	[AutoNotify] private BackendStatus _backendStatus;
-	[AutoNotify] private RpcStatus? _bitcoinCoreStatus;
-	[AutoNotify] private int _peers;
-	[AutoNotify] private bool _updateAvailable;
-	[AutoNotify] private bool _criticalUpdateAvailable;
-	[AutoNotify] private bool _isReadyToInstall;
-	[AutoNotify] private bool _isConnectionIssueDetected;
-	[AutoNotify] private string? _versionText;
-	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
+	private readonly TorStatusCheckerWrapper _statusCheckerWrapper;
+	[ObservableProperty] private StatusIconState _currentState;
+	[ObservableProperty] private TorStatus _torStatus;
+	[ObservableProperty] private BackendStatus _backendStatus;
+	[ObservableProperty] private RpcStatus? _bitcoinCoreStatus;
+	[ObservableProperty] private int _peers;
+	[ObservableProperty] private bool _updateAvailable;
+	[ObservableProperty] private bool _criticalUpdateAvailable;
+	[ObservableProperty] private bool _isReadyToInstall;
+	[ObservableProperty] private bool _isConnectionIssueDetected;
+	[ObservableProperty] private string? _versionText;
+	[ObservableProperty] private ICollection<Issue>? _torIssues;
 
 	public StatusIconViewModel(TorStatusCheckerWrapper statusCheckerWrapper)
 	{
+		_statusCheckerWrapper = statusCheckerWrapper;
 		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
 		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
@@ -68,19 +71,8 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 				SetStatusIconState();
 			});
-
-		var issues = statusCheckerWrapper.Issues
-			.Select(r => r.Where(issue => !issue.Resolved).ToList())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Publish();
-
-		_torIssues = issues
-			.ToProperty(this, m => m.TorIssues);
-
-		issues.Connect();
 	}
 
-	public ICollection<Issue> TorIssues => _torIssues.Value;
 	public ICommand OpenTorStatusSiteCommand { get; }
 
 	public ICommand UpdateCommand { get; }
@@ -201,6 +193,12 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 					VersionText = $"Version {updateStatus.ClientVersion} is now available";
 				}
 			})
+			.DisposeWith(Disposables);
+
+		_statusCheckerWrapper.Issues
+			.Select(r => r.Where(issue => !issue.Resolved).ToList())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.BindTo(this, x => x.TorIssues)
 			.DisposeWith(Disposables);
 	}
 

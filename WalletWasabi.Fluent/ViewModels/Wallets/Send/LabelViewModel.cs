@@ -1,22 +1,23 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class LabelViewModel : ViewModelBase
 {
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	[ObservableProperty] // TODO SourceGenerator: private setter
 	private bool _isBlackListed;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	[ObservableProperty] // TODO SourceGenerator: private setter
 	private bool _isHighlighted;
 
-	[AutoNotify(SetterModifier = AccessModifier.Internal)]
+	[ObservableProperty] // TODO SourceGenerator: private internal
 	private bool _isFaded;
 
-	[AutoNotify] private bool _isPointerOver;
-	[AutoNotify] private string _toolTip;
+	[ObservableProperty] private bool _isPointerOver;
+	[ObservableProperty] private string _toolTip;
 
 	public LabelViewModel(LabelSelectionViewModel owner, string label)
 	{

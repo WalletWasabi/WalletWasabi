@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -24,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 public partial class ReceiveViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private bool _isExistingAddressesButtonVisible;
+	[ObservableProperty] private bool _isExistingAddressesButtonVisible;
 
 	public ReceiveViewModel(Wallet wallet)
 	{

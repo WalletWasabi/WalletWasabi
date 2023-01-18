@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -14,10 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login;
 [NavigationMetaData(Title = "")]
 public partial class LoginViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _password;
-	[AutoNotify] private bool _isPasswordNeeded;
-	[AutoNotify] private string _errorMessage;
-	[AutoNotify] private bool _isForgotPasswordVisible;
+	[ObservableProperty] private string _password;
+	[ObservableProperty] private bool _isPasswordNeeded;
+	[ObservableProperty] private string _errorMessage;
+	[ObservableProperty] private bool _isForgotPasswordVisible;
 
 	public LoginViewModel(ClosedWalletViewModel closedWalletViewModel)
 	{

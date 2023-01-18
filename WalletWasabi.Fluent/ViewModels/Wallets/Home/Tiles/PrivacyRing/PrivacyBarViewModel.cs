@@ -9,6 +9,7 @@ using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
@@ -19,7 +20,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 	private const decimal EnlargeBy = 1m;
 	private readonly WalletViewModel _walletViewModel;
 
-	[AutoNotify] private double _width;
+	[ObservableProperty] private double _width;
 
 	public PrivacyBarViewModel(WalletViewModel walletViewModel)
 	{

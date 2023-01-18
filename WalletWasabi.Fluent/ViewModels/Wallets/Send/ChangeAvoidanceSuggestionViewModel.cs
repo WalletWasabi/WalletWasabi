@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
@@ -18,9 +19,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	private const int SignificantFiguresForFiatAmount = 3;
-	[AutoNotify] private string _amount;
-	[AutoNotify] private decimal _amountFiat;
-	[AutoNotify] private string? _differenceFiat;
+	[ObservableProperty] private string _amount;
+	[ObservableProperty] private decimal _amountFiat;
+	[ObservableProperty] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(
 		decimal originalAmount,

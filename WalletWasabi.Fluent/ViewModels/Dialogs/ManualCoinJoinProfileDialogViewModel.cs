@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
@@ -9,10 +10,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 [NavigationMetaData(Title = "Coinjoin Strategy Settings")]
 public partial class ManualCoinJoinProfileDialogViewModel : DialogViewModelBase<ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult?>
 {
-	[AutoNotify] private bool _redCoinIsolation;
-	[AutoNotify] private int _anonScoreTarget;
-	[AutoNotify] private TimeFrameItem[] _timeFrames;
-	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
+	[ObservableProperty] private bool _redCoinIsolation;
+	[ObservableProperty] private int _anonScoreTarget;
+	[ObservableProperty] private TimeFrameItem[] _timeFrames;
+	[ObservableProperty] private TimeFrameItem _selectedTimeFrame;
 
 	public ManualCoinJoinProfileDialogViewModel(CoinJoinProfileViewModelBase current)
 	{

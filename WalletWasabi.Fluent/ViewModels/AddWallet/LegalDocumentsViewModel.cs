@@ -1,6 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -18,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class LegalDocumentsViewModel : RoutableViewModel
 {
-	[AutoNotify] private string? _content;
+	[ObservableProperty] private string? _content;
 
 	public LegalDocumentsViewModel()
 	{

@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -23,11 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class CoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private int _anonScoreTarget;
-	[AutoNotify] private bool _isCoinjoinProfileSelected;
-	[AutoNotify] private string _plebStopThreshold;
-	[AutoNotify] private string? _selectedCoinjoinProfileName;
+	[ObservableProperty] private bool _autoCoinJoin;
+	[ObservableProperty] private int _anonScoreTarget;
+	[ObservableProperty] private bool _isCoinjoinProfileSelected;
+	[ObservableProperty] private string _plebStopThreshold;
+	[ObservableProperty] private string? _selectedCoinjoinProfileName;
 
 	public CoinJoinSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{

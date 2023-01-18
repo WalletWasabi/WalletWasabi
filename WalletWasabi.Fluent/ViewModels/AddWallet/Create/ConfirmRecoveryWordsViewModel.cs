@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -20,7 +21,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
 	private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
-	[AutoNotify] private bool _isSkipEnable;
+	[ObservableProperty] private bool _isSkipEnable;
 
 	public ConfirmRecoveryWordsViewModel(
 		List<RecoveryWordViewModel> mnemonicWords,

@@ -3,15 +3,16 @@ using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
-public partial class Setting<TTarget, TProperty> : ReactiveObject
+public partial class Setting<TTarget, TProperty> : ObservableObject
 {
-	[AutoNotify] private TProperty? _value;
+	[ObservableProperty] private TProperty? _value;
 
 	public Setting([DisallowNull] TTarget target, Expression<Func<TTarget, TProperty>> selector)
 	{

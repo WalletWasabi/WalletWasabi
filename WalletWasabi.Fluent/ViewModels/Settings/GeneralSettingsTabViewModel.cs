@@ -6,6 +6,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Logging;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -22,16 +23,16 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 {
-	[AutoNotify] private bool _darkModeEnabled;
-	[AutoNotify] private bool _autoCopy;
-	[AutoNotify] private bool _autoPaste;
-	[AutoNotify] private bool _customChangeAddress;
-	[AutoNotify] private FeeDisplayUnit _selectedFeeDisplayUnit;
-	[AutoNotify] private bool _runOnSystemStartup;
-	[AutoNotify] private bool _hideOnClose;
-	[AutoNotify] private bool _useTor;
-	[AutoNotify] private bool _terminateTorOnExit;
-	[AutoNotify] private bool _downloadNewVersion;
+	[ObservableProperty] private bool _darkModeEnabled;
+	[ObservableProperty] private bool _autoCopy;
+	[ObservableProperty] private bool _autoPaste;
+	[ObservableProperty] private bool _customChangeAddress;
+	[ObservableProperty] private FeeDisplayUnit _selectedFeeDisplayUnit;
+	[ObservableProperty] private bool _runOnSystemStartup;
+	[ObservableProperty] private bool _hideOnClose;
+	[ObservableProperty] private bool _useTor;
+	[ObservableProperty] private bool _terminateTorOnExit;
+	[ObservableProperty] private bool _downloadNewVersion;
 
 	public GeneralSettingsTabViewModel()
 	{

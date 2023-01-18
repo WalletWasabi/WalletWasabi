@@ -1,11 +1,12 @@
 using ReactiveUI;
 using System.Collections;
 using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.Validation;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
+public class ViewModelBase : ObservableObject, INotifyDataErrorInfo, IRegisterValidationMethod
 {
 	private Validations _validations;
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -16,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_general_regular")]
 public partial class AdvancedSettingsTabViewModel : SettingsTabViewModelBase
 {
-	[AutoNotify] private bool _enableGpu;
+	[ObservableProperty] private bool _enableGpu;
 
 	public AdvancedSettingsTabViewModel()
 	{

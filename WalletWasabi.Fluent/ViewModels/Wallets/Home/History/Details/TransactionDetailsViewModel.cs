@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
@@ -17,14 +18,14 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 {
 	private readonly WalletViewModel _walletVm;
 
-	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private string? _amount;
-	[AutoNotify] private SmartLabel? _labels;
-	[AutoNotify] private string? _transactionId;
-	[AutoNotify] private string? _blockHash;
+	[ObservableProperty] private bool _isConfirmed;
+	[ObservableProperty] private int _confirmations;
+	[ObservableProperty] private int _blockHeight;
+	[ObservableProperty] private DateTimeOffset _date;
+	[ObservableProperty] private string? _amount;
+	[ObservableProperty] private SmartLabel? _labels;
+	[ObservableProperty] private string? _transactionId;
+	[ObservableProperty] private string? _blockHash;
 
 	public TransactionDetailsViewModel(TransactionSummary transactionSummary, WalletViewModel walletVm)
 	{

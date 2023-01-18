@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> where T : class, INavigatable
 {
 	private readonly Stack<T> _backStack;
-	[AutoNotify] private T? _currentPage;
-	[AutoNotify] private bool _canNavigateBack;
+	[ObservableProperty] private T? _currentPage;
+	[ObservableProperty] private bool _canNavigateBack;
 	private bool _operationsEnabled = true;
 
 	protected NavigationStack()

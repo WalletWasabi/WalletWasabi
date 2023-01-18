@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -23,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUrlBuilder?>
 {
 	private readonly Network _network;
-	[AutoNotify] private string _to = "";
+	[ObservableProperty] private string _to = "";
 
 	private bool _parsingUrl;
 	private bool _payJoinUrlFound;

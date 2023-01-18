@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -22,7 +23,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private readonly FeeRate _feeRate;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
 
-	[AutoNotify] private bool _enoughSelected;
+	[ObservableProperty] private bool _enoughSelected;
 
 	private Pocket _privatePocket = Pocket.Empty;
 	private Pocket _semiPrivatePocket = Pocket.Empty;
@@ -272,8 +273,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 
 		EnoughSelected = IsPocketEnough(GetUsedPockets());
 
-		this.RaisePropertyChanged(nameof(LabelsWhiteList));
-		this.RaisePropertyChanged(nameof(LabelsBlackList));
+		OnPropertyChanged(nameof(LabelsWhiteList));
+		OnPropertyChanged(nameof(LabelsBlackList));
 	}
 
 	private (bool, bool) ArePrivateAndSemiPrivatePocketsNeeded()

@@ -1,6 +1,8 @@
-﻿namespace WalletWasabi.Fluent.ViewModels.Wallets;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class MusicStatusMessageViewModel : ViewModelBase
 {
-	[AutoNotify] private string? _message;
+	[ObservableProperty] private string? _message;
 }

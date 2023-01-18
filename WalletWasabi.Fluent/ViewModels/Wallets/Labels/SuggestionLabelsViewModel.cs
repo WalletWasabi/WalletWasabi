@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -18,7 +19,7 @@ public partial class SuggestionLabelsViewModel : ViewModelBase
 	private readonly ObservableCollectionExtended<string> _suggestions;
 	private readonly ObservableCollectionExtended<string> _labels;
 
-	[AutoNotify] private bool _isCurrentTextValid;
+	[ObservableProperty] private bool _isCurrentTextValid;
 
 	public SuggestionLabelsViewModel(KeyManager keyManager, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
 	{

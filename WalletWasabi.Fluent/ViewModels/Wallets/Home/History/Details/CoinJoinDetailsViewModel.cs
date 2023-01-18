@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -17,12 +18,12 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private readonly CoinJoinHistoryItemViewModel _coinJoin;
 	private readonly IObservable<Unit> _updateTrigger;
 
-	[AutoNotify] private string _date = "";
-	[AutoNotify] private string _coinJoinFeeRawString = "";
-	[AutoNotify] private string _coinJoinFeeString = "";
-	[AutoNotify] private uint256? _transactionId;
-	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
+	[ObservableProperty] private string _date = "";
+	[ObservableProperty] private string _coinJoinFeeRawString = "";
+	[ObservableProperty] private string _coinJoinFeeString = "";
+	[ObservableProperty] private uint256? _transactionId;
+	[ObservableProperty] private bool _isConfirmed;
+	[ObservableProperty] private int _confirmations;
 
 	public CoinJoinDetailsViewModel(CoinJoinHistoryItemViewModel coinJoin, IObservable<Unit> updateTrigger)
 	{

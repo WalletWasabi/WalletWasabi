@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -16,9 +17,9 @@ public partial class LoadingViewModel : ActivatableViewModel
 {
 	private readonly Wallet _wallet;
 
-	[AutoNotify] private double _percent;
-	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
-	[AutoNotify] private volatile bool _isLoading;
+	[ObservableProperty] private double _percent;
+	[ObservableProperty] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
+	[ObservableProperty] private volatile bool _isLoading;
 
 	private Stopwatch? _stopwatch;
 	private uint _filtersToDownloadCount;

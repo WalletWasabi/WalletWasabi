@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _walletName = "";
+	[ObservableProperty] private string _walletName = "";
 	private readonly string? _importFilePath;
 	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 

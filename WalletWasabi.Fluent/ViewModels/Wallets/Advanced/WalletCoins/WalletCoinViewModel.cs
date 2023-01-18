@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -13,15 +14,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced.WalletCoins;
 public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
-	[AutoNotify] private Money _amount = Money.Zero;
-	[AutoNotify] private int _anonymitySet;
-	[AutoNotify] private SmartLabel _smartLabel = "";
-	[AutoNotify] private bool _confirmed;
-	[AutoNotify] private bool _coinJoinInProgress;
-	[AutoNotify] private bool _isSelected;
-	[AutoNotify] private bool _isBanned;
-	[AutoNotify] private string? _bannedUntilUtcToolTip;
-	[AutoNotify] private string? _confirmedToolTip;
+	[ObservableProperty] private Money _amount = Money.Zero;
+	[ObservableProperty] private int _anonymitySet;
+	[ObservableProperty] private SmartLabel _smartLabel = "";
+	[ObservableProperty] private bool _confirmed;
+	[ObservableProperty] private bool _coinJoinInProgress;
+	[ObservableProperty] private bool _isSelected;
+	[ObservableProperty] private bool _isBanned;
+	[ObservableProperty] private string? _bannedUntilUtcToolTip;
+	[ObservableProperty] private string? _confirmedToolTip;
 
 	public WalletCoinViewModel(SmartCoin coin)
 	{

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -14,7 +15,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
-public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposable
+public class TransactionsSearchSource : ObservableObject, ISearchSource, IDisposable
 {
 	private const int MaxResultCount = 5;
 	private const int MinQueryLength = 3;

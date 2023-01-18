@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Validation;
 
-public class Validations : ReactiveObject, IRegisterValidationMethod, IValidations
+public class Validations : ObservableObject, IRegisterValidationMethod, IValidations
 {
 	public Validations()
 	{
@@ -126,9 +127,9 @@ public class Validations : ReactiveObject, IRegisterValidationMethod, IValidatio
 		if (propertiesToNotify.Any())
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-			this.RaisePropertyChanged(nameof(Any));
+			OnPropertyChanged(nameof(Any));
 		}
 
-		propertiesToNotify.ForEach(this.RaisePropertyChanged);
+		propertiesToNotify.ForEach(OnPropertyChanged);
 	}
 }

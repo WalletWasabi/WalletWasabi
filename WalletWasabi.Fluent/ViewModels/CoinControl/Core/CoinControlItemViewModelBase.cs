@@ -55,7 +55,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 				return;
 			}
 
-			this.RaiseAndSetIfChanged(ref _isSelected, value);
+			SetProperty(ref _isSelected, value);
 		}
 	}
 }

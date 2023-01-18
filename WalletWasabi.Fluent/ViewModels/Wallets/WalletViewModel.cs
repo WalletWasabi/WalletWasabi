@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
@@ -25,13 +26,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public partial class WalletViewModel : WalletViewModelBase
 {
-	[AutoNotify] private double _widthSource;
-	[AutoNotify] private double _heightSource;
-	[AutoNotify] private bool _isPointerOver;
+	[ObservableProperty] private double _widthSource;
+	[ObservableProperty] private double _heightSource;
+	[ObservableProperty] private bool _isPointerOver;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isTransactionHistoryEmpty;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
+	// TODO SourceGenerator: private setter
+	[ObservableProperty] private bool _isTransactionHistoryEmpty;
+
+	// TODO SourceGenerator: private setter
+	[ObservableProperty] private bool _isWalletBalanceZero;
+
+	// TODO SourceGenerator: private setter
+	[ObservableProperty] private bool _isSendButtonVisible;
 
 	protected WalletViewModel(Wallet wallet) : base(wallet)
 	{

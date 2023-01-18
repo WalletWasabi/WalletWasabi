@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
@@ -21,11 +22,11 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
-	[AutoNotify] private SuggestionViewModel? _previewSuggestion;
-	[AutoNotify] private SuggestionViewModel? _selectedSuggestion;
-	[AutoNotify] private bool _isOpen;
-	[AutoNotify] private bool _isVisible;
-	[AutoNotify] private bool _isBusy;
+	[ObservableProperty] private SuggestionViewModel? _previewSuggestion;
+	[ObservableProperty] private SuggestionViewModel? _selectedSuggestion;
+	[ObservableProperty] private bool _isOpen;
+	[ObservableProperty] private bool _isVisible;
+	[ObservableProperty] private bool _isBusy;
 
 	private CancellationTokenSource? _suggestionCancellationTokenSource;
 

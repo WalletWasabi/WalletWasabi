@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -8,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private string _password;
+	[ObservableProperty] private string _password;
 
 	public PasswordAuthDialogViewModel(Wallet wallet)
 	{

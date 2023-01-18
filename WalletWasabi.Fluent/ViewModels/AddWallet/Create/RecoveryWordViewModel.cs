@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 
@@ -5,8 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
 public partial class RecoveryWordViewModel : ViewModelBase
 {
-	[AutoNotify] private string? _input;
-	[AutoNotify] private bool _isConfirmed;
+	[ObservableProperty] private string? _input;
+	[ObservableProperty] private bool _isConfirmed;
 
 	public RecoveryWordViewModel(int index, string word)
 	{

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -20,7 +21,8 @@ public partial class WalletManagerViewModel : ViewModelBase
 	private readonly SourceList<WalletViewModelBase> _walletsSourceList = new();
 	private readonly ObservableCollectionExtended<WalletViewModelBase> _wallets = new();
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
+	// TODO SourceGenerator: private setter
+	[ObservableProperty] private bool _isLoadingWallet;
 
 	public WalletManagerViewModel()
 	{

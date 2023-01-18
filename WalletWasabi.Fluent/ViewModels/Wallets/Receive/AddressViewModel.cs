@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -12,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 public partial class AddressViewModel : ViewModelBase
 {
-	[AutoNotify] private string _address;
+	[ObservableProperty] private string _address;
 
 	public AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
 	{

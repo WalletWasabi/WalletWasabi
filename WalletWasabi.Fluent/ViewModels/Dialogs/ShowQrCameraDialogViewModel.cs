@@ -5,6 +5,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -15,9 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 {
 	private readonly WebcamQrReader _qrReader;
-	[AutoNotify] private Bitmap? _qrImage;
-	[AutoNotify] private string _errorMessage = "";
-	[AutoNotify] private string _qrContent = "";
+	[ObservableProperty] private Bitmap? _qrImage;
+	[ObservableProperty] private string _errorMessage = "";
+	[ObservableProperty] private string _qrContent = "";
 
 	public ShowQrCameraDialogViewModel(Network network)
 	{

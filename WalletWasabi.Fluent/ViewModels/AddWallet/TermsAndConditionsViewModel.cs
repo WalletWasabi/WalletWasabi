@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -8,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Terms and conditions")]
 public partial class TermsAndConditionsViewModel : DialogViewModelBase<bool>
 {
-	[AutoNotify] private bool _isAgreed;
+	[ObservableProperty] private bool _isAgreed;
 
 	public TermsAndConditionsViewModel()
 	{

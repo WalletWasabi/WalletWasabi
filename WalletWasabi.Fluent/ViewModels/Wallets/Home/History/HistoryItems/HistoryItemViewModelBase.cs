@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -14,13 +15,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 
 public abstract partial class HistoryItemViewModelBase : ViewModelBase
 {
-	[AutoNotify] private bool _isFlashing;
-	[AutoNotify] private int _orderIndex;
-	[AutoNotify] private DateTimeOffset _date;
-	[AutoNotify] private string _dateString = "";
-	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private bool _isExpanded;
-	[AutoNotify] private string _confirmedToolTip;
+	[ObservableProperty] private bool _isFlashing;
+	[ObservableProperty] private int _orderIndex;
+	[ObservableProperty] private DateTimeOffset _date;
+	[ObservableProperty] private string _dateString = "";
+	[ObservableProperty] private bool _isConfirmed;
+	[ObservableProperty] private bool _isExpanded;
+	[ObservableProperty] private string _confirmedToolTip;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
 
 	protected HistoryItemViewModelBase(int orderIndex, TransactionSummary transactionSummary)

@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -11,9 +12,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
 public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
 {
-	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isLoading;
-	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _isCoinJoining;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
+	// TODO: SourceGenerator: protected setter
+	[ObservableProperty] private bool _isLoading;
+
+	// TODO SourceGenerator: protected setter
+	[ObservableProperty] private bool _isCoinJoining;
+
+	// TODO SourceGenerator: private setter
+	[ObservableProperty] private WalletState _walletState;
 
 	private string _title;
 
@@ -34,7 +40,7 @@ public abstract partial class WalletViewModelBase : NavBarItemViewModel, ICompar
 	public override string Title
 	{
 		get => _title;
-		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+		protected set => SetProperty(ref _title, value);
 	}
 
 	public Wallet Wallet { get; }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -8,10 +9,10 @@ using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-public partial class TransactionInfo
+public partial class TransactionInfo : ObservableObject
 {
-	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
-	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
+	[ObservableProperty] private FeeRate _feeRate = FeeRate.Zero;
+	[ObservableProperty] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
 	public TransactionInfo(BitcoinAddress destination, int anonScoreTarget)
 	{

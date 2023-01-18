@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
@@ -22,11 +24,11 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	private readonly CompositeDisposable _disposables = new();
 	private readonly WalletViewModel _walletViewModel;
 
-	[AutoNotify] private PrivacyRingItemViewModel? _selectedItem;
-	[AutoNotify] private double _height;
-	[AutoNotify] private double _width;
-	[AutoNotify] private Thickness _margin;
-	[AutoNotify] private Thickness _negativeMargin;
+	[ObservableProperty] private PrivacyRingItemViewModel? _selectedItem;
+	[ObservableProperty] private double _height;
+	[ObservableProperty] private double _width;
+	[ObservableProperty] private Thickness _margin;
+	[ObservableProperty] private Thickness _negativeMargin;
 
 	public PrivacyRingViewModel(WalletViewModel walletViewModel)
 	{

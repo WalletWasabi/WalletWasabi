@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -19,8 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class WalletSettingsViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
-	[AutoNotify] private string _plebStopThreshold;
-	[AutoNotify] private bool _preferPsbtWorkflow;
+	[ObservableProperty] private string _plebStopThreshold;
+	[ObservableProperty] private bool _preferPsbtWorkflow;
 
 	public WalletSettingsViewModel(WalletViewModelBase walletViewModelBase)
 	{

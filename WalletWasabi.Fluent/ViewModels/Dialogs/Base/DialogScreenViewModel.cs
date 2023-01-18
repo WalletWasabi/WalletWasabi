@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -8,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 public partial class DialogScreenViewModel : TargettedNavigationStack
 {
-	[AutoNotify] private bool _isDialogOpen;
+	[ObservableProperty] private bool _isDialogOpen;
 
 	public DialogScreenViewModel(NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
 	{

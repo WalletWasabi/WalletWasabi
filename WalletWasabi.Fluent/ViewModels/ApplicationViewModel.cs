@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels;
 public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 {
 	private readonly IMainWindowService _mainWindowService;
-	[AutoNotify] private bool _isMainWindowShown = true;
+	[ObservableProperty] private bool _isMainWindowShown = true;
 
 	public ApplicationViewModel(IMainWindowService mainWindowService)
 	{

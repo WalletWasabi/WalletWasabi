@@ -1,6 +1,7 @@
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -11,14 +12,14 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 [NavigationMetaData(Title = "Password Finder")]
 public partial class SearchPasswordViewModel : RoutableViewModel
 {
-	[AutoNotify] private int _percentage;
-	[AutoNotify] private int _remainingHour;
-	[AutoNotify] private int _remainingMin;
-	[AutoNotify] private int _remainingSec;
-	[AutoNotify] private string _hourText;
-	[AutoNotify] private string _minText;
-	[AutoNotify] private string _secText;
-	[AutoNotify] private bool _remainingTimeReceived;
+	[ObservableProperty] private int _percentage;
+	[ObservableProperty] private int _remainingHour;
+	[ObservableProperty] private int _remainingMin;
+	[ObservableProperty] private int _remainingSec;
+	[ObservableProperty] private string _hourText;
+	[ObservableProperty] private string _minText;
+	[ObservableProperty] private string _secText;
+	[ObservableProperty] private bool _remainingTimeReceived;
 
 	public SearchPasswordViewModel(PasswordFinderOptions options)
 	{

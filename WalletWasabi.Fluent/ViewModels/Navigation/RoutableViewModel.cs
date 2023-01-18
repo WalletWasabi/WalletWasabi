@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -10,12 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
 public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 {
-	[AutoNotify] private bool _isBusy;
-	[AutoNotify] private bool _enableCancelOnPressed;
-	[AutoNotify] private bool _enableCancelOnEscape;
-	[AutoNotify] private bool _enableBack;
-	[AutoNotify] private bool _enableCancel;
-	[AutoNotify] private bool _isActive;
+	[ObservableProperty] private bool _isBusy;
+	[ObservableProperty] private bool _enableCancelOnPressed;
+	[ObservableProperty] private bool _enableCancelOnEscape;
+	[ObservableProperty] private bool _enableBack;
+	[ObservableProperty] private bool _enableCancel;
+	[ObservableProperty] private bool _isActive;
 
 	public abstract string Title { get; protected set; }
 

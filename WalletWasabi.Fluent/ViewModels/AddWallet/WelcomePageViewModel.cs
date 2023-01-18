@@ -1,5 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -10,9 +11,9 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 {
 	private const int NumberOfPages = 2;
 	private readonly AddWalletPageViewModel _addWalletPage;
-	[AutoNotify] private int _selectedIndex;
-	[AutoNotify] private string? _nextLabel;
-	[AutoNotify] private bool _enableNextKey = true;
+	[ObservableProperty] private int _selectedIndex;
+	[ObservableProperty] private string? _nextLabel;
+	[ObservableProperty] private bool _enableNextKey = true;
 
 	public WelcomePageViewModel(AddWalletPageViewModel addWalletPage)
 	{

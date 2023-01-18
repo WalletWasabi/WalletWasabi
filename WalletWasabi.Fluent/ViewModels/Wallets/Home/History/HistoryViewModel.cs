@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -29,9 +30,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _transactions;
 	private readonly ObservableCollectionExtended<HistoryItemViewModelBase> _unfilteredTransactions;
 
-	[AutoNotify] private HistoryItemViewModelBase? _selectedItem;
+	[ObservableProperty] private HistoryItemViewModelBase? _selectedItem;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)]
+	[ObservableProperty] // TODO SourceGenerator: private setter
 	private bool _isTransactionHistoryEmpty;
 
 	public HistoryViewModel(WalletViewModel walletVm)
