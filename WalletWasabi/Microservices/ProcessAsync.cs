@@ -40,6 +40,9 @@ public class ProcessAsync : IDisposable
 	/// <inheritdoc cref="Process.Id"/>
 	public int Id => Process.Id;
 
+	/// <inheritdoc cref="Process.Handle"/>
+	public IntPtr Handle => Process.Handle;
+
 	/// <inheritdoc cref="Process.StandardInput"/>
 	public StreamWriter StandardInput => Process.StandardInput;
 
