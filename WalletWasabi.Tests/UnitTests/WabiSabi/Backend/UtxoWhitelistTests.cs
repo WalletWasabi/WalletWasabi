@@ -31,7 +31,7 @@ public class UtxoWhitelistTests
 		Assert.NotEqual(currentChangeId, whitelist.ChangeId);
 
 		await Task.Delay(1000);
-		whitelist.RemoveAllExpired(TimeSpan.FromSeconds(1));
+		whitelist.RemoveAllExpired();
 
 		Assert.Equal(0, whitelist.CountInnocents());
 	}
