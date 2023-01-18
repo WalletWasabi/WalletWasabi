@@ -25,10 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 public partial class RecoverWalletViewModel : RoutableViewModel
 {
 	[ObservableProperty] private IEnumerable<string>? _suggestions;
-
-	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(Mnemonics))]
-	private Mnemonic? _currentMnemonics;
+	[ObservableProperty] private Mnemonic? _currentMnemonics;
 
 	public RecoverWalletViewModel(string walletName)
 	{
@@ -36,7 +33,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
-			.Subscribe(x => CurrentMnemonics = x);
+			.Subscribe(x =>
+			{
+				CurrentMnemonics = x;
+				OnPropertyChanged(nameof(Mnemonics));
+			});
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 

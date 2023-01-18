@@ -21,10 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 {
 	[ObservableProperty] private IEnumerable<string>? _suggestions;
-
-	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(Mnemonics))]
-	private Mnemonic? _currentMnemonics;
+	[ObservableProperty] private Mnemonic? _currentMnemonics;
 
 	private readonly Wallet _wallet;
 
@@ -39,7 +36,11 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				x.Count is 12 or 15 or 18 or 21 or 24
 					? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant())
 					: default)
-			.Subscribe(x => CurrentMnemonics = x);
+			.Subscribe(x =>
+			{
+				CurrentMnemonics = x;
+				OnPropertyChanged(nameof(Mnemonics));
+			});
 
 		this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
