@@ -19,14 +19,7 @@ public class InternalDestinationProvider : IDestinationProvider
 		// Get all locked internal keys we have and assert we have enough.
 		KeyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
 
-		var allKeys = KeyManager.GetNextCoinJoinKeys().ToList();
-		var taprootKeys = allKeys
-			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86)
-			.ToList();
-		
-		var destinations = preferTaproot && taprootKeys.Count >= count
-			? taprootKeys
-			: allKeys;
-		return destinations.Select(x => x.GetAddress(KeyManager.GetNetwork()));
+		var keys = KeyManager.GetNextCoinJoinKeys(preferTaproot).ToList();
+		return keys.Select(x => x.GetAddress(KeyManager.GetNetwork()));
 	}
 }

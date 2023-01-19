@@ -360,10 +360,11 @@ public class KeyManager
 			x.IsInternal == true &&
 			x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).First();
 
-	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
+	public IEnumerable<HdPubKey> GetNextCoinJoinKeys(bool preferTaproot) =>
 		GetKeys(x =>
-				x.KeyState == KeyState.Locked &&
-				x.IsInternal == true);
+			x.KeyState == KeyState.Locked &&
+			x.IsInternal == true &&
+			preferTaproot == (x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86));
 	
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
