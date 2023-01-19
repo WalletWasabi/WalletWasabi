@@ -1,16 +1,18 @@
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
-public class UtxoWhitelistTests
+public class WhitelistTests
 {
 	[Fact]
 	public async Task WhitelistChangeTrafficAsync()
 	{
-		var whitelist = new Whitelist();
+		Whitelist whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig() { ReleaseFromWhitelistAfter = TimeSpan.FromSeconds(1) });
 		var currentChangeId = whitelist.ChangeId;
 
 		var outpoint = BitcoinFactory.CreateOutPoint();

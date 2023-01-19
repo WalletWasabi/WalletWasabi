@@ -21,12 +21,12 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	// Blank constructor used for testing
+	// Constructor used for testing
 	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifierApiClient = apiClient;
-		Whitelist = new();
+		Whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, new WabiSabiConfig() { ReleaseFromWhitelistAfter = TimeSpan.FromSeconds(1) });
 		WabiSabiConfig = wabiSabiConfig;
 	}
 

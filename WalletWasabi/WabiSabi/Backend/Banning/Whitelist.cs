@@ -18,15 +18,8 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 /// </summary>
 public class Whitelist
 {
-	// Used only in tests.
-	internal Whitelist() : this(
-		Enumerable.Empty<Innocent>(),
-		string.Empty,
-		new WabiSabiConfig() { ReleaseFromWhitelistAfter = TimeSpan.FromSeconds(1) })
-	{
-	}
-
-	private Whitelist(IEnumerable<Innocent> innocents, string filePath, WabiSabiConfig wabiSabiConfig)
+	// Constructor used for testing.
+	internal Whitelist(IEnumerable<Innocent> innocents, string filePath, WabiSabiConfig wabiSabiConfig)
 	{
 		Innocents = new ConcurrentDictionary<OutPoint, Innocent>(innocents.ToDictionary(k => k.Outpoint, v => v));
 		if (!string.IsNullOrEmpty(filePath))
