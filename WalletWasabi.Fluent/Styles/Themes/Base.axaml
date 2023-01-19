@@ -95,7 +95,8 @@
     <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
 
     <StaticResource x:Key="TileRegionColor" ResourceKey="SystemBaseLowColor" />
-    <StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />
+    <!-- TODO: Investigate why below line causes stack overflow exception (after lazy resource loading was added) ? -->
+    <!--<StaticResource x:Key="SystemAccentColor" ResourceKey="SystemAccentColor" />-->
     <StaticResource x:Key="TextControlBorderBrush" ResourceKey="SystemBaseLowColor" />
     <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="SystemBaseMediumLowColor" />
     <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="SystemBaseMediumHighColor" />
