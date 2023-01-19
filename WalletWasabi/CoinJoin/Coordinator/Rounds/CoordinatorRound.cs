@@ -338,42 +338,36 @@ public class CoordinatorRound
 						switch (phase)
 						{
 							case RoundPhase.InputRegistration:
+								// Only abort if less than two one Alice is registered.
+								// Do not ban anyone, it's ok if they lost connection.
+								await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
+								int aliceCountAfterInputRegistrationTimeout = CountAlices();
+								if (aliceCountAfterInputRegistrationTimeout < 2)
 								{
-									// Only abort if less than two one Alice is registered.
-									// Do not ban anyone, it's ok if they lost connection.
-									await RemoveAlicesIfAnInputRefusedByMempoolAsync().ConfigureAwait(false);
-									int aliceCountAfterInputRegistrationTimeout = CountAlices();
-									if (aliceCountAfterInputRegistrationTimeout < 2)
-									{
-										Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
-									}
-									else
-									{
-										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
-									}
+									Abort($"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
+								}
+								else
+								{
+									UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+									// Progress to the next phase, which will be ConnectionConfirmation
+									await ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation).ConfigureAwait(false);
 								}
 								break;
 
 							case RoundPhase.ConnectionConfirmation:
+								using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
 								{
-									using (await ConnectionConfirmationLock.LockAsync().ConfigureAwait(false))
-									{
-										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
+									IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
-									}
+									await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray()).ConfigureAwait(false);
 								}
 								break;
 
 							case RoundPhase.OutputRegistration:
-								{
-									// Output registration never aborts.
-									// We do not know which Alice to ban.
-									// Therefore proceed to signing, and whichever Alice does not sign, ban her.
-									await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
-								}
+								// Output registration never aborts.
+								// We do not know which Alice to ban.
+								// Therefore proceed to signing, and whichever Alice does not sign, ban her.
+								await ExecuteNextPhaseAsync(RoundPhase.Signing).ConfigureAwait(false);
 								break;
 
 							case RoundPhase.Signing:
@@ -415,10 +409,8 @@ public class CoordinatorRound
 		switch (phase)
 		{
 			case RoundPhase.InputRegistration:
-				{
-					SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
-					timeout = InputRegistrationTimeout;
-				}
+				SetInputRegistrationTimesout(); // Update it, it's going to be slightly more accurate.
+				timeout = InputRegistrationTimeout;
 				break;
 
 			case RoundPhase.ConnectionConfirmation:

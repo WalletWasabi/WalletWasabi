@@ -210,33 +210,29 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			switch (round.Phase)
 			{
 				case Phase.InputRegistration:
-					{
-						var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
-						var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
-						alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
-						return new(
-							commitAmountZeroCredentialResponse,
-							commitVsizeZeroCredentialResponse);
-					}
+					var commitAmountZeroCredentialResponse = await amountZeroCredentialTask.ConfigureAwait(false);
+					var commitVsizeZeroCredentialResponse = await vsizeZeroCredentialTask.ConfigureAwait(false);
+					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
+					return new(
+						commitAmountZeroCredentialResponse,
+						commitVsizeZeroCredentialResponse);
 
 				case Phase.ConnectionConfirmation:
-					{
-						// If the phase was InputRegistration before then we did not pre-calculate real credentials.
-						amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
-						vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
+					// If the phase was InputRegistration before then we did not pre-calculate real credentials.
+					amountRealCredentialTask ??= round.AmountCredentialIssuer.HandleRequestAsync(realAmountCredentialRequests, cancellationToken);
+					vsizeRealCredentialTask ??= round.VsizeCredentialIssuer.HandleRequestAsync(realVsizeCredentialRequests, cancellationToken);
 
-						ConnectionConfirmationResponse response = new(
-							await amountZeroCredentialTask.ConfigureAwait(false),
-							await vsizeZeroCredentialTask.ConfigureAwait(false),
-							await amountRealCredentialTask.ConfigureAwait(false),
-							await vsizeRealCredentialTask.ConfigureAwait(false));
+					ConnectionConfirmationResponse response = new(
+						await amountZeroCredentialTask.ConfigureAwait(false),
+						await vsizeZeroCredentialTask.ConfigureAwait(false),
+						await amountRealCredentialTask.ConfigureAwait(false),
+						await vsizeRealCredentialTask.ConfigureAwait(false));
 
-						// Update the coinjoin state, adding the confirmed input.
-						round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
-						alice.ConfirmedConnection = true;
+					// Update the coinjoin state, adding the confirmed input.
+					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
+					alice.ConfirmedConnection = true;
 
-						return response;
-					}
+					return response;
 
 				default:
 					throw new WrongPhaseException(round, Phase.InputRegistration, Phase.ConnectionConfirmation);

@@ -110,7 +110,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
@@ -194,7 +194,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		var coins = keyManager.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 		_output.WriteLine("Coins were created successfully");
 
@@ -300,12 +300,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coins = keyManager1.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 
 		var badCoins = keyManager2.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
 			.ToArray();
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
