@@ -542,7 +542,14 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)).ToArray())
 		{
-			var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
+			var alicesToRemove = round.Alices.Where(x => x.Deadline < DateTimeOffset.UtcNow).ToArray();
+			foreach (var alice in alicesToRemove)
+			{
+				round.Alices.Remove(alice);
+				CoinVerifier?.CancelSchedule(alice.Coin);
+			}
+
+			var removedAliceCount = alicesToRemove.Length;
 			if (removedAliceCount > 0)
 			{
 				round.LogInfo($"{removedAliceCount} alices timed out and removed.");
