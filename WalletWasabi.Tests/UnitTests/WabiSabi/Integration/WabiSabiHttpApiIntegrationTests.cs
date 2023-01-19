@@ -172,7 +172,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// Run the coinjoin client task.
 		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(coins, cts.Token);
-		Assert.True(coinjoinResult is SuccessfulCoinjoin);
+		Assert.True(coinjoinResult is SuccessfulCoinjoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -401,7 +401,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var ex = await Assert.ThrowsAsync<AggregateException>(async () => await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask }));
 		Assert.True(ex.InnerExceptions.Last() is TaskCanceledException);
 
-		Assert.True(coinJoinTask.Result is SuccessfulCoinjoin);
+		Assert.True(coinJoinTask.Result is SuccessfulCoinjoinResult);
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
@@ -531,13 +531,13 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 					// In case some participants claim to have finished successfully then wait a second for seeing
 					// the coinjoin in the mempool. This seems really hard to believe but just in case.
-					if (participantsFinishedSuccessully.All(x => x is SuccessfulCoinjoin))
+					if (participantsFinishedSuccessully.All(x => x is SuccessfulCoinjoinResult))
 					{
 						await Task.Delay(TimeSpan.FromSeconds(1));
 						var mempool = await rpc.GetRawMempoolAsync();
 						Assert.Single(mempool);
 					}
-					else if (participantsFinishedSuccessully.All(x => x is FailedCoinjoin))
+					else if (participantsFinishedSuccessully.All(x => x is FailedCoinjoinResult))
 					{
 						throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 					}

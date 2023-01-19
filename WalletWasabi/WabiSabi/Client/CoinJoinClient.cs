@@ -184,19 +184,22 @@ public class CoinJoinClient
 
 			switch (result)
 			{
-				case SuccessfulCoinjoin sucess:
-					return sucess;
-
-				case FailedCoinjoin failure:
-					return failure;
-	
-				case DisruptedCoinjoin info:
+				case DisruptedCoinjoinResult info:
 					// Only use successfully registered coins in the blame round.
 					coins = info.SignedCoins;
 				
 					currentRoundState.LogInfo("Waiting for the blame round.");
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 					break;
+
+				case SuccessfulCoinjoinResult sucess:
+					return sucess;
+
+				case FailedCoinjoinResult failure:
+					return failure;
+			
+				default:
+					throw new InvalidOperationException("The coinjoin result type was not handled.");
 			}
 		}
 
@@ -266,12 +269,12 @@ public class CoinJoinClient
 			
 			return roundState.EndRoundState switch
 			{
-				EndRoundState.TransactionBroadcasted => new SuccessfulCoinjoin(
+				EndRoundState.TransactionBroadcasted => new SuccessfulCoinjoinResult(
 					Coins: signedCoins,
 					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
 					UnsignedCoinJoin: unsignedCoinJoin!),
-				EndRoundState.NotAllAlicesSign => new DisruptedCoinjoin(signedCoins),
-				_ => new FailedCoinjoin()
+				EndRoundState.NotAllAlicesSign => new DisruptedCoinjoinResult(signedCoins),
+				_ => new FailedCoinjoinResult()
 			};
 		}
 		finally

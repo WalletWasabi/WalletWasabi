@@ -1,27 +1,16 @@
-using System.Collections.Generic;
 using NBitcoin;
 using System.Collections.Immutable;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.WabiSabi.Client;
 
-public abstract record CoinJoinResult
-{
-}
+public abstract record CoinJoinResult;
 
-public record SuccessfulCoinjoin(
+public record SuccessfulCoinjoinResult(
 	ImmutableList<SmartCoin> Coins,
 	ImmutableList<Script> OutputScripts,
-	Transaction UnsignedCoinJoin) : CoinJoinResult
-{
-}
+	Transaction UnsignedCoinJoin) : CoinJoinResult;
 
-public record DisruptedCoinjoin(
-	ImmutableList<SmartCoin> SignedCoins) : CoinJoinResult
-{
-}
+public record FailedCoinjoinResult : CoinJoinResult;
 
-public record FailedCoinjoin() : CoinJoinResult
-{
-}
-
+public record DisruptedCoinjoinResult(ImmutableList<SmartCoin> SignedCoins) : FailedCoinjoinResult;
