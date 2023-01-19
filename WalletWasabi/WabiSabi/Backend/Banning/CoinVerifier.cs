@@ -12,9 +12,6 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifier
 {
-	// This should be much bigger than the possible input-reg period.
-	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
-
 	public CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, Whitelist whitelist, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
@@ -32,21 +29,24 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
+	public event EventHandler<Coin>? CoinBlackListed;
+
+	// This should be much bigger than the possible input-reg period.
+	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
+
 	public Whitelist Whitelist { get; }
 	public WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
 	private ConcurrentDictionary<Coin, (DateTimeOffset ScheduleTime, TaskCompletionSource<CoinVerifyResult> TaskCompletionSource, CancellationTokenSource AbortCts)> CoinVerifyItems { get; } = new();
 
-	public event EventHandler<Coin>? CoinBlackListed;
-
 	public async Task<IEnumerable<CoinVerifyResult>> VerifyCoinsAsync(IEnumerable<Coin> coinsToCheck, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
-        // Booting up the results with the default value - ban: no, remove: yes.
-        Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+		// Booting up the results with the default value - ban: no, remove: yes.
+		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 
 		// Building up the task list.
 		List<Task<CoinVerifyResult>> tasks = new();
@@ -102,9 +102,9 @@ public class CoinVerifier
 
 		CleanUp();
 
-        await Whitelist.WriteToFileIfChangedAsync().ConfigureAwait(false);
+		await Whitelist.WriteToFileIfChangedAsync().ConfigureAwait(false);
 
-        return coinVerifyItems.Values.ToArray();
+		return coinVerifyItems.Values.ToArray();
 	}
 
 	private void CleanUp()
@@ -196,55 +196,57 @@ public class CoinVerifier
 			}
 		}
 
-		_ = Task.Run(async () =>
-		{
-			using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
-			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token, abortCts.Token);
-
-			try
+		_ = Task.Run(
+			async () =>
 			{
-				var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
+				using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token, abortCts.Token);
 
-				// Sanity check.
-				if (delay > AbsoluteScheduleSanityTimeout)
+				try
 				{
-					Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
-					delay = AbsoluteScheduleSanityTimeout;
-				}
+					var delay = delayedStart.GetValueOrDefault(TimeSpan.Zero);
 
-				if (delay > TimeSpan.Zero)
+					// Sanity check.
+					if (delay > AbsoluteScheduleSanityTimeout)
+					{
+						Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
+						delay = AbsoluteScheduleSanityTimeout;
+					}
+
+					if (delay > TimeSpan.Zero)
+					{
+						// We only abort and throw from the delay. If the API request already started, we will go with it.
+						using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, abortCts.Token);
+						await Task.Delay(delay, delayCts.Token).ConfigureAwait(false);
+					}
+
+					// This is the last chance to abort with abortCts.
+					abortCts.Token.ThrowIfCancellationRequested();
+
+					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
+					var shouldBan = CheckForFlags(apiResponseItem);
+
+					// We got a definetive answer.
+					if (shouldBan)
+					{
+						CoinBlackListed?.SafeInvoke(this, coin);
+					}
+					else
+					{
+						Whitelist.Add(coin.Outpoint);
+					}
+
+					taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan));
+				}
+				catch (Exception ex)
 				{
-					// We only abort and throw from the delay. If the API request already started, we will go with it.
-					using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(linkedCts.Token, abortCts.Token);
-					await Task.Delay(delay, delayCts.Token).ConfigureAwait(false);
+					taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+					Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
+
+					// Do not throw an exception here - unobserverved exception prevention.
 				}
-
-				// This is the last chance to abort with abortCts.
-				abortCts.Token.ThrowIfCancellationRequested();
-
-				var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
-				var shouldBan = CheckForFlags(apiResponseItem);
-
-				// We got a definetive answer.
-				if (shouldBan)
-				{
-					CoinBlackListed?.SafeInvoke(this, coin);
-				}
-				else
-				{
-					Whitelist.Add(coin.Outpoint);
-				}
-
-				taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: shouldBan, ShouldRemove: shouldBan));
-			}
-			catch (Exception ex)
-			{
-				taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
-				Logger.LogError($"Coin verification was failed with '{ex}' for coin '{coin.Outpoint}'.");
-
-				// Do not throw an exception here - unobserverved exception prevention.
-			}
-		}, cancellationToken);
+			},
+			cancellationToken);
 	}
 
 	public void CancelSchedule(Coin coin)

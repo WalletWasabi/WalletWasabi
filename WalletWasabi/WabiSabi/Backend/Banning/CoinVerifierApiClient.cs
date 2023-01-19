@@ -13,8 +13,6 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 
 public class CoinVerifierApiClient
 {
-	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
-
 	public CoinVerifierApiClient(string token, Network network, HttpClient httpClient)
 	{
 		ApiToken = token;
@@ -25,6 +23,8 @@ public class CoinVerifierApiClient
 	public CoinVerifierApiClient() : this("", Network.Main, new() { BaseAddress = new("https://www.test.test") })
 	{
 	}
+
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
 
 	private string ApiToken { get; set; }
 	private Network Network { get; set; }
