@@ -36,13 +36,9 @@
       <Setter Property="IsSelectable" Value="{Binding IsSelectable}" />
       <Setter Property="IsSelected" Value="{Binding IsSelected}" />
       <Setter Property="Command" Value="{Binding OpenCommand}" />
-
-      <!-- TODO RelayCommand: for relay commands the param seems must be provided  -->
       <Setter Property="CommandParameter">
         <Setter.Value>
-          <system:Boolean>
-            True
-          </system:Boolean>
+          <system:Boolean>False</system:Boolean>
         </Setter.Value>
       </Setter>
     </Style>

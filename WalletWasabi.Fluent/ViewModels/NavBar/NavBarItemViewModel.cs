@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using ReactiveUI;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,14 +14,21 @@ public enum NavBarItemSelectionMode
 
 public abstract class NavBarItemViewModel : RoutableViewModel
 {
-	private readonly NavigationMode _defaultNavigationMode;
 	private bool _isSelected;
 
 	protected NavBarItemViewModel(NavigationMode defaultNavigationMode = NavigationMode.Clear)
 	{
-		_defaultNavigationMode = defaultNavigationMode;
 		SelectionMode = NavBarItemSelectionMode.Selected;
-		OpenCommand = new AsyncRelayCommand<bool>(OnOpenCommandExecuted);
+		OpenCommand = new AsyncRelayCommand<bool>(async enableReSelection =>
+		{
+			if (!enableReSelection && IsSelected)
+			{
+				return;
+			}
+
+			IsSelected = true;
+			await OnOpen(defaultNavigationMode);
+		});
 	}
 
 	public NavBarItemSelectionMode SelectionMode { get; protected init; }
@@ -48,17 +54,6 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 	}
 
 	public ICommand OpenCommand { get; }
-
-	private async Task OnOpenCommandExecuted(bool enableReSelection = false)
-	{
-		if (!enableReSelection && IsSelected)
-		{
-			return;
-		}
-
-		IsSelected = true;
-		await OnOpen(_defaultNavigationMode);
-	}
 
 	protected virtual Task OnOpen(NavigationMode defaultNavigationMode)
 	{
