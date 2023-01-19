@@ -118,11 +118,11 @@ public class P2pBlockProvider : IBlockProvider
 						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 					}
 
-					await NodeTimeoutsAsync(increase: false).ConfigureAwait(false);
+					await UpdateNodeTimeoutsAsync(increase: false).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
-					await NodeTimeoutsAsync(increase: true).ConfigureAwait(false);
+					await UpdateNodeTimeoutsAsync(increase: true).ConfigureAwait(false);
 
 					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 					continue;
@@ -288,7 +288,7 @@ public class P2pBlockProvider : IBlockProvider
 	/// Compute current timeout in seconds used for downloading a block from remote nodes.
 	/// </summary>
 	/// <param name="increase"><c>true</c> to increase node timeouts, otherwise decrease them.</param>
-	private async Task NodeTimeoutsAsync(bool increase)
+	private async Task UpdateNodeTimeoutsAsync(bool increase)
 	{
 		if (increase)
 		{
@@ -299,7 +299,7 @@ public class P2pBlockProvider : IBlockProvider
 			NodeTimeouts--;
 		}
 
-		var timeout = RuntimeParams.Instance.NetworkNodeTimeout;
+		int timeout = RuntimeParams.Instance.NetworkNodeTimeout;
 
 		// If it times out 2 times in a row then increase the timeout.
 		if (NodeTimeouts >= 2)
@@ -329,6 +329,7 @@ public class P2pBlockProvider : IBlockProvider
 		{
 			return;
 		}
+
 		RuntimeParams.Instance.NetworkNodeTimeout = timeout;
 		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
 
