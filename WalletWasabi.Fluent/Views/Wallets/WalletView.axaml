@@ -20,7 +20,7 @@
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>
-          <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+          <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
             <Button Classes="function"
                     Command="{Binding BroadcastPsbtCommand}">
               <Button.IsVisible>

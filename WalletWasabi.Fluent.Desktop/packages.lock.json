@@ -70,10 +70,10 @@
       },
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Transitive",
-        "resolved": "11.0.0-preview1",
-        "contentHash": "nnijXywg8mXVtjORv117Zpe/GsRvL8t6lCDlbt6vxSAKRoAUulGWGdvGB4kLOlwwvYxEMXhUfFzh920PuvuLxQ==",
+        "resolved": "11.0.0-preview4",
+        "contentHash": "jwH4LfE++zV0HkqjP1ASGZw1C0M8RB4grvSkq7WSqRAeLRQ4k7Tmb5vDXL0YfQEk527uu9Z2P0ZQxShmYjx5qQ==",
         "dependencies": {
-          "Avalonia": "11.0.0-preview1"
+          "Avalonia": "11.0.0-preview4"
         }
       },
       "Avalonia.Diagnostics": {
@@ -699,14 +699,13 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "[11.0.0-preview4, )",
-          "Avalonia.Controls.TreeDataGrid": "[11.0.0-preview1, )",
+          "Avalonia.Controls.TreeDataGrid": "[11.0.0-preview4, )",
           "Avalonia.Diagnostics": "[11.0.0-preview4, )",
           "Avalonia.ReactiveUI": "[11.0.0-preview4, )",
           "Avalonia.Skia": "[11.0.0-preview4, )",
           "Avalonia.Themes.Fluent": "[11.0.0-preview4, )",
           "Avalonia.Xaml.Behaviors": "[11.0.0-preview4, )",
           "System.Drawing.Common": "[7.0.0, )",
-          "System.Reactive": "[5.0.0, )",
           "System.Runtime": "[4.3.1, )",
           "WalletWasabi": "[1.0.0, )"
         }

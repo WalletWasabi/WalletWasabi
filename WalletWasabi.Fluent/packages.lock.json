@@ -20,11 +20,11 @@
       },
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Direct",
-        "requested": "[11.0.0-preview1, )",
-        "resolved": "11.0.0-preview1",
-        "contentHash": "nnijXywg8mXVtjORv117Zpe/GsRvL8t6lCDlbt6vxSAKRoAUulGWGdvGB4kLOlwwvYxEMXhUfFzh920PuvuLxQ==",
+        "requested": "[11.0.0-preview4, )",
+        "resolved": "11.0.0-preview4",
+        "contentHash": "jwH4LfE++zV0HkqjP1ASGZw1C0M8RB4grvSkq7WSqRAeLRQ4k7Tmb5vDXL0YfQEk527uu9Z2P0ZQxShmYjx5qQ==",
         "dependencies": {
-          "Avalonia": "11.0.0-preview1"
+          "Avalonia": "11.0.0-preview4"
         }
       },
       "Avalonia.Diagnostics": {
@@ -97,12 +97,6 @@
         "dependencies": {
           "Microsoft.Win32.SystemEvents": "7.0.0"
         }
-      },
-      "System.Reactive": {
-        "type": "Direct",
-        "requested": "[5.0.0, )",
-        "resolved": "5.0.0",
-        "contentHash": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ=="
       },
       "System.Runtime": {
         "type": "Direct",
@@ -489,6 +483,11 @@
         "type": "Transitive",
         "resolved": "4.5.4",
         "contentHash": "1MbJTHS1lZ4bS4FmsJjnuGJOu88ZzTT2rLvrhW7Ygic+pC0NWA+3hgAen0HRdsocuQXCkUTdFn9yHJJhsijDXw=="
+      },
+      "System.Reactive": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ=="
       },
       "System.Reflection": {
         "type": "Transitive",
