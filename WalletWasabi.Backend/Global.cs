@@ -75,6 +75,7 @@ public class Global : IDisposable
 
 	public CoinJoinIdStore CoinJoinIdStore { get; }
 	public WabiSabiCoordinator? WabiSabiCoordinator { get; private set; }
+	private Whitelist? WhiteList { get; set; }
 
 	public async Task InitializeAsync(CoordinatorRoundConfig roundConfig, CancellationToken cancel)
 	{
@@ -113,8 +114,9 @@ public class Global : IDisposable
 				HttpClient.BaseAddress = url;
 
 				var coinVerifierApiClient = new CoinVerifierApiClient(wabiSabiConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
-				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, wabiSabiConfig);
+				var whiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
+				WhiteList = whiteList;
+				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whiteList, wabiSabiConfig);
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
@@ -253,6 +255,11 @@ public class Global : IDisposable
 
 					await P2pNode.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
+
+					if (WhiteList is { } whiteList)
+					{
+						await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false);
+					}
 				});
 
 				stoppingTask.GetAwaiter().GetResult();

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
