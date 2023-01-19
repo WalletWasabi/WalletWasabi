@@ -115,7 +115,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletCoinsCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(new WalletCoinsViewModel(this)));
 
-		CoinJoinSettingsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), Observable.Return(!wallet.KeyManager.IsWatchOnly));
+		CoinJoinSettingsCommand = new RelayCommand(() => Navigate(NavigationTarget.DialogScreen).To(CoinJoinSettings), () => !wallet.KeyManager.IsWatchOnly);
 
 		CoinJoinStateViewModel = new CoinJoinStateViewModel(this);
 

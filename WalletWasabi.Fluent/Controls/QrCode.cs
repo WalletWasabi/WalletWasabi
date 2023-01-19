@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
 using Avalonia.Platform;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 
@@ -18,8 +19,8 @@ public class QrCode : Control
 	private const int MatrixPadding = 2;
 	private const int MinimumBitmapSizePixelWh = 512;
 
-	public static readonly DirectProperty<QrCode, ReactiveCommand<string, Unit>> SaveCommandProperty =
-		AvaloniaProperty.RegisterDirect<QrCode, ReactiveCommand<string, Unit>>(
+	public static readonly DirectProperty<QrCode, IRelayCommand> SaveCommandProperty =
+		AvaloniaProperty.RegisterDirect<QrCode, IRelayCommand>(
 			nameof(SaveCommand),
 			o => o.SaveCommand,
 			(o, v) => o.SaveCommand = v);
@@ -27,7 +28,7 @@ public class QrCode : Control
 	public static readonly DirectProperty<QrCode, bool[,]?> MatrixProperty =
 		AvaloniaProperty.RegisterDirect<QrCode, bool[,]?>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
 
-	private ReactiveCommand<string, Unit> _saveCommand;
+	private IRelayCommand _saveCommand;
 
 	private bool[,]? _matrix;
 
@@ -48,24 +49,24 @@ public class QrCode : Control
 				}
 			});
 
-		_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(async address =>
+		_saveCommand = new AsyncRelayCommand<string>(async address =>
 		{
-			await SaveQrCodeAsync(address);
-			return Unit.Default;
+			await SaveQrCodeAsync(address); // TODO RelayCommand, nullable
 		});
 
-		SaveCommand.ThrownExceptions
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(_ =>
-			{
-				// The error is thrown also in ReceiveAddressViewModel -> SaveQrCodeCommand.ThrownExceptions.
-				// However we need to catch it here too but to avoid duplicate logging we don't do anything here.
-			});
+		// TODO RelayCommand: might be obsolete?
+		// SaveCommand.ThrownExceptions
+		// 	.ObserveOn(RxApp.TaskpoolScheduler)
+		// 	.Subscribe(_ =>
+		// 	{
+		// 		// The error is thrown also in ReceiveAddressViewModel -> SaveQrCodeCommand.ThrownExceptions.
+		// 		// However we need to catch it here too but to avoid duplicate logging we don't do anything here.
+		// 	});
 	}
 
 	private bool[,]? FinalMatrix { get; set; }
 
-	public ReactiveCommand<string, Unit> SaveCommand
+	public IRelayCommand SaveCommand
 	{
 		get => _saveCommand;
 		set => SetAndRaise(SaveCommandProperty, ref _saveCommand, value);

@@ -20,7 +20,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 	[ObservableProperty] private int _orderIndex;
 	[ObservableProperty] private DateTimeOffset _date;
 	[ObservableProperty] private string _dateString = "";
-	[ObservableProperty] private bool _isConfirmed;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(SpeedUpTransactionCommand))] private bool _isConfirmed;
 	[ObservableProperty] private bool _isExpanded;
 	[ObservableProperty] private string _confirmedToolTip;
 	private ObservableCollection<HistoryItemViewModelBase>? _children;
@@ -32,6 +32,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 		_confirmedToolTip = "Confirmed";
 
 		ClipboardCopyCommand = new AsyncRelayCommand<string>(CopyToClipboardAsync); // TODO RelayCommand: nullable
+		SpeedUpTransactionCommand = new RelayCommand(()=>{ }); // TODO RelayCommand: NEW during canExecute notification.
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -62,7 +63,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase
 
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
-	public ICommand? SpeedUpTransactionCommand { get; protected set; }
+	public IRelayCommand? SpeedUpTransactionCommand { get; protected set; }
 
 	private async Task CopyToClipboardAsync(string text)
 	{

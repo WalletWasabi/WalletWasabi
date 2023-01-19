@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
@@ -28,11 +29,10 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		_walletVm = walletVm;
 		_showPrivacyBar = showPrivacyBar;
 
-		var showDetailsCanExecute =
-			walletVm.WhenAnyValue(x => x.IsWalletBalanceZero)
-					.Select(x => !x);
+		ShowDetailsCommand = new RelayCommand(ShowDetails, () => !walletVm.IsWalletBalanceZero);
 
-		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, showDetailsCanExecute);
+		walletVm.WhenAnyValue(x => x.IsWalletBalanceZero)
+				.Subscribe(_ => ShowDetailsCommand.NotifyCanExecuteChanged()); // TODO RelayCommand: canExecute, refactor
 
 		if (showPrivacyBar)
 		{
@@ -40,7 +40,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		}
 	}
 
-	public ICommand ShowDetailsCommand { get; }
+	public IRelayCommand ShowDetailsCommand { get; }
 
 	public PrivacyBarViewModel? PrivacyBar { get; }
 

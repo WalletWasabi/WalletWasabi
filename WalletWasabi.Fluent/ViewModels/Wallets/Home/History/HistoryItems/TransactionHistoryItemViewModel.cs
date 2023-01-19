@@ -34,16 +34,15 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 			RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(
 				new TransactionDetailsViewModel(transactionSummary, walletVm)));
 
-		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
-			.Select(x => !x)
-			.ObserveOn(RxApp.MainThreadScheduler);
-
-		SpeedUpTransactionCommand = ReactiveCommand.Create(
+		SpeedUpTransactionCommand = new RelayCommand(
 			() =>
 			{
 				// TODO: Show speed up transaction dialog.
 			},
-			speedUpTransactionCommandCanExecute);
+			canExecute: () => !IsConfirmed);
+
+		// this.WhenAnyValue(x => x.IsConfirmed)
+		// 	.Subscribe(_ => SpeedUpTransactionCommand.NotifyCanExecuteChanged()); // TODO RelayCommand: NRE with normal way
 
 		DateString = $"{Date.ToLocalTime():MM/dd/yyyy HH:mm}";
 	}

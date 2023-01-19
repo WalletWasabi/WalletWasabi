@@ -51,20 +51,22 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		ShowOnHwWalletCommand = new AsyncRelayCommand(async () => await OnShowOnHwWalletAsync(_model, _wallet.Network, _wallet.KeyManager.MasterFingerprint));
 
-		SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
+		// TODO: wtf?! must be refactored.
+		SaveQrCodeCommand = new RelayCommand(OnSaveQrCodeAsync);
 
-		SaveQrCodeCommand.ThrownExceptions
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(ex => Logger.LogError(ex));
+		// TODO RelayCommand: might be obsolete?
+		// SaveQrCodeCommand.ThrownExceptions
+		// 	.ObserveOn(RxApp.TaskpoolScheduler)
+		// 	.Subscribe(ex => Logger.LogError(ex));
 
 		NextCommand = CancelCommand;
 	}
 
-	public ReactiveCommand<string, Unit>? QrCodeCommand { get; set; }
+	public IAsyncRelayCommand? QrCodeCommand { get; set; }
 
 	public ICommand CopyAddressCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SaveQrCodeCommand { get; }
+	public IRelayCommand SaveQrCodeCommand { get; }
 
 	public ICommand ShowOnHwWalletCommand { get; }
 
@@ -108,11 +110,11 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		});
 	}
 
-	private async Task OnSaveQrCodeAsync()
+	private void OnSaveQrCodeAsync()
 	{
 		if (QrCodeCommand is { } cmd)
 		{
-			await cmd.Execute(Address);
+			cmd.Execute(Address);
 		}
 	}
 

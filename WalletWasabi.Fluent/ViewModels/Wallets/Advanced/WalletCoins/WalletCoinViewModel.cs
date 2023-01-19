@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -18,7 +19,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 	[ObservableProperty] private int _anonymitySet;
 	[ObservableProperty] private SmartLabel _smartLabel = "";
 	[ObservableProperty] private bool _confirmed;
-	[ObservableProperty] private bool _coinJoinInProgress;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(ToggleSelectCommand))] private bool _coinJoinInProgress;
 	[ObservableProperty] private bool _isSelected;
 	[ObservableProperty] private bool _isBanned;
 	[ObservableProperty] private string? _bannedUntilUtcToolTip;
@@ -29,7 +30,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		Coin = coin;
 		Amount = Coin.Amount;
 
-		ToggleSelectCommand = ReactiveCommand.Create(() => IsSelected = !IsSelected, canExecute: this.WhenAnyValue(x => x.CoinJoinInProgress).Select(x => !x));
+		ToggleSelectCommand = new RelayCommand(() => IsSelected = !IsSelected, canExecute: () => !CoinJoinInProgress);
 
 		Coin.WhenAnyValue(c => c.Confirmed).Subscribe(x => Confirmed = x).DisposeWith(_disposables);
 		Coin.WhenAnyValue(c => c.HdPubKey.Cluster.Labels).Subscribe(x => SmartLabel = x).DisposeWith(_disposables);
@@ -43,7 +44,7 @@ public partial class WalletCoinViewModel : ViewModelBase, IDisposable
 		this.WhenAnyValue(x => x.CoinJoinInProgress).Where(x => x).Subscribe(_ => IsSelected = false);
 	}
 
-	public ICommand ToggleSelectCommand { get; }
+	public IRelayCommand ToggleSelectCommand { get; }
 
 	public SmartCoin Coin { get; }
 

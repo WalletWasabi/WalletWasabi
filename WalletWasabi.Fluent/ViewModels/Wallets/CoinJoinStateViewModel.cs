@@ -41,14 +41,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[ObservableProperty] private bool _isAutoWaiting;
 	[ObservableProperty] private bool _playVisible = true;
 	[ObservableProperty] private bool _pauseVisible;
-	[ObservableProperty] private bool _pauseSpreading;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(StopPauseCommand))] private bool _pauseSpreading;
 	[ObservableProperty] private bool _stopVisible;
 	[ObservableProperty] private MusicStatusMessageViewModel? _currentStatus;
 	[ObservableProperty] private bool _isProgressReversed;
 	[ObservableProperty] private double _progressValue;
 	[ObservableProperty] private string _elapsedTime;
 	[ObservableProperty] private string _remainingTime;
-	[ObservableProperty] private bool _isInCriticalPhase;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(StopPauseCommand))] private bool _isInCriticalPhase;
 	[ObservableProperty] private bool _isCountDownDelayHappening;
 	[ObservableProperty] private bool _areAllCoinsPrivate;
 
@@ -110,11 +110,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 
-		IsPauseButtonEnabled = this.WhenAnyValue(x => x.IsInCriticalPhase, x => x.PauseSpreading,
-			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
-
-		StopPauseCommand = ReactiveCommand.CreateFromTask(async () =>
-			await coinJoinManager.StopAsync(wallet, CancellationToken.None), IsPauseButtonEnabled);
+		StopPauseCommand = new AsyncRelayCommand(async () =>
+			await coinJoinManager.StopAsync(wallet, CancellationToken.None), () => !IsInCriticalPhase && !PauseSpreading);
 
 		AutoCoinJoinObservable = walletVm.CoinJoinSettings.WhenAnyValue(x => x.AutoCoinJoin);
 
@@ -176,15 +173,13 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public IObservable<bool> AutoCoinJoinObservable { get; }
 
-	public IObservable<bool> IsPauseButtonEnabled { get; }
-
 	private bool IsCountDownFinished => GetRemainingTime() <= TimeSpan.Zero;
 
 	private bool IsCounting => _countdownTimer.IsEnabled;
 
 	public ICommand PlayCommand { get; }
 
-	public ICommand StopPauseCommand { get; }
+	public IRelayCommand StopPauseCommand { get; }
 
 	public WalletViewModel WalletVm { get; }
 

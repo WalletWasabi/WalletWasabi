@@ -37,14 +37,17 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 		ShowCommand = new RelayCommand(() => _mainWindowService.Show());
 
-		AboutCommand = ReactiveCommand.Create(AboutExecute, AboutCanExecute());
+		AboutCommand = new RelayCommand(AboutExecute, () => MainViewModel.Instance.DialogScreen.CurrentPage is null);
+
+		// TODO RelayCommand: canExecute, refactor
+		MainViewModel.Instance.DialogScreen.WhenAnyValue(x => x.CurrentPage).Subscribe(_ => AboutCommand.NotifyCanExecuteChanged());
 
 		using var bitmap = AssetHelpers.GetBitmapAsset("avares://WalletWasabi.Fluent/Assets/WasabiLogo.ico");
 		TrayIcon = new WindowIcon(bitmap);
 	}
 
 	public WindowIcon TrayIcon { get; }
-	public ICommand AboutCommand { get; }
+	public IRelayCommand AboutCommand { get; }
 	public ICommand ShowCommand { get; }
 
 	public ICommand ShowHideCommand { get; }

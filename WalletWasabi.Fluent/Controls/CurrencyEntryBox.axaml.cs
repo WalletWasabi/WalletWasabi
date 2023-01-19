@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Helpers;
 
@@ -79,10 +80,11 @@ public class CurrencyEntryBox : TextBox
 		this.GetObservable(IsRightSideProperty)
 			.Subscribe(x => PseudoClasses.Set(":isrightside", x));
 
-		ModifiedPaste = ReactiveCommand.Create(ModifiedPasteAsync, this.GetObservable(CanPasteProperty));
+		ModifiedPaste = new RelayCommand(ModifiedPasteAsync, () => CanPaste);
+		this.GetObservable(CanPasteProperty).Subscribe(_ => ModifiedPaste.NotifyCanExecuteChanged());
 	}
 
-	public ICommand ModifiedPaste { get; }
+	public IRelayCommand ModifiedPaste { get; }
 
 	public decimal ConversionRate
 	{
