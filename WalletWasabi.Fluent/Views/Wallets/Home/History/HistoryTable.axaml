@@ -256,13 +256,17 @@
         <Style Selector="TreeDataGridExpanderCell">
           <Setter Property="Template">
             <ControlTemplate>
-              <Border Background="{TemplateBinding Background}"
+              <Border x:Name="CellBorder"
+                      Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      CornerRadius="{TemplateBinding CornerRadius}"
                       Padding="0">
                 <DockPanel>
                   <Border DockPanel.Dock="Left"
                           Margin="4 0"
                           Width="12" Height="12">
-                    <ToggleButton Classes="ExpandCollapseChevron"
+                    <ToggleButton Theme="{StaticResource FluentTreeViewExpandCollapseChevron}"
                                   Focusable="False"
                                   IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}"
                                   IsVisible="{TemplateBinding ShowExpander}"
