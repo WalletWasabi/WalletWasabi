@@ -21,12 +21,12 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	// Blank constructor used for testing
+	// Constructor used for testing
 	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig)
 	{
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinVerifierApiClient = apiClient;
-		Whitelist = new();
+		Whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, wabiSabiConfig);
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
@@ -59,8 +59,7 @@ public class CoinVerifier
 		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
-		var lastChangeId = Whitelist.ChangeId;
-		Whitelist.RemoveAllExpired(WabiSabiConfig.ReleaseFromWhitelistAfter);
+		Whitelist.RemoveAllExpired();
 
 		var scriptsToCheck = new HashSet<Script>();
 		var innocentsCounter = 0;
@@ -95,10 +94,7 @@ public class CoinVerifier
 			}
 		}
 
-		if (Whitelist.ChangeId != lastChangeId)
-		{
-			Whitelist.WriteToFile();
-		}
+		await Whitelist.WriteToFileIfChangedAsync().ConfigureAwait(false);
 
 		var duration = DateTimeOffset.UtcNow - before;
 		RequestTimeStatista.Instance.Add("verifier-period", duration);
