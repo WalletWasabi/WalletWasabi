@@ -23,6 +23,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 	private SourceList<RecoveryWordViewModel> _confirmationWordsSourceList;
 	[ObservableProperty] private bool _isSkipEnable;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))]private bool _isAllConfirmed;
 
 	public ConfirmRecoveryWordsViewModel(
 		List<RecoveryWordViewModel> mnemonicWords,
@@ -38,13 +39,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = new AsyncRelayCommand(() => OnNextAsync(mnemonic, walletName), () => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
-
-		// TODO RelayCommand: canExecute, refactor?
-		_confirmationWordsSourceList
-			.Connect()
-			.WhenValueChanged(x => x.IsConfirmed)
-			.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
+		NextCommand = new AsyncRelayCommand(() => OnNextAsync(mnemonic, walletName), () => IsAllConfirmed);
 
 		if (_isSkipEnable)
 		{
@@ -59,7 +54,9 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.OnItemAdded(x => x.Reset())
 			.Sort(SortExpressionComparer<RecoveryWordViewModel>.Ascending(x => x.Index))
 			.Bind(out _confirmationWords)
-			.Subscribe();
+			.WhenValueChanged(x => x.IsConfirmed)
+			.Select(_ => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed))
+			.BindTo(this, x => x.IsAllConfirmed);
 
 		// Select random words to confirm.
 		_confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => Random.Shared.NextDouble()).Take(3));
