@@ -59,7 +59,7 @@ public class Round
 	public List<Alice> Alices { get; } = new();
 	public int InputCount => Alices.Count;
 	public List<Bob> Bobs { get; } = new();
-	public HashSet<OutPoint> AlreadyRegisteredOutpoints { get; } = new();
+	public HashSet<OutPoint> AlreadyRegisteredInputs { get; } = new();
 	public Phase Phase { get; private set; } = Phase.InputRegistration;
 	public TimeFrame InputRegistrationTimeFrame { get; internal set; }
 	public TimeFrame ConnectionConfirmationTimeFrame { get; private set; }

@@ -38,7 +38,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId);
 
-			if (round.AlreadyRegisteredOutpoints.Contains(coin.Outpoint))
+			if (round.AlreadyRegisteredInputs.Contains(coin.Outpoint))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
@@ -119,7 +119,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
-			round.AlreadyRegisteredOutpoints.Add(alice.Coin.Outpoint);
+			round.AlreadyRegisteredInputs.Add(alice.Coin.Outpoint);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,
