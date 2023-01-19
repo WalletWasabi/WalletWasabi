@@ -1,4 +1,4 @@
-﻿using System.Reactive;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -26,26 +26,26 @@ public class UiTriggers
 		Observable
 			.FromEventPattern(_wallet.TransactionProcessor, nameof(TransactionProcessor.WalletRelevantTransactionProcessed)).ToSignal()
 			.Merge(Observable.FromEventPattern(_wallet, nameof(Wallet.NewFilterProcessed)).ToSignal())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.StartWith(Unit.Default);
+			.StartWith(Unit.Default)
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 	/// <summary>
 	/// Triggers on subscription and when the USD exchange rate changed.
 	/// </summary>
-	public IObservable<Unit> UsdExchangeRateChanged => _wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).ObserveOn(RxApp.MainThreadScheduler).ToSignal();
+	public IObservable<Unit> UsdExchangeRateChanged => _wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).ToSignal().ObserveOn(RxApp.MainThreadScheduler);
 
 	/// <summary>
 	/// Triggers on subscription and when the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ObserveOn(RxApp.MainThreadScheduler).ToSignal();
+	public IObservable<Unit> AnonScoreTargetChanged => _walletViewModel.CoinJoinSettings.WhenAnyValue(x => x.AnonScoreTarget).ObserveOn(RxApp.MainThreadScheduler).ToSignal().ObserveOn(RxApp.MainThreadScheduler);
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the USD exchange rate changed.
 	/// </summary>
-	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged).Skip(1);
+	public IObservable<Unit> BalanceUpdateTrigger => TransactionsUpdateTrigger.Merge(UsdExchangeRateChanged).Skip(1).ObserveOn(RxApp.MainThreadScheduler);
 
 	/// <summary>
 	/// Triggers on subscription and when a transaction is processed to the wallet or the anon score target changed.
 	/// </summary>
-	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Skip(1);
+	public IObservable<Unit> PrivacyProgressUpdateTrigger => TransactionsUpdateTrigger.Merge(AnonScoreTargetChanged).Skip(1).ObserveOn(RxApp.MainThreadScheduler);
 }

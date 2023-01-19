@@ -67,7 +67,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			this.WhenAnyValue(x => x.Width, x => x.Height)
 				.Where(tuple => tuple.Item1 != 0 && tuple.Item2 != 0)
 				.Do(_ => itemsSourceList.Clear())
-				.Throttle(TimeSpan.FromMilliseconds(100))
+				.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 				.ToSignal();
 
 		_walletViewModel.UiTriggers
