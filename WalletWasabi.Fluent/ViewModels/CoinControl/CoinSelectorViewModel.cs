@@ -41,7 +41,6 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 				AmountColumn(),
 				AnonymityScoreColumn(),
 				pocketColumn,
-				ScriptTypeColumn()
 			}
 		};
 
@@ -168,19 +167,6 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			});
 	}
 
-	private IColumn<CoinControlItemViewModelBase> ScriptTypeColumn()
-	{
-		return new PlainTextColumn<CoinControlItemViewModelBase>(
-			"Script Type",
-			node => GetScriptType(node.ScriptType),
-			GridLength.Auto,
-			new ColumnOptions<CoinControlItemViewModelBase>
-			{
-				CompareAscending = SortAscending<CoinControlItemViewModelBase, Money>(x => x.Amount),
-				CompareDescending = SortDescending<CoinControlItemViewModelBase, Money>(x => x.Amount)
-			});
-	}
-
 	private static int GetLabelPriority(CoinControlItemViewModelBase coin)
 	{
 		if (coin.Labels == CoinPocketHelper.PrivateFundsText)
@@ -214,23 +200,6 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 		}
 
 		return 0;
-	}
-
-	private static string GetScriptType(ScriptType? nodeScriptType)
-	{
-		return nodeScriptType switch
-		{
-			ScriptType.MultiSig => "",
-			null => "",
-			ScriptType.Witness => "",
-			ScriptType.P2SH => "",
-			ScriptType.P2PK => "",
-			ScriptType.P2PKH => "",
-			ScriptType.P2WSH => "SW",
-			ScriptType.P2WPKH => "SW",
-			ScriptType.Taproot => "TR",
-			_ => throw new ArgumentOutOfRangeException(nameof(nodeScriptType), nodeScriptType, null)
-		};
 	}
 
 	private static IReadOnlyCollection<PocketCoinControlItemViewModel> CreatePocketItems(IEnumerable<Pocket> pockets)

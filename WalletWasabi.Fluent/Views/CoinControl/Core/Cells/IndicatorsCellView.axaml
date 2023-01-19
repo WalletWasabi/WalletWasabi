@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="core:CoinControlItemViewModelBase"
              x:CompileBindings="True"
@@ -37,9 +38,13 @@
       <PathIcon IsVisible="{Binding !IsCoinjoining}"
                 Data="{StaticResource wallet_action_coinjoin}"
                 Height="15"
-                Opacity="0.3"
+                Opacity="0.6"
                 ToolTip.Tip="Not coinjoining" />
     </Panel>
+
+    <Border BorderThickness="1" IsVisible="{Binding #ScriptType.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" BorderBrush="{DynamicResource TextControlForeground}" Opacity="0.6" CornerRadius="4" Padding="3">
+      <TextBlock Classes="h10" x:Name="ScriptType" Text="{Binding ScriptType, Converter={x:Static converters:ScriptTypeConverter.Instance}}" />
+    </Border>
 
     <!-- Banned -->
     <PathIcon IsVisible="{Binding IsBanned}"
