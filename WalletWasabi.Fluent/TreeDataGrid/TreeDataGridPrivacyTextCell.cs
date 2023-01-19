@@ -40,9 +40,9 @@ internal class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 	public override void Render(DrawingContext context)
 	{
-		if (this.Background is { } background)
+		if (Background is { } background)
 		{
-			context.FillRectangle(background, new Rect(this.Bounds.Size));
+			context.FillRectangle(background, new Rect(Bounds.Size));
 		}
 
 		if (_formattedText is null)

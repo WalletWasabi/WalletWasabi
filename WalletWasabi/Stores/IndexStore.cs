@@ -15,6 +15,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
+
 namespace WalletWasabi.Stores;
 
 /// <summary>
@@ -108,7 +109,7 @@ public class IndexStore : IAsyncDisposable
 						{
 							i++;
 							cancel.ThrowIfCancellationRequested();
-							string? line = await sr.ReadLineAsync().ConfigureAwait(false);
+							string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
 
 							if (line is null)
 							{
@@ -361,48 +362,19 @@ public class IndexStore : IAsyncDisposable
 				{
 					uint height = StartingHeight;
 					using var sr = MatureIndexFileManager.OpenText();
-					if (!sr.EndOfStream)
+
+					while (true)
 					{
-						var lineTask = sr.ReadLineAsync();
-						Task tTask = Task.CompletedTask;
-						string? line = null;
-						while (lineTask is { })
-						{
-							if (firstImmatureHeight == height)
-							{
-								break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
-							}
-
-							line ??= await lineTask.ConfigureAwait(false);
-
-							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
-
-							if (height < fromHeight.Value)
-							{
-								height++;
-								line = null;
-								continue;
-							}
-
-							var filter = FilterModel.FromLine(line);
-
-							await tTask.ConfigureAwait(false);
-							tTask = todo(filter);
-
-							height++;
-
-							line = null;
-						}
-						await tTask.ConfigureAwait(false);
-					}
-
-					while (!sr.EndOfStream)
-					{
-						var line = await sr.ReadLineAsync().ConfigureAwait(false);
-
 						if (firstImmatureHeight == height)
 						{
 							break; // Let's use our the immature filters from here on. The content is the same, just someone else modified the file.
+						}
+
+						string? line = await sr.ReadLineAsync(CancellationToken.None).ConfigureAwait(false);
+
+						if (line is null)
+						{
+							break;
 						}
 
 						if (height < fromHeight.Value)
@@ -411,7 +383,7 @@ public class IndexStore : IAsyncDisposable
 							continue;
 						}
 
-						var filter = FilterModel.FromLine(line);
+						FilterModel filter = FilterModel.FromLine(line);
 
 						await todo(filter).ConfigureAwait(false);
 						height++;

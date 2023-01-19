@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -38,13 +39,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 		ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
 
 		RecoverWalletCommand = ReactiveCommand.Create(OnRecoverWallet);
-
-		OpenCommand = ReactiveCommand.Create(async () =>
-		{
-			MainViewModel.Instance.IsOobeBackgroundVisible = true;
-			await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-			MainViewModel.Instance.IsOobeBackgroundVisible = false;
-		});
 	}
 
 	public ICommand CreateWalletCommand { get; }
@@ -98,6 +92,13 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 	private void OnRecoverWallet()
 	{
 		Navigate().To(new WalletNamePageViewModel(WalletCreationOption.RecoverWallet));
+	}
+
+	protected override async Task OnOpen(NavigationMode defaultNavigationMode)
+	{
+		MainViewModel.Instance.IsOobeBackgroundVisible = true;
+		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
+		MainViewModel.Instance.IsOobeBackgroundVisible = false;
 	}
 
 	private async Task ImportWalletAsync()

@@ -70,7 +70,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			return;
 		}
 
-		var shouldCreateSegmentsByCoin = coinCount < UIConstants.PrivacyRingMaxItemCount;
+		var shouldCreateSegmentsByCoin = coinCount < UiConstants.PrivacyRingMaxItemCount;
 
 		var result =
 			shouldCreateSegmentsByCoin
