@@ -104,18 +104,25 @@ public class P2pBlockProvider : IBlockProvider
 						block = await node.DownloadBlockAsync(hash, lts.Token).ConfigureAwait(false);
 					}
 
-					// Validate block
+					// Validate block.
 					if (!block.Check())
 					{
 						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.", force: true);
 						continue;
 					}
 
-					await NodeTimeoutsAsync(increaseDecrease: false).ConfigureAwait(false);
+					// In general, we don't want to disconnect from a node that sent us a valid block. However, to avoid converging
+					// to being connected only to fast nodes, we disconnect from a node from time to time.
+					if (Random.Shared.Next(1, 80) % 10 == 0)
+					{
+						DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+					}
+
+					await NodeTimeoutsAsync(increase: false).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
-					await NodeTimeoutsAsync(increaseDecrease: true).ConfigureAwait(false);
+					await NodeTimeoutsAsync(increase: true).ConfigureAwait(false);
 
 					DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 					continue;
@@ -278,11 +285,12 @@ public class P2pBlockProvider : IBlockProvider
 	}
 
 	/// <summary>
-	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
+	/// Compute current timeout in seconds used for downloading a block from remote nodes.
 	/// </summary>
-	private async Task NodeTimeoutsAsync(bool increaseDecrease)
+	/// <param name="increase"><c>true</c> to increase node timeouts, otherwise decrease them.</param>
+	private async Task NodeTimeoutsAsync(bool increase)
 	{
-		if (increaseDecrease)
+		if (increase)
 		{
 			NodeTimeouts++;
 		}
