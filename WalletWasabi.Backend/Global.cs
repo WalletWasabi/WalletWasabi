@@ -241,34 +241,36 @@ public class Global : IDisposable
 					Logger.LogInfo($"{nameof(coordinator)} is disposed.");
 				}
 
-				var stoppingTask = Task.Run(async () =>
-				{
-					await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
-
-					await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
-
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-					await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-					HostedServices.Dispose();
-
-					await P2pNode.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
-
-					if (WhiteList is { } whiteList)
-					{
-						if (await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false))
-						{
-							Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
-						}
-					}
-				});
+				var stoppingTask = Task.Run(DisposeAsync);
 
 				stoppingTask.GetAwaiter().GetResult();
 			}
 
 			_disposedValue = true;
+		}
+	}
+
+	private async Task DisposeAsync()
+	{
+		await SegwitTaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(SegwitTaprootIndexBuilderService)} is stopped.");
+
+		await TaprootIndexBuilderService.StopAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(TaprootIndexBuilderService)} is stopped.");
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+		await HostedServices.StopAllAsync(cts.Token).ConfigureAwait(false);
+		HostedServices.Dispose();
+
+		await P2pNode.DisposeAsync().ConfigureAwait(false);
+		Logger.LogInfo($"{nameof(P2pNode)} is disposed.");
+
+		if (WhiteList is { } whiteList)
+		{
+			if (await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false))
+			{
+				Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
+			}
 		}
 	}
 
