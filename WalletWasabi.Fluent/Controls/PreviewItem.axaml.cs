@@ -1,10 +1,12 @@
-using System.Reactive.Linq;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -33,6 +35,37 @@ public class PreviewItem : ContentControl
 
 	public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
 		AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
+
+	private Stopwatch? _copyButtonPressedStopwatch;
+
+	public PreviewItem()
+	{
+		CopyCommand = new AsyncRelayCommand(async () =>
+		{
+			if (Application.Current is { Clipboard: { } clipboard } && TextValue is { } text)
+			{
+				_copyButtonPressedStopwatch = Stopwatch.StartNew();
+				await clipboard.SetTextAsync(text);
+			}
+		});
+
+		this.WhenAnyValue(
+				x => x.TextValue,
+				x => x.IsPointerOver,
+				x => x.PrivacyModeEnabled,
+				(copyParameter, isPointerOver, privacyModeEnabled) => !string.IsNullOrEmpty(copyParameter?.ToString()) && isPointerOver && !privacyModeEnabled)
+			.SubscribeAsync(async value =>
+			{
+				if (_copyButtonPressedStopwatch is { } sw)
+				{
+					var millisecondsToWait = Math.Max(1050 - (int)sw.ElapsedMilliseconds, 0);
+					await Task.Delay(millisecondsToWait);
+					_copyButtonPressedStopwatch = null;
+				}
+
+				IsCopyButtonVisible = value;
+			});
+	}
 
 	public string Label
 	{
@@ -80,23 +113,5 @@ public class PreviewItem : ContentControl
 	{
 		get => GetValue(PrivacyModeEnabledProperty);
 		set => SetValue(PrivacyModeEnabledProperty, value);
-	}
-
-	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-	{
-		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
-
-		var hasBeenJustCopied = Observable.Return(false)
-			.Concat(button.CopyCommand
-				.Select(_ => Observable.Return(true).Concat(Observable.Timer(TimeSpan.FromSeconds(1)).Select(_ => false)))
-				.Switch());
-
-		var isCopyButtonVisible = this
-			.WhenAnyValue(item => item.IsPointerOver, item => item.TextValue, (a, b) => a && !string.IsNullOrWhiteSpace(b))
-			.CombineLatest(hasBeenJustCopied, (over, justCopied) => over || justCopied);
-
-		this.Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);
-
-		base.OnApplyTemplate(e);
 	}
 }

@@ -23,11 +23,13 @@
             <TextBlock Name="PART_Text" Text="{TemplateBinding Label}" DockPanel.Dock="Top" Margin="0 0 0 5"
                        Opacity="0.6" />
             <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-              <c:ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
-                                     ToolTip.Tip="Copy"
-                                     DockPanel.Dock="Right" Width="30"
-                                     Text="{TemplateBinding TextValue}"
-                                     IsVisible="{TemplateBinding IsCopyButtonVisible}" />
+              <c:AnimatedButton Command="{TemplateBinding CopyCommand}"
+                                ToolTip.Tip="Copy"
+                                DockPanel.Dock="Right" Width="30"
+                                NormalIcon="{StaticResource copy_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}"
+                                InitialOpacity="0.6"
+                                IsVisible="{TemplateBinding IsCopyButtonVisible}" />
               <Panel>
                 <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
                                   ContentTemplate="{TemplateBinding ContentTemplate}"
