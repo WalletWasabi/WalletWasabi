@@ -43,9 +43,6 @@ public class Whitelist
 		return Innocents.Count;
 	}
 
-	public void Add(Alice alice)
-		=> Save(new Innocent(alice.Coin.Outpoint, DateTimeOffset.UtcNow));
-
 	public void Add(OutPoint outPoint)
 		=> Save(new Innocent(outPoint, DateTimeOffset.UtcNow));
 
