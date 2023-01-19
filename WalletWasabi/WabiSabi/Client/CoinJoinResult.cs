@@ -6,11 +6,11 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public abstract record CoinJoinResult;
 
-public record SuccessfulCoinjoinResult(
+public record SuccessfulCoinJoinResult(
 	ImmutableList<SmartCoin> Coins,
 	ImmutableList<Script> OutputScripts,
 	Transaction UnsignedCoinJoin) : CoinJoinResult;
 
-public record FailedCoinjoinResult : CoinJoinResult;
+public record FailedCoinJoinResult : CoinJoinResult;
 
-public record DisruptedCoinjoinResult(ImmutableList<SmartCoin> SignedCoins) : FailedCoinjoinResult;
+public record DisruptedCoinJoinResult(ImmutableList<SmartCoin> SignedCoins) : CoinJoinResult; 

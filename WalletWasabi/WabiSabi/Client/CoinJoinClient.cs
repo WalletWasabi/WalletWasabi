@@ -184,7 +184,7 @@ public class CoinJoinClient
 
 			switch (result)
 			{
-				case DisruptedCoinjoinResult info:
+				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					coins = info.SignedCoins;
 				
@@ -192,10 +192,10 @@ public class CoinJoinClient
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
 					break;
 
-				case SuccessfulCoinjoinResult sucess:
-					return sucess;
+				case SuccessfulCoinJoinResult success:
+					return success;
 
-				case FailedCoinjoinResult failure:
+				case FailedCoinJoinResult failure:
 					return failure;
 			
 				default:
@@ -269,12 +269,12 @@ public class CoinJoinClient
 			
 			return roundState.EndRoundState switch
 			{
-				EndRoundState.TransactionBroadcasted => new SuccessfulCoinjoinResult(
+				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
 					Coins: signedCoins,
 					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
 					UnsignedCoinJoin: unsignedCoinJoin!),
-				EndRoundState.NotAllAlicesSign => new DisruptedCoinjoinResult(signedCoins),
-				_ => new FailedCoinjoinResult()
+				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(signedCoins),
+				_ => new FailedCoinJoinResult()
 			};
 		}
 		finally
