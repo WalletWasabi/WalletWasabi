@@ -12,7 +12,6 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 	private TextLayout? _trimmedLayout;
 	private Size _constraint;
 	private bool _cutOff;
-	private TextLayout? _noTrimLayout;
 
 	public FadeOutTextBlock()
 	{
@@ -44,7 +43,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 			context.FillRectangle(background, Bounds);
 		}
 
-		if (_trimmedLayout is null || _noTrimLayout is null)
+		if (_trimmedLayout is null)
 		{
 			return;
 		}
@@ -63,7 +62,7 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		using var a =
 			context.PushPostTransform(Matrix.CreateTranslation(left + centerOffset, yPosition));
 		using var b = _cutOff ? context.PushOpacityMask(FadeoutOpacityMask, Bounds) : Disposable.Empty;
-		_noTrimLayout.Draw(context, new Point(0,0));
+		base.Render(context);
 	}
 
 	private void NewCreateTextLayout(Size constraint, string? text)
@@ -83,21 +82,6 @@ public class FadeOutTextBlock : TextBlock, IStyleable
 		var width = constraint.Width;
 		var height = constraint.Height;
 		var lineHeight = LineHeight;
-
-		_noTrimLayout = new TextLayout(
-			text1,
-			typeface,
-			fontSize,
-			foreground,
-			textAlignment,
-			textWrapping,
-			TextTrimming.None,
-			textDecorations,
-			FlowDirection.LeftToRight,
-			width,
-			height,
-			lineHeight,
-			1);
 
 		_trimmedLayout = new TextLayout(
 			text1,
