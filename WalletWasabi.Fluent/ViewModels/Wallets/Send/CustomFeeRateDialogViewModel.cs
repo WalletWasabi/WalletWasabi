@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
@@ -16,7 +17,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 {
 	private readonly TransactionInfo _transactionInfo;
 
-	[ObservableProperty] private string _customFee;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))] private string _customFee;
 
 	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
 	{
@@ -31,17 +32,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 		this.ValidateProperty(x => x.CustomFee, ValidateCustomFee);
 
-		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.CustomFee)
-				.Select(_ =>
-				{
-					var noError = !Validations.Any;
-					var somethingFilled = CustomFee is not null or "";
-
-					return noError && somethingFilled;
-				});
-
-		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+		NextCommand = new RelayCommand(OnNext, () => !Validations.Any && CustomFee is not null or "");
 	}
 
 	private void OnNext()

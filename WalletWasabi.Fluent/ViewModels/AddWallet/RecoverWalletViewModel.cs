@@ -28,6 +28,9 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[ObservableProperty] private IEnumerable<string>? _suggestions;
 	[ObservableProperty] private Mnemonic? _currentMnemonics;
 
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))]
+	private bool _isMnemonicsValid;
+
 	public RecoverWalletViewModel(string walletName)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
@@ -37,6 +40,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			.Subscribe(x =>
 			{
 				CurrentMnemonics = x;
+				IsMnemonicsValid = x is { IsValidChecksum: true };
 				OnPropertyChanged(nameof(Mnemonics));
 			});
 
@@ -44,13 +48,9 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommandCanExecute =
-			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Select(_ => IsMnemonicsValid);
-
-		NextCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnNextAsync(walletName),
-			NextCommandCanExecute);
+		NextCommand = new AsyncRelayCommand(
+			execute: async () => await OnNextAsync(walletName),
+			canExecute: () => IsMnemonicsValid);
 
 		AdvancedRecoveryOptionsDialogCommand = new AsyncRelayCommand(
 			async () => await OnAdvancedRecoveryOptionsDialogAsync());
@@ -118,10 +118,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			}
 		}
 	}
-
-	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
-
-	public IObservable<bool> NextCommandCanExecute { get; }
 
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 

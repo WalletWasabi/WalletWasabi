@@ -35,16 +35,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 #else
 		_isSkipEnable = true;
 #endif
-		var nextCommandCanExecute =
-			_confirmationWordsSourceList
-			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.CreateFromTask(() => OnNextAsync(mnemonic, walletName), nextCommandCanExecute);
+		NextCommand = new AsyncRelayCommand(() => OnNextAsync(mnemonic, walletName), () => _confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+
+		// TODO RelayCommand: canExecute, refactor?
+		_confirmationWordsSourceList
+			.Connect()
+			.WhenValueChanged(x => x.IsConfirmed)
+			.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
 
 		if (_isSkipEnable)
 		{

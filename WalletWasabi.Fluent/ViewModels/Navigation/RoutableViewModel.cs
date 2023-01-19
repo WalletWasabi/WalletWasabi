@@ -36,13 +36,13 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	public virtual string IconName { get; protected set; } = "navigation_regular";
 	public virtual string IconNameFocused { get; protected set; } = "navigation_regular";
 
-	public ICommand? NextCommand { get; protected set; }
+	public IRelayCommand? NextCommand { get; protected set; }
 
-	public ICommand? SkipCommand { get; protected set; }
+	public IRelayCommand? SkipCommand { get; protected set; }
 
-	public ICommand BackCommand { get; protected set; }
+	public IRelayCommand BackCommand { get; protected set; }
 
-	public ICommand CancelCommand { get; protected set; }
+	public IRelayCommand CancelCommand { get; protected set; }
 
 	private void DoNavigateTo(bool isInHistory)
 	{

@@ -5,6 +5,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
@@ -20,7 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Wallet Name")]
 public partial class WalletNamePageViewModel : RoutableViewModel
 {
-	[ObservableProperty] private string _walletName = "";
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))]
+	private string _walletName = "";
+
 	private readonly string? _importFilePath;
 	private readonly Lazy<Mnemonic> _mnemonic = new(() => new Mnemonic(Wordlist.English, WordCount.Twelve));
 
@@ -32,12 +35,9 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		var canExecute =
-			this.WhenAnyValue(x => x.WalletName)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
-
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(WalletName, creationOption), canExecute);
+		NextCommand = new AsyncRelayCommand(
+			execute: async () => await OnNextAsync(WalletName, creationOption),
+			canExecute: () => !string.IsNullOrWhiteSpace(WalletName) && !Validations.Any);
 
 		this.ValidateProperty(x => x.WalletName, ValidateWalletName);
 	}

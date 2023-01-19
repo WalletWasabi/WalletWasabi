@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUrlBuilder?>
 {
 	private readonly Network _network;
-	[ObservableProperty] private string _to = "";
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))] private string _to = "";
 
 	private bool _parsingUrl;
 	private bool _payJoinUrlFound;
@@ -57,17 +57,7 @@ public partial class AddressEntryDialogViewModel : DialogViewModelBase<BitcoinUr
 			}
 		});
 
-		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.To)
-				.Select(to =>
-				{
-					var addressFilled = !string.IsNullOrEmpty(to);
-					var hasError = Validations.Any;
-
-					return addressFilled && !hasError;
-				});
-
-		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, _resultToReturn), nextCommandCanExecute);
+		NextCommand = new RelayCommand(() => Close(DialogResultKind.Normal, _resultToReturn), () => !string.IsNullOrEmpty(To) && !Validations.Any);
 	}
 
 	public bool IsQrButtonVisible { get; }

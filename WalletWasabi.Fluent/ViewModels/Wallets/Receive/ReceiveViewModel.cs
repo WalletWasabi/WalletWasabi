@@ -37,13 +37,12 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 		SuggestionLabels = new SuggestionLabelsViewModel(wallet.KeyManager, Intent.Receive, 3);
 
-		var nextCommandCanExecute =
-			SuggestionLabels
-				.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default)
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
-				.Select(_ => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
+		NextCommand = new RelayCommand(OnNext, () => SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
 
-		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+		SuggestionLabels
+			.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default)
+			.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
+			.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
 
 		ShowExistingAddressesCommand = new RelayCommand(OnShowExistingAddresses);
 	}

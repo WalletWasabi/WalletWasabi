@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.Input;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
@@ -31,7 +33,11 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.Create(() => Complete(LabelSelection.GetUsedPockets()), LabelSelection.WhenAnyValue(x => x.EnoughSelected));
+		NextCommand = new RelayCommand(() => Complete(LabelSelection.GetUsedPockets()), () => LabelSelection.EnoughSelected);
+
+		// TODO RelayCommand, refactor
+		this.WhenAnyValue(x => x.LabelSelection.EnoughSelected)
+			.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
 	}
 
 	public LabelSelectionViewModel LabelSelection { get; }

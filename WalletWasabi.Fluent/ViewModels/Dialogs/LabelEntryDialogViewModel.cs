@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -27,13 +28,13 @@ public partial class LabelEntryDialogViewModel : DialogViewModelBase<SmartLabel?
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var nextCommandCanExecute =
-			Observable
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
-				.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
-				.Select(_ => SuggestionLabels.Labels.Any() || SuggestionLabels.IsCurrentTextValid);
+		NextCommand = new RelayCommand(OnNext, () => SuggestionLabels.Labels.Any() || SuggestionLabels.IsCurrentTextValid);
 
-		NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+		// TODO RelayCommand: refactor?
+		Observable
+			.Merge(SuggestionLabels.WhenAnyValue(x => x.Labels.Count).Select(_ => Unit.Default))
+			.Merge(SuggestionLabels.WhenAnyValue(x => x.IsCurrentTextValid).Select(_ => Unit.Default))
+			.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }

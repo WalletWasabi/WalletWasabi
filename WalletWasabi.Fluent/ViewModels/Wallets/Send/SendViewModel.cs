@@ -49,8 +49,8 @@ public partial class SendViewModel : RoutableViewModel
 	private bool _parsingTo;
 	private SmartLabel _parsedLabel = SmartLabel.Empty;
 
-	[ObservableProperty] private string _to;
-	[ObservableProperty] private decimal _amountBtc;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))] private string _to;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(NextCommand))] private decimal _amountBtc;
 	[ObservableProperty] private decimal _exchangeRate;
 	[ObservableProperty] private bool _isFixedAmount;
 	[ObservableProperty] private bool _isPayJoin;
@@ -99,18 +99,7 @@ public partial class SendViewModel : RoutableViewModel
 			}
 		});
 
-		var nextCommandCanExecute =
-			this.WhenAnyValue(x => x.AmountBtc, x => x.To)
-				.Select(tup =>
-				{
-					var (amountBtc, to) = tup;
-					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
-					var hasError = Validations.Any;
-
-					return allFilled && !hasError;
-				});
-
-		NextCommand = ReactiveCommand.CreateFromTask(async () =>
+		NextCommand = new AsyncRelayCommand(async () =>
 			{
 				var labelDialog = new LabelEntryDialogViewModel(_wallet, _parsedLabel);
 				var result = await NavigateDialogAsync(labelDialog, NavigationTarget.CompactDialogScreen);
@@ -131,7 +120,7 @@ public partial class SendViewModel : RoutableViewModel
 
 				Navigate().To(new TransactionPreviewViewModel(walletVm, transactionInfo));
 			},
-			nextCommandCanExecute);
+			canExecute: () => !string.IsNullOrEmpty(To) && AmountBtc > 0 && !Validations.Any);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)

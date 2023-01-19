@@ -11,8 +11,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 {
-	[ObservableProperty] private string? _confirmPassword;
-	[ObservableProperty] private string? _password;
+	[ObservableProperty] [NotifyPropertyChangedFor(nameof(Password))] [NotifyCanExecuteChangedFor(nameof(NextCommand))]
+	private string? _confirmPassword;
+
+	[ObservableProperty] [NotifyPropertyChangedFor(nameof(ConfirmPassword))] [NotifyCanExecuteChangedFor(nameof(NextCommand))]
+	private string? _password;
 
 	public CreatePasswordDialogViewModel(string title, string caption = "", bool enableEmpty = true)
 	{
@@ -29,26 +32,12 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
 
-		var nextCommandCanExecute = this.WhenAnyValue(
-				x => x.IsDialogOpen,
-				x => x.Password,
-				x => x.ConfirmPassword,
-				delegate
-				{
-					// This will fire validations before return canExecute value.
-					OnPropertyChanged(nameof(Password));
-					OnPropertyChanged(nameof(ConfirmPassword));
-
-					return IsDialogOpen &&
-						   ((enableEmpty && string.IsNullOrEmpty(Password) &&
-							 string.IsNullOrEmpty(ConfirmPassword)) ||
-							(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
-							 !Validations.Any));
-				})
-			.ObserveOn(RxApp.MainThreadScheduler);
-
 		BackCommand = new RelayCommand(() => Close(DialogResultKind.Back));
-		NextCommand = ReactiveCommand.Create(() => Close(result: Password), nextCommandCanExecute);
+		NextCommand = new RelayCommand(() => Close(result: Password),
+			canExecute: () => ((enableEmpty && string.IsNullOrEmpty(Password) &&
+			                    string.IsNullOrEmpty(ConfirmPassword)) ||
+			                   (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+			                    !Validations.Any)));
 		CancelCommand = new RelayCommand(() => Close(DialogResultKind.Cancel));
 	}
 

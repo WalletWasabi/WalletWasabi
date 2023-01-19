@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -19,22 +20,17 @@ public partial class AddressLabelEditViewModel : RoutableViewModel
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var canExecute =
-			this.WhenAnyValue(x => x.SuggestionLabels.Labels.Count, x => x.IsCurrentTextValid)
-				.Select(tup =>
-				{
-					var (labelsCount, isCurrentTextValid) = tup;
-					return labelsCount > 0 || isCurrentTextValid;
-				});
-
-		NextCommand = ReactiveCommand.Create(
+		NextCommand = new RelayCommand(
 			() =>
 			{
 				hdPubKey.SetLabel(new SmartLabel(SuggestionLabels.Labels), kmToFile: keyManager);
 				owner.InitializeAddresses();
 				Navigate().Back();
 			},
-			canExecute);
+			() => SuggestionLabels.Labels.Count > 0 || IsCurrentTextValid);
+
+			this.WhenAnyValue(x => x.SuggestionLabels.Labels.Count, x => x.IsCurrentTextValid)
+				.Subscribe(_ => NextCommand.NotifyCanExecuteChanged());
 	}
 
 	public SuggestionLabelsViewModel SuggestionLabels { get; }

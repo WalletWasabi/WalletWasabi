@@ -12,7 +12,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 {
 	private const int NumberOfPages = 2;
 	private readonly AddWalletPageViewModel _addWalletPage;
-	[ObservableProperty] private int _selectedIndex;
+	[ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BackCommand))] private int _selectedIndex;
 	[ObservableProperty] private string? _nextLabel;
 	[ObservableProperty] private bool _enableNextKey = true;
 
@@ -25,7 +25,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		SelectedIndex = 0;
 		NextCommand = new RelayCommand(OnNext);
 		CanGoBack = this.WhenAnyValue(x => x.SelectedIndex, i => i > 0);
-		BackCommand = ReactiveCommand.Create(() => SelectedIndex--, CanGoBack);
+		BackCommand = new RelayCommand(() => SelectedIndex--, () => SelectedIndex > 0);
 
 		this.WhenAnyValue(x => x.SelectedIndex)
 			.Subscribe(
@@ -41,6 +41,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 			.Subscribe(x => EnableNextKey = false);
 	}
 
+	// TODO RelayCommand: refactor to remove
 	public IObservable<bool> CanGoBack { get; }
 
 	private void OnNext()
