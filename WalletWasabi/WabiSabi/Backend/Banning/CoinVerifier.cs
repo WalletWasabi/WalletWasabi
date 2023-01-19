@@ -23,8 +23,17 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	private Whitelist Whitelist { get; }
-	private WabiSabiConfig WabiSabiConfig { get; }
+	// Constructor used for testing
+	internal CoinVerifier(CoinJoinIdStore coinJoinIdStore, CoinVerifierApiClient apiClient, WabiSabiConfig wabiSabiConfig)
+	{
+		CoinJoinIdStore = coinJoinIdStore;
+		CoinVerifierApiClient = apiClient;
+		Whitelist = new(Enumerable.Empty<Innocent>(), string.Empty, wabiSabiConfig);
+		WabiSabiConfig = wabiSabiConfig;
+	}
+
+	public Whitelist Whitelist { get; }
+	public WabiSabiConfig WabiSabiConfig { get; }
 	private CoinJoinIdStore CoinJoinIdStore { get; }
 	private CoinVerifierApiClient CoinVerifierApiClient { get; }
 	private ConcurrentDictionary<Coin, (DateTimeOffset ScheduleTime, TaskCompletionSource<CoinVerifyResult> TaskCompletionSource, CancellationTokenSource AbortCts)> CoinVerifyItems { get; } = new();
@@ -36,8 +45,8 @@ public class CoinVerifier
 		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
-		// Booting up the results with the default value - ban: no, remove: yes.
-		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
+        // Booting up the results with the default value - ban: no, remove: yes.
+        Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 
 		// Building up the task list.
 		List<Task<CoinVerifyResult>> tasks = new();
@@ -93,7 +102,9 @@ public class CoinVerifier
 
 		CleanUp();
 
-		return coinVerifyItems.Values.ToArray();
+        await Whitelist.WriteToFileIfChangedAsync().ConfigureAwait(false);
+
+        return coinVerifyItems.Values.ToArray();
 	}
 
 	private void CleanUp()
