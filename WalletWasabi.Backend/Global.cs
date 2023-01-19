@@ -258,8 +258,10 @@ public class Global : IDisposable
 
 					if (WhiteList is { } whiteList)
 					{
-						await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
+						if (await whiteList.WriteToFileIfChangedAsync().ConfigureAwait(false))
+						{
+							Logger.LogInfo($"{nameof(WhiteList)} is saved to file.");
+						}
 					}
 				});
 

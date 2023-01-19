@@ -134,20 +134,17 @@ public class Whitelist
 		}
 	}
 
-	public async Task WriteToFileIfChangedAsync()
+	public async Task<bool> WriteToFileIfChangedAsync()
 	{
-		if (ChangeId == LastSavedChangeId)
-		{
-			return;
-		}
-
-		if (!string.IsNullOrEmpty(WhitelistFilePath))
+		if (ChangeId != LastSavedChangeId && !string.IsNullOrEmpty(WhitelistFilePath))
 		{
 			var toFile = Innocents.Values.Select(innocent => innocent.ToString());
 			using (await FileLock.LockAsync().ConfigureAwait(false))
 			{
 				await File.WriteAllLinesAsync(WhitelistFilePath, toFile).ConfigureAwait(false);
+				return true;
 			}
 		}
+		return false;
 	}
 }
