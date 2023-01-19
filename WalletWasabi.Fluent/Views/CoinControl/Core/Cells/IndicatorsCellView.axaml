@@ -3,13 +3,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:core="clr-namespace:WalletWasabi.Fluent.ViewModels.CoinControl.Core"
-             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="core:CoinControlItemViewModelBase"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.IndicatorsCellView">
 
-  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="5" Margin="5 0">
+  <UserControl.Styles>
+    <Style Selector="WrapPanel > :is(Control)">
+      <Setter Property="Margin" Value="2 0" />
+    </Style>
+  </UserControl.Styles>
+
+  <WrapPanel VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
 
     <Panel>
       <!-- Confirmed -->
@@ -43,7 +48,7 @@
     </Panel>
 
     <Border BorderThickness="1" IsVisible="{Binding #ScriptType.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" BorderBrush="{DynamicResource TextControlForeground}" Opacity="0.6" CornerRadius="4" Padding="3">
-      <TextBlock Classes="h10" x:Name="ScriptType" Text="{Binding ScriptType, Converter={x:Static converters:ScriptTypeConverter.Instance}}" />
+      <TextBlock Classes="h10" x:Name="ScriptType" Text="{Binding ScriptType.ShortName, FallbackValue=''}" ToolTip.Tip="{Binding ScriptType.Name, FallbackValue=''}" />
     </Border>
 
     <!-- Banned -->
@@ -53,5 +58,5 @@
               Height="14"
               ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
 
-  </StackPanel>
+  </WrapPanel>
 </UserControl>

@@ -145,7 +145,7 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 	{
 		return new PlainTextColumn<CoinControlItemViewModelBase>(
 			new AnonymityScoreHeaderView(),
-			node => node is CoinCoinControlItemViewModel coin ? coin.AnonymityScore.ToString() : "",
+			node => node.AnonymityScore.ToString(),
 			GridLength.Auto,
 			new TextColumnOptions<CoinControlItemViewModelBase>
 			{
