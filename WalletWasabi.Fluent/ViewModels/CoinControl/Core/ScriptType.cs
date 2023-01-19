@@ -21,4 +21,4 @@ public record ScriptType(string Name, string ShortName)
 			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 		};
 	}
-};
+}
