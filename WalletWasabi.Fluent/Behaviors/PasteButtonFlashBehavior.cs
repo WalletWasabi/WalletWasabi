@@ -51,8 +51,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 				.DisposeWith(disposables);
 
 			Observable
-				.Interval(TimeSpan.FromMilliseconds(500))
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.Interval(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
 				.SubscribeAsync(async _ =>
 				{
 					if (!mainWindow.IsActive)

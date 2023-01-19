@@ -72,9 +72,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 			.Select(r => r.Where(issue => !issue.Resolved).ToList())
 			.Publish();
 
-		_torIssues = issues
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.ToProperty(this, m => m.TorIssues);
+		_torIssues = issues.ToProperty(this, m => m.TorIssues, scheduler: RxApp.MainThreadScheduler);
 
 		issues.Connect();
 	}

@@ -29,7 +29,6 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 
 		this.WhenAnyValue(x => x.FinalTransaction)
 			.Where(x => x is { })
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 		ImportTransactionCommand = ReactiveCommand.CreateFromTask(

@@ -58,7 +58,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		itemsSourceList
 			.DisposeWith(disposables)
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(Items)
 			.DisposeMany()
 			.Subscribe()
@@ -74,7 +73,6 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		_walletViewModel.UiTriggers
 						.PrivacyProgressUpdateTrigger
 						.Merge(sizeTrigger)
-						.ObserveOn(RxApp.MainThreadScheduler)
 						.Subscribe(_ => RenderRing(itemsSourceList))
 						.DisposeWith(disposables);
 	}

@@ -46,7 +46,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		_transactionSourceList
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Sort(SortExpressionComparer<HistoryItemViewModelBase>
 				.Ascending(x => x.IsConfirmed)
 				.ThenByDescending(x => x.OrderIndex))

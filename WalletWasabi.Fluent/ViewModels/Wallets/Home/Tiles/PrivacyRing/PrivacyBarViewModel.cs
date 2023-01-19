@@ -39,7 +39,6 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 		itemsSourceList
 			.DisposeWith(disposables)
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(Items)
 			.DisposeMany()
 			.Subscribe()
@@ -47,7 +46,6 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 
 		_walletViewModel.UiTriggers.PrivacyProgressUpdateTrigger
 			.CombineLatest(this.WhenAnyValue(x => x.Width))
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => RenderBar(itemsSourceList))
 			.DisposeWith(disposables);
 	}

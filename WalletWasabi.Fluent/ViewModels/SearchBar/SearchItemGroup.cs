@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using DynamicData;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
@@ -19,7 +17,6 @@ public class SearchItemGroup : IDisposable
 		changes
 			.Bind(out _items)
 			.DisposeMany()
-			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe()
 			.DisposeWith(_disposables);
 	}

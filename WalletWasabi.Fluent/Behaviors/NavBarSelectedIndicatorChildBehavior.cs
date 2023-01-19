@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -47,7 +48,6 @@ public class NavBarSelectedIndicatorChildBehavior : AttachedToVisualTreeBehavior
 						 && x.Contains(":selectable"))
 			.DistinctUntilChanged()
 			.Where(x => x)
-			.ObserveOn(AvaloniaScheduler.Instance)
 			.Subscribe(_ => sharedState.AnimateIndicatorAsync(AssociatedObject))
 			.DisposeWith(disposable);
 

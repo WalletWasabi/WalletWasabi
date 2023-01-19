@@ -34,8 +34,7 @@ public class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 				new TransactionDetailsViewModel(transactionSummary, walletVm)));
 
 		var speedUpTransactionCommandCanExecute = this.WhenAnyValue(x => x.IsConfirmed)
-			.Select(x => !x)
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.Select(x => !x);
 
 		SpeedUpTransactionCommand = ReactiveCommand.Create(
 			() =>
