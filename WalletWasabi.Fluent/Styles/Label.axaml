@@ -1,7 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui">
   <Style Selector="Label">
-    <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH7}" />
-    <Setter Property="(TextBlock.FontWeight)" Value="Regular" />
+    <Setter Property="(TextElement.FontSize)" Value="{StaticResource FontSizeH7}" />
+    <Setter Property="(TextElement.FontWeight)" Value="Regular" />
     <Setter Property="Margin" Value="0 7 0 10" />
   </Style>
   <Style Selector="Label.wrap > AccessText">

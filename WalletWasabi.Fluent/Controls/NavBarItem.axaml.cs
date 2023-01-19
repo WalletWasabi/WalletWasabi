@@ -65,23 +65,23 @@ public class NavBarItem : Button
 		set => SetValue(IsSelectedProperty, value);
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IndicatorOrientationProperty)
 		{
-			UpdateIndicatorOrientationPseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+			UpdateIndicatorOrientationPseudoClasses(change.NewValue as Orientation? ?? default);
 		}
 
 		if (change.Property == IsSelectableProperty)
 		{
-			UpdatePseudoClass(":selectable", change.NewValue.GetValueOrDefault<bool>());
+			UpdatePseudoClass(":selectable", change.NewValue as bool? ?? default);
 		}
 
 		if (change.Property == IsSelectedProperty)
 		{
-			UpdatePseudoClass(":selected", change.NewValue.GetValueOrDefault<bool>());
+			UpdatePseudoClass(":selected", change.NewValue as bool? ?? default);
 		}
 	}
 

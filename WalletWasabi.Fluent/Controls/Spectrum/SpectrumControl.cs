@@ -117,7 +117,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
@@ -127,7 +127,7 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 		}
 		else if (change.Property == IsDockEffectVisibleProperty)
 		{
-			if (change.NewValue.GetValueOrDefault<bool>() && !IsActive)
+			if ((change.NewValue as bool? ?? default) && !IsActive)
 			{
 				_splashEffectDataSource.Start();
 			}
@@ -207,10 +207,14 @@ public class SpectrumControl : TemplatedControl, ICustomDrawOperation
 	{
 		var bounds = Bounds;
 
-		if (context is not ISkiaDrawingContextImpl skia)
+		var leaseFeature = context.GetFeature<ISkiaSharpApiLeaseFeature>();
+
+		if (leaseFeature == null)
 		{
 			return;
 		}
+
+		using var skia = leaseFeature.Lease();
 
 		if (_surface is null)
 		{

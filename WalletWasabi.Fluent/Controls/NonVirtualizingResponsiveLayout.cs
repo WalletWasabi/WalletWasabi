@@ -120,7 +120,7 @@ public class NonVirtualizingResponsiveLayout : NonVirtualizingLayout
 		return MeasureArrange(finalSize, context, false);
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		InvalidateMeasure();
 	}

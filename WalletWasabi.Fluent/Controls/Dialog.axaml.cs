@@ -210,18 +210,18 @@ public class Dialog : ContentControl
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsDialogOpenProperty)
 		{
-			PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":open", change.NewValue as bool? ?? false);
 		}
 
 		if (change.Property == IsBusyProperty)
 		{
-			PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":busy", change.NewValue as bool? ?? false);
 		}
 	}
 

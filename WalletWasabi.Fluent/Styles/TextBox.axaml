@@ -19,8 +19,8 @@
           <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
           <ContentPresenter x:Name="PART_HeaderContentPresenter"
                             DockPanel.Dock="Top"
-                            TextBlock.FontWeight="Normal"
-                            TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
+                            TextElement.FontWeight="Normal"
+                            TextElement.Foreground="{DynamicResource TextControlHeaderForeground}"
                             IsVisible="False"
                             Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
@@ -55,6 +55,7 @@
                                Foreground="{DynamicResource SystemAccentColor}"
                                FontSize="{TemplateBinding FontSize}"
                                Text="{TemplateBinding Watermark}"
+                               IsVisible="{TemplateBinding UseFloatingWatermark}"
                                DockPanel.Dock="Top" />
                     <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                   VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
@@ -158,15 +159,15 @@
   </Style>
 
   <Style Selector="TextBlock.monoSpaced">
-    <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="(TextElement.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 
   <Style Selector="c|PrivacyContentControl.monoSpaced">
-    <Setter Property="(TextBlock.FontFamily)" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="(TextElement.FontFamily)" Value="{StaticResource MonospacedFont}" />
   </Style>
 
   <Style Selector="TextBox.monoSpaced /template/ TextPresenter#PART_TextPresenter">
-    <Setter Property="TextBlock.FontFamily" Value="{StaticResource MonospacedFont}" />
+    <Setter Property="TextElement.FontFamily" Value="{StaticResource MonospacedFont}" />
   </Style>
 
   <Style Selector="TextBox.wrap /template/ TextPresenter#PART_TextPresenter">

@@ -33,7 +33,7 @@ public class ProgressRing : TemplatedControl
 		set => SetValue(StrokeThicknessProperty, value);
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
 	{
 		base.OnPropertyChanged(e);
 

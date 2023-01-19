@@ -44,7 +44,7 @@
   </Style>
 
   <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.FontSize" Value="14" />
+    <Setter Property="TextElement.FontSize" Value="14" />
   </Style>
 
   <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">

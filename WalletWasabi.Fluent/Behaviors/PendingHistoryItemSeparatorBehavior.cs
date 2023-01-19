@@ -36,12 +36,12 @@ public class PendingHistoryItemSeparatorBehavior : AttachedToVisualTreeBehavior<
 		{
 			if (child is { })
 			{
-				InvalidateSeparator(child, presenter);
+				InvalidateSeparator((Control)child, presenter);
 			}
 		}
 	}
 
-	private void InvalidateSeparator(IControl control, TreeDataGridRowsPresenter presenter)
+	private void InvalidateSeparator(Control control, TreeDataGridRowsPresenter presenter)
 	{
 		if (control.DataContext is not HistoryItemViewModelBase currentHistoryItem)
 		{

@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Helpers;
@@ -317,7 +318,10 @@ public class CurrencyEntryBox : TextBox
 
 			if (ValidateEntryText(text))
 			{
-				OnTextInput(new TextInputEventArgs { Text = text });
+				//TODO: need to use a later version of Avalonia 11 but interface removals made it difficult.
+				// so we're just gonna log this for now
+ 				// OnTextInput(new TextInputEventArgs { Text = text });
+                Logging.Logger.LogError("CurrencyEntryBox TODO: Text validation for Avalonia 11 preview 4 doesnt work yet.");
 			}
 		}
 	}
@@ -352,21 +356,21 @@ public class CurrencyEntryBox : TextBox
 		return "";
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 
 		if (change.Property == IsReadOnlyProperty)
 		{
-			PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":readonly", change.NewValue as bool? ?? false);
 		}
 		else if (change.Property == ConversionRateProperty)
 		{
-			PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
+			PseudoClasses.Set(":noexchangerate", (change.NewValue as decimal? ?? default) == 0m);
 		}
 		else if (change.Property == IsFiatProperty)
 		{
-			PseudoClasses.Set(":isfiat", change.NewValue.GetValueOrDefault<bool>());
+			PseudoClasses.Set(":isfiat", change.NewValue as bool? ?? false);
 		}
 	}
 }

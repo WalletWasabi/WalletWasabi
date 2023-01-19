@@ -84,6 +84,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 			.Select(_ => ((IPopupHostProvider)flyoutBase).PopupHost?.Presenter)
 			.WhereNotNull();
 
+
 		var popupGotFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.GotFocusEvent)).Switch().ToSignal();
 		var popupLostFocus = currentPopupHost.Select(x => x.OnEvent(InputElement.LostFocusEvent)).Switch().ToSignal();
 		var flyoutGotFocus = popupGotFocus.Select(_ => true).Merge(popupLostFocus.Select(_ => false));
@@ -99,7 +100,7 @@ public class ShowAttachedFlyoutWhenFocusedBehavior : AttachedToVisualTreeBehavio
 	}
 
 	private IDisposable FocusBasedFlyoutOpener(
-		IAvaloniaObject associatedObject,
+		AvaloniaObject associatedObject,
 		FlyoutBase flyoutBase)
 	{
 		var isPopupFocused = GetPopupIsFocused(flyoutBase);

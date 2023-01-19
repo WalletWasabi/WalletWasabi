@@ -24,7 +24,7 @@ public class TagsBox : TemplatedControl
 	private AutoCompleteBox? _autoCompleteBox;
 	private TextBox? _internalTextBox;
 	private TextBlock? _watermark;
-	private IControl? _containerControl;
+	private Control? _containerControl;
 	private StringComparison _stringComparison;
 	private bool _isInputEnabled = true;
 	private IList<string>? _suggestions;
@@ -188,8 +188,9 @@ public class TagsBox : TemplatedControl
 		_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
 		var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
 		presenter.ApplyTemplate();
-		_containerControl = presenter.Panel;
-		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>().FirstOrDefault();
+		_containerControl = (Control)presenter.Panel;
+		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<AutoCompleteBox>()
+			.FirstOrDefault();
 
 		if (_autoCompleteBox is null)
 		{
@@ -353,7 +354,8 @@ public class TagsBox : TemplatedControl
 	{
 		if (_watermark is { })
 		{
-			_watermark.IsVisible = (Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(CurrentText);
+			_watermark.IsVisible =
+				(Items is null || (Items is { } && !Items.Any())) && string.IsNullOrEmpty(CurrentText);
 		}
 	}
 
@@ -367,8 +369,8 @@ public class TagsBox : TemplatedControl
 		var typedFullText = autoCompleteBox.SearchText + e.Text;
 
 		if (!_isInputEnabled ||
-			(typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
-			string.IsNullOrEmpty(typedFullText.ParseLabel()))
+		    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
+		    string.IsNullOrEmpty(typedFullText.ParseLabel()))
 		{
 			e.Handled = true;
 			return;
@@ -377,11 +379,11 @@ public class TagsBox : TemplatedControl
 		var suggestions = Suggestions?.ToArray();
 
 		if (RestrictInputToSuggestions &&
-			suggestions is { } &&
-			!suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
+		    suggestions is { } &&
+		    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 		{
 			if (!typedFullText.EndsWith(TagSeparator) ||
-				(typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
+			    (typedFullText.EndsWith(TagSeparator) && !suggestions.Contains(autoCompleteBox.SearchText)))
 			{
 				e.Handled = true;
 				return;
@@ -396,15 +398,15 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
-	protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception error)
 	{
 		if (property == ItemsProperty)
 		{
-			DataValidationErrors.SetError(this, value.Error);
+			DataValidationErrors.SetError(this, error);
 		}
 	}
 
-	protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
 	{
 		base.OnPropertyChanged(e);
 
@@ -462,7 +464,7 @@ public class TagsBox : TemplatedControl
 		if (Suggestions is { } suggestions)
 		{
 			if (RestrictInputToSuggestions &&
-				!suggestions.Any(x => x.Equals(tag, _stringComparison)))
+			    !suggestions.Any(x => x.Equals(tag, _stringComparison)))
 			{
 				return;
 			}

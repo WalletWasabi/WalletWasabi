@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -31,8 +32,8 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 	{
 		if (_formattedText is not null)
 		{
-			var r = Bounds.CenterRect(_formattedText.Bounds);
-			context.DrawText(Foreground, new Point(0, r.Position.Y), _formattedText);
+			var r = Bounds.CenterRect(new Rect(new Size(_formattedText.Width, _formattedText.Height)));
+			context.DrawText(_formattedText, new Point(0, r.Position.Y));
 		}
 	}
 
@@ -43,17 +44,19 @@ internal class TreeDataGridPlainTextCell : TreeDataGridCell
 			return default;
 		}
 
-		if (availableSize != _formattedText?.Constraint)
+		if (availableSize.Width != _formattedText.Width || availableSize.Height != _formattedText.Height)
 		{
 			_formattedText = new FormattedText(
-				Text,
+				Text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
 				new Typeface(FontFamily, FontStyle, FontWeight),
-				FontSize,
-				TextAlignment.Left,
-				TextWrapping.NoWrap,
-				availableSize);
+				FontSize, null)
+			{
+				TextAlignment =
+					TextAlignment.Left,
+				MaxTextHeight = availableSize.Height, MaxTextWidth = availableSize.Width
+			};
 		}
 
-		return _formattedText.Bounds.Size;
+		return new Size(_formattedText.Width, _formattedText.Height);
 	}
 }

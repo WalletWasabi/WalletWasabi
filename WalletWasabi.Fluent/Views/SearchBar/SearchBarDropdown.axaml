@@ -31,7 +31,7 @@
     </Style>
 
     <Style Selector="Button:pointerover.searchItem /template/ ContentPresenter">
-      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
       <Setter Property="Background">
         <Setter.Value>
           <SolidColorBrush Opacity="0.3" Color="{DynamicResource AcrylicTrimForeground}" />
