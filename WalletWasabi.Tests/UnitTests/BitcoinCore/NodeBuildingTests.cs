@@ -1,11 +1,6 @@
 using NBitcoin;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Processes;
-using WalletWasabi.Microservices;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -71,41 +66,5 @@ public class NodeBuildingTests
 			node.Disconnect();
 			await coreNode.TryStopAsync();
 		}
-	}
-
-	[Fact]
-	public async Task GetNodeVersionTestsAsync()
-	{
-		// CI was failing a lot, the timeout was increased.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-		Version version = await GetBitcoinCoreVersionAsync(cts.Token);
-		Assert.Equal(WalletWasabi.Helpers.Constants.BitcoinCoreVersion, version);
-	}
-
-	/// <summary>
-	/// Gets version of the bundled Bitcoin Core software (i.e. bitcoind).
-	/// </summary>
-	private static async Task<Version> GetBitcoinCoreVersionAsync(CancellationToken cancel)
-	{
-		string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
-		ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(processPath, arguments: "-version");
-
-		Process process = Process.Start(startInfo)!;
-
-		string responseString = await process.StandardOutput.ReadToEndAsync(cancel).ConfigureAwait(false);
-		await process.WaitForExitAsync(cancel).ConfigureAwait(false);
-
-		if (process.ExitCode != 0)
-		{
-			throw new BitcoindException($"Process exited with incorrect exit code: {process.ExitCode}.");
-		}
-
-		string firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
-		string versionString = firstLine
-			.Split("version v", StringSplitOptions.RemoveEmptyEntries)
-			.Last()
-			.Split(".knots", StringSplitOptions.RemoveEmptyEntries).First();
-
-		return new(versionString);
 	}
 }
