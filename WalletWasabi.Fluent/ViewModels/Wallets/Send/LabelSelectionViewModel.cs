@@ -18,8 +18,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private readonly string _password;
 	private readonly TransactionInfo _info;
 	private readonly bool _isSilent;
-	private readonly Money _targetAmount;
-	private readonly FeeRate _feeRate;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
 
 	[AutoNotify] private bool _enoughSelected;
@@ -34,8 +32,6 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		_password = password;
 		_info = info;
 		_isSilent = isSilent;
-		_targetAmount = _info.Amount;
-		_feeRate = _info.FeeRate;
 	}
 
 	public Pocket[] NonPrivatePockets { get; set; } = Array.Empty<Pocket>();
@@ -88,7 +84,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 			return privateAndSemiPrivatePockets;
 		}
 
-		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _targetAmount, _feeRate, _info.Recipient, out var pockets))
+		if (TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(knownByRecipientPockets, privateAndSemiPrivatePockets, _info.Recipient, out var pockets))
 		{
 			return pockets;
 		}
@@ -106,7 +102,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		return _allPockets.ToArray();
 	}
 
-	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, Money targetAmount, FeeRate feeRate, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
+	private bool TryGetBestKnownByRecipientPocketsWithPrivateAndSemiPrivatePockets(Pocket[] knownByRecipientPockets, Pocket[] privateAndSemiPrivatePockets, SmartLabel recipient, [NotNullWhen(true)] out Pocket[]? pockets)
 	{
 		pockets = null;
 
