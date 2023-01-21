@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DynamicData" Version="7.12.11" />
+    <PackageReference Include="NBitcoin" Version="7.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CSharpFunctionalExtensions">
+      <HintPath>C:\Users\JMN\.nuget\packages\csharpfunctionalextensions\2.37.0\lib\net6.0\CSharpFunctionalExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive">
+      <HintPath>C:\Users\JMN\.nuget\packages\system.reactive\5.0.0\lib\net5.0\System.Reactive.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

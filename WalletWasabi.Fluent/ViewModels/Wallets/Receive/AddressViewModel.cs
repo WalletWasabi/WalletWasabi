@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Wallets;
+using WalletWasabi.Bridge;
+using Wallet = WalletWasabi.Wallets.Wallet;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
@@ -35,7 +38,12 @@ public partial class AddressViewModel : ViewModelBase
 		EditLabelCommand =
 			ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
-		NavigateCommand = ReactiveCommand.Create(() => parent.Navigate().To(new ReceiveAddressViewModel(wallet, model)));
+		NavigateCommand = ReactiveCommand.Create(() =>
+		{
+			var address = new Address(model, wallet.Network, wallet.KeyManager.MasterFingerprint.Value);
+			var receiveAddressHostViewModel = ViewModelLocator.CreateReceiveAddressHostViewModel(wallet, address);
+			parent.Navigate().To(receiveAddressHostViewModel);
+		});
 	}
 
 	public ICommand CopyAddressCommand { get; }

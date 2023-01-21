@@ -52,10 +52,14 @@ public partial class ReceiveViewModel : RoutableViewModel
 
 	private void OnNext()
 	{
-		var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(SuggestionLabels.Labels));
+		var wallet = new Bridge.Wallet(_wallet);
+		var newAddress = wallet.CreateReceiveAddress(SuggestionLabels.Labels);
+
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
+		var vm = ViewModelLocator.CreateReceiveAddressHostViewModel(_wallet, newAddress);
+
+		Navigate().To(vm);
 	}
 
 	private void OnShowExistingAddresses()

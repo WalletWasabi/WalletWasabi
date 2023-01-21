@@ -159,10 +159,15 @@
           "Avalonia": "0.10.18"
         }
       },
+      "CSharpFunctionalExtensions": {
+        "type": "Transitive",
+        "resolved": "2.37.0",
+        "contentHash": "he6h/0A+D//IY9GdIBaKABzThqcdTc7Jbrd5hVYIBIu+VtdnjRnzKpemiqX2EFV55um3XEDbI2sEIGjktYBE9g=="
+      },
       "DynamicData": {
         "type": "Transitive",
-        "resolved": "7.1.1",
-        "contentHash": "Pc6J5bFnSxEa64PV2V67FMcLlDdpv6m+zTBKSnRN3aLon/WtWWy8kuDpHFbJlgXHtqc6Nxloj9ItuvDlvKC/8w==",
+        "resolved": "7.12.11",
+        "contentHash": "dcD3ygbFfvFWYX//MWG6P/m6Eenwf0Z5vGZbpa3218/l7tgg/ZdvP58qYF/smLBpu/qeX/xIohzeQAx/YJsqDg==",
         "dependencies": {
           "System.Reactive": "5.0.0"
         }
@@ -668,6 +673,14 @@
           "NBitcoin.Secp256k1": "[3.0.1, )"
         }
       },
+      "walletwasabi.bridge": {
+        "type": "Project",
+        "dependencies": {
+          "DynamicData": "[7.12.11, )",
+          "NBitcoin": "[7.0.14, )",
+          "WalletWasabi": "[1.0.0, )"
+        }
+      },
       "walletwasabi.fluent": {
         "type": "Project",
         "dependencies": {
@@ -677,9 +690,11 @@
           "Avalonia.ReactiveUI": "[0.10.18, )",
           "Avalonia.Skia": "[0.10.18, )",
           "Avalonia.Xaml.Behaviors": "[0.10.18, )",
+          "CSharpFunctionalExtensions": "[2.37.0, )",
           "System.Drawing.Common": "[7.0.0, )",
           "System.Runtime": "[4.3.1, )",
-          "WalletWasabi": "[1.0.0, )"
+          "WalletWasabi": "[1.0.0, )",
+          "WalletWasabi.Bridge": "[1.0.0, )"
         }
       }
     },

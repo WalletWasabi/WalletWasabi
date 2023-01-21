@@ -26,15 +26,23 @@
 		<PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.18" />
 		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="CSharpFunctionalExtensions" Version="2.37.0" />
 		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi.Bridge\WalletWasabi.Bridge.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\Wallets\Receive\ReceiveAddressHostView.axaml.cs">
+	    <DependentUpon>ReceiveAddressHostView.axaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 </Project>

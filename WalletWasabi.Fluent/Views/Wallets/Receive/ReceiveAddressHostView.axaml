@@ -5,44 +5,44 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="receive:ReceiveAddressViewModel"
+             x:DataType="receive:ReceiveAddressHostViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressHostView">
   <c:ContentArea Title="Unused Receive Address"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel LastChildFill="True">
+    <DockPanel>
 
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
-            <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
-                              IsVisible="{Binding IsHardwareWallet}"
-                              Command="{Binding ShowOnHwWalletCommand}"
+            <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet" IsVisible="{Binding !HardwareWallet.IsBusy^}"
                               NormalIcon="{StaticResource share_regular}"
+                              Command="{Binding HardwareWallet.ShowOnHwWalletCommand}"
                               ClickIcon="{StaticResource copy_confirmed}" />
-
-            <c:AnimatedButton ToolTip.Tip="Copy"
-                              Command="{Binding CopyAddressCommand}"
-                              NormalIcon="{StaticResource copy_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"
-                              ExecuteOnOpen="{Binding IsAutoCopyEnabled}" />
+            <c:ProgressRing IsVisible="{Binding HardwareWallet.IsBusy^}" IsIndeterminate="True" Width="22" Height="22" StrokeThickness="1" />
           </StackPanel>
-          <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
-            <TextBlock Classes="monoSpaced" Text="{Binding Address}" />
-          </c:PrivacyContentControl>
+          <c:CopyableItem ContentToCopy="{Binding ReceiveAddress.Address}">
+            <c:PrivacyContentControl FontSize="{StaticResource FontSizeH5}">
+              <TextBlock Classes="monoSpaced" Text="{Binding ReceiveAddress.Address}" />
+            </c:PrivacyContentControl>
+          </c:CopyableItem>
         </DockPanel>
+
+        <TextBlock TextAlignment="Center" DockPanel.Dock="Bottom" Foreground="{DynamicResource WarningMessageForeground}" Text="{Binding HardwareWallet.ErrorMessage}" />
+
         <c:PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
-          <c:LabelsItemsPresenter Items="{Binding Labels}" />
+          <c:LabelsItemsPresenter Items="{Binding ReceiveAddress.Labels}" />
         </c:PrivacyContentControl>
       </StackPanel>
 
       <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center" ClipToBounds="False">
         <c:AdorningContentControl.Adornment>
           <Panel Margin="0 0 -5 20">
-            <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
+            <Button ToolTip.Tip="Save" Classes="plain icon"
+                    Command="{Binding #QrCode.SaveCommand}"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
               <PathIcon Data="{StaticResource save_regular}" />
             </Button>
@@ -50,7 +50,7 @@
         </c:AdorningContentControl.Adornment>
         <Viewbox Margin="20" MinHeight="100">
           <c:PrivacyContentControl Height="250" Margin="0 0 0 -18" PrivacyReplacementMode="Icon">
-            <c:QrCode Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
+            <c:QrCode x:Name="QrCode" Matrix="{Binding ReceiveAddress.QrCode}" />
           </c:PrivacyContentControl>
         </Viewbox>
       </c:AdorningContentControl>

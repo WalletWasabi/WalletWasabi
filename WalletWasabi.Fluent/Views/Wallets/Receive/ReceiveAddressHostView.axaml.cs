@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Receive;
 
-public class ReceiveAddressView : UserControl
+public class ReceiveAddressHostView : UserControl
 {
-	public ReceiveAddressView()
+	public ReceiveAddressHostView()
 	{
 		InitializeComponent();
 	}
