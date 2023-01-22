@@ -120,16 +120,16 @@ public class TorProcessManager : IAsyncDisposable
 
 				if (isAlreadyRunning)
 				{
+					// Tor process can crash even between these two commands too.
+					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
+					process = new ProcessAsync(Process.GetProcessById(processId));
+
 					// Note: This is a workaround how to check whether we have sufficient permissions for the process.
 					// Especially, we want to make sure that Tor is running under our user and not a different one.
 					nint _ = process.Handle;
 
 					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
-
-					// Tor process can crash even between these two commands too.
-					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
-					process = new ProcessAsync(Process.GetProcessById(processId));
 				}
 				else
 				{
