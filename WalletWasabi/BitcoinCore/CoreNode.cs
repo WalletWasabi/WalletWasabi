@@ -24,43 +24,42 @@ namespace WalletWasabi.BitcoinCore;
 
 public class CoreNode
 {
-	public CoreNode(string dataDir, Network network, MempoolService mempoolService)
+	public CoreNode(string dataDir, Network network, MempoolService mempoolService, CoreConfig config, EndPoint p2pEndPoint, EndPoint rpcEndPoint)
 	{
 		DataDir = dataDir;
 		Network = network;
 		MempoolService = mempoolService;
+		Config = config;
+		P2pEndPoint = p2pEndPoint;
+		RpcEndPoint = rpcEndPoint;
 	}
 
-	public EndPoint P2pEndPoint { get; private set; }
-	public EndPoint RpcEndPoint { get; private set; }
+	public EndPoint P2pEndPoint { get; }
+	public EndPoint RpcEndPoint { get; }
 	public IRPCClient RpcClient { get; private set; }
 	private BitcoindRpcProcessBridge Bridge { get; set; }
 	public string DataDir { get; }
 	public Network Network { get; }
 	public MempoolService MempoolService { get; }
 
-	public CoreConfig Config { get; } = new();
+	public CoreConfig Config { get; }
 	public P2pNode P2pNode { get; private set; }
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
-		Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 		using (BenchmarkLogger.Measure())
 		{
-			CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService);
-
-			var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
+			string configPath = Path.Combine(coreNodeParams.DataDir, "bitcoin.conf");
+			CoreConfig coreConfig = new();
 
 			if (File.Exists(configPath))
 			{
-				var configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
-				coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
+				string configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
+				coreConfig.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
 			}
 
-			cancel.ThrowIfCancellationRequested();
-
-			var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
-
+			// Read Bitcoin Core config parameters.
+			CoreConfigTranslator configTranslator = new(coreConfig, coreNodeParams.Network);
 			string? rpcUser = configTranslator.TryGetRpcUser();
 			string? rpcPassword = configTranslator.TryGetRpcPassword();
 			string? rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
@@ -81,7 +80,7 @@ public class CoreNode
 				authString = $"{rpcUser}:{rpcPassword}";
 			}
 
-			coreNode.P2pEndPoint = whiteBind?.EndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
+			EndPoint p2pEndPoint = whiteBind?.EndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
 
 			if (rpcHost is null)
 			{
@@ -93,11 +92,12 @@ public class CoreNode
 				coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
 			}
 
-			if (!EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce))
+			if (!EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNodeParams.Network.RPCPort, out EndPoint? rpcEndPoint))
 			{
 				throw new InvalidOperationException($"Failed to get RPC endpoint on {rpcHost}:{rpcPort}.");
 			}
-			coreNode.RpcEndPoint = rpce;
+
+			CoreNode coreNode = new(coreNodeParams.DataDir, coreNodeParams.Network, coreNodeParams.MempoolService, coreConfig, p2pEndPoint, rpcEndPoint);
 
 			var rpcClient = new RPCClient(
 				$"{authString}",

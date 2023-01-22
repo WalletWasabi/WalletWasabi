@@ -7,7 +7,7 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Microservices;
 
 /// <summary>
-/// Async wrapper class for <see cref="System.Diagnostics.Process"/> class that implements <see cref="WaitForExitAsync(CancellationToken, bool)"/>
+/// Async wrapper class for <see cref="System.Diagnostics.Process"/> class that implements <see cref="WaitForExitAsync(CancellationToken)"/>
 /// to asynchronously wait for a process to exit.
 /// </summary>
 public class ProcessAsync : IDisposable
@@ -80,9 +80,8 @@ public class ProcessAsync : IDisposable
 	/// Waits until the process either finishes on its own or when user cancels the action.
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	/// <param name="killOnCancel">If <c>true</c> the process will be killed (with entire process tree) when this asynchronous action is canceled via <paramref name="cancellationToken"/> token.</param>
 	/// <returns><see cref="Task"/>.</returns>
-	public virtual async Task WaitForExitAsync(CancellationToken cancellationToken, bool killOnCancel = false)
+	public virtual async Task WaitForExitAsync(CancellationToken cancellationToken)
 	{
 		if (Process.HasExited)
 		{
@@ -100,23 +99,6 @@ public class ProcessAsync : IDisposable
 		catch (OperationCanceledException ex)
 		{
 			Logger.LogTrace("User canceled waiting for process exit.");
-
-			if (killOnCancel)
-			{
-				if (!Process.HasExited)
-				{
-					try
-					{
-						Logger.LogTrace("Kill process.");
-						Process.Kill(entireProcessTree: true);
-					}
-					catch (Exception e)
-					{
-						Logger.LogError($"Could not kill process: {e}.");
-					}
-				}
-			}
-
 			throw new TaskCanceledException("Waiting for process exiting was canceled.", ex, cancellationToken);
 		}
 	}

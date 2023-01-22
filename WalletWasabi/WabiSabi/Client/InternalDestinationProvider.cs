@@ -23,10 +23,14 @@ public class InternalDestinationProvider : IDestinationProvider
 		var taprootKeys = allKeys
 			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86)
 			.ToList();
-		
+
+		var segwitKeys = allKeys
+			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit)
+			.ToList();
+
 		var destinations = preferTaproot && taprootKeys.Count >= count
 			? taprootKeys
-			: allKeys;
+			: segwitKeys;
 		return destinations.Select(x => x.GetAddress(KeyManager.GetNetwork()));
 	}
 }
