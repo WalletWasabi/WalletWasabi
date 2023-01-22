@@ -1,20 +1,31 @@
+using System.Collections.Generic;
 using Moq;
 using NBitcoin;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
 public class TransactionFactoryTests
 {
+	private ITestOutputHelper TestOutputHelper { get; }
+
+	public TransactionFactoryTests(ITestOutputHelper testOutputHelper)
+	{
+		TestOutputHelper = testOutputHelper;
+	}
+
 	[Fact]
 	public void InsufficientBalance()
 	{
@@ -33,6 +44,272 @@ public class TransactionFactoryTests
 
 		Assert.Equal(ex.Minimum, amount);
 		Assert.Equal(ex.Actual, transactionFactory.Coins.Select(x => x.Amount).Sum());
+	}
+
+	private class SCoin
+	{
+		public string ClusterName { get; set; }
+		public int Id { get; set; }
+		public decimal Amount { get; set; }
+		public bool Confirmed { get; set; } = true;
+		public int AnonymitySet{get; set;}
+
+		public (string, int, decimal, bool, int) GetTuple()
+		{
+			return (ClusterName, Id, Amount, Confirmed, AnonymitySet);
+		}
+	}
+
+	private List<int> RandomListIntBiased(int min, int max, int avg, int total)
+	{
+		var numbers = new List<int>();
+
+		while (numbers.Sum() < total)
+		{
+			var random1 = Random.Shared.Next(min, avg + 1);
+			var random2 = Random.Shared.Next(avg + 2, max + 1);
+			var randoms = new List<int>();
+			randoms.AddRange(Enumerable.Repeat(random2, avg - min));
+			randoms.AddRange(Enumerable.Repeat(random1, max - avg));
+
+			var generatedNumber = randoms[Random.Shared.Next(randoms.Count)];
+			numbers.Add(generatedNumber);
+		}
+
+		if (numbers.Sum() > total)
+		{
+			var last = numbers.Last();
+			last -= (numbers.Sum() - total);
+			numbers.RemoveLast();
+			numbers.Add(last);
+		}
+		return numbers;
+
+	}
+	[Theory]
+	[InlineData(50)]
+	public void CoinSelectionPerformanceTest(int iterations)
+	{
+
+		TestOutputHelper.WriteLine("Smaller score = better");
+
+		var testCases = new List<string>()
+		{
+			"Master",
+			"RemoveRecursivelySmallestEachCluster"
+		};
+		Dictionary<int, Dictionary<string, BuildTransactionResult>> testResults = new();
+
+		using Key key = new();
+
+		var transactionId = 0;
+		for (var i = 0; i < iterations; i++)
+		{
+			// Test with wallets very small, small, medium, big, very big.
+			var walletSizes = new List<int>()
+			{
+				Random.Shared.Next(1, 4),
+				Random.Shared.Next(4, 15),
+				Random.Shared.Next(15, 50),
+				Random.Shared.Next(50, 150),
+				Random.Shared.Next(150, 500)
+			};
+
+			foreach (var nbOfCoins in walletSizes)
+			{
+				// Global private percent of the wallet
+				int privacyPercent = new List<int>()
+				{
+					100*Random.Shared.Next(0,2),
+					Random.Shared.Next(1, 100)
+				}.BiasedRandomElement(50); // 37.5% 0, 37.5% 100, 25% random between 1 and 99.
+
+				var nbNonPrivateCoins = (int)Math.Round(nbOfCoins * ((100 - (double)privacyPercent) / 100));
+				List<int> clusterDistribution = RandomListIntBiased(1, 15, 3, nbNonPrivateCoins);
+
+				// Generate list of cluster names following our distribution
+				List<string> clusterNames = new();
+				var clusterId = 0;
+				foreach (var clusterNbOfCoins in clusterDistribution)
+				{
+					clusterNames.AddRange(Enumerable.Repeat(clusterId.ToString(), clusterNbOfCoins));
+					clusterId++;
+				}
+
+				// Add empty clusters for private coins
+				if (nbNonPrivateCoins != nbOfCoins)
+				{
+					clusterNames.AddRange(Enumerable.Repeat("", nbOfCoins - nbNonPrivateCoins));
+				}
+
+				List<decimal> amounts = new();
+				List<SCoin> coins = new();
+
+				// Coins names generator
+				for (var n = 0; n < nbOfCoins; n++)
+				{
+					SCoin coin = new();
+					coin.ClusterName = clusterNames[n];
+					coin.Id = n;
+
+					// Coin is private
+					if (coin.ClusterName == "")
+					{
+						// Choosing from a standard denom biased toward smaller ones
+						coin.Amount = BlockchainAnalyzer.StdDenoms.BiasedRandomElement(7) / (decimal)100000000;
+						coin.AnonymitySet = Random.Shared.Next(2, 101); // Private = between 2 and 100 for simplifications
+					}
+					else
+					{
+						coin.Amount = (BlockchainAnalyzer.StdDenoms.BiasedRandomElement(5) / (decimal)100000000) + (decimal)Random.Shared.Next(5, 100) / 10000; // Non private = not standard
+						coin.AnonymitySet = 1;
+					}
+					coins.Add(coin);
+				}
+
+				// Payment amount is between 30 and 100% of total coins
+				Money paymentAmount = Money.Coins(coins.Sum(x => x.Amount) * (Random.Shared.Next(30, 101) / (decimal)100));
+
+				TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(coins.Select(x => x.GetTuple()));
+
+				PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
+
+				// Test with wallets very small, small, medium, big, very big, enormous.
+				var feeRates = new List<int>()
+				{
+					Random.Shared.Next(1, 4),
+					Random.Shared.Next(4, 15),
+					Random.Shared.Next(15, 50),
+					Random.Shared.Next(50, 150),
+					Random.Shared.Next(150, 500),
+					Random.Shared.Next(500, 10000),
+				};
+
+				foreach (var feeRate in feeRates)
+				{
+					try
+					{
+						testResults[transactionId] = new Dictionary<string, BuildTransactionResult>();
+						foreach (var testCase in testCases)
+						{
+							testResults[transactionId][testCase] = transactionFactory.BuildTransaction(payment, new FeeRate((decimal)feeRate), null, null, testCase);
+						}
+
+						transactionId++;
+					}
+					catch(Exception ex)
+					{
+						// Most common catch will be fee too high, not enough funds
+						continue;
+					}
+				}
+			}
+		}
+
+		Dictionary<string, List<(string, int)>> results = new() // { metric, [ (testCaseId, rank), ... ], ... }
+		{
+			{ "MostPrivate",  new List<(string, int)>() },
+			{ "SmallestAmount", new List<(string, int)>() },
+			{ "LessInputs", new List<(string, int)>() },
+			{ "LessFees", new List<(string, int)>() },
+			{ "GlobalRank", new List<(string, int)>() }
+		};
+
+		foreach (var testTxResults in testResults)
+		{
+			// Compute ranking (1st, 2nd, 3rd...) among test cases for MostPrivate metric
+			double lastPrivacyScore = double.MaxValue;
+			int id = 0;
+			int currentRank = 0;
+			// Order from highest minimum anonscore (=most private) to lowest
+			foreach (var testCase in testTxResults.Value.OrderByDescending(testCase => testCase.Value.SpentCoins.Min(coin => coin.AnonymitySet)))
+			{
+				int rank = 0;
+				id++;
+				var currentPrivacyScore = testCase.Value.SpentCoins.Min(coin => coin.AnonymitySet);
+				// If privacy is the same than previous test case, don't change the rank (works because collection presorted)
+				// If privacy is lower than previous test case, rank increase and becomes id
+				rank = Math.Abs(currentPrivacyScore - lastPrivacyScore) < 0.0000001 ? currentRank : id;
+				lastPrivacyScore = currentPrivacyScore;
+				currentRank = rank;
+				results["MostPrivate"].Add((testCase.Key, rank));
+			}
+
+			// Now for ClosestAmount metric
+			long lastAmount = 0;
+			id = 0;
+			currentRank = 0;
+			// Order from lowest amount sum (=closest to target amount) to highest
+			foreach (var testCase in testTxResults.Value.OrderBy(testCase => testCase.Value.Transaction.WalletInputs.Sum(y => y.Amount)))
+			{
+				int rank = 0;
+				id++;
+				var currentAmount = testCase.Value.Transaction.WalletInputs.Sum(y => y.Amount);
+				rank = currentAmount == lastAmount ? currentRank : id;
+				lastAmount = currentAmount;
+				currentRank = rank;
+				results["SmallestAmount"].Add((testCase.Key, rank));
+			}
+
+			// LessInputs
+			int lastInputCount = 0;
+			id = 0;
+			currentRank = 0;
+			foreach (var testCase in testTxResults.Value.OrderBy(testCase => testCase.Value.Transaction.WalletInputs.Count()))
+			{
+				int rank = 0;
+				id++;
+				var currentInputCount = testCase.Value.Transaction.WalletInputs.Count();
+				rank = lastInputCount == currentInputCount ? currentRank : id;
+				lastInputCount = currentInputCount;
+				currentRank = rank;
+				results["LessInputs"].Add((testCase.Key, rank));
+			}
+
+			// LessFees
+			Money lastFees = Money.Satoshis(0);
+			id = 0;
+			currentRank = 0;
+			foreach (var testCase in testTxResults.Value.OrderBy(testCase => testCase.Value.Fee))
+			{
+				int rank = 0;
+				id++;
+				var currentFees = testCase.Value.Fee;
+				rank = currentFees == lastFees ? currentRank : id;
+				lastFees = currentFees;
+				currentRank = rank;
+				results["LessFees"].Add((testCase.Key, rank));
+			}
+
+			// GlobalRank
+			int lastScore = int.MaxValue;
+			id = 0;
+			currentRank = 0;
+			foreach (var testCase in testCases.OrderByDescending(testCase => results.Except(new[] { results.Last() }).Sum(metric => metric.Value.Last(testResult => testResult.Item1 == testCase).Item2)))
+			{
+				int rank = 0;
+				id++;
+				var currentScore = results.Except(new[] { results.Last() }).Sum(metric => metric.Value.Last(testResult => testResult.Item1 == testCase).Item2);
+				rank = currentScore == lastScore ? currentRank : id;
+				lastScore = currentScore;
+				currentRank = rank;
+				results["GlobalRank"].Add((testCase, rank));
+			}
+		}
+
+		foreach (var result in results)
+		{
+			var resultStr = result.Key;
+			foreach (var testCase in testCases)
+			{
+				var scoreTestCase = result.Value.Where(x => x.Item1 == testCase)?.Sum(x => x.Item2);
+				if (scoreTestCase != null)
+				{
+					resultStr += " " + testCase + ": " + scoreTestCase;
+				}
+			}
+			TestOutputHelper.WriteLine(resultStr);
+		}
 	}
 
 	[Fact]

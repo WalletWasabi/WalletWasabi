@@ -36,14 +36,16 @@ public class TransactionFactory
 	public string Password { get; }
 	public bool AllowUnconfirmed { get; }
 	private ITransactionStore TransactionStore { get; }
+	public static string CurrentTestCase { get; set; }
 
 	/// <inheritdoc cref="BuildTransaction(PaymentIntent, Func{FeeRate}, IEnumerable{OutPoint}?, Func{LockTime}?, IPayjoinClient?, bool)"/>
 	public BuildTransactionResult BuildTransaction(
 		PaymentIntent payments,
 		FeeRate feeRate,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null)
-		=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
+		IPayjoinClient? payjoinClient = null,
+		string testCase = "")
+		=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient, true, testCase);
 
 	/// <exception cref="ArgumentException"/>
 	/// <exception cref="ArgumentNullException"/>
@@ -54,8 +56,11 @@ public class TransactionFactory
 		IEnumerable<OutPoint>? allowedInputs = null,
 		Func<LockTime>? lockTimeSelector = null,
 		IPayjoinClient? payjoinClient = null,
-		bool tryToSign = true)
+		bool tryToSign = true,
+		string testCase = "")
 	{
+		CurrentTestCase = testCase;
+		
 		lockTimeSelector ??= () => LockTime.Zero;
 
 		long totalAmount = payments.TotalAmount.Satoshi;

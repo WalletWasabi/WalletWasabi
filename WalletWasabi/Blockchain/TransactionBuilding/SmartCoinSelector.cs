@@ -16,7 +16,7 @@ public class SmartCoinSelector : ICoinSelector
 		UnspentCoins = unspentCoins.Distinct().ToList();
 	}
 
-	private List<SmartCoin> UnspentCoins { get; }
+	private List<SmartCoin> UnspentCoins { get; set; }
 	private int IterationCount { get; set; }
 
 	/// <param name="suggestion">We use this to detect if NBitcoin tries to suggest something different and indicate the error.</param>
@@ -24,6 +24,8 @@ public class SmartCoinSelector : ICoinSelector
 	/// <remarks>Do not call this method repeatedly on a single <see cref="SmartCoinSelector"/> instance.</remarks>
 	public IEnumerable<ICoin> Select(IEnumerable<ICoin> suggestion, IMoney target)
 	{
+		var testCase = TransactionFactory.CurrentTestCase;
+		
 		var targetMoney = (Money)target;
 
 		long available = UnspentCoins.Sum(x => x.Amount);
