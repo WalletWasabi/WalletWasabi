@@ -5,6 +5,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using System.Collections.Immutable;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
@@ -54,6 +55,26 @@ public class SmartCoinSelector : ICoinSelector
 			.Select(coin => coin.HdPubKey.Cluster)
 			.Distinct();
 
+		if (testCase == "RemoveRecursivelySmallestEachCluster")
+		{
+			// Remove the smallest coin for each cluster if cluster has more than 4 coins.
+			var coinsToKeep = new List<SmartCoin>();
+			foreach (var cluster in uniqueClusters)
+			{
+				var coinsInCluster = UnspentCoins.Where(coin => coin.HdPubKey.Cluster == cluster).ToList();
+				if (coinsInCluster.Count > 1) // ToDo: Arbitrary value
+				{
+					SmartCoin minItem = coinsInCluster.MinBy(x => x.Amount)!;
+					Money amountWithoutMinItem = coinsInCluster.Sum(x => x.Amount) - minItem.Amount;
+					coinsInCluster.Remove(minItem);
+				}
+
+				coinsToKeep.AddRange(coinsInCluster);
+			}
+
+			UnspentCoins = coinsToKeep;
+		}
+
 		// Build all the possible coin clusters, except when it's computationally too expensive.
 		List<List<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 			? uniqueClusters
@@ -62,7 +83,7 @@ public class SmartCoinSelector : ICoinSelector
 					.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster))
 					.ToList())
 				.ToList()
-			: new List<List<SmartCoin>>();
+			: new List<List<SmartCoin>>(); // ToDo: Maybe we can achieve the same by pre-filtering uniqueClusters and select 10 best or play with upToLength l60 to prefer smaller combinations
 
 		coinClusters.Add(UnspentCoins);
 
