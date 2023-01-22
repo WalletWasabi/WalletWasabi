@@ -120,6 +120,10 @@ public class TorProcessManager : IAsyncDisposable
 
 				if (isAlreadyRunning)
 				{
+					// Note: This is a workaround how to check whether we have sufficient permissions for the process.
+					// Especially, we want to make sure that Tor is running under our user and not a different one.
+					nint _ = process.Handle;
+
 					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
@@ -142,10 +146,6 @@ public class TorProcessManager : IAsyncDisposable
 
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 				}
-
-				// Note: This is a workaround how to check whether we have sufficient permissions for the process.
-				// Especially, we want to make sure that Tor is running under our user and not a different one.
-				nint _ = process.Handle;
 
 				Logger.LogInfo("Tor is running.");
 
