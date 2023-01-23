@@ -123,7 +123,7 @@ public class Global : IDisposable
 			}
 			catch (Exception exc)
 			{
-				Logger.LogCritical($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'");
+				throw new InvalidOperationException($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'", exc);
 			}
 		}
 
