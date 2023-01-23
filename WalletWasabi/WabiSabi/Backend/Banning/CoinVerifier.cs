@@ -29,7 +29,7 @@ public class CoinVerifier
 		WabiSabiConfig = wabiSabiConfig;
 	}
 
-	public event EventHandler<Coin>? CoinBlackListed;
+	public event EventHandler<Coin>? CoinBlacklisted;
 
 	// This should be much bigger than the possible input-reg period.
 	private TimeSpan AbsoluteScheduleSanityTimeout { get; } = TimeSpan.FromDays(2);
@@ -229,7 +229,7 @@ public class CoinVerifier
 					// We got a definetive answer.
 					if (shouldBan)
 					{
-						CoinBlackListed?.SafeInvoke(this, coin);
+						CoinBlacklisted?.SafeInvoke(this, coin);
 					}
 					else
 					{

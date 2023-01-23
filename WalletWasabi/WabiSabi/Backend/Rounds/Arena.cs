@@ -47,7 +47,7 @@ public partial class Arena : PeriodicRunner
 
 		if (CoinVerifier is not null)
 		{
-			CoinVerifier.CoinBlackListed += CoinVerifier_CoinBlackListed;
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklisted;
 		}
 	}
 
@@ -641,7 +641,7 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void CoinVerifier_CoinBlackListed(object? _, Coin coin)
+	private void CoinVerifier_CoinBlacklisted(object? _, Coin coin)
 	{
 		// For logging reason Prison needs the roundId.
 		var roundState = RoundStates.FirstOrDefault(rs => rs.CoinjoinState.Inputs.Any(input => input.Outpoint == coin.Outpoint));
@@ -655,7 +655,7 @@ public partial class Arena : PeriodicRunner
 	{
 		if (CoinVerifier is not null)
 		{
-			CoinVerifier.CoinBlackListed -= CoinVerifier_CoinBlackListed;
+			CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklisted;
 		}
 		base.Dispose();
 	}
