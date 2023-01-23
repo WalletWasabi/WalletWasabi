@@ -231,7 +231,7 @@ public class CoinVerifierTests
 	{
 		foreach (Coin coin in coins)
 		{
-			coinVerifier.ScheduleVerification(coin, CancellationToken.None, delay, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmation);
+			coinVerifier.ScheduleVerification(coin, CancellationToken.None, delay, confirmations: _wabisabiTestConfig.CoinVerifierRequiredConfirmations);
 		}
 	}
 }

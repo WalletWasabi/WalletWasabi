@@ -133,8 +133,8 @@ public class WabiSabiConfig : ConfigBase
 	public TimeSpan CoinVerifierStartBefore { get; set; } = TimeSpan.FromMinutes(2);
 
 	[DefaultValue(3)]
-	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmation", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int CoinVerifierRequiredConfirmation { get; set; } = 3;
+	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmations", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public int CoinVerifierRequiredConfirmations { get; set; } = 3;
 
 	[DefaultValueMoneyBtc("1")]
 	[JsonProperty(PropertyName = "CoinVerifierRequiredConfirmationAmount", DefaultValueHandling = DefaultValueHandling.Populate)]

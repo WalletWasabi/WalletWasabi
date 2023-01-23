@@ -189,7 +189,7 @@ public class CoinVerifier
 
 		if (coin.Amount >= WabiSabiConfig.CoinVerifierRequiredConfirmationAmount)
 		{
-			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmation)
+			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
 			{
 				taskCompletionSource.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
 				return;
