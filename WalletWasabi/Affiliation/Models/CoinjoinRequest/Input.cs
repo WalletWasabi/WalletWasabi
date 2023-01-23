@@ -14,7 +14,7 @@ public record Input
 
 		if (isNoFee && isAffiliated)
 		{
-			throw new ArgumentException();
+			Logging.Logger.LogWarning($"Detected input with redundant affiliation flag: {Convert.ToHexString(prevout.Hash)}, {prevout.Index}");
 		}
 
 		IsAffiliated = isAffiliated;
