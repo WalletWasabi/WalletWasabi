@@ -209,7 +209,7 @@ public class CoinVerifier
 					// Sanity check.
 					if (delay > AbsoluteScheduleSanityTimeout)
 					{
-						Logger.LogError($"Start delay '{delay}' was more than the abolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
+						Logger.LogError($"Start delay '{delay}' was more than the absolute maximum '{AbsoluteScheduleSanityTimeout}' for coin '{coin.Outpoint}'.");
 						delay = AbsoluteScheduleSanityTimeout;
 					}
 
