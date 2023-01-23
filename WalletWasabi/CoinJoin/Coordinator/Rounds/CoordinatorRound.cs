@@ -643,7 +643,10 @@ public class CoordinatorRound
 			{
 				foreach (var coin in alice.Inputs)
 				{
-					coinDictionary.Add(coin, alice);
+					if (!coinDictionary.TryAdd(coin, alice))
+					{
+						Logger.LogWarning($"Duplicated coins were found during the build of {nameof(coinDictionary)}.");
+					}
 				}
 			}
 
