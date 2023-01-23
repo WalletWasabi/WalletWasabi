@@ -6,18 +6,17 @@ namespace WalletWasabi.Affiliation.Models.CoinjoinRequest;
 
 public record Input
 {
-	public Input(Outpoint prevout, byte[] scriptPubkey, bool isNoFee, bool isAffiliated)
+	public Input(Outpoint prevout, byte[] scriptPubkey, bool isAffiliated, bool isNoFee)
 	{
 		Prevout = prevout;
 		ScriptPubkey = scriptPubkey;
+		IsAffiliated = isAffiliated;
 		IsNoFee = isNoFee;
 
 		if (isNoFee && isAffiliated)
 		{
 			Logging.Logger.LogWarning($"Detected input with redundant affiliation flag: {Convert.ToHexString(prevout.Hash)}, {prevout.Index}");
 		}
-
-		IsAffiliated = isAffiliated;
 	}
 
 	[JsonProperty(PropertyName = "prevout")]
@@ -27,14 +26,14 @@ public record Input
 	[JsonConverter(typeof(AffiliationByteArrayJsonConverter))]
 	public byte[] ScriptPubkey { get; }
 
-	[JsonProperty(PropertyName = "is_no_fee")]
-	public bool IsNoFee { get; }
-
 	[JsonProperty(PropertyName = "is_affiliated")]
 	public bool IsAffiliated { get; }
 
-	public static Input FromCoin(Coin coin, bool is_no_fee, bool is_affiliated)
+	[JsonProperty(PropertyName = "is_no_fee")]
+	public bool IsNoFee { get; }
+
+	public static Input FromAffiliateInput(AffiliateInput affiliateInput, AffiliationFlag affiliationFlag)
 	{
-		return new Input(Outpoint.FromOutpoint(coin.Outpoint), coin.ScriptPubKey.ToBytes(), is_no_fee, is_affiliated);
+		return new Input(Outpoint.FromOutPoint(affiliateInput.Prevout), affiliateInput.ScriptPubKey.ToBytes(), affiliateInput.AffiliationFlag == affiliationFlag, affiliateInput.IsNoFee);
 	}
 }

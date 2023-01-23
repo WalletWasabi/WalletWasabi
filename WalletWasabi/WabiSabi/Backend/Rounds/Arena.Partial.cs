@@ -131,7 +131,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			var round = GetRound(request.RoundId, Phase.OutputRegistration);
 			var alice = GetAlice(request.AliceId, round);
 			alice.ReadyToSign = true;
-			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationFlag, alice.IsPayingZeroCoordinationFee);
+			NotifyAffiliation(round.Id, alice.Coin, request.AffiliationFlag);
 		}
 	}
 

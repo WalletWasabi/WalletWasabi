@@ -107,14 +107,25 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		return getCoinjoinRequestResponse.CoinjoinRequest;
 	}
 
-	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinationFee)
+	private void AddCoin(uint256 roundId, Coin coin, bool isPayingZeroCoordinationFee)
 	{
 		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
 		{
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
-		roundData.AddInput(coin, affiliationFlag, isPayingZeroCoordinationFee);
+		roundData.AddInputCoin(coin);
+		roundData.AddInputFeeExemption(coin, isPayingZeroCoordinationFee);
+	}
+
+	private void AddAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag)
+	{
+		if (!RoundData.TryGetValue(roundId, out RoundData? roundData))
+		{
+			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
+		}
+
+		roundData.AddInputAffiliationFlag(coin, affiliationFlag);
 	}
 
 	private void AddCoinjoinTransaction(uint256 roundId, NBitcoin.Transaction transaction)
@@ -124,7 +135,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 			throw new InvalidOperationException($"The round ({roundId}) does not exist.");
 		}
 
-		RoundsToUpdate.Enqueue(new FinalizedRoundDataWithRoundId(roundId, roundData.Finalize(transaction)));
+		RoundsToUpdate.Enqueue(new FinalizedRoundDataWithRoundId(roundId, roundData.FinalizeRoundData(transaction)));
 	}
 
 	private void CreateRound(uint256 roundId, RoundParameters roundParameters)
@@ -145,14 +156,22 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		}
 	}
 
+	private void Arena_InputAdded(object? sender, InputAddedEventArgs inputAddedEventArgs)
+	{
+		uint256 roundId = inputAddedEventArgs.RoundId;
+		Coin coin = inputAddedEventArgs.Coin;
+		bool isPayingZeroCoordinationFee = inputAddedEventArgs.IsPayingZeroCoordinationFee;
+
+		AddCoin(roundId, coin, isPayingZeroCoordinationFee);
+	}
+
 	private void Arena_AffiliationAdded(object? sender, AffiliationAddedEventArgs affiliationAddedEventArgs)
 	{
 		uint256 roundId = affiliationAddedEventArgs.RoundId;
 		Coin coin = affiliationAddedEventArgs.Coin;
 		AffiliationFlag affiliationFlag = affiliationAddedEventArgs.AffiliationFlag;
-		bool isPayingZeroCoordinationFee = affiliationAddedEventArgs.IsPayingZeroCoordinationFee;
 
-		AddAffiliation(roundId, coin, affiliationFlag, isPayingZeroCoordinationFee);
+		AddAffiliation(roundId, coin, affiliationFlag);
 	}
 
 	private void Arena_RoundCreated(object? sender, RoundCreatedEventArgs roundCreatedEventArgs)
@@ -183,6 +202,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 	{
 		Arena.RoundCreated += Arena_RoundCreated;
 		Arena.AffiliationAdded += Arena_AffiliationAdded;
+		Arena.InputAdded += Arena_InputAdded;
 		Arena.CoinjoinTransactionCreated += Arena_CoinjoinTransactionAdded;
 		Arena.RoundPhaseChanged += Arena_RoundPhaseChanged;
 	}
@@ -191,6 +211,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 	{
 		Arena.RoundCreated -= Arena_RoundCreated;
 		Arena.AffiliationAdded -= Arena_AffiliationAdded;
+		Arena.InputAdded -= Arena_InputAdded;
 		Arena.CoinjoinTransactionCreated -= Arena_CoinjoinTransactionAdded;
 		Arena.RoundPhaseChanged -= Arena_RoundPhaseChanged;
 	}

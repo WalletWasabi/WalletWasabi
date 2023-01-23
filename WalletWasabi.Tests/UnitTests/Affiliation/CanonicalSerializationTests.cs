@@ -37,8 +37,8 @@ public class CanonicalSerializationTests
 			new Header(),
 			new Body(
 					inputs: new List<Input>() {
-						new Input(new Outpoint(Encoders.Hex.DecodeData("e5b7e21b5ba720e81efd6bfa9f854ababdcddc75a43bfa60bf0fe069cfd1bb8a"), 0), Encoders.Hex.DecodeData("5120b3a2750e21facec36b2a56d76cca6019bf517a5c45e2ea8e5b4ed191090f3003"), false, true),
-						new Input(new Outpoint(Encoders.Hex.DecodeData("f982c0a283bd65a59aa89eded9e48f2a3319cb80361dfab4cf6192a03badb60a"), 1), Encoders.Hex.DecodeData("51202f436892d90fb2665519efa3d9f0f5182859124f179486862c2cd7a78ea9ac19"), false, true)
+						new Input(new Outpoint(Encoders.Hex.DecodeData("e5b7e21b5ba720e81efd6bfa9f854ababdcddc75a43bfa60bf0fe069cfd1bb8a"), 0), Encoders.Hex.DecodeData("5120b3a2750e21facec36b2a56d76cca6019bf517a5c45e2ea8e5b4ed191090f3003"), true, false),
+						new Input(new Outpoint(Encoders.Hex.DecodeData("f982c0a283bd65a59aa89eded9e48f2a3319cb80361dfab4cf6192a03badb60a"), 1), Encoders.Hex.DecodeData("51202f436892d90fb2665519efa3d9f0f5182859124f179486862c2cd7a78ea9ac19"), true, false)
 					},
 					outputs: new List<Output>()
 					{

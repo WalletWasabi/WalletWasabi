@@ -53,6 +53,7 @@ public partial class Arena : PeriodicRunner
 	public event EventHandler<CoinjoinTransactionCreatedEventArgs>? CoinjoinTransactionCreated;
 	public event EventHandler<RoundPhaseChangedEventArgs>? RoundPhaseChanged;
 	public event EventHandler<AffiliationAddedEventArgs>? AffiliationAdded;
+	public event EventHandler<InputAddedEventArgs>? InputAdded;
 
 	public HashSet<Round> Rounds { get; } = new();
 	private IEnumerable<RoundState> RoundStates { get; set; } = Enumerable.Empty<RoundState>();
@@ -241,6 +242,11 @@ public partial class Arena : PeriodicRunner
 
 				if (allReady || phaseExpired)
 				{
+					foreach (Alice alice in round.Alices)
+					{
+						NotifyInput(round.Id, alice.Coin, alice.IsPayingZeroCoordinationFee);
+					}
+
 					var coinjoin = round.Assert<ConstructionState>();
 
 					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
@@ -657,9 +663,14 @@ public partial class Arena : PeriodicRunner
 		RoundPhaseChanged?.SafeInvoke(this, new RoundPhaseChangedEventArgs(round.Id, Phase.Ended));
 	}
 
-	private void NotifyAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag, bool isPayingZeroCoordinationFee)
+	private void NotifyInput(uint256 roundId, Coin coin, bool isPayingZeroCoordinationFee)
 	{
-		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationFlag, isPayingZeroCoordinationFee));
+		InputAdded.SafeInvoke(this, new InputAddedEventArgs(roundId, coin, isPayingZeroCoordinationFee));
+	}
+
+	private void NotifyAffiliation(uint256 roundId, Coin coin, AffiliationFlag affiliationFlag)
+	{
+		AffiliationAdded.SafeInvoke(this, new AffiliationAddedEventArgs(roundId, coin, affiliationFlag));
 	}
 
 	private SigningState FinalizeTransaction(uint256 roundId, ConstructionState constructionState)

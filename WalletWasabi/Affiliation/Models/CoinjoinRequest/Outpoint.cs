@@ -19,7 +19,7 @@ public record Outpoint
 	[JsonProperty(PropertyName = "index")]
 	public long Index { get; }
 
-	public static Outpoint FromOutpoint(OutPoint outPoint)
+	public static Outpoint FromOutPoint(OutPoint outPoint)
 	{
 		return new Outpoint(outPoint.Hash.ToBytes(lendian: true), outPoint.N);
 	}

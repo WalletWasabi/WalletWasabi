@@ -4,6 +4,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
+using WalletWasabi.Affiliation.Extensions;
 using System.Collections.Generic;
 
 namespace WalletWasabi.Affiliation;
@@ -12,27 +13,71 @@ public class RoundData
 {
 	public RoundData(RoundParameters roundParameters)
 	{
-		Inputs = new();
 		RoundParameters = roundParameters;
+		OutpointCoinPairs = new();
+		OutpointAffiliationPairs = new();
+		OutpointFeeExemptionPairs = new();
+
 	}
 
-	private ConcurrentBag<AffiliateCoin> Inputs { get; }
 	private RoundParameters RoundParameters { get; }
 
-	public void AddInput(Coin coin, AffiliationFlag affiliationFlag, bool zeroCoordinationFee)
+	private ConcurrentBag<Tuple<OutPoint, Coin>> OutpointCoinPairs { get; }
+	private ConcurrentBag<Tuple<OutPoint, AffiliationFlag>> OutpointAffiliationPairs { get; }
+	private ConcurrentBag<Tuple<OutPoint, bool>> OutpointFeeExemptionPairs { get; }
+
+	public void AddInputCoin(Coin coin)
 	{
-		Inputs.Add(new AffiliateCoin(coin, affiliationFlag, zeroCoordinationFee || RoundParameters.CoordinationFeeRate.GetFee(coin.Amount) == Money.Zero));
+		OutpointCoinPairs.Add(new Tuple<OutPoint, Coin>(coin.Outpoint, coin));
 	}
 
-	public FinalizedRoundData Finalize(NBitcoin.Transaction transaction)
+	public void AddInputAffiliationFlag(Coin coin, AffiliationFlag affiliationFlag)
 	{
-		if (!transaction.Inputs.Select(x => x.PrevOut).ToHashSet().SetEquals(Inputs.Select(x => x.Outpoint).ToHashSet()))
+		OutpointAffiliationPairs.Add(new Tuple<OutPoint, AffiliationFlag>(coin.Outpoint, affiliationFlag));
+	}
+
+	public void AddInputFeeExemption(Coin coin, bool feeExemption)
+	{
+		OutpointFeeExemptionPairs.Add(new Tuple<OutPoint, bool>(coin.Outpoint, feeExemption));
+	}
+
+	private Dictionary<OutPoint, TValue> GetDictionary<TValue>(IEnumerable<Tuple<OutPoint, TValue>> pairs, IEnumerable<OutPoint> outpoints, string name)
+	{
+		IEnumerable<IGrouping<OutPoint, Tuple<OutPoint, TValue>>> pairsGroupedByOutpoints = pairs.GroupBy(x => x.Item1);
+
+		foreach (IGrouping<OutPoint, Tuple<OutPoint, TValue>> pairGroup in pairsGroupedByOutpoints.Where(g => g.Count() > 1))
 		{
-			throw new Exception("Inconsistent data.");
+			Logging.Logger.LogWarning($"Duplicate {name} for outpoint {Convert.ToHexString(pairGroup.Key.ToBytes())}.");
 		}
 
-		IEnumerable<AffiliateCoin> sortedInputs = transaction.Inputs.Select(x => Inputs.ToList().Find(y => x.PrevOut == y.Outpoint));
+		HashSet<OutPoint> pairsOutpoints = pairsGroupedByOutpoints.Select(g => g.Key).ToHashSet();
 
-		return new(RoundParameters, sortedInputs.ToImmutableList(), transaction);
+		foreach (OutPoint outpoint in outpoints.Except(pairsOutpoints))
+		{
+			Logging.Logger.LogWarning($"Missing {name} for outpoint {Convert.ToHexString(outpoint.ToBytes())}.");
+		}
+
+		foreach (OutPoint outpoint in pairsOutpoints.Except((IEnumerable<OutPoint>)outpoints))
+		{
+			Logging.Logger.LogInfo($"Unnecessary {name} for outpoint {Convert.ToHexString(outpoint.ToBytes())}.");
+		}
+
+		Dictionary<OutPoint, TValue> valuesByOutpoints = pairsGroupedByOutpoints.ToDictionary(g => g.Key, g => g.First().Item2);
+		return valuesByOutpoints;
+	}
+
+
+	public FinalizedRoundData FinalizeRoundData(NBitcoin.Transaction transaction)
+	{
+		HashSet<OutPoint> transactionOutpoints = transaction.Inputs.Select(x => x.PrevOut).ToHashSet();
+		Dictionary<OutPoint, AffiliationFlag> affiliationFlagsByOutpoints = GetDictionary(OutpointAffiliationPairs, transactionOutpoints, "affiliation flag");
+		Dictionary<OutPoint, bool> feeExemptionsByOutpoints = GetDictionary(OutpointFeeExemptionPairs, transactionOutpoints, "fee exemptoin");
+		Dictionary<OutPoint, Coin> coinByOutpoints = GetDictionary(OutpointCoinPairs, transactionOutpoints, "coin");
+
+		Func<Money, bool> isNoFee = amount => RoundParameters.CoordinationFeeRate.GetFee(amount) == Money.Zero;
+
+		IEnumerable<AffiliateInput> inputs = transaction.Inputs.Select(x => new AffiliateInput(coinByOutpoints[x.PrevOut], affiliationFlagsByOutpoints.GetValueOrDefault(x.PrevOut, AffiliationFlag.Default), feeExemptionsByOutpoints.GetValueOrDefault(x.PrevOut, false) || isNoFee(coinByOutpoints[x.PrevOut].Amount)));
+
+		return new FinalizedRoundData(inputs, transaction.Outputs, RoundParameters.Network, RoundParameters.CoordinationFeeRate, RoundParameters.AllowedInputAmounts.Min);
 	}
 }

@@ -4,12 +4,12 @@ namespace WalletWasabi.Affiliation;
 
 public class AffiliateCoin : Coin
 {
-	public AffiliateCoin(Coin coin, AffiliationFlag affiliationFlag, bool zeroCoordinationFee) : base(coin.Outpoint, coin.TxOut)
+	public AffiliateCoin(Coin coin, AffiliationFlag affiliationFlag, bool isNoFee) : base(coin.Outpoint, coin.TxOut)
 	{
 		AffiliationFlag = affiliationFlag;
-		ZeroCoordinationFee = zeroCoordinationFee;
+		IsNoFee = isNoFee;
 	}
 
 	public AffiliationFlag AffiliationFlag { get; }
-	public bool ZeroCoordinationFee { get; }
+	public bool IsNoFee { get; }
 }
