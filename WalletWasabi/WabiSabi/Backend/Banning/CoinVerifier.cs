@@ -227,7 +227,7 @@ public class CoinVerifier
 					var apiResponseItem = await CoinVerifierApiClient.SendRequestAsync(coin.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 					var shouldBan = CheckForFlags(apiResponseItem);
 
-					// We got a definetive answer.
+					// We got a definitive answer.
 					if (shouldBan)
 					{
 						CoinBlacklisted?.SafeInvoke(this, coin);
