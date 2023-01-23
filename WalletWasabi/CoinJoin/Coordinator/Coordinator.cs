@@ -130,7 +130,7 @@ public class Coordinator : IDisposable
 
 		if (CoinVerifier is { })
 		{
-			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlackListedAsync;
+			CoinVerifier.CoinBlacklisted += CoinVerifier_CoinBlacklistedAsync;
 		}
 	}
 
@@ -438,7 +438,7 @@ public class Coordinator : IDisposable
 		}
 	}
 
-	private async void CoinVerifier_CoinBlackListedAsync(object? _, Coin coin)
+	private async void CoinVerifier_CoinBlacklistedAsync(object? _, Coin coin)
 	{
 		try
 		{
@@ -476,7 +476,7 @@ public class Coordinator : IDisposable
 
 				if (CoinVerifier is { })
 				{
-					CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlackListedAsync;
+					CoinVerifier.CoinBlacklisted -= CoinVerifier_CoinBlacklistedAsync;
 				}
 
 				foreach (CoordinatorRound round in Rounds)
