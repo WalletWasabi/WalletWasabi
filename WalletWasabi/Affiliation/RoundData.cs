@@ -4,6 +4,7 @@ using System.Linq;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.Affiliation.Models.CoinjoinRequest;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Affiliation;
 
@@ -30,6 +31,8 @@ public class RoundData
 			throw new Exception("Inconsistent data.");
 		}
 
-		return new(RoundParameters, Inputs.ToImmutableList(), transaction);
+		IEnumerable<AffiliateCoin> sortedInputs = transaction.Inputs.Select(x => Inputs.ToList().Find(y => x.PrevOut == y.Outpoint));
+
+		return new(RoundParameters, sortedInputs.ToImmutableList(), transaction);
 	}
 }
