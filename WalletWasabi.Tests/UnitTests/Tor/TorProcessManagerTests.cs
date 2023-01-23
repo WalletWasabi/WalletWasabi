@@ -111,7 +111,7 @@ public class TorProcessManagerTests
 
 		await using (TorProcessManager torProcessManager = mockTorProcessManager.Object)
 		{
-			TorControlException ex = await Assert.ThrowsAsync<TorControlException>(async () => await torProcessManager.StartAsync(timeoutCts.Token).ConfigureAwait(false));
+			NotSupportedException ex = await Assert.ThrowsAsync<NotSupportedException>(async () => await torProcessManager.StartAsync(timeoutCts.Token).ConfigureAwait(false));
 			Assert.Equal(TorProcessManager.TorProcessStartedByDifferentUser, ex.Message);
 		}
 
