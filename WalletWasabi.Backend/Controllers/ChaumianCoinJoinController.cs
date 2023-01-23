@@ -247,7 +247,7 @@ public class ChaumianCoinJoinController : ControllerBase
 					}
 
 					var coin = new Coin(inputProof.Input, txOut);
-					inputs.Add(new Coin(inputProof.Input, txOut));
+					inputs.Add(coin);
 					coinAndTxOutResponses.Add(coin, getTxOutResponse);
 				}
 
