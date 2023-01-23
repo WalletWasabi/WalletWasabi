@@ -311,6 +311,7 @@ public class ChaumianCoinJoinController : ControllerBase
 				{
 					CoinVerifier?.ScheduleVerification(coin, round.InputRegistrationTimesout, CancellationToken.None, false, coinAndTxOutResponses[coin].Confirmations);
 				}
+
 				round.AddAlice(alice);
 
 				// All checks are good. Sign.
