@@ -18,7 +18,7 @@ public partial class LoadingViewModel : ActivatableViewModel
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
-	[AutoNotify] private volatile bool _isLoading;
+	[AutoNotify] private bool _isLoading;
 
 	private Stopwatch? _stopwatch;
 	private uint _filtersToDownloadCount;
