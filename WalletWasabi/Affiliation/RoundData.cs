@@ -21,7 +21,7 @@ public class RoundData
 
 	public void AddInput(Coin coin, AffiliationFlag affiliationFlag, bool zeroCoordinationFee)
 	{
-		Inputs.Add(new AffiliateCoin(coin, affiliationFlag, zeroCoordinationFee));
+		Inputs.Add(new AffiliateCoin(coin, affiliationFlag, zeroCoordinationFee || RoundParameters.CoordinationFeeRate.GetFee(coin.Amount) == Money.Zero));
 	}
 
 	public FinalizedRoundData Finalize(NBitcoin.Transaction transaction)
