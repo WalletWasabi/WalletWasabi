@@ -47,18 +47,15 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 
 		var coins = GetAllCoinItems(pocketItems);
 
-		SelectedCoinsChanged = coins
+		coins
 			.AsObservableChangeSet(x => x.SmartCoin)
 			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(100), scheduler: RxApp.MainThreadScheduler)
 			.ToCollection()
 			.Select(x => x.Where(m => m.IsSelected == true))
 			.Select(models => models.Select(x => x.SmartCoin).ToImmutableList())
-			.ReplayLastActive();
-
-		SelectedCoinsChanged.BindTo(this, model => model.SelectedCoins);
+			.ReplayLastActive()
+			.BindTo(this, model => model.SelectedCoins);
 	}
-
-	public IObservable<IReadOnlyCollection<SmartCoin>> SelectedCoinsChanged { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
 
