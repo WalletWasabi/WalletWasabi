@@ -21,7 +21,7 @@
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
 
     <c:ContentArea.Title>
-      <DockPanel TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
+      <DockPanel>
         <TextBlock Text="Preview Transaction" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" VerticalAlignment="Center" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
           <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
