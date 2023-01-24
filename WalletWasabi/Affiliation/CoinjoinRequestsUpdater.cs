@@ -54,7 +54,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 				}
 				catch (Exception exception)
 				{
-					Logging.Logger.LogError(exception.Message);
+					Logging.Logger.LogError(exception);
 				}
 			}
 		}
@@ -79,7 +79,7 @@ public class CoinjoinRequestsUpdater : BackgroundService, IDisposable
 		}
 		catch (Exception exception)
 		{
-			Logging.Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception.Message}");
+			Logging.Logger.LogError($"Cannot update coinjoin request for round ({roundId}) and affiliate flag '{affiliationFlag}': {exception}");
 		}
 	}
 
