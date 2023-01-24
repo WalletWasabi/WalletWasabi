@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning;
 
@@ -58,8 +59,7 @@ public class CoinVerifier
 				Logger.LogWarning($"Trying to re-schedule coin '{coin.Outpoint}' for verification.");
 
 				// Quickly re-scheduling the missing items.
-				ScheduleVerification(coin, cancellationToken, TimeSpan.Zero);
-				if (!CoinVerifyItems.TryGetValue(coin, out item))
+				if (!TryScheduleVerification(coin, out item, cancellationToken, TimeSpan.Zero))
 				{
 					// This should not happen.
 					Logger.LogError($"Coin '{coin.Outpoint}' cannot be re-scheduled for verification. The coin will be removed from the round.");
@@ -152,40 +152,43 @@ public class CoinVerifier
 		return shouldBan;
 	}
 
-	public void ScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null)
+	public bool TryScheduleVerification(Coin coin, DateTimeOffset inputRegistrationEndTime, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, bool oneHop = false, int? confirmations = null)
 	{
 		var startTime = inputRegistrationEndTime - WabiSabiConfig.CoinVerifierStartBefore;
 		var delayUntilStart = startTime - DateTimeOffset.UtcNow;
-		ScheduleVerification(coin, cancellationToken, delayUntilStart, oneHop, confirmations);
+		return TryScheduleVerification(coin, out coinVerifyItem, cancellationToken, delayUntilStart, oneHop, confirmations);
 	}
 
-	public void ScheduleVerification(Coin coin, CancellationToken cancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
+	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
 	{
 		var item = new CoinVerifyItem();
+		coinVerifyItem = null;
 
 		if (!CoinVerifyItems.TryAdd(coin, item))
 		{
 			Logger.LogWarning("Coin was already scheduled for verification.");
 			item.Dispose();
-			return;
+			return false;
 		}
+
+		coinVerifyItem = item;
 
 		if (oneHop)
 		{
 			item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
-			return;
+			return true;
 		}
 
 		if (Whitelist.TryGet(coin.Outpoint, out _))
 		{
 			item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
-			return;
+			return true;
 		}
 
 		if (CoinJoinIdStore.Contains(coin.Outpoint.Hash))
 		{
 			item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: false));
-			return;
+			return true;
 		}
 
 		if (coin.Amount >= WabiSabiConfig.CoinVerifierRequiredConfirmationAmount)
@@ -193,7 +196,7 @@ public class CoinVerifier
 			if (confirmations is null || confirmations < WabiSabiConfig.CoinVerifierRequiredConfirmations)
 			{
 				item.SetResult(new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
-				return;
+				return true;
 			}
 		}
 
@@ -248,6 +251,8 @@ public class CoinVerifier
 				}
 			},
 			cancellationToken);
+
+		return true;
 	}
 
 	public void CancelSchedule(Coin coin)

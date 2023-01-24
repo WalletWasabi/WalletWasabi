@@ -117,7 +117,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
 
-			CoinVerifier?.ScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, cancellationToken, oneHop, confirmations);
+			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, out _, cancellationToken, oneHop, confirmations);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,
