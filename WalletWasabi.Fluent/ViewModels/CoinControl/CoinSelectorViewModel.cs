@@ -53,7 +53,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.ToCollection()
 			.Select(x => x.Where(m => m.IsSelected == true))
 			.Select(models => models.Select(x => x.SmartCoin).ToImmutableList())
-			.ReplayLastActive()
 			.BindTo(this, model => model.SelectedCoins);
 	}
 
