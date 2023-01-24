@@ -3,6 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
@@ -99,7 +100,7 @@ public partial class LoginViewModel : RoutableViewModel
 		closedWalletViewModel.NotifyPropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 		closedWalletViewModel.StartLoading();
 
-		if (closedWalletViewModel.IsSelected /*&& closedWalletViewModel.OpenCommand.CanExecute(default)*/) // TODO RelayCommand: parameter for canExecute cannot be null. Maybe method also needs to be provided (?)
+		if (closedWalletViewModel.IsSelected && closedWalletViewModel.OpenCommand.CanExecute(default))
 		{
 			closedWalletViewModel.OpenCommand.Execute(true);
 		}

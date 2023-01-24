@@ -81,10 +81,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	private void OnNavigateToExistingWalletLogin()
 	{
-		if (ExistingWallet is { } /*&& ExistingWallet.OpenCommand.CanExecute(default)*/) // TODO RelayCommand: parameter for canExecute cannot be null. Maybe method also needs to be provided (?)
+		if (ExistingWallet is { } && ExistingWallet.OpenCommand.CanExecute(default))
 		{
 			Navigate().Clear();
-			ExistingWallet.OpenCommand.Execute(false); // TODO RelayCommand: cannot be default.
+			ExistingWallet.OpenCommand.Execute(default);
 		}
 	}
 

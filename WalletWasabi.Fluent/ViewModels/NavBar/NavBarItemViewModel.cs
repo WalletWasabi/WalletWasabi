@@ -53,7 +53,7 @@ public abstract class NavBarItemViewModel : RoutableViewModel
 		}
 	}
 
-	public ICommand OpenCommand { get; }
+	public IRelayCommand<bool> OpenCommand { get; }
 
 	protected virtual Task OnOpen(NavigationMode defaultNavigationMode)
 	{

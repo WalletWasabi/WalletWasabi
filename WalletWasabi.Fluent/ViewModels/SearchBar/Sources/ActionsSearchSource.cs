@@ -50,9 +50,9 @@ public class ActionsSearchSource : ISearchSource
 				return;
 			}
 
-			if (vm is NavBarItemViewModel item /*&& item.OpenCommand.CanExecute(default)*/) // TODO RelayCommand: parameter for canExecute cannot be null. Maybe method also needs to be provided (?)
+			if (vm is NavBarItemViewModel item && item.OpenCommand.CanExecute(default))
 			{
-				item.OpenCommand.Execute(false); // TODO RelayCommand: cannot be default.
+				item.OpenCommand.Execute(default);
 			}
 			else if (vm is TriggerCommandViewModel triggerCommandViewModel && triggerCommandViewModel.TargetCommand.CanExecute(default))
 			{
