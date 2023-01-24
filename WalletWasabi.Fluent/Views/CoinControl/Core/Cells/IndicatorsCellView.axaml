@@ -48,9 +48,9 @@
     </Panel>
 
     <Border BorderThickness="1"
-            IsVisible="{Binding #ScriptType.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            IsVisible="{Binding ScriptType.ShortName, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue='False'}"
             BorderBrush="{DynamicResource TextControlForeground}" Opacity="0.6" CornerRadius="4" Padding="3">
-      <TextBlock Classes="h10" x:Name="ScriptType" Text="{Binding ScriptType.ShortName, FallbackValue=''}"
+      <TextBlock Classes="h10" Text="{Binding ScriptType.ShortName, FallbackValue=''}"
                  ToolTip.Tip="{Binding ScriptType.Name, FallbackValue=''}" />
     </Border>
 
