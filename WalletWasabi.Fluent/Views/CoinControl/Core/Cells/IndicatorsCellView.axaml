@@ -8,13 +8,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.CoinControl.Core.Cells.IndicatorsCellView">
 
-  <UserControl.Styles>
-    <Style Selector="WrapPanel > :is(Control)">
-      <Setter Property="Margin" Value="2 0" />
-    </Style>
-  </UserControl.Styles>
-
-  <WrapPanel VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
+  <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Spacing="3">
 
     <Panel>
       <!-- Confirmed -->
@@ -61,5 +55,5 @@
               Height="14"
               ToolTip.Tip="{Binding BannedUntilUtcToolTip}" />
 
-  </WrapPanel>
+  </StackPanel>
 </UserControl>
