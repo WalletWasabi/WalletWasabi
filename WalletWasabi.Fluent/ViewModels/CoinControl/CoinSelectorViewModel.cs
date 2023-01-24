@@ -44,10 +44,7 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			}
 		};
 
-		var coins = pocketItems
-			.SelectMany(x => x.Children)
-			.OfType<CoinCoinControlItemViewModel>()
-			.ToList();
+		var coins = GetAllCoinItems(pocketItems);
 
 		SelectedCoinsChanged = coins
 			.AsObservableChangeSet(x => x.SmartCoin)
