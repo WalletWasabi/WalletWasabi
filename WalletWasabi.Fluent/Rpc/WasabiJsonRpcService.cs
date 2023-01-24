@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DynamicData;
 using NBitcoin;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -47,7 +51,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 			label = x.HdPubKey.Label.ToString(),
 			keyPath = x.HdPubKey.FullKeyPath.ToString(),
-			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
+			address = x.HdPubKey.GetAssumedScriptPubKey().GetDestinationAddress(Global.Network).ToString()
 		}).ToArray();
 	}
 
@@ -71,9 +75,87 @@ public class WasabiJsonRpcService : IJsonRpcService
 			confirmed = x.Confirmed,
 			confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
 			keyPath = x.HdPubKey.FullKeyPath.ToString(),
-			address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString(),
+			address = x.HdPubKey.GetAssumedScriptPubKey().GetDestinationAddress(Global.Network).ToString(),
 			spentBy = x.SpenderTransaction?.GetHash().ToString()
 		}).ToArray();
+	}
+
+	[JsonRpcMethod("graph")]
+	public string GetWalletGraph(uint256 fromTxId)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		AssertWalletIsLoaded();
+		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
+		{
+			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
+		}
+
+		var txGraphs = coinRegistry.AsAllCoinsView()
+			.SkipWhile(x => x.TransactionId != fromTxId)
+			.Select(
+				x => new
+				{
+					txid = x.TransactionId.ToString(),
+					index = x.Index,
+					amount = x.Amount.Satoshi,
+					anonymitySet = x.HdPubKey.AnonymitySet,
+					confirmed = x.Confirmed,
+					confirmations = x.Confirmed ? serverTipHeight - (uint) x.Height.Value + 1 : 0,
+					keyPath = x.HdPubKey.FullKeyPath.ToString(),
+					address = x.HdPubKey.GetAssumedScriptPubKey().GetDestinationAddress(Global.Network).ToString(),
+					spentBy = x.SpenderTransaction?.GetHash().ToString()
+				})
+			.GroupBy(x => x.txid)
+			.Select(outputs =>
+			{
+				var initialState = new
+				{
+					Indexes = ImmutableArray<string>.Empty,
+					Amounts = ImmutableArray<string>.Empty,
+					AnonScores = ImmutableArray<string>.Empty,
+					KeyPaths = ImmutableArray<string>.Empty,
+					Addresses = ImmutableArray<string>.Empty,
+				};
+
+				var aggregated = outputs.Aggregate(
+					initialState,
+					(acc, o) => new
+					{
+						Indexes = acc.Indexes.Add(o.index.ToString()),
+						Amounts = acc.Amounts.Add($"<idx{o.index}>{o.amount}"),
+						AnonScores = acc.AnonScores.Add(o.anonymitySet.ToString()),
+						KeyPaths = acc.KeyPaths.Add(o.keyPath),
+						Addresses = acc.Addresses.Add(o.address)
+					});
+
+				var indexes = string.Join(" | ", aggregated.Indexes);
+				var amounts = string.Join(" | ", aggregated.Amounts);
+				var anonScores = string.Join(" | ", aggregated.AnonScores);
+				var keyPaths = string.Join(" | ", aggregated.KeyPaths);
+				var addresses = string.Join(" | ", aggregated.Addresses);
+
+				var txoutsPart = $"{{ {{ PrvScore | {anonScores} }} | {{ Path | {keyPaths} }} | {{ Idx | {indexes} }} | {{ Amount | {amounts} }} | {{ Addresses | {addresses} }} }}";
+
+				var spendingTxLinks = outputs
+					.Where(x => x.spentBy != "")
+					.Select(x => $"tx{x.txid}:idx{x.txid} -> tx{x.spentBy}");
+
+				var edgesPart = string.Join("\n", spendingTxLinks);
+				var txid = outputs.Key;
+				return $"tx{txid} [label=\"Tx Id: {txid[..8]}|{{{{ {txoutsPart} }} }}}}\"];\n{edgesPart}";
+			});
+
+		var graphParts = string.Join(Environment.NewLine, txGraphs);
+
+		var graph = @$"""digraph G {{
+				graph [center=1 rankdir=LR; overlap=false; splines=true;];
+				edge [dir=forward];
+				node [shape=record; ordering=""in"" ];
+				{graphParts};
+			}}""";
+		return graph;
 	}
 
 	[JsonRpcMethod("createwallet")]
