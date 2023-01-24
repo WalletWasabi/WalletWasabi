@@ -138,11 +138,11 @@ public class Whitelist
 	{
 		if (ChangeId != LastSavedChangeId && !string.IsNullOrEmpty(WhitelistFilePath))
 		{
+			LastSavedChangeId = ChangeId;
 			var toFile = Innocents.Values.Select(innocent => innocent.ToString());
 			using (await FileLock.LockAsync().ConfigureAwait(false))
 			{
 				await File.WriteAllLinesAsync(WhitelistFilePath, toFile).ConfigureAwait(false);
-				LastSavedChangeId = ChangeId;
 				return true;
 			}
 		}
