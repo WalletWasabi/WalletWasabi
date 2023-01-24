@@ -35,7 +35,7 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 
 	public string? BannedUntilUtcToolTip { get; protected set; }
 
-	public int AnonymityScore { get; protected set; }
+	public int? AnonymityScore { get; protected set; }
 
 	public SmartLabel Labels { get; protected set; } = SmartLabel.Empty;
 
@@ -58,4 +58,6 @@ public abstract class CoinControlItemViewModelBase : ViewModelBase
 			this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 	}
+
+	public ScriptType? ScriptType { get; protected set; }
 }
