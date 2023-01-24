@@ -142,6 +142,7 @@ public class Whitelist
 			using (await FileLock.LockAsync().ConfigureAwait(false))
 			{
 				await File.WriteAllLinesAsync(WhitelistFilePath, toFile).ConfigureAwait(false);
+				LastSavedChangeId = ChangeId;
 				return true;
 			}
 		}
