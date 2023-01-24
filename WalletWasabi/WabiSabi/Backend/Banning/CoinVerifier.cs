@@ -42,8 +42,8 @@ public class CoinVerifier
 
 	public async Task<IEnumerable<CoinVerifyResult>> VerifyCoinsAsync(IEnumerable<Coin> coinsToCheck, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromSeconds(30));
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
+		using CancellationTokenSource timeoutCancellationTokenSource = new(TimeSpan.FromSeconds(30));
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
 		// Booting up the results with the default value - ban: no, remove: yes.
 		Dictionary<Coin, CoinVerifyResult> coinVerifyItems = coinsToCheck.ToDictionary(coin => coin, coin => new CoinVerifyResult(coin, ShouldBan: false, ShouldRemove: true));
@@ -90,12 +90,12 @@ public class CoinVerifier
 		}
 		catch (OperationCanceledException ex)
 		{
-			if (cancellationTokenSource.IsCancellationRequested)
+			if (timeoutCancellationTokenSource.IsCancellationRequested)
 			{
 				Logger.LogError(ex);
 			}
 
-			// Otherwise just return.
+			// Otherwise just continue - the whole round was cancelled.
 		}
 		catch (Exception ex)
 		{

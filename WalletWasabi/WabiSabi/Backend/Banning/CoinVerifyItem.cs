@@ -29,6 +29,7 @@ public class CoinVerifyItem : IDisposable
 		{
 			if (disposing)
 			{
+				AbortCts.Cancel();
 				AbortCts.Dispose();
 			}
 
