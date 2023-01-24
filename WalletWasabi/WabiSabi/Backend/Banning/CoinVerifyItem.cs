@@ -42,12 +42,12 @@ public class CoinVerifyItem : IDisposable
 		GC.SuppressFinalize(this);
 	}
 
-	internal void SetResult(CoinVerifyResult coinVerifyResult)
+	public void SetResult(CoinVerifyResult coinVerifyResult)
 	{
 		TaskCompletionSource.SetResult(coinVerifyResult);
 	}
 
-	internal void ThrowIfCancellationRequested()
+	public void ThrowIfCancellationRequested()
 	{
 		AbortCts.Token.ThrowIfCancellationRequested();
 	}
