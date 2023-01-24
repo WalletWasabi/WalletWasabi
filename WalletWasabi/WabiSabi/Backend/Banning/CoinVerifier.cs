@@ -58,7 +58,7 @@ public class CoinVerifier
 				// If the coin was not scheduled try to quickly schedule it - it should not happen.
 				Logger.LogWarning($"Trying to re-schedule coin '{coin.Outpoint}' for verification.");
 
-				// Quickly re-scheduling the missing items.
+				// Quickly re-scheduling the missing items - we do not want to cancel the verification after the local timeout, so passing cancellationToken.
 				if (!TryScheduleVerification(coin, out item, cancellationToken, TimeSpan.Zero))
 				{
 					// This should not happen.
@@ -159,7 +159,7 @@ public class CoinVerifier
 		return TryScheduleVerification(coin, out coinVerifyItem, cancellationToken, delayUntilStart, oneHop, confirmations);
 	}
 
-	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken cancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
+	public bool TryScheduleVerification(Coin coin, [NotNullWhen(true)] out CoinVerifyItem? coinVerifyItem, CancellationToken verificationCancellationToken, TimeSpan? delayedStart = null, bool oneHop = false, int? confirmations = null)
 	{
 		var item = new CoinVerifyItem();
 		coinVerifyItem = null;
@@ -204,7 +204,7 @@ public class CoinVerifier
 			async () =>
 			{
 				using CancellationTokenSource absoluteTimeoutCts = new(AbsoluteScheduleSanityTimeout);
-				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token, item.Token);
+				using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(verificationCancellationToken, absoluteTimeoutCts.Token, item.Token);
 
 				try
 				{
@@ -250,7 +250,7 @@ public class CoinVerifier
 					// Do not throw an exception here - unobserverved exception prevention.
 				}
 			},
-			cancellationToken);
+			verificationCancellationToken);
 
 		return true;
 	}
