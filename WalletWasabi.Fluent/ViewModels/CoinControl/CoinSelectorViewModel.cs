@@ -32,7 +32,6 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		SyncSelectedItems(pocketItems, initialCoinSelection);
 		CollapseUnselectedPockets(pocketItems);
 
-		var pocketColumn = PocketColumn();
 		TreeDataGridSource = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
 		{
 			Columns =
@@ -41,7 +40,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 				IndicatorsColumn(),
 				AmountColumn(),
 				AnonymityScoreColumn(),
-				pocketColumn,
+				PocketColumn(),
 			}
 		};
 
