@@ -29,7 +29,8 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);
 
-		SyncSelectedItems(pocketItems, initialCoinSelection);
+		//SyncSelectedItems(pocketItems, initialCoinSelection);
+		CollapseUnselectedPockets(pocketItems);
 
 		var pocketColumn = PocketColumn();
 		TreeDataGridSource = new HierarchicalTreeDataGridSource<CoinControlItemViewModelBase>(pocketItems)
@@ -86,6 +87,14 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		foreach (var viewModel in selected)
 		{
 			viewModel.IsSelected = true;
+		}
+	}
+
+	private static void CollapseUnselectedPockets(IReadOnlyCollection<PocketCoinControlItemViewModel> pocketItems)
+	{
+		foreach (var pocket in pocketItems.Where(x => x.IsSelected == false))
+		{
+			pocket.IsExpanded = false;
 		}
 	}
 
