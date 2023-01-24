@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
 public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
-	[AutoNotify] private IReadOnlyCollection<SmartCoin>? _selectedCoins;
+	[AutoNotify] private IReadOnlyCollection<SmartCoin> _selectedCoins = ImmutableList<SmartCoin>.Empty;
 
 	public CoinSelectorViewModel(WalletViewModelBase walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
 	{

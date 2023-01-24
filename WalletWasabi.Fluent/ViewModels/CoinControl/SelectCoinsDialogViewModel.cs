@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -33,11 +30,7 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 
 		var coinsChanged = CoinSelector.WhenAnyValue(x => x.SelectedCoins);
 
-		var requiredAmount = coinsChanged.Select(GetRequiredAmount);
-		var selectedAmount = coinsChanged.Select(c => new Money(c.Sum(x => x.Amount)));
-		var remainingAmount = selectedAmount.CombineLatest(requiredAmount, (selected, required) => required - selected);
-
-		EnoughSelected = remainingAmount.Select(remaining => remaining <= Money.Zero).ReplayLastActive();
+		EnoughSelected = coinsChanged.Select(AreEnoughToCreateTransaction);
 		EnableBack = true;
 		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, CoinSelector.SelectedCoins), EnoughSelected);
 
@@ -55,9 +48,8 @@ public partial class SelectCoinsDialogViewModel : DialogViewModelBase<IEnumerabl
 		base.OnNavigatedFrom(isInHistory);
 	}
 
-	private Money GetRequiredAmount(IEnumerable<SmartCoin> coins)
+	private bool AreEnoughToCreateTransaction(IEnumerable<SmartCoin> coins)
 	{
-		TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out var minimumAmount);
-		return minimumAmount;
+		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(_walletViewModel.Wallet.KeyManager, _transactionInfo, _walletViewModel.Wallet.Coins, coins, _walletViewModel.Wallet.Kitchen.SaltSoup(), out _);
 	}
 }
