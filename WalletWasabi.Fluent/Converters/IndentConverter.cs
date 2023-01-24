@@ -6,13 +6,7 @@ namespace WalletWasabi.Fluent.Converters;
 
 public class IndentConverter : AvaloniaObject, IValueConverter
 {
-	public static readonly StyledProperty<double> MultiplierProperty = AvaloniaProperty.Register<IndentConverter, double>(nameof(Multiplier));
-
-	public double Multiplier
-	{
-		get => GetValue(MultiplierProperty);
-		set => SetValue(MultiplierProperty, value);
-	}
+	public double Multiplier { get; set; }
 
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
