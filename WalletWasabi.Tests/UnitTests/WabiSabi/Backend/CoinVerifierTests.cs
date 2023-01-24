@@ -43,7 +43,7 @@ public class CoinVerifierTests
 		List<Coin> naughtyCoins = new();
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
-		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
 		{
 			if (item.ShouldBan)
 			{
@@ -87,7 +87,7 @@ public class CoinVerifierTests
 		ScheduleVerifications(coinVerifier, generatedCoins, TimeSpan.FromSeconds(2));
 		coinVerifier.CancelSchedule(generatedCoins[9]);
 
-		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
 		{
 			checkedCoins.Add(item.Coin);
 			if (item.ShouldBan)
@@ -127,7 +127,7 @@ public class CoinVerifierTests
 		List<Coin> generatedCoins = GenerateCoins(5);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
-		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
 		{
 			if (item.ShouldBan)
 			{
@@ -163,7 +163,7 @@ public class CoinVerifierTests
 		CoinVerifier coinVerifier = new(coinJoinIdStore, apiClient, _wabisabiTestConfig);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
-		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
 		{
 			Assert.False(item.ShouldBan);
 		}
@@ -193,7 +193,7 @@ public class CoinVerifierTests
 		List<Coin> generatedCoins = GenerateCoins(10);
 
 		ScheduleVerifications(coinVerifier, generatedCoins);
-		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None).ConfigureAwait(false))
+		foreach (var item in await coinVerifier.VerifyCoinsAsync(generatedCoins, CancellationToken.None))
 		{
 			if (item.ShouldBan)
 			{
