@@ -8,7 +8,7 @@ using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
-public class FocusNextWhenValid : DisposingBehavior<TextBox>
+public class FocusNextWhenValidBehavior : DisposingBehavior<TextBox>
 {
 	protected override void OnAttached(CompositeDisposable disposables)
 	{

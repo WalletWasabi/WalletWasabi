@@ -24,12 +24,14 @@ public class CoinVerifierApiClient
 	{
 	}
 
+	private TimeSpan ApiRequestTimeout { get; } = TimeSpan.FromMinutes(2);
+
 	private string ApiToken { get; set; }
 	private Network Network { get; set; }
 
 	private HttpClient HttpClient { get; set; }
 
-	public virtual async Task<(ApiResponseItem ApiResponseItem, Script Script)> SendRequestAsync(Script script, CancellationToken cancellationToken)
+	public virtual async Task<ApiResponseItem> SendRequestAsync(Script script, CancellationToken cancellationToken)
 	{
 		if (HttpClient.BaseAddress is null)
 		{
@@ -42,7 +44,7 @@ public class CoinVerifierApiClient
 
 		var address = script.GetDestinationAddress(Network.Main); // API provider don't accept testnet/regtest addresses.
 
-		using CancellationTokenSource timeoutTokenSource = new(TimeSpan.FromSeconds(15));
+		using CancellationTokenSource timeoutTokenSource = new(ApiRequestTimeout);
 		using CancellationTokenSource linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token);
 		using var content = new HttpRequestMessage(HttpMethod.Get, $"{HttpClient.BaseAddress}{address}");
 		content.Headers.Authorization = new("Bearer", ApiToken);
@@ -62,39 +64,6 @@ public class CoinVerifierApiClient
 
 		ApiResponseItem deserializedRecord = JsonConvert.DeserializeObject<ApiResponseItem>(responseString)
 			?? throw new JsonSerializationException($"Failed to deserialize API response, response string was: '{responseString}'");
-		return (deserializedRecord, script);
-	}
-
-	public async IAsyncEnumerable<(ApiResponseItem ApiResponseItem, Script ScriptPubKey)> VerifyScriptsAsync(IEnumerable<Script> scripts, [EnumeratorCancellation] CancellationToken cancellationToken)
-	{
-		IEnumerable<IEnumerable<Script>> chunks = scripts.Chunk(100);
-
-		foreach (var chunk in chunks)
-		{
-			var tasks = chunk.Select(script => SendRequestAsync(script, cancellationToken)).ToList();
-
-			foreach (var task in tasks)
-			{
-				(ApiResponseItem ApiResponseItem, Script ScriptPubKey) response;
-				try
-				{
-					var completedTask = await Task.WhenAny(task).ConfigureAwait(false);
-
-					response = await completedTask.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					Logger.LogWarning($"API response didn't arrive in time, operation was cancelled.");
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					continue;
-				}
-
-				yield return response;
-			}
-		}
+		return deserializedRecord;
 	}
 }
