@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
@@ -20,9 +20,9 @@ using WalletWasabi.Fluent.Views.CoinControl.Core.Headers;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinControl;
 
-public class CoinSelectorViewModel : ViewModelBase, IDisposable
+public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 {
-	private readonly BehaviorSubject<IEnumerable<SmartCoin>> _selectedCoinsSubject;
+	[AutoNotify] private IReadOnlyCollection<SmartCoin>? _selectedCoins;
 
 	public CoinSelectorViewModel(WalletViewModelBase walletViewModel, IEnumerable<SmartCoin> initialCoinSelection)
 	{
@@ -51,22 +51,18 @@ public class CoinSelectorViewModel : ViewModelBase, IDisposable
 			.AutoRefresh(x => x.IsSelected, TimeSpan.FromMilliseconds(100), scheduler: RxApp.MainThreadScheduler)
 			.ToCollection()
 			.Select(x => x.Where(m => m.IsSelected == true))
-			.Select(models => models.Select(x => x.SmartCoin))
+			.Select(models => models.Select(x => x.SmartCoin).ToImmutableList())
 			.ReplayLastActive();
 
-		_selectedCoinsSubject = new BehaviorSubject<IEnumerable<SmartCoin>>(new List<SmartCoin>());
-		SelectedCoinsChanged.Subscribe(_selectedCoinsSubject);
+		SelectedCoinsChanged.BindTo(this, model => model.SelectedCoins);
 	}
 
-	public IEnumerable<SmartCoin> SelectedCoins => _selectedCoinsSubject.Value;
-
-	public IObservable<IEnumerable<SmartCoin>> SelectedCoinsChanged { get; }
+	public IObservable<IReadOnlyCollection<SmartCoin>> SelectedCoinsChanged { get; }
 
 	public HierarchicalTreeDataGridSource<CoinControlItemViewModelBase> TreeDataGridSource { get; }
 
 	public void Dispose()
 	{
-		_selectedCoinsSubject?.Dispose();
 		foreach (var pocket in TreeDataGridSource.Items.OfType<PocketCoinControlItemViewModel>())
 		{
 			pocket.Dispose();
