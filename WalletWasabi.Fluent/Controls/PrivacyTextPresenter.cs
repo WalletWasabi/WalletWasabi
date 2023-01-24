@@ -18,7 +18,7 @@ public class PrivacyTextPresenter : UserControl
 	private FormattedText CreateFormattedText()
 	{
 		return new FormattedText(
-			"", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+			"X", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
 			new Typeface(FontFamily, FontStyle, FontWeight),
 			FontSize, null)
 		{
