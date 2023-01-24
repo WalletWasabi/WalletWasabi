@@ -11,7 +11,7 @@ public class CoinVerifyItem : IDisposable
 	{
 	}
 
-	public DateTimeOffset ScheduleTime { get; } = DateTimeOffset.Now;
+	public DateTimeOffset ScheduleTime { get; } = DateTimeOffset.UtcNow;
 	private TaskCompletionSource<CoinVerifyResult> TaskCompletionSource { get; } = new();
 	private CancellationTokenSource AbortCts { get; } = new();
 	public Task<CoinVerifyResult> Task => TaskCompletionSource.Task;
