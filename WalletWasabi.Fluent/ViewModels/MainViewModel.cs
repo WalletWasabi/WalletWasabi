@@ -257,7 +257,9 @@ public partial class MainViewModel : ViewModelBase
 				return AuthorizeWalletInfo();
 			}
 
-			return null;
+			Task<RoutableViewModel?> NoWalletInfo() => Task.FromResult<RoutableViewModel?>(null);
+
+			return NoWalletInfo();
 		});
 
 		SendViewModel.RegisterLazy(() =>
