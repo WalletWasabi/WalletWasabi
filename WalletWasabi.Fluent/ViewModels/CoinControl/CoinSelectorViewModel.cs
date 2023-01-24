@@ -29,7 +29,7 @@ public partial class CoinSelectorViewModel : ViewModelBase, IDisposable
 		var pockets = walletViewModel.Wallet.GetPockets();
 		var pocketItems = CreatePocketItems(pockets);
 
-		//SyncSelectedItems(pocketItems, initialCoinSelection);
+		SyncSelectedItems(pocketItems, initialCoinSelection);
 		CollapseUnselectedPockets(pocketItems);
 
 		var pocketColumn = PocketColumn();
