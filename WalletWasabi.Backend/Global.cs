@@ -66,6 +66,7 @@ public class Global : IDisposable
 	private HttpClient HttpClient { get; }
 
 	public Coordinator? Coordinator { get; private set; }
+	public CoinVerifier? CoinVerifier { get; private set; }
 
 	public Config Config { get; }
 
@@ -113,15 +114,16 @@ public class Global : IDisposable
 
 				HttpClient.BaseAddress = url;
 
-				var coinVerifierApiClient = new CoinVerifierApiClient(wabiSabiConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
-				var whiteList = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
-				WhiteList = whiteList;
-				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whiteList, wabiSabiConfig);
+				var coinVerifierApiClient = new CoinVerifierApiClient(CoordinatorParameters.RuntimeCoordinatorConfig.CoinVerifierApiAuthToken, RpcClient.Network, HttpClient);
+				var whitelist = await Whitelist.CreateAndLoadFromFileAsync(CoordinatorParameters.WhitelistFilePath, wabiSabiConfig, cancel).ConfigureAwait(false);
+				coinVerifier = new(CoinJoinIdStore, coinVerifierApiClient, whitelist, CoordinatorParameters.RuntimeCoordinatorConfig);
+				CoinVerifier = coinVerifier;
+				WhiteList = whitelist;
 				Logger.LogInfo("CoinVerifier created successfully.");
 			}
 			catch (Exception exc)
 			{
-				Logger.LogCritical($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'");
+				throw new InvalidOperationException($"There was an error when creating {nameof(CoinVerifier)}. Details: '{exc}'", exc);
 			}
 		}
 

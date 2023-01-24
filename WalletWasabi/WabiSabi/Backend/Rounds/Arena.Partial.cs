@@ -32,7 +32,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
+		var (coin, confirmations) = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
@@ -67,19 +67,21 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// only that the probability of duplicates is very low).
 			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
-			var isPayingZeroCoordinationFee = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			var comingFromCoinJoin = CoinJoinIdStore.Contains(coin.Outpoint.Hash);
+			bool oneHop = false;
 
-			if (!isPayingZeroCoordinationFee)
+			if (!comingFromCoinJoin)
 			{
 				// If the coin comes from a tx that all of the tx inputs are coming from a CJ (1 hop - no pay).
 				Transaction tx = await Rpc.GetRawTransactionAsync(coin.Outpoint.Hash, true, cancellationToken).ConfigureAwait(false);
 
 				if (tx.Inputs.All(input => CoinJoinIdStore.Contains(input.PrevOut.Hash)))
 				{
-					isPayingZeroCoordinationFee = true;
+					oneHop = true;
 				}
 			}
 
+			var isPayingZeroCoordinationFee = comingFromCoinJoin || oneHop;
 			var alice = new Alice(coin, request.OwnershipProof, round, id, isPayingZeroCoordinationFee);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate) <= Money.Zero)
@@ -114,6 +116,8 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeFrame.Duration);
 			round.Alices.Add(alice);
+
+			CoinVerifier?.TryScheduleVerification(coin, round.InputRegistrationTimeFrame.EndTime, out _, cancellationToken, oneHop, confirmations);
 
 			return new(alice.Id,
 				commitAmountCredentialResponse,
@@ -351,7 +355,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			await zeroVsizeTask.ConfigureAwait(false));
 	}
 
-	public async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	public async Task<(Coin coin, int Confirmations)> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
 
@@ -387,7 +391,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 		}
 
-		return new Coin(input, txOutResponse.TxOut);
+		return (new Coin(input, txOutResponse.TxOut), txOutResponse.Confirmations);
 	}
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
