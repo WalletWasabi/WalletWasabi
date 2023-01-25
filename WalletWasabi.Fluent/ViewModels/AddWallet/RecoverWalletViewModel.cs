@@ -54,6 +54,18 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			async () => await OnAdvancedRecoveryOptionsDialogAsync());
 	}
 
+	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
+
+	public IObservable<bool> NextCommandCanExecute { get; }
+
+	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+
+	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
+
+	private int MinGapLimit { get; set; } = 114;
+
+	public ObservableCollection<string> Mnemonics { get; } = new();
+
 	private async Task OnNextAsync(string? walletName)
 	{
 		var dialogResult = await NavigateDialogAsync(
@@ -116,18 +128,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			}
 		}
 	}
-
-	public bool IsMnemonicsValid => CurrentMnemonics is { IsValidChecksum: true };
-
-	public IObservable<bool> NextCommandCanExecute { get; }
-
-	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
-
-	private KeyPath AccountKeyPath { get; set; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
-
-	private int MinGapLimit { get; set; } = 114;
-
-	public ObservableCollection<string> Mnemonics { get; } = new();
 
 	private void ValidateMnemonics(IValidationErrors errors)
 	{
