@@ -19,8 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [NavigationMetaData(Title = "Verify Recovery Words")]
 public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
-
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
@@ -28,8 +26,6 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 	public VerifyRecoveryWordsViewModel(Wallet wallet)
 	{
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-
-		_wallet = wallet;
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
@@ -44,10 +40,10 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		NextCommand = ReactiveCommand.CreateFromTask(
-			async () => await OnNextAsync());
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet));
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		EnableAutoBusyOn(NextCommand);
 	}
 
 	private async Task ShowErrorAsync()
@@ -57,10 +53,8 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			"The Recovery Words you entered were incorrect.");
 	}
 
-	private async Task OnNextAsync()
+	private async Task OnNextAsync(Wallet wallet)
 	{
-		IsBusy = true;
-
 		try
 		{
 			if (!IsMnemonicsValid)
@@ -68,21 +62,20 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 				await ShowErrorAsync();
 
 				Mnemonics.Clear();
-				IsBusy = false;
 				return;
 			}
 
 			if (_currentMnemonics is { })
 			{
-				var saltSoup = _wallet.Kitchen.SaltSoup();
+				var saltSoup = wallet.Kitchen.SaltSoup();
 
-				var recovered = KeyManager.Recover(_currentMnemonics, saltSoup, _wallet.Network,
-					_wallet.KeyManager.SegwitAccountKeyPath,
+				var recovered = KeyManager.Recover(_currentMnemonics, saltSoup, wallet.Network,
+					wallet.KeyManager.SegwitAccountKeyPath,
 					null,
 					null,
-					_wallet.KeyManager.MinGapLimit);
+					wallet.KeyManager.MinGapLimit);
 
-				if (_wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
+				if (wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey)
 				{
 					Navigate().To(new SuccessViewModel("Your Recovery Words have been verified and are correct."),
 						NavigationMode.Clear);
@@ -100,8 +93,6 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 			// TODO navigate to error dialog.
 			Logger.LogError(ex);
 		}
-
-		IsBusy = false;
 	}
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
